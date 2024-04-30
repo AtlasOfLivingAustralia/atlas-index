@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tiled WMS</title>
+
+  <link rel="stylesheet" href="../stylesheets/leaflet.css"/>
+
+  <script src="../javascripts/leaflet.js"></script>
+  <style>
+    #map {
+      height: 100px;
+      width: 100px;
+    }
+
+    .envDiv {
+      padding: 20px;
+    }
+
+    #env {
+      font-family: "Lucida Console", Courier, monospace;
+    }
+
+    .mapTd {
+      vertical-align: top;
+    }
+
+    .infoTable tr td {
+      padding: 5px;
+      display: block;
+      width: 800px;
+    }
+
+    .infoTable {
+      border: 1px solid;
+      width: 30%;
+    }
+
+    .infoTable tr:nth-child(odd) {
+      background-color: #dddddd;
+    }
+
+    span {
+      word-break: break-word;
+    }
+
+    .code {
+      font-family: "Lucida Console", Courier, monospace;
+      font-weight: bold;
+    }
+    .updateButton {
+      background-color: #c44d34;
+      color: white;
+    }
+    .activeClick {
+      text-underline: #c44d34;
+      color: #c44d34;
+      cursor: pointer;
+    }
+
+    body {
+      margin: 10px;
+      font-family: "Roboto", sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #212121;
+      text-align: left;
+      background-color: #fff;
+    }
+
+    .inputs {
+      float: right;
+      margin-bottom: 10px;
+    }
+
+  </style>
+</head>
+<body>
+<h1>Simple WMS Example</h1>
+<table class="mainTable">
+  <tr>
+    <td>
+      <table class="infoTable">
+        <tr>
+          <td><span class="code">size</span> (1 - n). Ignored when exceeding internal limits. (a different parameter applies to colormode=grid)
+            <br/>
+            <div class="inputs">
+              <input id="size" value="5" onchange="updateLayer()"/>
+              <button onclick="document.getElementById('size').value = parseInt(document.getElementById('size').value) + 1; updateLayer()">+</button>
+              <button onclick="document.getElementById('size').value = parseInt(document.getElementById('size').value) - 1; updateLayer()">-</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="code">outline</span> (true, false). Ignored when colormode = grid. (there is also an outline colour parameter)
+            <br/>
+            <div class="inputs">
+              <input id="outline" value="false" onchange="updateLayer()"/>
+              <button onclick="document.getElementById('outline').value = document.getElementById('outline').value === 'true' ? 'false' : 'true'; updateLayer()">toggle</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="code">q</span> query string. All other query parameters are supported by the service. This is a limited example. e.g.
+            <ul>
+              <li><span class="activeClick" onclick='document.getElementById("query").value="vernacularName:\"Red Kangaroo\"";updateLayer();'>vernacularName:"Red Kangaroo"</span></li>
+              <li><span class="activeClick" onclick='document.getElementById("query").value="Eucalyptus";updateLayer();'>Eucalyptus</span></li>
+              <li><span class="activeClick" onclick='document.getElementById("query").value="eventDate:[2024-01-01T00:00:00Z TO *]";updateLayer();'>eventDate:[2024-01-01T00:00:00Z TO *]</span></li>
+            </ul>
+            Other resources;
+            <ul>
+              <li>A <a href="https://biocache.ala.org.au/fields">list of fields</a> or <a href="https://biocache.ala.org.au/ws/index/fields">as JSON</a>. Indexed fields can be queried. Different queries formats are expected depending on the dataType
+                <ul>
+                  <li>string: Exact values are expected. Wrap in double quotes. e.g.
+                    <span class="activeClick" onclick='document.getElementById("query").value="scientificName:\"Osphranter rufus\"";updateLayer();'>scientificName:"Osphranter rufus"</span>
+                  </li>
+                  <li>numeric types: Exact value and range searches are available. e.g.
+                    <span class="activeClick" onclick='document.getElementById("query").value="el10978:[* TO 5]";updateLayer();'>el10978:[* TO 5]</span>
+                  </li>
+                  <li>date: Exact value and range searches are available. e.g.
+                    <span class="activeClick" onclick='document.getElementById("query").value="eventDate:[2020-01-01T00:00:00Z TO 2020-12-31T23:59:59Z]";updateLayer();'>eventDate:[2020-01-01T00:00:00Z TO 2020-12-31T23:59:59Z]</span>
+                  </li>
+                  <li>text_* named fields: Case insenstive exact term,single word, or single word wildcard searches are available. e.g.
+                    <span class="activeClick" onclick='document.getElementById("query").value="text_datasetName:iNat*";updateLayer();'>text_datasetName:iNat*</span>
+                  </li>
+                  <li>
+                    <a href="https://biocache.ala.org.au">biocache</a> and <a href="https://spatial.ala.org.au">spatial portal</a> can be used to refine searches for more complex queries.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+
+            <br/>
+            <div class="inputs">
+              <textarea id="query" onchange="updateLayer()"  rows="8" cols="50">Eucalyptus</textarea>
+            </div>
+
+          </td>
+        </tr>
+        <tr>
+          <td><span class="code">colormode</span> type of display.
+            <ul>
+              <li>
+                <span class="activeClick" onclick="document.getElementById('colormode').value='-1';updateLayer();">-1</span>: Circles of colour. Vary with size. Supports outline.
+              </li>
+              <li>
+                <span class="activeClick" onclick="document.getElementById('colormode').value='grid';updateLayer();">grid</span>: Density grid. Vary with size.
+              </li>
+              <li>
+                <span class="activeClick" onclick="document.getElementById('colormode').value='hexbin';updateLayer();">hexbin</span>: Hex grid. Vary with size. Supports outline. Supports colour ramp.
+              </li>
+              <li>
+                <span class="code">{field}</span>: Circles coloured by the selected <a href="http://biocache.ala.org.au/fields">indexed field name</a>. Vary with size. Supports outline.
+                e.g. <span class="activeClick" onclick="document.getElementById('colormode').value='month';updateLayer();">month</span>,
+                <span class="activeClick" onclick="document.getElementById('colormode').value='scientificName';updateLayer();">scientificName</span>,
+                <span class="activeClick" onclick="document.getElementById('colormode').value='basisOfRecord';updateLayer();">basisOfRecord</span>
+              </li>
+            </ul>
+            <br/>
+            <div class="inputs">
+              <input id="colormode" value="hexbin" onchange="updateLayer()" style="width:100px"/>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><span class="code">color</span> to use. (TODO: some explanation about the map legend)
+            <ul>
+              <li>Padded hexadecimal RGB. Used when colormode = -1. e.g.
+                <span class="activeClick" onclick="document.getElementById('colormode').value='-1';document.getElementById('color').value='FF0000';updateLayer();">FF0000</span> (red),
+                <span class="activeClick" onclick="document.getElementById('colormode').value='-1';document.getElementById('color').value='00FF00';updateLayer();">00FF00</span> (green).</li>
+              <li>Colour ramp. Used when colormode = hexbin. Comma delimited ARGB + Pairs of count and ARGB.
+                </br>
+                e.g. <span class="activeClick" onclick="document.getElementById('colormode').value='hexbin';document.getElementById('color').value='56FFFF00,10,56FFCC00,100,77FF9900,1000,AAFF6600,10000,FFD60A00';updateLayer();">56FFFF00,10,56FFCC00,100,77FF9900,1000,AAFF6600,10000,FFD60A00</span>.
+                </br>
+                Translates as:
+                <ul>
+                  <li>occurrence count <= 10 then use 56FFFF00</li>
+                  <li>occurrence count <= 100 then use 56FFCC00</li>
+                  <li>occurrence count <= 1000 then use 77FF9900</li>
+                  <li>occurrence count <= 10000 then use AAFF6600</li>
+                  <li>occurrence count > 10000 then use FFD60A00</li>
+                </ul>
+              </li>
+            </ul>
+            <br/>
+            <div class="inputs">
+              <input id="color" value="56FFFF00,10,56FFCC00,100,77FF9900,1000,AAFF6600,10000,FFD60A00" onchange="updateLayer()" style="width:600px"/>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>Style parameters</span>
+            <br/>
+            <div class="inputs envDiv">
+              <span id="env">&ENV=size%3A5%3Bcolormode%3Ahexbin%3Bcolor%3A56FFFF00%2C10%2C56FFCC00%2C100%2C77FF9900%2C1000%2CAAFF6600%2C10000%2CFFD60A00&outline=false&q=Eucalyptus</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="inputs">
+              <button class="updateButton" onclick="updateLayer()">Update</button>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td class="mapTd">
+      <div id="map"></div>
+      <div>
+        <span class="code">TODO: legend</span>
+      </div>
+    </td>
+  </tr>
+</table>
+
+
+<script defer="true">
+
+  var map = L.map('map').setView([-28, 130], 3);
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const occurrencesUrl = urlParams.get('occurrencesUrl');
+
+  L.tileLayer('https://spatial.ala.org.au/osm/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  var layer = L.tileLayer.wms(occurrencesUrl + '/mapping/wms/reflect?', {
+    name: 'Object',
+    q: "Eucalyptus",
+    ENV: "size:5;colormode:hexbin;color:56FFFF00,10,56FFCC00,100,77FF9900,1000,AAFF6600,10000,FFD60A00",
+    outline: "false"
+  }).addTo(map);
+
+  document.getElementById("map").style.width = (window.innerWidth / 3) +"px";
+  document.getElementById("map").style.height = (window.innerHeight / 3) +"px";
+  map.invalidateSize();
+
+  function updateLayer() {
+
+    var size = document.getElementById("size").value
+    var outline = document.getElementById("outline").value
+
+    var color = document.getElementById("color").value
+    var colormode = document.getElementById("colormode").value
+
+    var query = document.getElementById("query").value
+
+    var env = "size:" + size + ";colormode:" + colormode + ";color:" + color
+
+    document.getElementById("env").innerText = "&ENV=" + encodeURIComponent(env) + "&outline=" + outline + "&q=" + encodeURIComponent(query)
+
+    layer.remove()
+
+    layer = L.tileLayer.wms(occurrencesUrl + '/mapping/wms/reflect?', {
+      name: 'Object',
+      q: query,
+      ENV: env,
+      outline: outline,
+      tileSize: 512
+    }).addTo(map);
+
+    // document.getElementById("legend").src = occurrencesUrl + '/mapping/'
+
+
+  }
+</script>
+</body>
+</html>

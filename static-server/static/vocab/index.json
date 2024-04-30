@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "usage": "Each category has a 'path' to a vocabulary JSON file. These files have a minumum .properties.title, .properties.description, .items[term].description and .items[term].url"
+  },
+  "categories": [
+    {
+      "name": "assertions",
+      "path": "assertions.json",
+      "title": "Assertions codes in the field {occurrence-fields.assertions}",
+      "description": "Sourced from https://biocache-ws.ala.org.au/ws/assertions/codes"
+    },
+    {
+      "name": "occurrence-fields",
+      "path": "occurrence-fields.json",
+      "title": "Assertions codes in the field {assertions}",
+      "description": "Sourced from https://biocache-ws.ala.org.au/ws/index/fields"
+    }
+  ]
+}

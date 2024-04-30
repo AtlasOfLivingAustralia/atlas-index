@@ -1,0 +1,1444 @@
+{
+  "properties" : {
+    "title": "Assertions codes in the field {occurrence-fields.assertions}",
+    "description": "Sourced from https://biocache-ws.ala.org.au/ws/assertions/codes",
+    "defaults": {
+      "url": "https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/{0}"
+    }
+  },
+  "items" : {
+    "AMBIGUOUS_COLLECTION": {
+      "description": "Ambiguous collection",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "collectionID",
+        "collectionCode"
+      ]
+    },
+    "AMBIGUOUS_INSTITUTION": {
+      "description": "Ambiguous institution",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "institutionID",
+        "ownerInstitutionCode",
+        "institutionCode"
+      ]
+    },
+    "BASIS_OF_RECORD_INVALID": {
+      "description": "Basis of record badly formed",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "basisOfRecord"
+      ]
+    },
+    "biosecurityIssue": {
+      "description": "Biosecurity issue",
+      "category": "Error",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "COLLECTION_MATCH_FUZZY": {
+      "description": "Collection match fuzzy",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "collectionID",
+        "collectionCode"
+      ]
+    },
+    "COLLECTION_MATCH_NONE": {
+      "description": "Collection not matched",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "collectionID",
+        "collectionCode"
+      ]
+    },
+    "CONTINENT_COORDINATE_MISMATCH": {
+      "description": "continent coordinate mismatch",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "CONTINENT_COUNTRY_MISMATCH": {
+      "description": "Continent country mismatch",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "CONTINENT_DERIVED_FROM_COORDINATES": {
+      "description": "Continent derived from coordinates",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "CONTINENT_DERIVED_FROM_COUNTRY": {
+      "description": "continent derived from country",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "CONTINENT_INVALID": {
+      "description": "Continent invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "COORDINATE_INVALID": {
+      "description": "Coordinate invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "COORDINATE_OUT_OF_RANGE": {
+      "description": "Coordinates are out of range for species",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "COORDINATE_PRECISION_INVALID": {
+      "description": "Coordinate precision invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "coordinatePrecision"
+      ]
+    },
+    "COORDINATE_REPROJECTED": {
+      "description": "Coordinates converted to WGS84",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "geodeticDatum",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "COORDINATE_REPROJECTION_FAILED": {
+      "description": "Decimal latitude/longitude conversion failed",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "geodeticDatum",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "COORDINATE_REPROJECTION_SUSPICIOUS": {
+      "description": "Coordinate reprojection suspicious",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "geodeticDatum",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "COORDINATE_ROUNDED": {
+      "description": "Coordinate rounded",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "COORDINATE_UNCERTAINTY_METERS_INVALID": {
+      "description": "Coordinate uncertainty meters invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "coordinateUncertaintyInMeters"
+      ]
+    },
+    "COORDINATES_CENTRE_OF_COUNTRY": {
+      "description": "Coordinates centre of country",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates",
+        "geodeticDatum",
+        "country",
+        "countryCode"
+      ]
+    },
+    "COORDINATES_CENTRE_OF_STATEPROVINCE": {
+      "description": "Supplied coordinates centre of state",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates"
+      ]
+    },
+    "COUNTRY_COORDINATE_MISMATCH": {
+      "description": "Coordinates dont match supplied country",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "countryCode",
+        "geodeticDatum",
+        "decimalLatitude",
+        "decimalLongitude",
+        "country",
+        "verbatimLongitude"
+      ]
+    },
+    "COUNTRY_DERIVED_FROM_COORDINATES": {
+      "description": "Country inferred from coordinates",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "countryCode",
+        "geodeticDatum",
+        "decimalLatitude",
+        "decimalLongitude",
+        "country",
+        "verbatimLongitude"
+      ]
+    },
+    "COUNTRY_INVALID": {
+      "description": "Country invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "countryCode",
+        "country"
+      ]
+    },
+    "COUNTRY_MISMATCH": {
+      "description": "Country mismatch",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "countryCode",
+        "country"
+      ]
+    },
+    "DEPTH_MIN_MAX_SWAPPED": {
+      "description": "Min and max depth reversed",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumDepthInMeters",
+        "maximumDepthInMeters"
+      ]
+    },
+    "DEPTH_NON_NUMERIC": {
+      "description": "Depth value non-numeric",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumDepthInMeters",
+        "maximumDepthInMeters"
+      ]
+    },
+    "DEPTH_NOT_METRIC": {
+      "description": "Depth value supplied in feet",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumDepthInMeters",
+        "maximumDepthInMeters"
+      ]
+    },
+    "DEPTH_UNLIKELY": {
+      "description": "Depth unlikely",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumDepthInMeters",
+        "maximumDepthInMeters"
+      ]
+    },
+    "detectedOutlier": {
+      "description": "Suspected outlier",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": []
+    },
+    "DIFFERENT_OWNER_INSTITUTION": {
+      "description": "Different owner institution",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "institutionID",
+        "ownerInstitutionCode",
+        "institutionCode"
+      ]
+    },
+    "ELEVATION_MIN_MAX_SWAPPED": {
+      "description": "Min and max altitude reversed",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumElevationInMeters",
+        "maximumElevationInMeters"
+      ]
+    },
+    "ELEVATION_NON_NUMERIC": {
+      "description": "Altitude value non-numeric",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumElevationInMeters",
+        "maximumElevationInMeters"
+      ]
+    },
+    "ELEVATION_NOT_METRIC": {
+      "description": "Altitude value supplied in feet",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumElevationInMeters",
+        "maximumElevationInMeters"
+      ]
+    },
+    "ELEVATION_UNLIKELY": {
+      "description": "Elevation unlikely",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "minimumElevationInMeters",
+        "maximumElevationInMeters"
+      ]
+    },
+    "FIRST_OF_CENTURY": {
+      "description": "First of the century",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "FIRST_OF_MONTH": {
+      "description": "First of the month",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "FIRST_OF_YEAR": {
+      "description": "First of the year",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "FOOTPRINT_SRS_INVALID": {
+      "description": "Footprint SRS invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "footprintSRS"
+      ]
+    },
+    "FOOTPRINT_WKT_INVALID": {
+      "description": "Footprint WKT invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "footprintWKT"
+      ]
+    },
+    "FOOTPRINT_WKT_MISMATCH": {
+      "description": "Footprint WKT mismatch",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "footprintWKT"
+      ]
+    },
+    "GEODETIC_DATUM_ASSUMED_WGS84": {
+      "description": "Geodetic datum assumed WGS84",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "geodeticDatum"
+      ]
+    },
+    "GEODETIC_DATUM_INVALID": {
+      "description": "Unrecognized geodetic datum",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "geodeticDatum"
+      ]
+    },
+    "GEOREFERENCE_POST_OCCURRENCE": {
+      "description": "Georeferenced after occurrence date",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "GEOREFERENCED_DATE_INVALID": {
+      "description": "Georeferenced date invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedDate"
+      ]
+    },
+    "GEOREFERENCED_DATE_UNLIKELY": {
+      "description": "Georeferenced date unlikely",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedDate"
+      ]
+    },
+    "geospatialIssue": {
+      "description": "Geospatial issue",
+      "category": "Warning",
+      "fatal": true,
+      "termsRequiredToTest": []
+    },
+    "habitatMismatch": {
+      "description": "Habitat incorrect for species",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": []
+    },
+    "ID_PRE_OCCURRENCE": {
+      "description": "Identification date before occurrence date",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "identificationIncorrect": {
+      "description": "Taxon misidentified",
+      "category": "Error",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "IDENTIFIED_DATE_INVALID": {
+      "description": "Identified date invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "dateIdentified"
+      ]
+    },
+    "IDENTIFIED_DATE_UNLIKELY": {
+      "description": "Identified date unlikely",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "dateIdentified"
+      ]
+    },
+    "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS": {
+      "description": "Individual count conflicts with occurrence status",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "individualCount"
+      ]
+    },
+    "INDIVIDUAL_COUNT_INVALID": {
+      "description": "Individual count invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "individualCount"
+      ]
+    },
+    "INSTITUTION_COLLECTION_MISMATCH": {
+      "description": "Institution and Collection mismatch",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "institutionID",
+        "ownerInstitutionCode",
+        "institutionCode"
+      ]
+    },
+    "INSTITUTION_MATCH_FUZZY": {
+      "description": "Institution match fuzzy",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "institutionID",
+        "ownerInstitutionCode",
+        "institutionCode"
+      ]
+    },
+    "INSTITUTION_MATCH_NONE": {
+      "description": "Institution not matched",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "institutionID",
+        "ownerInstitutionCode",
+        "institutionCode"
+      ]
+    },
+    "INTERPRETATION_ERROR": {
+      "description": "Interpretation error",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": []
+    },
+    "INVALID_SCIENTIFIC_NAME": {
+      "description": "Invalid scientific name",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "LOCATION_NOT_SUPPLIED": {
+      "description": "Location not supplied",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates"
+      ]
+    },
+    "MISSING_COLLECTION_DATE": {
+      "description": "Missing collection date",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "year",
+        "month",
+        "day"
+      ]
+    },
+    "MISSING_GEODETICDATUM": {
+      "description": "Missing geodetic datum",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedBy",
+        "georeferencedDate",
+        "georeferenceRemarks",
+        "georeferenceProtocol",
+        "georeferenceSources",
+        "georeferenceVerificationStatus",
+        "geodeticDatum"
+      ]
+    },
+    "MISSING_GEOREFERENCE_DATE": {
+      "description": "Missing georeference date",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedBy",
+        "georeferencedDate",
+        "georeferenceRemarks",
+        "georeferenceProtocol",
+        "georeferenceSources",
+        "georeferenceVerificationStatus",
+        "geodeticDatum"
+      ]
+    },
+    "MISSING_GEOREFERENCEDBY": {
+      "description": "Missing georeferenced by",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedBy",
+        "georeferencedDate",
+        "georeferenceRemarks",
+        "georeferenceProtocol",
+        "georeferenceSources",
+        "georeferenceVerificationStatus",
+        "geodeticDatum"
+      ]
+    },
+    "MISSING_GEOREFERENCEPROTOCOL": {
+      "description": "Missing georeference protocol",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedBy",
+        "georeferencedDate",
+        "georeferenceRemarks",
+        "georeferenceProtocol",
+        "georeferenceSources",
+        "georeferenceVerificationStatus",
+        "geodeticDatum"
+      ]
+    },
+    "MISSING_GEOREFERENCESOURCES": {
+      "description": "Missing georeference sources",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedBy",
+        "georeferencedDate",
+        "georeferenceRemarks",
+        "georeferenceProtocol",
+        "georeferenceSources",
+        "georeferenceVerificationStatus",
+        "geodeticDatum"
+      ]
+    },
+    "MISSING_GEOREFERENCEVERIFICATIONSTATUS": {
+      "description": "Missing georeference verification status",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "georeferencedBy",
+        "georeferencedDate",
+        "georeferenceRemarks",
+        "georeferenceProtocol",
+        "georeferenceSources",
+        "georeferenceVerificationStatus",
+        "geodeticDatum"
+      ]
+    },
+    "MISSING_TAXONRANK": {
+      "description": "Missing taxon rank",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "MODIFIED_DATE_INVALID": {
+      "description": "Modified date invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "modified"
+      ]
+    },
+    "MODIFIED_DATE_UNLIKELY": {
+      "description": "Modified date unlikely",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "modified"
+      ]
+    },
+    "MULTIMEDIA_DATE_INVALID": {
+      "description": "Multimedia date invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "MULTIMEDIA_URI_INVALID": {
+      "description": "Multimedia uri invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "NAME_NOT_SUPPLIED": {
+      "description": "Name not supplied",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD": {
+      "description": "Occurrence status inferred from basis of record",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "occurrenceStatus"
+      ]
+    },
+    "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT": {
+      "description": "Occurrence status inferred from individual count",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "occurrenceStatus"
+      ]
+    },
+    "OCCURRENCE_STATUS_UNPARSABLE": {
+      "description": "Occurrence status unparsable",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "occurrenceStatus"
+      ]
+    },
+    "PRESUMED_NEGATED_LATITUDE": {
+      "description": "Latitude is negated",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "PRESUMED_NEGATED_LONGITUDE": {
+      "description": "Longitude is negated",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "PRESUMED_SWAPPED_COORDINATE": {
+      "description": "Presumed swapped coordinate",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    },
+    "RECORDED_DATE_INVALID": {
+      "description": "Recorded date invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "day",
+        "year",
+        "month"
+      ]
+    },
+    "RECORDED_DATE_MISMATCH": {
+      "description": "Recorded date mismatch",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "day",
+        "year",
+        "month"
+      ]
+    },
+    "RECORDED_DATE_UNLIKELY": {
+      "description": "Recorded date unlikely",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "eventDate",
+        "day",
+        "year",
+        "month"
+      ]
+    },
+    "REFERENCES_URI_INVALID": {
+      "description": "References uri invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "references"
+      ]
+    },
+    "SCIENTIFIC_NAME_AND_ID_INCONSISTENT": {
+      "description": "scientific name and id inconsistent",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "taxonID",
+        "scientificNameID",
+        "scientificName",
+        "taxonConceptID"
+      ]
+    },
+    "SCIENTIFIC_NAME_ID_NOT_FOUND": {
+      "description": "scientific name id not found",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "scientificNameID"
+      ]
+    },
+    "SENSITIVITY_REPORT_INVALID": {
+      "description": "Sensitivity report invalid",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": [
+        "scientificName",
+        "taxonConceptID",
+        "decimalLatitude",
+        "decimalLongitude",
+        "eventDate"
+      ]
+    },
+    "SENSITIVITY_REPORT_NOT_LOADABLE": {
+      "description": "Sensitivity report not loadable",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": [
+        "scientificName",
+        "taxonConceptID",
+        "decimalLatitude",
+        "decimalLongitude",
+        "eventDate"
+      ]
+    },
+    "STATE_COORDINATE_MISMATCH": {
+      "description": "Coordinates dont match supplied state",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates",
+        "geodeticDatum",
+        "country",
+        "countryCode"
+      ]
+    },
+    "TAXON_AFFINITY_SPECIES": {
+      "description": "Taxon affinity species",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_CONCEPT_ID_NOT_FOUND": {
+      "description": "taxon concept id not found",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "taxonConceptID"
+      ]
+    },
+    "TAXON_CONFER_SPECIES": {
+      "description": "Taxon confer species",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_DEFAULT_MATCH": {
+      "description": "Taxon default match",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_ERROR": {
+      "description": "Taxon error",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_EXCLUDED": {
+      "description": "Taxon excluded",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_EXCLUDED_ASSOCIATED": {
+      "description": "Taxon excluded associated",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_HOMONYM": {
+      "description": "Taxon homonym",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_ID_NOT_FOUND": {
+      "description": "taxon id not found",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "taxonID"
+      ]
+    },
+    "TAXON_INDETERMINATE_SPECIES": {
+      "description": "Taxon indeterminate species",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_MATCH_AGGREGATE": {
+      "description": "Taxon match aggregate",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "infraspecificEpithet",
+        "scientificNameAuthorship",
+        "genericName",
+        "scientificNameID",
+        "order",
+        "specificEpithet",
+        "taxonConceptID",
+        "family",
+        "class",
+        "genus",
+        "scientificName",
+        "phylum",
+        "kingdom"
+      ]
+    },
+    "TAXON_MATCH_FUZZY": {
+      "description": "Taxon match fuzzy",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "infraspecificEpithet",
+        "scientificNameAuthorship",
+        "genericName",
+        "scientificNameID",
+        "order",
+        "specificEpithet",
+        "taxonConceptID",
+        "family",
+        "class",
+        "genus",
+        "scientificName",
+        "phylum",
+        "kingdom"
+      ]
+    },
+    "TAXON_MATCH_HIGHERRANK": {
+      "description": "Taxon match higher rank",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "infraspecificEpithet",
+        "scientificNameAuthorship",
+        "genericName",
+        "scientificNameID",
+        "order",
+        "specificEpithet",
+        "taxonConceptID",
+        "family",
+        "class",
+        "genus",
+        "scientificName",
+        "phylum",
+        "kingdom"
+      ]
+    },
+    "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS": {
+      "description": "taxon match name and id ambiguous",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "infraspecificEpithet",
+        "scientificNameAuthorship",
+        "genericName",
+        "scientificNameID",
+        "order",
+        "specificEpithet",
+        "taxonConceptID",
+        "family",
+        "class",
+        "genus",
+        "scientificName",
+        "phylum",
+        "kingdom"
+      ]
+    },
+    "TAXON_MATCH_NONE": {
+      "description": "Taxon match none",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "infraspecificEpithet",
+        "scientificNameAuthorship",
+        "genericName",
+        "scientificNameID",
+        "order",
+        "specificEpithet",
+        "taxonConceptID",
+        "family",
+        "class",
+        "genus",
+        "scientificName",
+        "phylum",
+        "kingdom"
+      ]
+    },
+    "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED": {
+      "description": "taxon match scientific name id ignored",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "scientificNameID"
+      ]
+    },
+    "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED": {
+      "description": "taxon match taxon concept id ignored",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "taxonConceptID"
+      ]
+    },
+    "TAXON_MATCH_TAXON_ID_IGNORED": {
+      "description": "taxon match taxon id ignored",
+      "category": "Comment",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "taxonID"
+      ]
+    },
+    "TAXON_MISAPPLIED": {
+      "description": "Taxon misapplied",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_MISAPPLIED_MATCHED": {
+      "description": "Taxon misapplied matched",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_PARENT_CHILD_SYNONYM": {
+      "description": "Taxon parent child synonym",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_QUESTION_SPECIES": {
+      "description": "Taxon question species",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_SCOPE_MISMATCH": {
+      "description": "Resource taxonomic scope mismatch",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "TAXON_SPECIES_PLURAL": {
+      "description": "Taxon species plural",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "taxonomicIssue": {
+      "description": "Taxonomic issue",
+      "category": "Error",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "temporalIssue": {
+      "description": "Temporal issue",
+      "category": "Error",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "TYPE_STATUS_INVALID": {
+      "description": "Type status invalid",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "typeStatus"
+      ]
+    },
+    "UNCERTAINTY_IN_PRECISION": {
+      "description": "Coordinate precision and uncertainty transposed",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates",
+        "geodeticDatum"
+      ]
+    },
+    "UNCERTAINTY_NOT_SPECIFIED": {
+      "description": "Uncertainty not specified",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates",
+        "geodeticDatum"
+      ]
+    },
+    "UNKNOWN_COUNTRY_NAME": {
+      "description": "Supplied country not recognised",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLatitude",
+        "verbatimLongitude",
+        "verbatimCoordinates",
+        "geodeticDatum",
+        "country",
+        "countryCode"
+      ]
+    },
+    "UNKNOWN_KINGDOM": {
+      "description": "Kingdom not recognised",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "kingdom",
+        "phylum",
+        "class",
+        "order",
+        "family",
+        "genus",
+        "scientificName",
+        "scientificNameAuthorship",
+        "genericName",
+        "specificEpithet",
+        "infraspecificEpithet",
+        "taxonRank",
+        "vernacularName"
+      ]
+    },
+    "UNRECOGNISED_COLLECTION_CODE": {
+      "description": "Unrecognized collection code",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": [
+        "collectionCode",
+        "collectionID",
+        "institutionCode",
+        "institutionID"
+      ]
+    },
+    "UNRECOGNISED_INSTITUTION_CODE": {
+      "description": "Unrecognized institution code",
+      "category": "Error",
+      "fatal": true,
+      "termsRequiredToTest": [
+        "collectionCode",
+        "collectionID",
+        "institutionCode",
+        "institutionID"
+      ]
+    },
+    "userAssertionOther": {
+      "description": "Other error",
+      "category": "Error",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "userDuplicateRecord": {
+      "description": "The occurrence appears to be a duplicate",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": []
+    },
+    "ZERO_COORDINATE": {
+      "description": "Supplied coordinates are zero",
+      "category": "Warning",
+      "fatal": false,
+      "termsRequiredToTest": [
+        "verbatimLatitude",
+        "verbatimCoordinates",
+        "decimalLatitude",
+        "decimalLongitude",
+        "verbatimLongitude"
+      ]
+    }
+  }
+}

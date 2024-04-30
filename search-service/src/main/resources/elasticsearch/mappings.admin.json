@@ -1,0 +1,16 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "task": {
+      "type": "keyword"
+    },
+    "message": {
+      "type": "text"
+    },
+    "modified": {
+      "type": "long"
+    }
+  }
+}

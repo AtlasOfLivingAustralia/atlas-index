@@ -1,0 +1,377 @@
+{
+  "properties": {
+    "all": {
+      "type": "text"
+    },
+    "exact_text": {
+      "type": "text"
+    },
+    "auto": {
+      "type": "text",
+      "fields": {
+        "suggest": {
+          "type": "search_as_you_type",
+          "max_shingle_size": 3
+        }
+      }
+    },
+    "prefix": {
+      "type": "text",
+      "analyzer": "autocomplete",
+      "search_analyzer": "standard"
+    },
+    "id": {
+      "type": "keyword",
+      "copy_to": [
+        "all"
+      ]
+    },
+    "guid": {
+      "type": "keyword",
+      "copy_to": [
+        "all"
+      ]
+    },
+    "idxtype": {
+      "type": "keyword"
+    },
+    "name": {
+      "type": "keyword",
+      "copy_to": [
+        "all",
+        "auto",
+        "exact_text",
+        "prefix"
+      ]
+    },
+    "description": {
+      "type": "text"
+    },
+    "linkIdentifier": {
+      "type": "keyword"
+    },
+    "data": {
+      "type": "nested",
+      "properties": {
+      }
+    },
+    "layerId": {
+      "type": "keyword"
+    },
+    "priority": {
+      "type": "float"
+    },
+    "occurrenceCount": {
+      "type": "integer"
+    },
+    "searchWeight": {
+      "type": "float"
+    },
+    "suggestWeight": {
+      "type": "float"
+    },
+    "additionalIdentifiers": {
+      "type": "keyword"
+    },
+    "additionalNames_m_s": {
+      "type": "keyword"
+    },
+    "taxonomicStatus": {
+      "type": "keyword"
+    },
+    "rank": {
+      "type": "keyword"
+    },
+    "fieldId": {
+      "type": "keyword"
+    },
+    "fieldName": {
+      "type": "keyword"
+    },
+    "centroid": {
+      "type": "keyword"
+    },
+    "bbox": {
+      "type": "keyword"
+    },
+    "areaKm": {
+      "type": "double"
+    },
+    "projectType": {
+      "type": "keyword"
+    },
+    "image": {
+      "type": "keyword"
+    },
+    "containsActivity": {
+      "type": "keyword"
+    },
+    "dateCreated": {
+      "type": "keyword"
+    },
+    "keywords": {
+      "type": "keyword"
+    },
+    "datasetID": {
+      "type": "keyword"
+    },
+    "rights": {
+      "type": "keyword"
+    },
+    "license": {
+      "type": "keyword"
+    },
+    "acronym": {
+      "type": "keyword",
+      "copy_to": [
+        "all",
+        "exact_text"
+      ]
+    },
+    "resourceType": {
+      "type": "keyword"
+    },
+    "taxonGuid": {
+      "type": "keyword"
+    },
+    "status": {
+      "type": "keyword"
+    },
+    "nameID": {
+      "type": "keyword"
+    },
+    "language": {
+      "type": "keyword"
+    },
+    "source": {
+      "type": "keyword"
+    },
+    "temporal": {
+      "type": "keyword"
+    },
+    "locationID": {
+      "type": "keyword"
+    },
+    "locality": {
+      "type": "keyword"
+    },
+    "countryCode": {
+      "type": "keyword"
+    },
+    "sex": {
+      "type": "keyword"
+    },
+    "lifeStage": {
+      "type": "keyword"
+    },
+    "isPlural": {
+      "type": "boolean"
+    },
+    "organismPart": {
+      "type": "keyword"
+    },
+    "taxonRemarks": {
+      "type": "keyword"
+    },
+    "provenance": {
+      "type": "keyword"
+    },
+    "labels": {
+      "type": "keyword"
+    },
+    "datasetName": {
+      "type": "keyword"
+    },
+    "rightsHolder": {
+      "type": "keyword"
+    },
+    "subject": {
+      "type": "keyword"
+    },
+    "format": {
+      "type": "keyword"
+    },
+    "parentGuid": {
+      "type": "keyword"
+    },
+    "rankID": {
+      "type": "integer"
+    },
+    "scientificName": {
+      "type": "keyword",
+      "copy_to": [
+        "all",
+        "auto",
+        "exact_text",
+        "prefix"
+      ]
+    },
+    "scientificNameAuthorship": {
+      "type": "keyword"
+    },
+    "nameComplete": {
+      "type": "keyword"
+    },
+    "nameFormatted": {
+      "type": "keyword"
+    },
+    "taxonID": {
+      "type": "keyword"
+    },
+    "acceptedNameUsageID": {
+      "type": "keyword"
+    },
+    "acceptedConceptID": {
+      "type": "keyword"
+    },
+    "acceptedConceptName": {
+      "type": "keyword"
+    },
+    "taxonRank": {
+      "type": "keyword"
+    },
+    "nameType": {
+      "type": "keyword"
+    },
+    "classification1": {
+      "type": "keyword"
+    },
+    "classification2": {
+      "type": "keyword"
+    },
+    "domain": {
+      "type": "keyword"
+    },
+    "type": {
+      "type": "keyword"
+    },
+    "commonName": {
+      "type": "text",
+      "analyzer": "standard",
+      "fields": {
+        "raw": {
+          "type": "text",
+          "analyzer": "alphanumeric"
+        }
+      },
+      "copy_to": [
+        "all",
+        "auto",
+        "prefix"
+      ]
+    },
+    "speciesGroup": {
+      "type": "keyword",
+      "copy_to": [
+        "all"
+      ]
+    },
+    "speciesSubgroup": {
+      "type": "keyword",
+      "copy_to": [
+        "all"
+      ]
+    },
+    "commonNameSingle": {
+      "type": "keyword"
+    },
+    "itemCount": {
+      "type": "integer"
+    },
+    "isAuthoritative": {
+      "type": "boolean"
+    },
+    "isInvasive": {
+      "type": "boolean"
+    },
+    "isThreatened": {
+      "type": "boolean"
+    },
+    "region": {
+      "type": "keyword"
+    },
+    "hiddenImages_s": {
+      "type": "keyword"
+    },
+    "preferred": {
+      "type": "keyword"
+    },
+    "wikiUrl_s": {
+      "type": "keyword"
+    },
+    "nomenclaturalCode": {
+      "type": "keyword"
+    },
+    "establishmentMeans": {
+      "type": "keyword"
+    },
+    "taxonConceptID": {
+      "type": "keyword"
+    },
+    "scientificNameID": {
+      "type": "keyword"
+    },
+    "nomenclaturalStatus": {
+      "type": "keyword"
+    },
+    "nameAccordingTo": {
+      "type": "keyword"
+    },
+    "nameAccordingToID": {
+      "type": "keyword"
+    },
+    "namePublishedIn": {
+      "type": "keyword"
+    },
+    "namePublishedInID": {
+      "type": "keyword"
+    },
+    "namePublishedInYear": {
+      "type": "keyword"
+    },
+    "verbatimNomenclaturalCode": {
+      "type": "keyword"
+    },
+    "verbatimNomenclaturalStatus": {
+      "type": "keyword"
+    },
+    "verbatimTaxonomicStatus": {
+      "type": "keyword"
+    },
+    "isPreferredName": {
+      "type": "keyword"
+    },
+    "nameVariant": {
+      "type": "keyword"
+    }
+  },
+  "dynamic_templates": [
+    {
+      "rk_template": {
+        "path_match": "data.rk*",
+        "mapping": {
+          "type": "keyword"
+        }
+      }
+    },
+    {
+      "s_template": {
+        "match": "*_s",
+        "mapping": {
+          "type": "keyword"
+        }
+      }
+    },
+    {
+      "conservation_template": {
+        "path_match": "data.conservation_*",
+        "mapping": {
+          "type": "keyword",
+          "copy_to": [
+            "all"
+          ]
+        }
+      }
+    }
+  ]
+}

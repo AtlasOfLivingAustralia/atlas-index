@@ -1,0 +1,28 @@
+{
+  "global": {
+    "message": "",
+    "severity": "INFO",
+    "updated": "2024-03-04T00:00+10:00"
+  },
+  "species-lists": {
+    "message": "",
+    "severity": "INFO",
+    "updated": "2024-03-04T00:00+10:00"
+  },
+  "test-warning": {
+    "message": "This is a test in the style of WARNING. <a href=\"ala.org.au\">ALA Home</a>",
+    "severity": "WARNING",
+    "updated": "2024-03-04T00:00+10:00"
+  },
+  "test-info": {
+    "message": "This is a test in the style of INFO. <a href=\"ala.org.au\">ALA Home</a>",
+    "severity": "INFO",
+    "updated": "2024-03-04T00:00+10:00"
+  },
+  "test-danger": {
+    "message": "This is a test in the style of DANGER. <a href=\"ala.org.au\">ALA Home</a>",
+    "severity": "DANGER",
+    "updated": "2024-03-04T00:00+10:00"
+  }
+}
+

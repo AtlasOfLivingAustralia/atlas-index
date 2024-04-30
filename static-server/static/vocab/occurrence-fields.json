@@ -1,0 +1,24 @@
+{
+  "properties" : {
+    "title": "Assertions codes in the field {occurrence-fields.assertions}",
+    "description": "Sourced from https://biocache-ws.ala.org.au/ws/assertions/codes",
+    "defaults": {
+      "url": "https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/{0}"
+    }
+  },
+  "items": {
+    "assertions": {
+      "jsonName": "assertions",
+      "downloadName": "assertions",
+      "dataType": "string",
+      "indexed": true,
+      "docvalue": true,
+      "stored": true,
+      "multivalue": true,
+      "i18nValues": true,
+      "description": "Record issues",
+      "info": "A list of all assertions (user and system supplied) for a record resulting from data quality tests",
+      "infoUrl": "https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/assertions"
+    }
+  }
+}

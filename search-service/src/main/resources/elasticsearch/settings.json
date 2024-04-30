@@ -1,0 +1,56 @@
+{
+  "analysis": {
+    "tokenizer": {
+      "binomial_ngram_tokenizer": {
+        "type": "ngram",
+        "min_gram": 2,
+        "max_gram": 2,
+        "token_chars": [
+          "letter",
+          "digit"
+        ]
+      }
+    },
+    "filter": {
+      "autocomplete_filter": {
+        "type": "edge_ngram",
+        "min_gram": 1,
+        "max_gram": 10
+      }
+    },
+    "analyzer": {
+      "partial_binomial_analyzer": {
+        "type": "custom",
+        "tokenizer": "binomial_ngram_tokenizer",
+        "filter": [
+          "lowercase"
+        ]
+      },
+      "alphanumeric": {
+        "tokenizer": "keyword",
+        "char_filter": [
+          "alphanumeric"
+        ],
+        "filter": [
+          "lowercase",
+          "trim"
+        ]
+      },
+      "autocomplete": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": [
+          "lowercase",
+          "autocomplete_filter"
+        ]
+      }
+    },
+    "char_filter": {
+      "alphanumeric": {
+        "pattern": "[^\\p{L}\\p{Nd}]",
+        "type": "pattern_replace",
+        "replacement": ""
+      }
+    }
+  }
+}

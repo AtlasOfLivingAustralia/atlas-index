@@ -1,0 +1,30 @@
+package au.org.ala.search.util.auth;
+
+import okhttp3.Interceptor;
+import okhttp3.Response;
+
+import java.io.IOException;
+
+// TODO: move this and related classes into ala-security-project
+
+/**
+ * okhttp interceptor that inserts a bearer token into the request
+ */
+public class TokenInterceptor implements Interceptor {
+
+    private final TokenService tokenService;
+
+    public TokenInterceptor(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
+
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        return chain.proceed(
+                chain.request().newBuilder()
+                        .addHeader("Authorization", tokenService.getAuthToken(false, null, null).toAuthorizationHeader())
+                        .build()
+        );
+    }
+
+}
