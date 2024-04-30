@@ -8,8 +8,6 @@
     <name>names-extract</name>
     <description>Extract CSV files from lucene names index for information not in DwCA</description>
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <repositories>

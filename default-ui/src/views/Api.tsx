@@ -30,15 +30,14 @@ function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     }
 
     function substituteVite(text: string): string {
-        return text.replace(/import.meta.env.VITE_APP_BIOCACHE_URL/g, import.meta.env.VITE_APP_BIOCACHE_URL);
+        return text.replace(/env.VITE_APP_BIOCACHE_URL/g, import.meta.env.VITE_APP_BIOCACHE_URL);
     }
 
     // Create the layout component
     class OperationsLayout extends React.Component {
         render() {
-            const {
-                getComponent
-            } = this.props
+            // @ts-ignore
+            const { getComponent } = this.props
             const Operations = getComponent("operations", true)
             return (
                 <div className="swagger-ui">

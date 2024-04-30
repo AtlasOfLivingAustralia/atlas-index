@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+        xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <modules>
+        <module>default-ui</module>
+        <module>names-extract</module>
+        <module>search-service</module>
+        <module>search-test</module>
+<!--        <module>static-server</module>-->
+    </modules>
+
+    <groupId>au.org.ala</groupId>
+    <artifactId>atlas-index</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <targetJdk>21</targetJdk>
+        <maven.compiler.source>${targetJdk}</maven.compiler.source>
+        <maven.compiler.target>${targetJdk}</maven.compiler.target>
+    </properties>
+
+    <dependencyManagement>
+    </dependencyManagement>
+
+    <dependencies>
+    </dependencies>
+
+    <build>
+        <plugins>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <!-- profile gets activated by travis and (crucially) skips the git-commit plugin -->
+            <id>travis</id>
+            <build>
+            </build>
+        </profile>
+        <profile>
+            <id>nexus</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <repositories>
+                <repository>
+                    <id>ala-nexus</id>
+                    <name>ALA Nexus Repository</name>
+                    <url>https://nexus.ala.org.au/content/groups/public/</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+
+            <distributionManagement>
+                <repository>
+                    <id>ala-repo-release</id>
+                    <name>ALA Internal Releases</name>
+                    <url>https://nexus.ala.org.au/content/repositories/releases/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>ala-repo-snapshot</id>
+                    <name>ALA Internal Snapshots</name>
+                    <url>https://nexus.ala.org.au/content/repositories/snapshots/</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+</project>

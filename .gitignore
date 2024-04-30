@@ -1,6 +1,9 @@
 HELP.md
 target/
 node_modules/
+dist/
+node/
+.env.local
 
 ### STS ###
 .apt_generated

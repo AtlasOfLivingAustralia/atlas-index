@@ -86,6 +86,7 @@ function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
                                 id={"atlas-autocomplete"}
                                 isLoading={state.isLoading}
                                 selected={selectedOption}
+                                // @ts-ignore
                                 labelKey={option => `${option.name}`}
                                 placeholder="Search for a taxon, project, area, support article, etc"
                                 onChange={(selected) => {setSelectedOption(selected);}}
