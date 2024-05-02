@@ -1,6 +1,5 @@
-import UserContext from "../helpers/UserContext.ts";
-import {useContext, useEffect, useRef, useState} from "react";
-import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
+import {useEffect, useRef, useState} from "react";
+import {Breadcrumb} from "../api/sources/model.ts";
 import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
@@ -74,8 +73,6 @@ function MapView({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => v
         }
     }
 
-    const currentUser = useContext(UserContext) as ListsUser;
-
     function mapDiv() {
         // @ts-ignore
         return <div ref={mapElement} style={{height: "400px", width: "100%"}}/>
@@ -84,17 +81,13 @@ function MapView({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => v
     return (
         <>
             <div className="container-fluid">
-                {!currentUser?.isAdmin &&
-                    <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
-                }
-                {currentUser?.isAdmin &&
                     <>
                         {mapDiv()}
 
                         <button className="btn border-black" onClick={() => getInfo()}>get info</button>
                         <pre className="font-monospace">{infoString}</pre>
                     </>
-                }
+
             </div>
         </>
     );

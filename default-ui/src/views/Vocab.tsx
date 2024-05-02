@@ -1,12 +1,10 @@
-import UserContext from "../helpers/UserContext.ts";
-import {useContext, useEffect, useState} from "react";
-import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
+import {useEffect, useState} from "react";
+import {Breadcrumb} from "../api/sources/model.ts";
 import {Accordion} from "react-bootstrap";
 import React from "react";
 
 function Vocabulary({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
-    const currentUser = useContext(UserContext) as ListsUser;
     const [indexString, setIndexString] = useState('');
     const [vocabs, setVocabs] = useState<{[key: string]: string}>({});
 
@@ -44,10 +42,6 @@ function Vocabulary({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
         <>
             <div className="container-fluid">
                 <h2>Vocabulary</h2>
-                {!currentUser?.isAdmin &&
-                    <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
-                }
-                {currentUser?.isAdmin &&
                     <>
                         <Accordion defaultActiveKey="0">
                             <Accordion.Item key="0" eventKey="0">
@@ -73,7 +67,7 @@ function Vocabulary({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
 
                         </Accordion>
                     </>
-                }
+
             </div>
         </>
     );

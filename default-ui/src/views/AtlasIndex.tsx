@@ -1,12 +1,10 @@
-import UserContext from "../helpers/UserContext.ts";
-import {useContext, useEffect, useState} from "react";
-import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
+import {useEffect, useState} from "react";
+import {Breadcrumb} from "../api/sources/model.ts";
 import {AsyncTypeahead} from "react-bootstrap-typeahead";
 import {Modal, Tab, Tabs} from "react-bootstrap";
 
 function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
-    const currentUser = useContext(UserContext) as ListsUser;
     const [state, setState] = useState({
         isLoading: false,
         options: [],
@@ -75,10 +73,6 @@ function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
 
     return (
         <>
-            {!currentUser?.isAdmin &&
-                <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
-            }
-            {currentUser?.isAdmin &&
                 <>
                     <div className="container-fluid">
                         <div className="d-flex w-100">
@@ -150,7 +144,7 @@ function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
                         </Modal.Footer>
                     </Modal>
                 </>
-            }
+
         </>
     )
 }

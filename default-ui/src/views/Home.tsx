@@ -14,9 +14,6 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
     const alreadyLoaded:string[] = [];
 
     function loadText(text: string) {
-        console.log('loaded ok')
-
-        // @ts-ignore
         var srcUrl;
         var srcText;
         var script1 = text.match(/(<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>)/g);
@@ -38,7 +35,6 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
             if (alreadyLoaded.indexOf(srcUrl) < 0) {
                 const script = document.createElement("script");
                 script.src = srcUrl;
-                console.log("srcUrl:" + srcUrl)
                 script.async = true;
                 script.onload = () => loadText(text);
                 document.body.appendChild(script);
@@ -46,7 +42,6 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
         } else if (srcText) {
             if (alreadyLoaded.indexOf(srcText) < 0) {
                 const script = document.createElement("script");
-                console.log("srcText:" + srcText)
                 script.innerHTML = srcText;
                 script.async = true;
                 script.onload = () => loadText(text);
@@ -328,7 +323,7 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
                                 </td>
                                 <td>
                                     <link rel="stylesheet" type="text/css" href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
-                                    <div className="test-external-css">Red if external css import is working</div>
+                                    <div className="test-external-css">Red if external css import is working. The login and logout buttons below should also work.</div>
 
                                     {externalFooterHtml &&
                                         <div onClick={clickHandler} dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>

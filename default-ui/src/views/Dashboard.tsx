@@ -1,11 +1,8 @@
-import UserContext from "../helpers/UserContext.ts";
-import {useContext, useEffect} from "react";
-import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
+import {useEffect} from "react";
+import {Breadcrumb} from "../api/sources/model.ts";
 import DashboardPage from "../components/dashboard/dashboard"
 
 function Dashboard({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
-
-    const currentUser = useContext(UserContext) as ListsUser;
 
     useEffect(() => {
         setBreadcrumbs([
@@ -19,14 +16,10 @@ function Dashboard({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) =
         <>
             <div className="container-fluid">
                 <h2>Dashboard</h2>
-                {!currentUser?.isAdmin &&
-                    <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
-                }
-                {currentUser?.isAdmin &&
                     <>
                         <DashboardPage />
                     </>
-                }
+
             </div>
         </>
     );
