@@ -1,25 +1,113 @@
 import UserContext from "../helpers/UserContext.ts";
-import {useContext, useEffect} from "react";
+import {useContext, useEffect, useState} from "react";
 import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
 import {Link} from "react-router-dom";
 
-function Home({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
+function Home({setBreadcrumbs, signinRedirect, logout}: {
+    setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
+    signinRedirect?: () => Promise<void>,
+    logout?: () => void
+}) {
+    const [externalFooterHtml, setExternalFooterHtml] = useState('');
+    // const [externalHeaderHtml, setExternalHeaderHtml] = useState('');
+
+    const alreadyLoaded:string[] = [];
+
+    function loadText(text: string) {
+        console.log('loaded ok')
+
+        // @ts-ignore
+        var srcUrl;
+        var srcText;
+        var script1 = text.match(/(<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>)/g);
+        if (script1 && script1.length > 0) {
+            text = text.replace(script1[0], "");
+            var srcMatches = script1[0].match(/src=["']([^'"]*)/)
+            if (srcMatches && srcMatches.length > 1) {
+                srcUrl = srcMatches[1]
+            } else {
+                // get inner script
+                var txt = script1[0].match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+                if (txt && txt.length > 1) {
+                    srcText = txt[1]
+                }
+            }
+        }
+
+        if (srcUrl) {
+            if (alreadyLoaded.indexOf(srcUrl) < 0) {
+                const script = document.createElement("script");
+                script.src = srcUrl;
+                console.log("srcUrl:" + srcUrl)
+                script.async = true;
+                script.onload = () => loadText(text);
+                document.body.appendChild(script);
+            }
+        } else if (srcText) {
+            if (alreadyLoaded.indexOf(srcText) < 0) {
+                const script = document.createElement("script");
+                console.log("srcText:" + srcText)
+                script.innerHTML = srcText;
+                script.async = true;
+                script.onload = () => loadText(text);
+                document.body.appendChild(script);
+            }
+        }
+    }
+
     useEffect(() => {
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
             {title: 'Default UI', href: '/'}
         ]);
+
+        fetch(import.meta.env.VITE_HTML_EXTERNAL_FOOTER_URL, {
+            method: 'GET'
+        }).then(response => response.text()).then(text => {
+            // do substitutions of the footer template
+            text = text.replace(/::loginURL::/g, "\" disabled=\"disabled");
+            text = text.replace(/::logoutURL::/g, "\" disabled=\"disabled");
+            if (currentUser?.isAdmin) {
+                text = text.replace(/::loginStatus::/g, "signedIn");
+            } else {
+                text = text.replace(/::loginStatus::/g, "");
+            }
+
+            var noScriptText = text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+            setExternalFooterHtml(noScriptText);
+
+            loadText(text)
+        });
+
+        // fetch(import.meta.env.VITE_EXTERNAL_HEADER_URL, {
+        //     method: 'GET'
+        // }).then(response => response.text()).then(text => {
+        //     setExternalFooterHtml(text);
+        // });
     }, []);
 
     const currentUser = useContext(UserContext) as ListsUser;
 
+    function clickHandler(e : any) {
+        if (e.target.classList.contains('loginBtn')) {
+            if (signinRedirect) {
+                signinRedirect();
+            }
+        } else if (e.target.classList.contains('logoutBtn')) {
+            if (logout) {
+                logout();
+            }
+        }
+        e.preventDefault()
+    }
+
     return (
         <>
             <div className="container-fluid">
-                {!currentUser?.isAdmin &&
-                    <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
-                }
-                {currentUser?.isAdmin &&
+                {/*{!currentUser?.isAdmin &&*/}
+                {/*    <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>*/}
+                {/*}*/}
+                {/*{currentUser?.isAdmin &&*/}
                     <>
                         <h3>Admin Pages</h3>
                         <table className="table table-bordered">
@@ -234,10 +322,23 @@ function Home({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void
                                     </ul>
                                 </td>
                             </tr>
+                            <tr>
+                                <td>
+                                    Some tests
+                                </td>
+                                <td>
+                                    <link rel="stylesheet" type="text/css" href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
+                                    <div className="test-external-css">Red if external css import is working</div>
+
+                                    {externalFooterHtml &&
+                                        <div onClick={clickHandler} dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
+                                    }
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </>
-                }
+                {/*}*/}
             </div>
         </>
     );
