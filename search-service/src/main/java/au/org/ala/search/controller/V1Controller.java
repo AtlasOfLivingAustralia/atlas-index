@@ -28,11 +28,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregation;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
@@ -50,6 +52,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -57,6 +64,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.*;
 
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
@@ -1011,4 +1019,44 @@ public class V1Controller {
 
         return key;
     }
+
+    public static void main(String [] args) throws IOException {
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        resolver.setPrefix("/templates/");
+        resolver.setSuffix(".html");
+
+        Context context = new Context();
+        context.setVariable("fieldguideHeaderPg1", "./images/field-guide-header-pg1.png");
+        context.setVariable("dataLink", "TODO");
+        context.setVariable("baseUrl", "https://ala.org.au");
+        context.setVariable("fieldguideBannerOtherPages", "./images/field-guide-banner-other-pages.png");
+        context.setVariable("fieldguideSpeciesUrl", "https://bie.ala.org.au/species/");
+        context.setVariable("collectoryUrl", "https://collectory.ala.org.au/public/show/");
+        context.setVariable("formattedDate", new Date());
+        context.setVariable("biocacheMapUrl", "https://biocache.ala.org.au/ws/density/map?fq=geospatial_kosher:true&q=lsid:%22");
+        context.setVariable("biocacheLegendUrl", "https://biocache.ala.org.au/ws/density/legend?fq=geospatial_kosher:true&q=lsid:%22");
+
+        Map json = new ObjectMapper().createParser(new File("/data/search-service/fieldguide/1713474183805.json")).readValueAs(Map.class);
+        context.setVariable("data", json);
+
+        TemplateEngine templateEngine = new TemplateEngine();
+        templateEngine.setTemplateResolver(resolver);
+
+        String result = templateEngine.process("pdf-test", context);
+        System.out.println(result);
+
+        File file = new File("/data/test.pdf");
+        OutputStream outputStream = new FileOutputStream(file);
+        ITextRenderer renderer = new ITextRenderer();
+        renderer.setDocumentFromString(result, new ClassPathResource("/templates/").getURL().toExternalForm());
+        renderer.layout();
+        renderer.createPDF(outputStream);
+        outputStream.flush();
+        outputStream.close();
+
+        FileUtils.writeStringToFile(new File("/data/test.html"), result, "UTF-8");
+    }
+
 }

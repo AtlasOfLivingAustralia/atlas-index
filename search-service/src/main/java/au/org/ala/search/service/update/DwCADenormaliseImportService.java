@@ -258,7 +258,6 @@ public class DwCADenormaliseImportService {
                 // order
                 rankSeen.add(normalisedRank + uniqueSuffix);
 
-                // TODO: speciesGroup is not working
                 // we have a unique rank name and value, check if it's in the species group list
                 RankedName rn = new RankedName(parent.scientificName.toLowerCase(), normalisedRank);
                 SubGroup speciesGroup = speciesGroupService.invertedSpeciesGroups.get(rn);

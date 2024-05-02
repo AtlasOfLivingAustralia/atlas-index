@@ -99,7 +99,6 @@ public class TaxonUpdateService {
 
                 searchAfter = hits.getLast().sort();
 
-                // TODO: uncomment when done testing
                 futures.add(taxonUpdateRunner.updateForList(hits));
 
                 for (Hit<SearchItemIndex> item : hits) {

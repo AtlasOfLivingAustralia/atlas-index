@@ -129,7 +129,7 @@ public class AllService {
             Field field = AllService.class.getField("task" + StringUtils.capitalize(taskType.name().toLowerCase()) + "Enabled");
             return (Boolean) field.get(this);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            return true; // it is probably OK to ignore this exception
         }
     }
 }

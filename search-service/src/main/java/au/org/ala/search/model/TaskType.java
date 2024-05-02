@@ -20,7 +20,10 @@ public enum TaskType {
     // - code to bulk update all of these fields (or a subset with long expiry, e.g. prep for receiving a site crawl)
     RECORD("update a single record's dynamic data, e.g. wiki, profiles, bhl, genbank, distributions, distributions, counts, images (biocache), geographical extents"),
 
-    DASHBOARD("update dashboard.json used by the dashboard UI");
+    DASHBOARD("update dashboard.json used by the dashboard UI"),
+
+    // Consumers
+    FIELDGUIDE("consumer of fieldguide requests");
 
     public final String description;
 

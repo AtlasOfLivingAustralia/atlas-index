@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Field guide produced by ALA using aggregated sources</title>
+    <link rel="stylesheet" href="./css/fieldguide.css" type="text/css"></link>
+</head>
+<body>
+
+<!-- First page header. headerImg width is in px because % is not working. -->
+<div class="header">
+    <img th:src="${fieldguideHeaderPg1}" class="headerImg"/>
+</div>
+
+<!-- Footer for all pages. -->
+<div class="footer">
+    <div class="alaSite"><a th:href="${baseUrl}">Atlas of Living Australia</a> – Field Guide</div>
+    <div class="pageNum">Page <span id="pagenumber"></span> of <span id="pagecount"></span></div>
+</div>
+
+<!-- Header for all other pages. headerImg width is in px because % is not working.  -->
+<div class="header" style="margin-top:-10px">
+    <img th:src="${fieldguideBannerOtherPages}" class="headerImg"/>
+</div>
+
+<!-- Text only on the first page. The <br/> is required otherwise the margin-top for headerText does not work. -->
+<br/>
+<h4 class="headerText">This PDF was generated on <span th:text="${formattedDate}"></span>.
+    <a class="headerLink" th:href="${dataLink}"><u>View the original search query.</u></a>
+</h4>
+
+<!-- Taxon information; scientific name, common name, image, map and legend -->
+<div th:each="family : ${data.sortedTaxonInfo}">
+    <div th:each="commonName : ${family.value}">
+        <div th:each="taxon : ${commonName.value}">
+            <div class="taxonDiv">
+                <!-- due to alignment issues, the use of border:1px solid white is used. I did do a later change to
+                table formatting so it may no longer be required. -->
+                <div th:if="${index == 0}">
+                    <h2 class="familyNormal" style="width:100%;border:1px solid white;">Family: <b class="upper" th:text="${family.key}"></b></h2>
+                    <hr class="hrClass"/>
+                </div>
+                <h2 class="h2ScientificName" style="width:100%;border:1px solid white;" >Scientific name:
+                    <a class="classBlack" th:href="${fieldguideSpeciesUrl + taxon.guid}"><b>
+                        <i th:text="${taxon.scientificName}"></i></b></a></h2>
+                <div style="width:100%;border:1px solid white;">
+                    <h2 th:if="${not #strings.isEmpty(commonName.key)}" class="h2Species"><b
+                            th:text="${commonName.key}"></b>
+                    </h2>
+                </div>
+
+                <table style="border: 1px solid white">
+                    <tr>
+                        <td style="width:300px;vertical-align: top;">
+                            <!-- TODO: use taxon.largeImageUrl instead of taxon.thumbnailUrl -->
+                            <img th:if="${not #strings.isEmpty(taxon.thumbnailUrl)}" th:src="${taxon.thumbnailUrl}"
+                                 style="border:1px solid white"
+                                 th:width='${taxon.width + "px"}' th:height='${taxon.height + "px"}'
+                                 class="imgThumbnail"/>
+                        </td>
+                        <td style="vertical-align: top;">
+                            <img th:src='${biocacheMapUrl + taxon.guid + "%22"}' width="220px" class="densityMap" style="border:1px solid white;" />
+                        </td>
+                        <td style="vertical-align: top;">
+                            <img th:src='${biocacheLegendUrl + taxon.guid + "%22"}' class="densityLegend" style="border:1px solid white;"/>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<h1 class="h1Attr">Attribution</h1>
+<hr style="color: gray;border-width: 0.5px; width:90%;"/>
+
+<div th:each="family : ${data.sortedTaxonInfo}">
+    <div th:each="commonName : ${family.value}">
+        <div th:each="taxon : ${commonName.value}">
+            <div class="attrAttributeDiv">
+                <h2><i th:text="${taxon.scientificName}"></i></h2>
+                <div th:if="${not #strings.isEmpty(taxon.datasetName)}">
+                    <h3>Taxonomic information supplied by:
+                        <a th:href="${collectionsUrl + taxon.datasetID}" th:text="${taxon.datasetName}"></a>
+                    </h3>
+                </div>
+                <div th:if="${not #strings.isEmpty(taxon.imageDataResourceURL)}">
+                    <h3>Image sourced from:
+                        <a th:href="${taxon.imageDataResourceURL}" th:text="${taxon.imageDataResourceName}"></a></h3>
+                </div>
+                <div th:if="${not #strings.isEmpty(taxon.imageCreator)}">
+                    <h3>Image by:
+                        <a th:href="${taxon.imageDataResourceUid}" th:text="${taxon.imageCreator}"></a>
+                        <a th:href="${taxon.acronymUrl}" th:text="${taxon.acronym}"></a>
+                    </h3>
+                </div>
+                <div th:if="${not #strings.isEmpty(taxon.imageRights)}">
+                    <h3 th:text='${"Image rights: " + taxon.imageRights}'></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

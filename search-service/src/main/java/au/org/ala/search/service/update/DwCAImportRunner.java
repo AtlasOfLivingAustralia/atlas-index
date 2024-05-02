@@ -146,7 +146,6 @@ public class DwCAImportRunner {
                 Record record = iter.next();
                 SearchItemIndex searchItemIndex = null;
 
-                // TODO: for each build*, replace with a cacheOnly.cache specific builder
                 switch (term) {
                     case Taxon -> {
                         if (cacheOnly != null) {
@@ -417,8 +416,6 @@ public class DwCAImportRunner {
         String nameComplete = core.value(ALATerm.nameComplete);
         String nameFormatted = core.value(ALATerm.nameFormatted);
 
-        // TODO: use ALATerm.taxonRankID, or the alternative, when it exists in ala-name-matching-model
-        // def taxonRankID = record.value(ALATerm.taxonRankID) ?: getTaxonRankID(taxonRanks, taxonRank)
         Integer taxonRankID = getTaxonRankID(taxonRank);
 
         String taxonID = core.id();

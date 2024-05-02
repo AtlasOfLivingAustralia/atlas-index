@@ -1,0 +1,325 @@
+/*there is a problem with content elements in the header. Need to use width:794px to make it work*/
+.headerImg {
+    margin: 0px;
+    width: 794px;
+}
+
+@page {
+    size: A4 portrait;
+    color: white;
+    margin-top: 75px;
+    margin-left: 0px;
+    margin-right: 0px;
+    /*margin-bottom: 0px;*/
+    /*padding-bottom: 40px;*/
+
+    /*background-color: yellow;*/
+
+    @top-center {
+        content: element(header);
+    }
+
+    font-family: Roboto, Dialog;
+}
+
+@page {
+    @bottom-center { content: element(footer) }
+}
+
+div.content {page-break-after: always;}
+
+.footer {
+    font-size: 11px;
+    border-top: solid 1px;
+    display: block;
+    position: running(footer);
+}
+
+.page-header {
+    font-size: 11px;
+    display: block;
+    position: running(header);
+}
+
+/*div.page-header {*/
+/*    font-size: 11px;*/
+/*    display: block;*/
+/*    position: running(header);*/
+/*    margin-left: 0px;*/
+/*}*/
+
+div.header {
+    display: block;
+    position: running(header);
+    margin-left: 0px;
+    margin-top: 0px;
+}
+
+body > a {
+    font-style: italic;
+    font-size: 14px;
+    color: black;
+    margin-left: 30px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+div > h2 {
+    font-size: 16px;
+    margin-bottom: 5px;
+    font-family: Roboto,Dialog;
+}
+
+div > h3 {
+    font-size: 13px;
+    font-weight: normal;
+    font-family: Roboto,Dialog;
+}
+
+div > h4 {
+    font-size: 8px;
+    font-weight: normal;
+    font-style: italic;
+    margin-bottom: 10px;
+    font-family: Roboto,Dialog;
+}
+
+body > h1 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    margin-left: 30px;
+    font-family: Roboto,Dialog;
+}
+
+
+div > h5 {
+    font-size: 11px;
+    font-weight: normal;
+    margin-top: 4px;
+    font-family: Roboto,Dialog;
+}
+
+
+h5 > a {
+    color: black;
+    text-decoration: underline;
+    font-size: 11px;
+    font-weight: normal;
+    font-style: normal;
+    margin-left: 0px;
+    font-family: Roboto,Dialog;
+}
+
+/*.mainHeader{*/
+/*    margin-top: 0px;*/
+/*    margin-left: 0px;*/
+/*}*/
+.headerText{
+    font-style: italic;
+    font-weight: bold;
+    margin-left:80px;
+    margin-top: 40px;
+    font-family: Roboto,Dialog;
+}
+.headerLink{
+    color:black;
+    font-family: Roboto,Dialog;
+}
+.secondHeader{
+    float:left;
+    margin-bottom:30px;
+}
+.familyNormal{
+    font-weight: normal;
+    page-break-inside: avoid;
+}
+.h2Species{
+    margin-top:0px;
+    margin-left:20px;
+    font-weight: normal;
+    font-family: Roboto,Dialog;
+}
+.h2ScientificName{
+    margin-left:20px;
+    margin-bottom:0px;
+    font-weight: normal;
+    font-family: Roboto,Dialog;
+}
+.imgThumbnail{
+    margin-top: 30px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+    vertical-align: text-top;
+}
+.densityMap{
+    margin-top: 30px;
+    margin-left: 10px;
+    vertical-align: text-top;
+}
+.densityLegend{
+    margin-top: 30px;
+    width:100px;
+    margin-left: 0px;
+    vertical-align: text-top;
+}
+.attHeader{
+    float:left;
+    margin-bottom:20px;
+    width:100%;
+}
+.attDiv{
+    margin-left:10px;
+    margin-bottom: 150px;
+    margin-top: 200px;
+}
+.h1Attr{
+    margin-left:50px;
+    page-break-before: always;
+    margin-top: 10px;
+}
+.attrAttributeDiv{
+    margin-top: 25px;
+    margin-left: 60px;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+}
+.taxonDiv{
+    margin-top:10px;
+    width:90%;
+    margin-left:50px;
+    margin-bottom:50px;
+    page-break-inside: avoid;
+}
+
+.alaSite{
+    float:left;
+    margin-left:20px;
+}
+
+.classBlack{
+    color: black;
+}
+.upper{
+    text-transform: uppercase;
+}
+.hrClass{
+    color:gray;
+    border-width:0.5px;
+}
+
+/*@page :first {*/
+/*    @top-center {*/
+/*        content: none;*/
+/*    }*/
+/*}*/
+
+/*@page {*/
+/*    size: A4 portrait;*/
+/*    margin: 0cm;*/
+
+/*    !*@top-center :first {*!*/
+/*    !*    content: none;*!*/
+/*    !*}*!*/
+
+/*    @top-center {*/
+/*        margin-top: 0px;*/
+/*        vertical-align: top;*/
+/*        width: 120%;*/
+/*        content: element(header) element(page-header);*/
+/*        font-family: Roboto,Dialog;*/
+/*        margin-bottom: 0px;*/
+/*    }*/
+/*}*/
+
+@media print {
+    /*#footer {*/
+    /*    position: fixed;*/
+    /*    bottom: 0px;*/
+    /*    width: 100%;*/
+    /*}*/
+
+    /*#header {*/
+    /*    position: fixed;*/
+    /*    top: 0;*/
+    /*    width: 100%;*/
+    /*}*/
+
+    /*.page-header {*/
+    /*    position: fixed;*/
+    /*    top: 0;*/
+    /*    width: 100%;*/
+    /*}*/
+}
+
+/*body {*/
+/*    margin: 0px;*/
+/*}*/
+
+/*!*#header {*!*/
+/*!*    position: absolute;*!*/
+/*!*    left: 0;*!*/
+/*!*    top: 0;*!*/
+/*!*    width: 100%;*!*/
+/*!*}*!*/
+
+/*#footer {*/
+/*    position: fixed;*/
+/*    width: 100%;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    font-family: Roboto, Dialog, serif;*/
+/*    font-size: 11px;*/
+/*    border-top: solid 1px;*/
+/*    margin-top: 15px;*/
+/*    padding-bottom: 10px;*/
+/*}*/
+
+/*!*.footer-pagination {*!*/
+
+/*!*    position: relative;*!*/
+/*!*}*!*/
+
+/*!*#page-number::after {*!*/
+/*!*    counter-increment: page;*!*/
+/*!*    counter-reset: page 1;*!*/
+/*!*    content: counter(page);*!*/
+/*!*}*!*/
+
+/*!*#page-count::after {*!*/
+/*!*    content: counter(pages);*!*/
+/*!*}*!*/
+
+
+
+/*!*.header {*!*/
+/*!*    font-size: 11px;*!*/
+/*!*    !*position: relative;;*!*!*/
+/*!*    !*display: block;*!*!*/
+/*!*    !*position: running(header);*!*!*/
+/*!*    !*margin-left: 0px;*!*!*/
+/*!*    left: 0;*!*/
+/*!*    top: 0;*!*/
+/*!*}*!*/
+
+/*!*.mainHeader{*!*/
+/*!*    !*margin-top: 0px;*!*!*/
+/*!*    !*margin-left: 0px;*!*!*/
+/*!*}*!*/
+
+#pagenumber:before {
+    content: counter(page);
+}
+
+#pagecount:before {
+    content: counter(pages);
+}
+
+.alaSite{
+    float:left;
+    margin-left:20px;
+}
+
+.pageNum{
+    float:right;
+    margin-right:10px;
+}

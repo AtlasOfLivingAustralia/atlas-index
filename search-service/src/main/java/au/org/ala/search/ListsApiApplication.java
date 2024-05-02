@@ -29,7 +29,6 @@ import org.springframework.security.web.firewall.StrictHttpFirewall;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.apache.tomcat.util.buf.EncodedSolidusHandling.DECODE;
 
