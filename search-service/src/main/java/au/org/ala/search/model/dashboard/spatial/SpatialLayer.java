@@ -11,4 +11,5 @@ public class SpatialLayer {
     public String domain;
     public String type;
     public String classification1;
+    public Boolean enabled;
 }

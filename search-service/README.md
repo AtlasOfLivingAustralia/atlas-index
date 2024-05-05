@@ -16,9 +16,13 @@ TODO: look at an approach to get ala-name-matching-model and bie-index classes, 
 - [Docker hub](#docker-hub)
 - [Helm charts](#helm-charts)
 - [Importing data](#import-process)
-    - [Prerequisites](#prerequisites)
-    - [Configure data sources](#configure-data-sources)
-    - [Start import or update](#start-import-or-update)
+  - [Prerequisites](#prerequisites)
+  - [Configure data sources](#configure-data-sources)
+  - [Start import or update](#start-import-or-update)
+- Other integrations
+  - [Dashboard integration](dashboard.md)
+  - [Fieldguide integration](fieldguide.md)
+  - [Data Quality Service integration](dataquality.md)
 
 ## Getting started
 

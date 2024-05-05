@@ -9,4 +9,5 @@ import lombok.Setter;
 @Setter
 public class SpatialField {
     public SpatialLayer layer;
+    public Boolean enabled;
 }

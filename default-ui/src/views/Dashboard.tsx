@@ -15,11 +15,7 @@ function Dashboard({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) =
     return (
         <>
             <div className="container-fluid">
-                <h2>Dashboard</h2>
-                    <>
-                        <DashboardPage />
-                    </>
-
+                <DashboardPage />
             </div>
         </>
     );

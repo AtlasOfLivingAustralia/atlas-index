@@ -6,14 +6,15 @@ import au.org.ala.search.model.dashboard.*;
 import au.org.ala.search.model.dashboard.bie.BieSearch;
 import au.org.ala.search.model.dashboard.biocache.BiocacheSearch;
 import au.org.ala.search.model.dashboard.biocache.FieldResult;
-import au.org.ala.search.model.dashboard.biocache.SpeciesCount;
 import au.org.ala.search.model.dashboard.collectory.CollectionsSearch;
 import au.org.ala.search.model.dashboard.collectory.DataResource;
 import au.org.ala.search.model.dashboard.collectory.Feature;
 import au.org.ala.search.model.dashboard.digivol.DigivolSearch;
 import au.org.ala.search.model.dashboard.images.ImageStatistics;
+import au.org.ala.search.model.dashboard.logger.Breakdown;
 import au.org.ala.search.model.dashboard.logger.LoggerSearch;
 import au.org.ala.search.model.dashboard.spatial.SpatialField;
+import au.org.ala.search.service.remote.FileStoreService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,20 +37,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * TODO: Document the remote services used in this class comment. There are also some things to check:
- * 1. species with conservation status, filter out "not supplied"
- * 2. digivol, fetch all numbers
- * 3. images numbers vary greatly from dashboard.ala
- * 4. speciesgroup, filter out not supplied
- * 5. usage stats, records downloaded is wrong
- */
 @Service
 public class DashboardService {
     private static final TaskType taskType = TaskType.DASHBOARD;
     private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
 
     private final LogService logService;
+    private final FileStoreService fileStoreService;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -90,8 +84,9 @@ public class DashboardService {
     @Value("${images.url}")
     private String imagesUrl;
 
-    public DashboardService(LogService logService) {
+    public DashboardService(LogService logService, FileStoreService fileStoreService) {
         this.logService = logService;
+        this.fileStoreService = fileStoreService;
     }
 
     @Async("processExecutor")
@@ -103,7 +98,11 @@ public class DashboardService {
         try {
             DashboardData existingData = load();
             errorCount = update(existingData);
-            save(existingData);
+
+            if (!save(existingData)) {
+                errorCount++;
+                logService.log(taskType, "Failed to save to fileStore");
+            }
 
             logService.log(taskType, "Finished, errors: " + errorCount);
         } catch (IOException e) {
@@ -128,9 +127,9 @@ public class DashboardService {
         return new DashboardData();
     }
 
-    private void save(DashboardData data) throws IOException {
+    private boolean save(DashboardData data) throws IOException {
         // save data.json
-        FileUtils.writeStringToFile(new File(dataDir + "/data.json"), objectMapper.writeValueAsString(data), "UTF-8");
+        FileUtils.writeStringToFile(new File(dataDir + "/dashboard.json"), objectMapper.writeValueAsString(data), "UTF-8");
 
         // save csv files
         List<File> csvFiles = new ArrayList<>();
@@ -168,10 +167,15 @@ public class DashboardService {
             zos.closeEntry();
         }
         zos.close();
+
+        // write to fileStore
+        return fileStoreService.copyToFileStore(new File(dataDir + "/dashboard.zip"), "dashboard/dashboard.zip", false)
+                && fileStoreService.copyToFileStore(new File(dataDir + "/dashboard.json"), "dashboard/dashboard.json", false);
     }
 
     private int update(DashboardData dashboardData) {
         int errorCount = 0;
+        errorCount += addKingdoms(dashboardData);
         errorCount += addOccurrenceCount(dashboardData);
         errorCount += addDatasets(dashboardData);
         errorCount += addBasisOfRecord(dashboardData);
@@ -209,10 +213,6 @@ public class DashboardService {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), BiocacheSearch.class);
     }
 
-    private List<SpeciesCount> getBiocacheGroup(String url) throws IOException {
-        return Arrays.asList(objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), SpeciesCount[].class));
-    }
-
     private BieSearch getBie(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), BieSearch.class);
     }
@@ -235,6 +235,34 @@ public class DashboardService {
 
     private DigivolSearch getDigivol(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), DigivolSearch.class);
+    }
+
+    private int addKingdoms(DashboardData dashboardData) {
+        if (StringUtils.isEmpty(biocacheWsUrl)) {
+            logService.log(taskType, "skipping kingdoms");
+            return 0;
+        }
+        try {
+            logService.log(taskType, "updating kingdoms");
+            Record record = new Record();
+            Table table = new Table();
+            table.header = Arrays.stream(new String[]{"kingdom", "occurrenceCount"}).toList();
+            table.rows = new ArrayList<>();
+            record.tables = new ArrayList<>();
+            record.tables.add(table);
+
+            Facet kingdoms = getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=*:*&facets=kingdom&flimit=-1&facet=true").getFirst();
+            for (FieldResult facet : kingdoms.fieldResult) {
+                table.rows.add(new TableRow(facet.label, facet.fq, new Integer[]{facet.count}));
+            }
+
+            dashboardData.data.put("kingdoms", record);
+            return 0;
+        } catch (Exception e) {
+            logService.log(taskType, "failed to update occurrenceCount: " + e.getMessage());
+            logger.error("failed to update occurrenceCount: " + e.getMessage());
+            return 1; // 1 error
+        }
     }
 
     private int addOccurrenceCount(DashboardData dashboardData) {
@@ -314,14 +342,10 @@ public class DashboardService {
                     collectoryUrl + "/datasets#filters=resourceType%3Arecords",
                     new Integer[]{getCollection(collectoryUrl + "/ws/dataResource/count/resourceType?public=true").groups.get("records")}));
 
-            table.rows.add(new TableRow("institutions",
-                    collectoryUrl + "/datasets#filters=resourceType%3Arecords%3Bstatus%3AdataAvailable",
-                    new Integer[]{getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=*:*&facets=data_resource_uid&flimit=0&facet=true").getFirst().count}));
-
             table.rows.add(new TableRow("descriptionOnly",
                     null,
                     new Integer[]{getCollection(collectoryUrl + "/ws/dataResource/count/resourceType?public=true").groups.get("records")
-                            - getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=*:*&facets=data_resource_uid&flimit=0&facet=true").getFirst().count}));
+                            - getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=data_resource_uid:*&facets=data_resource_uid&flimit=0&facet=true").getFirst().count}));
 
             table.rows.add(new TableRow("speciesLists",
                     collectoryUrl + "/datasets#filters=resourceType%3Aspecies-list",
@@ -330,10 +354,6 @@ public class DashboardService {
             table.rows.add(new TableRow("documents",
                     collectoryUrl + "/datasets#filters=resourceType%3Adocument",
                     new Integer[]{getCollection(collectoryUrl + "/ws/dataResource/count/resourceType?public=true").groups.get("document")}));
-
-            table.rows.add(new TableRow("harvestedWebsites",
-                    collectoryUrl + "/datasets#filters=resourceType%3Awebsite",
-                    new Integer[]{getCollection(collectoryUrl + "/ws/dataResource/count/resourceType?public=true").groups.get("website")}));
 
             List<DataResource> dataResources = getDataResourceList(collectoryUrl + "/ws/dataResource");
             record.mostRecent = new HashMap<>();
@@ -404,21 +424,21 @@ public class DashboardService {
             record.url = digivolUrl;
             record.imageUrl = digivolImageUrl;
 
+            DigivolSearch total = getDigivol(digivolUrl + "/index/stats?disableHonourBoard=true&disableStats=false&institutionId=-1&maxContributors=0&projectId=-1");
             DigivolSearch audio = getDigivol(digivolUrl + "/index/stats?disableHonourBoard=true&disableStats=false&institutionId=-1&maxContributors=0&projectId=-1&projectType=audio");
             DigivolSearch fieldNotes = getDigivol(digivolUrl + "/index/stats?disableHonourBoard=true&disableStats=false&institutionId=-1&maxContributors=0&projectId=-1&projectType=fieldnotes");
             DigivolSearch specimens = getDigivol(digivolUrl + "/index/stats?disableHonourBoard=true&disableStats=false&institutionId=-1&maxContributors=0&projectId=-1&projectType=specimens");
             DigivolSearch cameraTraps = getDigivol(digivolUrl + "/index/stats?disableHonourBoard=true&disableStats=false&institutionId=-1&maxContributors=0&projectId=-1&projectType=cameratraps");
 
-            table.header = Arrays.stream(new String[]{"type", "audio", "cameraTraps", "fieldNotes", "specimens"}).toList();
-            table.rows.add(new TableRow("transcriberCount", null, new Integer[]{audio.transcriberCount, cameraTraps.transcriberCount, fieldNotes.transcriberCount, specimens.transcriberCount}));
-            table.rows.add(new TableRow("tasks", null, new Integer[]{audio.completedTasks,
-                    cameraTraps.totalTasks,
-                    fieldNotes.totalTasks,
-                    specimens.totalTasks}));
-            table.rows.add(new TableRow("tasksCompleted", null, new Integer[]{audio.completedTasks,
-                    cameraTraps.completedTasks,
-                    fieldNotes.completedTasks,
-                    specimens.completedTasks}));
+            // Format the data to be consistent with the legacy dashboard
+            table.rows.add(new TableRow("volunteers", null, new Integer[]{total.transcriberCount}));
+            table.rows.add(new TableRow("expeditionTasksTotal", null, new Integer[]{total.totalTasks}));
+            table.rows.add(new TableRow("expeditionTasksCompleted", null, new Integer[]{total.completedTasks}));
+
+            table.rows.add(new TableRow("specimenLabelsTranscribed", null, new Integer[]{specimens.completedTasks}));
+            table.rows.add(new TableRow("fieldnotesTranscribed", null, new Integer[]{fieldNotes.completedTasks}));
+            table.rows.add(new TableRow("audioTranscribed", null, new Integer[]{audio.completedTasks}));
+            table.rows.add(new TableRow("cameraTrapsTranscribed", null, new Integer[]{cameraTraps.completedTasks}));
 
             dashboardData.data.put("digivol", record);
             return 0;
@@ -571,8 +591,6 @@ public class DashboardService {
 
             LoggerSearch reasons = getLogger(loggerUrl + "/service/emailBreakdown?eventId=1002");
 
-            table.rows.add(new TableRow("totals", null,
-                    new Long[]{reasons.all.events, reasons.all.records}));
             table.rows.add(new TableRow("edu", null,
                     new Long[]{reasons.all.emailBreakdown.get("edu").events, reasons.all.emailBreakdown.get("edu").records}));
             table.rows.add(new TableRow("gov", null,
@@ -607,12 +625,17 @@ public class DashboardService {
 
             LoggerSearch reasons = getLogger(loggerUrl + "/service/reasonBreakdown?eventId=1002");
 
+            Breakdown testing = reasons.all.reasonBreakdown.get("testing");
+
             table.rows.add(new TableRow("totals", null,
-                    new Long[]{reasons.all.events, reasons.all.records}));
+                    new Long[]{reasons.all.events - (testing != null ? testing.events : 0),
+                            reasons.all.records - (testing != null ? testing.records : 0)}));
 
             for (String reason : reasons.all.reasonBreakdown.keySet()) {
-                table.rows.add(new TableRow(reason, null,
-                        new Long[]{reasons.all.reasonBreakdown.get(reason).events, reasons.all.reasonBreakdown.get(reason).records}));
+                if (!"testing".equals(reason)) {
+                    table.rows.add(new TableRow(reason, null,
+                            new Long[]{reasons.all.reasonBreakdown.get(reason).events, reasons.all.reasonBreakdown.get(reason).records}));
+                }
             }
 
             dashboardData.data.put("reasonDownloads", record);
@@ -640,14 +663,14 @@ public class DashboardService {
             withImagesTable.rows = new ArrayList<>();
             record.tables = Arrays.stream(new Table[]{withoutImagesTable, withImagesTable}).toList();
 
-            BiocacheSearch withoutImages = getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&pageSize=0&facet=true&flimit=1000&facets=typeStatus");
+            BiocacheSearch withoutImages = getBiocache(biocacheWsUrl + "/occurrences/search?q=typeStatus:*&pageSize=0&facet=true&flimit=1000&facets=typeStatus");
             for (FieldResult field : withoutImages.facetResults.getFirst().fieldResult) {
                 withoutImagesTable.rows.add(new TableRow(field.label,
                         biocacheUiUrl + "/occurrences/search?q=" + field.fq,
                         new Integer[]{field.count}));
             }
 
-            BiocacheSearch withImages = getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&pageSize=0&facet=true&flimit=1000&facets=typeStatus&fq=multimedia:Image");
+            BiocacheSearch withImages = getBiocache(biocacheWsUrl + "/occurrences/search?q=typeStatus:*&pageSize=0&facet=true&flimit=1000&facets=typeStatus&fq=multimedia:Image");
             for (FieldResult field : withImages.facetResults.getFirst().fieldResult) {
                 withImagesTable.rows.add(new TableRow(field.label,
                         biocacheUiUrl + "/occurrences/search?q=" + field.fq,
@@ -676,13 +699,13 @@ public class DashboardService {
             record.tables = new ArrayList<>();
             record.tables.add(table);
 
-            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&pageSize=0&facet=true&facets=stateConservation&flimit=1000&fsort=count");
+            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=stateConservation:*&pageSize=0&facet=true&facets=stateConservation&flimit=1000&fsort=count");
 
             table.header = Arrays.stream(new String[]{"conservationStatus", "speciesCount"}).toList();
             for (FieldResult field : result.facetResults.getFirst().fieldResult) {
                 table.rows.add(new TableRow(field.label,
                         biocacheUiUrl + "/occurrences/search?q=" + field.fq,
-                        new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=" + URLEncoder.encode(field.fq, StandardCharsets.UTF_8) + "&facets=species&pageSize=0&flimit=0"))}));
+                        new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=" + URLEncoder.encode(field.fq, StandardCharsets.UTF_8) + "&fq=species:*&facets=species&pageSize=0&flimit=0"))}));
             }
 
             dashboardData.data.put("conservation", record);
@@ -704,14 +727,28 @@ public class DashboardService {
             logService.log(taskType, "updating facet: " + facet);
             Record record = new Record();
             Table table = new Table();
-            table.header = Arrays.stream(new String[]{facet, "occurrenceCount", "speciesCount"}).toList();
+            table.header = Arrays.stream(new String[]{facet, "records", "species"}).toList();
             table.rows = new ArrayList<>();
             record.tables = new ArrayList<>();
             record.tables.add(table);
 
-            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&pageSize=0&facet=true&facets=" + facet + "&flimit=-1");
+            // decade has an aggregated group < 1850
+            String fq = "decade".equals(facet) ? "&fq=decade:[1850%20TO%20*]" : "";
+            if ("decade".equals(facet)) {
+                String fqBefore1850 = URLEncoder.encode("decade:[* TO 1840]", StandardCharsets.UTF_8);
+                BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=" + fqBefore1850 + "&pageSize=0&");
+                if (result.totalRecords > 0) {
+                    int speciesCount = getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=" + fqBefore1850 + "&fq=species:*&facets=species&pageSize=0&flimit=0"));
+                    table.rows.add(new TableRow("before 1850",
+                            biocacheUiUrl + "/occurrences/search?q=" + fqBefore1850,
+                            new Integer[]{result.totalRecords, speciesCount}));
+                }
+            }
+
+            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=" + facet + ":*&pageSize=0&facet=true&facets=" + facet + "&flimit=-1" + fq);
             for (FieldResult field : result.facetResults.getFirst().fieldResult) {
-                int speciesCount = getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=" + URLEncoder.encode(field.fq, StandardCharsets.UTF_8) + "&facets=species&pageSize=0&flimit=0"));
+                int speciesCount = getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=" + URLEncoder.encode(field.fq, StandardCharsets.UTF_8) + "&fq=species:*&facets=species&pageSize=0&flimit=0"));
+
                 table.rows.add(new TableRow(field.label,
                         biocacheUiUrl + "/occurrences/search?q=" + field.fq,
                         new Integer[]{field.count, speciesCount}));
@@ -745,7 +782,7 @@ public class DashboardService {
             record.tables = new ArrayList<>();
             record.tables.add(table);
 
-            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&pageSize=0&facet=true&facets=stateProvince&flimit=-1");
+            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=stateProvince:*&pageSize=0&facet=true&facets=stateProvince&flimit=-1");
             for (FieldResult field : result.facetResults.getFirst().fieldResult) {
                 if (states.contains(field.label)) {
                     table.rows.add(new TableRow(field.label,
@@ -795,7 +832,7 @@ public class DashboardService {
             }
             record.tables.add(table);
 
-            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=speciesGroup:" + speciesGroup + "&pageSize=0&flimit=6&facets=taxonConceptID&fsort=count");
+            BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=speciesGroup:" + speciesGroup + "&fq=taxonConceptID:*&pageSize=0&flimit=6&facets=taxonConceptID&fsort=count");
 
             for (FieldResult field : result.facetResults.getFirst().fieldResult) {
                 BieSearch bieSearch = getBie(bieUrl + "/species/" + URLEncoder.encode(field.label, StandardCharsets.UTF_8));
@@ -866,6 +903,10 @@ public class DashboardService {
             Map<String, Integer> others = new HashMap<>();
 
             for (SpatialField field : fields) {
+                if (!field.enabled || !field.layer.enabled) {
+                    continue;
+                }
+
                 if ("Contextual".equals(field.layer.type)) {
                     contextualLayers++;
                 } else {
@@ -890,7 +931,7 @@ public class DashboardService {
             table.rows.add(new TableRow("terrestrialLayers", null, new Integer[]{terrestrialLayers}));
             table.rows.add(new TableRow("marineLayers", null, new Integer[]{marineLayers}));
 
-            others.forEach((k, v) -> table.rows.add(new TableRow(k, null, new Integer[]{v})));
+            others.keySet().stream().sorted().forEach(k -> table.rows.add(new TableRow(k, null, new Integer[]{others.get(k)})));
 
             dashboardData.data.put("spatialLayers", record);
             return 0;
@@ -914,15 +955,15 @@ public class DashboardService {
             table.rows.add(new TableRow("imagesTotal", null,
                     new Integer[]{getImage(imagesUrl + "/ws/getRepositoryStatistics").imageCount}));
             table.rows.add(new TableRow("taxaWithImages", null,
-                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=scientificName&pageSize=0&q=multimedia:Image&flimit=0"))}));
+                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=taxon_name&pageSize=0&q=multimedia:Image&fq=taxon_name:*&flimit=0"))}));
             table.rows.add(new TableRow("speciesWithImages", null,
-                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=multimedia:Image%20AND%20(rank:species%20OR%20rank:subspecies)&facets=scientificName&pageSize=0&flimit=0"))}));
+                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=multimedia:Image%20AND%20(rank:species%20OR%20rank:subspecies)&facets=taxon_name&fq=taxon_name:*&pageSize=0&flimit=0"))}));
             table.rows.add(new TableRow("subspeciesWithImages", null,
-                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=multimedia:Image%20AND%20rank:subspecies&facets=scientificName&pageSize=0&flimit=0"))}));
+                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?q=multimedia:Image%20AND%20rank:subspecies&facets=taxon_name&fq=taxon_name:*&pageSize=0&flimit=0"))}));
             table.rows.add(new TableRow("digivolTaxaWithImages", null,
-                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=scientificName&pageSize=0&q=multimedia:Image&fq=dataHubUid:dh6&flimit=0"))}));
+                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=taxon_name&fq=taxon_name:*&pageSize=0&q=multimedia:Image&fq=dataHubUid:dh6&flimit=0"))}));
             table.rows.add(new TableRow("czTaxaWithImages", null,
-                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=scientificName&pageSize=0&q=multimedia:Image&fq=provenance:%22Individual%20sightings%22&flimit=0"))}));
+                    new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=taxon_name&fq=taxon_name:*&pageSize=0&q=multimedia:Image&fq=provenance:%22Individual%20sightings%22&flimit=0"))}));
 
             dashboardData.data.put("image", record);
             return 0;

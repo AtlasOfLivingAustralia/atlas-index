@@ -13,6 +13,7 @@ import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import Api from "./views/Api.tsx";
 import MapView from "./views/Map.tsx";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 export default function App() {
 

@@ -318,15 +318,27 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
                                 </td>
                             </tr>
                             <tr>
+                                <td><Link to="/chart">Charts</Link></td>
+                                <td>
+                                    <ul>
+                                        <li>Charts playground</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td>
                                     Some tests
                                 </td>
                                 <td>
-                                    <link rel="stylesheet" type="text/css" href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
-                                    <div className="test-external-css">Red if external css import is working. The login and logout buttons below should also work.</div>
+                                    <link rel="stylesheet" type="text/css"
+                                          href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
+                                    <div className="test-external-css">Red if external css import is working. The login
+                                        and logout buttons below should also work.
+                                    </div>
 
                                     {externalFooterHtml &&
-                                        <div onClick={clickHandler} dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
+                                        <div onClick={clickHandler}
+                                             dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
                                     }
                                 </td>
                             </tr>
