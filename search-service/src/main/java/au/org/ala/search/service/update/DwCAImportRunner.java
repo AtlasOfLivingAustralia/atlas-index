@@ -132,10 +132,13 @@ public class DwCAImportRunner {
                 case Taxon -> cacheOnly.cacheTaxon = new DenormalTaxon[totalRecords];
                 case VernacularName -> cacheOnly.cacheVernacular = new DenormalVernacular[totalRecords];
                 case Identifier -> cacheOnly.cacheIdentifier = new DenormalIdentifier[totalRecords];
-                case TaxonVariant -> cacheOnly.cacheVariant = new DenormalVariant[totalRecords];
                 default -> {
-                    logService.log(taskType, "Unable to import an archive of type " + term.simpleName());
-                    return CompletableFuture.completedFuture(0);
+                    if (term.simpleName().equals("TaxonVariant")) {
+                        cacheOnly.cacheVariant = new DenormalVariant[totalRecords];
+                    } else {
+                        logService.log(taskType, "Unable to import an archive of type " + term.simpleName());
+                        return CompletableFuture.completedFuture(0);
+                    }
                 }
             }
         }
@@ -169,15 +172,7 @@ public class DwCAImportRunner {
                             searchItemIndex = buildIdentifierRecord(record, attributionMap, defaultDatasetName, modified);
                         }
                     }
-                    case TaxonVariant -> {
-                        if (cacheOnly != null) {
-                            cacheOnly.cacheVariant[pos++] = buildDenormalVariant(record);
-                        } else {
-                            searchItemIndex = buildTaxonVariantRecord(record, attributionMap, defaultDatasetName, modified);
-                        }
-                    }
                     default -> {
-                        // TODO: determine why this is not matched to TaxonVariant
                         if (term.simpleName().equals("TaxonVariant")) {
                             if (cacheOnly != null) {
                                 cacheOnly.cacheVariant[pos++] = buildDenormalVariant(record);
@@ -192,8 +187,7 @@ public class DwCAImportRunner {
                     }
                 }
 
-                // do not commit to ES when cacheOnly is supplied
-                if (searchItemIndex != null && cacheOnly == null) {
+                if (searchItemIndex != null) {
                     buffer.add(elasticService.buildIndexQuery(searchItemIndex));
 
                     if (buffer.size() >= 1000) {

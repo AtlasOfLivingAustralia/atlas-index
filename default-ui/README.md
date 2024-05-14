@@ -74,3 +74,5 @@ VITE_ADMIN_ROLE=admin
 - Vocabulary - A viewer for the Atlas search vocabulary. This is the result of an incomplete thought.
 - API - A viewer for API documentation and OpenAPI specifications.
 - Map - A map of nothing.
+- Data Quality - A view of a static JSON file.
+- Fieldguide - Generate a PDF from a list of guids.

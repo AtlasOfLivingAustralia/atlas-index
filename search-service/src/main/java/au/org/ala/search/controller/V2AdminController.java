@@ -2,8 +2,14 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.SetRequest;
+import au.org.ala.search.model.quality.QualityProfile;
+import au.org.ala.search.model.quality.QualityProfileAdmin;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
+import au.org.ala.search.service.queue.FieldguideConsumerService;
+import au.org.ala.search.service.queue.QueueService;
+import au.org.ala.search.service.queue.SearchConsumerService;
+import au.org.ala.search.service.remote.DataQualityService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.update.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +30,17 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Admin API
- *
- * TODO: rename or refactor controllers as it looks odd
- * TODO: better annotate v1 and v2 services for the swagger-ui
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V2AdminController {
     private static final Logger logger = LoggerFactory.getLogger(V2AdminController.class);
+
     protected final WordpressImportService wordpressImportService;
     protected final KnowledgebaseImportService knowledgebaseImportService;
     protected final ListImportService listImportService;
@@ -49,12 +55,26 @@ public class V2AdminController {
     protected final AllService allService;
     protected final AuthService authService;
     protected final DashboardService dashboardService;
-    private final LogService logService;
-    private final TaskExecutor processExecutor;
-    private final TaskExecutor blockingExecutor;
-    private final TaskExecutor elasticSearchUpdate;
+    protected final LogService logService;
+    protected final TaskExecutor processExecutor;
+    protected final TaskExecutor blockingExecutor;
+    protected final TaskExecutor elasticSearchUpdate;
+    protected final QueueService queueService;
+    protected final FieldguideConsumerService fieldguideConsumerService;
+    protected final SearchConsumerService searchConsumerService;
+    private final DataQualityService dataQualityService;
 
-    public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService, ListImportService listImportService, AdminService adminService, AllService allService, CollectionsImportService collectionsImportService, BiocollectImportService biocollectImportService, LogService logService, LayerImportService layerImportService, AreaImportService areaImportService, DashboardService dashboardService, TaskExecutor processExecutor, TaskExecutor elasticSearchUpdate, AuthService authService, TaxonUpdateService taxonUpdateService, SitemapService sitemapService) {
+    public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService,
+                             TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
+                             ListImportService listImportService, AdminService adminService, AllService allService,
+                             CollectionsImportService collectionsImportService,
+                             BiocollectImportService biocollectImportService, LogService logService,
+                             LayerImportService layerImportService, AreaImportService areaImportService,
+                             DashboardService dashboardService, TaskExecutor processExecutor,
+                             TaskExecutor elasticSearchUpdate, AuthService authService,
+                             TaxonUpdateService taxonUpdateService, SitemapService sitemapService,
+                             QueueService queueService, FieldguideConsumerService fieldguideConsumerService,
+                             SearchConsumerService searchConsumerService, DataQualityService dataQualityService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.blockingExecutor = blockingExecutor;
@@ -73,6 +93,10 @@ public class V2AdminController {
         this.authService = authService;
         this.taxonUpdateService = taxonUpdateService;
         this.sitemapService = sitemapService;
+        this.queueService = queueService;
+        this.fieldguideConsumerService = fieldguideConsumerService;
+        this.searchConsumerService = searchConsumerService;
+        this.dataQualityService = dataQualityService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -181,8 +205,82 @@ public class V2AdminController {
         queue.put("description", "blocking queue containing a subset of update requests");
         queues.put("elasticsearch", queue);
 
+        queue = new HashMap<>();
+        queue.put("description", "queued fieldguide requests");
+        queue.put("threadCount", fieldguideConsumerService.consumerThreads);
+        queue.put("active", fieldguideConsumerService.activeItems);
+        if (type == TaskType.FIELDGUIDE) {
+            queue.put("queued", queueService.list(TaskType.FIELDGUIDE.name()));
+        }
+        queues.put("fieldguide", queue);
+
+        queue = new HashMap<>();
+        queue.put("description", "queued searched download requests");
+        queue.put("threadCount", searchConsumerService.consumerThreads);
+        queue.put("active", searchConsumerService.activeItems);
+        if (type == TaskType.SEARCH_DOWNLOAD) {
+            queue.put("queued", queueService.list(TaskType.SEARCH_DOWNLOAD.name()));
+        }
+        queues.put("search_download", queue);
+
         response.put("queues", queues);
 
         return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
+    }
+
+    @Operation(tags = "ADMIN", summary = "List data quality profiles")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @SecurityRequirement(name = "JWT")
+    @GetMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<QualityProfileAdmin>> dqGet(
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize,
+            @RequestParam(name = "q", required = false) String q,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        List<QualityProfileAdmin> list = dataQualityService.getProfiles().stream().map(QualityProfileAdmin::new).toList();
+
+        return ResponseEntity.ok(list);
+    }
+
+    @Operation(tags = "ADMIN", summary = "Delete a data quality profile")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @SecurityRequirement(name = "JWT")
+    @DeleteMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> dqDelete(
+            @RequestParam(name = "id") Long id,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        if (dataQualityService.delete(id)) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(tags = "ADMIN", summary = "Add or update a data quality profile")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @SecurityRequirement(name = "JWT")
+    @PostMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<QualityProfileAdmin> dqPost(
+            @RequestBody QualityProfile profile,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        QualityProfile savedProfile = dataQualityService.save(profile);
+
+        if (savedProfile != null) {
+            return ResponseEntity.ok(new QualityProfileAdmin(savedProfile));
+        } else {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

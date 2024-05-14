@@ -14,6 +14,7 @@ import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import Api from "./views/Api.tsx";
 import MapView from "./views/Map.tsx";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import DataQualityAdmin from "./views/DataQualityAdmin.tsx";
 
 export default function App() {
 
@@ -144,6 +145,7 @@ export default function App() {
                     <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} signinRedirect={() => auth.signinRedirect()} logout={() => logout()}/>}/>
                     <Route path="/dashboard" element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/atlas-admin" element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/data-quality-admin" element={<DataQualityAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/vocab" element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/atlas-index" element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/api" element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>

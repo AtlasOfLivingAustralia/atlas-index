@@ -4,7 +4,8 @@
       "type": "text"
     },
     "exact_text": {
-      "type": "text"
+      "type": "keyword",
+      "normalizer": "keyword_lowercase"
     },
     "auto": {
       "type": "text",

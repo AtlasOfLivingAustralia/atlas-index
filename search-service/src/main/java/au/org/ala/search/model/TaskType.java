@@ -18,12 +18,16 @@ public enum TaskType {
     // - code to fetch this information for a single record (to be of use by a call to /species/{taxonID})
     // - code to update a single record for all of these fields (or just one of these fields)
     // - code to bulk update all of these fields (or a subset with long expiry, e.g. prep for receiving a site crawl)
+    // The basic idea is that there will be a single JSON file for each result. Whether it is cached to disk after
+    // a request, or pre-cached, can be determined later. This task will either invalidate cached files, or update
+    // them all, or something else.
     RECORD("update a single record's dynamic data, e.g. wiki, profiles, bhl, genbank, distributions, distributions, counts, images (biocache), geographical extents"),
 
     DASHBOARD("update dashboard.json used by the dashboard UI"),
 
     // Consumers
-    FIELDGUIDE("consumer of fieldguide requests");
+    FIELDGUIDE("consumer of fieldguide requests"),
+    SEARCH_DOWNLOAD("consumer of search download requests");
 
     public final String description;
 

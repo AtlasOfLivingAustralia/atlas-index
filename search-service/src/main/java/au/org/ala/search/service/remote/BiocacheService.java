@@ -24,6 +24,7 @@ public class BiocacheService {
     private static final Logger logger = LoggerFactory.getLogger(BiocacheService.class);
     final WebService webService;
     private final RestTemplate restTemplate = new RestTemplate();
+
     @Value("${biocache.url}")
     private String biocacheWsUrl;
 
@@ -46,12 +47,11 @@ public class BiocacheService {
         map.add("guids", StringUtils.join(guids, ","));
         map.add("separator", ",");
 
-        ResponseEntity<Map> response =
-                restTemplate.exchange(
-                        biocacheWsUrl + "/occurrences/taxaCount",
-                        HttpMethod.POST,
-                        new HttpEntity<>(map, new HttpHeaders()),
-                        Map.class);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                biocacheWsUrl + "/occurrences/taxaCount",
+                    HttpMethod.POST,
+                    new HttpEntity<>(map, new HttpHeaders()),
+                    Map.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             return (Map<String, Integer>) response.getBody();

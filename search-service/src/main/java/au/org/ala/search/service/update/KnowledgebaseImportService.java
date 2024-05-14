@@ -95,8 +95,7 @@ public class KnowledgebaseImportService {
                         locations.put(pageUrl, current);
                     }
 
-                    // remove this page from existingPages so that existingPages will only contain pages
-                    // deleted
+                    // remove this page from existingPages so that existingPages will only contain pages deleted
                     if (stored != null) {
                         // assume no duplicates
                         existingPages.remove(pageUrl);
@@ -106,13 +105,7 @@ public class KnowledgebaseImportService {
                 }
             }
         } catch (IOException ex) {
-            logService.log(taskType,
-                    "Unable to retrieve "
-                            + knowledgebaseUrl
-                            + sitemap
-                            + ": "
-                            + ex.getMessage()
-                            + ", ignoring");
+            logService.log(taskType, "Unable to retrieve " + knowledgebaseUrl + sitemap + ": " + ex.getMessage() + ", ignoring");
         }
 
         logService.log(taskType, "pages: " + locations.size());

@@ -31,12 +31,10 @@ public class SitemapService {
     private static final TaskType taskType = TaskType.SITEMAP;
 
     private static final Logger logger = LoggerFactory.getLogger(SitemapService.class);
-    static String URLSET_HEADER =
-            "<?xml version='1.0' encoding='UTF-8'?><urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
+    static String URLSET_HEADER = "<?xml version='1.0' encoding='UTF-8'?><urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
     static String URLSET_FOOTER = "</urlset>";
     static int MAX_URLS = 50000; // maximum number of URLs in a sitemap file
-    static int MAX_SIZE =
-            9 * 1024 * 1024; // use 9MB to keep the actual file size below 10MB (a gateway limit)
+    static int MAX_SIZE = 9 * 1024 * 1024; // use 9MB to keep the actual file size below 10MB (a gateway limit)
     protected final ElasticService elasticService;
     protected final LogService logService;
     List<Date> lastMod = new ArrayList<>();
@@ -91,12 +89,8 @@ public class SitemapService {
         }
 
         try {
-            // write files (S3 or otherwise)
-            if (sitemapPath.startsWith("s3:")) {
-                // TODO: s3 write
-            } else {
-                FileUtils.write(new File(sitemapPath + "/" + filename), content, StandardCharsets.UTF_8);
-            }
+            // TODO: use StaticFileStoreService, or clone for a SitemapFileStoreService, to write to S3 and/or local
+            FileUtils.write(new File(sitemapPath + "/" + filename), content, StandardCharsets.UTF_8);
         } catch (Exception e) {
             logService.log(taskType, "Error failed to write sitemap file: " + filename);
             logger.error("failed to write sitemap file: " + filename);
@@ -135,7 +129,7 @@ public class SitemapService {
             while (hasMore) {
                 SearchResponse<SearchItemIndex> result =
                         elasticService.queryPointInTimeAfter(
-                                null, searchAfter, pageSize, query, fieldList, null, false);
+                                null, searchAfter, pageSize, query, null, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
                 searchAfter = hits.getLast().sort();
 

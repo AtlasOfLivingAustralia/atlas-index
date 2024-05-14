@@ -7,6 +7,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
+import lombok.Getter;
 import org.gbif.utils.file.csv.CSVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,13 @@ public class TaxonUpdateRunner {
     protected final ElasticService elasticService;
     protected final BiocacheService biocacheService;
     protected final LogService logService;
-    public Map<String, String> imageCache = new ConcurrentHashMap<>();
-    public Map speciesImages;
+
+    @Getter
+    private Map<String, String> imageCache = new ConcurrentHashMap<>();
+
+    @Getter
+    private Map speciesImages;
+
     @Value("${dwca.extract.leftRightCsvPath}")
     String leftRightCsvPath;
 
@@ -148,5 +154,10 @@ public class TaxonUpdateRunner {
         }
 
         return null;
+    }
+
+    public void clearCache() {
+        imageCache.clear();
+        speciesImages = null;
     }
 }

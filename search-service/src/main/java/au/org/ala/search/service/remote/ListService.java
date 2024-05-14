@@ -49,12 +49,11 @@ public class ListService {
     }
 
     public List<Map<String, Object>> list(String params) {
-        ResponseEntity<Map> response =
-                restTemplate.exchange(
-                        listsUrl + "/ws/speciesList?" + params + "&max=" + listsSearchMax,
-                        HttpMethod.GET,
-                        null,
-                        Map.class);
+        ResponseEntity<Map> response = restTemplate.exchange(
+                listsUrl + "/ws/speciesList?" + params + "&max=" + listsSearchMax,
+                    HttpMethod.GET,
+                    null,
+                    Map.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             Map<String, Object> responseMap = response.getBody();
@@ -67,12 +66,11 @@ public class ListService {
     }
 
     public List<Map<String, Object>> items(String listId) {
-        ResponseEntity<List> response =
-                restTemplate.exchange(
-                        listsUrl + "/ws/speciesListItems/" + listId + "?includeKVP=true&max=" + listsSearchMax,
-                        HttpMethod.GET,
-                        null,
-                        List.class);
+        ResponseEntity<List> response = restTemplate.exchange(
+                listsUrl + "/ws/speciesListItems/" + listId + "?includeKVP=true&max=" + listsSearchMax,
+                    HttpMethod.GET,
+                    null,
+                    List.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             return (List<Map<String, Object>>) response.getBody();

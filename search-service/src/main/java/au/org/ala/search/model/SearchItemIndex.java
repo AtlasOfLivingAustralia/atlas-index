@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.annotations.Setting;
 import java.util.Date;
 import java.util.Map;
 
-@JsonInclude(JsonInclude.Include.NON_EMPTY) // TODO: test that this will still allow the deleting of fields from elasticsearch
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @Document(indexName = "#{@environment.getProperty('elastic.index')}", createIndex = false)
 @Setting(settingPath = "/elasticsearch/settings.json")
 @Mapping(mappingPath = "/elasticsearch/mappings.json")

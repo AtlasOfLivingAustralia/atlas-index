@@ -1,13 +1,15 @@
 package au.org.ala.search.service.remote;
 
-import au.org.ala.search.controller.V1Controller;
 import au.org.ala.search.model.AdminIndex;
 import au.org.ala.search.model.ImageUrlType;
 import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.dto.*;
+import au.org.ala.search.model.query.Op;
+import au.org.ala.search.model.query.Term;
 import au.org.ala.search.names.VernacularType;
 import au.org.ala.search.service.LegacyService;
+import au.org.ala.search.util.QueryParserUtil;
 import au.org.ala.search.util.Weight;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
@@ -15,6 +17,9 @@ import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.Time;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
+import co.elastic.clients.elasticsearch._types.aggregations.MultiBucketAggregateBase;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.ClosePointInTimeRequest;
 import co.elastic.clients.elasticsearch.core.OpenPointInTimeRequest;
@@ -32,14 +37,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregation;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.IndexOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.*;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.data.elasticsearch.core.query.Query;
@@ -53,6 +57,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +74,8 @@ public class ElasticService {
     protected final ElasticsearchOperations elasticsearchOperations;
     protected final ElasticsearchClient elasticsearchClient;
     protected final LegacyService legacyService;
+    private final MessageSource messageSource;
+
     final private Integer MAX_RESULTS = 10000;
     public Map<String, SearchItemIndex> datasetMap;
     List<IndexedField> indexFieldsList = null;
@@ -104,11 +112,15 @@ public class ElasticService {
     private String defaultDownloadFields;
     private Integer vernacularNameCommonPriority;
 
+    @Value("${downloadMaxRows}")
+    private Integer downloadMaxRows;
+
     public ElasticService(
-            ElasticsearchOperations elasticsearchOperations, ElasticsearchClient elasticsearchClient, LegacyService legacyService) {
+            ElasticsearchOperations elasticsearchOperations, ElasticsearchClient elasticsearchClient, LegacyService legacyService, MessageSource messageSource) {
         this.elasticsearchOperations = elasticsearchOperations;
         this.elasticsearchClient = elasticsearchClient;
         this.legacyService = legacyService;
+        this.messageSource = messageSource;
     }
 
     @PostConstruct
@@ -120,7 +132,7 @@ public class ElasticService {
             logger.error("config vernacularNameCommon=" + vernacularNameCommon + " is invalid");
         }
 
-        // @Document(createIndex=true) is not working as expected, so create explicitly if !exist
+        // @Document(createIndex=true) is not working as expected when >1 @Document, so create explicitly if !exist
         IndexOperations indexOperations = elasticsearchOperations.indexOps(AdminIndex.class);
         if (!indexOperations.exists()) {
             indexOperations.createWithMapping();
@@ -146,7 +158,7 @@ public class ElasticService {
 
             Query query = NativeQuery.builder()
                     .withQuery(q -> q.term(t -> t.field(field).value(value)))
-                    .withFields("id", "modified")
+                    .withSourceFilter(new FetchSourceFilter(new String[]{"id", "modified"}, null))
                     .withPageable(p)
                     .build();
 
@@ -172,27 +184,31 @@ public class ElasticService {
             page++;
 
             NativeQueryBuilder query = NativeQuery.builder()
-                    .withSourceFilter(new FetchSourceFilter(otherFields, null)) // TODO: replace .withFields with .withSourceFilter in other places
+                    .withSourceFilter(new FetchSourceFilter(otherFields, null))
                     .withPageable(p);
             if ("*".equals(value)) {
-                query.withQuery(q -> q.exists(t -> t.field(field)));
+                if (field.startsWith("data.")) {
+                    query.withQuery(q -> q.nested(n -> n.path("data").query(q2 -> q2.exists(t -> t.field(field)))));
+                } else {
+                    query.withQuery(q -> q.exists(t -> t.field(field)));
+                }
             } else {
                 query.withQuery(q -> q.term(t -> t.field(field).value(value)));
             }
 
             Map<String, String[]> currentPage = new HashMap<>();
-            for (SearchHit<SearchItemIndex> item : elasticsearchOperations.search(query.build(), SearchItemIndex.class)) {
+            for (SearchHit<Map> item : elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex))) {
                 String[] values = new String[otherFields.length];
                 String key;
                 try {
-                    key = (String) SearchItemIndex.class.getField(keyField).get(item.getContent());
+                    key = (String) item.getContent().get(keyField);
                     for (int i = 0; i < otherFields.length; i++) {
-                        if (otherFields[i].startsWith("data.")) {
-                            if (item.getContent().getData() != null) {
-                                values[i] = item.getContent().getData().getOrDefault(otherFields[i].substring(5), null);
+                        if (otherFields[i].startsWith("data.") && !item.getContent().containsKey(otherFields[i])) {
+                            if (item.getContent().get("data") != null) {
+                                values[i] = String.valueOf(((Map) item.getContent().get("data")).get(otherFields[i].substring(5)));
                             }
                         } else {
-                            values[i] = (String) SearchItemIndex.class.getField(otherFields[i]).get(item.getContent());
+                            values[i] = (String) item.getContent().get(otherFields[i]);
                         }
                     }
                 } catch (Exception e) {
@@ -220,6 +236,17 @@ public class ElasticService {
         return result.map(SearchHit::getContent).orElse(null);
     }
 
+    public Map getDocumentMap(String id) {
+        Query query = NativeQuery.builder()
+                .withQuery(q -> q.term(t -> t.field("id").value(id)))
+                .withMaxResults(1)
+                .build();
+
+        Optional<SearchHit<Map>> result = elasticsearchOperations.search(query, Map.class, IndexCoordinates.of(elasticIndex)).stream().findFirst();
+
+        return result.map(SearchHit::getContent).orElse(null);
+    }
+
     public String queryTaxonId(String guid) {
         Query query = NativeQuery.builder()
                 .withQuery(wq -> wq.bool(bq -> {
@@ -227,7 +254,7 @@ public class ElasticService {
                     bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
                     return bq;
                 }))
-                .withFields("id")
+                .withSourceFilter(new FetchSourceFilter(new String[]{"id"}, null))
                 .withMaxResults(1)
                 .build();
 
@@ -346,6 +373,11 @@ public class ElasticService {
         return elasticsearchClient.openPointInTime(request).id();
     }
 
+    // TODO: Use PIT for queryPointInTimeAfter
+    // 1. openPointInTime
+    // 2. queryPointInTimeAfter
+    // 3. update PIT and searchAfter. repeat (2)
+    // 4. closePointInTime
     void closePointInTime(String pit) throws IOException {
         ClosePointInTimeRequest request = new ClosePointInTimeRequest.Builder().id(pit).build();
 
@@ -357,6 +389,7 @@ public class ElasticService {
             List<FieldValue> searchAfter,
             Integer pageSize,
             Map<String, Object> query,
+            co.elastic.clients.elasticsearch._types.query_dsl.Query opQuery,
             List<FieldAndFormat> fieldList,
             List<SortOptions> sortOptions,
             Boolean trackTotalHits)
@@ -364,38 +397,41 @@ public class ElasticService {
 
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .size(pageSize)
-                .query(q -> q.bool(bq -> {
-                    for (Map.Entry<String, Object> item : query.entrySet()) {
-                        // TODO: when a field is not 'keyword' term queries cannot be used.
-                        // TODO: when using a nested field, do so correctly for exists, no exists, comparison
-                        if (item.getValue() instanceof List) {
-                            // TODO: I think there is a specific query type for this so there is no need to use bool
-                            bq.must(
-                                    q2 -> q2.bool(bq2 -> {
-                                        for (Object v : (List) item.getValue()) {
-                                            if (item.getKey().startsWith("-")) {
-                                                bq2.mustNot(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
-                                            } else {
-                                                bq2.should(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
-                                            }
-                                        }
-                                        return bq2;
-                                    }));
-                        } else if (item.getKey().startsWith("not exists ")) {
-                            bq.mustNot(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("not exists ".length())))));
-                        } else if (item.getKey().startsWith("exists ")) {
-                            bq.must(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("exists ".length())))));
-                        } else if (item.getKey().startsWith("-")) {
-                            bq.mustNot(f -> f.term(t -> t.field(fieldMapping(item.getKey().substring(1))).value((String) item.getValue())));
-                        } else {
-                            bq.filter(f -> f.term(t -> t.field(fieldMapping(item.getKey())).value((String) item.getValue())));
-                        }
-                    }
-                    return bq;
-                }))
                 .trackTotalHits(t -> t.enabled(trackTotalHits))
                 .index(elasticIndex) // Is this needed when using elasticsearchClient?
                 .source(sc -> sc.fetch(false));
+
+        if (query != null) {
+            // TODO: migrate to using Op generated query
+            searchRequest.query(q -> q.bool(bq -> {
+                for (Map.Entry<String, Object> item : query.entrySet()) {
+                    if (item.getValue() instanceof List) {
+                        bq.must(
+                                q2 -> q2.bool(bq2 -> {
+                                    for (Object v : (List) item.getValue()) {
+                                        if (item.getKey().startsWith("-")) {
+                                            bq2.mustNot(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
+                                        } else {
+                                            bq2.should(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
+                                        }
+                                    }
+                                    return bq2;
+                                }));
+                    } else if (item.getKey().startsWith("not exists ")) {
+                        bq.mustNot(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("not exists ".length())))));
+                    } else if (item.getKey().startsWith("exists ")) {
+                        bq.must(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("exists ".length())))));
+                    } else if (item.getKey().startsWith("-")) {
+                        bq.mustNot(f -> f.term(t -> t.field(fieldMapping(item.getKey().substring(1))).value((String) item.getValue())));
+                    } else {
+                        bq.filter(f -> f.term(t -> t.field(fieldMapping(item.getKey())).value((String) item.getValue())));
+                    }
+                }
+                return bq;
+            }));
+        } else if (opQuery != null) {
+            searchRequest.query(opQuery);
+        }
 
         if (fieldList != null) {
             searchRequest.fields(fieldList);
@@ -570,14 +606,6 @@ public class ElasticService {
                     data.put(entry.getKey().substring(5), (String) entry.getValue());
                 }
             }
-            // TODO: remove this for loop (data.data.), it is here because of a typo in a test index built
-            List<String> keys = new ArrayList<>(data.keySet());
-            for (String key : keys) {
-                if (key.startsWith("data.")) {
-                    data.put(key.substring(5), data.get(key));
-                    data.remove(key);
-                }
-            }
 
             return data;
         }
@@ -690,7 +718,6 @@ public class ElasticService {
     }
 
     public SearchItemIndex searchDataset(String datasetID) {
-        // TODO: this is not ideal. It should request everything and cache it.
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery(wq -> wq.bool(bq -> {
                     bq.filter(f -> f.term(t -> t.field("idxtype").value(IndexDocType.DATARESOURCE.name())));
@@ -1532,7 +1559,7 @@ public class ElasticService {
         return doc;
     }
 
-    public StreamingResponseBody download(String q, String[] fqs, String fields) throws IOException {
+    public File download(String q, String[] fqs, String fields) throws Exception {
         if (StringUtils.isEmpty(fields)) {
             // default fields
             fields = defaultDownloadFields;
@@ -1562,44 +1589,33 @@ public class ElasticService {
         int[] columnCount = new int[fieldList.size()];
         Arrays.fill(columnCount, 0);
 
-        Map<String, Object> query = new HashMap<>();
-        query.put("-idxtype", new String[]{"IDENTIFIER", "TAXONVARIANT"});
+        // exclude idxtype IDENTIFIER and TAXONVARIANT
+        List<String> allFqs = fqs == null ? new ArrayList() : new ArrayList<>(Arrays.asList(fqs));
+        allFqs.add("-idxtype:IDENTIFIER");
+        allFqs.add("-idxtype:TAXONVARIANT");
 
-        String[] fieldValue = q.split(":", 2);
-        if (fieldValue.length == 2) {
-            query.put(fieldValue[0], fieldValue[1]);
-        } else {
-            query.put("all", q);
-        }
-        if (fqs != null) {
-            for (String fq : fqs) {
-                // TODO: also support
-                //  "-field:value"
-                //  "field:\"value\""
-                //  "term OR term"
-                //  "term AND term"
-                fieldValue = fq.split(":", 2);
-                if (fieldValue.length == 2) {
-                    query.put(fieldValue[0], fieldValue[1]);
-                } else {
-                    query.put("all", fq);
-                }
-            }
+        Op op = QueryParserUtil.parse(q, allFqs.toArray(new String[0]), this::isValidField);
+        if (op == null) {
+            throw new Exception("Invalid query");
         }
 
         // generate tmpFile, includes empty columns
         File tmpFile = File.createTempFile("download", "csv");
         try (CSVWriter writer = new CSVWriter(new FileWriter(tmpFile))) {
-            // TODO: filter header names with i18n
-            writer.writeNext(fieldsSplit);
+            writer.writeNext(Arrays.stream(fieldsSplit).map(it -> {
+                String formattedField = it.replaceAll("^rk_", "").replaceAll("^rkid_", "");
+                return messageSource.getMessage(formattedField, null, formattedField, Locale.getDefault());
+            }).toArray(String[]::new));
 
             String[] row = new String[fieldsSplit.length];
 
+            int count = 0;
+
             List<FieldValue> searchAfter = null;
             boolean hasMore = true;
-            while (hasMore) {
+            while (hasMore && count < downloadMaxRows) {
                 SearchResponse<SearchItemIndex> result = queryPointInTimeAfter(
-                        null, searchAfter, elasticPageSize, query, fieldList, null, false);
+                        null, searchAfter, elasticPageSize, null, opToQuery(op), fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
 
                 if (hits.isEmpty()) {
@@ -1610,6 +1626,11 @@ public class ElasticService {
                 searchAfter = hits.getLast().sort();
 
                 for (Hit<SearchItemIndex> item : hits) {
+                    count++;
+                    if (count >= downloadMaxRows) {
+                        break;
+                    }
+
                     for (int i = 0; i < fieldList.size(); i++) {
                         String field = fieldList.get(i).field();
                         if (item.fields().get(field) != null) {
@@ -1646,7 +1667,8 @@ public class ElasticService {
         }
         int fTotalColumns = totalColumns;
 
-        return out -> {
+        File tmpFinalFile = File.createTempFile("download", ".csv");
+        try (FileOutputStream out = new FileOutputStream(tmpFinalFile)) {
             try (CSVWriter writer = new CSVWriter(new OutputStreamWriter(out))) {
                 String[] outputRow = new String[fTotalColumns];
                 try (CSVReader reader = new CSVReader(new FileReader(tmpFile))) {
@@ -1665,40 +1687,41 @@ public class ElasticService {
                     throw new RuntimeException(e);
                 }
                 writer.flush();
-            } finally {
-                tmpFile.delete();
             }
-        };
+        } finally {
+            tmpFile.delete();
+        }
+
+        return tmpFile;
     }
 
-    public SearchHits<SearchItemIndex> search(V1Controller.Op op, int page, int pageSize) {
+    public SearchHits<SearchItemIndex> search(Op op, int page, int pageSize) {
         PageRequest pageRequest = PageRequest.of(page, pageSize);
 
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery(opToQuery(op))
                 .withPageable(pageRequest)
-                .withMaxResults(0)
                 .withTrackTotalHits(true);
 
         return elasticsearchOperations.search(query.build(), SearchItemIndex.class);
     }
 
-    private co.elastic.clients.elasticsearch._types.query_dsl.Query opToQuery(V1Controller.Op op) {
+    private co.elastic.clients.elasticsearch._types.query_dsl.Query opToQuery(Op op) {
         if (op.terms.size() == 1) {
             // single term
-            return termToQuery(op.terms.get(0));
+            return termToQuery(op.terms.get(0), false);
         } else {
             // multiple terms
             return BoolQuery.of(bq -> {
-                for (V1Controller.Term term : op.terms) {
+                for (Term term : op.terms) {
                     if (op.andOp) {
                         if (term.negate) {
-                            bq.mustNot(termToQuery(term));
+                            bq.mustNot(termToQuery(term, true));
                         } else {
-                            bq.must(termToQuery(term));
+                            bq.must(termToQuery(term, true));
                         }
                     } else {
-                        bq.should(termToQuery(term));
+                        bq.should(termToQuery(term, false));
                     }
                 }
                 return bq;
@@ -1706,24 +1729,50 @@ public class ElasticService {
         }
     }
 
-    private co.elastic.clients.elasticsearch._types.query_dsl.Query termToQuery(V1Controller.Term term) {
-        if (term.op != null) {
-            return opToQuery(term.op);
-        } else if (term.field == null) {
-            return MatchQuery.of(mq -> {
-                // default search field for free text search
-                mq.field("all");
-                mq.query(term.value);
-                return mq;
+    private co.elastic.clients.elasticsearch._types.query_dsl.Query termToQuery(Term term, boolean negated) {
+        if (!negated && term.negate) {
+            return BoolQuery.of(bq -> {
+                bq.mustNot(termToQuery(term, true));
+                return bq;
             })._toQuery();
-        } else if ("*".equals(term.value)) {
-            return ExistsQuery.of(eq -> eq.field(term.field))._toQuery();
         } else {
-            if (isKeywordField(term.field)) {
-                return TermQuery.of(tq -> tq.field(term.field).value(term.value))._toQuery();
+            if (term.op != null) {
+                return opToQuery(term.op);
+            } else if (term.field == null) {
+                // dismax? attempting to match
+                return DisMaxQuery.of(dmq -> dmq.queries(
+                        TermQuery.of(tq -> tq.field("exact_text").value(term.value))._toQuery(),
+                        MatchQuery.of(mq -> {
+                            // default search field for free text search
+                            mq.field("all");
+                            mq.query(term.value);
+                            return mq;
+                        })._toQuery(),
+                        MatchQuery.of(mq -> {
+                            // default search field for free text search
+                            mq.field("description");
+                            mq.query(term.value);
+                            mq.boost(0.2f);
+                            return mq;
+                        })._toQuery()
+                ).tieBreaker(0.0))._toQuery();
+            } else if ("*".equals(term.value)) {
+                return nestedWrapper(term.field, ExistsQuery.of(eq -> eq.field(term.field))._toQuery());
             } else {
-                return MatchPhraseQuery.of(m -> m.field(term.field).query(term.value))._toQuery();
+                if (isKeywordField(term.field)) {
+                    return nestedWrapper(term.field, TermQuery.of(tq -> tq.field(term.field).value(term.value))._toQuery());
+                } else {
+                    return nestedWrapper(term.field, MatchPhraseQuery.of(m -> m.field(term.field).query(term.value))._toQuery());
+                }
             }
+        }
+    }
+
+    private co.elastic.clients.elasticsearch._types.query_dsl.Query nestedWrapper(String field, co.elastic.clients.elasticsearch._types.query_dsl.Query query) {
+        if (field.startsWith("data.")) {
+            return NestedQuery.of(nf -> nf.path("data").query(query))._toQuery();
+        } else {
+            return query;
         }
     }
 
@@ -1740,5 +1789,100 @@ public class ElasticService {
 
         boolean keywordDataField = field.startsWith("data.conservation_") || field.startsWith("data.rk");
         return !keywordDataField;
+    }
+
+    /**
+     * This is the legacy search service so the output is just a Map<String, Object> with the fields that are needed.
+     */
+    public Map<String, Object> search(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets) {
+        PageRequest pageRequest = PageRequest.of(page, pageSize);
+
+        Op op = QueryParserUtil.parse(q, fqs, this::isValidField);
+        if (op == null) {
+            return null;
+        }
+
+        NativeQueryBuilder query = NativeQuery.builder()
+                .withQuery((wq1 -> wq1.functionScore(fs -> fs.query(opToQuery(op))
+                        .functions(fn -> fn.fieldValueFactor(fv -> fv.field("searchWeight"))))))
+                .withPageable(pageRequest)
+                .withTrackTotalHits(true);
+
+        if (StringUtils.isNotEmpty(sort) && StringUtils.isNotEmpty(dir)) {
+            query.withSort(s -> s.field(f -> f.field(sort).order("desc".equalsIgnoreCase(dir) ? SortOrder.Desc : SortOrder.Asc)));
+        }
+
+        if (facets != null) {
+            for (String facet : facets.split(",")) {
+                query.withAggregation(facet, AggregationBuilders.terms(ts -> ts.field(facet).size(100))); // '100' is from bie-index
+            }
+        }
+
+        SearchHits<SearchItemIndex> result = elasticsearchOperations.search(query.build(), SearchItemIndex.class);
+
+        Map<String, Object> mapResult = new HashMap<>();
+        List<Object> searchResults = new ArrayList<>();
+        mapResult.put("searchResults", searchResults);
+        mapResult.put("totalRecords", result.getTotalHits());
+        mapResult.put("queryTitle", getQueryTitle(q));
+
+        for (SearchHit<SearchItemIndex> hit : result.getSearchHits()) {
+            Map<String, Object> doc = formatDoc(hit.getContent());
+            searchResults.add(doc);
+        }
+
+        List<Map<String, Object>> facetResults = new ArrayList();
+        mapResult.put("facetResults", facetResults);
+        Map<String, ElasticsearchAggregation> aggregations = ((ElasticsearchAggregations) ((SearchHitsImpl) result).getAggregations()).aggregationsAsMap();
+        for (Map.Entry<String, ElasticsearchAggregation> entry : aggregations.entrySet()) {
+            Map<String, Object> facetItemMap = new HashMap<>();
+            facetResults.add(facetItemMap);
+            facetItemMap.put("fieldName", entry.getKey());
+
+            List<Map<String, Object>> facetItems = new ArrayList<>();
+            facetItemMap.put("fieldResult", facetItems);
+
+            List<StringTermsBucket> buckets = (List<StringTermsBucket>) ((MultiBucketAggregateBase) entry.getValue().aggregation().getAggregate()._get()).buckets()._get();
+            for (StringTermsBucket bucket : buckets) {
+                Map<String, Object> itemMap = new HashMap<>();
+                itemMap.put("label", bucket.key().stringValue());
+                itemMap.put("count", bucket.docCount());
+                itemMap.put("fieldValue", bucket.key().stringValue());
+                itemMap.put("fq", entry.getKey() + ":\"" + bucket.key().stringValue().replaceAll("\"", "\\\"") + "\"");
+                facetItems.add(itemMap);
+            }
+        }
+
+        return mapResult;
+    }
+
+    private String getQueryTitle(String q) {
+        String queryTitle = q;
+
+        Pattern pattern = Pattern.compile("rkid_([a-z]{1,}):\"?([^\"]*)\"?");
+        Matcher matcher = pattern.matcher(q);
+        if (matcher.find()) {
+            try {
+                String rankName = matcher.group(0);
+                String guid = matcher.group(1);
+                ShortProfile shortProfile = getShortProfile(guid);
+                if (shortProfile != null) {
+                    queryTitle = rankName + " " + shortProfile.getScientificName();
+                } else {
+                    queryTitle = rankName + " " + guid;
+                }
+            } catch (Exception ignored){
+            }
+        }
+
+        if(StringUtils.isEmpty(queryTitle)){
+            queryTitle = "all records";
+        }
+
+        return queryTitle;
+    }
+
+    public boolean isValidField(String fieldName) {
+        return validFields(false).contains(fieldName);
     }
 }

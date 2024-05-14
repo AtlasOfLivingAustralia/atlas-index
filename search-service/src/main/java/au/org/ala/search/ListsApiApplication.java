@@ -17,6 +17,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
@@ -34,6 +35,7 @@ import static org.apache.tomcat.util.buf.EncodedSolidusHandling.DECODE;
 
 @SpringBootApplication
 @EnableAsync
+@EnableCaching
 public class ListsApiApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(ListsApiApplication.class);
@@ -185,9 +187,7 @@ public class ListsApiApplication {
                 PathItem pathItem = openApi.getPaths().remove(path);
                 openApi.getPaths().addPathItem(path.replace("**", "{id}"), pathItem);
             });
-        }
-
-                ;
+        };
     }
 
     @Bean

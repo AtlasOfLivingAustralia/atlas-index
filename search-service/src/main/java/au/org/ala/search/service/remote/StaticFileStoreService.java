@@ -21,17 +21,17 @@ import java.io.File;
  * TODO: Test the S3 options.
  */
 @Service
-public class FileStoreService {
+public class StaticFileStoreService {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileStoreService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StaticFileStoreService.class);
 
-    @Value("${filestore.path}")
+    @Value("${static.filestore.path}")
     private String fileStorePath;
-    @Value("${s3.region}")
+    @Value("${static.s3.region}")
     private String s3Region;
-    @Value("${s3.accessKey}")
+    @Value("${static.s3.accessKey}")
     private String s3AccessKey;
-    @Value("${s3.secretKey}")
+    @Value("${static.s3.secretKey}")
     private String s3SecretKey;
 
     S3AsyncClient s3Client;

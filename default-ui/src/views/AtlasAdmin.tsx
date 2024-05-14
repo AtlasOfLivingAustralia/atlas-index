@@ -31,6 +31,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const [images, setImages] = useState<string []>([]);
     const [imageStart, setImageStart] = useState(0);
     const [imageViewMode, setImageViewMode] = useState('all');
+    const [description, setDescription] = useState<{[key: string]: string}>({})
 
     const imagePageSize = 100;
 
@@ -45,6 +46,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             {title: 'Default UI', href: '/'},
             {title: 'Atlas Admin', href: '/atlas-admin'},
         ]);
+        fetchLog();
     }, []);
 
     function fetchLog() {
@@ -75,7 +77,9 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         setLogString(JSON.stringify(flattenLogAll(json.tasks), null, 2))
                     }
 
-                    // check for new task types
+                    let desc: {[key: string]: string} = {...description}
+
+                    // check for new task types, and update description
                     var newTypes: string[] = []
                     for (let task of Object.keys(json.tasks)) {
                         var exists = false
@@ -88,10 +92,19 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         if (!exists) {
                             newTypes.push(task)
                         }
+
+                        desc[task] = json.tasks[task].description + " (enabled:" + json.tasks[task].enabled + ")";
                     }
+
+                    // update task descriptions
+                    setDescription(desc)
+
+                    // update task types
                     if (newTypes.length > 0) {
-                        setTaskTypes([...taskTypes, ...newTypes])
+                        let sorted = [...taskTypes, ...newTypes].sort()
+                        setTaskTypes(sorted)
                     }
+
                 })
             }
         });
@@ -123,6 +136,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     }
 
     function update(updateType: string) {
+        setTaskString("Running " + updateType + " update...");
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/update?type=' + updateType, {
             method: 'GET',
             headers: {
@@ -349,19 +363,111 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         className="mb-3"
                     >
                         <Tab eventKey="tasks" title="Run admin tasks">
-                            <div className="d-flex w-100 align-items-center alert alert-secondary">
-                                <button className="btn border-black"
-                                        onClick={() => update('ALL')}>Update
-                                    ALL
-                                </button>
-                                <button className="btn border-black ms-5 me-5"
-                                        onClick={() => update('DASHBOARD')}>Update DASHBOARD
-                                </button>
-                            </div>
-                            <pre><small>{taskString}</small></pre>
+                            <pre className="alert alert-secondary" style={{height:"100px"}}><small>{taskString}</small></pre>
+                            <table className="table table-sm table-bordered">
+                                <tbody>
+
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black" onClick={() => update('ALL')}>Update
+                                            Update ALL
+                                        </button>
+                                    </td>
+                                    <td>{description['ALL']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('DASHBOARD')}>
+                                            Update DASHBOARD
+                                        </button>
+                                    </td>
+                                    <td>{description['DASHBOARD']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('BIOCACHE')}>
+                                            Update BIOCACHE
+                                        </button>
+                                    </td>
+                                    <td>{description['BIOCACHE']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('AREA')}>
+                                            Update AREA
+                                        </button>
+                                    </td>
+                                    <td>{description['AREA']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('BIOCOLLECT')}>
+                                            Update BIOCOLLECT
+                                        </button>
+                                    </td>
+                                    <td>{description['BIOCOLLECT']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('COLLECTIONS')}>
+                                            Update COLLECTIONS
+                                        </button>
+                                    </td>
+                                    <td>{description['COLLECTIONS']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('LAYER')}>
+                                            Update LAYER
+                                        </button>
+                                    </td>
+                                    <td>{description['LAYER']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('WORDPRESS')}>
+                                            Update WORDPRESS
+                                        </button>
+                                    </td>
+                                    <td>{description['WORDPRESS']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('KNOWLEDGEBASE')}>
+                                            Update KNOWLEDGEBASE
+                                        </button>
+                                    </td>
+                                    <td>{description['KNOWLEDGEBASE']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('LISTS')}>
+                                            Update LISTS
+                                        </button>
+                                    </td>
+                                    <td>{description['LISTS']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('SITEMAP')}>
+                                            Update SITEMAP
+                                        </button>
+                                    </td>
+                                    <td>{description['SITEMAP']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('RECORD')}>
+                                            Update RECORD
+                                        </button>
+                                    </td>
+                                    <td>{description['RECORD']}</td>
+                                </tr>
+                                </tbody>
+                            </table>
                         </Tab>
                         <Tab eventKey="log" title="Admin Log">
-                            <div className="d-flex w-100 align-items-center alert alert-secondary">
+                        <div className="d-flex w-100 align-items-center alert alert-secondary">
                                 <select className="custom-select w-25" id="filter"
                                         onChange={e => filterLog(e.target.value)}>
                                     {taskTypes.map((type, index) => <option key={index}>{type}</option>)};

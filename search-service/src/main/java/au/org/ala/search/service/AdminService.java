@@ -26,12 +26,10 @@ public class AdminService {
     private String wikiListId;
     @Value("${lists.wiki.field}")
     private String wikiListField;
-
     @Value("${lists.images.hidden.id}")
     private String hiddenImageListId;
     @Value("${lists.images.hidden.field}")
     private String hiddenImageListField;
-
     @Value("${lists.images.preferred.id}")
     private String preferredImageListId;
     @Value("${lists.images.preferred.field}")

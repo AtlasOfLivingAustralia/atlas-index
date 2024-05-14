@@ -1,6 +1,6 @@
 package au.org.ala.search.service;
 
-import au.org.ala.search.controller.V1Controller;
+import au.org.ala.search.controller.V1SearchController;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.service.remote.ElasticService;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
@@ -36,9 +36,9 @@ public class OpenapiService {
         if (defaultExample != null) {
             try {
                 return switch (operationId) {
-                    case V1Controller.SPECIES_GUIDS_BULKLOOKUP_ID -> listOfGuids();
-                    case V1Controller.SPECIES_IMAGE_BULK_ID -> listOfGuidsWithAnImage();
-                    case V1Controller.SPECIES_LOOKUP_BULK_ID -> listOfNamesWrapped();
+                    case V1SearchController.SPECIES_GUIDS_BULKLOOKUP_ID -> listOfGuids();
+                    case V1SearchController.SPECIES_IMAGE_BULK_ID -> listOfGuidsWithAnImage();
+                    case V1SearchController.SPECIES_LOOKUP_BULK_ID -> listOfNamesWrapped();
                     default -> defaultExample;
                 };
             } catch (IOException e) {
@@ -55,7 +55,7 @@ public class OpenapiService {
         query.put("not exists acceptedConceptID", "");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");
@@ -71,7 +71,7 @@ public class OpenapiService {
         query.put("not exists acceptedConceptID", "");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");
@@ -89,7 +89,7 @@ public class OpenapiService {
         query.put("rank", "species");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");
@@ -105,7 +105,7 @@ public class OpenapiService {
         query.put("not exists acceptedConceptID", "");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("scientificName").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("scientificName").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");
@@ -127,10 +127,10 @@ public class OpenapiService {
      */
     public boolean updatePaths(Operation op) {
         try {
-            if (op.getOperationId().equals(V1Controller.CHILD_CONCEPTS_ID) ||
-                    op.getOperationId().equals(V1Controller.SPECIES_SHORTPROFILE_ID) ||
-                    op.getOperationId().equals(V1Controller.SPECIES_ID) ||
-                    op.getOperationId().equals(V1Controller.SPECIES_ID + "_1") /* "/taxon/**" path */) {
+            if (op.getOperationId().equals(V1SearchController.CHILD_CONCEPTS_ID) ||
+                    op.getOperationId().equals(V1SearchController.SPECIES_SHORTPROFILE_ID) ||
+                    op.getOperationId().equals(V1SearchController.SPECIES_ID) ||
+                    op.getOperationId().equals(V1SearchController.SPECIES_ID + "_1") /* "/taxon/**" path */) {
                 String guid = parentGuid();
                 io.swagger.v3.oas.models.parameters.Parameter pathParam = new io.swagger.v3.oas.models.parameters.Parameter();
                 pathParam.setName("id");
@@ -141,7 +141,7 @@ public class OpenapiService {
                 pathParam.setRequired(true);
 
                 op.setParameters(prependParameter(pathParam, op.getParameters()));
-            } else if (op.getOperationId().equals(V1Controller.CLASSIFICATION_ID)) {
+            } else if (op.getOperationId().equals(V1SearchController.CLASSIFICATION_ID)) {
                 String guid = guidWithRkGenus();
                 io.swagger.v3.oas.models.parameters.Parameter pathParam = new io.swagger.v3.oas.models.parameters.Parameter();
                 pathParam.setName("id");
@@ -152,7 +152,7 @@ public class OpenapiService {
                 pathParam.setRequired(true);
 
                 op.setParameters(prependParameter(pathParam, op.getParameters()));
-            } else if (op.getOperationId().equals(V1Controller.GUID_ID)) {
+            } else if (op.getOperationId().equals(V1SearchController.GUID_ID)) {
                 String guid = acceptedName();
                 io.swagger.v3.oas.models.parameters.Parameter pathParam = new io.swagger.v3.oas.models.parameters.Parameter();
                 pathParam.setName("id");
@@ -163,7 +163,7 @@ public class OpenapiService {
                 pathParam.setRequired(true);
 
                 op.setParameters(prependParameter(pathParam, op.getParameters()));
-            } else if (op.getOperationId().equals(V1Controller.IMAGESEARCH_ID)) {
+            } else if (op.getOperationId().equals(V1SearchController.IMAGESEARCH_ID)) {
                 String guid = guidWithAnImage();
                 io.swagger.v3.oas.models.parameters.Parameter pathParam = new io.swagger.v3.oas.models.parameters.Parameter();
                 pathParam.setName("id");
@@ -192,7 +192,7 @@ public class OpenapiService {
         query.put("exists parentGuid", "");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("parentGuid").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("parentGuid").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");
@@ -209,7 +209,7 @@ public class OpenapiService {
         query.put("rank", "species");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("guid").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");
@@ -226,7 +226,7 @@ public class OpenapiService {
         query.put("rank", "species");
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
-                query, Collections.singletonList(new FieldAndFormat.Builder().field("scientificName").build()), null, false);
+                query, null, Collections.singletonList(new FieldAndFormat.Builder().field("scientificName").build()), null, false);
 
         if (result.hits().hits().isEmpty()) {
             throw new IOException("no records found");

@@ -122,7 +122,6 @@ public class ListImportService {
                     true).size();
         }
 
-        // TODO: data.attributes_ are not in use by ala-bie-hub
         logService.log(taskType, "import attribute values");
         int attributesCounter = 0;
         for (String listId : attributeLists) {
@@ -209,10 +208,12 @@ public class ListImportService {
         logService.log(taskType, "import favourites images");
         int favouritesCounter = 0;
         List<String> favouriteLists = new ArrayList<>(2);
+        List<String> favouriteType = new ArrayList<>(2);
         Map<String, Set<String>> stringLookup = new HashMap<>();
         for (String entry : favouriteConfig.split(";")) {
             String[] listIdAndString = entry.split(",");
             favouriteLists.add(listIdAndString[0]);
+            favouriteType.add(listIdAndString[1]);
             Set<String> ids = listService.items(listIdAndString[0]).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
             stringLookup.put(listIdAndString[1], ids);
         }
@@ -222,16 +223,35 @@ public class ListImportService {
                             favouriteLists,
                             listsFavouriteField,
                             (it -> {
-                                for (Map.Entry<String, Set<String>> entry : stringLookup.entrySet()) {
+                                for (int i = 0; i < favouriteLists.size(); i++) {
+                                    Set<String> ids = stringLookup.get(favouriteType.get(i));
                                     String lsid = (String) it.get("lsid");
-                                    if (entry.getValue().contains(lsid)) {
-                                        return entry.getKey();
+                                    if (ids.contains(lsid)) {
+                                        return favouriteType.get(i);
                                     }
                                 }
                                 return null;
                             }),
                             true);
-            updateWeights(updatedIds);
+            // we want to update weights, however, we may need to wait for the update to complete
+            // as a workaround we just re-run this after n-seconds
+            if (!updatedIds.isEmpty()) {
+                // TODO: this is not ideal. It is better to keep track of the updated 'favourite' value and update using this, instead of waiting 5 minutes with the hope that all updates property flushed.
+                logService.log(taskType, "Updating weights for " + updatedIds.size() + " items, in the background, in 5 minutes.");
+                new Thread() {
+                    public void run() {
+                        try {
+                            // wait 5 minutes
+                            Thread.sleep(5 * 60 * 1000);
+                            updateWeights(updatedIds);
+                            logService.log(taskType, "Finished weights for " + updatedIds.size() + " items.");
+                        } catch (InterruptedException e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }
+                }.start();
+            }
+
             favouritesCounter = updatedIds.size();
         }
 
@@ -353,10 +373,12 @@ public class ListImportService {
             List<String> listIds, String field, ListToFieldValue value, Boolean trackAndDelete) {
         List<String> updatedIds = new ArrayList<>();
         List<UpdateQuery> buffer = new ArrayList<>();
+        Set<String> seenIds = new HashSet();
 
         kvpError = false;
 
         int counter = 0;
+        int duplicateIds = 0;
 
         try {
             Map<String, String[]> existingItems = trackAndDelete
@@ -374,9 +396,24 @@ public class ListImportService {
                     continue;
                 }
 
+                if (seenIds.contains(guid)) {
+                    duplicateIds++;
+                    continue;
+                }
+
+                seenIds.add(guid);
+
                 String status = value.convert(item);
 
                 String[] stored = existingItems.remove(guid);
+
+                // alternative null values
+                if (stored != null && "[]".equals(stored[2])) {
+                    stored = null;
+                }
+                if (status != null && "[]".equals(status)) {
+                    status = null;
+                }
 
                 if (stored != null && ((stored[2] == null && status != null) || !(stored[2] != null && stored[2].equals(status)))) {
                     // existing values to change
@@ -413,7 +450,8 @@ public class ListImportService {
             buffer.clear();
 
             logService.log(taskType,
-                    "finished kvp list " + field + ", new:" + counter + ", removed:" + existingItems.size());
+                    "finished kvp list " + field + ", new:" + counter
+                            + ", removed:" + existingItems.size() + ", duplicates(ERRORS):" + duplicateIds);
         } catch (Exception e) {
             logService.log(taskType, "failed kvp list " + field + ", " + e.getMessage());
             logger.error("failed kvp list " + field + ", " + e.getMessage(), e);

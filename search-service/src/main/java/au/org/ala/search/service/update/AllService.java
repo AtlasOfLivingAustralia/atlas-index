@@ -51,7 +51,12 @@ public class AllService {
     @Value("${task.WORDPRESS.enabled}")
     public Boolean taskWordpressEnabled;
 
-    public AllService(CollectionsImportService collectionsImportService, WordpressImportService wordpressImportService, KnowledgebaseImportService knowledgebaseImportService, LogService logService, ListImportService listImportService, BiocollectImportService biocollectImportService, LayerImportService layerImportService, AreaImportService areaImportService, DwCAImportService dwCAImportService, TaxonUpdateService taxonUpdateService, SitemapService sitemapService, DashboardService dashboardService) {
+    public AllService(CollectionsImportService collectionsImportService, WordpressImportService wordpressImportService,
+                      KnowledgebaseImportService knowledgebaseImportService, LogService logService,
+                      ListImportService listImportService, BiocollectImportService biocollectImportService,
+                      LayerImportService layerImportService, AreaImportService areaImportService,
+                      DwCAImportService dwCAImportService, TaxonUpdateService taxonUpdateService,
+                      SitemapService sitemapService, DashboardService dashboardService) {
         this.collectionsImportService = collectionsImportService;
         this.wordpressImportService = wordpressImportService;
         this.knowledgebaseImportService = knowledgebaseImportService;
@@ -107,7 +112,6 @@ public class AllService {
             // generate sitemap (TAXON only) and dashboard
             logService.log(taskType, "Waiting for sitemap and dashboard to finish");
             CompletableFuture.allOf(new CompletableFuture[]{sitemapService.run(), dashboardService.run()}).join();
-
 
             logService.log(taskType, "Finished");
 

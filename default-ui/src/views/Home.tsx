@@ -9,9 +9,24 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
     logout?: () => void
 }) {
     const [externalFooterHtml, setExternalFooterHtml] = useState('');
-    // const [externalHeaderHtml, setExternalHeaderHtml] = useState('');
+    const [userProperties, setUserProperties] = useState<string|null>();
+    const [userKey, setUserKey] = useState<string>();
+    const [userValue, setUserValue] = useState<string>();
 
     const alreadyLoaded:string[] = [];
+
+    function getUserProperties() {
+        console.log(currentUser)
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property?alaId=" + currentUser.userId + "&name=" + userKey, {
+            headers: {
+                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+            }
+        }).then(response => {
+            response.text().then(text => {
+                setUserProperties(text);
+            })
+        });
+    }
 
     function loadText(text: string) {
         var srcUrl;
@@ -82,6 +97,9 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
     }, []);
 
     const currentUser = useContext(UserContext) as ListsUser;
+    if (currentUser && !userProperties) {
+        getUserProperties();
+    }
 
     function clickHandler(e : any) {
         if (e.target.classList.contains('loginBtn')) {
@@ -122,6 +140,16 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
                                         <li>Update search index with names-index and other data.</li>
                                         <li>View Admin Logs</li>
                                         <li>Edit preferred images, hidden images and wikipedia URL for a TAXON.</li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <Link to="/data-quality-admin">Data Quality Admin</Link>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li>Edit data quality profiles</li>
                                     </ul>
                                 </td>
                             </tr>
@@ -323,6 +351,37 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
                                     <ul>
                                         <li>Charts playground</li>
                                     </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>User properties</td>
+                                <td>
+                                    <pre><div>'get' result: {userProperties}</div></pre>
+                                    <br/>
+                                    <input type="text" value={userKey} onChange={(e) => setUserKey(e.target.value)}/>
+                                    <input type="text" value={userValue}
+                                           onChange={(e) => setUserValue(e.target.value)}/>
+                                    <button onClick={() => {
+                                        const data = new URLSearchParams();
+                                        data.append("name", userKey);
+                                        data.append("value", userValue);
+                                        data.append("alaId", currentUser.userId);
+
+                                        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property", {
+                                            method: 'POST',
+                                            body: data,
+                                            headers: {
+                                                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                                            }
+                                        }).then(response => {
+                                            console.log(response);
+                                        });
+                                    }}>Save
+                                    </button>
+                                    <button onClick={() => getUserProperties()}>Get
+                                    </button>
+
+
                                 </td>
                             </tr>
                             <tr>

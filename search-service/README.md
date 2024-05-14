@@ -6,8 +6,6 @@ It is a Spring Boot application that provides REST web services for accessing an
 
 TODO: cleanup i18n files (move to default-ui as required)
 TODO: cleanup Docker files (tidy commented out sections, document local paths)
-TODO: static file distribution; after creation, how does the dashboard.* and sitemap.* files get where they need to be?
-TODO: look at an approach to get ala-name-matching-model and bie-index classes, that exist in au.org.ala.search.names.*, into a common library.
 
 # Table of Contents
 
@@ -16,13 +14,13 @@ TODO: look at an approach to get ala-name-matching-model and bie-index classes, 
 - [Docker hub](#docker-hub)
 - [Helm charts](#helm-charts)
 - [Importing data](#import-process)
-  - [Prerequisites](#prerequisites)
-  - [Configure data sources](#configure-data-sources)
-  - [Start import or update](#start-import-or-update)
+    - [Prerequisites](#prerequisites)
+    - [Configure data sources](#configure-data-sources)
+    - [Start import or update](#start-import-or-update)
 - Other integrations
-  - [Dashboard integration](dashboard.md)
-  - [Fieldguide integration](fieldguide.md)
-  - [Data Quality Service integration](dataquality.md)
+    - [Dashboard integration](dashboard.md)
+    - [Fieldguide integration](fieldguide.md)
+    - [Data Quality Service integration](dataquality.md)
 
 ## Getting started
 
@@ -71,35 +69,36 @@ TODO [helm-charts](https://github.com/AtlasOfLivingAustralia/helm-charts) reposi
 
 External JSON config files are no longer supported.
 
-| old                                          | new                                       | default                                                   | notes                                                                   |
-|----------------------------------------------|-------------------------------------------|-----------------------------------------------------------|-------------------------------------------------------------------------|
-| conservation-lists.json:.defaultSourceField  | lists.conservation.statusField            | "status" (unchanged)                                      |                                                                         |
-| conservation-lists.json:.defaultKingdomField | deprecated                                |                                                           |                                                                         |
-| conservation-lists.json:.lists[*].uid        | lists.url                                 | lists that are isAuthoritative:true and isThreatened:true |                                                                         |
-| conservation-lists.json:.lists[*].field      | deprecated                                | "data.conservation_" + listId                             | TODO a mapping file                                                     |
-| conservation-lists.json:.lists[*].term       | deprecated                                |                                                           | TODO a mapping file                                                     |
-| conservation-lists.json:.lists[*].label      | deprecated                                |                                                           | TODO a mapping file                                                     |
-| favourite-lists.json:.defaultTerm            | lists.favourite.field                     | favourite (unchanged)                                     |                                                                         |
-| favourite-lists.json:.lists[*].uid           | lists.iconic.id, lists.preferred.id       | static and one of "iconic" or "preferred"                 |                                                                         |
-| favourite-lists.json:.lists[*].defaultTerm   |                                           | one of "iconic" or "preferred" (static)                   | TODO check if this was in use                                           |
-| hidden-images-lists.json:.lists[0].uid       | lists.images.hidden.id                    |                                                           |                                                                         |
-| hidden-images-lists.json:.lists[0].imageId   | lists.images.hidden.field                 | "image Id" (unchanged)                                    | should be "imageId" but default is "image Id"                           |
-| images-lists.json:.preferred                 | TODO                                      |                                                           |                                                                         |
-| images-lists.json:.ranks                     | deprecated                                |                                                           |                                                                         |
-| images-lists.json:.imageFields               | deprecated                                |                                                           |                                                                         |
-| images-lists.json:.lists[*].uid              | lists.images.preferred.id comma separated |                                                           | first list can be modified by the admin UI image preference (unchanged) |
-| images-lists.json:.lists[*].imageId          | lists.images.preferred.field              | imageId (unchanged)                                       | can no longer be set for each individual list                           |
-| locality-keywords.json                       | deprecated                                |                                                           |                                                                         |
-| vernacular-lists.json                        | TODO                                      |                                                           |                                                                         |
-| vernacular-name-status.json                  | TODO                                      |                                                           |                                                                         |
-| weights.json                                 | deprecated                                |                                                           | moved to au.org.ala.listsapi.util.Weight                                |
-| wiki-lists.json:.lists[*].uid                | lists.wiki.id                             |                                                           |                                                                         |
-| wiki-lists.json:.lists[*].wikiUrl            | lists.wiki.field                          | "url" (unchanged)                                         |                                                                         |
-| additionalResultFields                       | deprecated                                |                                                           |                                                                         |
+| old                                          | new                                       | default                                                   | notes                                                                                         |
+|----------------------------------------------|-------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| conservation-lists.json:.defaultSourceField  | lists.conservation.statusField            | "status" (unchanged)                                      |                                                                                               |
+| conservation-lists.json:.defaultKingdomField | deprecated                                |                                                           |                                                                                               |
+| conservation-lists.json:.lists[*].uid        | lists.url                                 | lists that are isAuthoritative:true and isThreatened:true |                                                                                               |
+| conservation-lists.json:.lists[*].field      | deprecated                                | "data.conservation_" + listId                             | TODO a mapping file                                                                           |
+| conservation-lists.json:.lists[*].term       | deprecated                                |                                                           | TODO a mapping file                                                                           |
+| conservation-lists.json:.lists[*].label      | deprecated                                |                                                           | TODO a mapping file                                                                           |
+| favourite-lists.json:.defaultTerm            | deprecated                                |                                                           | static value 'favourite' (unchanged)                                                          |
+| favourite-lists.json:.lists[*].uid           | lists.favourite.id                        | none                                                      | ';' separated items of listId,string. In order of priority. e.g. dr4778,interest;dr781,iconic |
+| favourite-lists.json:.lists[*].defaultTerm   |                                           | one of "iconic" or "preferred" (static)                   | TODO check if this was in use                                                                 |
+| hidden-images-lists.json:.lists[0].uid       | lists.images.hidden.id                    |                                                           |                                                                                               |
+| hidden-images-lists.json:.lists[0].imageId   | lists.images.hidden.field                 | "image Id" (unchanged)                                    | should be "imageId" but default is "image Id"                                                 |
+| images-lists.json:.preferred                 | TODO                                      |                                                           |                                                                                               |
+| images-lists.json:.ranks                     | deprecated                                |                                                           |                                                                                               |
+| images-lists.json:.imageFields               | deprecated                                |                                                           |                                                                                               |
+| images-lists.json:.lists[*].uid              | lists.images.preferred.id comma separated |                                                           | first list can be modified by the admin UI image preference (unchanged)                       |
+| images-lists.json:.lists[*].imageId          | lists.images.preferred.field              | imageId (unchanged)                                       | can no longer be set for each individual list                                                 |
+| locality-keywords.json                       | deprecated                                |                                                           |                                                                                               |
+| vernacular-lists.json                        | TODO                                      |                                                           |                                                                                               |
+| vernacular-name-status.json                  | TODO                                      |                                                           |                                                                                               |
+| weights.json                                 | deprecated                                |                                                           | moved to au.org.ala.listsapi.util.Weight                                                      |
+| wiki-lists.json:.lists[*].uid                | lists.wiki.id                             |                                                           |                                                                                               |
+| wiki-lists.json:.lists[*].wikiUrl            | lists.wiki.field                          | "url" (unchanged)                                         |                                                                                               |
+| additionalResultFields                       | deprecated                                |                                                           |                                                                                               |
 
 ## Importing data
 
 You have the option to
+
 - Build it in the environment it will be used.
 - Build the Elasticsearch index locally, snapshot, and deploy the snapshot where it is required.
 - Tunnel from a local environment to a remote Elasticsearch instance and build it.
@@ -263,7 +262,10 @@ elastic.adminIndex=search-log-20240401
     ```
 
 ## Unresolved Questions
-Some questions were identified during the migration process. These are not blockers but may require further investigation.
+
+Some questions were identified during the migration process. These are not blockers but may require further
+investigation.
+
 1. There are different filters applied for "taxonomicStatus" and I wonder if they should be consistent.
     - taxonomicStatus == "accepted"
     - taxonomicStatus is one of "accepted", "inferredAccepted", "incertaeSedis", "speciesInquirenda"
@@ -275,59 +277,76 @@ Some questions were identified during the migration process. These are not block
 All services in use were tested using a subset of GET requests extracted from nginx logs.
 
 Changes not specific to a single service
+
 - Fewer `null` JSON values in responses.
 - A V2 API is under development and the existing services will be deprecated at release.
-- Services require a search may return different results due to differences in SOLR and Elasticsearch and the lack of a conflict resolution strategy. Other minor search changes have been made, such as changing some searches to be case insensitive. 
+- Services require a search may return different results due to differences in SOLR and Elasticsearch and the lack of a
+  conflict resolution strategy. Other minor search changes have been made, such as changing some searches to be case
+  insensitive.
 
 ### admin/ (all)
+
 - Those in use by bie-index gsp pages are removed. See V2 API for their replacements.
 - Those in use by ala-bie-hub remain.
 
 ### ws/childConcept/{id}
-- There is different encoding for "nameFormat" due to changes in the external dependendency `StringEscapeUtils`. Tested this different HTML4 encoding and saw no differences in browser decoding.                                                                                                           |
+
+- There is different encoding for "nameFormat" due to changes in the external dependendency `StringEscapeUtils`. Tested
+  this different HTML4 encoding and saw no differences in browser decoding. |
 
 ### ws/classification/{id}
+
 - No change.
 
 ### ws/taxon/{id} & ws/species/{id}
-- There is different encoding for "nameFormat" due to changes in the external dependendency `StringEscapeUtils`. Tested this HTML4 encoding and browsers display the difference in browser decoding.
+
+- There is different encoding for "nameFormat" due to changes in the external dependendency `StringEscapeUtils`. Tested
+  this HTML4 encoding and browsers display the difference in browser decoding.
 - "infoSourceURL" will now be empty when the collectory record is private. e.g. dr2699, dr2700.
-- "classification" may contain new values, or have the same values under a different key. TODO: what does ala-bie-hub do with this?
-  - bie-index will display only one `<rank>` or `<rank>Guid` when there are duplicates. 
-  - search-service will append a numerical suffix. E.g. "informal", "informal1", "informal2".
-- "imageIdentifier" may differ. The total count is similar. The mechanism to extract images from biocache-service has changed. It still preserves configured preferences. Due to query construction and time of query differences, a different image is selected.
+- "classification" may contain new values, or have the same values under a different key. TODO: what does ala-bie-hub do
+  with this?
+    - bie-index will display only one `<rank>` or `<rank>Guid` when there are duplicates.
+    - search-service will append a numerical suffix. E.g. "informal", "informal1", "informal2".
+- "imageIdentifier" may differ. The total count is similar. The mechanism to extract images from biocache-service has
+  changed. It still preserves configured preferences. Due to query construction and time of query differences, a
+  different image is selected.
 - "conservationStatuses" differ because
-  - lists-test conservation lists are undergoing development.
-  - bie-index does not remove conservation status after a conservation species-list has a record removed.
+    - lists-test conservation lists are undergoing development.
+    - bie-index does not remove conservation status after a conservation species-list has a record removed.
 - Requests searching for a commonName may vary because a different id is resolved.
-  - Due to differences in SOLR and Elasticsearch it is not straight forward to align these. 
-  - Not all differences will be resolvable due to bie-index not including a score conflict resolution strategy.
+    - Due to differences in SOLR and Elasticsearch it is not straight forward to align these.
+    - Not all differences will be resolvable due to bie-index not including a score conflict resolution strategy.
 - Requests searching for a scientific name may vary
-  - bie-index does not include score conflict resolution strategy.
-  - All issues found that can be resolved, are resolved.
-- "favourite" may be "iconic" instead of "interest". 
-  - The order that bie-index applies favourites now defaults to the value "iconic" having precedence over "interest".
+    - bie-index does not include score conflict resolution strategy.
+    - All issues found that can be resolved, are resolved.
+- "favourite" may be "iconic" instead of "interest".
+    - The order that bie-index applies favourites now defaults to the value "iconic" having precedence over "interest".
 - "commonNames" may contain more entries
-  - bie-index limits this to 40. 
+    - bie-index limits this to 40.
 
 ### ws/guid/batch & ws/guid/{id}
+
 - `q` and `id` are now trimmed.
 - Doubly encoded `q` are now doubly decoded.
 - Result order varies.
-  - Due to differences in SOLR and Elasticsearch it is not possible (or very difficult) to be identical.
-  - bie-index does not have a score conflict resolution strategy. 
+    - Due to differences in SOLR and Elasticsearch it is not possible (or very difficult) to be identical.
+    - bie-index does not have a score conflict resolution strategy.
 - Result may vary.
-  - Result is limited to 10, so due to variations in search response scoring and lack of a conflict resolution strategy can result in a list that is different.
+    - Result is limited to 10, so due to variations in search response scoring and lack of a conflict resolution
+      strategy can result in a list that is different.
 
 ### ws/search/auto.json & ws/search/auto
-- FYI, you should be using namematching-ws for TAXON autocomplete. 
-- Due to differences in SOLR and Elasticsearch it is not possible (or very difficult) to be identical. 
-  - I am not a frequent user of the autocomplete service so more work may be required.
+
+- FYI, you should be using namematching-ws for TAXON autocomplete.
+- Due to differences in SOLR and Elasticsearch it is not possible (or very difficult) to be identical.
+    - I am not a frequent user of the autocomplete service so more work may be required.
 
 ### /ws/species/lookup/bulk
+
 - No change.
 
 ### TODO: finish service comparison
+
 /search
 /imageSearch
 /download

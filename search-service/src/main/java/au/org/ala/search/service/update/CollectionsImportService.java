@@ -92,9 +92,7 @@ public class CollectionsImportService {
         List<String> batchIds = new ArrayList<>();
 
         try {
-            ResponseEntity<List> response =
-                    restTemplate.exchange(
-                            collectionsUrl + "/ws/" + entityName, HttpMethod.GET, null, List.class);
+            ResponseEntity<List> response = restTemplate.exchange(collectionsUrl + "/ws/" + entityName, HttpMethod.GET, null, List.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
                 List<Map<String, String>> entities = (List<Map<String, String>>) response.getBody();
@@ -169,6 +167,7 @@ public class CollectionsImportService {
             String rights = (String) properties.getOrDefault("rights", null);
             String license = (String) properties.getOrDefault("licenseType", null);
             String acronym = (String) properties.getOrDefault("acronym", null);
+            String websiteUrl = (String) properties.getOrDefault("websiteUrl", null);
 
             Map<String, Object> logoRef = (Map<String, Object>) properties.getOrDefault("logoRef", new HashMap<>());
             String image = logoRef.getOrDefault("uri", "").toString();
@@ -182,8 +181,10 @@ public class CollectionsImportService {
                 continue;
             }
 
-            result.add(
-                    SearchItemIndex.builder()
+            Map<String, String> data = new HashMap<>();
+            data.put("websiteUrl_s", websiteUrl);
+
+            result.add(SearchItemIndex.builder()
                             .id(id)
                             .guid(guid)
                             .idxtype(type.name())
@@ -196,6 +197,7 @@ public class CollectionsImportService {
                             .acronym(acronym)
                             .image(image)
                             .resourceType(resourceType)
+                            .data(data)
                             .build());
         }
         return result;

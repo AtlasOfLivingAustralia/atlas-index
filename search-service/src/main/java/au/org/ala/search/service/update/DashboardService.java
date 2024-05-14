@@ -14,7 +14,7 @@ import au.org.ala.search.model.dashboard.images.ImageStatistics;
 import au.org.ala.search.model.dashboard.logger.Breakdown;
 import au.org.ala.search.model.dashboard.logger.LoggerSearch;
 import au.org.ala.search.model.dashboard.spatial.SpatialField;
-import au.org.ala.search.service.remote.FileStoreService;
+import au.org.ala.search.service.remote.StaticFileStoreService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,7 +43,7 @@ public class DashboardService {
     private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
 
     private final LogService logService;
-    private final FileStoreService fileStoreService;
+    private final StaticFileStoreService staticFileStoreService;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -84,9 +84,9 @@ public class DashboardService {
     @Value("${images.url}")
     private String imagesUrl;
 
-    public DashboardService(LogService logService, FileStoreService fileStoreService) {
+    public DashboardService(LogService logService, StaticFileStoreService staticFileStoreService) {
         this.logService = logService;
-        this.fileStoreService = fileStoreService;
+        this.staticFileStoreService = staticFileStoreService;
     }
 
     @Async("processExecutor")
@@ -169,8 +169,8 @@ public class DashboardService {
         zos.close();
 
         // write to fileStore
-        return fileStoreService.copyToFileStore(new File(dataDir + "/dashboard.zip"), "dashboard/dashboard.zip", false)
-                && fileStoreService.copyToFileStore(new File(dataDir + "/dashboard.json"), "dashboard/dashboard.json", false);
+        return staticFileStoreService.copyToFileStore(new File(dataDir + "/dashboard.zip"), "dashboard/dashboard.zip", false)
+                && staticFileStoreService.copyToFileStore(new File(dataDir + "/dashboard.json"), "dashboard/dashboard.json", false);
     }
 
     private int update(DashboardData dashboardData) {

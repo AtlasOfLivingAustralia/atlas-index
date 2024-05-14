@@ -35,6 +35,9 @@ public class AreaImportService {
     @Value("${spatial.layers}")
     private String spatialLayers;
 
+    @Value("${exploreYourArea.url}")
+    private String exploreYourAreaUrl;
+
     private List allFields = null;
 
     public AreaImportService(ElasticService elasticService, LogService logService) {
@@ -82,64 +85,75 @@ public class AreaImportService {
             try {
                 logService.log(taskType, "field " + fieldId + " import starting");
 
-                // TODO: stream or page
-                List fieldObjects = objectMapper.readValue(URI.create(spatialUrl + "/objects/" + fieldId).toURL(), List.class);
+                int pageSize = 10000;
+                int start = 0;
+                boolean hasMore = true;
+                while (hasMore) {
+                    List fieldObjects = objectMapper.readValue(URI.create(spatialUrl + "/objects/" + fieldId + "?pageSize=" + pageSize + "&start=" + start).toURL(), List.class);
 
-                int thisCounter = 0;
-                for (Object fieldObject : fieldObjects) {
-                    Map<String, Object> item = (Map<String, Object>) fieldObject;
+                    if (fieldObjects.size() < pageSize) {
+                        hasMore = false;
+                    }
+                    start += pageSize;
 
-                    String fid = (String) item.get("fid");
-                    String pid = (String) item.get("pid");
-                    String id = fid + "-" + pid;
-                    String name = (String) item.get("name");
-                    String description = (String) item.getOrDefault("description", null);
-                    String bbox = (String) item.getOrDefault("bbox", null);
-                    String featureType = (String) item.get("featureType");
-                    String centroid = (String) item.get("centroid");
-                    String fieldName = (String) item.get("fieldname");
-                    String type =
-                            "POINT".equals(featureType)
-                                    ? IndexDocType.LOCALITY.name()
-                                    : IndexDocType.REGION.name();
+                    int thisCounter = 0;
+                    for (Object fieldObject : fieldObjects) {
+                        Map<String, Object> item = (Map<String, Object>) fieldObject;
 
-                    // TODO: There is no landing page suitable for LOCALITY records
-                    String guid = "POINT".equals(featureType) ? pid : spatialUiUrl + "/?pid=" + pid;
+                        String fid = (String) item.get("fid");
+                        String pid = (String) item.get("pid");
+                        String id = fid + "-" + pid;
+                        String name = (String) item.get("name");
+                        String description = (String) item.getOrDefault("description", null);
+                        String bbox = (String) item.getOrDefault("bbox", null);
+                        String featureType = (String) item.get("featureType");
+                        String centroid = (String) item.get("centroid");
+                        String fieldName = (String) item.get("fieldname");
+                        String type =
+                                "POINT".equals(featureType)
+                                        ? IndexDocType.LOCALITY.name()
+                                        : IndexDocType.REGION.name();
 
-                    Double areaKm = (Double) item.getOrDefault("area_km", null);
-                    if (areaKm <= 0) areaKm = null;
-                    // LOCALITY records are points and have no bbox
-                    if ("POINT".equals(featureType)) bbox = null;
+                        String [] coords = centroid.replaceAll("[^0-9.\\- ]", "").split(" ");
 
-                    SearchItemIndex searchItemIndex =
-                            SearchItemIndex.builder()
-                                    .id(id)
-                                    .guid(guid)
-                                    .idxtype(type)
-                                    .name(name)
-                                    .description(description)
-                                    .modified(new Date())
-                                    .layerId(layerId)
-                                    .fieldId(fieldId)
-                                    .centroid(centroid)
-                                    .fieldName(fieldName)
-                                    .areaKm(areaKm)
-                                    .bbox(bbox)
-                                    .build();
+                        String guid = "POINT".equals(featureType) ?
+                                exploreYourAreaUrl.replaceAll("\\$latitude", coords[1]).replaceAll("\\$longitude", coords[0]) :
+                                spatialUiUrl + "/?pid=" + pid;
 
-                    buffer.add(elasticService.buildIndexQuery(searchItemIndex));
+                        Double areaKm = (Double) item.getOrDefault("area_km", null);
+                        if (areaKm <= 0) areaKm = null;
+                        // LOCALITY records are points and have no bbox
+                        if ("POINT".equals(featureType)) bbox = null;
 
-                    if (buffer.size() > 1000) {
-                        thisCounter += 1000;
-                        counter += elasticService.flushImmediately(buffer);
+                        SearchItemIndex searchItemIndex =
+                                SearchItemIndex.builder()
+                                        .id(id)
+                                        .guid(guid)
+                                        .idxtype(type)
+                                        .name(name)
+                                        .description(description)
+                                        .modified(new Date())
+                                        .layerId(layerId)
+                                        .fieldId(fieldId)
+                                        .centroid(centroid)
+                                        .fieldName(fieldName)
+                                        .areaKm(areaKm)
+                                        .bbox(bbox)
+                                        .build();
 
-                        if (thisCounter % 50000 == 0) {
-                            logService.log(taskType, "field " + fieldId + " import progress: " + counter);
+                        buffer.add(elasticService.buildIndexQuery(searchItemIndex));
+
+                        if (buffer.size() > 1000) {
+                            thisCounter += 1000;
+                            counter += elasticService.flushImmediately(buffer);
+
+                            if (thisCounter % 50000 == 0) {
+                                logService.log(taskType, "field " + fieldId + " import progress: " + counter);
+                            }
                         }
                     }
+                    counter += elasticService.flushImmediately(buffer);
                 }
-                counter += elasticService.flushImmediately(buffer);
-
             } catch (Exception e) {
                 logService.log(taskType, "failed to get fields " + spatialUrl + "/fields");
                 logger.error("failed to get fields " + spatialUrl + "/fields");

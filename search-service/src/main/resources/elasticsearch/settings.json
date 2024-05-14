@@ -51,6 +51,12 @@
         "type": "pattern_replace",
         "replacement": ""
       }
+    },
+    "normalizer": {
+      "keyword_lowercase": {
+        "type": "custom",
+        "filter": ["lowercase"]
+      }
     }
   }
 }

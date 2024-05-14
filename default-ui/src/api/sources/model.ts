@@ -38,4 +38,39 @@ interface ListsUser {
     roles: string[]
 }
 
-export type {Breadcrumb, ListsUser, AtlasLog, TaskType}
+interface QualityFilter {
+    id: number;
+    enabled: boolean;
+    description: string;
+    filter: string;
+    displayOrder: number;
+    inverseFilter: string;
+}
+
+interface QualityCategory {
+    id: number;
+    enabled: boolean;
+    name: string;
+    label: string;
+    description: string;
+    displayOrder: number;
+    inverseFilter: string;
+    qualityFilters: QualityFilter[];
+}
+
+interface QualityProfile {
+    id: number;
+    name: string
+    shortName: string
+    description: string
+    contactName: string
+    contactEmail: string
+    enabled: boolean
+    isDefault: boolean
+    displayOrder: number
+    dateCreated: Date | undefined
+    lastUpdated: Date | undefined
+    categories: QualityCategory[];
+}
+
+export type {Breadcrumb, ListsUser, AtlasLog, TaskType, QualityProfile, QualityCategory, QualityFilter}

@@ -42,6 +42,8 @@ public class TaxonUpdateService {
     public CompletableFuture<Boolean> run() {
         boolean result = updateAccepted() && updateNonAccepted();
 
+        taxonUpdateRunner.clearCache();
+
         logService.log(taskType, "Finished, successful:" + result);
 
         return CompletableFuture.completedFuture(result);
@@ -52,8 +54,8 @@ public class TaxonUpdateService {
 
         taxonUpdateRunner.buildImageCache();
 
-        if (taxonUpdateRunner.speciesImages == null || taxonUpdateRunner.speciesImages.isEmpty() ||
-            taxonUpdateRunner.imageCache == null || taxonUpdateRunner.imageCache.isEmpty()) {
+        if (taxonUpdateRunner.getSpeciesImages() == null || taxonUpdateRunner.getSpeciesImages().isEmpty() ||
+            taxonUpdateRunner.getImageCache() == null || taxonUpdateRunner.getImageCache().isEmpty()) {
             logService.log(taskType, "Failed occurrences counts. Image cache failed");
             return false;
         }
@@ -87,9 +89,8 @@ public class TaxonUpdateService {
 
             boolean hasMore = true;
             while (hasMore) {
-                SearchResponse<SearchItemIndex> result =
-                        elasticService.queryPointInTimeAfter(
-                                null, searchAfter, pageSize, query, fieldList, null, false);
+                SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(
+                        null, searchAfter, pageSize, query, null, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
 
                 if (hits.isEmpty()) {
@@ -163,7 +164,7 @@ public class TaxonUpdateService {
             while (hasMore) {
                 SearchResponse<SearchItemIndex> result =
                         elasticService.queryPointInTimeAfter(
-                                null, searchAfter, pageSize, query, fieldList, null, false);
+                                null, searchAfter, pageSize, query, null, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
 
                 if (hits.isEmpty()) {

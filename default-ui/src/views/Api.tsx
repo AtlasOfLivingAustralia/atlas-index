@@ -32,64 +32,12 @@ function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
         return text.replace(/env.VITE_APP_BIOCACHE_URL/g, import.meta.env.VITE_APP_BIOCACHE_URL);
     }
 
-    // Create the layout component
-    // class OperationsLayout extends React.Component {
-    //     render() {
-    //         // @ts-ignore
-    //         const { getComponent } = this.props
-    //         const Operations = getComponent("operations", true)
-    //         return (
-    //             <div className="swagger-ui">
-    //                 <Operations />
-    //             </div>
-    //         )
-    //     }
-    // }
-    // Create the plugin that provides our layout component
-    // const OperationsLayoutPlugin = () => {
-    //     return {
-    //         components: {
-    //             OperationsLayout: OperationsLayout
-    //         }
-    //     }
-    // }
-
-    // const requestInterceptor = (req: any) => (
-    //     {
-    //         ...req,
-    //         headers: (currentUser?.user.access_token && req.url !== swaggerUrl) ? {
-    //             ...req.headers,
-    //             'Authorization': 'Bearer ' + currentUser?.user.access_token,
-    //         } : {}
-    //     }
-    // );
-    //
-    // function onCompleteSwaggerUI() {
-    //     console.log('swagger loaded')
-    //     // setSwaggerLoaded(true);
-    // }
-
-    // TODO: requires >= swagger-ui-react 5.17.3, so might need to wait a few days
     const handleComplete = useCallback((swagger: any) => {
         console.log('swagger loaded, setting preauthorizeApiKey')
         if (currentUser?.user.access_token) {
             swagger.preauthorizeApiKey('bearer', currentUser?.user.access_token);
         }
     }, []);
-
-    // useEffect(() => {
-    //     // Your "componentDidUpdate" logic here. This code will run when `swaggerUrl` or `markdown` changes.
-    //     console.log(swaggerUrl);
-    // }, [swaggerUrl]);
-
-
-    // componentDidUpdate(prevProps: any, prevState: any) {
-    //     componentDidUpdate(prevProps, prevState) {
-    //         if (this.props.data !== prevProps.data) {
-    //             console.log(this.props.data);
-    //         }
-    //     }
-    // }
 
     return (
         <>
@@ -133,8 +81,6 @@ function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
                                     //  This way we can get things like the version so we can display it.
                                     <SwaggerUI
                                         url={swaggerUrl}
-                                        // plugins={ [ OperationsLayoutPlugin ]}
-                                        // layout={"OperationsLayout"}
                                         onComplete={handleComplete}
                                     />
                                 }

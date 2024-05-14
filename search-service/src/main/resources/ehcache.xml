@@ -1,0 +1,19 @@
+<ehcache:config
+        xmlns:ehcache="http://www.ehcache.org/v3"
+        xmlns:jcache="http://www.ehcache.org/v3/jsr107">
+
+    <ehcache:cache alias="qualityProfiles">
+        <ehcache:expiry>
+            <ehcache:tti unit="days">1</ehcache:tti>
+        </ehcache:expiry>
+        <ehcache:heap>1000</ehcache:heap>
+    </ehcache:cache>
+
+    <ehcache:cache alias="user-profile">
+        <ehcache:expiry>
+            <ehcache:tti unit="seconds">60</ehcache:tti>
+        </ehcache:expiry>
+        <ehcache:heap>10000</ehcache:heap>
+    </ehcache:cache>
+
+</ehcache:config>

@@ -35,20 +35,24 @@ public class LogService {
 
     public void log(TaskType task, String message) {
         long time = System.currentTimeMillis();
-        IndexQuery item = new IndexQueryBuilder().withId(task.name() + "-" + time).withObject(AdminIndex.builder().id(task.name() + time)
-                .message(message).task(task.name()).modified(new Date(time))).build();
+        IndexQuery item = new IndexQueryBuilder()
+                .withId(task.name() + "-" + time)
+                .withObject(AdminIndex.builder().id(task.name() + time)
+                        .message(message)
+                        .task(task.name())
+                        .modified(new Date(time)))
+                .build();
         elasticsearchOperations.bulkIndex(Collections.singletonList(item), AdminIndex.class);
     }
 
     public List<AdminIndex> getStatus(TaskType task, int size) {
         PageRequest p = PageRequest.of(0, size);
 
-        Query query =
-                NativeQuery.builder()
-                        .withQuery(q -> q.term(t -> t.field("task").value(task.name())))
-                        .withPageable(p)
-                        .withSort(s -> s.field(fs -> fs.field("modified").order(SortOrder.Desc)))
-                        .build();
+        Query query = NativeQuery.builder()
+                .withQuery(q -> q.term(t -> t.field("task").value(task.name())))
+                .withPageable(p)
+                .withSort(s -> s.field(fs -> fs.field("modified").order(SortOrder.Desc)))
+                .build();
 
         return elasticsearchOperations.search(query, AdminIndex.class, IndexCoordinates.of(elasticAdminIndex)).stream().map(SearchHit::getContent).toList();
     }

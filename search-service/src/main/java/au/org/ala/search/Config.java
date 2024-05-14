@@ -24,14 +24,6 @@ public class Config extends ElasticsearchConfiguration {
                 .connectedTo(elasticHost)
                 .withSocketTimeout(elsticTimeout)
                 .build();
-
-        // TODO: set search.max_buckets
-        //        PUT _cluster/settings
-        //        {
-        //            "transient": {
-        //            "search.max_buckets": 1000000
-        //        }
-        //        }
     }
 
     @Bean

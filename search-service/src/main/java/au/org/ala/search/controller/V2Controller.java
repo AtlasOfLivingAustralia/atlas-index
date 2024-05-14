@@ -1,22 +1,19 @@
 package au.org.ala.search.controller;
 
-import au.org.ala.search.model.ImageUrlType;
-import au.org.ala.search.model.ListBackedFields;
+import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.model.SearchItemIndex;
+import au.org.ala.search.model.queue.*;
 import au.org.ala.search.model.dto.*;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
+import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.util.FormatUtil;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
 import co.elastic.clients.elasticsearch._types.aggregations.MultiBucketAggregateBase;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.util.ObjectBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -24,52 +21,29 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregation;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHitSupport;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.SearchHitsImpl;
+import org.springframework.data.elasticsearch.core.*;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.net.URL;
-import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
-
 /**
  * bie-index API services, minus some admin services
- * <p>
- * TODO: Rework a V2Controller
- * - remove path variables
- * - consolidate services
- * - merge single response and list response services
- * - flatten response data structures
- * - support parameter to limit response fields
- * - move towards POST with JSON rather than GET with query parameters
- * - support infrastructure limitations on response size for /downloads
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -80,18 +54,25 @@ public class V2Controller {
     public static final String SEARCH_AUTO_ID = "autocomplete_v2";
     public static final String LIST_ID = "list_v2";
 
+    @Value("#{'${openapi.servers}'.split(',')[0]}")
+    public String baseUrl;
+
     protected final ElasticService elasticService;
     protected final LegacyService legacyService;
     protected final AdminService adminService;
     protected final AuthService authService;
     protected final ElasticsearchOperations elasticsearchOperations;
+    protected final QueueService queueService;
+    protected final DownloadFileStoreService downloadFileStoreService;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
         this.authService = authService;
         this.elasticsearchOperations = elasticsearchOperations;
+        this.queueService = queueService;
+        this.downloadFileStoreService = downloadFileStoreService;
     }
 
     @Tag(name = "Search")
@@ -114,7 +95,7 @@ public class V2Controller {
     )
     @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<SearchItemIndex>> species(
-            // TODO: add to openapi service to get a real example
+            // TODO: add to openapi service to get a real example, see OpenapiService
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of guids or scientificNames to search",
                     content = @Content(
@@ -328,7 +309,129 @@ public class V2Controller {
             }
     )
     @GetMapping(path = "/v2/indexFields", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<IndexedField> search() {
+    public List<IndexedField> indexedFields() {
         return elasticService.indexFields(true);
+    }
+
+    @Tag(name = "download")
+    @Operation(
+            operationId = "downloadSearch",
+            // TODO: Use OpenapiService to inject the config value downloadMaxRows into the summary.
+            summary = "Start a job to create a zipped CSV containing all the records of search result"
+    )
+    @ApiResponse(description = "Job status", responseCode = "200",
+            headers = {
+                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
+                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
+                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
+            }
+    )
+    @PostMapping(path = "/v2/download/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Status> queueDownload(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "A download request including a query and filename.",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\"query\":\"Koala\", \"filename\":\"koala-20240101\"}"
+                            )))
+            @RequestBody
+            SearchDownloadRequest searchDownloadRequest
+    ) {
+        return addToQueue(searchDownloadRequest);
+    }
+
+    @Tag(name = "download")
+    @Operation(
+            operationId = "downloadFieldguide",
+            summary = "Start a job to create a PDF fieldguide"
+    )
+    @ApiResponse(description = "Job Status", responseCode = "200",
+            headers = {
+                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
+                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
+                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
+            }
+    )
+    @PostMapping(path = "/v2/download/fieldguide", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Status> queueFieldguide(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "The fieldguide download request including a list of id and filename.",
+                    content = @Content(
+                            examples = @ExampleObject(
+                                    value = "{\"id\": [\"urn:lsid:biodiversity.org.au:afd.taxon:1\"], \"filename\":\"fieldguide-20240101\"}"
+                            )))
+            @RequestBody
+            FieldguideDownloadRequest fieldguideDownloadRequest
+    ) {
+        return addToQueue(fieldguideDownloadRequest);
+    }
+
+    private ResponseEntity<Status> addToQueue(DownloadRequest downloadRequest) {
+        Status status = queueService.add(downloadRequest);
+
+        if (status != null) {
+            return ResponseEntity.ok(status);
+        } else {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @Tag(name = "download")
+    @Operation(
+            operationId = "downloadStatus",
+            summary = "Get the status of a job and download the file"
+    )
+    @ApiResponse(description = "Job Status", responseCode = "200",
+            headers = {
+                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
+                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
+                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
+            }
+    )
+    @GetMapping(path = "/v2/download", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> download(
+            @Parameter(
+                    description = "The download id",
+                    example = "1234"
+            )
+            @RequestParam(name = "id") String id,
+            @Parameter(
+                    description = "default false. Use true to download the file (directly or via a redirect)",
+                    example = "true"
+            )
+            @RequestParam(name = "download") Boolean download) {
+        QueueItem queueItem = queueService.get(id);
+        if (queueItem == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (download && queueItem.status.getStatusCode() == StatusCode.FINISHED) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                if (downloadFileStoreService.isS3()) {
+                    String tmpUrl = downloadFileStoreService.createPresignedGetUrl(queueItem);
+                    headers.add("Location", tmpUrl);
+                    return new ResponseEntity<>(null, headers, HttpStatus.FOUND);
+                } else {
+                    File file = new File(downloadFileStoreService.getFilePath(queueItem));
+                    InputStreamResource inputStreamResource = new InputStreamResource(new FileInputStream(file));
+
+                    headers.setContentLength(file.length());
+                    headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getName()).build());
+
+                    if (file.getName().endsWith(".pdf")) {
+                        headers.setContentType(MediaType.APPLICATION_PDF);
+                    } else if (file.getName().endsWith(".zip")) {
+                        headers.setContentType(new MediaType("application/zip"));
+                    }
+
+                    return ResponseEntity.ok().headers(headers).body(inputStreamResource);
+                }
+            } catch (FileNotFoundException e) {
+                return ResponseEntity.notFound().build();
+            }
+        }
+
+        return ResponseEntity.ok(new StatusResponse(queueItem.status, baseUrl + "/v2/download"));
     }
 }

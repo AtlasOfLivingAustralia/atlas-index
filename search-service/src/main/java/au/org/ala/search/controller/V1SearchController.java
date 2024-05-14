@@ -9,15 +9,6 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.util.FormatUtil;
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
-import co.elastic.clients.elasticsearch._types.aggregations.MultiBucketAggregateBase;
-import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.search.PointInTimeReference;
-import co.elastic.clients.util.ObjectBuilder;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -28,22 +19,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregation;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHitSupport;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.SearchHitsImpl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -52,38 +33,22 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.time.LocalDate;
 import java.util.*;
 
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
 /**
  * bie-index API services, minus some admin services
- * <p>
- * TODO: Rework into a V2Controller
- * - remove path variables
- * - consolidate services
- * - merge single response and list response services
- * - flatten response data structures
- * - support parameter to limit response fields
- * - move towards POST with JSON rather than GET with query parameters
- * - support infrastructure limitations on response size for /downloads
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-public class V1Controller {
+public class V1SearchController {
+    private static final Logger logger = LoggerFactory.getLogger(V1SearchController.class);
+
     public static final String SPECIES_LOOKUP_BULK_ID = "speciesLookupBulk";
     public static final String SPECIES_GUIDS_BULKLOOKUP_ID = "speciesGuidsBulklookup";
     public static final String SPECIES_IMAGE_BULK_ID = "speciesImageBulk";
@@ -97,7 +62,6 @@ public class V1Controller {
     public static final String SEARCH_AUTO_ID = "searchAuto";
     public static final String SEARCH_ID = "search";
     public static final String DOWNLOAD_ID = "download";
-    private static final Logger logger = LoggerFactory.getLogger(V1Controller.class);
 
     protected final ElasticService elasticService;
     protected final LegacyService legacyService;
@@ -108,7 +72,7 @@ public class V1Controller {
     @Value("${image.url}")
     private String imageUrl;
 
-    public V1Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations) {
+    public V1SearchController(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -128,7 +92,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = "/species/lookup/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/species/lookup/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<LongProfile>> speciesLookupBulk(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON map object the list of names",
@@ -159,7 +123,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = "/species/guids/bulklookup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/species/guids/bulklookup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SpeciesGuidsBulklookupResponse> speciesGuidsBulklookup(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of GUIDS",
@@ -184,7 +148,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = "/species/image/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/species/image/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Image>> speciesImageBulk(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The guids to look up",
@@ -236,7 +200,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/childConcepts/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/childConcepts/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ChildConcept>> childConcepts(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             @Nullable @RequestParam(name = "unranked", required = false, defaultValue = "true") Boolean unranked,
@@ -260,7 +224,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/classification/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/classification/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Classification>> classification(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
@@ -289,7 +253,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/guid/batch", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/guid/batch", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, List<Profile>>> guidBatch(
             @Parameter(
                     description = "Query string",
@@ -322,7 +286,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/guid/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/guid/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Profile>> guidName(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
@@ -349,7 +313,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/imageSearch/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/imageSearch/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> imageSearch(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             @Parameter(
@@ -387,7 +351,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/species/shortProfile/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/species/shortProfile/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ShortProfile> shortProfile(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
@@ -419,7 +383,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = {"/species/**", "/taxon/**"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = {"/v1/species/**", "/v1/taxon/**"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> species(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
@@ -456,7 +420,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/ranks", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/ranks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Rank>> ranks() {
         return ResponseEntity.ok(legacyService.getRanks(elasticService.indexFields(false)));
     }
@@ -479,7 +443,7 @@ public class V1Controller {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/api/setImages")
+    @GetMapping(path = "/v1/api/setImages")
     public ResponseEntity<String> setImages(
             @Parameter(description = "Scientific Name")
             @RequestParam(name = "name") String name,
@@ -523,7 +487,7 @@ public class V1Controller {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/api/setUrl")
+    @GetMapping(path = "/v1/api/setUrl")
     public ResponseEntity<String> setWikiUrl(
             @Parameter(description = "Scientific Name")
             @RequestParam(name = "name") String name,
@@ -555,7 +519,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/indexFields", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/indexFields", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<IndexedField> search() {
         return elasticService.indexFields(true);
     }
@@ -573,8 +537,8 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping("/search")
-    public /*List<SearchItemIndex>*/ Object search(
+    @GetMapping("/v1/search")
+    public ResponseEntity<Map<String, Object>> search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",
                     example = "gum"
@@ -623,258 +587,13 @@ public class V1Controller {
             page = start / rows;
         }
 
-        // species-lists is 1 to n, remain consistent here
-        PageRequest pageRequest = PageRequest.of(page, rows);
-
-        // TODO: use op parser util class to construct the query
-
-//        NativeQueryBuilder query =
-//                NativeQuery.builder().withQuery(wq -> wq.bool(bq -> {
-//                            if (!"*".equals(q)) {
-//                                bq.must(m -> m.matchPhrase(mq -> mq.field("all").query(q)));
-//                            }
-//                            if (fqs != null) {
-//                                for (String fq : fqs) {
-//                                    String[] fieldValue = fq.split(":");
-//                                    bq.filter(f -> f.term(t -> t.field(fieldValue[0]).value(fieldValue[1])));
-//                                }
-//                            }
-//                            return bq;
-//                        }))
-//                        .withPageable(pageRequest);
-
-//        NativeQueryBuilder query = NativeQuery.builder()
-//                .withQuery(wq -> wq.bool(bq -> {
-//                    bq.must(q -> formatTerm(q));
-//                    for (String fq : fqs) {
-//                        bq.must(fq);
-//                    }
-//                    return bq;
-//                }));
-//
-//        if (StringUtils.isNotEmpty(sort)) {
-//            query.withSort(s -> s.field(f -> f.field(sort).order("desc".equalsIgnoreCase(dir) ? SortOrder.Desc : SortOrder.Asc)));
-//        }
-//
-//        if (facets != null) {
-//            for (String facet : facets.split(",")) {
-//                query.withAggregation(facet, AggregationBuilders.terms(ts -> ts.field(facet).size(100)));
-//            }
-//        }
-//
-//        SearchHits<SearchItemIndex> result = elasticsearchOperations.search(query.build(), SearchItemIndex.class);
-//        List<SearchItemIndex> hits = (List<SearchItemIndex>) SearchHitSupport.unwrapSearchHits(result);
-//
-//        Map<String, Object> mapResult = new HashMap<>();
-//        mapResult.put("results", hits);
-//
-//        Map<String, Object> facetMap = new HashMap<>();
-//        mapResult.put("facetResults", facetMap);
-//        Map<String, ElasticsearchAggregation> aggregations = ((ElasticsearchAggregations) ((SearchHitsImpl) result).getAggregations()).aggregationsAsMap();
-//        for (Map.Entry<String, ElasticsearchAggregation> entry : aggregations.entrySet()) {
-//            Map<String, Object> facetItemMap = new HashMap<>();
-//
-//            List<Map<String, Object>> facetItems = new ArrayList<>();
-//
-//            List<StringTermsBucket> buckets = (List<StringTermsBucket>) ((MultiBucketAggregateBase) entry.getValue().aggregation().getAggregate()._get()).buckets()._get();
-//            for (StringTermsBucket bucket : buckets) {
-//                Map<String, Object> itemMap = new HashMap<>();
-//                itemMap.put("label", bucket.key().stringValue());
-//                itemMap.put("count", bucket.docCount());
-//                itemMap.put("fieldValue", bucket.key().stringValue());
-//                itemMap.put("fq", entry.getKey() + ":\"" + bucket.key().stringValue() + "\"");
-//                facetItems.add(itemMap);
-//            }
-//
-//            facetItemMap.put("fieldName", entry.getKey());
-//            facetItemMap.put("fieldResult", facetItems);
-//            facetMap.put(entry.getKey(), facetItemMap);
-//        }
-//
-//        mapResult.put("queryTitle", q);
-//        mapResult.put("totalRecords", result.getTotalHits());
-
-//        return mapResult;
-        return null;
-    }
-
-    /**
-     * supports ops
-     *
-     * where ops is
-     * terms OR terms
-     * terms AND terms
-     *
-     * where terms is
-     * (op)
-     * term
-     *
-     * where term is
-     * value
-     * field:value
-     * -field:value
-     *
-     * where value is
-     * string
-     * "string"
-     *
-     * @param q
-     * @return
-     */
-
-    public class Op {
-        public List<Term> terms = new ArrayList<>();
-        public boolean andOp = false; // true==AND, false==OR
-    }
-
-    public class Term {
-        public Op op;
-        public boolean negate = false;
-        public String field;
-        public String value;
-    }
-
-    // TODO: move to a util class, include query builder, add unit tests
-    private Op parseInput(String input) {
-        StringTokenizer tokenizer = new StringTokenizer(input.trim(), " ()\"\\:", true);
-
-        Op parentOp = new Op();
-        Op currentOp = parentOp;
-        List<Op> opStack = new ArrayList<>();
-
-        boolean allowSingleValue = true;
-
-        boolean inString = false;
-        boolean isSingleValue = false;
-        int inBracket = 0;
-        String prevToken = null;
-        Term currentTerm = new Term();
-        String currentString = null;
-        while (tokenizer.hasMoreTokens()) {
-            String token = tokenizer.nextToken();
-            if (isSingleValue) {
-                // append everything
-                currentTerm.value += token;
-            } else if (inString) {
-                if ("\"".equals(token) && "\\".equals(prevToken)) {
-                    currentString += token;
-                } else if ("\"".equals(token)) {
-                    inString = false;
-                    if (!allowSingleValue && currentTerm.field == null) {
-                        // quoted value but no field
-                        return null;
-                    }
-                    currentTerm.value = currentString;
-                    currentOp.terms.add(currentTerm);
-                    currentTerm = new Term();
-                } else if ("\\".equals(token)) {
-                    // do nothing for this escape character
-                } else {
-                    currentString += token;
-                }
-            } else if ("\"".equals(token)) {
-                if (!allowSingleValue) {
-                    if (!":".equals(prevToken) || currentTerm.field == null) {
-                        // field:value separator is missing or field is not set
-                        return null;
-                    }
-                }
-                inString = true;
-                currentString = "";
-            } else if ("(".equals(token)) {
-                // start new op
-                inBracket++;
-                currentOp = new Op();
-                opStack.add(currentOp);
-            } else if (")".equals(token)) {
-                // push current op to parent
-                if (inBracket == 0) {
-                    return null;
-                }
-                inBracket--;
-                Term newTerm = new Term();
-                newTerm.op = currentOp;
-                currentOp = opStack.get(inBracket);
-                currentOp.terms.add(newTerm);
-            } else if (" ".equals(token)) {
-                // do nothing
-            } else if ("OR".equals(token)) {
-                currentOp.andOp = false;
-            } else if ("AND".equals(token)) {
-                currentOp.andOp = true;
-            } else {
-                if (currentTerm.field == null && (":".equals(prevToken) || ":".equals(token))) {
-                    // field cannot equal ':' or appear immediately after ':'
-                    return null;
-                } else if (currentTerm.field == null) {
-                    if (currentTerm.value != null) {
-                        // this is an instance of allowSingleValue:true and an invalid field copied to the value
-                        return null;
-                    }
-                    if (token.startsWith("-")) {
-                        currentTerm.negate = true;
-                        currentTerm.field = token.substring(1);
-                    } else {
-                        currentTerm.field = token;
-                    }
-                    if (!allowSingleValue) {
-                        if (!isValidField(currentTerm.field)) {
-                            // field is not valid
-                            return null;
-                        }
-                    } else {
-                        if (!isValidField(currentTerm.field)) {
-                            // must be a single value when it is not a valid field
-                            currentTerm.value = currentTerm.field;
-                            currentTerm.field = null;
-                            isSingleValue = true;
-                            currentOp.terms.add(currentTerm);
-                        }
-                    }
-                } else if (!":".equals(token) && ":".equals(prevToken)){ // ':' must appear before a value
-                    currentTerm.value = token;
-                    currentOp.terms.add(currentTerm);
-                    currentTerm = new Term();
-                }
-            }
-            prevToken = token;
+        Map<String, Object> result = elasticService.search(q, fqs, page, rows, sort, dir, facets);
+        if (result == null) {
+            // Most likely it is a badly formed query
+            return ResponseEntity.badRequest().build();
+        } else {
+            return ResponseEntity.ok(result);
         }
-        return parentOp;
-    }
-
-    private boolean isValidField(String field) {
-        return elasticService.validFields(false).contains(field) || "*".equals(field);
-    }
-
-    private ObjectBuilder<Query> formatTerm(Query.Builder q, String input) {
-
-
-//            // TODO: when a field is not 'keyword' term queries cannot be used.
-//            // TODO: when using a nested field, do so correctly for exists, no exists, comparison
-//            if (item.getValue() instanceof List) {
-//                // TODO: I think there is a specific query type for this so there is no need to use bool
-//                bq.must(
-//                        q2 -> q2.bool(bq2 -> {
-//                            for (Object v : (List) item.getValue()) {
-//                                if (item.getKey().startsWith("-")) {
-//                                    bq2.mustNot(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
-//                                } else {
-//                                    bq2.should(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
-//                                }
-//                            }
-//                            return bq2;
-//                        }));
-//            } else if (item.getKey().startsWith("not exists ")) {
-//                bq.mustNot(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("not exists ".length())))));
-//            } else if (item.getKey().startsWith("exists ")) {
-//                bq.must(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("exists ".length())))));
-//            } else if (item.getKey().startsWith("-")) {
-//                bq.mustNot(f -> f.term(t -> t.field(fieldMapping(item.getKey().substring(1))).value((String) item.getValue())));
-//            } else {
-//                bq.filter(f -> f.term(t -> t.field(fieldMapping(item.getKey())).value((String) item.getValue())));
-//            }
-//        }
-        return null;
     }
 
     @Tag(name = "Search")
@@ -890,7 +609,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = {"/search/auto", "/search/auto.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = {"/v1/search/auto", "/v1/search/auto.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> searchAuto(
             @Parameter(
                     description = "The value to auto complete e.g. q=Mac",
@@ -968,7 +687,7 @@ public class V1Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/download", produces = "text/csv")
+    @GetMapping(path = "/v1/download", produces = "text/csv")
     public ResponseEntity<StreamingResponseBody> download(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",
@@ -994,69 +713,28 @@ public class V1Controller {
             )
             @Nullable @RequestParam(name = "file", required = false, defaultValue = "species.csv") String file
     ) {
-        // TODO: support the whole range of queries expected
-
         if (StringUtils.isEmpty(q)) {
             return ResponseEntity.badRequest().build();
         } else {
+            File tmpFile = null;
             try {
+                tmpFile = elasticService.download(q, fqs, fields);
+                final File finalFile = tmpFile;
                 return ResponseEntity.ok()
                         .contentType(new MediaType("text", "csv"))
                         .header("Content-Disposition", "attachment;file=" + file)
-                        .body(elasticService.download(q, fqs, fields));
+                        .body(out -> {
+                            try (InputStream in = new FileInputStream(finalFile)) {
+                                IOUtils.copy(in, out);
+                            }
+                        });
             } catch (Exception e) {
-                logger.error("download failed: " + e.getMessage());
-                return ResponseEntity.internalServerError().build();
+                return ResponseEntity.badRequest().build();
+            } finally {
+                if (tmpFile != null) {
+                    tmpFile.delete();
+                }
             }
         }
     }
-
-    private String fieldMapping(String key) {
-        if (key.startsWith("rk") || key.startsWith("conservation_")) {
-            return "data." + key;
-        }
-        // TODO: other data.* fields, if they are in use
-
-        return key;
-    }
-
-    public static void main(String [] args) throws IOException {
-        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
-        resolver.setTemplateMode(TemplateMode.HTML);
-        resolver.setCharacterEncoding("UTF-8");
-        resolver.setPrefix("/templates/");
-        resolver.setSuffix(".html");
-
-        Context context = new Context();
-        context.setVariable("fieldguideHeaderPg1", "./images/field-guide-header-pg1.png");
-        context.setVariable("dataLink", "TODO");
-        context.setVariable("baseUrl", "https://ala.org.au");
-        context.setVariable("fieldguideBannerOtherPages", "./images/field-guide-banner-other-pages.png");
-        context.setVariable("fieldguideSpeciesUrl", "https://bie.ala.org.au/species/");
-        context.setVariable("collectoryUrl", "https://collectory.ala.org.au/public/show/");
-        context.setVariable("formattedDate", new Date());
-        context.setVariable("biocacheMapUrl", "https://biocache.ala.org.au/ws/density/map?fq=geospatial_kosher:true&q=lsid:%22");
-        context.setVariable("biocacheLegendUrl", "https://biocache.ala.org.au/ws/density/legend?fq=geospatial_kosher:true&q=lsid:%22");
-
-        Map json = new ObjectMapper().createParser(new File("/data/search-service/fieldguide/1713474183805.json")).readValueAs(Map.class);
-        context.setVariable("data", json);
-
-        TemplateEngine templateEngine = new TemplateEngine();
-        templateEngine.setTemplateResolver(resolver);
-
-        String result = templateEngine.process("pdf-test", context);
-        System.out.println(result);
-
-        File file = new File("/data/test.pdf");
-        OutputStream outputStream = new FileOutputStream(file);
-        ITextRenderer renderer = new ITextRenderer();
-        renderer.setDocumentFromString(result, new ClassPathResource("/templates/").getURL().toExternalForm());
-        renderer.layout();
-        renderer.createPDF(outputStream);
-        outputStream.flush();
-        outputStream.close();
-
-        FileUtils.writeStringToFile(new File("/data/test.html"), result, "UTF-8");
-    }
-
 }
