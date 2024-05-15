@@ -3,9 +3,9 @@ import {useContext, useEffect, useState} from "react";
 import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
 import {Link} from "react-router-dom";
 
-function Home({setBreadcrumbs, signinRedirect, logout}: {
+function Home({setBreadcrumbs, login, logout}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
-    signinRedirect?: () => Promise<void>,
+    login?: () => void,
     logout?: () => void
 }) {
     const [externalFooterHtml, setExternalFooterHtml] = useState('');
@@ -16,15 +16,17 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
     const alreadyLoaded: string[] = [];
 
     function getUserProperties() {
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property?alaId=" + currentUser.userId() + "&name=" + userKey, {
-            headers: {
-                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
-            }
-        }).then(response => {
-            response.text().then(text => {
-                setUserProperties(text);
-            })
-        });
+        if (userKey) {
+            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property?alaId=" + currentUser.userId() + "&name=" + userKey, {
+                headers: {
+                    'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
+                }
+            }).then(response => {
+                response.text().then(text => {
+                    setUserProperties(text);
+                })
+            });
+        }
     }
 
     function loadText(text: string) {
@@ -106,8 +108,8 @@ function Home({setBreadcrumbs, signinRedirect, logout}: {
 
     function clickHandler(e: any) {
         if (e.target.classList.contains('loginBtn')) {
-            if (signinRedirect) {
-                signinRedirect();
+            if (login) {
+                login();
             }
         } else if (e.target.classList.contains('logoutBtn')) {
             if (logout) {

@@ -20,23 +20,23 @@ import {User} from "oidc-client-ts";
 export default function App() {
 
     const [currentUser, setCurrentUser] = useState<ListsUser | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>( []);
+    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const auth = useAuth();
 
     // const breadcrumbItems = breadcrumbMap.map(item => item.title);
     const breadcrumbItems = breadcrumbs.map((breadcrumb: Breadcrumb, index) => {
         return (
             <li className="breadcrumb-item" key={index}>
-            {index < breadcrumbs.length - 1 ? (
-                <Link to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Link>
-            ) : (
-                <>
-                    {breadcrumb.title}
-                </>
+                {index < breadcrumbs.length - 1 ? (
+                    <Link to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Link>
+                ) : (
+                    <>
+                        {breadcrumb.title}
+                    </>
                 )
-            }
+                }
             </li>);
-        });
+    });
 
     if (auth.error) {
         return <div>Configuration error... {auth.error.message}</div>;
@@ -55,23 +55,23 @@ export default function App() {
         });
     };
 
-    function getUser() : User | null | undefined {
+    function getUser(): User | null | undefined {
         return auth.user
     }
 
-    function getRoles() : string [] {
+    function getRoles(): string [] {
         return (auth.user?.profile[import.meta.env.VITE_PROFILE_ROLES] || []) as string[];
     }
 
-    function getUserId() : string {
+    function getUserId(): string {
         return (auth.user?.profile[import.meta.env.VITE_PROFILE_USERID]) as string || '';
     }
 
-    function isAdmin() : boolean {
+    function isAdmin(): boolean {
         return getRoles().includes(import.meta.env.VITE_ADMIN_ROLE);
     }
 
-    function isLoading() : boolean {
+    function isLoading(): boolean {
         return auth.isLoading;
     }
 
@@ -83,6 +83,13 @@ export default function App() {
             roles: getRoles,
             isLoading: isLoading
         });
+    }
+
+    function login() {
+        void auth.signinRedirect({
+            // this is used by onSigninCallback to redirect back to the original page
+            state: {from: location.pathname + location.search + location.hash}
+        })
     }
 
     return (
@@ -133,7 +140,7 @@ export default function App() {
                                     </>
                                 ) : (
                                     <>
-                                        <button type="button" onClick={() => void auth.signinRedirect()}
+                                        <button type="button" onClick={() => login()}
                                                 className="btn text-white border-white text-end">Login
                                         </button>
                                     </>
@@ -160,14 +167,22 @@ export default function App() {
                 <div className="mt-1"/>
 
                 <Routes>
-                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} signinRedirect={() => auth.signinRedirect()} logout={() => logout()}/>}/>
-                    <Route path="/dashboard" element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-admin" element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/data-quality-admin" element={<DataQualityAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/vocab" element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-index" element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/api" element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/map" element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                   login={() => login()} logout={() => logout()}/>}/>
+                    <Route path="/dashboard"
+                           element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/atlas-admin"
+                           element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/data-quality-admin" element={<DataQualityAdmin
+                        setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/vocab"
+                           element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/atlas-index"
+                           element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/api"
+                           element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/map"
+                           element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                 </Routes>
 
             </main>
