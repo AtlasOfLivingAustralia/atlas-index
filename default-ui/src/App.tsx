@@ -15,6 +15,7 @@ import Api from "./views/Api.tsx";
 import MapView from "./views/Map.tsx";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import DataQualityAdmin from "./views/DataQualityAdmin.tsx";
+import {User} from "oidc-client-ts";
 
 export default function App() {
 
@@ -54,16 +55,33 @@ export default function App() {
         });
     };
 
+    function getUser() : User | null | undefined {
+        return auth.user
+    }
+
+    function getRoles() : string [] {
+        return (auth.user?.profile[import.meta.env.VITE_PROFILE_ROLES] || []) as string[];
+    }
+
+    function getUserId() : string {
+        return (auth.user?.profile[import.meta.env.VITE_PROFILE_USERID]) as string || '';
+    }
+
+    function isAdmin() : boolean {
+        return getRoles().includes(import.meta.env.VITE_ADMIN_ROLE);
+    }
+
+    function isLoading() : boolean {
+        return auth.isLoading;
+    }
+
     if (auth.isAuthenticated && auth.user && !currentUser) {
-        // set the current user
-        const user = auth.user;
-        const roles = (user?.profile[import.meta.env.VITE_PROFILE_ROLES] || []) as string[];
-        const userId = (user?.profile[import.meta.env.VITE_PROFILE_USERID]) as string || '';
         setCurrentUser({
-            user: auth.user,
-            userId: userId,
-            isAdmin: roles.includes(import.meta.env.VITE_ADMIN_ROLE),
-            roles: roles
+            user: getUser,
+            userId: getUserId,
+            isAdmin: isAdmin,
+            roles: getRoles,
+            isLoading: isLoading
         });
     }
 
@@ -107,7 +125,7 @@ export default function App() {
                                         <button type="button" onClick={myProfile}
                                                 className="btn text-white border-white text-end">
                                             Profile
-                                            - {currentUser?.user?.profile?.name || (currentUser?.user?.profile?.given_name + ' ' + currentUser?.user?.profile?.family_name)} {currentUser?.isAdmin ? '(ADMIN)' : ''}
+                                            - {currentUser?.user()?.profile?.name || (currentUser?.user()?.profile?.given_name + ' ' + currentUser?.user()?.profile?.family_name)} {currentUser?.isAdmin() ? '(ADMIN)' : ''}
                                         </button>
                                         <button type="button" onClick={logout}
                                                 className="btn text-white border-white text-end">Logout

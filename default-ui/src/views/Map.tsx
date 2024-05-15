@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-import { Map, View } from "ol";
+import {Map, View} from "ol";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 import 'ol/ol.css';
@@ -81,12 +81,12 @@ function MapView({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => v
     return (
         <>
             <div className="container-fluid">
-                    <>
-                        {mapDiv()}
+                <>
+                    {mapDiv()}
 
-                        <button className="btn border-black" onClick={() => getInfo()}>get info</button>
-                        <pre className="font-monospace">{infoString}</pre>
-                    </>
+                    <button className="btn border-black" onClick={() => getInfo()}>get info</button>
+                    <pre className="font-monospace">{infoString}</pre>
+                </>
 
             </div>
         </>

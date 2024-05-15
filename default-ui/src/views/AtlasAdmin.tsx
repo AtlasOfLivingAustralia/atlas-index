@@ -31,7 +31,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const [images, setImages] = useState<string []>([]);
     const [imageStart, setImageStart] = useState(0);
     const [imageViewMode, setImageViewMode] = useState('all');
-    const [description, setDescription] = useState<{[key: string]: string}>({})
+    const [description, setDescription] = useState<{ [key: string]: string }>({})
 
     const imagePageSize = 100;
 
@@ -46,14 +46,16 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             {title: 'Default UI', href: '/'},
             {title: 'Atlas Admin', href: '/atlas-admin'},
         ]);
-        fetchLog();
-    }, []);
+        if (currentUser && !currentUser?.isLoading()) {
+            fetchLog();
+        }
+    }, [currentUser]);
 
     function fetchLog() {
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/info?pageSize=' + logSize, {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
             }
         }).then(response => {
             if (response.ok) {
@@ -77,7 +79,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         setLogString(JSON.stringify(flattenLogAll(json.tasks), null, 2))
                     }
 
-                    let desc: {[key: string]: string} = {...description}
+                    let desc: { [key: string]: string } = {...description}
 
                     // check for new task types, and update description
                     var newTypes: string[] = []
@@ -140,7 +142,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/update?type=' + updateType, {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
             }
         }).then(response => {
             response.json().then(json => {
@@ -166,7 +168,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/species', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify([guid]),
@@ -191,7 +193,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({taxonID: taxonID, scientificName: scientificName, field: 'wikiUrl_s', value: wikiUrl})
@@ -211,7 +213,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -225,7 +227,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                 fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'Bearer ' + currentUser?.user.access_token,
+                        'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
@@ -264,7 +266,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?fq=imageID:*&q=lsid:"' + taxonID + '"&fl=imageID&pageSize=' + imagePageSize + '&start=' + imageStart, {
             method: 'GET',
             // headers: {
-            //     'Authorization': 'Bearer ' + currentUser?.user.access_token,
+            //     'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
             //     'Content-Type': 'application/json'
             // }
         }).then(response => {
@@ -280,7 +282,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     }
 
     // priority 0 is default, -1 is hidden, 1-5 are priority
-    function getImagePriority(imageID: string) : number {
+    function getImagePriority(imageID: string): number {
         let idxPriority = preferredImage.split(',').indexOf(imageID)
         let idxHidden = hiddenImage.indexOf(imageID)
         if (idxPriority >= 0) {
@@ -294,13 +296,15 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     function buildImageCard(imageID: string, idx: number) {
         let priority: number = getImagePriority(imageID);
 
-        return <div key={idx} className={"card m-1 " + (priority > 0 ? "border-success border-5" : (priority < 0 ? "border-danger border-5" : "border-black"))}>
+        return <div key={idx}
+                    className={"card m-1 " + (priority > 0 ? "border-success border-5" : (priority < 0 ? "border-danger border-5" : "border-black"))}>
             <a className="card-img-top" target="_blank"
                href={import.meta.env.VITE_APP_IMAGE_LINK_URL + imageID}>
                 <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + imageID}></img>
             </a>
             <div className="card-body d-flex flex-column">
-                <select className="custom-select mt-auto" value={priority} onChange={e => changeImage(parseInt(e.target.value), imageID)}>
+                <select className="custom-select mt-auto" value={priority}
+                        onChange={e => changeImage(parseInt(e.target.value), imageID)}>
                     <option value="0">Default</option>
                     <option value="-1">Hide Image</option>
                     <option value="1">Image Priority 1</option>
@@ -327,7 +331,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
 
         if (priority !== currentPriority) {
             // rebuild preferred list and insert or remove it
-            let list : string[] = []
+            let list: string[] = []
             preferredImage.split(",").forEach((value) => {
                 if (list.length < 5) {
                     if (list.length == priority - 1) {
@@ -350,10 +354,10 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     return (
         <div className="container-fluid">
             <h2>Atlas Admin</h2>
-            {!currentUser?.isAdmin &&
-                <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
+            {!currentUser?.isAdmin() &&
+                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
             }
-            {currentUser?.isAdmin &&
+            {currentUser?.isAdmin() &&
                 <>
 
                     <Tabs
@@ -363,7 +367,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         className="mb-3"
                     >
                         <Tab eventKey="tasks" title="Run admin tasks">
-                            <pre className="alert alert-secondary" style={{height:"100px"}}><small>{taskString}</small></pre>
+                            <pre className="alert alert-secondary" style={{height: "100px"}}><small>{taskString}</small></pre>
                             <table className="table table-sm table-bordered">
                                 <tbody>
 
@@ -467,7 +471,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             </table>
                         </Tab>
                         <Tab eventKey="log" title="Admin Log">
-                        <div className="d-flex w-100 align-items-center alert alert-secondary">
+                            <div className="d-flex w-100 align-items-center alert alert-secondary">
                                 <select className="custom-select w-25" id="filter"
                                         onChange={e => filterLog(e.target.value)}>
                                     {taskTypes.map((type, index) => <option key={index}>{type}</option>)};

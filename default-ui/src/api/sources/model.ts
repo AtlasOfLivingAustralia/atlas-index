@@ -32,10 +32,11 @@ interface AtlasLog {
 }
 
 interface ListsUser {
-    user: User,
-    userId: string,
-    isAdmin: boolean,
-    roles: string[]
+    user: () => User | null | undefined,
+    userId: () => string,
+    isAdmin: () => boolean,
+    roles: () => string[],
+    isLoading: () => boolean
 }
 
 interface QualityFilter {

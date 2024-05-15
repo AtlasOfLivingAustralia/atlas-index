@@ -12,9 +12,6 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     const [tab, setTab] = useState('profiles');
     const [saving, setSaving] = useState(false);
 
-    // TODO: having trouble with token returning as undefined, presumably because currentUser get reset between renders
-    const [token, setToken] = useState<string>('');
-
     const uploadFile = useRef(null)
 
     useEffect(() => {
@@ -23,25 +20,16 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             {title: 'Default UI', href: '/'},
             {title: 'Data Quality Admin', href: '/data-quality-admin'},
         ]);
-        if (currentUser?.user.access_token && token !== currentUser.user.access_token) {
-            setToken(currentUser.user.access_token)
+        if (currentUser && !currentUser?.isLoading()) {
+            fetchProfiles();
         }
-        fetchProfiles();
     }, [currentUser]);
 
     function fetchProfiles() {
-        if (currentUser?.user.access_token && token !== currentUser.user.access_token) {
-            setToken(currentUser.user.access_token)
-        }
-
-        if (!(currentUser?.user.access_token || token)) {
-            return;
-        }
-
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
             method: 'GET',
             headers: {
-                'Authorization': 'Bearer ' + (currentUser?.user.access_token || token),
+                'Authorization': 'Bearer ' + currentUser.user()?.access_token,
             }
         }).then(response => {
             if (response.ok) {
@@ -73,7 +61,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + token,
+                'Authorization': 'Bearer ' + currentUser.user()?.access_token,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(profile)
@@ -110,8 +98,8 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             name: 'New Profile',
             shortName: 'new-profile',
             description: '',
-            contactName: (currentUser.user.profile.given_name + ' ' + currentUser.user.profile.family_name).trim(),
-            contactEmail: currentUser.user.profile.email ? currentUser.user.profile.email : '',
+            contactName: (currentUser.user()?.profile.given_name + ' ' + currentUser.user()?.profile.family_name).trim(),
+            contactEmail: currentUser.user()?.profile.email || '',
             enabled: true,
             isDefault: false,
             categories: [],
@@ -136,10 +124,10 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     return (
         <div className="container-fluid">
             <h2>Data Quality Admin {saving && "... saving ..."}</h2>
-            {!currentUser?.isAdmin &&
-                <p>User {currentUser?.user?.profile?.name} is not authorised to access these tools.</p>
+            {!currentUser?.isAdmin() &&
+                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
             }
-            {currentUser?.isAdmin &&
+            {currentUser?.isAdmin() &&
                 <>
                     <Tabs
                         id="data-quality-tabs"
@@ -174,7 +162,12 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 {profiles && profiles.map((profileItem, idx) => (
                                     <tr key={idx}>
                                         <td>{profileItem.id}</td>
-                                        <td><div onClick={() => {setProfile(profileItem); setTab('profile');}} className="text-reset">{profileItem.name}</div></td>
+                                        <td>
+                                            <div onClick={() => {
+                                                setProfile(profileItem);
+                                                setTab('profile');
+                                            }} className="text-reset">{profileItem.name}</div>
+                                        </td>
                                         <td>{profileItem.shortName}</td>
                                         <td><input type="checkbox" defaultChecked={profileItem.enabled}
                                                    disabled={profileItem.isDefault}
@@ -193,7 +186,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                     fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq?id=' + profileItem.id, {
                                                         method: 'DELETE',
                                                         headers: {
-                                                            'Authorization': 'Bearer ' + token,
+                                                            'Authorization': 'Bearer ' + currentUser.user()?.access_token,
                                                         }
                                                     }).then(response => {
                                                         if (response.ok) {
@@ -215,9 +208,11 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             </table>
                         </Tab>
                         <Tab eventKey="profile" title="Edit Profile">
-                            {profile && <QualityProfileItem profile={profile} updateProfile={updateProfile} save={save}/>}
+                            {profile &&
+                                <QualityProfileItem profile={profile} updateProfile={updateProfile} save={save}/>}
                             <br/>
-                            <button className="btn border-black" onClick={() => redrawProfileJson()}>Refresh JSON</button>
+                            <button className="btn border-black" onClick={() => redrawProfileJson()}>Refresh JSON
+                            </button>
                             <pre>
                                 {profile && JSON.stringify(profile, null, 2)}
                             </pre>

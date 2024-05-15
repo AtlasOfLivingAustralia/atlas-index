@@ -20,6 +20,7 @@ const oidcConfig = {
     post_logout_redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URL,
     userStore: new WebStorageStateStore({ store: window.localStorage }),
     onSigninCallback: () => {
+        console.log("onSigninCallback");
         const { search } = window.location;
         if (search.includes('code=') && search.includes('state=')) {
             const params = new URLSearchParams(window.location.search);

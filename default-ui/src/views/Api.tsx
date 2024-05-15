@@ -34,60 +34,60 @@ function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 
     const handleComplete = useCallback((swagger: any) => {
         console.log('swagger loaded, setting preauthorizeApiKey')
-        if (currentUser?.user.access_token) {
-            swagger.preauthorizeApiKey('bearer', currentUser?.user.access_token);
+        if (currentUser?.user()?.access_token) {
+            swagger.preauthorizeApiKey('bearer', currentUser?.user()?.access_token);
         }
     }, []);
 
     return (
         <>
             <div className="container-fluid">
-                    <>
-                        <div className="row">
-                            <div className="col col-2">
-                                <div className="d-flex flex-column border border-black p-3">
-                                    <ul className="list-unstyled">
-                                        <li className="mt-2">
-                                            <a onClick={() => {
-                                                setSwaggerLoaded(false);
-                                                updateMarkdown('intro.md');
-                                            }}
-                                               className="">API Introduction</a>
-                                        </li>
-                                        <li className="mt-2">
-                                            <a onClick={() => {
-                                                setSwaggerLoaded(true);
-                                                setSwaggerUrl(import.meta.env.VITE_ATLAS_OPENAPI);
-                                                updateMarkdown('atlas-search.md');
-                                            }}
-                                               className="">Atlas API</a>
-                                        </li>
-                                        <li className="mt-2">
-                                            <a onClick={() => {
-                                                setSwaggerLoaded(true);
-                                                setSwaggerUrl(import.meta.env.VITE_BIOCACHE_OPENAPI);
-                                                updateMarkdown('biocache.md');
-                                            }}
-                                               className="">Biocache API</a>
-                                        </li>
-                                    </ul>
-                                </div>
+                <>
+                    <div className="row">
+                        <div className="col col-2">
+                            <div className="d-flex flex-column border border-black p-3">
+                                <ul className="list-unstyled">
+                                    <li className="mt-2">
+                                        <a onClick={() => {
+                                            setSwaggerLoaded(false);
+                                            updateMarkdown('intro.md');
+                                        }}
+                                           className="">API Introduction</a>
+                                    </li>
+                                    <li className="mt-2">
+                                        <a onClick={() => {
+                                            setSwaggerLoaded(true);
+                                            setSwaggerUrl(import.meta.env.VITE_ATLAS_OPENAPI);
+                                            updateMarkdown('atlas-search.md');
+                                        }}
+                                           className="">Atlas API</a>
+                                    </li>
+                                    <li className="mt-2">
+                                        <a onClick={() => {
+                                            setSwaggerLoaded(true);
+                                            setSwaggerUrl(import.meta.env.VITE_BIOCACHE_OPENAPI);
+                                            updateMarkdown('biocache.md');
+                                        }}
+                                           className="">Biocache API</a>
+                                    </li>
+                                </ul>
                             </div>
-                            <div className="col">
-                                <Markdown>{markdown}</Markdown>
-                                <br/>
-                                {swaggerLoaded &&
-                                    // TODO: fetch the spec and provide it to the component.
-                                    //  This way we can get things like the version so we can display it.
-                                    <SwaggerUI
-                                        url={swaggerUrl}
-                                        onComplete={handleComplete}
-                                    />
-                                }
-                            </div>
-
                         </div>
-                    </>
+                        <div className="col">
+                            <Markdown>{markdown}</Markdown>
+                            <br/>
+                            {swaggerLoaded &&
+                                // TODO: fetch the spec and provide it to the component.
+                                //  This way we can get things like the version so we can display it.
+                                <SwaggerUI
+                                    url={swaggerUrl}
+                                    onComplete={handleComplete}
+                                />
+                            }
+                        </div>
+
+                    </div>
+                </>
             </div>
         </>
     );

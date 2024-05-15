@@ -15,7 +15,7 @@
     "bootstrap-icons": "^1.11.3",
     "chart.js": "^4.4.2",
     "markdown-to-jsx": "^7.4.7",
-    "oidc-client-ts": "^2.2.5",
+    "oidc-client-ts": "^3.0.1",
     "ol": "^9.1.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.2",
@@ -23,7 +23,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-intl": "^6.4.4",
-    "react-oidc-context": "^2.3.0",
+    "react-oidc-context": "^3.1.0",
     "react-router-dom": "^6.15.0",
     "swagger-ui-react": "^5.17.3"
   },

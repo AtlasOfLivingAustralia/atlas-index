@@ -3,7 +3,7 @@ import {Breadcrumb} from "../api/sources/model.ts";
 import {AsyncTypeahead} from "react-bootstrap-typeahead";
 import {Modal, Tab, Tabs} from "react-bootstrap";
 
-function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
+function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
     const [state, setState] = useState({
         isLoading: false,
@@ -26,9 +26,9 @@ function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
 
     useEffect(() => {
         setBreadcrumbs([
-            { title: 'Home', href: import.meta.env.VITE_HOME_URL },
-            { title: 'Default UI', href: '/' },
-            { title: 'Atlas Index', href: '/atlas-index' },
+            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+            {title: 'Default UI', href: '/'},
+            {title: 'Atlas Index', href: '/atlas-index'},
         ]);
     }, []);
 
@@ -73,77 +73,82 @@ function AtlasIndex({ setBreadcrumbs }: {setBreadcrumbs: (crumbs: Breadcrumb[]) 
 
     return (
         <>
-                <>
-                    <div className="container-fluid">
-                        <div className="d-flex w-100">
-                            <AsyncTypeahead className="w-50"
-                                id={"atlas-autocomplete"}
-                                isLoading={state.isLoading}
-                                selected={selectedOption}
-                                // @ts-ignore
-                                labelKey={option => `${option.name}`}
-                                placeholder="Search for a taxon, project, area, support article, etc"
-                                onChange={(selected) => {setSelectedOption(selected);}}
-                                onSearch={(query) => {
-                                    setState({
-                                        isLoading: true,
-                                        options: [],
-                                        query: query,
-                                    });
-                                    fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/autocomplete?q=' + encodeURI(query) /*+ '&fq=idxtype:TAXON'*/)
-                                        .then(resp => resp.json())
-                                        .then(json => setState({
-                                            isLoading: false,
-                                            options: json,
-                                            query: query,
-                                        }));
-                                }}
-                                options={state.options}
-                            />
-                                <button className="btn btn-primary" onClick={() => search()}>Search</button>
-                            <div>{lastSearch}</div>
-                        </div>
-
-                        <br/>
-                        <Tabs
-                            id="admin-tabs"
-                            activeKey={tab}
-                            onSelect={(k) => setTab("" + k)}
-                            className="mb-3"
-                        >
-                            <Tab eventKey="list" title="Search Result">
-                                <div>
-                                    {resultList && resultList.map((item, index) => (
-                                        <div key={index} className="border-top d-flex">
-                                            <p><b>{item.name}</b> {item.idxtype} <i>{item.commonNameSingle} {item.taxonomicStatus} {item.guid}</i></p>
-                                            {/*<p className="font-monospace"><small>{JSON.stringify(item)}</small></p>*/}
-                                            <button className="btn border-black ms-auto" onClick={()=> {showItem(item);}}>show
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </Tab>
-                            <Tab eventKey="facet" title="Facet List">
-                                {facetJSON && <pre><small>{facetJSON}</small></pre>}
-                            </Tab>
-                            <Tab eventKey="species" title="TAXON JSON">
-                                {itemJSON && <pre><small>{itemJSON}</small></pre>}
-                            </Tab>
-                        </Tabs>
+            <>
+                <div className="container-fluid">
+                    <div className="d-flex w-100">
+                        <AsyncTypeahead className="w-50"
+                                        id={"atlas-autocomplete"}
+                                        isLoading={state.isLoading}
+                                        selected={selectedOption}
+                            // @ts-ignore
+                                        labelKey={option => `${option.name}`}
+                                        placeholder="Search for a taxon, project, area, support article, etc"
+                                        onChange={(selected) => {
+                                            setSelectedOption(selected);
+                                        }}
+                                        onSearch={(query) => {
+                                            setState({
+                                                isLoading: true,
+                                                options: [],
+                                                query: query,
+                                            });
+                                            fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/autocomplete?q=' + encodeURI(query) /*+ '&fq=idxtype:TAXON'*/)
+                                                .then(resp => resp.json())
+                                                .then(json => setState({
+                                                    isLoading: false,
+                                                    options: json,
+                                                    query: query,
+                                                }));
+                                        }}
+                                        options={state.options}
+                        />
+                        <button className="btn btn-primary" onClick={() => search()}>Search</button>
+                        <div>{lastSearch}</div>
                     </div>
 
-                    <Modal show={show} onHide={handleClose}>
-                        <Modal.Header closeButton>
-                            <Modal.Title>External Link</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body><a target="_blank" href={modalUrl}>{modalUrl}</a></Modal.Body>
-                        <Modal.Footer>
-                            <button className="btn" onClick={handleClose}>
-                                Close
-                            </button>
-                        </Modal.Footer>
-                    </Modal>
-                </>
+                    <br/>
+                    <Tabs
+                        id="admin-tabs"
+                        activeKey={tab}
+                        onSelect={(k) => setTab("" + k)}
+                        className="mb-3"
+                    >
+                        <Tab eventKey="list" title="Search Result">
+                            <div>
+                                {resultList && resultList.map((item, index) => (
+                                    <div key={index} className="border-top d-flex">
+                                        <p><b>{item.name}</b> {item.idxtype}
+                                            <i>{item.commonNameSingle} {item.taxonomicStatus} {item.guid}</i></p>
+                                        {/*<p className="font-monospace"><small>{JSON.stringify(item)}</small></p>*/}
+                                        <button className="btn border-black ms-auto" onClick={() => {
+                                            showItem(item);
+                                        }}>show
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </Tab>
+                        <Tab eventKey="facet" title="Facet List">
+                            {facetJSON && <pre><small>{facetJSON}</small></pre>}
+                        </Tab>
+                        <Tab eventKey="species" title="TAXON JSON">
+                            {itemJSON && <pre><small>{itemJSON}</small></pre>}
+                        </Tab>
+                    </Tabs>
+                </div>
+
+                <Modal show={show} onHide={handleClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>External Link</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body><a target="_blank" href={modalUrl}>{modalUrl}</a></Modal.Body>
+                    <Modal.Footer>
+                        <button className="btn" onClick={handleClose}>
+                            Close
+                        </button>
+                    </Modal.Footer>
+                </Modal>
+            </>
 
         </>
     )
