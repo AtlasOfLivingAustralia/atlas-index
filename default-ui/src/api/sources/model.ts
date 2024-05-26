@@ -74,4 +74,81 @@ interface QualityProfile {
     categories: QualityCategory[];
 }
 
-export type {Breadcrumb, ListsUser, AtlasLog, TaskType, QualityProfile, QualityCategory, QualityFilter}
+interface Fq {
+    name: string;
+    fq: string;
+    href: string;
+}
+
+interface Institution {
+    name: string;
+    collections: Fq[];
+}
+
+interface AdvancedSearch {
+    speciesGroups: Fq[];
+    institutions: Institution[];
+    countries: Fq[];
+    states: Fq[];
+    ibra: Fq[];
+    imcra: Fq[];
+    lga: Fq[];
+    typeStatus: Fq[];
+    basisOfRecord: Fq[];
+    dataResources: Fq[];
+}
+
+interface FacetItem {
+    label: string;
+    count: number;
+    fq: string;
+}
+
+interface Facet {
+    label: string;
+    facets: FacetItem [];
+}
+
+interface GroupedFacetData {
+    [key: string]: Facet[];
+}
+
+interface DataQualityInfo {
+    profile: string;
+    unfilteredCount: number | undefined;
+    selectedFilters: string[] | undefined;
+    expand: boolean;
+}
+
+interface FieldInfo {
+    name: string,
+    description: string,
+    dataType: string,
+    indexed: boolean,
+    stored: boolean,
+    multiValued: boolean,
+    info: string,
+    dwcTerm: string,
+    category: string
+}
+
+interface IndexFields {
+    [key: string]: FieldInfo;
+}
+
+export type {
+    Breadcrumb,
+    ListsUser,
+    AtlasLog,
+    TaskType,
+    QualityProfile,
+    QualityCategory,
+    QualityFilter,
+    AdvancedSearch,
+    Fq,
+    Institution,
+    GroupedFacetData,
+    DataQualityInfo,
+    FieldInfo,
+    IndexFields
+};

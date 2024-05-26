@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-import {AsyncTypeahead} from "react-bootstrap-typeahead";
+import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
 import {Modal, Tab, Tabs} from "react-bootstrap";
 
 function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
@@ -80,8 +80,6 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                         id={"atlas-autocomplete"}
                                         isLoading={state.isLoading}
                                         selected={selectedOption}
-                            // @ts-ignore
-                                        labelKey={option => `${option.name}`}
                                         placeholder="Search for a taxon, project, area, support article, etc"
                                         onChange={(selected) => {
                                             setSelectedOption(selected);
@@ -101,6 +99,21 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                 }));
                                         }}
                                         options={state.options}
+                                        renderMenu={(results, menuProps) => (
+                                            <Menu {...menuProps}>
+                                                {results.map((result, index) => (
+                                                    <MenuItem
+                                                        key={index}
+                                                        option={result}
+                                                        position={index}
+                                                        // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
+                                                        href={"#/atlas-index"}>
+                                                        {/* @ts-ignore */}
+                                                        {result.name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Menu>
+                                        )}
                         />
                         <button className="btn btn-primary" onClick={() => search()}>Search</button>
                         <div>{lastSearch}</div>
@@ -111,7 +124,7 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         id="admin-tabs"
                         activeKey={tab}
                         onSelect={(k) => setTab("" + k)}
-                        className="mb-3"
+                        className=""
                     >
                         <Tab eventKey="list" title="Search Result">
                             <div>

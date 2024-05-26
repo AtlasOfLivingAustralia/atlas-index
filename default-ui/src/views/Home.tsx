@@ -2,6 +2,7 @@ import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useState} from "react";
 import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
 import {Link} from "react-router-dom";
+import {cacheFetchText} from "../helpers/CacheFetch.tsx";
 
 function Home({setBreadcrumbs, login, logout}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -76,9 +77,9 @@ function Home({setBreadcrumbs, login, logout}: {
             {title: 'Default UI', href: '/'}
         ]);
 
-        fetch(import.meta.env.VITE_HTML_EXTERNAL_FOOTER_URL, {
+        cacheFetchText(import.meta.env.VITE_HTML_EXTERNAL_FOOTER_URL, {
             method: 'GET'
-        }).then(response => response.text()).then(text => {
+        }, null).then(text => {
             // do substitutions of the footer template
             text = text.replace(/::loginURL::/g, "\" disabled=\"disabled");
             text = text.replace(/::logoutURL::/g, "\" disabled=\"disabled");
@@ -260,6 +261,16 @@ function Home({setBreadcrumbs, login, logout}: {
                             <td>
                                 <ul>
                                     <li>View and search the vocabulary</li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Occurrences</td>
+                            <td>
+                                <ul>
+                                    <li><Link to="/occurrence-search">Search Page</Link></li>
+                                    <li><Link to="/occurrence-list?q=forg&qualityProfile=ALA">Search Result Page</Link></li>
+                                    <li><Link to="/occurrence?id=5a3f4768-0c28-4c56-9814-1e32a3f35aec">Occurrence page</Link></li>
                                 </ul>
                             </td>
                         </tr>

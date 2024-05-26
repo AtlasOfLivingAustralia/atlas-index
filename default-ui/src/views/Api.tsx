@@ -4,6 +4,7 @@ import SwaggerUI from "swagger-ui-react"
 import "swagger-ui-react/swagger-ui.css"
 import Markdown from "markdown-to-jsx";
 import UserContext from "../helpers/UserContext.ts";
+import {cacheFetchText} from "../helpers/CacheFetch.tsx";
 
 function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -23,8 +24,7 @@ function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     }, []);
 
     function updateMarkdown(md: string) {
-        fetch(import.meta.env.VITE_APP_STATIC_URL + '/api/' + md)
-            .then(response => response.text())
+        cacheFetchText(import.meta.env.VITE_APP_STATIC_URL + '/api/' + md, {}, null)
             .then(text => setMarkdown(substituteVite(text)));
     }
 
@@ -33,7 +33,6 @@ function Api({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     }
 
     const handleComplete = useCallback((swagger: any) => {
-        console.log('swagger loaded, setting preauthorizeApiKey')
         if (currentUser?.user()?.access_token) {
             swagger.preauthorizeApiKey('bearer', currentUser?.user()?.access_token);
         }

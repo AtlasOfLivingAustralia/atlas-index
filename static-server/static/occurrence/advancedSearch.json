@@ -1,0 +1,336 @@
+{
+  "speciesGroups": [
+    {
+      "name": "Animals",
+      "fq": "speciesGroup:Animals"
+    },
+    {
+      "name": "Birds",
+      "fq": "speciesGroup:Birds"
+    },
+    {
+      "name": "Plants",
+      "fq": "speciesGroup:Plants"
+    },
+    {
+      "name": "Not supplied",
+      "fq": "speciesGroup:*"
+    }
+  ],
+  "institutions": [
+    {
+      "name": "Australian Museum",
+      "collections": [
+        {
+          "name": "All records from Australian Museum",
+          "fq": "institutionUid:in4"
+        },
+        {
+          "name": "Malacology Collection",
+          "fq": "collectionUid:co114"
+        },
+        {
+          "name": "Entomology Collection",
+          "fq": "collectionUid:co9"
+        },
+        {
+          "name": "Marine Invertebrate Collection",
+          "fq": "collectionUid:co113"
+        },
+        {
+          "name": "Herpetology Collection",
+          "fq": "collectionUid:co10"
+        },
+        {
+          "name": "Ichthyology Collection",
+          "fq": "collectionUid:co112"
+        },
+        {
+          "name": "Arachnology Collection",
+          "fq": "collectionUid:co116"
+        },
+        {
+          "name": "Mammalogy Collection",
+          "fq": "collectionUid:co80"
+        },
+        {
+          "name": "Ornithology Collection",
+          "fq": "collectionUid:co11"
+        }
+      ]
+    },
+    {
+      "name": "Museums Victoria",
+      "collections": [
+        {
+          "name": "All records from Museums Victoria",
+          "fq": "institutionUid:in16"
+        },
+        {
+          "name": "Entomology and Arachnology Collection",
+          "fq": "collectionUid:co39"
+        }
+      ]
+    }
+  ],
+  "countries": [
+    {
+      "name": "Australia",
+        "fq": "country:Australia"
+    },
+    {
+      "name": "New Zealand",
+      "fq": "country:New Zealand"
+    },
+    {
+      "name": "United Kingdom",
+      "fq": "country:United Kingdom"
+    },
+    {
+      "name": "United States",
+      "fq": "country:United States"
+    }
+  ],
+  "states": [
+    {
+      "name": "New South Wales",
+      "fq": "state:\"New South Wales\""
+    },
+    {
+      "name": "Victoria",
+      "fq": "state:\"Victoria\""
+    },
+    {
+      "name": "Queensland",
+      "fq": "state:\"Queensland\""
+    },
+    {
+      "name": "South Australia",
+      "fq": "state:\"South Australia\""
+    },
+    {
+      "name": "Western Australia",
+      "fq": "state:\"Western Australia\""
+    },
+    {
+      "name": "Tasmania",
+      "fq": "state:\"Tasmania\""
+    },
+    {
+      "name": "Northern Territory",
+      "fq": "state:\"Northern Territory\""
+    },
+    {
+      "name": "Australian Capital Territory",
+      "fq": "state:\"Australian Capital Territory\""
+    }
+  ],
+  "ibra": [
+    {
+        "name": "Arnhem Coast",
+        "fq": "ibra:Arnhem Coast"
+        },
+        {
+        "name": "Arnhem Plateau",
+        "fq": "ibra:Arnhem Plateau"
+        },
+        {
+        "name": "Australian Alps",
+        "fq": "ibra:Australian Alps"
+        },
+        {
+        "name": "Avon Wheatbelt",
+        "fq": "ibra:Avon Wheatbelt"
+        },
+        {
+        "name": "Ben Lomond",
+        "fq": "ibra:Ben Lomond"
+    }
+  ],
+  "imcra": [
+    {
+        "name": "Central Eastern Shelf Transition",
+        "fq": "imcra:Central Eastern Shelf Transition"
+        },
+        {
+        "name": "Central Eastern Shelf Province",
+        "fq": "imcra:Central Eastern Shelf Province"
+        },
+        {
+        "name": "Central Western Shelf Transition",
+        "fq": "imcra:Central Western Shelf Transition"
+        },
+        {
+        "name": "Central Western Shelf Province",
+        "fq": "imcra:Central Western Shelf Province"
+        },
+        {
+        "name": "Coral Sea",
+        "fq": "imcra:Coral Sea"
+    }
+  ],
+  "lga": [
+    {
+        "name": "Adelaide (C)",
+        "fq": "lga:Adelaide (C)"
+        },
+        {
+        "name": "Adelaide Hills (DC)",
+        "fq": "lga:Adelaide Hills (DC)"
+        },
+        {
+        "name": "Albany (C)",
+        "fq": "lga:Albany (C)"
+        },
+        {
+        "name": "Albury (C)",
+        "fq": "lga:Albury (C)"
+        },
+        {
+        "name": "Alexandrina (DC)",
+        "fq": "lga:Alexandrina (DC)"
+        },
+        {
+        "name": "Alice Springs (T)",
+        "fq": "lga:Alice Springs (T)"
+        },
+        {
+        "name": "Alpine (S)",
+        "fq": "lga:Alpine (S)"
+        },
+        {
+        "name": "Anangu Pitjantjatjara (AC)",
+        "fq": "lga:Anangu Pitjantjatjara (AC)"
+    }
+  ],
+  "typeStatus": [
+    {
+      "name": "PARATYPE",
+        "fq": "typeStatus:PARATYPE"
+    },
+    {
+      "name": "HOLOTYPE",
+        "fq": "typeStatus:HOLOTYPE"
+    },
+    {
+      "name": "ISOTYPE",
+        "fq": "typeStatus:ISOTYPE"
+    },
+    {
+      "name": "SYNTYPE",
+        "fq": "typeStatus:SYNTYPE"
+    },
+    {
+      "name": "TYPE",
+        "fq": "typeStatus:TYPE"
+    },
+    {
+      "name": "ISOLECTOTYPE",
+        "fq": "typeStatus:ISOLECTOTYPE"
+    },
+    {
+      "name": "LECTOTYPE",
+        "fq": "typeStatus:LECTOTYPE"
+    },
+    {
+      "name": "PARALECTOTYPE",
+        "fq": "typeStatus:PARALECTOTYPE"
+    },
+    {
+      "name": "ALLOTYPE",
+        "fq": "typeStatus:ALLOTYPE"
+    },
+    {
+      "name": "ISOSYNTYPE",
+        "fq": "typeStatus:ISOSYNTYPE"
+    },
+    {
+      "name": "COTYPE",
+        "fq": "typeStatus:COTYPE"
+    },
+    {
+      "name": "NEOTYPE",
+        "fq": "typeStatus:NEOTYPE"
+    },
+    {
+      "name": "ISONEOTYPE",
+        "fq": "typeStatus:ISONEOTYPE"
+    },
+    {
+      "name": "TOPOTYPE",
+        "fq": "typeStatus:TOPOTYPE"
+    },
+    {
+      "name": "HAPANTOTYPE",
+        "fq": "typeStatus:HAPANTOTYPE"
+    },
+    {
+      "name": "PLESIOTYPE",
+        "fq": "typeStatus:PLESIOTYPE"
+    },
+    {
+      "name": "ISOPARATYPE",
+        "fq": "typeStatus:ISOPARATYPE"
+    },
+    {
+      "name": "EPITYPE",
+        "fq": "typeStatus:EPITYPE"
+    },
+    {
+      "name": "PARANEOTYPE",
+        "fq": "typeStatus:PARANEOTYPE"
+    },
+    {
+      "name": "HYPOTYPE",
+        "fq": "typeStatus:HYPOTYPE"
+    }
+  ],
+  "basisOfRecord": [
+    {
+      "name": "PreservedSpecimen",
+      "fq": "basisOfRecord:PreservedSpecimen"
+    },
+    {
+      "name": "FossilSpecimen",
+      "fq": "basisOfRecord:FossilSpecimen"
+    },
+    {
+      "name": "LivingSpecimen",
+      "fq": "basisOfRecord:LivingSpecimen"
+    },
+    {
+      "name": "HumanObservation",
+      "fq": "basisOfRecord:HumanObservation"
+    },
+    {
+      "name": "MachineObservation",
+      "fq": "basisOfRecord:MachineObservation"
+    },
+    {
+      "name": "MaterialSample",
+      "fq": "basisOfRecord:MaterialSample"
+    },
+    {
+      "name": "Occurrence",
+      "fq": "basisOfRecord:Occurrence"
+    },
+    {
+      "name": "Unknown",
+      "fq": "basisOfRecord:Unknown"
+    }
+  ],
+  "dataResources": [
+    {
+      "name": "10 year trend of levels of organochlorine pollutants in Antarctic seabirds 2003/04",
+      "fq": "dr16247"
+    },
+    {
+      "name": "2007-08 Voyage 3 of the Aurora Australis, CEAMARC-CASO Krill Data",
+      "fq": "dr16226"
+    },
+    {
+      "name": "2016 Aerial survey data of southern right whales (Eubalaena australis) off southern Australia",
+      "fq": "dr16218"
+    }
+  ]
+}

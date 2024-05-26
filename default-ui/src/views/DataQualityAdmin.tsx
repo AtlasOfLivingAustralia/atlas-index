@@ -133,7 +133,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         id="data-quality-tabs"
                         activeKey={tab}
                         onSelect={(k) => setTab("" + k)}
-                        className="mb-3"
+                        className=""
                     >
                         <Tab eventKey="profiles" title="List">
 

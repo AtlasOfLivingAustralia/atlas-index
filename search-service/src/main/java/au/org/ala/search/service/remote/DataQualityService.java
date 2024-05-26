@@ -411,6 +411,6 @@ public class DataQualityService {
     public void exportProfiles() throws IOException {
         File tmpFile = File.createTempFile("qualityProfiles", ".json");
         FileUtils.writeStringToFile(tmpFile, new ObjectMapper().writeValueAsString(profiles), "UTF-8");
-        staticFileStoreService.copyToFileStore(tmpFile, "data-quality/profiles.json", true);
+        staticFileStoreService.copyToFileStore(tmpFile, "dataQuality/profiles.json", true);
     }
 }

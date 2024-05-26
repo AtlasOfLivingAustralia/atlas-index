@@ -364,7 +364,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         id="admin-tabs"
                         activeKey={tab}
                         onSelect={(k) => setTab("" + k)}
-                        className="mb-3"
+                        className=""
                     >
                         <Tab eventKey="tasks" title="Run admin tasks">
                             <pre className="alert alert-secondary" style={{height: "100px"}}><small>{taskString}</small></pre>
@@ -512,7 +512,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                     id="species-tabs"
                                     activeKey={speciesTab}
                                     onSelect={(k) => setSpeciesTab("" + k)}
-                                    className="mb-3"
+                                    className=""
                                 >
                                     <Tab eventKey="json" title="JSON">
                                         <table className="table table-sm">

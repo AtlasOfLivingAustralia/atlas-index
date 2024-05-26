@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
@@ -31,7 +31,8 @@ const oidcConfig = {
 };
 
 root.render(
-    <React.StrictMode>
+    // TODO: react-leaflet does not handle strict mode
+    // <React.StrictMode>
         <Router>
             <AuthProvider {...oidcConfig}>
                 <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
@@ -41,5 +42,5 @@ root.render(
                 </IntlProvider>
             </AuthProvider>
         </Router>
-    </React.StrictMode>
+    // </React.StrictMode>
 );
