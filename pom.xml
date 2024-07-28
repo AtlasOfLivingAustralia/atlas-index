@@ -11,6 +11,7 @@
         <module>search-service</module>
         <module>search-test</module>
 <!--        <module>static-server</module>-->
+        <module>taxon-descriptions</module>
     </modules>
 
     <groupId>au.org.ala</groupId>

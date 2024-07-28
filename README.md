@@ -52,6 +52,7 @@ The approach taken by this project, in no particular order:
 * [search-service](search-service) - Spring boot REST web services for accessing and administering the search index.
 * [search-test](search-test) - Java application for comparing GET responses of bie-index and search-service.
 * [static-server](static-server) - Development only file server for serving static files. Production should use a proper file server.
+* [taxon-descriptions](taxon-descriptions) - Java application for generating taxon descriptions from the profiles, wikipedia, species-lists, and other sources.
 
 ## Local Development Setup
 
