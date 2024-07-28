@@ -65,7 +65,7 @@ TODO [helm-charts](https://github.com/AtlasOfLivingAustralia/helm-charts) reposi
   compatibility?)
 - Suitable as standalone or Kubernetes.
 
-### Replacing JSON config files
+### Replacing JSON config files (most of them)
 
 External JSON config files are no longer supported.
 
@@ -355,3 +355,15 @@ POST
 
 COMMON records have no image?
 
+# Additional names data
+
+Language `name` and `uri` information missing from the DwCA names index is done using the default resource `languages.json` and can be overwritten using the config `languages.path`.
+
+This is done during ingestion.
+
+The default `languages.json` is constructed from [AIATSIS language code](https://data.gov.au/data/dataset/70132e6f-259c-4e0f-9f95-4aed1101c053) (2019-06-17) and [ISO-639 language codes](http://www.sil.org/iso639-3/) (2016-06-01).
+```shell
+{
+  languageCode: { name: "languageName", uri: "languageUri" }
+}
+```

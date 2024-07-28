@@ -247,11 +247,13 @@ public class ElasticService {
         return result.map(SearchHit::getContent).orElse(null);
     }
 
+    // This retrieves the document id for the guid. It will be idxtype TAXON and not have an acceptedConceptID.
     public String queryTaxonId(String guid) {
         Query query = NativeQuery.builder()
                 .withQuery(wq -> wq.bool(bq -> {
                     bq.filter(f -> f.term(t -> t.field("guid").value(guid)));
                     bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                    bq.filter(f -> f.bool(b -> b.mustNot(q -> q.exists(eq -> eq.field("acceptedConceptID")))));
                     return bq;
                 }))
                 .withSourceFilter(new FetchSourceFilter(new String[]{"id"}, null))
@@ -318,6 +320,18 @@ public class ElasticService {
             Query deleteQuery = new NativeQueryBuilder()
                     .withQuery(q -> q.terms(t -> t.field("id").terms(ts ->
                             ts.value(existingItems.keySet().stream().map(FieldValue::of).collect(Collectors.toList())))))
+                    .build();
+            ByQueryResponse op = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
+            return op.getDeleted();
+        }
+        return 0;
+    }
+
+    public long removeDeletedItems(List<String> existingIds) {
+        if (!existingIds.isEmpty()) {
+            Query deleteQuery = new NativeQueryBuilder()
+                    .withQuery(q -> q.terms(t -> t.field("id").terms(ts ->
+                            ts.value(existingIds.stream().map(FieldValue::of).collect(Collectors.toList())))))
                     .build();
             ByQueryResponse op = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
             return op.getDeleted();
@@ -589,6 +603,38 @@ public class ElasticService {
         return null;
     }
 
+    public Map getTaxonMap(String q, boolean follow, boolean nameFallback) {
+        NativeQueryBuilder query =
+                NativeQuery.builder().withQuery(wq -> wq.bool(bq -> {
+                    bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                    bq.must(bqq -> bqq.bool(b -> {
+                        b.should(s -> s.term(t2 -> t2.field("guid").value(q)));
+                        b.should(s -> s.term(t3 -> t3.field("linkIdentifier").caseInsensitive(true).value(q)));
+                        return b;
+                    }));
+                    return bq;
+                })).withMaxResults(1);
+
+        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
+        if (result.getTotalHits() > 0) {
+            // return accepted
+            Map item = result.getSearchHits().getFirst().getContent();
+            if (follow && StringUtils.isNotEmpty((String) item.get("acceptedConceptID"))) {
+                return getTaxonMap((String) item.get("acceptedConceptID"), true, true);
+            } else {
+                return item;
+            }
+        } else if (nameFallback) {
+            Map item = getTaxonByNameMap(q, true);
+            if (follow && item != null && StringUtils.isNotEmpty((String) item.get("acceptedConceptID"))) {
+                return getTaxonMap((String) item.get("acceptedConceptID"), true, true);
+            } else {
+                return item;
+            }
+        }
+        return null;
+    }
+
     public Map<String, String> getNestedFields(String id) {
         NativeQueryBuilder query =
                 NativeQuery.builder().withQuery(wq -> wq.term(t -> t.field("id").value(id))).withMaxResults(1);
@@ -614,6 +660,15 @@ public class ElasticService {
 
     public SearchItemIndex getTaxonByName(String q, boolean searchVernacular) {
         List<SearchItemIndex> list = getTaxonsByName(q, 1, searchVernacular);
+        if (!list.isEmpty()) {
+            return list.getFirst();
+        } else {
+            return null;
+        }
+    }
+
+    public Map getTaxonByNameMap(String q, boolean searchVernacular) {
+        List<Map> list = getTaxonsByNameMap(q, 1, searchVernacular);
         if (!list.isEmpty()) {
             return list.getFirst();
         } else {
@@ -651,6 +706,36 @@ public class ElasticService {
         return list;
     }
 
+    public List<Map> getTaxonsByNameMap(String q, int max, boolean searchVernacular) {
+        final String cleanQ = cleanupId(q);
+
+        List<Map> list = new ArrayList<>();
+
+        NativeQueryBuilder query = NativeQuery.builder()
+                .withQuery(wq -> wq.functionScore(fs -> fs.query(fsq -> fsq.bool(bq -> {
+                    bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                    bq.must(bqq -> bqq.bool(b -> {
+                        b.should(s -> s.term(t -> t.field("scientificName").value(cleanQ).caseInsensitive(true).boost(100.0f)));
+                        b.should(s -> s.term(t -> t.field("nameComplete").value(cleanQ).caseInsensitive(true).boost(10.0f)));
+                        if (searchVernacular) {
+                            b.should(s -> s.matchPhrase(t -> t.field("commonName").query(cleanQ)));
+                        }
+                        return b;
+                    }));
+                    return bq;
+                })).functions(fs1 -> fs1.fieldValueFactor(fv -> fv.field("searchWeight")))))
+                .withMaxResults(max) // this is used by the legacy /guid/{name} field, and it has a max of 10
+                .withTrackScores(true);
+
+        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
+        if (result.getTotalHits() > 0) {
+            for (SearchHit<Map> hit : result.getSearchHits()) {
+                list.add(hit.getContent());
+            }
+        }
+        return list;
+    }
+
     public SearchItemIndex getTaxonByPreviousIdentifier(String q, boolean follow) {
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery(wq -> wq.bool(bq -> {
@@ -665,6 +750,25 @@ public class ElasticService {
             String taxonGuid = result.getSearchHits().getFirst().getContent().taxonGuid;
             if (StringUtils.isNotEmpty(taxonGuid)) {
                 return getTaxon(taxonGuid, follow, false);
+            }
+        }
+        return null;
+    }
+
+    public Map getTaxonByPreviousIdentifierMap(String q, boolean follow) {
+        NativeQueryBuilder query = NativeQuery.builder()
+                .withQuery(wq -> wq.bool(bq -> {
+                    bq.filter(f -> f.term(t -> t.field("guid").value(q)));
+                    return bq;
+                }))
+                .withMaxResults(1)
+                .withTrackScores(false);
+
+        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
+        if (result.getTotalHits() > 0) {
+            String taxonGuid = (String) result.getSearchHits().getFirst().getContent().get("taxonGuid");
+            if (StringUtils.isNotEmpty(taxonGuid)) {
+                return getTaxonMap(taxonGuid, follow, false);
             }
         }
         return null;
@@ -750,6 +854,26 @@ public class ElasticService {
         if (result.getTotalHits() > 0) {
             // return taxonGuid TAXON
             return getTaxon(result.getSearchHits().getFirst().getContent().taxonGuid, follow, false);
+        } else {
+            return null;
+        }
+    }
+
+    public Map getTaxonVariantByNameMap(String q, boolean follow) {
+        NativeQueryBuilder query = NativeQuery.builder()
+                .withQuery(wq1 -> wq1.functionScore(fs -> fs.query(wq -> wq.bool(bq -> {
+                    bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXONVARIANT")));
+                    bq.must(bqq -> bqq.bool(b -> b.should(s -> s.term(t -> t.field("scientificName").value(q).caseInsensitive(true)))
+                            .should(s -> s.term(t -> t.field("nameComplete").value(q).caseInsensitive(true)))));
+                    return bq;
+                })).functions(fn -> fn.fieldValueFactor(fv -> fv.field("searchWeight")))))
+                .withMaxResults(1)
+                .withTrackScores(false);
+
+        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
+        if (result.getTotalHits() > 0) {
+            // return taxonGuid TAXON
+            return getTaxonMap((String) result.getSearchHits().getFirst().getContent().get("taxonGuid"), follow, false);
         } else {
             return null;
         }
@@ -1794,7 +1918,7 @@ public class ElasticService {
     /**
      * This is the legacy search service so the output is just a Map<String, Object> with the fields that are needed.
      */
-    public Map<String, Object> search(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets) {
+    public Map<String, Object> searchLegacy(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets) {
         PageRequest pageRequest = PageRequest.of(page, pageSize);
 
         Op op = QueryParserUtil.parse(q, fqs, this::isValidField);
@@ -1855,6 +1979,91 @@ public class ElasticService {
 
         return mapResult;
     }
+
+    public Map<String, Object> search(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets, String [] fl) {
+        PageRequest pageRequest = PageRequest.of(page, Math.max(1, pageSize));
+
+        Op op = QueryParserUtil.parse(q, fqs, this::isValidField);
+        if (op == null) {
+            return null;
+        }
+
+        NativeQueryBuilder query = NativeQuery.builder()
+                .withQuery((wq1 -> wq1.functionScore(fs -> fs.query(opToQuery(op))
+                        .functions(fn -> fn.fieldValueFactor(fv -> fv.field("searchWeight"))))))
+                .withPageable(pageRequest)
+                .withTrackTotalHits(true);
+
+        if (fl != null && fl.length > 0) {
+            query.withSourceFilter(new FetchSourceFilter(fl, null));
+        }
+
+        if (StringUtils.isNotEmpty(sort) && StringUtils.isNotEmpty(dir)) {
+            query.withSort(s -> s.field(f -> f.field(sort).order("desc".equalsIgnoreCase(dir) ? SortOrder.Desc : SortOrder.Asc)));
+        }
+
+        if (facets != null) {
+            for (String facet : facets.split(",")) {
+                query.withAggregation(facet, AggregationBuilders.terms(ts -> ts.field(facet).size(100))); // '100' is from bie-index
+            }
+        }
+
+        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
+
+        Map<String, Object> mapResult = new HashMap<>();
+        List<Object> searchResults = new ArrayList<>();
+        mapResult.put("searchResults", searchResults);
+        mapResult.put("totalRecords", result.getTotalHits());
+        mapResult.put("queryTitle", getQueryTitle(q));
+
+        for (SearchHit<Map> item : result) {
+            if (fl != null && fl.length > 0) {
+                Map values = new HashMap();
+                try {
+                    for (int i = 0; i < fl.length; i++) {
+                        if (fl[i].startsWith("data.") && !item.getContent().containsKey(fl[i])) {
+                            if (item.getContent().get("data") != null) {
+                                values.put(fl[i], ((Map) item.getContent().get("data")).get(fl[i].substring(5)));
+                            }
+                        } else {
+                            values.put(fl[i], item.getContent().get(fl[i]));
+                        }
+                    }
+                    searchResults.add(values);
+                } catch (Exception e) {
+                    // TODO: ??
+                }
+            } else {
+                // TODO: flatten "data." fields
+                searchResults.add(item.getContent());
+            }
+        }
+
+        List<Map<String, Object>> facetResults = new ArrayList();
+        mapResult.put("facetResults", facetResults);
+        Map<String, ElasticsearchAggregation> aggregations = ((ElasticsearchAggregations) ((SearchHitsImpl) result).getAggregations()).aggregationsAsMap();
+        for (Map.Entry<String, ElasticsearchAggregation> entry : aggregations.entrySet()) {
+            Map<String, Object> facetItemMap = new HashMap<>();
+            facetResults.add(facetItemMap);
+            facetItemMap.put("fieldName", entry.getKey());
+
+            List<Map<String, Object>> facetItems = new ArrayList<>();
+            facetItemMap.put("fieldResult", facetItems);
+
+            List<StringTermsBucket> buckets = (List<StringTermsBucket>) ((MultiBucketAggregateBase) entry.getValue().aggregation().getAggregate()._get()).buckets()._get();
+            for (StringTermsBucket bucket : buckets) {
+                Map<String, Object> itemMap = new HashMap<>();
+                itemMap.put("label", bucket.key().stringValue());
+                itemMap.put("count", bucket.docCount());
+                itemMap.put("fieldValue", bucket.key().stringValue());
+                itemMap.put("fq", entry.getKey() + ":\"" + bucket.key().stringValue().replaceAll("\"", "\\\"") + "\"");
+                facetItems.add(itemMap);
+            }
+        }
+
+        return mapResult;
+    }
+
 
     private String getQueryTitle(String q) {
         String queryTitle = q;

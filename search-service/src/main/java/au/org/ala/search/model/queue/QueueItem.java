@@ -1,6 +1,5 @@
 package au.org.ala.search.model.queue;
 
-import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.CreatedDate;
@@ -26,6 +25,6 @@ public class QueueItem {
     @CreatedDate
     public LocalDateTime createdDate;
 
-    public DownloadRequest downloadRequest;
+    public QueueRequest queueRequest;
     public Status status;
 }

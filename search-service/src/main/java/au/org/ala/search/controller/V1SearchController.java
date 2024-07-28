@@ -207,7 +207,7 @@ public class V1SearchController {
             @Nullable @RequestParam(name = "within", required = false, defaultValue = "2000") Integer within,
             HttpServletRequest request
     ) {
-        String id = request.getRequestURI().split(request.getContextPath() + "/childConcepts/")[1];
+        String id = request.getRequestURI().split(request.getContextPath() + "/v1/childConcepts/")[1];
         return ResponseEntity.ok(elasticService.getChildConcepts(id, within, unranked));
     }
 
@@ -229,7 +229,7 @@ public class V1SearchController {
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
     ) {
-        String guid = request.getRequestURI().split(request.getContextPath() + "/classification/")[1];
+        String guid = request.getRequestURI().split(request.getContextPath() + "/v1/classification/")[1];
 
         List<Classification> classification = elasticService.getClassification(elasticService.getTaxon(elasticService.cleanupId(guid), false, true));
 
@@ -291,7 +291,7 @@ public class V1SearchController {
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
     ) {
-        String id = request.getRequestURI().split(request.getContextPath() + "/guid/")[1];
+        String id = request.getRequestURI().split(request.getContextPath() + "/v1/guid/")[1];
         List<SearchItemIndex> items = elasticService.getTaxonsByName(id, 10, true);
         if (items != null && !items.isEmpty()) {
             return ResponseEntity.ok(FormatUtil.itemsToProfiles(items));
@@ -329,8 +329,8 @@ public class V1SearchController {
             HttpServletRequest request
     ) {
         String id = null;
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/imageSearch/")) {
-            id = request.getRequestURI().substring((request.getContextPath() + "/imageSearch/").length());
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/imageSearch/")) {
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/imageSearch/").length());
         }
 
         Map<String, Object> result = elasticService.imageSearch(elasticService.cleanupId(id), start, rows);
@@ -357,8 +357,8 @@ public class V1SearchController {
             HttpServletRequest request
     ) {
         String id = null;
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/species/shortProfile/")) {
-            id = request.getRequestURI().substring((request.getContextPath() + "/species/shortProfile/").length());
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/species/shortProfile/")) {
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/species/shortProfile/").length());
         }
 
         ShortProfile model = elasticService.getShortProfile(elasticService.cleanupId(id));
@@ -389,17 +389,17 @@ public class V1SearchController {
             HttpServletRequest request
     ) {
         String id;
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/species/")) {
-            id = request.getRequestURI().substring((request.getContextPath() + "/species/").length());
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/species/")) {
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/species/").length());
         } else {
-            id = request.getRequestURI().substring((request.getContextPath() + "/taxon/").length());
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/taxon/").length());
         }
 
         Map<String, Object> item = elasticService.getTaxonResponse(id);
         if (item != null) {
             if (item.containsKey("redirect")) {
                 HttpHeaders headers = new HttpHeaders();
-                headers.add("Location", request.getContextPath() + "/species/" + item.get("redirect"));
+                headers.add("Location", request.getContextPath() + "/v1/species/" + item.get("redirect"));
                 return new ResponseEntity<>(headers, HttpStatus.FOUND);
             }
             return ResponseEntity.ok(item);
@@ -587,7 +587,7 @@ public class V1SearchController {
             page = start / rows;
         }
 
-        Map<String, Object> result = elasticService.search(q, fqs, page, rows, sort, dir, facets);
+        Map<String, Object> result = elasticService.searchLegacy(q, fqs, page, rows, sort, dir, facets);
         if (result == null) {
             // Most likely it is a badly formed query
             return ResponseEntity.badRequest().build();

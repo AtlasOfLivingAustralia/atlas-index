@@ -5,13 +5,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.util.List;
-
 @SuperBuilder
 @NoArgsConstructor
 @Getter
 @Setter
-public class FieldguideDownloadRequest extends DownloadRequest {
+public class FieldguideQueueRequest extends QueueRequest {
     public String title;
     public String [] id;
 }

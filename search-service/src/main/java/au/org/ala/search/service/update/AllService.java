@@ -125,7 +125,7 @@ public class AllService {
 
     public Boolean isTaskEnabled(TaskType taskType) {
         // ALL and RECORD are special cases and always enabled
-        if (taskType == TaskType.ALL || taskType == TaskType.RECORD || taskType == TaskType.DASHBOARD) {
+        if (taskType == TaskType.ALL || taskType == TaskType.DASHBOARD) {
             return true;
         }
 

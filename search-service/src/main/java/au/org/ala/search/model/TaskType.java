@@ -4,7 +4,7 @@ public enum TaskType {
     ALL("update search index from all data sources"),
     DWCA("replace all TAXON, COMMON, IDENTIFIER, TAXONVARIANT records with contents of dwca.dir"),
     BIOCACHE("update accepted TAXON records with count and image values from biocache.wsUrl"),
-    AREA("update LOCALITY and REGION records with data from spatial.url"),
+    AREA("update LOCALITY, REGION and DISTRIBUTION records with data from spatial.url"),
     BIOCOLLECT("update BIOCOLLECT records with data from biocollect.url"),
     COLLECTIONS("update COLLECTION, INSTITUTION, DATAPROVIDER, DATARESOURCE records with data from collections.url"),
     KNOWLEDGEBASE("update KNOWLEDGEBASE records with data from knowledgebase.url"),
@@ -13,21 +13,12 @@ public enum TaskType {
     LISTS("update LIST records and update fields wikiUrl_s, image, hiddenImages_s, preferred, data.conservation_*, data.attributes_* with data from lists.url"),
     SITEMAP("generate new sitemap.xml and children and publish to sitemap.path"),
 
-    // TODO: implement TaskType.RECORD event code
-    // - addition of text field + lastmod date for each. to hold a JSON blob
-    // - code to fetch this information for a single record (to be of use by a call to /species/{taxonID})
-    // - code to update a single record for all of these fields (or just one of these fields)
-    // - code to bulk update all of these fields (or a subset with long expiry, e.g. prep for receiving a site crawl)
-    // The basic idea is that there will be a single JSON file for each result. Whether it is cached to disk after
-    // a request, or pre-cached, can be determined later. This task will either invalidate cached files, or update
-    // them all, or something else.
-    RECORD("update a single record's dynamic data, e.g. wiki, profiles, bhl, genbank, distributions, distributions, counts, images (biocache), geographical extents"),
-
     DASHBOARD("update dashboard.json used by the dashboard UI"),
 
     // Consumers
     FIELDGUIDE("consumer of fieldguide requests"),
-    SEARCH_DOWNLOAD("consumer of search download requests");
+    SEARCH_DOWNLOAD("consumer of search download requests"),
+    SANDBOX("consumer of sandbox ingress request");
 
     public final String description;
 

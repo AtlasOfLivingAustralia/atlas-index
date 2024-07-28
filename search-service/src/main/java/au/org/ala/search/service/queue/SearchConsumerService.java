@@ -2,7 +2,7 @@ package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.SearchDownloadRequest;
+import au.org.ala.search.model.queue.SearchQueueRequest;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
@@ -11,24 +11,16 @@ import jakarta.annotation.PostConstruct;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -55,13 +47,13 @@ public class SearchConsumerService extends ConsumerService {
     }
 
     void processItem(QueueItem item) {
-        SearchDownloadRequest request = (SearchDownloadRequest) item.downloadRequest;
+        SearchQueueRequest request = (SearchQueueRequest) item.queueRequest;
 
         String q = request.q[0];
         String [] fqs = request.q.length > 1 ? Arrays.copyOfRange(request.q, 1, request.q.length) : null;
 
         try {
-            String csvFilename = item.downloadRequest.getFilename();
+            String csvFilename = item.queueRequest.getFilename();
             if (!csvFilename.toLowerCase().endsWith(".csv")) {
                 csvFilename += ".csv";
             }

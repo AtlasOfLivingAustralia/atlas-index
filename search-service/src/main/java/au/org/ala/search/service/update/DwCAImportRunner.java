@@ -7,6 +7,7 @@ import au.org.ala.search.model.cache.*;
 import au.org.ala.search.model.dto.DatasetInfo;
 import au.org.ala.search.model.dto.Rank;
 import au.org.ala.search.names.*;
+import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
@@ -49,6 +50,7 @@ public class DwCAImportRunner {
     protected final LogService logService;
     protected final DwCADenormaliseImportService dwCADenormaliseImportService;
     protected final LegacyService legacyService;
+    protected final LanguageService languageService;
     Set<Term> TAXON_ALREADY_INDEXED;
     Set<Term> IN_SCHEMA;
     NameParser nameParser = new PhraseNameParser();
@@ -57,11 +59,12 @@ public class DwCAImportRunner {
     @Value("${vernacularName.preferredStatus}")
     private String vernacularNamePreferredStatus;
 
-    public DwCAImportRunner(ElasticService elasticService, LogService logService, DwCADenormaliseImportService dwCADenormaliseImportService, LegacyService legacyService) {
+    public DwCAImportRunner(ElasticService elasticService, LogService logService, DwCADenormaliseImportService dwCADenormaliseImportService, LegacyService legacyService, LanguageService languageService) {
         this.elasticService = elasticService;
         this.logService = logService;
         this.dwCADenormaliseImportService = dwCADenormaliseImportService;
         this.legacyService = legacyService;
+        this.languageService = languageService;
     }
 
     @PostConstruct
@@ -234,7 +237,16 @@ public class DwCAImportRunner {
             status = vernacularType.getTerm();
             priority = vernacularType.getPriority();
         }
+
         String language = StringUtils.isNotEmpty(core.value(DcTerm.language)) ? core.value(DcTerm.language) : commonNameDefaultLanguage;
+        String languageName = null;
+        String languageUri = null;
+        if (StringUtils.isNotEmpty(language)) {
+            LanguageInfo li = languageService.getLanguageInfo(language);
+            languageName = li.name;
+            languageUri = li.uri;
+        }
+
         String source = core.value(DcTerm.source);
         String datasetID = core.value(DwcTerm.datasetID);
         String temporal = core.value(DcTerm.temporal);
@@ -275,6 +287,8 @@ public class DwCAImportRunner {
                 .priority(priority)
                 .nameID(nameID)
                 .language(StringUtils.isNotEmpty(language) ? language : commonNameDefaultLanguage)
+                .languageName(languageName)
+                .languageUri(languageUri)
                 .source(source)
                 .temporal(temporal)
                 .locationID(locationID)

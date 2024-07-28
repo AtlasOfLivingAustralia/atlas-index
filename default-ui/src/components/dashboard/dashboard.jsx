@@ -191,7 +191,6 @@ const DashboardPage = () => {
             },
             maintainAspectRatio: false,
             onClick(event, elements) {
-                console.log(elements)
                 if (elements.length === 1) {
                     const selected = url[elements[0].index];
                     window.open(selected, '_blank');

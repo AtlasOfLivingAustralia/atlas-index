@@ -65,7 +65,6 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                         organization: el.institutionName || el.dataResourceName
                     });
                 }
-                console.log(newImages.length);
                 setImages([...images, ...newImages])
             });
     }

@@ -144,6 +144,12 @@
     "language": {
       "type": "keyword"
     },
+    "languageName": {
+      "type": "keyword"
+    },
+    "languageUrl": {
+      "type": "keyword"
+    },
     "source": {
       "type": "keyword"
     },
@@ -371,6 +377,15 @@
           "copy_to": [
             "all"
           ]
+        }
+      }
+    },
+    {
+      "distribution_template": {
+        "path_match": "data.distributions",
+        "mapping": {
+          "type": "keyword",
+          "index": "false"
         }
       }
     }

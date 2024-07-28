@@ -459,14 +459,6 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                     </td>
                                     <td>{description['SITEMAP']}</td>
                                 </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('RECORD')}>
-                                            Update RECORD
-                                        </button>
-                                    </td>
-                                    <td>{description['RECORD']}</td>
-                                </tr>
                                 </tbody>
                             </table>
                         </Tab>

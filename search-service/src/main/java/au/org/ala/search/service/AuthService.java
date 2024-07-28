@@ -64,6 +64,16 @@ public class AuthService {
         }
     }
 
+    public String getUserId(Principal principal) {
+        if (principal instanceof PreAuthenticatedAuthenticationToken) {
+            return ((AlaUserProfile) ((PreAuthenticatedAuthenticationToken) principal).getPrincipal()).getUserId();
+        } else if (principal instanceof AlaUserProfile) {
+            return ((AlaUserProfile) principal).getUserId();
+        } else {
+            return null;
+        }
+    }
+
     public UserDetails getUserForEmailAddress(String email) {
         Call<UserDetails> call = userDetailsClient.getUserDetails(email, true);
         try {

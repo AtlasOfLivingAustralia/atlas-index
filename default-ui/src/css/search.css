@@ -1259,19 +1259,78 @@ body.background-lightgrey {background-color:#f2f2f2;}
 
 /* Breadcrumb
 ================================= */
-section#breadcrumb {padding: 12px 0 15px 19px;border-bottom: 1px solid #E7E7E7;background-color: #E7E7E7;margin-bottom:20px}
-section#breadcrumb li + li::before{
-    content: "\00a0";
-    background-image: url('data:image/svg+xml, <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/> </svg>');
-    background-repeat: no-repeat;
-    margin: 0 .8em;
-    opacity: .3;
+/*section#breadcrumb {*/
+/*    padding: 12px 0 15px 19px;*/
+/*    border-bottom: 1px solid #E7E7E7;*/
+/*    background-color: #E7E7E7;*/
+/*    margin-bottom: 20px*/
+/*}*/
 
+/*section#breadcrumb li + li::before {*/
+/*    content: "\00a0";*/
+/*    background-image: url('data:image/svg+xml, <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/> </svg>');*/
+/*    background-repeat: no-repeat;*/
+/*    margin: 0 .8em;*/
+/*    opacity: .3;*/
+
+/*}*/
+
+/*.breadcrumb-list {*/
+/*    list-style: none;*/
+/*    margin: 0 0 0 0;*/
+/*    padding: 0;*/
+/*}*/
+
+/*.breadcrumb-list li {*/
+/*    display: inline-block;*/
+/*    line-height: normal*/
+/*}*/
+
+/*.breadcrumb-list li .glyphicon {*/
+/*    margin-right: 5px;*/
+/*    color: #bbb;*/
+/*}*/
+
+/*#ala-body .breadcrumb-list li .glyphicon {*/
+/*    display: none;*/
+/*}*/
+
+/*.breadcrumb-item + .breadcrumb-item {*/
+/*    padding-left: 0;*/
+/*}*/
+
+section#breadcrumb {
+    padding-top: 14px;
+    background-color: #F2F2F2;
+    font-weight: 400;
+    color: #212121;
 }
-.breadcrumb-list {list-style: none;margin: 0 0 0 0;padding: 0;}
-.breadcrumb-list li {display: inline-block; line-height: normal}
-.breadcrumb-list li .glyphicon {margin-right: 5px;color: #bbb;}
-#ala-body .breadcrumb-list li .glyphicon {display: none;}
+
+section#breadcrumb li + li::before {
+    content: "\00a0";
+    background-image: url('data:image/svg+xml, <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/> </svg>');
+    background-repeat: no-repeat;
+    margin-right: 10px;
+    margin-left: 6px;
+    font-size: 9px;
+    line-height: 18px;
+}
+
+.breadcrumb-item a, .breadcrumb-item a:hover {
+    color: #212121;
+}
+
+.breadcrumb-list {
+    list-style: none;
+    margin: 0 0 0 0;
+    padding: 0;
+}
+
+.breadcrumb-list li {
+    display: inline-block;
+    line-height: normal
+}
+
 
 .breadcrumb-item + .breadcrumb-item {
     padding-left: 0;
@@ -1343,7 +1402,7 @@ nav {
     border: 1px solid #999;
 }
 
-.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
     color: #6c757d;
     cursor: default;
     background-color: #fff;
@@ -1533,5 +1592,997 @@ h4, .h4 {
 }
 
 .leaflet-container {
-    height: 600px;
+    height: 530px;
 }
+
+.speciesPage .leaflet-container {
+    height: 530px;
+}
+
+.speciesPage {
+    color: #212121;
+}
+
+#speciesListHeader {
+    background-color: #F2F2F2;
+    /*height: 488px;*/
+    padding-top: 28px;
+
+    /*background-image: url('data:image/svg+xml, <svg width="913" height="910" viewBox="0 0 913 910" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M523.93 3.39146C485.03 15.7762 463.476 57.5745 475.793 96.5863L524.854 252.014L468.916 360.483L322.963 350.266L96.7472 275.855C57.9497 263.057 16.2782 284.318 3.65365 323.329C-8.97094 362.341 12.1727 404.243 50.8676 417.04L163.462 454.091L114.709 496.715C83.9173 523.652 80.6329 570.507 107.422 601.469C134.21 632.431 180.808 635.733 211.6 608.797L333.946 501.875L456.086 510.441L477.743 579.073L296.072 621.801C256.351 631.192 231.717 671.133 240.955 710.97C250.192 750.911 289.914 775.68 329.738 766.289L535.529 717.885L615.998 870.526C635.191 906.752 679.839 920.581 715.865 901.282C739.267 888.794 753.226 865.469 754.971 840.803C755.894 827.386 753.226 813.557 746.554 800.863L642.478 603.636L593.006 446.867L658.388 320.13L979.647 197.315C1008.28 187.201 1026.86 161.09 1028.81 132.502C1029.53 122.697 1028.2 112.583 1024.81 102.675C1011.26 64.0765 969.076 43.6417 930.586 57.2649L652.434 164.805L616.819 51.795C604.502 12.68 563.036 -8.89003 524.136 3.49467" fill="#D9D9D9"/> </svg>');*/
+    /*background-repeat: no-repeat;*/
+}
+
+.speciesName {
+    font-size: 52px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 58px;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.speciesHeaderText {
+    width: 549px;
+}
+
+.speciesVernacular {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 28px;
+    text-align: left;
+    padding-bottom: 5px;
+}
+
+.speciesLink {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    color: #003A70;
+    text-decoration: underline;
+}
+
+.speciesTextSummary {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.speciesInvasive {
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    background-color: #FFC557;
+    padding: 8px 8px 11px 8px;
+    display: flex;
+    width: 492px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.speciesConservation {
+    margin-top: 60px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    background-color: #FFC557;
+    padding: 8px 8px 11px 8px;
+    display: flex;
+    width: 813px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.speciesInvasiveLink {
+    text-decoration: underline;
+    color: #003A70;
+}
+
+.speciesInvasiveFlag {
+    width: 25px;
+}
+
+.speciesConservationFlag {
+    width: 20px;
+}
+
+/*.svg {*/
+/*    overflow: hidden;*/
+/*    position: absolute;*/
+/*}*/
+
+/*.svgInner {*/
+/*    position: relative;*/
+/*    left: 376px;*/
+/*    margin-top:-11px;*/
+/*}*/
+
+.speciesImageBlock {
+    float:right;
+}
+
+.speciesImg {
+    /*border-radius: 10px;*/
+    /*width: 393px;*/
+    /*height: 335px;*/
+}
+
+.speciesImg > img{
+    border-radius: 10px;
+    width: 393px;
+    height: 335px;
+    margin-bottom: 15px;
+}
+
+.speciesImageBlockTall {
+    float:right;
+    margin-left: 15px;
+}
+
+.speciesImgTall > img{
+    border-radius: 10px;
+    width: 182px;
+    height: 160px;
+
+    margin-bottom: 15px;
+}
+
+.speciesPage .nav-tabs > li.active > a,.speciesPage .nav-tabs > li.active > a:hover,.speciesPage .nav-tabs > li.active > a:focus {
+    color: #6c757d;
+    cursor: default;
+    background-color: #fff;
+    border: 0;
+    border-bottom-color: transparent;
+}
+
+.speciesPage .nav-tabs {
+    border-color: #999;
+    /*border-bottom: 1px solid #999;*/
+    border-bottom: 0px;
+
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.speciesPage .nav-tabs .nav-link.active,.speciesPage  .nav-tabs .nav-link.active:hover {
+    border-color: transparent;
+    border-left: 0;
+    border-right: 0;
+    border-top:0;
+    border-bottom: 3px solid #C44D34;
+    color: #C44D34;
+
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: left;
+
+}
+
+.speciesPage  .nav-tabs .nav-link:not(.active) {
+    background-color: white;
+    border: 0;
+
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+
+}
+
+.speciesPage .nav-tabs .nav-link {
+    color: #212121;
+    padding: 15px 15px 16px 15px;
+}
+
+.speciesPage .nav-tabs .nav-link:hover {
+}
+
+.speciesPage .tab-content {
+    padding: 0;
+    /*padding: 15px;*/
+    border: 0px;
+}
+
+.speciesPage .nav-tabs:after {
+    display: inline-block;
+    content: "";
+    border-bottom: 1px solid #D9D9D9;
+    width: 200%;
+    margin-left: -50%;
+}
+
+.speciesMap {
+    height: 530px;
+    width: 845px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.speciesMapControl {
+    margin-left: 39px;
+    width: 255px;
+}
+
+.speciesMapAbout > span {
+    font-size: 14px;
+    margin-right: 7px;
+}
+
+.speciesMapAbout {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    margin-top:30px;
+}
+
+.speciesMapText {
+    width: 845px;
+    margin-top: 15px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+}
+
+.speciesMapGetStarted {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    margin-top: 30px;
+
+}
+
+.speciesMapButtons {
+    margin-top: 15px;
+}
+
+.speciesMapButton {
+    padding: 10px 14px 15px 14px;
+    border: 1px solid #C44D34;
+    width: 255px;
+    border-radius: 5px;
+    height: 69px;
+
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 22px;
+    text-align: left;
+}
+
+.species-red {
+    color: #C44D34;
+    font-size: 25px;
+    margin-top: -2px;
+    margin-right: -5px;
+}
+
+.speciesPage {
+    /*padding-left: 0;*/
+    width: 1139px;
+}
+
+.speciesOccurrenceCount {
+    margin-top: 40px;
+
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+
+    margin-bottom: 30px;
+}
+
+.speciesOccurrenceCountTxt {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 40px;
+    text-align: left;
+}
+
+.speciesRefineView {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: left;
+
+    padding-bottom: 15px;
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.speciesMapControlItem {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.speciesMapControlItemHr {
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.speciesMapControlDist {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: left;
+}
+
+.speciesRefineView > span {
+    margin-right: 10px;
+}
+
+.speciesMapControlDistItem {
+    padding-top: 15px;
+}
+
+.speciesMapControlDistItemTxt {
+    padding-top: 5px;
+
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+}
+
+.speciesMapControlLayerItem {
+    padding-top: 10px;
+}
+
+.speciesMapControlRefresh {
+    border-radius: 20px;
+    border: 1px solid #212121;
+
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 36px;
+    text-align: center;
+
+    margin-top:15px;
+
+    height: 36px;
+
+    padding: 0;
+}
+
+.speciesPageBackground {
+    background-color: #F2F2F2;
+}
+
+.speciesRow {
+    margin-top: 5px;
+    position: relative;
+    height: 22px;
+}
+
+.speciesRank {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+
+    position: absolute;
+    left: 0;
+}
+
+.speciesClassificationLink {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+
+    color: #003A70;
+    text-decoration: underline;
+
+    position: absolute;
+    left: 100px;
+}
+
+.classificationView {
+    margin-top: 60px;
+    position: relative;
+}
+
+.classificationInfo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 353px;
+}
+
+.classificationInfoText {
+    margin-top: 15px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+}
+
+.classificationAbout {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+}
+
+.classificationAbout > span {
+    font-size: 14px;
+    margin-right: 7px;
+}
+
+.speciesLast {
+    background-color: #D9D9D9;
+    height: 34px;
+    border-radius: 4px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 550px;
+    position: relative;
+}
+
+.speciesLast div {
+    padding: 5px 41px 7px 13px;
+}
+
+.speciesLast:last-child {
+    background-color: #D9D9D9;
+    border-radius: 4px;
+}
+
+.speciesSectionTitle {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    margin-top: 30px;
+}
+
+.speciesDescription {
+    margin-top: 30px;
+}
+
+.speciesSectionText {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    margin-top:15px;
+}
+
+.sectionFoot {
+    border-bottom: 1px solid #D9D9D9;
+    width: 1139px;
+    margin-top: 60px;
+}
+
+.speciesDescription a, .speciesDescription a:hover {
+    color: #003A70;
+}
+
+.speciesImagesBlock {
+    width: 845px;
+}
+
+.speciesImagesControl {
+    margin-left: 39px;
+    width: 255px;
+}
+
+.speciesImagesView {
+    margin-top: 60px;
+}
+
+.speciesImagesCount {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 22px;
+    text-align: left;
+
+    margin-top: 30px;
+}
+
+.speciesImageBtn {
+    border: 1px solid #D9D9D9;
+    border-radius: 5px;
+
+    font-size: 16px;
+    font-weight: 400;
+    /*line-height: 22px;*/
+    text-align: center;
+
+    width: 94px;
+    height: 40px;
+
+    margin-right: 10px;
+
+}
+
+.speciesImageBtnSelected {
+    background-color: #212121;
+    color: white;
+    border-color: #212121;
+
+    border-radius: 5px;
+
+    font-size: 16px;
+    font-weight: 400;
+    /*line-height: 22px;*/
+    text-align: center;
+
+    width: 94px;
+    height: 40px;
+
+    margin-right: 10px;
+}
+
+.speciesImageBtnSelected:hover {
+    background-color: #212121;
+    color: white;
+    border-color: #212121;
+}
+
+.speciesImageBtn:hover {
+    color: black;
+    background-color: white;
+    border-color: #D9D9D9;
+}
+
+.speciesImageBlockImg {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+
+    max-width: 271px;
+    max-height: 210px;
+
+}
+
+.namesSectionHeader {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+
+    margin-bottom: 30px;
+}
+
+.namesView {
+    margin-top:60px;
+    width: 845px;
+}
+
+.namesInfo {
+    margin-top: 30px;
+}
+
+.namesLink {
+    color: #003A70;
+    text-decoration: underline;
+}
+
+.namesSectionFoot {
+    border-bottom: 1px solid #D9D9D9;
+    width: 1139px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.namesRowName {
+    width: 393px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+
+    padding-left: 10px;
+}
+
+.namesRowSource {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.namesRow {
+    /*height: 45px;*/
+}
+
+.namesRowOdd {
+    background-color: #F2F2F2;
+}
+
+.namesRowHeader {
+    height: 32px;
+    border-bottom: 0.5px solid #212121;
+    margin-top: 30px;
+    padding-bottom: 10px
+}
+
+.namesRowHeaderLabelLeft {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+
+    padding-left: 10px;
+
+    width: 393px;
+}
+
+.namesRowHeaderLabelRight {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+}
+
+.speciesPage a:not(.btn), .speciesPage a:hover:not(.btn) {
+    color: #003A70;
+    text-decoration: underline;
+}
+
+.speciesFooter {
+    margin-top: 90px;
+    height: 106px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.speciesFooterLine {
+    border-bottom: 1px solid #D9D9D9;
+    width: 200%;
+    margin-left: -50%;
+    margin-top: 17px;
+}
+
+.speciesFooterUp {
+    font-size: 32px;
+    margin-top: -16px;
+    background-color: white;
+    line-height: 32px;
+}
+
+.speciesTypeTag {
+    background-color: #D9D9D9;
+    border-radius: 5px;
+    border: 1px solid #D9D9D9;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: center;
+
+    padding: 6px 13px 6px 13px;
+
+    display: inline-block;
+
+    margin-bottom: 15px;
+
+}
+
+.statusView {
+    margin-top: 60px;
+    width: 845px;
+
+}
+
+.statusRowHeaderLabelLeft {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+
+    padding-left: 10px;
+
+    width: 304px;
+}
+
+.statusRowName {
+    width: 304px;
+    padding-left: 10px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.statusRowHeaderLabelMiddle {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+
+    width: 293px;
+}
+
+.statusRowSource {
+    width: 293px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.statusRowHeaderLabelRight {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+}
+
+.statusRowStatus {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.iucnSection {
+    margin-top: 30px;
+}
+
+.iucnRow {
+    margin-top: 5px;
+}
+
+.iucnIcon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    text-align: center;
+
+    line-height: 35px;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.iucnLabel {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 35px;
+    text-align: left;
+    margin-left: 10px;
+}
+
+.traitsView {
+    margin-top: 60px;
+    width: 982px;
+}
+
+.traitsLogo {
+    width: 288px;
+    height: 105px;
+}
+
+.traitsInfo {
+    width: 590px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+
+}
+
+.traitsButtons {
+    margin-top: 25px;
+}
+
+.traitsButtonDefinitions, .traitsButtonDefinitions:hover  {
+    border: 1px solid #D9D9D9;
+    border-radius: 5px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: center;
+
+    /*width: 94px;*/
+    padding: 8px 19px 10px 19px;
+    height: 40px;
+
+    text-decoration-line: none;
+}
+
+.traitsButtonCsv, .traitsButtonCsv:hover {
+    background-color: #212121;
+    color: white;
+    border-color: #212121;
+
+    border-radius: 5px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: center;
+
+    /*width: 94px;*/
+    height: 40px;
+
+    padding: 8px 19px 10px 19px;
+
+
+    margin-left: 20px;
+
+
+}
+
+.traitsInfoBox {
+    width: 310px;
+}
+
+.traitsCite {
+    margin-top: 30px;
+
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    padding: 12px 12px 14px 14px;
+}
+
+.traitsCiteTitle {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: left;
+
+    margin-bottom: 14px;
+}
+
+.traitsCiteText {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+}
+
+.traitsData {
+    width: 590px;
+}
+
+.traitsDataBlock {
+    margin-top: 44px;
+}
+
+.traitsCategoricalInfo {
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+
+}
+
+.traitsConservationName {
+    width: 290px;
+    padding-left: 10px;
+}
+
+.traitsConservationValue {
+    width: 184px;
+}
+
+.traitsConservationLink {
+    width: 101px;
+}
+
+.speciesTableHeaderItem {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+}
+
+.speciesTableItem {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+}
+
+.traitNumericName {
+    padding-left: 10px;
+    width: 207px;
+}
+
+.traitNumericMin {
+    width: 30px;
+    text-align: right;
+}
+
+.traitNumericMean {
+    width: 66px;
+    text-align: right;
+}
+
+.traitNumericMax {
+    width: 59px;
+    text-align: right;
+}
+
+.traitNumericUnit {
+    width: 129px;
+    text-align: center;
+}
+
+.traitNumericUrl {
+
+}
+
+.datasetsView {
+    margin-top: 60px;
+    width: 842px;
+}
+
+.datasetName {
+    width: 298px;
+    padding-left: 10px;
+}
+
+.datasetLicence {
+    width: 293px;
+}
+
+.datasetRecords {
+    width: 150px;
+    text-align: right;
+}
+
+.datasetTable {
+    margin-top: 60px;
+}
+
+.resourcesView {
+    margin-top: 60px;
+    width: 845px;
+}
+
+.sectionSubHeader {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 32px;
+}
+
+.resourceBox {
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    padding: 15px 15px 18px 18px;
+
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+
+    margin-top: 15px;
+}
+
+.speciesMapButtons {
+    height: 69px;
+}
+
+.speciesMapButtonSpace {
+    margin-right: 40px;
+}
+
+.mt-30 {
+    margin-top: 30px;
+}
+
+
+
+

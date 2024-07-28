@@ -66,6 +66,7 @@ public class ListService {
     }
 
     public List<Map<String, Object>> items(String listId) {
+        // TODO: species list paging, because I recall the max is internally limited
         ResponseEntity<List> response = restTemplate.exchange(
                 listsUrl + "/ws/speciesListItems/" + listId + "?includeKVP=true&max=" + listsSearchMax,
                     HttpMethod.GET,

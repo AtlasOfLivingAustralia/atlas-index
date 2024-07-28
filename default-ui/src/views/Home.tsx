@@ -14,20 +14,22 @@ function Home({setBreadcrumbs, login, logout}: {
     const [userKey, setUserKey] = useState<string>();
     const [userValue, setUserValue] = useState<string>();
 
+    const [selectedFile, setSelectedFile] = useState();
+    const [isFilePicked, setIsFilePicked] = useState(false);
+
     const alreadyLoaded: string[] = [];
 
     function getUserProperties() {
-        if (userKey) {
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property?alaId=" + currentUser.userId() + "&name=" + userKey, {
-                headers: {
-                    'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
-                }
-            }).then(response => {
-                response.text().then(text => {
-                    setUserProperties(text);
-                })
-            });
-        }
+        const prop = (userKey) ? "&name=" + userKey : '';
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property?alaId=" + currentUser.userId() + prop, {
+            headers: {
+                'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
+            }
+        }).then(response => {
+            response.json().then(json => {
+                setUserProperties(JSON.stringify(json));
+            })
+        });
     }
 
     function loadText(text: string) {
@@ -119,6 +121,56 @@ function Home({setBreadcrumbs, login, logout}: {
         }
         e.preventDefault()
     }
+
+    const changeHandler = (event) => {
+        setSelectedFile(event.target.files[0]);
+        setIsFilePicked(true);
+    };
+
+    const handleSubmission = () => {
+        const formData = new FormData();
+
+        formData.append('file', selectedFile);
+
+        fetch(
+            import.meta.env.VITE_APP_BIE_URL + '/v1/sandbox/upload',
+            {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
+                }
+            }
+        )
+            .then((response) => response.json())
+            .then((result) => {
+                console.log('Success:', result);
+
+                // do ingress
+                fetch(
+                    import.meta.env.VITE_APP_BIE_URL + '/v1/sandbox/ingress',
+                    {
+                        method: 'POST',
+                        body: JSON.stringify(result),
+                        headers: {
+                            'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                )
+                    .then((response) => response.json())
+                    .then((result) => {
+                        console.log('SuccessIngress:', result);
+                    })
+                    .catch((error) => {
+                        console.error('ErrorIngress:', error);
+                    });
+
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    };
 
     return (
         <>
@@ -269,8 +321,18 @@ function Home({setBreadcrumbs, login, logout}: {
                             <td>
                                 <ul>
                                     <li><Link to="/occurrence-search">Search Page</Link></li>
-                                    <li><Link to="/occurrence-list?q=forg&qualityProfile=ALA">Search Result Page</Link></li>
-                                    <li><Link to="/occurrence?id=5a3f4768-0c28-4c56-9814-1e32a3f35aec">Occurrence page</Link></li>
+                                    <li><Link to="/occurrence-list?q=forg&qualityProfile=ALA">Search Result Page</Link>
+                                    </li>
+                                    <li><Link to="/occurrence?id=5a3f4768-0c28-4c56-9814-1e32a3f35aec">Occurrence
+                                        page</Link></li>
+                                </ul>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Species</td>
+                            <td>
+                                <ul>
+                                    <li><Link to="/species?id=https://biodiversity.org.au/afd/taxa/2a4e373b-913a-4e2a-a53f-74828f6dae7e">Species Page</Link></li>
                                 </ul>
                             </td>
                         </tr>
@@ -403,6 +465,25 @@ function Home({setBreadcrumbs, login, logout}: {
 
 
                             </td>
+                        </tr>
+                        <tr>
+                            <input type="file" name="file" onChange={changeHandler}/>
+                            {isFilePicked ? (
+                                <div>
+                                    <p>Filename: {selectedFile.name}</p>
+                                    <p>Filetype: {selectedFile.type}</p>
+                                    <p>Size in bytes: {selectedFile.size}</p>
+                                    <p>
+                                        lastModifiedDate:{' '}
+                                        {selectedFile.lastModifiedDate.toLocaleDateString()}
+                                    </p>
+                                </div>
+                            ) : (
+                                <p>Select a file to show details</p>
+                            )}
+                            <div>
+                                <button onClick={handleSubmission}>Submit</button>
+                            </div>
                         </tr>
                         <tr>
                             <td>

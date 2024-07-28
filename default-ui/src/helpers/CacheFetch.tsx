@@ -13,16 +13,17 @@ interface CachedItem {
  * @param maxAge null (12 hours) or maximum age in second
  */
 function cacheFetchJson(url: string, options: RequestInit, maxAge: number | null): Promise<any> {
+    // TODO: disabling this because I added it into too many places and the storage limit was reached
     // in cache and not expired
-    const cached = localStorage.getItem(options.method + ":" + url);
-    if (cached) {
-        const item: CachedItem = JSON.parse(cached);
-        if ((Date.now() - item.time) < (maxAge || CACHE_MAX_AGE)) {
-            return new Promise((resolve) => {
-                resolve(item.data);
-            });
-        }
-    }
+    // const cached = localStorage.getItem(options.method + ":" + url);
+    // if (cached) {
+    //     const item: CachedItem = JSON.parse(cached);
+    //     if ((Date.now() - item.time) < (maxAge || CACHE_MAX_AGE)) {
+    //         return new Promise((resolve) => {
+    //             resolve(item.data);
+    //         });
+    //     }
+    // }
 
     // not in cache or expired
     return fetch(url, options)
@@ -41,16 +42,17 @@ function cacheFetchJson(url: string, options: RequestInit, maxAge: number | null
  * @param maxAge null (12 hours) or maximum age in second
  */
 function cacheFetchText(url: string, options: RequestInit, maxAge: number | null): Promise<any> {
+    // TODO: disabling this because I added it into too many places and the storage limit was reached
     // in cache and not expired
-    const cached = localStorage.getItem(options.method + ":" + url);
-    if (cached) {
-        const item: CachedItem = JSON.parse(cached);
-        if ((Date.now() - item.time) < (maxAge || CACHE_MAX_AGE)) {
-            return new Promise((resolve) => {
-                resolve(item.data);
-            });
-        }
-    }
+    // const cached = localStorage.getItem(options.method + ":" + url);
+    // if (cached) {
+    //     const item: CachedItem = JSON.parse(cached);
+    //     if ((Date.now() - item.time) < (maxAge || CACHE_MAX_AGE)) {
+    //         return new Promise((resolve) => {
+    //             resolve(item.data);
+    //         });
+    //     }
+    // }
 
     // not in cache or expired
     return fetch(url, options)

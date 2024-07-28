@@ -2,7 +2,7 @@ package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
-import au.org.ala.search.model.queue.FieldguideDownloadRequest;
+import au.org.ala.search.model.queue.FieldguideQueueRequest;
 import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
@@ -100,12 +100,12 @@ public class FieldguideConsumerService extends ConsumerService {
     }
 
     private Map generateTemplate(QueueItem item) throws IOException {
-        FieldguideDownloadRequest request = (FieldguideDownloadRequest) item.downloadRequest;
+        FieldguideQueueRequest request = (FieldguideQueueRequest) item.queueRequest;
         ObjectMapper om = new ObjectMapper();
 
         Map<String, Object> json = new HashMap<>();
         json.put("title", request.title);
-        json.put("sourceUrl", item.downloadRequest.sourceUrl);
+        json.put("sourceUrl", item.queueRequest.sourceUrl);
 
         HashMap<String, List<Map<String, Object>>> families = new HashMap<>();
         for (String id : request.id) {
@@ -208,7 +208,7 @@ public class FieldguideConsumerService extends ConsumerService {
 
         Context context = new Context();
         context.setVariable("fieldguideHeaderPg1", "./images/field-guide-header-pg1.png");
-        context.setVariable("dataLink", item.downloadRequest.sourceUrl);
+        context.setVariable("dataLink", item.queueRequest.sourceUrl);
         context.setVariable("baseUrl", homeUrl);
         context.setVariable("fieldguideBannerOtherPages", "./images/field-guide-banner-other-pages.png");
         context.setVariable("fieldguideSpeciesUrl", bieUiUrl + "/species/");
@@ -246,19 +246,19 @@ public class FieldguideConsumerService extends ConsumerService {
         String content = emailTextSuccess
                 .replace("[url]", downloadUrl)
                 .replace("[date]", new Date().toString())
-                .replace("[query]", item.downloadRequest.sourceUrl != null ? item.downloadRequest.sourceUrl : "");
+                .replace("[query]", item.queueRequest.sourceUrl != null ? item.queueRequest.sourceUrl : "");
 
-        String subject = emailSubjectSuccess.replace("[filename]", item.downloadRequest.filename);
+        String subject = emailSubjectSuccess.replace("[filename]", item.queueRequest.filename);
 
         if (emailEnabled) {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(emailFrom);
-            message.setTo(item.downloadRequest.email);
+            message.setTo(item.queueRequest.email);
             message.setSubject(subject);
             message.setText(content);
             emailSender.send(message);
         } else {
-            logger.debug("to: " + item.downloadRequest.email);
+            logger.debug("to: " + item.queueRequest.email);
             logger.debug("from: " + emailFrom);
             logger.debug("subject:" + subject);
             logger.debug("html:" + content);

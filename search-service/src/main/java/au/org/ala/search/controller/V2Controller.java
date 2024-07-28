@@ -1,5 +1,6 @@
 package au.org.ala.search.controller;
 
+import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.queue.*;
@@ -9,11 +10,6 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
-import co.elastic.clients.elasticsearch._types.aggregations.MultiBucketAggregateBase;
-import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -22,25 +18,19 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregation;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchAggregations;
-import org.springframework.data.elasticsearch.client.elc.NativeQuery;
-import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder;
 import org.springframework.data.elasticsearch.core.*;
-import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.net.URLEncoder;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * bie-index API services, minus some admin services
@@ -64,8 +54,9 @@ public class V2Controller {
     protected final ElasticsearchOperations elasticsearchOperations;
     protected final QueueService queueService;
     protected final DownloadFileStoreService downloadFileStoreService;
+    protected final WebService webService;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -73,6 +64,7 @@ public class V2Controller {
         this.elasticsearchOperations = elasticsearchOperations;
         this.queueService = queueService;
         this.downloadFileStoreService = downloadFileStoreService;
+        this.webService = webService;
     }
 
     @Tag(name = "Search")
@@ -94,7 +86,7 @@ public class V2Controller {
             }
     )
     @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<SearchItemIndex>> species(
+    public ResponseEntity<List<Map>> species(
             // TODO: add to openapi service to get a real example, see OpenapiService
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of guids or scientificNames to search",
@@ -109,16 +101,55 @@ public class V2Controller {
             return ResponseEntity.badRequest().build();
         }
 
-        List<SearchItemIndex> result = new ArrayList<>();
+        // TODO: during the build of the new species page UI it is determined that the following is required
+        // 1. The inclusion of all child COMMON, IDENTIFIER, TAXON (synonyms), TAXONVARIANT are required. Currently
+        //  the fields required are; nameFormatted (or nameString, or identifier), infoSourceName (or nameAuthority), infoSourceURL,
+        //  language, languageURL.
+        // 2. (ready to test) Where COMMON language code lookup for the name and URL is required. Use resource language.json
+        // 3. 3 imageIds are required, for the front page. Modify the imageId update service to do this.
+        // 4. EXPERT_DISTRIBUTIONS are required; data resource uid, data resource name, distribution name.
+        // 5. Next level down TAXON children are required; rank, formatted name, guid.
+        // 6. Add an update process that updates static description.json files to be retrieved when a user clicks on
+        //  the 'description' tab. Expect that this will be a combination of Profiles and Wikipedia content. It should
+        //  be updated on a separate time scale as other updates.
+        // 7. Add an update process that adds a short text description to elasticsearch.
+        // 8. Support a 'status' field for containing native/introduced information as a map of guid, place, status, source.
+        // 9. Access a list of conservation status value mappings. Looking for something like; status -> IUCN Equivalent Status.
+        // 10. Conservation status value mappings also require mapping for the name that appears in the species UI.
+        //  I wonder if this is best done with an i18n style mapping of the speciesListID within the UI.
+        // 11. Include datasets info. Not sure where best this goes. Looking for dr/dp/co/in -> name, licence, records.
+        //  (id, name, count) is easily fetched from biocache-service with a facet query. Licence, not so much. Maybe,
+        //  given usage elsewhere (is there other usage?) it can be a static file updated when collectory is updated?
+        //  or maybe a /v2/search is faster because collectory is slow?
+        // 12. Add ES parameter for the presence of a description file.
+
+        List<Map> result = new ArrayList<>();
         for (String q : qs) {
             String id = elasticService.cleanupId(q);
 
-            SearchItemIndex taxon = elasticService.getTaxon(id, true, true);
+            Map taxon = elasticService.getTaxonMap(id, true, true);
             if (taxon == null) {
-                taxon = elasticService.getTaxonVariantByName(id, true);
+                taxon = elasticService.getTaxonVariantByNameMap(id, true);
             }
             if (taxon == null) {
-                taxon = elasticService.getTaxonByPreviousIdentifier(id, true);
+                taxon = elasticService.getTaxonByPreviousIdentifierMap(id, true);
+            }
+
+            // flatten data. in them map
+            if (taxon != null && taxon.containsKey("data")) {
+                // remove "data." prefix
+                for (Object key : taxon.keySet()) {
+                    if (((String) key).startsWith("data.")) {
+                        taxon.put(((String) key).substring(5), taxon.get(key));
+                        taxon.remove(key);
+                    }
+                }
+
+                // extract items from "data"
+                Map data = (Map) taxon.get("data");
+                for (Object entry : data.entrySet()) {
+                    taxon.put(((Map.Entry) entry).getKey(), ((Map.Entry) entry).getValue());
+                }
             }
 
             result.add(taxon);
@@ -172,7 +203,7 @@ public class V2Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping("/v2/list")
+    @GetMapping("/v2/search")
     public /*List<SearchItemIndex>*/ Object search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",
@@ -220,80 +251,14 @@ public class V2Controller {
                 description = "Comma delimited fields to return",
                 example = "guid,name,idxtype"
         )
-        @Nullable @RequestParam(name = "fl", required = false) String fl) {
-        // TODO: finish, use op parser util
-
-        // species-lists is 1 to n, remain consistent here
-        PageRequest pageRequest = PageRequest.of(page, pageSize);
-
-        NativeQueryBuilder query =
-                NativeQuery.builder().withQuery(wq -> wq.bool(bq -> {
-                            if (!"*".equals(q)) {
-                                bq.must(m -> m.matchPhrase(mq -> mq.field("all").query(q)));
-                            }
-                            bq.mustNot(bqq -> bqq.terms(t -> t.field("idxtype").terms(ts -> ts.value(Arrays.stream(new String [] {"TAXONVARIANT", "IDENTIFIER"}).map(FieldValue::of).collect(Collectors.toList())))));
-                            if (fqs != null) {
-                                for (String fq : fqs) {
-                                    String[] fieldValue = fq.split(":");
-                                    bq.filter(f -> f.term(t -> t.field(fieldValue[0]).value(fieldValue[1])));
-                                }
-                            }
-                            return bq;
-                        }))
-                        .withPageable(pageRequest);
-
-        if (StringUtils.isNotEmpty(fl)) {
-            query.withSourceFilter(new FetchSourceFilter(fl.split(","), null));
+        @Nullable @RequestParam(name = "fl", required = false) String [] fl) {
+        Map<String, Object> result = elasticService.search(q, fqs, page, pageSize, sort, dir, facets, fl);
+        if (result == null) {
+            // Most likely it is a badly formed query
+            return ResponseEntity.badRequest().build();
+        } else {
+            return ResponseEntity.ok(result);
         }
-
-//        NativeQueryBuilder query = NativeQuery.builder()
-//                .withQuery(wq -> wq.bool(bq -> {
-//                    bq.must(q -> formatTerm(q));
-//                    for (String fq : fqs) {
-//                        bq.must(fq);
-//                    }
-//                    return bq;
-//                }));
-
-        if (StringUtils.isNotEmpty(sort)) {
-            query.withSort(s -> s.field(f -> f.field(sort).order("desc".equalsIgnoreCase(dir) ? SortOrder.Desc : SortOrder.Asc)));
-        }
-
-        if (facets != null) {
-            for (String facet : facets.split(",")) {
-                query.withAggregation(facet, AggregationBuilders.terms(ts -> ts.field(facet).size(100)));
-            }
-        }
-
-        SearchHits<SearchItemIndex> result = elasticsearchOperations.search(query.build(), SearchItemIndex.class);
-        List<SearchItemIndex> hits = (List<SearchItemIndex>) SearchHitSupport.unwrapSearchHits(result);
-
-        Map<String, Object> mapResult = new HashMap<>();
-        mapResult.put("list", hits);
-
-        Map<String, Object> facetMap = new HashMap<>();
-        mapResult.put("facets", facetMap);
-        Map<String, ElasticsearchAggregation> aggregations = ((ElasticsearchAggregations) ((SearchHitsImpl) result).getAggregations()).aggregationsAsMap();
-        for (Map.Entry<String, ElasticsearchAggregation> entry : aggregations.entrySet()) {
-            Map<String, Object> facetItemMap = new HashMap<>();
-
-            List<Map<String, Object>> facetItems = new ArrayList<>();
-
-            List<StringTermsBucket> buckets = (List<StringTermsBucket>) ((MultiBucketAggregateBase) entry.getValue().aggregation().getAggregate()._get()).buckets()._get();
-            for (StringTermsBucket bucket : buckets) {
-                Map<String, Object> itemMap = new HashMap<>();
-                itemMap.put("label", bucket.key().stringValue());
-                itemMap.put("count", bucket.docCount());
-                itemMap.put("fq", entry.getKey() + ":\"" + bucket.key().stringValue() + "\"");
-                facetItems.add(itemMap);
-            }
-            facetItemMap.put("list", facetItems);
-            facetMap.put(entry.getKey(), facetItemMap);
-        }
-
-        mapResult.put("totalRecords", result.getTotalHits());
-
-        return mapResult;
     }
 
     @Tag(name = "fields")
@@ -335,7 +300,7 @@ public class V2Controller {
                                     value = "{\"query\":\"Koala\", \"filename\":\"koala-20240101\"}"
                             )))
             @RequestBody
-            SearchDownloadRequest searchDownloadRequest
+            SearchQueueRequest searchDownloadRequest
     ) {
         return addToQueue(searchDownloadRequest);
     }
@@ -361,13 +326,13 @@ public class V2Controller {
                                     value = "{\"id\": [\"urn:lsid:biodiversity.org.au:afd.taxon:1\"], \"filename\":\"fieldguide-20240101\"}"
                             )))
             @RequestBody
-            FieldguideDownloadRequest fieldguideDownloadRequest
+            FieldguideQueueRequest fieldguideDownloadRequest
     ) {
         return addToQueue(fieldguideDownloadRequest);
     }
 
-    private ResponseEntity<Status> addToQueue(DownloadRequest downloadRequest) {
-        Status status = queueService.add(downloadRequest);
+    private ResponseEntity<Status> addToQueue(QueueRequest queueRequest) {
+        Status status = queueService.add(queueRequest);
 
         if (status != null) {
             return ResponseEntity.ok(status);
@@ -433,5 +398,50 @@ public class V2Controller {
         }
 
         return ResponseEntity.ok(new StatusResponse(queueItem.status, baseUrl + "/v2/download"));
+    }
+
+    // TODO: change these ausTraits proxies for another approach
+    @GetMapping("/trait-count")
+    public ResponseEntity<?> austraitsCount(
+            @RequestParam(name = "taxon", required = true) String taxon,
+            @RequestParam(name = "APNI_ID", required = false) String id
+    ) throws UnsupportedEncodingException {
+        // temporary proxy
+        Map resp = webService.get("http://traitdata.austraits.cloud.edu.au" + "/trait-count?taxon=" + URLEncoder.encode(taxon, "UTF-8") + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.APPLICATION_JSON, false, false, null);
+        if (((Integer) resp.get("statusCode")) != 200) {
+            return ResponseEntity.status((Integer) resp.get("statusCode")).body(resp.get("resp"));
+        }
+        return ResponseEntity.ok(resp.get("resp"));
+    }
+
+    // TODO: change these ausTraits proxies for another approach
+    @GetMapping("/trait-summary")
+    public ResponseEntity<?> austraitsSummary(
+            @RequestParam(name = "taxon", required = true) String taxon,
+            @RequestParam(name = "APNI_ID", required = false) String id
+    ) throws UnsupportedEncodingException {
+        // temporary proxy
+        Map resp = webService.get("http://traitdata.austraits.cloud.edu.au" + "/trait-summary?taxon=" + URLEncoder.encode(taxon, "UTF-8") + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.APPLICATION_JSON, false, false, null);
+        if (((Integer) resp.get("statusCode")) != 200) {
+            return ResponseEntity.status((Integer) resp.get("statusCode")).body(resp.get("resp"));
+        }
+        return ResponseEntity.ok(resp.get("resp"));
+    }
+
+    // TODO: change these ausTraits proxies for another approach
+    @GetMapping(path = "/download-taxon-data", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<?> austraitsDownload(
+            @RequestParam(name = "taxon", required = true) String taxon,
+            @RequestParam(name = "APNI_ID", required = false) String id
+    ) throws UnsupportedEncodingException {
+        // temporary proxy
+        Map resp = webService.get("http://traitdata.austraits.cloud.edu.au" + "/download-taxon-data?taxon=" + URLEncoder.encode(taxon, "UTF-8") + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.TEXT_PLAIN, false, false, null);
+        if (((Integer) resp.get("statusCode")) != 200) {
+            return ResponseEntity.status((Integer) resp.get("statusCode")).body(resp.get("resp"));
+        }
+        return ResponseEntity.ok()
+                .header("content-type", "text/csv")
+                .header("content-disposition", "attachment;filename=" + taxon.replace(" ", "_") + ".csv")
+                .body(resp.get("resp"));
     }
 }

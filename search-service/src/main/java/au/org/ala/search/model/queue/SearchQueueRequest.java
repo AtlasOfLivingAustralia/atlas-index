@@ -7,7 +7,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SearchDownloadRequest extends DownloadRequest {
+public class SearchQueueRequest extends QueueRequest {
     public String[] q;
     public String[] fields;
 }

@@ -53,6 +53,8 @@ public class SearchItemIndex {
     public String status;
     public String nameID;
     public String language;
+    public String languageName;
+    public String languageUri;
     public String source;
     public String temporal;
     public String locationID;

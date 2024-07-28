@@ -6,10 +6,13 @@ import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.common.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class AreaImportService {
@@ -69,6 +73,9 @@ public class AreaImportService {
             elasticService.queryDelete("layerId", layerId);
         }
 
+        loadDistributions();
+
+        // TODO: log layer deletion/addition count. log distribution deletion/addition count.
         logService.log(taskType, "Finished");
         return CompletableFuture.completedFuture(true);
     }
@@ -187,5 +194,163 @@ public class AreaImportService {
         }
 
         return fields;
+    }
+
+    private void loadDistributions() {
+        List<IndexQuery> buffer = new ArrayList<>();
+
+        Map<String, String[]> existingItems = elasticService.queryItems("idxtype", IndexDocType.DISTRIBUTION.name(), "id", new String[]{"id", "datasetID", "guid", "datasetName"}, -1);
+
+        // get dataResourceID -> dataResourceName mapping
+        Map<String, String> datasets = new HashMap<>();
+        Map<String, String[]> currentDatasets = elasticService.queryItems("idxtype", IndexDocType.DATARESOURCE.name(), "id", new String[]{"id", "name"}, -1);
+        if (currentDatasets != null && !currentDatasets.isEmpty()) {
+            for (Map.Entry<String, String[]> entry : currentDatasets.entrySet()) {
+                datasets.put(entry.getValue()[0], entry.getValue()[1]);
+            }
+        }
+
+        int counter = 0;
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // TODO: This is not API Gateway friendly. The response can be too large. Need to paginate, or something.
+            //  Ideally there would be a lastModifiedDate available also.
+            List currentDistributions = objectMapper.readValue(URI.create(spatialUrl + "/distributions").toURL(), List.class);
+
+            Set<String> updatedLsids = new HashSet<>();
+
+            for (Object distribution : currentDistributions) {
+                // distributions are designed with SPCODE as the unique identifier. This is no longer suitable.
+                Object o = ((Map<String, Object>) distribution).get("spcode");
+                String spcode = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("area_name");
+                String areaName = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("data_resource_uid");
+                String drUid = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("geom_idx");
+                String geomIdx = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("area_km");
+                String areaKm = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("lsid");
+                String lsid = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("imageUrl");
+                String imageUrl = o != null ? o.toString() : null;
+
+                Double areaKmDbl = null;
+                try {
+                    areaKmDbl = Double.parseDouble(areaKm);
+                } catch (Exception ignored) {}
+
+                Map<String, String> data = new HashMap<>();
+                data.put("geomIdx", geomIdx);
+
+                // When the item exists and the data resource name is the same, do not update the item.
+                if (existingItems.containsKey("dist-" + spcode)) { // 'id' of DISTRIBUTION is 'dist-{spcode}'
+                    String[] existing = existingItems.remove("dist-" + spcode);;
+                    if (existing[3] != null && existing[3].equals(datasets.get(drUid))) { // [3] is datasetName
+                        continue;
+                    }
+                }
+
+                SearchItemIndex searchItemIndex =
+                        SearchItemIndex.builder()
+                                .id("dist-" + spcode) // 'id' of DISTRIBUTION is 'dist-{spcode}'
+                                .guid(lsid)
+                                .idxtype(IndexDocType.DISTRIBUTION.name())
+                                .name(areaName)
+                                .modified(new Date())
+                                .datasetID(drUid)
+                                .areaKm(areaKmDbl)
+                                .image(imageUrl)
+                                .data(data)
+                                .build();
+
+                buffer.add(elasticService.buildIndexQuery(searchItemIndex));
+                updatedLsids.add(lsid);
+
+                if (buffer.size() > 1000) {
+                    counter += elasticService.flushImmediately(buffer);
+
+                    logService.log(taskType, "distributions import progress: " + counter);
+                }
+            }
+
+            counter += elasticService.flushImmediately(buffer);
+            long deleted = elasticService.removeDeletedItems(existingItems.keySet().stream().toList());
+
+            // get all distributions for updated lsids
+            Map<String, List<Map<String, String>>> distributions = new HashMap<>();
+            for (Object distribution : currentDistributions) {
+                Object o = ((Map<String, Object>) distribution).get("area_name");
+                String areaName = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("data_resource_uid");
+                String drUid = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("geom_idx");
+                String geomIdx = o != null ? o.toString() : null;
+
+                o = ((Map<String, Object>) distribution).get("lsid");
+                String lsid = o != null ? o.toString() : null;
+
+                String datasetName = datasets.get(drUid);
+                if (StringUtils.isEmpty(datasetName)) {
+                    datasetName = drUid;
+                }
+
+                if (StringUtils.isNotEmpty(lsid) && updatedLsids.contains(lsid) &&
+                        areaName != null && drUid != null && geomIdx != null && datasetName != null) {
+                    List<Map<String, String>> current = distributions.get(lsid);
+
+                    if (current == null) {
+                        current = new ArrayList<>();
+                        current.add(Map.of("areaName", areaName, "dataResourceUid", drUid, "geomIdx", geomIdx, "dataResourceName", datasetName));
+                        distributions.put(lsid, current);
+                    } else {
+                        current.add(Map.of("areaName", areaName, "dataResourceUid", drUid, "geomIdx", geomIdx, "dataResourceName", datasetName));
+                    }
+                }
+            }
+
+            // update TAXON documents
+            List<UpdateQuery> updateBuffer = new ArrayList<>();
+            for (Map.Entry<String, List<Map<String, String>>> entry : distributions.entrySet()) {
+                // get document id so we can update the document
+                String id = elasticService.queryTaxonId(entry.getKey());
+                if (id != null) {
+                    Document doc = Document.create();
+                    doc.put("data.distributions", new ObjectMapper().writeValueAsString(entry.getValue()));
+                    updateBuffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                }
+            }
+
+            // removed existing distributions from TAXON documents that were not updated (because they are removed)
+            for (Map.Entry<String, String[]> entry : existingItems.entrySet()) {
+                String guid = entry.getValue()[2]; // [2] is guid
+                if (updatedLsids.contains(guid)) {
+                    String id = elasticService.queryTaxonId(guid);
+                    if (id != null) {
+                        Document doc = Document.create();
+                        doc.put("data.distributions", null);
+                        updateBuffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                    }
+                }
+            }
+
+            elasticService.update(updateBuffer);
+
+            logService.log(taskType, "Finished distributions updates: " + counter + ", deleted: " + deleted);
+
+        } catch (Exception e) {
+            logService.log(taskType, "failed to get distributions " + spatialUrl + "/distributions");
+            logger.error("failed to get distributions " + spatialUrl + "/distributions");
+        }
     }
 }

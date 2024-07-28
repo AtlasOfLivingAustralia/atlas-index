@@ -43,10 +43,12 @@ public class QueryParserUtil {
             }
         }
 
-        for (String fq : fqs) {
-            if (StringUtils.isNotEmpty(fq)) {
-                if (!addToOp(parentOp, fq, validField)) {
-                    return null;
+        if (fqs != null) {
+            for (String fq : fqs) {
+                if (StringUtils.isNotEmpty(fq)) {
+                    if (!addToOp(parentOp, fq, validField)) {
+                        return null;
+                    }
                 }
             }
         }

@@ -22,6 +22,7 @@ import "@fontsource/roboto";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import Occurrence from "./views/Occurrence.tsx";
+import Species from "./views/Species.tsx";
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -62,7 +63,6 @@ export default function App() {
         window.addEventListener('popstate', handlePopState);
 
         const handleHashChange = (event: any) => {
-            console.log(event)
             let search = window.location.search + window.location.hash || ''
             let pos = search.indexOf('?');
             if (search.length > pos) {
@@ -233,7 +233,7 @@ export default function App() {
                     </div>
                 </section>
 
-                <div className="mt-1"/>
+                {/*<div className="mt-1"/>*/}
 
                 <Routes>
                     <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
@@ -260,6 +260,9 @@ export default function App() {
                                                     queryString={queryString} setQueryString={setQueryString}/>}/>
                     <Route path="/occurrence"
                            element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                queryString={queryString}/>}/>
+                    <Route path="/species"
+                           element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                                                 queryString={queryString}/>}/>
                 </Routes>
 

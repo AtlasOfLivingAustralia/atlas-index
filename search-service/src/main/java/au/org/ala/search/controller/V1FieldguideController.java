@@ -128,7 +128,7 @@ public class V1FieldguideController {
         if (validateEmail == null) {
             return ResponseEntity.badRequest().build();
         } else {
-            Status status = queueService.add(FieldguideDownloadRequest
+            Status status = queueService.add(FieldguideQueueRequest
                     .builder()
                     .taskType(TaskType.FIELDGUIDE)
                     .email(validEmail)
@@ -261,7 +261,7 @@ public class V1FieldguideController {
                         InputStreamResource inputStreamResource = new InputStreamResource(new FileInputStream(file));
 
                         return ResponseEntity.ok()
-                                .header("content-disposition", "attachment; filename=" + queueItem.downloadRequest.filename)
+                                .header("content-disposition", "attachment; filename=" + queueItem.queueRequest.filename)
                                 .contentLength(file.length())
                                 .contentType(MediaType.APPLICATION_PDF)
                                 .body(inputStreamResource);

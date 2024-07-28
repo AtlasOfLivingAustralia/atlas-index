@@ -1,8 +1,8 @@
 package au.org.ala.search.service.remote;
 
-import au.org.ala.search.model.queue.FieldguideDownloadRequest;
+import au.org.ala.search.model.queue.FieldguideQueueRequest;
 import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.SearchDownloadRequest;
+import au.org.ala.search.model.queue.SearchQueueRequest;
 import jakarta.annotation.PostConstruct;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -90,9 +90,9 @@ public class DownloadFileStoreService {
     }
 
     private String itemFileName(QueueItem queueItem) {
-        if (queueItem.downloadRequest instanceof SearchDownloadRequest) {
+        if (queueItem.queueRequest instanceof SearchQueueRequest) {
             return "search/" + queueItem.id + ".zip";
-        } else if (queueItem.downloadRequest instanceof FieldguideDownloadRequest) {
+        } else if (queueItem.queueRequest instanceof FieldguideQueueRequest) {
             return "fieldguide/" + queueItem.id + ".pdf";
         }
         return queueItem.id;

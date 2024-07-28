@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Getter
 @Setter
-public class DownloadRequest {
+public class QueueRequest {
     public String filename;
     public String sourceUrl;
     public String description;

@@ -37,14 +37,14 @@ public class QueueService {
         // TODO: add items to queue that might be here because of a restart interruption
     }
 
-    public Status add(DownloadRequest downloadRequest) {
-        String requestType = downloadRequest.taskType.name();
+    public Status add(QueueRequest queueRequest) {
+        String requestType = queueRequest.taskType.name();
         logger.info("Adding download request to queue: " + requestType);
 
         // fix filenames
-        fixFilenames(downloadRequest);
+        fixFilenames(queueRequest);
 
-        String error = getError(downloadRequest);
+        String error = getError(queueRequest);
         if (error != null) {
             return Status.builder().statusCode(StatusCode.ERROR).message(error).build();
         }
@@ -54,7 +54,7 @@ public class QueueService {
         // persist the request in a db
         QueueItem queueItem = queueMongoRepository.save(QueueItem.builder()
                 .createdDate(now)
-                .downloadRequest(downloadRequest)
+                .queueRequest(queueRequest)
                 .status(Status.builder().statusCode(StatusCode.QUEUED).build()).build());
 
         // add the request to the queue
@@ -70,12 +70,12 @@ public class QueueService {
         return queueItem.getStatus();
     }
 
-    private void fixFilenames(DownloadRequest downloadRequest) {
-        if (downloadRequest instanceof SearchDownloadRequest searchDownloadRequest) {
+    private void fixFilenames(QueueRequest queueRequest) {
+        if (queueRequest instanceof SearchQueueRequest searchDownloadRequest) {
             if (!searchDownloadRequest.filename.toLowerCase().endsWith(".csv")) {
                 searchDownloadRequest.filename += ".csv";
             }
-        } else if (downloadRequest instanceof FieldguideDownloadRequest fieldguideDownloadRequest) {
+        } else if (queueRequest instanceof FieldguideQueueRequest fieldguideDownloadRequest) {
             if (!fieldguideDownloadRequest.filename.toLowerCase().endsWith(".pdf")) {
                 fieldguideDownloadRequest.filename += ".pdf";
             }
@@ -106,12 +106,17 @@ public class QueueService {
         return queueMongoRepository.findById(id).orElse(null);
     }
 
-    private String getError(DownloadRequest downloadRequest) {
-        if (StringUtils.isEmpty(downloadRequest.filename)) {
+    private String getError(QueueRequest queueRequest) {
+        if (queueRequest instanceof SandboxQueueRequest sandboxQueueRequest) {
+            // TODO: validation
+            return null;
+        }
+
+        if (StringUtils.isEmpty(queueRequest.filename)) {
             return "no filename";
         }
 
-        if (downloadRequest instanceof SearchDownloadRequest searchDownloadRequest) {
+        if (queueRequest instanceof SearchQueueRequest searchDownloadRequest) {
             for (String q : searchDownloadRequest.q) {
                 if (StringUtils.isNotEmpty(q) && !QueryParserUtil.isValid(q, elasticService::isValidField)) {
                     return "invalid query";
@@ -119,7 +124,7 @@ public class QueueService {
             }
 
             return null;
-        } else if(downloadRequest instanceof FieldguideDownloadRequest fieldguideDownloadRequest) {
+        } else if(queueRequest instanceof FieldguideQueueRequest fieldguideDownloadRequest) {
             if (StringUtils.isEmpty(fieldguideDownloadRequest.title)) {
                 return "no title";
             }
