@@ -8,10 +8,13 @@ Uses:
 - React
 - TypeScript (for the most part)
 - Bootstrap 5
+- Node version v18.12.1 
+- Yarn version v1.22.10 (brew install yarn)
 
 ## Getting started
 
 ```bash
+yarn install
 yarn run dev
 ```
 

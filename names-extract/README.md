@@ -22,6 +22,13 @@ Build
 mvn package
 ```
 
+Required files, copy from github
+
+```
+wget -O "/data/ala-namematching-service/groups.json" "https://raw.githubusercontent.com/AtlasOfLivingAustralia/ala-install/master/ansible/roles/namematching-service/files/groups.json"
+wget -O "/data/ala-namematching-service/subgroups.json" "https://raw.githubusercontent.com/AtlasOfLivingAustralia/ala-install/master/ansible/roles/namematching-service/files/subgroups.json"
+```
+
 Run
 ```shell
 java -Dlucene.dir=/data/lucene/namematching-20230725-5/ -jar target/names-extract-0.0.1-SNAPSHOT-jar-with-dependencies.jar server
@@ -31,6 +38,12 @@ Produces
 ```shell
 ./lsid-left-right.csv
 ./lsid-vernacularName.csv
+```
+
+Copy the outputs to the appropriate locations
+```
+dwca.extract.leftRightCsvPath=/data/search-service/lsid-left-right.csv
+dwca.extract.commonNamePath=/data/search-service/lsid-vernacularName.csv
 ```
 
 # Outputs

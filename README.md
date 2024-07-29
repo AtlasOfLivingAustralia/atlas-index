@@ -4,7 +4,10 @@ System for searching ALA non-occurrence data. Replaces bie-index.
 
 It is a work in progress and is not yet ready for production use.
 
-TODO: move compatible [ala-security-project branch](https://github.com/AtlasOfLivingAustralia/ala-security-project/tree/epic/java21/develop) of SNAPSHOT 
+TODO: move compatible [ala-security-project branch](https://github.com/AtlasOfLivingAustralia/ala-security-project/tree/epic/java21/develop) of SNAPSHOT
+
+## Requirements
+- JDK 21
 
 ## Approach
 

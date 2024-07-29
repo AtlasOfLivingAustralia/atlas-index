@@ -138,8 +138,9 @@ public class V2Controller {
             // flatten data. in them map
             if (taxon != null && taxon.containsKey("data")) {
                 // remove "data." prefix
-                for (Object key : taxon.keySet()) {
-                    if (((String) key).startsWith("data.")) {
+                List<String> keys = new ArrayList<>(taxon.keySet());
+                for (Object key : keys) {
+                    if (key != null && ((String) key).startsWith("data.")) {
                         taxon.put(((String) key).substring(5), taxon.get(key));
                         taxon.remove(key);
                     }

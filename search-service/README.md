@@ -197,6 +197,9 @@ elastic.adminIndex=search-log-20240401
     lists.conservation.statusField=status
     ```
 
+### configure local directories
+
+
 ### Start import or update
 
 1. Start application
