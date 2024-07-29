@@ -36,21 +36,21 @@ import static org.apache.tomcat.util.buf.EncodedSolidusHandling.DECODE;
 @SpringBootApplication
 @EnableAsync
 @EnableCaching
-public class ListsApiApplication {
+public class ApiApplication {
 
-    private static final Logger logger = LoggerFactory.getLogger(ListsApiApplication.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApiApplication.class);
     private final AllService allService;
     @Value("${task.schedule}")
     private String taskSchedule;
     @Value("${standalone}")
     private Boolean standalone;
 
-    public ListsApiApplication(AllService allService) {
+    public ApiApplication(AllService allService) {
         this.allService = allService;
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(ListsApiApplication.class, args);
+        SpringApplication.run(ApiApplication.class, args);
     }
 
     @Bean
