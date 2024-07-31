@@ -34,7 +34,9 @@ class GetProfileRunnable implements Runnable {
 
                 long startTime = System.nanoTime();
                 String uuid = (String) map.get("uuid");
-                String response = FetchData.alaGet(FetchData.profilesUrl + "/api/opus/" + id + "/profile/" + uuid + "?includeImages=false");
+
+                // additional parameters make it faster
+                String response = FetchData.alaGet(FetchData.profilesUrl + "/api/opus/" + id + "/profile/" + uuid + "?includeImages=false&onlyContent=true&fullClassification=false");
                 Map profile = (Map) new ObjectMapper().readValue(response, Map.class);
 
                 Map<String, String> doc = properties.get(guid);
@@ -47,7 +49,7 @@ class GetProfileRunnable implements Runnable {
                     }
                 }
 
-                doc.put("url", profile.get("profileURL").toString());
+                doc.put("url", FetchData.profilesUrl + "/opus/" + id + "/profile/" + uuid);
 
                 for (Map attribute : (List<Map>) profile.get("attributes")) {
                     for (int i = 0; i < fields.size(); i++) {
@@ -63,6 +65,7 @@ class GetProfileRunnable implements Runnable {
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 }
