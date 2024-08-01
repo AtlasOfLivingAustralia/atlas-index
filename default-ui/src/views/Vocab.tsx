@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-import {Accordion} from "react-bootstrap";
+// import {Accordion} from "react-bootstrap";
 import React from "react";
 
 function Vocabulary({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {

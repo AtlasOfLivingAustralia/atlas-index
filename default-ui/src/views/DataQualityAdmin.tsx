@@ -1,7 +1,7 @@
 import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useRef, useState} from "react";
 import {Breadcrumb, ListsUser, QualityProfile} from "../api/sources/model.ts";
-import {Tab, Tabs} from "react-bootstrap";
+// import {Tab, Tabs} from "react-bootstrap";
 import QualityProfileItem from "../components/dq/qualityProfileItem.tsx";
 
 function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {

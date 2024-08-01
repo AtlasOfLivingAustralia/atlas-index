@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-import {Tab, Tabs} from "react-bootstrap";
+// import {Tab, Tabs} from "react-bootstrap";
 import MapView from "../components/species/mapView.tsx";
 import ClassificationView from "../components/species/classificationView.tsx";
 import DescriptionView from "../components/species/descriptionView.tsx";

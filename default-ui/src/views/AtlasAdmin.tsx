@@ -1,7 +1,7 @@
 import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useState} from "react";
 import {AtlasLog, Breadcrumb, ListsUser, TaskType} from "../api/sources/model.ts";
-import {Tab, Tabs} from "react-bootstrap";
+// import {Tab, Tabs} from "react-bootstrap";
 
 function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 

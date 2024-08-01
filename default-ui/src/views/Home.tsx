@@ -467,23 +467,25 @@ function Home({setBreadcrumbs, login, logout}: {
                             </td>
                         </tr>
                         <tr>
-                            <input type="file" name="file" onChange={changeHandler}/>
-                            {isFilePicked ? (
+                            <td>
+                                <input type="file" name="file" onChange={changeHandler}/>
+                                {isFilePicked ? (
+                                    <div>
+                                        <p>Filename: {selectedFile.name}</p>
+                                        <p>Filetype: {selectedFile.type}</p>
+                                        <p>Size in bytes: {selectedFile.size}</p>
+                                        <p>
+                                            lastModifiedDate:{' '}
+                                            {selectedFile.lastModifiedDate.toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p>Select a file to show details</p>
+                                )}
                                 <div>
-                                    <p>Filename: {selectedFile.name}</p>
-                                    <p>Filetype: {selectedFile.type}</p>
-                                    <p>Size in bytes: {selectedFile.size}</p>
-                                    <p>
-                                        lastModifiedDate:{' '}
-                                        {selectedFile.lastModifiedDate.toLocaleDateString()}
-                                    </p>
+                                    <button onClick={handleSubmission}>Submit</button>
                                 </div>
-                            ) : (
-                                <p>Select a file to show details</p>
-                            )}
-                            <div>
-                                <button onClick={handleSubmission}>Submit</button>
-                            </div>
+                            </td>
                         </tr>
                         <tr>
                             <td>

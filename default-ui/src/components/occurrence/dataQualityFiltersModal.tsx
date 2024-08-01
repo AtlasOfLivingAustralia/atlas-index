@@ -1,4 +1,4 @@
-import Modal from "react-bootstrap/esm/Modal";
+// import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
 import {DataQualityInfo, QualityFilter} from "../../api/sources/model.ts";
 

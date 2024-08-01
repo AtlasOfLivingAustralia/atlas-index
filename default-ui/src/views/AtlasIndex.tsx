@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
-import {Modal, Tab, Tabs} from "react-bootstrap";
+// import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
+// import {Modal, Tab, Tabs} from "react-bootstrap";
 
 function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 

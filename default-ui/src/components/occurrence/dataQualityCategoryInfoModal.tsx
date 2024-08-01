@@ -1,4 +1,4 @@
-import Modal from "react-bootstrap/esm/Modal";
+// import Modal from "react-bootstrap/esm/Modal";
 import {DataQualityInfo, IndexFields, QualityCategory} from "../../api/sources/model.ts";
 import {useEffect, useState} from "react";
 import {cacheFetchJson} from "../../helpers/CacheFetch.tsx";

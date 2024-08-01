@@ -1,7 +1,7 @@
 import {useCallback, useContext, useEffect, useState} from "react";
 import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
 import SwaggerUI from "swagger-ui-react"
-import "swagger-ui-react/swagger-ui.css"
+// import "swagger-ui-react/swagger-ui.css?inline"
 import Markdown from "markdown-to-jsx";
 import UserContext from "../helpers/UserContext.ts";
 import {cacheFetchText} from "../helpers/CacheFetch.tsx";

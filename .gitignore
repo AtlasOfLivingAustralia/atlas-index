@@ -32,9 +32,13 @@ build/
 
 ### VS Code ###
 .vscode/
+.history/
+.yalc/
 /lists-ui/src/.env.json
 /.mvn/wrapper/maven-wrapper.jar
 /.mvn/wrapper/maven-wrapper.properties
 /mvnw
 /mvnw.cmd
 /nginx.conf
+*.lock
+*.csv

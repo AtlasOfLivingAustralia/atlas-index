@@ -1,4 +1,4 @@
-import Modal from "react-bootstrap/esm/Modal";
+// import Modal from "react-bootstrap/esm/Modal";
 import {useContext, useEffect, useState} from "react";
 import {DataQualityInfo, ListsUser} from "../../api/sources/model.ts";
 import UserContext from "../../helpers/UserContext.ts";

@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {DataQualityInfo} from "../../api/sources/model.ts";
-import {Modal} from "react-bootstrap";
+// import {Modal} from "react-bootstrap";
 
 
 interface RecordImagesProps {

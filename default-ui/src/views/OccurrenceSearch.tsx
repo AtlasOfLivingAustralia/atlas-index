@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {AdvancedSearch, Breadcrumb} from "../api/sources/model.ts";
-import {Tab, Tabs} from "react-bootstrap";
-import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
+// import {Tab, Tabs} from "react-bootstrap";
+// import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 import '../css/search.css';
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {

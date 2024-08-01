@@ -7,6 +7,9 @@ import messages_en from "./translations/en.json";
 import {IntlProvider} from "react-intl";
 import {AuthProvider} from "react-oidc-context";
 import {WebStorageStateStore} from "oidc-client-ts";
+import { MantineProvider } from '@mantine/core';
+import { theme } from 'ala-mantine';
+import '@mantine/core/styles.css';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -38,7 +41,9 @@ root.render(
                 <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
                 }}>
                     {/*<Notifications position="top-center" />*/}
-                    <App/>
+                    <MantineProvider theme={theme}>
+                        <App/>
+                    </MantineProvider>
                 </IntlProvider>
             </AuthProvider>
         </Router>

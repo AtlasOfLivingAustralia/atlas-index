@@ -6,7 +6,7 @@ import ResultsReturned from "../components/occurrence/resultsReturned.tsx";
 import RecordImages from "../components/occurrence/recordImages.tsx";
 import FacetWell from "../components/occurrence/facetWell.tsx";
 import {Link} from "react-router-dom";
-import {Tab, Tabs} from "react-bootstrap";
+// import {Tab, Tabs} from "react-bootstrap";
 import Charts from "../components/occurrence/charts.tsx";
 import ApiModal from "../components/occurrence/apiModal.tsx";
 import CustomizeFilterModal from "../components/occurrence/customizeFilterModal.tsx";

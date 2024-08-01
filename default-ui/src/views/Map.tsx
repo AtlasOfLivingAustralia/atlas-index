@@ -11,7 +11,7 @@
 // function MapView({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 import {MapContainer, TileLayer} from "react-leaflet";
 import {LatLng} from "leaflet";
-import {Tab, Tabs} from "react-bootstrap";
+// import {Tab, Tabs} from "react-bootstrap";
 import {useState} from "react";
 
 function MapView() {

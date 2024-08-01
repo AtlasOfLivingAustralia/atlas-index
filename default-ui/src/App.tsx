@@ -3,7 +3,7 @@ import {Breadcrumb, ListsUser} from "./api/sources/model";
 import React, {useEffect, useState} from "react";
 import UserContext from "./helpers/UserContext.ts";
 import {useAuth} from "react-oidc-context";
-import 'bootstrap/dist/css/bootstrap.css';
+// import 'bootstrap/dist/css/bootstrap.css';
 import Home from "./views/Home.tsx"
 import Dashboard from "./views/Dashboard.tsx"
 import AtlasAdmin from "./views/AtlasAdmin.tsx"
@@ -23,6 +23,10 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import Occurrence from "./views/Occurrence.tsx";
 import Species from "./views/Species.tsx";
+import { Header } from "ala-mantine";
+import { Box, Center } from "@mantine/core";
+import ColorSchemeToggle  from './components/ColorSchemeToggle/ColorSchemeToggle.tsx';
+
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -171,102 +175,61 @@ export default function App() {
                 {/*    </Group>*/}
                 {/*</Modal>*/}
             </main>
-            <main>
-                <header className="bg-black" style={{paddingBottom: "26px", paddingTop: "15px"}}>
-                    <div className="container-fluid">
-                        <div className="d-flex gap-3">
-                            <div className="">
-                                <a href="/" className="">
-                                    <img className="logoImage" src={import.meta.env.VITE_LOGO_URL} alt="ALA logo"
-                                         width={'335px'} style={{marginTop: '10px', marginLeft: '14px'}}/>
-                                </a>
-                            </div>
-
-                            {/*<form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">*/}
-                            {/*    <input type="search" className="form-control form-control-dark" placeholder="Search..."*/}
-                            {/*           aria-label="Search"/>*/}
-                            {/*</form>*/}
-                            <div className="d-flex ms-auto align-items-center">
-                                <ul className="nav">
-                                    <li>
-                                        <a href="https://www.ala.org.au/contact-us/" target="_blank"
-                                           className="nav-link text-white">Contact us</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div className="vr d-flex text-white"></div>
-                            <div className="d-flex align-items-center">
-                                {currentUser ? (
-                                    <>
-                                        <button type="button" onClick={myProfile}
-                                                className="btn text-white border-white text-end">
-                                            Profile
-                                            - {currentUser?.user()?.profile?.name || (currentUser?.user()?.profile?.given_name + ' ' + currentUser?.user()?.profile?.family_name)} {currentUser?.isAdmin() ? '(ADMIN)' : ''}
-                                        </button>
-                                        <button type="button" onClick={logout}
-                                                className="btn text-white border-white text-end">Logout
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button type="button" onClick={() => login()}
-                                                className="btn text-white border-white text-end">Login
-                                        </button>
-                                    </>
-                                )}
+            
+            <Header>
+                <Center h="100%">
+                    <ColorSchemeToggle />
+                </Center>
+            </Header>
+            <Box >
+                <main>
+                    <div className="mt-0"/>
+                    <section id="breadcrumb">
+                        <div className="container-fluid">
+                            <div className="row">
+                                <nav aria-label="Breadcrumb" role="navigation">
+                                    <ol className="breadcrumb-list breadcrumb">
+                                        {breadcrumbItems}
+                                    </ol>
+                                </nav>
                             </div>
                         </div>
-                    </div>
-                </header>
+                    </section>
 
-                <div className="mt-0"/>
+                    {/*<div className="mt-1"/>*/}
 
-                <section id="breadcrumb">
-                    <div className="container-fluid">
-                        <div className="row">
-                            <nav aria-label="Breadcrumb" role="navigation">
-                                <ol className="breadcrumb-list breadcrumb">
-                                    {breadcrumbItems}
-                                </ol>
-                            </nav>
-                        </div>
-                    </div>
-                </section>
-
-                {/*<div className="mt-1"/>*/}
-
-                <Routes>
-                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                   login={() => login()} logout={() => logout()}/>}/>
-                    <Route path="/dashboard"
-                           element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-admin"
-                           element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/data-quality-admin" element={<DataQualityAdmin
-                        setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/vocab"
-                           element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-index"
-                           element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/api"
-                           element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/map"
-                           element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/occurrence-search"
-                           element={<OccurrenceSearch
-                               setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/occurrence-list"
-                           element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                    queryString={queryString} setQueryString={setQueryString}/>}/>
-                    <Route path="/occurrence"
-                           element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                queryString={queryString}/>}/>
-                    <Route path="/species"
-                           element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                queryString={queryString}/>}/>
-                </Routes>
-
-            </main>
+                    <Routes>
+                        <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                    login={() => login()} logout={() => logout()}/>}/>
+                        <Route path="/dashboard"
+                            element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/atlas-admin"
+                            element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/data-quality-admin" element={<DataQualityAdmin
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/vocab"
+                            element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/atlas-index"
+                            element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/api"
+                            element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/map"
+                            element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/occurrence-search"
+                            element={<OccurrenceSearch
+                                setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/occurrence-list"
+                            element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                        queryString={queryString} setQueryString={setQueryString}/>}/>
+                        <Route path="/occurrence"
+                            element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                    queryString={queryString}/>}/>
+                        <Route path="/species"
+                            element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                    queryString={queryString}/>}/>
+                    </Routes>
+                </main>
+            </Box>
         </UserContext.Provider>
     );
 }
