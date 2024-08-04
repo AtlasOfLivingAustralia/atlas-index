@@ -21,6 +21,7 @@ TODO: cleanup Docker files (tidy commented out sections, document local paths)
     - [Dashboard integration](dashboard.md)
     - [Fieldguide integration](fieldguide.md)
     - [Data Quality Service integration](dataquality.md)
+    - [Sandbox integration](sandbox.md)
 
 ## Getting started
 

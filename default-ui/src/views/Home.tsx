@@ -17,6 +17,10 @@ function Home({setBreadcrumbs, login, logout}: {
     const [selectedFile, setSelectedFile] = useState();
     const [isFilePicked, setIsFilePicked] = useState(false);
 
+    const [sandboxResponse, setSandboxResponse] = useState({});
+    const [sandboxUploadResponse, setSandboxUploadResponse] = useState({});
+    const [sandboxDatasetName, setSandboxDatasetName] = useState('my sandbox upload');
+
     const alreadyLoaded: string[] = [];
 
     function getUserProperties() {
@@ -131,6 +135,7 @@ function Home({setBreadcrumbs, login, logout}: {
         const formData = new FormData();
 
         formData.append('file', selectedFile);
+        formData.append('datasetName', sandboxDatasetName);
 
         fetch(
             import.meta.env.VITE_APP_BIE_URL + '/v1/sandbox/upload',
@@ -145,6 +150,7 @@ function Home({setBreadcrumbs, login, logout}: {
             .then((response) => response.json())
             .then((result) => {
                 console.log('Success:', result);
+                setSandboxUploadResponse(result)
 
                 // do ingress
                 fetch(
@@ -161,9 +167,14 @@ function Home({setBreadcrumbs, login, logout}: {
                     .then((response) => response.json())
                     .then((result) => {
                         console.log('SuccessIngress:', result);
+                        setSandboxResponse(result)
+                        setTimeout(function () {
+                            sandboxStatus(result.id)
+                        }, 1000);
                     })
                     .catch((error) => {
                         console.error('ErrorIngress:', error);
+                        setSandboxResponse({"error": error})
                     });
 
             })
@@ -171,6 +182,37 @@ function Home({setBreadcrumbs, login, logout}: {
                 console.error('Error:', error);
             });
     };
+
+    function sandboxStatus(id) {
+        console.log("sandboxStatus")
+        // do ingress
+        fetch(
+            import.meta.env.VITE_APP_BIE_URL + '/v1/sandbox/ingress?id=' + id,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
+            .then((response) => response.json())
+            .then((result) => {
+                console.log('SuccessIngressStatus:', result);
+                setSandboxResponse(result)
+
+                if (result.statusCode === "QUEUED" || result.statusCode === "RUNNING") {
+                    setTimeout(function () {
+                        sandboxStatus(result.id)
+                    }, 1000);
+                    return;
+                }
+            })
+            .catch((error) => {
+                console.error('ErrorIngressStatus:', error);
+                setSandboxResponse({"error-status": error})
+            });
+    }
 
     return (
         <>
@@ -479,10 +521,18 @@ function Home({setBreadcrumbs, login, logout}: {
                                     </p>
                                 </div>
                             ) : (
-                                <p>Select a file to show details</p>
+                                <p>Select a csv file to upload to the sandbox service</p>
                             )}
                             <div>
+                                <input type="text" value={sandboxDatasetName}
+                                       onChange={(e) => setSandboxDatasetName(e.target.value)}/>
                                 <button onClick={handleSubmission}>Submit</button>
+                            </div>
+                            <div>
+                                sandboxUpload: {JSON.stringify(sandboxUploadResponse, null, 2)}
+                            </div>
+                            <div>
+                                sandboxStatus: {JSON.stringify(sandboxResponse, null, 2)}
                             </div>
                         </tr>
                         <tr>

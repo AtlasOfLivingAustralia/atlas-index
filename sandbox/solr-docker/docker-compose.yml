@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  solr-zoo:
+    image: atlasoflivingaustralia/solr8-jts
+    ports:
+      - "8983:8983"
+      - "2181:2181"
+      - "9983:9983"
+    environment:
+      - SOLR_PORT=8983
+      - ZOO_PORT=2181
+      - ZOO_HOST=localhost
+      - SOLR_HOST=localhost
+      - SOLR_MODE=solrcloud

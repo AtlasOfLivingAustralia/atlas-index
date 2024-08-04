@@ -65,9 +65,8 @@ public class QueueService {
         }
         queue.add(queueItem);
 
-        queueItem.getStatus().setId(queueItem.getId());
-
-        return queueItem.getStatus();
+        // save statusId
+        return updateStatus(queueItem, StatusCode.QUEUED, "added to queue");
     }
 
     private void fixFilenames(QueueRequest queueRequest) {
@@ -144,15 +143,20 @@ public class QueueService {
         return queues.get(queueName).stream().toList();
     }
 
-    public void updateStatus(QueueItem item, StatusCode statusCode, String s) {
+    public Status updateStatus(QueueItem item, StatusCode statusCode, String s) {
         if (statusCode.equals(StatusCode.QUEUED)) {
             // TODO: when there exists an external queue, and this is a clean shutdown, add it back to the queue
         }
 
         // do not update status if it is already cancelled or has an error
         if (!item.status.statusCode.equals(StatusCode.CANCELLED) && !item.status.statusCode.equals(StatusCode.ERROR)) {
-            item.setStatus(Status.builder().id(item.id).statusCode(statusCode).message(s).lastUpdated(LocalDateTime.now()).build());
+            Status newStatus = Status.builder().id(item.id).statusCode(statusCode).message(s).lastUpdated(LocalDateTime.now()).build();
+            item.setStatus(newStatus);
             queueMongoRepository.save(item);
+
+            return newStatus;
         }
+
+        return item.getStatus();
     }
 }

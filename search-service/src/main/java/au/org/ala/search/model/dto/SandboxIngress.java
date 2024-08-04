@@ -19,4 +19,6 @@ public class SandboxIngress {
     String [] headers; // when isDwCA==false this corresponds to DwCA meta.xml for occurrences.txt
     StatusCode status; // upload status after queuing
     String sample; // when isDwCA==false this is the first 4 lines of the file uploaded
+    String userId; // user id of the person who uploaded the file
+    String dataResourceUid; // dataResourceUid as it is loaded into SOLR
 }

@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
@@ -63,10 +64,12 @@ public class V1Sandbox {
         this.queueService = queueService;
     }
 
+    @SecurityRequirement(name = "JWT")
     @PostMapping(path = {"/v1/sandbox/upload"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SandboxIngress> upload(
             // file upload
             @RequestPart(name = "file") MultipartFile file,
+            @RequestPart(name = "datasetName") String datasetName,
             @AuthenticationPrincipal Principal principal) {
         try {
             String userId = authService.getUserId(principal);
@@ -74,7 +77,7 @@ public class V1Sandbox {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-            SandboxIngress sandboxIngress = sandboxService.upload(file, userId);
+            SandboxIngress sandboxIngress = sandboxService.upload(file, datasetName, userId);
             return ResponseEntity.ok(sandboxIngress);
         } catch (Exception e) {
             logger.error("Error uploading file", e);
@@ -83,26 +86,42 @@ public class V1Sandbox {
         }
     }
 
+    @SecurityRequirement(name = "JWT")
     @DeleteMapping(path = {"/v1/sandbox/upload"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> delete(
-            @PathVariable String id) {
-        SandboxIngress sandboxIngress = sandboxService.delete(id);
+            @RequestParam String id,
+            @AuthenticationPrincipal Principal principal) {
+        // Delete from uploads directory and SOLR
+        // TODO: pass null as the userId when user is admin
+        SandboxIngress sandboxIngress = sandboxService.delete(id, authService.getUserId(principal));
         return ResponseEntity.ok(sandboxIngress);
     }
 
+    @SecurityRequirement(name = "JWT")
     @PostMapping(path = {"/v1/sandbox/ingress"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Status> ingest(
-            @RequestBody SandboxIngress sandboxIngress) {
+            @RequestBody SandboxIngress sandboxIngress,
+            @AuthenticationPrincipal Principal principal) {
+        // assign the authenticated userId to the sandboxIngress
+        String userId = authService.getUserId(principal);
+        if (userId == null) {
+            // Should not happen
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        sandboxIngress.setUserId(userId);
+
         Status status = sandboxService.ingress(sandboxIngress);
         return ResponseEntity.ok(status);
     }
 
     @GetMapping(path = {"/v1/sandbox/ingress"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Status> progress(
-            @PathVariable String id) {
-        QueueItem status = queueService.get(id);
-        if (status != null) {
-            return ResponseEntity.ok(status.getStatus());
+            @RequestParam String id) {
+        QueueItem item = queueService.get(id);
+        if (item != null) {
+            Status status = item.getStatus();
+            status.setId(item.getId());
+            return ResponseEntity.ok(item.getStatus());
         } else {
             return ResponseEntity.notFound().build();
         }

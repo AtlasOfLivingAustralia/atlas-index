@@ -5,11 +5,14 @@ import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.LogService;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,6 +37,9 @@ public abstract class ConsumerService {
     protected final LogService logService;
     protected final JavaMailSender emailSender;
     protected final DownloadFileStoreService downloadFileStoreService;
+
+    @Value("${sandbox.dir}")
+    public String sandboxDir;
 
     public Integer consumerThreads;
 

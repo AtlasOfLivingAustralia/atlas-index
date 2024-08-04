@@ -46,12 +46,24 @@ public class SandboxService {
         this.queueService = queueService;
     }
 
-    public SandboxIngress upload(MultipartFile file, String userId) throws CsvValidationException, IOException {
-        // get uuid (TODO: temporaryDataResourceUid)
+    public boolean isValidUUID(String uuid) {
+        // validate that uuid is a correctly formed UUID
+        try {
+            return UUID.fromString(uuid).toString().equals(uuid);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    public SandboxIngress upload(MultipartFile file, String datasetName, String userId) throws CsvValidationException, IOException {
+        // get uuid
         String uuid = UUID.randomUUID().toString();
 
         SandboxIngress sandboxIngress = new SandboxIngress();
         sandboxIngress.setId(uuid);
+        sandboxIngress.setUserId(userId);
+        sandboxIngress.setDataResourceUid(UUID.randomUUID().toString());
+        sandboxIngress.setDescription(datasetName);
 
         if (file.getOriginalFilename().toLowerCase().endsWith(".csv")) {
             importCsv(file, sandboxIngress);
@@ -116,7 +128,7 @@ public class SandboxService {
                 for (File f : files) {
                     if (f.getName().toLowerCase().endsWith(".csv")) {
                         // move to occurrences.txt
-                        header = convertCsvToDwCA(f, thisDir);
+                        header = convertCsvToDwCA(f, thisDir, sandboxIngress.getUserId(), sandboxIngress.getDescription());
                     } else if (f.getName().toLowerCase().endsWith(".tsv")) {
                         BufferedReader br = new BufferedReader(new FileReader(f));
                         header = br.readLine().split("\n");
@@ -155,7 +167,7 @@ public class SandboxService {
             file.transferTo(csvFile);
 
             // convert csv to tsv
-            si.setHeaders(convertCsvToDwCA(csvFile, thisDir));
+            si.setHeaders(convertCsvToDwCA(csvFile, thisDir, si.getUserId(), si.getDescription()));
         } catch (IOException e) {
             logger.error("Error importing CSV file", e);
         }
@@ -164,7 +176,7 @@ public class SandboxService {
         si.setIsDwCA(false);
     }
 
-    String[] convertCsvToDwCA(File csvFile, File thisDir) throws IOException, CsvValidationException {
+    String[] convertCsvToDwCA(File csvFile, File thisDir, String userID, String datasetName) throws IOException, CsvValidationException {
         CSVReader reader = null;
         ICSVWriter writer = null;
 
@@ -176,11 +188,88 @@ public class SandboxService {
             writer = new CSVWriterBuilder(new FileWriter(tsvFile)).withSeparator('\t').build();
 
             String[] nextLine;
+            int occurrenceIDIndex = -1;
+            int userIDIndex = -1;
+            int datasetNameIndex = -1;
+            int row = 0;
             while ((nextLine = reader.readNext()) != null) {
-                if (header == null) {
+                // First row is the header
+                if (row == 0) {
                     header = interpretHeader(nextLine);
+
+                    // Append occurrenceID to the header, if absent
+                    String occurrenceIDQualified = TermFactory.instance().findTerm("occurrenceID").qualifiedName();
+                    occurrenceIDIndex = Arrays.asList(header).indexOf(occurrenceIDQualified);
+                    if (occurrenceIDIndex < 0) {
+                        String[] newHeader = new String[header.length + 1];
+                        System.arraycopy(header, 0, newHeader, 0, header.length);
+                        newHeader[header.length] = occurrenceIDQualified;
+                        header = newHeader;
+                    } else {
+                        // TODO: replace duplicate headers with an appended idx value
+                    }
+
+                    // Append userID to the header, if absent
+                    String userIDQualified = TermFactory.instance().findTerm("userId").qualifiedName();
+                    userIDIndex = Arrays.asList(header).indexOf(userIDQualified);
+                    if (userIDIndex < 0) {
+                        String[] newHeader = new String[header.length + 1];
+                        System.arraycopy(header, 0, newHeader, 0, header.length);
+                        newHeader[header.length] = userIDQualified;
+                        header = newHeader;
+                    } else {
+                        // TODO: replace duplicate headers with an appended idx value
+                    }
+
+                    // Append datasetName to the header, if absent
+                    String datasetNameQualified = TermFactory.instance().findTerm("datasetName").qualifiedName();
+                    datasetNameIndex = Arrays.asList(header).indexOf(datasetNameQualified);
+                    if (datasetNameIndex < 0) {
+                        String[] newHeader = new String[header.length + 1];
+                        System.arraycopy(header, 0, newHeader, 0, header.length);
+                        newHeader[header.length] = datasetNameQualified;
+                        header = newHeader;
+                    } else {
+                        // TODO: replace duplicate headers with an appended idx value
+                    }
+                } else {
+                    // Append row number as the unique occurrenceID
+                    if (occurrenceIDIndex < 0) {
+                        String[] newLine = new String[nextLine.length + 1];
+                        System.arraycopy(nextLine, 0, newLine, 0, nextLine.length);
+                        newLine[nextLine.length] = Integer.toString(row);
+                        nextLine = newLine;
+                    } else {
+                        // replace occurrenceID with the row number to prevent errors
+                        nextLine[occurrenceIDIndex] = Integer.toString(row);
+                    }
+
+                    // Append ALA userID as the userID
+                    if (userIDIndex < 0) {
+                        String[] newLine = new String[nextLine.length + 1];
+                        System.arraycopy(nextLine, 0, newLine, 0, nextLine.length);
+                        newLine[nextLine.length] = userID;
+                        nextLine = newLine;
+                    } else {
+                        // replace userID with ALA userID
+                        nextLine[userIDIndex] = userID;
+                    }
+
+                    // Append datasetName to the row
+                    if (datasetNameIndex < 0) {
+                        String[] newLine = new String[nextLine.length + 1];
+                        System.arraycopy(nextLine, 0, newLine, 0, nextLine.length);
+                        newLine[nextLine.length] = datasetName;
+                        nextLine = newLine;
+                    } else {
+                        // replace datasetName with the datasetName
+                        nextLine[datasetNameIndex] = datasetName;
+                    }
+
+                    writer.writeNext(nextLine);
                 }
-                writer.writeNext(nextLine);
+
+                row ++;
             }
 
             writer.flush();
@@ -253,7 +342,48 @@ public class SandboxService {
         return matched;
     }
 
-    public SandboxIngress delete(String id) {
+    public String getUserId(String id) {
+        if (!isValidUUID(id)) {
+            return null;
+        }
+
+        // get userId from SOLR
+        Map resp = webService.get(solrUrl + "/select?q=dataResourceUid%3A" + id + "&fl=userId&rows=1", null, null, false, false, null);
+
+        if (resp != null && resp.containsKey("response") && resp.get("response") instanceof Map) {
+            Map response = (Map) resp.get("response");
+            if (response.containsKey("docs") && response.get("docs") instanceof List) {
+                List docs = (List) response.get("docs");
+                if (docs.size() > 0) {
+                    Map doc = (Map) docs.get(0);
+                    if (doc.containsKey("userId")) {
+                        return (String) doc.get("userId");
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Delete a sandbox data resource, from the /upload/ directory and SOLR.
+     *
+     * @param id upload UUID (dataResourceUid)
+     * @param userId user ID or null to skip user check
+     * @return
+     */
+    public SandboxIngress delete(String id, String userId) {
+        if (!isValidUUID(id)) {
+            return null;
+        }
+
+        // check that the user owns this data resource. userId == null will skip this check
+        String drUserId = getUserId(id);
+        if (userId != null && (drUserId == null || !drUserId.equals(userId))) {
+            return null;
+        }
+
         // delete the file uploaded
         File thisDir = new File(sandboxDir + "/upload/" + id);
         try {
