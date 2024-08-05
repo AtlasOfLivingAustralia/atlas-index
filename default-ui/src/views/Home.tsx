@@ -3,6 +3,7 @@ import {useContext, useEffect, useState} from "react";
 import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
 import {Link} from "react-router-dom";
 import {cacheFetchText} from "../helpers/CacheFetch.tsx";
+import { Container } from "@mantine/core";
 
 function Home({setBreadcrumbs, login, logout}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -174,7 +175,7 @@ function Home({setBreadcrumbs, login, logout}: {
 
     return (
         <>
-            <div className="container-fluid">
+            <Container size="lg">
                 {/*{!currentUser?.isAdmin() &&*/}
                 {/*    <p>User {currentUser?.user()??.profile?.name} is not authorised to access these tools.</p>*/}
                 {/*}*/}
@@ -508,7 +509,7 @@ function Home({setBreadcrumbs, login, logout}: {
                     </table>
                 </>
                 {/*}*/}
-            </div>
+            </Container>
         </>
     );
 }

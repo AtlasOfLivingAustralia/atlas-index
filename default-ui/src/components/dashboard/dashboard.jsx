@@ -1,9 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {IntlProvider, FormattedMessage} from "react-intl";
-<<<<<<< Updated upstream
-=======
 // import 'react-vis/dist/style.css';
->>>>>>> Stashed changes
 import "../dashboard/dashboard.css";
 import {
     Chart as ChartJS,

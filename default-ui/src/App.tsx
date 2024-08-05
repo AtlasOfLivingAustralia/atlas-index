@@ -1,6 +1,6 @@
 import {Link, Route, Routes, useLocation} from "react-router-dom";
 import {Breadcrumb, ListsUser} from "./api/sources/model";
-import React, {useEffect, useState} from "react";
+import React, {MouseEventHandler, useEffect, useState} from "react";
 import UserContext from "./helpers/UserContext.ts";
 import {useAuth} from "react-oidc-context";
 // import 'bootstrap/dist/css/bootstrap.css';
@@ -24,9 +24,10 @@ import "@fontsource/roboto/700.css";
 import Occurrence from "./views/Occurrence.tsx";
 import Species from "./views/Species.tsx";
 import { Header } from "ala-mantine";
-import { Box, Center } from "@mantine/core";
+import { Box, Breadcrumbs, Center, Container, Text } from "@mantine/core";
 import ColorSchemeToggle  from './components/ColorSchemeToggle/ColorSchemeToggle.tsx';
-
+import { IconChevronLeft } from "@tabler/icons-react";
+import classes from './desktop.module.css';
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -99,7 +100,7 @@ export default function App() {
     // const breadcrumbItems = breadcrumbMap.map(item => item.title);
     const breadcrumbItems = breadcrumbs.map((breadcrumb: Breadcrumb, index) => {
         return (
-            <li className="breadcrumb-item" key={index}>
+            <>
                 {index < breadcrumbs.length - 1 ? (
                     <Link to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Link>
                 ) : (
@@ -108,7 +109,9 @@ export default function App() {
                     </>
                 )
                 }
-            </li>);
+            
+            </>
+        );
     });
 
     if (auth.error) {
@@ -167,69 +170,55 @@ export default function App() {
 
     return (
         <UserContext.Provider value={currentUser}>
-            <main>
-                {/*<Modal title="About" opened={auth.isLoading} onClose={() => console.log("auth checked")}>*/}
-                {/*    <Group>*/}
-                {/*        <Loader color="orange"/>*/}
-                {/*        <Text>Logging in...</Text>*/}
-                {/*    </Group>*/}
-                {/*</Modal>*/}
-            </main>
-            
             <Header>
                 <Center h="100%">
                     <ColorSchemeToggle />
                 </Center>
             </Header>
-            <Box >
-                <main>
-                    <div className="mt-0"/>
-                    <section id="breadcrumb">
-                        <div className="container-fluid">
-                            <div className="row">
-                                <nav aria-label="Breadcrumb" role="navigation">
-                                    <ol className="breadcrumb-list breadcrumb">
-                                        {breadcrumbItems}
-                                    </ol>
-                                </nav>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/*<div className="mt-1"/>*/}
-
-                    <Routes>
-                        <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                    login={() => login()} logout={() => logout()}/>}/>
-                        <Route path="/dashboard"
-                            element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/atlas-admin"
-                            element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/data-quality-admin" element={<DataQualityAdmin
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/vocab"
-                            element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/atlas-index"
-                            element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/api"
-                            element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/map"
-                            element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/occurrence-search"
-                            element={<OccurrenceSearch
-                                setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/occurrence-list"
-                            element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                        queryString={queryString} setQueryString={setQueryString}/>}/>
-                        <Route path="/occurrence"
-                            element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                    queryString={queryString}/>}/>
-                        <Route path="/species"
-                            element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                    queryString={queryString}/>}/>
-                    </Routes>
-                </main>
+            <Box className={classes.header}>
+                <Container py="lg" size="lg">
+                    <Breadcrumbs separator={<IconChevronLeft size={16} />} separatorMargin={4}>
+                        {/* <Text size="sm">Home</Text>
+                        <Text size="sm">Search species</Text> */}
+                        {breadcrumbItems.map((item, index) => (
+                            <Text key={index} size="sm">{item}</Text>
+                        ))}
+                    </Breadcrumbs>
+                </Container>
             </Box>
+            {/*<div className="mt-1"/>*/}
+            {/* <Container py="lg" size="lg"> */}
+                <Routes>
+                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                login={() => login()} logout={() => logout()}/>}/>
+                    <Route path="/dashboard"
+                        element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/atlas-admin"
+                        element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/data-quality-admin" element={<DataQualityAdmin
+                        setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/vocab"
+                        element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/atlas-index"
+                        element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/api"
+                        element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/map"
+                        element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/occurrence-search"
+                        element={<OccurrenceSearch
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/occurrence-list"
+                        element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                    queryString={queryString} setQueryString={setQueryString}/>}/>
+                    <Route path="/occurrence"
+                        element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                queryString={queryString}/>}/>
+                    <Route path="/species"
+                        element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                queryString={queryString}/>}/>
+                </Routes>
+            {/* </Container> */}
         </UserContext.Provider>
     );
 }

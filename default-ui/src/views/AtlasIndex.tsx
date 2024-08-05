@@ -1,7 +1,9 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-// import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
+import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
+import { Container, Grid, Group, Space, Tabs } from '@mantine/core';
 // import {Modal, Tab, Tabs} from "react-bootstrap";
+// import { Autocomplete } from '@mantine/core'; // See https://mantine.dev/combobox/?e=AsyncAutocomplete
 
 function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -73,60 +75,73 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
 
     return (
         <>
-            <>
-                <div className="container-fluid">
-                    <div className="d-flex w-100">
-                        <AsyncTypeahead className="w-50"
-                                        id={"atlas-autocomplete"}
-                                        isLoading={state.isLoading}
-                                        selected={selectedOption}
-                                        placeholder="Search for a taxon, project, area, support article, etc"
-                                        onChange={(selected) => {
-                                            setSelectedOption(selected);
-                                        }}
-                                        onSearch={(query) => {
-                                            setState({
-                                                isLoading: true,
-                                                options: [],
-                                                query: query,
-                                            });
-                                            fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/autocomplete?q=' + encodeURI(query) /*+ '&fq=idxtype:TAXON'*/)
-                                                .then(resp => resp.json())
-                                                .then(json => setState({
-                                                    isLoading: false,
-                                                    options: json,
-                                                    query: query,
-                                                }));
-                                        }}
-                                        options={state.options}
-                                        renderMenu={(results, menuProps) => (
-                                            <Menu {...menuProps}>
-                                                {results.map((result, index) => (
-                                                    <MenuItem
-                                                        key={index}
-                                                        option={result}
-                                                        position={index}
-                                                        // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
-                                                        href={"#/atlas-index"}>
-                                                        {/* @ts-ignore */}
-                                                        {result.name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Menu>
-                                        )}
+            <Container size="lg">
+                <Space h="lg" />
+                <Grid gutter='0'>
+                    {/* <div className="container-fluid">
+                        <div className="d-flex w-100"> */}
+                    <Grid.Col span={5}>
+                        <AsyncTypeahead 
+                            style={{ width: '100%' }}
+                            id={"atlas-autocomplete"}
+                            isLoading={state.isLoading}
+                            selected={selectedOption}
+                            placeholder="Search for a taxon, project, area, support article, etc"
+                            onChange={(selected) => {
+                                setSelectedOption(selected);
+                            }}
+                            onSearch={(query) => {
+                                setState({
+                                    isLoading: true,
+                                    options: [],
+                                    query: query,
+                                });
+                                fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/autocomplete?q=' + encodeURI(query) /*+ '&fq=idxtype:TAXON'*/)
+                                    .then(resp => resp.json())
+                                    .then(json => setState({
+                                        isLoading: false,
+                                        options: json,
+                                        query: query,
+                                    }));
+                            }}
+                            options={state.options}
+                            renderMenu={(results, menuProps) => (
+                                <Menu {...menuProps} >
+                                    {results.map((result, index) => (
+                                        <MenuItem
+                                            key={index}
+                                            option={result}
+                                            position={index}
+                                            // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
+                                            href={"#/atlas-index"}>
+                                            {/* @ts-ignore */}
+                                            {result.name}
+                                        </MenuItem>
+                                    ))}
+                                </Menu>
+                            )}
                         />
+                    </Grid.Col>
+                    <Grid.Col span={1}>
                         <button className="btn btn-primary" onClick={() => search()}>Search</button>
-                        <div>{lastSearch}</div>
-                    </div>
+                    </Grid.Col>
+                    <Grid.Col span={4}>{lastSearch}</Grid.Col>
+                </Grid>
+                {/* </div> */}
 
-                    <br/>
-                    <Tabs
-                        id="admin-tabs"
-                        activeKey={tab}
-                        onSelect={(k) => setTab("" + k)}
-                        className=""
-                    >
-                        <Tab eventKey="list" title="Search Result">
+                {/* <br/> */}
+                <Tabs
+                    id="admin-tabs"
+                    defaultValue={tab}
+                    className=""
+                >
+                    {/* <Container size="lg"> */}
+                        <Tabs.List>
+                            <Tabs.Tab value="list">Search Result</Tabs.Tab>
+                            <Tabs.Tab value="facet">Facets List</Tabs.Tab>
+                            <Tabs.Tab value="species">TAXON JSON</Tabs.Tab>
+                        </Tabs.List>
+                        <Tabs.Panel value="list" title="Simple search">
                             <div>
                                 {resultList && resultList.map((item, index) => (
                                     <div key={index} className="border-top d-flex">
@@ -140,17 +155,18 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                     </div>
                                 ))}
                             </div>
-                        </Tab>
-                        <Tab eventKey="facet" title="Facet List">
+                        </Tabs.Panel>
+                        <Tabs.Panel value="facet" title="Simple search">
                             {facetJSON && <pre><small>{facetJSON}</small></pre>}
-                        </Tab>
-                        <Tab eventKey="species" title="TAXON JSON">
+                        </Tabs.Panel>
+                        <Tabs.Panel value="species" title="TAXON JSON">
                             {itemJSON && <pre><small>{itemJSON}</small></pre>}
-                        </Tab>
-                    </Tabs>
-                </div>
+                        </Tabs.Panel>
+                    {/* </Container> */}
+                </Tabs>
+                {/* </div> */}
 
-                <Modal show={show} onHide={handleClose}>
+                {/* <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>External Link</Modal.Title>
                     </Modal.Header>
@@ -160,9 +176,8 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             Close
                         </button>
                     </Modal.Footer>
-                </Modal>
-            </>
-
+                </Modal> */}
+            </Container>
         </>
     )
 }
