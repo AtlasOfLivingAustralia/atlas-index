@@ -1,6 +1,7 @@
 import {useEffect} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import DashboardPage from "../components/dashboard/dashboard"
+import { Container, Space } from "@mantine/core";
 
 function Dashboard({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -13,11 +14,10 @@ function Dashboard({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =>
     }, []);
 
     return (
-        <>
-            <div className="container-fluid">
-                <DashboardPage/>
-            </div>
-        </>
+        <Container size="lg">
+            <Space h="md"/>
+            <DashboardPage/>
+        </Container>
     );
 }
 

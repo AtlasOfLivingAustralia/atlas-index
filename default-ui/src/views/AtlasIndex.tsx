@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
-import { Container, Grid, Group, Space, Tabs } from '@mantine/core';
+import { Container, Divider, Grid, Group, Space, Tabs } from '@mantine/core';
 // import {Modal, Tab, Tabs} from "react-bootstrap";
 // import { Autocomplete } from '@mantine/core'; // See https://mantine.dev/combobox/?e=AsyncAutocomplete
 
@@ -141,6 +141,11 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             <Tabs.Tab value="facet">Facets List</Tabs.Tab>
                             <Tabs.Tab value="species">TAXON JSON</Tabs.Tab>
                         </Tabs.List>
+                </Tabs>
+            </Container>
+            <Divider />
+            <Container size="lg">
+                <Tabs>
                         <Tabs.Panel value="list" title="Simple search">
                             <div>
                                 {resultList && resultList.map((item, index) => (
@@ -163,9 +168,8 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             {itemJSON && <pre><small>{itemJSON}</small></pre>}
                         </Tabs.Panel>
                     {/* </Container> */}
-                </Tabs>
                 {/* </div> */}
-
+                </Tabs>
                 {/* <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>External Link</Modal.Title>

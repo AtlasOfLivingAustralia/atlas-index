@@ -15,8 +15,11 @@ import {
 } from 'chart.js';
 import {Pie, Bar} from 'react-chartjs-2';
 import TreeItem from "./tree.jsx";
+import { Box, Button, Card, Center, Container, Flex, Grid, Group, Space, Text, rem } from '@mantine/core';
 
 ChartJS.register(ArcElement, BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale, LogarithmicScale);
+
+const DASHBOARD_DATA_URL = import.meta.env.VITE_APP_DASHBOARD_DATA_URL;
 
 function formatNumber(number) {
     if (isNaN(number / 1.0)) {
@@ -43,7 +46,7 @@ const DashboardPage = () => {
     const [messages, setMessages] = useState();
 
     useEffect(() => {
-        fetch(import.meta.env.VITE_APP_DASHBOARD_DATA_URL)
+        fetch(DASHBOARD_DATA_URL)
             .then(response => response.json())
             .then(data => {
                 setDashboardData(data);
@@ -303,295 +306,206 @@ const DashboardPage = () => {
         return msg ? msg : id
     }
 
+    const GridCard = (props) => {
+        const header = props.header;
+        const headerNum = props.headerNum;
+        const body = props.children;
+        return (
+            <Grid.Col span={{ base: 12, xs: 4 }} style={{ height: rem(440) }}>
+                <Card withBorder shadow="sm" radius="md" style={{ height: '100%'}}>
+                    <Card.Section withBorder inheritPadding py="xs">
+                        <Group justify="space-between">
+                            <Text size="md" fw={500}>{headerNum} {header}</Text>
+                        </Group>
+                    </Card.Section>
+                    <Card.Section inheritPadding py="xs" style={{  minHeight: rem(350), overflow: 'auto'  }} >
+                        <Text span size="sm">{body}</Text>
+                    </Card.Section>
+                </Card>
+            </Grid.Col>
+        )
+    }
+
     function Dashboard(data) {
         data = data.data.data
 
-        return <div>
-            <div className="d-flex">
-                <a className="btn border-black ms-auto" target="_blank"
-                   href={import.meta.env.VITE_APP_DASHBOARD_DATA_URL}>Show raw data</a>
-                <a className="btn border-black ms-2 me-5" target="_blank"
-                   href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}>Download
-                    as CSV</a>
-            </div>
-
-            <div className='d-flex flex-wrap justify-content-center'>
-
+        return (
+        <>
+            <>
+                <Flex justify="flex-end" gap="sm">
+                    <Button compnent="a" target="_blank"
+                    href={DASHBOARD_DATA_URL}>Show raw data</Button>
+                    <Button compnent="a" target="_blank"
+                    href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}>Download
+                        as CSV</Button>
+                </Flex>
+            </>
+            <Space h="lg"/>
+            {/* <div className='d-flex flex-wrap justify-content-center'> */}
+            {/* <Container size="lg"> */}
+            <Grid align="stretch">
                 {data.occurrenceCount &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="occurrenceRecordHeader"/></h1>
-                        </div>
-                        <div className={"dashboardOccurrenceRecord dashboardPanelBody card-body"}>
-                            <div className={"dashboardCenter"}>
-                                <a className={'dashboardVeryLargeLink'}
-                                   href={data.occurrenceCount.url}>{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.occurrenceCount.count)}</a>
-                            </div>
-                            <div className={"dashboardCenter"}>
-                                <span className={"dashboardLargeText"}><FormattedMessage id="recordsInTotal"/></span>
-                            </div>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('occurrenceRecordHeader')}>
+                        <Space h="xl"/>
+                        <Space h="xl"/>
+                        <Box align="center">
+                            <a className={'dashboardVeryLargeLink'}
+                                href={data.occurrenceCount.url}>{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.occurrenceCount.count)}</a>
+                            <div><FormattedMessage id="recordsInTotal"/></div>
+                        </Box>
+                    </GridCard>
                 }
 
                 {data.datasets &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1">{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.datasets.count)}&nbsp;
-                                <FormattedMessage id="dataSetsHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.datasets.tables[0]}/>
-                            <div className={'dashboardPanelSubdiv mt-3'}>
-                                <div className="mb-1"><FormattedMessage id="mostRecentlyAddedDatasetIs"/></div>
-                                <div className="text-center">
-                                    <h4><a className={'dashboardLargeLink'}
-                                           href={data.datasets.mostRecent.url}>{data.datasets.mostRecent.name}</a></h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <GridCard headerNum={new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.datasets.count)} header={formatMessage('dataSetsHeader')}>
+                        <DashboardTable rows={data.datasets.tables[0]}/>
+                            <Text size="sm">
+                                <FormattedMessage id="mostRecentlyAddedDatasetIs"/>
+                            </Text>
+                            <Text size="sm" pt="sm">
+                                <a className={'dashboardLargeLink'}
+                                    href={data.datasets.mostRecent.url}>{data.datasets.mostRecent.name}</a>
+                            </Text>
+                    </GridCard>
                 }
 
                 {data.basisOfRecord &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="basisOfRecordHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.basisOfRecord.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('basisOfRecordHeader')}>
+                        <DashboardTable rows={data.basisOfRecord.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.collections &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1">{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.collections.count)}&nbsp;
-                                <FormattedMessage id="collectionsHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardChart rows={data.collections.tables}/>
-                        </div>
-                    </div>
+                    <GridCard headerNum={new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.collections.count)} header={formatMessage('basisOfRecordHeader')}>
+                        <DashboardChart rows={data.collections.tables}/>
+                    </GridCard>
                 }
 
                 {data.recordsByDate &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="recordsByDateHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.recordsByDate.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('recordsByDateHeader')}>
+                        <DashboardTable rows={data.recordsByDate.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.nationalSpeciesLists &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="nationalSpeciesListsHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.nationalSpeciesLists.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('nationalSpeciesListsHeader')}>
+                        <DashboardTable rows={data.nationalSpeciesLists.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.spatialLayers &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1">{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.spatialLayers.count)}&nbsp;
-                                <FormattedMessage id="spatialLayersHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.spatialLayers.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard headerNum={new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.spatialLayers.count)} header={formatMessage('spatialLayersHeader')}>
+                        <DashboardTable rows={data.spatialLayers.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.states &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="statesHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardChart rows={data.states.tables}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('statesHeader')}>
+                        <DashboardChart rows={data.states.tables}/>
+                    </GridCard>
                 }
 
                 {data.species &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="mostRecordedSpeciesHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTables tables={data.species.tables} italisize={true} id={"species"}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('mostRecordedSpeciesHeader')}>
+                        <DashboardTables tables={data.species.tables} italisize={true} id={"species"}/>
+                    </GridCard>
                 }
 
                 {data.specimenTypes &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="specimenTypesHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTables tables={data.specimenTypes.tables} id={"specimenTypes"}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('specimenTypesHeader')}>
+                        <DashboardTables tables={data.specimenTypes.tables} id={"specimenTypes"}/>
+                    </GridCard>
                 }
 
                 {data.bhl &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="bhlHeader"/></h1>
+                    <GridCard header={formatMessage('bhlHeader')}>
+                        <div className={'dashboardCenter'}>
+                            <a href={data.bhl.url}><img src={data.bhl.imageUrl} className="dashboardLogo" alt={"BHL"}/></a>
                         </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <div className={'dashboardCenter'}>
-                                <a href={data.bhl.url}><img src={data.bhl.imageUrl} className="dashboardLogo" alt={"BHL"}/></a>
-                            </div>
-                            <DashboardTable rows={data.bhl.tables[0]}/>
-                        </div>
-                    </div>
+                        <DashboardTable rows={data.bhl.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.digivol &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="digivolHeader"/></h1>
+                    <GridCard header={formatMessage('digivolHeader')}>
+                        <div className={'dashboardCenter'}>
+                            <a href={data.digivol.url}><img src={data.digivol.imageUrl} className="dashboardLogo" alt={"Digivol"}/></a>
                         </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <div className={'dashboardCenter'}>
-                                <a href={data.digivol.url}><img src={data.digivol.imageUrl} className="dashboardLogo" alt={"Digivol"}/></a>
-                            </div>
-                            <DashboardTable rows={data.digivol.tables[0]} header={data.digivol.tables[0].header}/>
-                        </div>
-                    </div>
+                        <DashboardTable rows={data.digivol.tables[0]} header={data.digivol.tables[0].header}/>
+                    </GridCard>
                 }
 
                 {data.conservation &&
-                    <div className='dashboardPanel card'>
-                    <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="conservationHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.conservation.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('conservationHeader')}>
+                        <DashboardTable rows={data.conservation.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.dataProviderUid &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="dataProviderHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.dataProviderUid.tables[0]} header={['', '']}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('dataProviderHeader')}>
+                        <DashboardTable rows={data.dataProviderUid.tables[0]} header={['', '']}/>
+                    </GridCard>
                 }
 
                 {data.institutionUid &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="institutionHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.institutionUid.tables[0]} header={['', '']}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('institutionHeader')}>
+                        <DashboardTable rows={data.institutionUid.tables[0]} header={['', '']}/>
+                    </GridCard>
                 }
 
                 {data.kingdoms &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="kingdomsHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body ps-5"}>
-                            <DashboardKingdomTree rows={data.kingdoms.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('kingdomsHeader')}>
+                        <DashboardKingdomTree rows={data.kingdoms.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.speciesGroup &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="lifeformHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.speciesGroup.tables[0]} header={['', '']}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('lifeformHeader')}>
+                        <DashboardTable rows={data.speciesGroup.tables[0]} header={['', '']}/>
+                    </GridCard>
                 }
 
                 {data.decade &&
-                    <div className='dashboardPanel card dashboardPanel2'>
-                        <h1 className="dashboardH1"><FormattedMessage id="decadeHeader"/></h1>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardBarChart rows={data.decade.tables}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('decadeHeader')}>
+                        <DashboardBarChart rows={data.decade.tables}/>
+                    </GridCard>
                 }
 
                 {data.usageStats &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="usageHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.usageStats.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('usageHeader')}>
+                        <DashboardTable rows={data.usageStats.tables[0]}/>
+                    </GridCard>
                 }
 
                 {data.reasonDownloads &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="downloadReasonHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.reasonDownloads.tables[0]} header={['', 'events', 'records']}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('downloadReasonHeader')}>
+                        <DashboardTable rows={data.reasonDownloads.tables[0]} header={['', 'events', 'records']}/>
+                    </GridCard>
                 }
 
                 {data.emailDownloads &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="downloadUserTypeHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.emailDownloads.tables[0]} header={['', 'events', 'records']}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('downloadUserTypeHeader')}>
+                        <DashboardTable rows={data.emailDownloads.tables[0]} header={['', 'events', 'records']}/>
+                    </GridCard>
                 }
 
                 {data.image &&
-                    <div className='dashboardPanel card'>
-                        <div className={'dashboardPanelHeader card-header'}>
-                            <h1 className="dashboardH1"><FormattedMessage id="imageHeader"/></h1>
-                        </div>
-                        <div className={"dashboardPanelBody card-body"}>
-                            <DashboardTable rows={data.image.tables[0]}/>
-                        </div>
-                    </div>
+                    <GridCard header={formatMessage('imageHeader')}>
+                        <DashboardTable rows={data.image.tables[0]}/>
+                    </GridCard>
                 }
-            </div>
-        </div>
-    }
+            </Grid>
+        </>
+    )}
 
     return (!dashboardData || !messages) ? (
             <div className="alert-info">Loading...</div>
         ) : (
-            <main>
+            // <Container size="xl">
                 <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {}}>
-                    <div>
-                        <Dashboard data={dashboardData}></Dashboard>
-                    </div>
+                    <Dashboard data={dashboardData}/>
                 </IntlProvider>
-            </main>
+            // </Container>
     )
 }
 

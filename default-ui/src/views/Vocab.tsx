@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 // import {Accordion} from "react-bootstrap";
 import React from "react";
+import { Accordion, Code, Container } from "@mantine/core";
 
 function Vocabulary({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -40,27 +41,23 @@ function Vocabulary({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
 
     return (
         <>
-            <div className="container-fluid">
+            <Container size="lg">
                 <h2>Vocabulary</h2>
                 <>
-                    <Accordion defaultActiveKey="0">
-                        <Accordion.Item key="0" eventKey="0">
-                            <Accordion.Header><span className="fw-bold">Vocab Index</span></Accordion.Header>
-                            <Accordion.Body>
-                                <pre><small>{indexString}</small></pre>
-                            </Accordion.Body>
+                    <Accordion variant="contained" defaultValue="0">
+                        <Accordion.Item key="0" value="0">
+                            <Accordion.Control><span className="fw-bold">Vocab Index</span></Accordion.Control>
+                            <Accordion.Panel style={{backgroundColor: 'var(--mantine-color-body)'}}>
+                                <Code block  style={{backgroundColor: 'var(--mantine-color-body)'}}>{indexString}</Code>
+                            </Accordion.Panel>
                         </Accordion.Item>
                         {Object.entries(vocabs).map((entry, index) =>
                             <React.Fragment key={index}>
-                                <Accordion.Item eventKey={(index + 1).toString()}>
-                                    <Accordion.Header>{entry[0]}</Accordion.Header>
-                                    <Accordion.Body>
-                                        <div className="row">
-                                            <div className="col">
-                                                <pre><small>{entry[1]}</small></pre>
-                                            </div>
-                                        </div>
-                                    </Accordion.Body>
+                                <Accordion.Item key={(index + 1).toString()} value={(index + 1).toString()} >
+                                    <Accordion.Control>{entry[0]}</Accordion.Control>
+                                    <Accordion.Panel style={{backgroundColor: 'var(--mantine-color-body)'}}>
+                                        <Code block style={{backgroundColor: 'var(--mantine-color-body)'}}>{entry[1]}</Code>
+                                    </Accordion.Panel>
                                 </Accordion.Item>
                             </React.Fragment>
                         )}
@@ -68,7 +65,7 @@ function Vocabulary({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                     </Accordion>
                 </>
 
-            </div>
+            </Container>
         </>
     );
 }
