@@ -15,7 +15,7 @@ import {
 } from 'chart.js';
 import {Pie, Bar} from 'react-chartjs-2';
 import TreeItem from "./tree.jsx";
-import { Box, Button, Card, Center, Container, Flex, Grid, Group, Space, Text, rem } from '@mantine/core';
+import { Box, Button, Card, Center, Container, Flex, Grid, Group, LoadingOverlay, Space, Text, rem } from '@mantine/core';
 
 ChartJS.register(ArcElement, BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale, LogarithmicScale);
 
@@ -67,19 +67,19 @@ const DashboardPage = () => {
                 header[2] = ' '
             }
             headerElement = <thead>
-            <tr>
-                <th>{header[0] && <FormattedMessage id={header[0]}/>}</th>
-                <th className="text-end">{header[1] && <FormattedMessage id={header[1]}/>}</th>
-                {header[2] &&
-                    <th className="text-end ps-1"><FormattedMessage id={header[2]}/></th>
-                }
-                {header[3] &&
-                    <th className="text-end ps-1"><FormattedMessage id={header[3]}/></th>
-                }
-                {header[4] &&
-                    <th className="text-end ps-1"><FormattedMessage id={header[4]}/></th>
-                }
-            </tr>
+                <tr>
+                    <th>{header[0] && <FormattedMessage id={header[0]}/>}</th>
+                    <th className="text-end">{header[1] && <FormattedMessage id={header[1]}/>}</th>
+                    {header[2] &&
+                        <th className="text-end ps-1"><FormattedMessage id={header[2]}/></th>
+                    }
+                    {header[3] &&
+                        <th className="text-end ps-1"><FormattedMessage id={header[3]}/></th>
+                    }
+                    {header[4] &&
+                        <th className="text-end ps-1"><FormattedMessage id={header[4]}/></th>
+                    }
+                </tr>
             </thead>
         }
 
@@ -89,7 +89,7 @@ const DashboardPage = () => {
             }
         }
 
-        return <table className="dashboardTable">
+        return <table className="dashboardTable" style={{ width: '100%'}}>
             {headerElement}
             <tbody>{
                 rows.map((row, index) => {
@@ -307,19 +307,16 @@ const DashboardPage = () => {
     }
 
     const GridCard = (props) => {
-        const header = props.header;
-        const headerNum = props.headerNum;
-        const body = props.children;
         return (
             <Grid.Col span={{ base: 12, xs: 4 }} style={{ height: rem(440) }}>
                 <Card withBorder shadow="sm" radius="md" style={{ height: '100%'}}>
                     <Card.Section withBorder inheritPadding py="xs">
                         <Group justify="space-between">
-                            <Text size="md" fw={500}>{headerNum} {header}</Text>
+                            <Text size="md" fw={500}>{props.headerNum} {props.header}</Text>
                         </Group>
                     </Card.Section>
                     <Card.Section inheritPadding py="xs" style={{  minHeight: rem(350), overflow: 'auto'  }} >
-                        <Text span size="sm">{body}</Text>
+                        <Text span size="sm">{props.children}</Text>
                     </Card.Section>
                 </Card>
             </Grid.Col>
@@ -331,22 +328,18 @@ const DashboardPage = () => {
 
         return (
         <>
-            <>
-                <Flex justify="flex-end" gap="sm">
-                    <Button compnent="a" target="_blank"
-                    href={DASHBOARD_DATA_URL}>Show raw data</Button>
-                    <Button compnent="a" target="_blank"
-                    href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}>Download
-                        as CSV</Button>
-                </Flex>
-            </>
+            <Flex justify="flex-end" gap="sm">
+                <Button compnent="a" target="_blank"
+                href={DASHBOARD_DATA_URL}>Show raw data</Button>
+                <Button compnent="a" target="_blank"
+                href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}>Download
+                    as CSV</Button>
+            </Flex>
             <Space h="lg"/>
-            {/* <div className='d-flex flex-wrap justify-content-center'> */}
-            {/* <Container size="lg"> */}
             <Grid align="stretch">
                 {data.occurrenceCount &&
                     <GridCard header={formatMessage('occurrenceRecordHeader')}>
-                        <Space h="xl"/>
+                        <Space h="xl"/>{/* TODO: remove these elements and vertically center with CSS */}
                         <Space h="xl"/>
                         <Box align="center">
                             <a className={'dashboardVeryLargeLink'}
@@ -453,9 +446,9 @@ const DashboardPage = () => {
                     </GridCard>
                 }
 
-                {data.kingdoms &&
+                {data.kingdoms && 
                     <GridCard header={formatMessage('kingdomsHeader')}>
-                        <DashboardKingdomTree rows={data.kingdoms.tables[0]}/>
+                        <DashboardKingdomTree rows={data.kingdoms.tables[0]}/> {/* TODO: Fix display of tree widget */}
                     </GridCard>
                 }
 
@@ -499,13 +492,13 @@ const DashboardPage = () => {
     )}
 
     return (!dashboardData || !messages) ? (
-            <div className="alert-info">Loading...</div>
+            <Box pos="relative">
+                <LoadingOverlay loaderProps={{ children: 'Loading...' }} />
+            </Box>
         ) : (
-            // <Container size="xl">
-                <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {}}>
-                    <Dashboard data={dashboardData}/>
-                </IntlProvider>
-            // </Container>
+            <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {}}>
+                <Dashboard data={dashboardData}/>
+            </IntlProvider>
     )
 }
 
