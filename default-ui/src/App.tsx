@@ -170,7 +170,7 @@ export default function App() {
 
     return (
         <UserContext.Provider value={currentUser}>
-            <Header>
+            <Header onAuthClick={login} isAuthenticated={currentUser ? true : false}>
                 <Center h="100%">
                     <ColorSchemeToggle />
                 </Center>

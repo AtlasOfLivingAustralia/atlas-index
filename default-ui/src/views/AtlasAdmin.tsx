@@ -1,6 +1,8 @@
 import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useState} from "react";
 import {AtlasLog, Breadcrumb, ListsUser, TaskType} from "../api/sources/model.ts";
+import { Box, Container, Divider, Space, Tabs, Text } from "@mantine/core";
+import classes from '../desktop.module.css';
 // import {Tab, Tabs} from "react-bootstrap";
 
 function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
@@ -297,9 +299,12 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         let priority: number = getImagePriority(imageID);
 
         return <div key={idx}
-                    className={"card m-1 " + (priority > 0 ? "border-success border-5" : (priority < 0 ? "border-danger border-5" : "border-black"))}>
+                    className={"card m-1 " + (priority > 0 
+                        ? "border-success border-5" 
+                        : (priority < 0 ? "border-danger border-5" : "border-black")
+                        )}>
             <a className="card-img-top" target="_blank"
-               href={import.meta.env.VITE_APP_IMAGE_LINK_URL + imageID}>
+                href={import.meta.env.VITE_APP_IMAGE_LINK_URL + imageID}>
                 <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + imageID}></img>
             </a>
             <div className="card-body d-flex flex-column">
@@ -352,25 +357,34 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     }
 
     return (
-        <div className="container-fluid">
-            <h2>Atlas Admin</h2>
-            {!currentUser?.isAdmin() &&
-                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
-            }
-            {currentUser?.isAdmin() &&
-                <>
-
-                    <Tabs
-                        id="admin-tabs"
-                        activeKey={tab}
-                        onSelect={(k) => setTab("" + k)}
-                        className=""
-                    >
-                        <Tab eventKey="tasks" title="Run admin tasks">
-                            <pre className="alert alert-secondary" style={{height: "100px"}}><small>{taskString}</small></pre>
+        <>
+            <Box className={classes.header}>
+                <Container size="lg">
+                    <Space h="lg" />
+                    <Text size="xl" fw="500">Atlas Admin</Text>
+                    {!currentUser?.isAdmin() &&
+                        <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
+                    }
+                    {currentUser?.isAdmin() &&
+                        <Tabs defaultValue={tab}>
+                            <Tabs.List>
+                                <Tabs.Tab value="tasks">Run Admin Tasks</Tabs.Tab>
+                                <Tabs.Tab value="log">Admin Log</Tabs.Tab>
+                                <Tabs.Tab value="species">Edit Species</Tabs.Tab>
+                            </Tabs.List>
+                        </Tabs>
+                    }
+                </Container>
+                <Divider />
+            </Box>
+            <Container size="lg">
+                <Space h="lg" />
+                { currentUser?.isAdmin() && 
+                    <Tabs>
+                        <Tabs.Panel value="tasks">
+                            <pre className="alert alert-secondary" style={{height: "100px"}}><small>{taskString}</small>test</pre>
                             <table className="table table-sm table-bordered">
                                 <tbody>
-
                                 <tr>
                                     <td>
                                         <button className="btn border-black" onClick={() => update('ALL')}>Update
@@ -461,8 +475,8 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                 </tr>
                                 </tbody>
                             </table>
-                        </Tab>
-                        <Tab eventKey="log" title="Admin Log">
+                        </Tabs.Panel>
+                        <Tabs.Panel value="log">
                             <div className="d-flex w-100 align-items-center alert alert-secondary">
                                 <select className="custom-select w-25" id="filter"
                                         onChange={e => filterLog(e.target.value)}>
@@ -474,7 +488,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                 }}/>
 
                                 <input type="checkbox" className="ms-5 me-2"
-                                       onChange={e => setShowQueue(e.target.checked)}/>Show Threads & Queues
+                                        onChange={e => setShowQueue(e.target.checked)}/>Show Threads & Queues
 
                                 <button className="btn border-black ms-5 me-5" onClick={fetchLog}>Refresh
                                     Log</button>
@@ -485,11 +499,10 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                     <pre><small>{queueString}</small></pre>
                                     <hr/>
                                 </>
-
                             }
                             <pre><small>{logString}</small></pre>
-                        </Tab>
-                        <Tab eventKey="species" title="Edit species">
+                        </Tabs.Panel>
+                        <Tabs.Panel value="species">
                             <div className="d-flex w-100 align-items-center alert alert-secondary">
                                 <label>Search ID, linkIdentifier, scientificName, nameComplete or commonName</label>
                                 <input id="guid" className="w-50 ms-2" value={guid} onChange={e => {
@@ -500,13 +513,15 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                 </button>
                             </div>
                             <div className="border border-2 border-black p-3">
-                                <Tabs
+                                {/* <Tabs
                                     id="species-tabs"
                                     activeKey={speciesTab}
                                     onSelect={(k) => setSpeciesTab("" + k)}
                                     className=""
                                 >
-                                    <Tab eventKey="json" title="JSON">
+                                    <Tabs.Panel value="json" title="JSON"> */}
+                                    <Divider />
+                                    <h4>JSON</h4>
                                         <table className="table table-sm">
                                             <thead>
                                             <tr>
@@ -537,9 +552,11 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                 {taxonString}
                                             </>
                                         }</small></pre>
-                                    </Tab>
-
-                                    <Tab eventKey="images" title="Image preferences">
+                                    {/* </Tabs.Panel>
+                                    <Tabs.Panel value="images" title="Image preferences"> */}
+                                    
+                                    <Divider />
+                                    <h4>Image preferences</h4>
                                         <table className="table table-sm">
                                             <thead>
                                             <tr>
@@ -590,10 +607,10 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                             }}>Save
                                                     </button>
                                                     <a className="ms-2" target="_blank"
-                                                       href={import.meta.env.VITE_APP_LIST_URL + hiddenImageListID}>Hidden
+                                                        href={import.meta.env.VITE_APP_LIST_URL + hiddenImageListID}>Hidden
                                                         image species list</a>
                                                     <a className="ms-5" target="_blank"
-                                                       href={import.meta.env.VITE_APP_LIST_URL + preferredImageListID}>Preferred
+                                                        href={import.meta.env.VITE_APP_LIST_URL + preferredImageListID}>Preferred
                                                         image species list</a>
                                                 </td>
                                             </tr>
@@ -640,9 +657,11 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                     onClick={() => loadImages()}>Load More Images
                                             </button>
                                         }
-                                    </Tab>
+                                    {/* </Tabs.Panel>
 
-                                    <Tab eventKey="wiki" title="Wiki URL">
+                                    <Tabs.Panel value="wiki" title="Wiki URL"> */}
+                                    <Divider />
+                                    <h4>Wiki UR</h4>
                                         <table className="table table-sm">
                                             <thead>
                                             <tr>
@@ -667,9 +686,9 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                     String "hide" = no Wikipedia content</label></td>
                                                 <td>
                                                     <input id="wikiUrl" className="w-100" value={wikiUrl}
-                                                           onChange={e => {
-                                                               setWikiUrl(e.target.value);
-                                                           }}/>
+                                                            onChange={e => {
+                                                                setWikiUrl(e.target.value);
+                                                            }}/>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -682,7 +701,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                             }}>Save
                                                     </button>
                                                     <a className="ms-5" target="_blank"
-                                                       href={import.meta.env.VITE_APP_LIST_URL + wikiUrlListID}>Wiki
+                                                        href={import.meta.env.VITE_APP_LIST_URL + wikiUrlListID}>Wiki
                                                         URL
                                                         species list</a>
                                                 </td>
@@ -700,14 +719,14 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                             }
                                             </tbody>
                                         </table>
-                                    </Tab>
-                                </Tabs>
+                                    {/* </Tabs.Panel>
+                                </Tabs> */}
                             </div>
-                        </Tab>
+                        </Tabs.Panel>
                     </Tabs>
-                </>
-            }
-        </div>
+                }
+            </Container>
+        </>
     );
 }
 

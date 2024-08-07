@@ -4,6 +4,7 @@ import {AdvancedSearch, Breadcrumb} from "../api/sources/model.ts";
 import { Box, Container, Divider, Tabs, Title } from '@mantine/core';
 // import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 import '../css/search.css';
+import classes from '../desktop.module.css';
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -113,8 +114,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     }
 
     return <>
-        <Box>
-            <Container size="lg">
+        <Box className={classes.header}>
+            <Container py="lg" size="lg">
                 <Title order={3} fw={400}>
                     <strong className="w-100" id="searchHeader">Search for records in Atlas of Living Australia</strong>
                 </Title>

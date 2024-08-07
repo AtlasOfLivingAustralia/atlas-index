@@ -1,7 +1,8 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
-import { Container, Divider, Grid, Group, Space, Tabs } from '@mantine/core';
+import { Box, Container, Divider, Grid, Space, Tabs } from '@mantine/core';
+import classes from '../desktop.module.css';
 // import {Modal, Tab, Tabs} from "react-bootstrap";
 // import { Autocomplete } from '@mantine/core'; // See https://mantine.dev/combobox/?e=AsyncAutocomplete
 
@@ -75,74 +76,71 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
 
     return (
         <>
-            <Container size="lg">
-                <Space h="lg" />
-                <Grid gutter='0'>
-                    {/* <div className="container-fluid">
-                        <div className="d-flex w-100"> */}
-                    <Grid.Col span={5}>
-                        <AsyncTypeahead 
-                            style={{ width: '100%' }}
-                            id={"atlas-autocomplete"}
-                            isLoading={state.isLoading}
-                            selected={selectedOption}
-                            placeholder="Search for a taxon, project, area, support article, etc"
-                            onChange={(selected) => {
-                                setSelectedOption(selected);
-                            }}
-                            onSearch={(query) => {
-                                setState({
-                                    isLoading: true,
-                                    options: [],
-                                    query: query,
-                                });
-                                fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/autocomplete?q=' + encodeURI(query) /*+ '&fq=idxtype:TAXON'*/)
-                                    .then(resp => resp.json())
-                                    .then(json => setState({
-                                        isLoading: false,
-                                        options: json,
+            <Box className={classes.header}>
+                <Container size="lg">
+                    <Space h="lg" />
+                    <Grid gutter='0'>
+                        <Grid.Col span={5}>
+                            <AsyncTypeahead 
+                                style={{ width: '100%' }}
+                                id={"atlas-autocomplete"}
+                                isLoading={state.isLoading}
+                                selected={selectedOption}
+                                placeholder="Search for a taxon, project, area, support article, etc"
+                                onChange={(selected) => {
+                                    setSelectedOption(selected);
+                                }}
+                                onSearch={(query) => {
+                                    setState({
+                                        isLoading: true,
+                                        options: [],
                                         query: query,
-                                    }));
-                            }}
-                            options={state.options}
-                            renderMenu={(results, menuProps) => (
-                                <Menu {...menuProps} >
-                                    {results.map((result, index) => (
-                                        <MenuItem
-                                            key={index}
-                                            option={result}
-                                            position={index}
-                                            // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
-                                            href={"#/atlas-index"}>
-                                            {/* @ts-ignore */}
-                                            {result.name}
-                                        </MenuItem>
-                                    ))}
-                                </Menu>
-                            )}
-                        />
-                    </Grid.Col>
-                    <Grid.Col span={1}>
-                        <button className="btn btn-primary" onClick={() => search()}>Search</button>
-                    </Grid.Col>
-                    <Grid.Col span={4}>{lastSearch}</Grid.Col>
-                </Grid>
-                {/* </div> */}
-
-                {/* <br/> */}
-                <Tabs
-                    id="admin-tabs"
-                    defaultValue={tab}
-                    className=""
-                >
-                    {/* <Container size="lg"> */}
-                        <Tabs.List>
-                            <Tabs.Tab value="list">Search Result</Tabs.Tab>
-                            <Tabs.Tab value="facet">Facets List</Tabs.Tab>
-                            <Tabs.Tab value="species">TAXON JSON</Tabs.Tab>
-                        </Tabs.List>
-                </Tabs>
-            </Container>
+                                    });
+                                    fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/autocomplete?q=' + encodeURI(query) /*+ '&fq=idxtype:TAXON'*/)
+                                        .then(resp => resp.json())
+                                        .then(json => setState({
+                                            isLoading: false,
+                                            options: json,
+                                            query: query,
+                                        }));
+                                }}
+                                options={state.options}
+                                renderMenu={(results, menuProps) => (
+                                    <Menu {...menuProps} >
+                                        {results.map((result, index) => (
+                                            <MenuItem
+                                                key={index}
+                                                option={result}
+                                                position={index}
+                                                // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
+                                                href={"#/atlas-index"}>
+                                                {/* @ts-ignore */}
+                                                {result.name}
+                                            </MenuItem>
+                                        ))}
+                                    </Menu>
+                                )}
+                            />
+                        </Grid.Col>
+                        <Grid.Col span={1}>
+                            <button className="btn btn-primary" onClick={() => search()}>Search</button>
+                        </Grid.Col>
+                        <Grid.Col span={4}>{lastSearch}</Grid.Col>
+                    </Grid>
+                    <Tabs
+                        id="admin-tabs"
+                        defaultValue={tab}
+                        className=""
+                    >
+                        {/* <Container size="lg"> */}
+                            <Tabs.List>
+                                <Tabs.Tab value="list">Search Result</Tabs.Tab>
+                                <Tabs.Tab value="facet">Facets List</Tabs.Tab>
+                                <Tabs.Tab value="species">TAXON JSON</Tabs.Tab>
+                            </Tabs.List>
+                    </Tabs>
+                </Container>
+            </Box>
             <Divider />
             <Container size="lg">
                 <Tabs>

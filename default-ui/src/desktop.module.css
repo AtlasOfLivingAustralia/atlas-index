@@ -5,12 +5,12 @@
 
   @mixin light {
     background-color: var(--mantine-color-concrete-0);
-    background-image: url('/logo/logo-back-light.svg');
+    /* background-image: url('/logo/logo-back-light.svg'); */
   }
 
   @mixin dark {
     background-color: var(--mantine-color-charcoal-9);
-    background-image: url('/logo/logo-back-dark.svg');
+    /* background-image: url('/logo/logo-back-dark.svg'); */
   }
 
   /* Mobile Sizes */
