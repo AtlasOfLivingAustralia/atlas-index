@@ -1,8 +1,8 @@
 import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useState} from "react";
 import {AtlasLog, Breadcrumb, ListsUser, TaskType} from "../api/sources/model.ts";
-import { Box, Container, Divider, Space, Tabs, Text } from "@mantine/core";
-import classes from '../desktop.module.css';
+import { Box, Code, Container, Divider, Space, Tabs, Text } from "@mantine/core";
+// import classes from '../desktop.module.css';
 // import {Tab, Tabs} from "react-bootstrap";
 
 function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
@@ -19,7 +19,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const [guid, setGuid] = useState('');
     const [guidSearched, setGuidSearched] = useState('');
     const [taxonString, setTaxonString] = useState('');
-    const [tab, setTab] = useState('species');
+    const [tab, setTab] = useState('tasks');
     const [speciesTab, setSpeciesTab] = useState('json');
     const [taxonID, setTaxonID] = useState('');
     const [scientificName, setScientificName] = useState('');
@@ -356,378 +356,390 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         }
     }
 
+    const handleTabChange = (value: string | null) => {
+        const tabsTab = value || ''; 
+        setTab(tabsTab);
+        console.log("handleTabChange", value, tabsTab, tab);
+    };
+
     return (
         <>
-            <Box className={classes.header}>
-                <Container size="lg">
-                    <Space h="lg" />
-                    <Text size="xl" fw="500">Atlas Admin</Text>
-                    {!currentUser?.isAdmin() &&
-                        <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
-                    }
-                    {currentUser?.isAdmin() &&
-                        <Tabs defaultValue={tab}>
-                            <Tabs.List>
-                                <Tabs.Tab value="tasks">Run Admin Tasks</Tabs.Tab>
-                                <Tabs.Tab value="log">Admin Log</Tabs.Tab>
-                                <Tabs.Tab value="species">Edit Species</Tabs.Tab>
-                            </Tabs.List>
-                        </Tabs>
-                    }
-                </Container>
-                <Divider />
-            </Box>
-            <Container size="lg">
-                <Space h="lg" />
-                { currentUser?.isAdmin() && 
-                    <Tabs>
-                        <Tabs.Panel value="tasks">
-                            <pre className="alert alert-secondary" style={{height: "100px"}}><small>{taskString}</small>test</pre>
-                            <table className="table table-sm table-bordered">
-                                <tbody>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black" onClick={() => update('ALL')}>Update
-                                            Update ALL
-                                        </button>
-                                    </td>
-                                    <td>{description['ALL']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('DASHBOARD')}>
-                                            Update DASHBOARD
-                                        </button>
-                                    </td>
-                                    <td>{description['DASHBOARD']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('BIOCACHE')}>
-                                            Update BIOCACHE
-                                        </button>
-                                    </td>
-                                    <td>{description['BIOCACHE']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('AREA')}>
-                                            Update AREA
-                                        </button>
-                                    </td>
-                                    <td>{description['AREA']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('BIOCOLLECT')}>
-                                            Update BIOCOLLECT
-                                        </button>
-                                    </td>
-                                    <td>{description['BIOCOLLECT']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('COLLECTIONS')}>
-                                            Update COLLECTIONS
-                                        </button>
-                                    </td>
-                                    <td>{description['COLLECTIONS']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('LAYER')}>
-                                            Update LAYER
-                                        </button>
-                                    </td>
-                                    <td>{description['LAYER']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('WORDPRESS')}>
-                                            Update WORDPRESS
-                                        </button>
-                                    </td>
-                                    <td>{description['WORDPRESS']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('KNOWLEDGEBASE')}>
-                                            Update KNOWLEDGEBASE
-                                        </button>
-                                    </td>
-                                    <td>{description['KNOWLEDGEBASE']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('LISTS')}>
-                                            Update LISTS
-                                        </button>
-                                    </td>
-                                    <td>{description['LISTS']}</td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <button className="btn border-black " onClick={() => update('SITEMAP')}>
-                                            Update SITEMAP
-                                        </button>
-                                    </td>
-                                    <td>{description['SITEMAP']}</td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </Tabs.Panel>
-                        <Tabs.Panel value="log">
-                            <div className="d-flex w-100 align-items-center alert alert-secondary">
-                                <select className="custom-select w-25" id="filter"
-                                        onChange={e => filterLog(e.target.value)}>
-                                    {taskTypes.map((type, index) => <option key={index}>{type}</option>)};
-                                </select>
-                                <label htmlFor="logSize" className="ms-5 me-1">log size</label>
-                                <input id="logSize" value={logSize} onChange={e => {
-                                    setLogSize(parseInt(e.target.value));
-                                }}/>
+            {!currentUser?.isAdmin() &&
+                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
+            }
+            {currentUser?.isAdmin() &&
+                <>
+                    <Box >
+                        <Container size="lg">
+                            <Space h="lg" />
+                            <Text size="xl" fw="500">Atlas Admin</Text>
+                            <Tabs id="admin-tabs"
+                                
+                                onChange={handleTabChange}
+                                defaultValue={tab}
+                                className="">
+                                <Tabs.List>
+                                    <Tabs.Tab value="tasks">Run Admin Tasks</Tabs.Tab>
+                                    <Tabs.Tab value="log">Admin Log</Tabs.Tab>
+                                    <Tabs.Tab value="species">Edit Species</Tabs.Tab>
+                                </Tabs.List>
+                            </Tabs>
+                        </Container>
+                    </Box>
+                    <Divider />
+                    <Container size="lg">
+                        <Space h="lg" />
+                        {tab === 'tasks' && 
+                            <>
+                                <Code block style={{height: "100px"}}>{taskString ? taskString : "Output appears here..."}</Code>
+                                <Space h="lg" />
+                                <table className="table table-sm table-bordered">
+                                    <tbody>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black" onClick={() => update('ALL')}>Update
+                                                Update ALL
+                                            </button>
+                                        </td>
+                                        <td>{description['ALL']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('DASHBOARD')}>
+                                                Update DASHBOARD
+                                            </button>
+                                        </td>
+                                        <td>{description['DASHBOARD']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('BIOCACHE')}>
+                                                Update BIOCACHE
+                                            </button>
+                                        </td>
+                                        <td>{description['BIOCACHE']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('AREA')}>
+                                                Update AREA
+                                            </button>
+                                        </td>
+                                        <td>{description['AREA']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('BIOCOLLECT')}>
+                                                Update BIOCOLLECT
+                                            </button>
+                                        </td>
+                                        <td>{description['BIOCOLLECT']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('COLLECTIONS')}>
+                                                Update COLLECTIONS
+                                            </button>
+                                        </td>
+                                        <td>{description['COLLECTIONS']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('LAYER')}>
+                                                Update LAYER
+                                            </button>
+                                        </td>
+                                        <td>{description['LAYER']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('WORDPRESS')}>
+                                                Update WORDPRESS
+                                            </button>
+                                        </td>
+                                        <td>{description['WORDPRESS']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('KNOWLEDGEBASE')}>
+                                                Update KNOWLEDGEBASE
+                                            </button>
+                                        </td>
+                                        <td>{description['KNOWLEDGEBASE']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('LISTS')}>
+                                                Update LISTS
+                                            </button>
+                                        </td>
+                                        <td>{description['LISTS']}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <button className="btn border-black " onClick={() => update('SITEMAP')}>
+                                                Update SITEMAP
+                                            </button>
+                                        </td>
+                                        <td>{description['SITEMAP']}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </>
+                        }
+                        {tab === 'log' && 
+                            <>
+                                <div className="d-flex w-100 align-items-center alert alert-secondary">
+                                    <select className="custom-select w-25" id="filter"
+                                            onChange={e => filterLog(e.target.value)}>
+                                        {taskTypes.map((type, index) => <option key={index}>{type}</option>)};
+                                    </select>
+                                    <label htmlFor="logSize" className="ms-5 me-1">log size</label>
+                                    <input id="logSize" value={logSize} onChange={e => {
+                                        setLogSize(parseInt(e.target.value));
+                                    }}/>
 
-                                <input type="checkbox" className="ms-5 me-2"
-                                        onChange={e => setShowQueue(e.target.checked)}/>Show Threads & Queues
+                                    <input type="checkbox" className="ms-5 me-2"
+                                            onChange={e => setShowQueue(e.target.checked)}/>Show Threads & Queues
 
-                                <button className="btn border-black ms-5 me-5" onClick={fetchLog}>Refresh
-                                    Log</button>
-                            </div>
+                                    <button className="btn border-black ms-5 me-5" onClick={fetchLog}>Refresh
+                                        Log</button>
+                                </div>
 
-                            {showQueue &&
-                                <>
-                                    <pre><small>{queueString}</small></pre>
-                                    <hr/>
-                                </>
-                            }
-                            <pre><small>{logString}</small></pre>
-                        </Tabs.Panel>
-                        <Tabs.Panel value="species">
-                            <div className="d-flex w-100 align-items-center alert alert-secondary">
-                                <label>Search ID, linkIdentifier, scientificName, nameComplete or commonName</label>
-                                <input id="guid" className="w-50 ms-2" value={guid} onChange={e => {
-                                    setGuid(e.target.value);
-                                }}/>
-                                <button className="btn border-black ms-2"
-                                        onClick={() => searchGuid()}>Search
-                                </button>
-                            </div>
-                            <div className="border border-2 border-black p-3">
-                                {/* <Tabs
-                                    id="species-tabs"
-                                    activeKey={speciesTab}
-                                    onSelect={(k) => setSpeciesTab("" + k)}
-                                    className=""
-                                >
-                                    <Tabs.Panel value="json" title="JSON"> */}
-                                    <Divider />
-                                    <h4>JSON</h4>
-                                        <table className="table table-sm">
-                                            <thead>
-                                            <tr>
-                                                <th className="col-2"></th>
-                                                <th className="col-10"></th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr>
-                                                <td>
-                                                    TaxonID
-                                                </td>
-                                                <td>
-                                                    <pre>{taxonID} (searched for "{guidSearched}")</pre>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                        <br/>
-                                        <input type="text" placeholder="filter" className="w-100"
-                                               value={speciesJsonFilter}
-                                               onChange={e => filterSpeciesJson(e.target.value)}/>
-                                        <pre><small>{filteredTaxonString ?
-                                            <>
-                                                {filteredTaxonString}
-                                            </> :
-                                            <>
-                                                {taxonString}
-                                            </>
-                                        }</small></pre>
-                                    {/* </Tabs.Panel>
-                                    <Tabs.Panel value="images" title="Image preferences"> */}
-                                    
-                                    <Divider />
-                                    <h4>Image preferences</h4>
-                                        <table className="table table-sm">
-                                            <thead>
-                                            <tr>
-                                                <th className="col-2"></th>
-                                                <th className="col-10"></th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr>
-                                                <td>
-                                                    TaxonID
-                                                </td>
-                                                <td>
-                                                    <pre>{taxonID} (searched for "{guidSearched}")</pre>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td><label htmlFor="preferredImage" className="ms-auto me-1">Prefered
-                                                    imageIDs (comma separated, no whitespace)</label></td>
-                                                <td>
-                                                <textarea className="form-control" id="preferredImage"
-                                                          value={preferredImage}
-                                                          rows={3}
-                                                          onChange={e => {
-                                                              setPreferredImage(e.target.value);
-                                                          }}></textarea>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td><label htmlFor="hiddenImage" className="ms-auto me-1">Hidden
-                                                    imageIDs (comma separated, no whitespace)</label></td>
-                                                <td>
-                                                <textarea className="form-control" id="hiddenImage"
-                                                          value={hiddenImage}
-                                                          rows={3}
-                                                          onChange={e => {
-                                                              setHiddenImage(e.target.value);
-                                                          }}></textarea>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td></td>
-                                                <td>
-                                                    <button className="btn border-black ms-auto me-5"
-                                                            onClick={() => {
-                                                                setSaveImageResponse("...");
-                                                                saveImages()
-                                                            }}>Save
-                                                    </button>
-                                                    <a className="ms-2" target="_blank"
-                                                        href={import.meta.env.VITE_APP_LIST_URL + hiddenImageListID}>Hidden
-                                                        image species list</a>
-                                                    <a className="ms-5" target="_blank"
-                                                        href={import.meta.env.VITE_APP_LIST_URL + preferredImageListID}>Preferred
-                                                        image species list</a>
-                                                </td>
-                                            </tr>
-
-                                            {saveImageResponse &&
+                                {showQueue &&
+                                    <>
+                                        <pre><small>{queueString}</small></pre>
+                                        <hr/>
+                                    </>
+                                }
+                                <pre><small>{logString}</small></pre>
+                            </>
+                        }
+                        {tab === 'species' && 
+                            <>
+                                <div className="d-flex w-100 align-items-center alert alert-secondary">
+                                    <label>Search ID, linkIdentifier, scientificName, nameComplete or commonName</label>
+                                    <input id="guid" className="w-50 ms-2" value={guid} onChange={e => {
+                                        setGuid(e.target.value);
+                                    }}/>
+                                    <button className="btn border-black ms-2"
+                                            onClick={() => searchGuid()}>Search
+                                    </button>
+                                </div>
+                                <div className="border border-2 border-black p-3">
+                                    {/* <Tabs
+                                        id="species-tabs"
+                                        activeKey={speciesTab}
+                                        onSelect={(k) => setSpeciesTab("" + k)}
+                                        className=""
+                                    >
+                                        <Tab eventKey="json" title="JSON"> */}
+                                        <Text size="lg">JSON</Text>
+                                            <table className="table table-sm">
+                                                <thead>
+                                                <tr>
+                                                    <th className="col-2"></th>
+                                                    <th className="col-10"></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
                                                 <tr>
                                                     <td>
-                                                        Response code
+                                                        TaxonID
                                                     </td>
                                                     <td>
-                                                        <pre>{saveImageResponse}</pre>
+                                                        <pre>{taxonID} (searched for "{guidSearched}")</pre>
                                                     </td>
                                                 </tr>
+                                                </tbody>
+                                            </table>
+                                            <br/>
+                                            <input type="text" placeholder="filter" className="w-100"
+                                                value={speciesJsonFilter}
+                                                onChange={e => filterSpeciesJson(e.target.value)}/>
+                                            <pre><small>{filteredTaxonString ?
+                                                <>
+                                                    {filteredTaxonString}
+                                                </> :
+                                                <>
+                                                    {taxonString}
+                                                </>
+                                            }</small></pre>
+                                        {/* </Tab>
+                                        <Tab eventKey="images" title="Image preferences"> */}
+                                        <Divider/>
+                                        <Text size="lg">Image preferences</Text>
+                                            <table className="table table-sm">
+                                                <thead>
+                                                <tr>
+                                                    <th className="col-2"></th>
+                                                    <th className="col-10"></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <td>
+                                                        TaxonID
+                                                    </td>
+                                                    <td>
+                                                        <pre>{taxonID} (searched for "{guidSearched}")</pre>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label htmlFor="preferredImage" className="ms-auto me-1">Prefered
+                                                        imageIDs (comma separated, no whitespace)</label></td>
+                                                    <td>
+                                                    <textarea className="form-control" id="preferredImage"
+                                                            value={preferredImage}
+                                                            rows={3}
+                                                            onChange={e => {
+                                                                setPreferredImage(e.target.value);
+                                                            }}></textarea>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label htmlFor="hiddenImage" className="ms-auto me-1">Hidden
+                                                        imageIDs (comma separated, no whitespace)</label></td>
+                                                    <td>
+                                                    <textarea className="form-control" id="hiddenImage"
+                                                            value={hiddenImage}
+                                                            rows={3}
+                                                            onChange={e => {
+                                                                setHiddenImage(e.target.value);
+                                                            }}></textarea>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td></td>
+                                                    <td>
+                                                        <button className="btn border-black ms-auto me-5"
+                                                                onClick={() => {
+                                                                    setSaveImageResponse("...");
+                                                                    saveImages()
+                                                                }}>Save
+                                                        </button>
+                                                        <a className="ms-2" target="_blank"
+                                                        href={import.meta.env.VITE_APP_LIST_URL + hiddenImageListID}>Hidden
+                                                            image species list</a>
+                                                        <a className="ms-5" target="_blank"
+                                                        href={import.meta.env.VITE_APP_LIST_URL + preferredImageListID}>Preferred
+                                                            image species list</a>
+                                                    </td>
+                                                </tr>
+
+                                                {saveImageResponse &&
+                                                    <tr>
+                                                        <td>
+                                                            Response code
+                                                        </td>
+                                                        <td>
+                                                            <pre>{saveImageResponse}</pre>
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                                <tr>
+                                                    <td>
+                                                        Browse Images
+                                                    </td>
+                                                    <td>
+                                                        <select className="mb-4" value={imageViewMode}
+                                                                onChange={e => setImageViewMode(e.target.value)}>
+                                                            <option value="all">All Images</option>
+                                                            <option value="preferred">Preferred Images</option>
+                                                            <option value="hidden">Hidden Images</option>
+                                                        </select>
+                                                    </td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                            <div className="d-flex flex-wrap">
+                                                {imageViewMode === 'preferred' && preferredImage && preferredImage.split(",").map((imageID, idx) => {
+                                                    return buildImageCard(imageID, idx);
+                                                })}
+                                                {imageViewMode === 'hidden' && hiddenImage && hiddenImage.split(",").map((imageID, idx) => {
+                                                    return buildImageCard(imageID, idx);
+                                                })}
+                                                {imageViewMode === 'all' && images.map((imageID, idx) => {
+                                                    return buildImageCard(imageID, idx);
+                                                })}
+                                            </div>
+                                            {imageViewMode === 'all' &&
+                                                <button className="btn border-black"
+                                                        onClick={() => loadImages()}>Load More Images
+                                                </button>
                                             }
-
-                                            <tr>
-                                                <td>
-                                                    Browse Images
-                                                </td>
-                                                <td>
-                                                    <select className="mb-4" value={imageViewMode}
-                                                            onChange={e => setImageViewMode(e.target.value)}>
-                                                        <option value="all">All Images</option>
-                                                        <option value="preferred">Preferred Images</option>
-                                                        <option value="hidden">Hidden Images</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            </tbody>
-                                        </table>
-                                        <div className="d-flex flex-wrap">
-                                            {imageViewMode === 'preferred' && preferredImage && preferredImage.split(",").map((imageID, idx) => {
-                                                return buildImageCard(imageID, idx);
-                                            })}
-                                            {imageViewMode === 'hidden' && hiddenImage && hiddenImage.split(",").map((imageID, idx) => {
-                                                return buildImageCard(imageID, idx);
-                                            })}
-                                            {imageViewMode === 'all' && images.map((imageID, idx) => {
-                                                return buildImageCard(imageID, idx);
-                                            })}
-                                        </div>
-                                        {imageViewMode === 'all' &&
-                                            <button className="btn border-black"
-                                                    onClick={() => loadImages()}>Load More Images
-                                            </button>
-                                        }
-                                    {/* </Tabs.Panel>
-
-                                    <Tabs.Panel value="wiki" title="Wiki URL"> */}
-                                    <Divider />
-                                    <h4>Wiki UR</h4>
-                                        <table className="table table-sm">
-                                            <thead>
-                                            <tr>
-                                                <th className="col-4"></th>
-                                                <th className="col-8"></th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            <tr>
-                                                <td>
-                                                    TaxonID
-                                                </td>
-                                                <td>
-                                                    <pre>{taxonID} (searched for "{guidSearched}")</pre>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td><label htmlFor="wikiUrl" className="ms-auto me-1">Wikipedia
-                                                    URL<br/>
-                                                    Empty string = default Wikipedia URL<br/>
-                                                    https://en.wikipedia.org/wiki/Koala = override example<br/>
-                                                    String "hide" = no Wikipedia content</label></td>
-                                                <td>
-                                                    <input id="wikiUrl" className="w-100" value={wikiUrl}
+                                        {/* </Tab>
+                                        <Tab eventKey="wiki" title="Wiki URL"> */}
+                                        <Divider/>
+                                        <Text size="lg">Wiki URL</Text>
+                                            <table className="table table-sm">
+                                                <thead>
+                                                <tr>
+                                                    <th className="col-4"></th>
+                                                    <th className="col-8"></th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <td>
+                                                        TaxonID
+                                                    </td>
+                                                    <td>
+                                                        <pre>{taxonID} (searched for "{guidSearched}")</pre>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><label htmlFor="wikiUrl" className="ms-auto me-1">Wikipedia
+                                                        URL<br/>
+                                                        Empty string = default Wikipedia URL<br/>
+                                                        https://en.wikipedia.org/wiki/Koala = override example<br/>
+                                                        String "hide" = no Wikipedia content</label></td>
+                                                    <td>
+                                                        <input id="wikiUrl" className="w-100" value={wikiUrl}
                                                             onChange={e => {
                                                                 setWikiUrl(e.target.value);
                                                             }}/>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td></td>
-                                                <td>
-                                                    <button className="btn border-black"
-                                                            onClick={() => {
-                                                                setSaveWikiUrlResponse("...");
-                                                                saveWikiUrl()
-                                                            }}>Save
-                                                    </button>
-                                                    <a className="ms-5" target="_blank"
-                                                        href={import.meta.env.VITE_APP_LIST_URL + wikiUrlListID}>Wiki
-                                                        URL
-                                                        species list</a>
-                                                </td>
-                                            </tr>
-
-                                            {saveWikiUrlResponse &&
-                                                <tr>
-                                                    <td>
-                                                        Response code
-                                                    </td>
-                                                    <td>
-                                                        <pre>{saveWikiUrlResponse}</pre>
                                                     </td>
                                                 </tr>
-                                            }
-                                            </tbody>
-                                        </table>
-                                    {/* </Tabs.Panel>
-                                </Tabs> */}
-                            </div>
-                        </Tabs.Panel>
-                    </Tabs>
-                }
-            </Container>
+                                                <tr>
+                                                    <td></td>
+                                                    <td>
+                                                        <button className="btn border-black"
+                                                                onClick={() => {
+                                                                    setSaveWikiUrlResponse("...");
+                                                                    saveWikiUrl()
+                                                                }}>Save
+                                                        </button>
+                                                        <a className="ms-5" target="_blank"
+                                                        href={import.meta.env.VITE_APP_LIST_URL + wikiUrlListID}>Wiki
+                                                            URL
+                                                            species list</a>
+                                                    </td>
+                                                </tr>
+
+                                                {saveWikiUrlResponse &&
+                                                    <tr>
+                                                        <td>
+                                                            Response code
+                                                        </td>
+                                                        <td>
+                                                            <pre>{saveWikiUrlResponse}</pre>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                                </tbody>
+                                            </table>
+                                        {/* </Tab>
+                                    </Tabs> */}
+                                </div>
+                            </>
+                        }
+                    </Container>
+                </>
+            }
         </>
-    );
+    )
 }
 
 export default AtlasAdmin;
