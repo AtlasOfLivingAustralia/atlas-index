@@ -359,7 +359,6 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const handleTabChange = (value: string | null) => {
         const tabsTab = value || ''; 
         setTab(tabsTab);
-        console.log("handleTabChange", value, tabsTab, tab);
     };
 
     return (
@@ -374,7 +373,6 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             <Space h="lg" />
                             <Text size="xl" fw="500">Atlas Admin</Text>
                             <Tabs id="admin-tabs"
-                                
                                 onChange={handleTabChange}
                                 defaultValue={tab}
                                 className="">

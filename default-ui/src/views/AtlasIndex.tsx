@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import {AsyncTypeahead, Menu, MenuItem} from "react-bootstrap-typeahead";
-import { Box, Container, Divider, Grid, Space, Tabs } from '@mantine/core';
+import { Box, Container, Divider, Grid, Space, Tabs, TabsTab } from '@mantine/core';
 import classes from '../desktop.module.css';
 // import {Modal, Tab, Tabs} from "react-bootstrap";
 // import { Autocomplete } from '@mantine/core'; // See https://mantine.dev/combobox/?e=AsyncAutocomplete
@@ -74,6 +74,11 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
         }
     }
 
+    const handleTabChange = (value: string | null) => {
+        const tabsTab = value || ''; 
+        setTab(tabsTab);
+    };
+
     return (
         <>
             <Box className={classes.header}>
@@ -130,6 +135,7 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                     <Tabs
                         id="admin-tabs"
                         defaultValue={tab}
+                        onChange={handleTabChange}
                         className=""
                     >
                         {/* <Container size="lg"> */}
@@ -143,31 +149,24 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             </Box>
             <Divider />
             <Container size="lg">
-                <Tabs>
-                        <Tabs.Panel value="list" title="Simple search">
-                            <div>
-                                {resultList && resultList.map((item, index) => (
-                                    <div key={index} className="border-top d-flex">
-                                        <p><b>{item.name}</b> {item.idxtype}
-                                            <i>{item.commonNameSingle} {item.taxonomicStatus} {item.guid}</i></p>
-                                        {/*<p className="font-monospace"><small>{JSON.stringify(item)}</small></p>*/}
-                                        <button className="btn border-black ms-auto" onClick={() => {
-                                            showItem(item);
-                                        }}>show
-                                        </button>
-                                    </div>
-                                ))}
+                <Space h="lg" />
+                {tab === 'list' && 
+                    <div>
+                        {resultList && resultList.map((item, index) => (
+                            <div key={index} className="border-top d-flex">
+                                <p><b>{item.name}</b> {item.idxtype}
+                                    <i>{item.commonNameSingle} {item.taxonomicStatus} {item.guid}</i></p>
+                                {/*<p className="font-monospace"><small>{JSON.stringify(item)}</small></p>*/}
+                                <button className="btn border-black ms-auto" onClick={() => {
+                                    showItem(item);
+                                }}>show
+                                </button>
                             </div>
-                        </Tabs.Panel>
-                        <Tabs.Panel value="facet" title="Simple search">
-                            {facetJSON && <pre><small>{facetJSON}</small></pre>}
-                        </Tabs.Panel>
-                        <Tabs.Panel value="species" title="TAXON JSON">
-                            {itemJSON && <pre><small>{itemJSON}</small></pre>}
-                        </Tabs.Panel>
-                    {/* </Container> */}
-                {/* </div> */}
-                </Tabs>
+                        ))}
+                    </div>
+                }
+                {tab === 'facet' && facetJSON && <pre><small>{facetJSON}</small></pre>}
+                {tab === 'species' && itemJSON && <pre><small>{itemJSON}</small></pre>}
                 {/* <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
                         <Modal.Title>External Link</Modal.Title>
