@@ -3,6 +3,7 @@ import {useContext, useEffect, useRef, useState} from "react";
 import {Breadcrumb, ListsUser, QualityProfile} from "../api/sources/model.ts";
 // import {Tab, Tabs} from "react-bootstrap";
 import QualityProfileItem from "../components/dq/qualityProfileItem.tsx";
+import { Box, Button, Code, Container, Divider, Group, Space, Table, Tabs } from "@mantine/core";
 
 function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -121,68 +122,86 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         uploadFile.current.click()
     }
 
+    const handleTabChange = (value: string | null) => {
+        const tabsTab = value || ''; 
+        setTab(tabsTab);
+    };
+
     return (
-        <div className="container-fluid">
-            <h2>Data Quality Admin {saving && "... saving ..."}</h2>
-            {!currentUser?.isAdmin() &&
-                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
-            }
-            {currentUser?.isAdmin() &&
-                <>
-                    <Tabs
-                        id="data-quality-tabs"
-                        activeKey={tab}
-                        onSelect={(k) => setTab("" + k)}
-                        className=""
-                    >
-                        <Tab eventKey="profiles" title="List">
-
+        <>
+            <Box>
+                <Container size="lg">
+                    <Space h="lg" />
+                    <h2>Data Quality Admin {saving && "... saving ..."}</h2>
+                    {!currentUser?.isAdmin() &&
+                        <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
+                    }
+                    {currentUser?.isAdmin() &&
+                        <Tabs
+                            id="data-quality-tabs"
+                            onChange={handleTabChange}
+                            defaultValue={tab}
+                            className=""
+                        >
+                            <Tabs.List>
+                                    <Tabs.Tab value="profiles">Lists</Tabs.Tab>
+                                    <Tabs.Tab value="profile">Edit profile</Tabs.Tab>
+                                </Tabs.List>
+                        </Tabs>
+                    }
+                </Container>
+            </Box>
+            <Divider />
+            <Container size="lg">
+                <Space h="lg" />
+                {tab === 'profiles' &&
+                    <>
+                        <Group justify="left">
                             <input type="file" ref={uploadFile} style={{display: 'none'}}
-                                   onChange={e => readFile(e)}/>
-                            <button className="btn border-black" onClick={() => addProfile()}>
+                                    onChange={e => readFile(e)}/>
+                            <Button variant="default" onClick={() => addProfile()}>
                                 Add a profile
-                            </button>
-                            <button className="btn border-black ms-1" onClick={() => clickUpload()}>
+                            </Button>
+                            <Button variant="default" onClick={() => clickUpload()}>
                                 Import a profile
-                            </button>
-                            <br/>
-                            <br/>
-
-                            <table className="table table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Name</th>
-                                    <th>short-name</th>
-                                    <th>enabled</th>
-                                    <th></th>
-                                </tr>
-                                </thead>
-                                <tbody>
+                            </Button>
+                        </Group>
+                        <Space h="lg" />
+                        <Table striped >
+                        <Table.Thead>
+                            <Table.Tr>
+                                <Table.Th>Id</Table.Th>
+                                <Table.Th>Name</Table.Th>
+                                <Table.Th>Short-name</Table.Th>
+                                <Table.Th>Enabled</Table.Th>
+                                <Table.Th></Table.Th>
+                            </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
                                 {profiles && profiles.map((profileItem, idx) => (
-                                    <tr key={idx}>
-                                        <td>{profileItem.id}</td>
-                                        <td>
+                                    <Table.Tr key={idx}>
+                                        <Table.Td>{profileItem.id}</Table.Td>
+                                        <Table.Td>
                                             <div onClick={() => {
                                                 setProfile(profileItem);
                                                 setTab('profile');
                                             }} className="text-reset">{profileItem.name}</div>
-                                        </td>
-                                        <td>{profileItem.shortName}</td>
-                                        <td><input type="checkbox" defaultChecked={profileItem.enabled}
-                                                   disabled={profileItem.isDefault}
-                                                   onChange={() => {
-                                                       profileItem.enabled = !profileItem.enabled;
-                                                       save(profileItem)
-                                                   }}/></td>
-                                        <td>
+                                        </Table.Td>
+                                        <Table.Td>{profileItem.shortName}</Table.Td>
+                                        <Table.Td><input type="checkbox" defaultChecked={profileItem.enabled}
+                                                    disabled={profileItem.isDefault}
+                                                    onChange={() => {
+                                                        profileItem.enabled = !profileItem.enabled;
+                                                        save(profileItem)
+                                                    }}/></Table.Td>
+                                        <Table.Td>
                                             <div className="d-flex">
-                                                <button className="btn border-black ms-1" onClick={() => {
+                                                <Button variant="default" onClick={() => {
                                                     profileItem.isDefault = true;
                                                     save(profileItem);
                                                 }} disabled={profileItem.isDefault || !profileItem.enabled}>Default
-                                                </button>
-                                                <button className="btn border-black ms-1" onClick={() => {
+                                                </Button>
+                                                <Button variant="default" onClick={() => {
                                                     fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq?id=' + profileItem.id, {
                                                         method: 'DELETE',
                                                         headers: {
@@ -194,33 +213,42 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                         }
                                                     });
                                                 }} disabled={profileItem.isDefault}>Delete
-                                                </button>
-                                                <button className="btn border-black ms-1"
+                                                </Button>
+                                                <Button variant="default"
                                                         onClick={() => downloadProfile(profileItem)}>
                                                     Download
-                                                </button>
+                                                </Button>
                                             </div>
                                             <br/>
-                                        </td>
-                                    </tr>
+                                        </Table.Td>
+                                    </Table.Tr>
                                 ))}
-                                </tbody>
-                            </table>
-                        </Tab>
-                        <Tab eventKey="profile" title="Edit Profile">
-                            {profile &&
-                                <QualityProfileItem profile={profile} updateProfile={updateProfile} save={save}/>}
-                            <br/>
-                            <button className="btn border-black" onClick={() => redrawProfileJson()}>Refresh JSON
-                            </button>
-                            <pre>
-                                {profile && JSON.stringify(profile, null, 2)}
-                            </pre>
-                        </Tab>
-                    </Tabs>
-                </>
-            }
-        </div>
+                            </Table.Tbody>
+                        </Table>
+                        
+                    </>
+                }
+                {tab === 'profile' && profile &&
+                    <QualityProfileItem profile={profile} updateProfile={updateProfile} save={save}/>
+                }
+                {tab === 'profile' &&
+                    <>
+                        <br/>
+                        <Button variant="default" onClick={() => redrawProfileJson()}>Refresh 
+                            JSON</Button>
+                        <Space h="lg" />
+                        <Code block>
+                            {profile 
+                                ? JSON.stringify(profile, null, 2)
+                                : 'JSON output appears here...'}
+                        </Code>
+                    </>
+                }
+            </Container>
+
+            
+        </>
+        
     );
 }
 
