@@ -132,18 +132,23 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                         </Grid.Col>
                         <Grid.Col span={4}>{lastSearch}</Grid.Col>
                     </Grid>
+                    <Space h="lg" />
+                </Container>
+            </Box>
+            <Box>
+                <Container size="lg">
                     <Tabs
-                        id="admin-tabs"
-                        defaultValue={tab}
-                        onChange={handleTabChange}
-                        className=""
-                    >
-                        {/* <Container size="lg"> */}
-                            <Tabs.List>
-                                <Tabs.Tab value="list">Search Result</Tabs.Tab>
-                                <Tabs.Tab value="facet">Facets List</Tabs.Tab>
-                                <Tabs.Tab value="species">TAXON JSON</Tabs.Tab>
-                            </Tabs.List>
+                            id="admin-tabs"
+                            defaultValue={tab}
+                            onChange={handleTabChange}
+                            className=""
+                        >
+                            {/* <Container size="lg"> */}
+                                <Tabs.List>
+                                    <Tabs.Tab value="list">Search Result</Tabs.Tab>
+                                    <Tabs.Tab value="facet">Facets List</Tabs.Tab>
+                                    <Tabs.Tab value="species">TAXON JSON</Tabs.Tab>
+                                </Tabs.List>
                     </Tabs>
                 </Container>
             </Box>

@@ -364,7 +364,10 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     return (
         <>
             {!currentUser?.isAdmin() &&
-                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
+                <Container size="lg">
+                    <Space h="lg" />
+                    User {currentUser?.user()?.profile?.name} is not authorised to access these tools.
+                </Container>
             }
             {currentUser?.isAdmin() &&
                 <>
