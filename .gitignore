@@ -42,3 +42,4 @@ build/
 /nginx.conf
 *.lock
 *.csv
+.history

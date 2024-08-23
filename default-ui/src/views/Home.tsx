@@ -3,7 +3,7 @@ import {useContext, useEffect, useState} from "react";
 import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
 import {Link} from "react-router-dom";
 import {cacheFetchText} from "../helpers/CacheFetch.tsx";
-import { Container } from "@mantine/core";
+import { Anchor, Container } from "@mantine/core";
 
 function Home({setBreadcrumbs, login, logout}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -192,7 +192,8 @@ function Home({setBreadcrumbs, login, logout}: {
                         <tbody>
                         <tr>
                             <td>
-                                <Link to="/atlas-admin">Atlas Admin</Link>
+                                {/* <Link to="/atlas-admin">Atlas Admin</Link> */}
+                                <Anchor component={Link} to="/atlas-admin">Atlas Admin</Anchor>
                             </td>
                             <td>
                                 <ul>
@@ -204,7 +205,7 @@ function Home({setBreadcrumbs, login, logout}: {
                         </tr>
                         <tr>
                             <td>
-                                <Link to="/data-quality-admin">Data Quality Admin</Link>
+                                <Anchor component={Link} to="/data-quality-admin">Data Quality Admin</Anchor>
                             </td>
                             <td>
                                 <ul>
@@ -291,7 +292,7 @@ function Home({setBreadcrumbs, login, logout}: {
                         <tbody>
                         <tr>
                             <td>
-                                <Link to="/atlas-index">Atlas Index</Link>
+                                <Anchor component={Link} to="/atlas-index">Atlas Index</Anchor>
                             </td>
                             <td>
                                 <ul>
@@ -301,7 +302,7 @@ function Home({setBreadcrumbs, login, logout}: {
                         </tr>
                         <tr>
                             <td>
-                                <Link to="/dashboard">Dashboard</Link></td>
+                                <Anchor component={Link} to="/dashboard">Dashboard</Anchor></td>
                             <td>
                                 <ul>
                                     <li>View the default dashboard</li>
@@ -310,7 +311,7 @@ function Home({setBreadcrumbs, login, logout}: {
                         </tr>
                         <tr>
                             <td>
-                                <Link to="/vocab">Vocabulary</Link></td>
+                                <Anchor component={Link} to="/vocab">Vocabulary</Anchor></td>
                             <td>
                                 <ul>
                                     <li>View and search the vocabulary</li>
@@ -321,11 +322,11 @@ function Home({setBreadcrumbs, login, logout}: {
                             <td>Occurrences</td>
                             <td>
                                 <ul>
-                                    <li><Link to="/occurrence-search">Search Page</Link></li>
-                                    <li><Link to="/occurrence-list?q=forg&qualityProfile=ALA">Search Result Page</Link>
+                                    <li><Anchor component={Link} to="/occurrence-search">Search Page</Anchor></li>
+                                    <li><Anchor component={Link} to="/occurrence-list?q=forg&qualityProfile=ALA">Search Result Page</Anchor>
                                     </li>
-                                    <li><Link to="/occurrence?id=5a3f4768-0c28-4c56-9814-1e32a3f35aec">Occurrence
-                                        page</Link></li>
+                                    <li><Anchor component={Link} to="/occurrence?id=5a3f4768-0c28-4c56-9814-1e32a3f35aec">Occurrence
+                                        page</Anchor></li>
                                 </ul>
                             </td>
                         </tr>
@@ -333,7 +334,7 @@ function Home({setBreadcrumbs, login, logout}: {
                             <td>Species</td>
                             <td>
                                 <ul>
-                                    <li><Link to="/species?id=https://biodiversity.org.au/afd/taxa/2a4e373b-913a-4e2a-a53f-74828f6dae7e">Species Page</Link></li>
+                                    <li><Anchor component={Link} to="/species?id=https://biodiversity.org.au/afd/taxa/2a4e373b-913a-4e2a-a53f-74828f6dae7e">Species Page</Anchor></li>
                                 </ul>
                             </td>
                         </tr>
@@ -409,7 +410,7 @@ function Home({setBreadcrumbs, login, logout}: {
                         {/*    </td>*/}
                         {/*</tr>*/}
                         <tr>
-                            <td><Link to="/api">API</Link></td>
+                            <td><Anchor component={Link} to="/api">API</Anchor></td>
                             <td>
                                 <ul>
                                     <li>API documentation</li>
@@ -417,7 +418,7 @@ function Home({setBreadcrumbs, login, logout}: {
                             </td>
                         </tr>
                         <tr>
-                            <td><Link to="/map">Map</Link></td>
+                            <td><Anchor component={Link} to="/map">Map</Anchor></td>
                             <td>
                                 <ul>
                                     <li>Maps, large and small</li>
@@ -425,7 +426,7 @@ function Home({setBreadcrumbs, login, logout}: {
                             </td>
                         </tr>
                         <tr>
-                            <td><Link to="/chart">Charts</Link></td>
+                            <td><Anchor component={Link} to="/chart">Charts</Anchor></td>
                             <td>
                                 <ul>
                                     <li>Charts playground</li>
@@ -494,15 +495,15 @@ function Home({setBreadcrumbs, login, logout}: {
                             </td>
                             <td>
                                 <link rel="stylesheet" type="text/css"
-                                      href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
+                                        href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
                                 <div className="test-external-css">Red if external css import is working. The login
                                     and logout buttons below should also work.
                                 </div>
 
-                                {externalFooterHtml &&
+                                {/* {externalFooterHtml &&
                                     <div onClick={clickHandler}
-                                         dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
-                                }
+                                            dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
+                                } */}
                             </td>
                         </tr>
                         </tbody>

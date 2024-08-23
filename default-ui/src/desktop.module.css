@@ -9,13 +9,20 @@
   }
 
   @mixin dark {
-    background-color: var(--mantine-color-charcoal-9);
+    background-color: var(--mantine-color-charcoal-8);
     /* background-image: url('/logo/logo-back-dark.svg'); */
   }
 
   /* Mobile Sizes */
   @media (max-width: calc(48em - 1px)) {
     display: none;
+  }
+}
+.breadcrumb {
+  color: var(--mantine-color-gray-7);
+
+  @mixin dark {
+    color: var(--mantine-color-gray-2);
   }
 }
 

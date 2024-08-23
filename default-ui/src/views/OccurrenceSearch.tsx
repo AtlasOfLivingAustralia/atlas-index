@@ -3,7 +3,7 @@ import {AdvancedSearch, Breadcrumb} from "../api/sources/model.ts";
 // import {Tab, Tabs} from "react-bootstrap";
 import { Box, Container, Divider, Tabs, Title } from '@mantine/core';
 // import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
-import '../css/search.css';
+// import '../css/search.css';
 import classes from '../desktop.module.css';
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {

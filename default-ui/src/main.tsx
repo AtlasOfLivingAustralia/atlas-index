@@ -9,7 +9,6 @@ import {AuthProvider} from "react-oidc-context";
 import {WebStorageStateStore} from "oidc-client-ts";
 import { MantineProvider } from '@mantine/core';
 import { theme } from 'ala-mantine';
-import '@mantine/core/styles.css';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

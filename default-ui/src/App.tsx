@@ -1,32 +1,36 @@
 import {Link, Route, Routes, useLocation} from "react-router-dom";
 import {Breadcrumb, ListsUser} from "./api/sources/model";
 import React, {MouseEventHandler, useEffect, useState} from "react";
-import UserContext from "./helpers/UserContext.ts";
 import {useAuth} from "react-oidc-context";
+import {User} from "oidc-client-ts";
+import { IconChevronLeft } from "@tabler/icons-react";
+import { Footer, Header, IndigenousAcknowledgement } from "ala-mantine";
+import { Anchor, Box, Breadcrumbs, Container, Divider, Space, Text, useMantineColorScheme, useMantineTheme } from "@mantine/core";
+
+import UserContext from "./helpers/UserContext.ts";
 // import 'bootstrap/dist/css/bootstrap.css';
 import Home from "./views/Home.tsx"
 import Dashboard from "./views/Dashboard.tsx"
 import AtlasAdmin from "./views/AtlasAdmin.tsx"
 import Vocab from "./views/Vocab.tsx";
 import AtlasIndex from "./views/AtlasIndex.tsx";
-import 'react-bootstrap-typeahead/css/Typeahead.css';
-import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import Api from "./views/Api.tsx";
 import MapView from "./views/Map.tsx";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import DataQualityAdmin from "./views/DataQualityAdmin.tsx";
-import {User} from "oidc-client-ts";
 import OccurrenceSearch from "./views/OccurrenceSearch.tsx";
 import OccurrenceList from "./views/OccurrenceList.tsx";
+import Occurrence from "./views/Occurrence.tsx";
+import Species from "./views/Species.tsx";
+// import ColorSchemeToggle  from './components/ColorSchemeToggle/ColorSchemeToggle.tsx';
+// import { theme } from 'ala-mantine';
+
+// import "bootstrap-icons/font/bootstrap-icons.css";
 import "@fontsource/roboto";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import Occurrence from "./views/Occurrence.tsx";
-import Species from "./views/Species.tsx";
-import { Header } from "ala-mantine";
-import { Box, Breadcrumbs, Center, Container, Text } from "@mantine/core";
-import ColorSchemeToggle  from './components/ColorSchemeToggle/ColorSchemeToggle.tsx';
-import { IconChevronLeft } from "@tabler/icons-react";
+// import 'react-bootstrap-typeahead/css/Typeahead.css';
+// import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
+import '@mantine/core/styles.css';
 import classes from './desktop.module.css';
 
 // Pass the query string to the App, for later use by components that need it.
@@ -49,6 +53,11 @@ export default function App() {
 
     const auth = useAuth();
     const location = useLocation();
+
+    const theme = useMantineTheme();
+    const { colorScheme, toggleColorScheme } = useMantineColorScheme({
+        keepTransitions: true,
+    });
 
     useEffect(() => {
         const handlePopState = (event: any) => {
@@ -102,7 +111,7 @@ export default function App() {
         return (
             <>
                 {index < breadcrumbs.length - 1 ? (
-                    <Link to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Link>
+                    <Anchor component={Link} to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Anchor>
                 ) : (
                     <>
                         {breadcrumb.title}
@@ -170,14 +179,14 @@ export default function App() {
 
     return (
         <UserContext.Provider value={currentUser}>
-            <Header onAuthClick={login} isAuthenticated={currentUser ? true : false}>
-                <Center h="100%">
-                    <ColorSchemeToggle />
-                </Center>
-            </Header>
+            <Header 
+                onAuthClick={login} 
+                isAuthenticated={currentUser ? true : false}
+                onThemeToggleClick={toggleColorScheme}
+            />
             <Box className={classes.header}>
                 <Container py="lg" size="lg">
-                    <Breadcrumbs separator={<IconChevronLeft size={16} />} separatorMargin={4}>
+                    <Breadcrumbs separator={<IconChevronLeft size={16} className={classes.breadcrumb}/>} separatorMargin={4}>
                         {/* <Text size="sm">Home</Text>
                         <Text size="sm">Search species</Text> */}
                         {breadcrumbItems.map((item, index) => (
@@ -186,39 +195,40 @@ export default function App() {
                     </Breadcrumbs>
                 </Container>
             </Box>
-            {/*<div className="mt-1"/>*/}
-            {/* <Container py="lg" size="lg"> */}
-                <Routes>
-                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                login={() => login()} logout={() => logout()}/>}/>
-                    <Route path="/dashboard"
-                        element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-admin"
-                        element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/data-quality-admin" element={<DataQualityAdmin
+            <Routes>
+                <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                            login={() => login()} logout={() => logout()}/>}/>
+                <Route path="/dashboard"
+                    element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/atlas-admin"
+                    element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/data-quality-admin" element={<DataQualityAdmin
+                    setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/vocab"
+                    element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/atlas-index"
+                    element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/api"
+                    element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/map"
+                    element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/occurrence-search"
+                    element={<OccurrenceSearch
                         setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/vocab"
-                        element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-index"
-                        element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/api"
-                        element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/map"
-                        element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/occurrence-search"
-                        element={<OccurrenceSearch
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/occurrence-list"
-                        element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                    queryString={queryString} setQueryString={setQueryString}/>}/>
-                    <Route path="/occurrence"
-                        element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                queryString={queryString}/>}/>
-                    <Route path="/species"
-                        element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                queryString={queryString}/>}/>
-                </Routes>
-            {/* </Container> */}
+                <Route path="/occurrence-list"
+                    element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                queryString={queryString} setQueryString={setQueryString}/>}/>
+                <Route path="/occurrence"
+                    element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                            queryString={queryString}/>}/>
+                <Route path="/species"
+                    element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                            queryString={queryString}/>}/>
+            </Routes>
+            <Space h="xl" />
+            <Divider />
+            <Footer />
+            <IndigenousAcknowledgement />
         </UserContext.Provider>
     );
 }
