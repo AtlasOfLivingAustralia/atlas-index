@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {AdvancedSearch, Breadcrumb} from "../api/sources/model.ts";
 // import {Tab, Tabs} from "react-bootstrap";
-import { Box, Button, Container, Divider, Group, rem, Space, Tabs, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
+import { Box, Button, Container, Divider, Grid, Group, MultiSelect, NativeSelect, rem, Space, Tabs, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
 // import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 // import '../css/search.css';
 import classes from '../desktop.module.css';
@@ -17,6 +17,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
     // advanced search
     const [advancedText, setAdvancedText] = useState('');
+    const [advancedTaxa, setAdvancedTaxa] = useState<any[]>([]);
     const [advancedTaxa1, setAdvancedTaxa1] = useState('');
     const [advancedTaxa2, setAdvancedTaxa2] = useState('');
     const [advancedTaxa3, setAdvancedTaxa3] = useState('');
@@ -119,6 +120,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         setTab(tabsTab);
     };
 
+    const handleTaxaInputChange = (index: number, value: string) => {
+        const newAdvancedTaxa = [...advancedTaxa];
+        newAdvancedTaxa[index] = value;
+        setAdvancedTaxa(newAdvancedTaxa);
+    };
+
     return <>
         <Box className={classes.header}>
             <Container py="lg" size="lg">
@@ -180,111 +187,81 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             }
             {tab === 'advanced' && 
                 <Box>
-                    <Text fw={700}>Find records that have</Text>
-                    <Group>
-                        <Text>ALL of these words (full text)</Text>
-                        <TextInput 
-                            style={{ width: '70%' }}  
+                    <Text fw={700} mt="lg" mb="sm">Find records that have</Text>
+                    <Grid align="center">
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>ALL of these words (full text)</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}><TextInput 
+                            style={{ width: '80%' }}  
                             value={advancedText}
                             onChange={e => setAdvancedText(e.target.value)}
-                        />
-                    </Group>
-                    {/* <TextInput
-                        label="ALL of these words (full text)"
-                        placeholder=""
-                    /> */}
-                    {/* <div className="mb-3 row align-items-center text-end align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="text">ALL of these words (full
-                            text)</label>
-                        <div className="col-md-6">
-                            <input type="text" className="dataset form-control"
-                                value={advancedText}
-                                onChange={e => setAdvancedText(e.target.value)}/>
-                        </div>
-                    </div> */}
-
-                    <Text fw={700}>Find records for ANY of the following taxa
+                        /></Grid.Col>
+                    </Grid>
+                    <Text fw={700} mt="lg" mb="sm">Find records for ANY of the following taxa
                         (matched/processed taxon concepts)</Text>
-                    <Group>
-                        <Text>ALL of these words (full text)</Text>
-                        <TextInput 
-                            style={{ width: '70%' }}  
-                            value={advancedTaxa1}
-                            onChange={e => setAdvancedTaxa1(e.target.value)}
+                    {[...Array(4)].map((_, index) => (
+                        <Grid align="center">
+                            <Grid.Col span={3} style={{ textAlign: "right" }}>
+                                <Text>Species/Taxon</Text>
+                            </Grid.Col>
+                            <Grid.Col span={9}><TextInput 
+                                style={{ width: '80%' }}  
+                                value={advancedTaxa[index]}
+                                onChange={e => handleTaxaInputChange(index, e.target.value)}
+                            /></Grid.Col>
+                        </Grid>
+                    ))}
+                    <Text fw={700} mt="lg" mb="sm">Find records that specify the following fields</Text>
+                    <Grid align="center">
+                        
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>ALL of these words (full text)</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <TextInput 
+                            style={{ width: '80%' }}  
+                            value={advancedText}
+                            onChange={e => setAdvancedText(e.target.value)}
+                            />
+                        </Grid.Col>
+                        
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Provided scientific name</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}><TextInput 
+                            style={{ width: '80%' }}  
+                            value={advancedRawTaxon}
+                            onChange={e => setAdvancedRawTaxon(e.target.value)}
                         />
-                    </Group>
-                    {/* <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="taxa_1">Species/Taxon</label>
-                        <div className="col-md-6">
-                            <input type="text" id="taxa_1" className="name_autocomplete form-control"
-                                value={advancedTaxa1}
-                                onChange={e => setAdvancedTaxa1(e.target.value)}/>
-                        </div>
-                    </div> */}
-
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="taxa_2">Species/Taxon</label>
-                        <div className="col-md-6">
-                            <input type="text" id="taxa_2" className="name_autocomplete form-control"
-                                value={advancedTaxa2}
-                                onChange={e => setAdvancedTaxa2(e.target.value)}/>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end" id="taxon_row_3">
-                        <label className="col-md-2 control-label" htmlFor="taxa_3">Species/Taxon</label>
-                        <div className="col-md-6">
-                            <input type="text" id="taxa_3" className="name_autocomplete form-control"
-                                value={advancedTaxa3}
-                                onChange={e => setAdvancedTaxa3(e.target.value)}/>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end" id="taxon_row_4">
-                        <label className="col-md-2 control-label" htmlFor="taxa_4">Species/Taxon</label>
-                        <div className="col-md-6">
-                            <input type="text" id="taxa_4" className="name_autocomplete form-control"
-                                value={advancedTaxa4}
-                                onChange={e => setAdvancedTaxa4(e.target.value)}/>
-                        </div>
-                    </div>
-
-                    <h4 className="margin-bottom-half-1">Find records that specify the following fields</h4>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="raw_taxon_name">Provided scientific
-                            name</label>
-                        <div className="col-md-6">
-                            <input type="text" id="raw_taxon_name" className="dataset form-control"
-                                value={advancedRawTaxon}
-                                onChange={e => setAdvancedRawTaxon(e.target.value)}/>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="species_group">Species group</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="species_group"
-                                    value={advancedSpeciesGroup}
-                                    onChange={e => setAdvancedSpeciesGroup(e.target.value)}>
+                        </Grid.Col>
+                        
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Species group</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedSpeciesGroup}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedSpeciesGroup(e.currentTarget.value)}
+                                >
                                 <option value="">-- select a species group --</option>
                                 {advancedOptions?.speciesGroups && advancedOptions.speciesGroups.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="institution_collection">Institution
-                            or collection</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="institution_collection"
-                                    value={advancedInstitution}
-                                    onChange={e => setAdvancedInstitution(e.target.value)}>
+                            </NativeSelect>
+                        </Grid.Col>
+                        
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Institution or collection</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedInstitution}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedInstitution(e.currentTarget.value)}
+                                >
                                 <option value="">-- select an institution or collection --</option>
-
                                 {advancedOptions?.institutions && advancedOptions.institutions.map((institution, idx) =>
                                     <optgroup key={idx} label={institution.name}>
                                         {institution.collections.map((collection, idx) =>
@@ -292,219 +269,212 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                         )}
                                     </optgroup>
                                 )}
+                            </NativeSelect>
+                        </Grid.Col>
 
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="country">Country</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="country"
-                                    value={advancedCountry}
-                                    onChange={e => setAdvancedCountry(e.target.value)}>
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Country</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedCountry}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedCountry(e.currentTarget.value)}
+                                >
                                 <option value="">-- select a country --</option>
-
                                 {advancedOptions?.countries && advancedOptions.countries.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
+                            </NativeSelect>
+                        </Grid.Col>
 
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="state">State/Territory</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="state"
-                                    value={advancedState}
-                                    onChange={e => setAdvancedState(e.target.value)}>
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>State/Territory</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedCountry}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedState(e.currentTarget.value)}
+                                >
                                 <option value="">-- select a state/territory --</option>
-
                                 {advancedOptions?.states && advancedOptions.states.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="ibra"><abbr
-                            title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr> region</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="ibra"
-                                    value={advancedIbra}
-                                    onChange={e => setAdvancedIbra(e.target.value)}>
+                            </NativeSelect>
+                        </Grid.Col>
+                    
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text><abbr title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr> region</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedCountry}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedIbra(e.currentTarget.value)}
+                                >
                                 <option value="">-- select an IBRA region --</option>
-
                                 {advancedOptions?.ibra && advancedOptions.ibra.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
-
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="imcra"><abbr
-                            title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> region</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="imcra"
-                                    value={advancedImcra}
-                                    onChange={e => setAdvancedImcra(e.target.value)}>
-                                <option value="">-- select an IMCRA region --</option>
-
+                            </NativeSelect>
+                        </Grid.Col>
+                    
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text><abbr title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> region</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedCountry}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedImcra(e.currentTarget.value)}
+                                >
+                                <option value="">-- select an IBRA region --</option>
                                 {advancedOptions?.imcra && advancedOptions.imcra.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
+                            </NativeSelect>
+                        </Grid.Col>
 
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="lga">Local Govt. Area</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="lga"
-                                    value={advancedLga}
-                                    onChange={e => setAdvancedLga(e.target.value)}>
-                                <option value="">-- select local government area--</option>
-
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Local Govt. Area</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedCountry}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedLga(e.currentTarget.value)}
+                                >
+                                <option value="">-- select a local government area --</option>
                                 {advancedOptions?.lga && advancedOptions.lga.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
+                            </NativeSelect>
+                        </Grid.Col>
 
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="type_status">Type status</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="type_status"
-                                    value={advancedTypeStatus}
-                                    onChange={e => setAdvancedTypeStatus(e.target.value)}>
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Type status</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedTypeStatus}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedTypeStatus(e.currentTarget.value)}
+                                >
                                 <option value="">-- select a type status --</option>
-
                                 {advancedOptions?.typeStatus && advancedOptions.typeStatus.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
+                            </NativeSelect>
+                        </Grid.Col>
 
-                            </select>
-
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="basis_of_record">Basis of
-                            record</label>
-                        <div className="col-md-6">
-                            <select className="form-select form-control" id="basis_of_record"
-                                    value={advancedBasisOfRecord}
-                                    onChange={e => setAdvancedBasisOfRecord(e.target.value)}>
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Basis of record</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <NativeSelect
+                                value={advancedBasisOfRecord}
+                                style={{ width: '80%' }}
+                                onChange={(e) => setAdvancedBasisOfRecord(e.currentTarget.value)}
+                                >
                                 <option value="">-- select a basis of record --</option>
-
                                 {advancedOptions?.basisOfRecord && advancedOptions.basisOfRecord.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
                                 )}
+                            </NativeSelect>
+                        </Grid.Col>
 
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="collector_text">Collector
-                            name</label>
-                        <div className="col-md-6">
-                            <input type="text" id="collector_text" className="dataset form-control"
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Collector name</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <TextInput 
+                                style={{ width: '80%' }}  
                                 value={advancedCollector}
-                                onChange={e => setAdvancedCollector(e.target.value)}/>
-                        </div>
-                    </div>
+                                onChange={e => setAdvancedCollector(e.target.value)}
+                            />
+                        </Grid.Col>
 
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="control-label col-md-2">Data Resource</label>
-                        <div className="col-md-6">
-                            {/* {advancedOptions?.dataResources && <Typeahead
-                                id="dataResource-autocomplete"
-                                labelKey="name"
-                                options={advancedOptions.dataResources}
-                                selected={advancedDataResource}
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Data Resource</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <MultiSelect
+                                data={advancedOptions?.dataResources as any[]}
+                                value={advancedDataResource}
                                 onChange={(selected) => {
                                     setAdvancedDataResource(selected)
                                 }}
-                                renderMenu={(results, menuProps) => ( */}
-                                    {/* <Menu {...menuProps}>
-                                        {results.map((result, index) => (
-                                            <MenuItem
-                                                key={index}
-                                                option={result}
-                                                position={index}
-                                                // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
-                                                href={"javascript:"}>
-                                                {/* @ts-ignore */}
-                                                {/* {result.name} */}
-                                            {/* </MenuItem> */}
-                                        {/* ))} */}
-                                    {/* </Menu>  */}
-                                {/* )}
+                                searchable
+                                placeholder="Search or select a data resource"
+                                style={{ width: '80%' }}  
                             />
-                            } */}
-                        </div>
-                    </div>
+                        </Grid.Col>
 
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="catalogue_number">Catalogue
-                            number</label>
-                        <div className="col-md-6">
-                            <input type="text" id="catalogue_number" className="form-control"
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Catalogue number</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <TextInput 
+                                style={{ width: '80%' }}  
                                 value={advancedCatalogue}
-                                onChange={e => setAdvancedCatalogue(e.target.value)}/>
-                        </div>
-                    </div>
+                                onChange={e => setAdvancedCatalogue(e.target.value)}
+                            />
+                        </Grid.Col>
 
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="record_number">Record
-                            number</label>
-                        <div className="col-md-6">
-                            <input type="text" id="record_number" className="form-control"
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Record number</Text>
+                        </Grid.Col>
+                        <Grid.Col span={9}>
+                            <TextInput 
+                                style={{ width: '80%' }}  
                                 value={advancedRecord}
-                                onChange={e => setAdvancedRecord(e.target.value)}/>
-                        </div>
-                    </div>
+                                onChange={e => setAdvancedRecord(e.target.value)}
+                            />
+                        </Grid.Col>
 
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="startDate">Begin date</label>
-                        <div className="col-md-2 ">
-                            <input type="text" id="startDate" className="form-control"
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>Begin date</Text>
+                        </Grid.Col>
+                        <Grid.Col span="auto">
+                            <TextInput 
+                                style={{ width: '100%' }}  
                                 value={advancedBeginDate}
-                                onChange={e => setAdvancedBeginDate(e.target.value)}/>
-                        </div>
-                        <div className="col-md-6 text-start">
-                            <span className="small">(YYYY-MM-DD) leave blank for most recent record date</span>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center text-end">
-                        <label className="col-md-2 control-label" htmlFor="endDate">End date</label>
-                        <div className="col-md-2 ">
-                            <input type="text" id="endDate" className="occurrence_date form-control"
+                                onChange={e => setAdvancedBeginDate(e.target.value)}
+                            />
+                        </Grid.Col>
+                        <Grid.Col span={6}>
+                            <Text>(YYYY-MM-DD)</Text>
+                        </Grid.Col>
+                    </Grid>
+                    <Grid align="center">  
+                        <Grid.Col span={3} style={{ textAlign: "right" }}>
+                            <Text>End date</Text>
+                        </Grid.Col>
+                        <Grid.Col span="auto">
+                            <TextInput 
+                                style={{ width: '100%' }}  
                                 value={advancedEndDate}
-                                onChange={e => setAdvancedEndDate(e.target.value)}/>
-                        </div>
-                        <div className="col-md-6 text-start">
-                            <span className="small">(YYYY-MM-DD) leave blank for most recent record date </span>
-                        </div>
-                    </div>
+                                onChange={e => setAdvancedEndDate(e.target.value)}
+                            />
+                        </Grid.Col>
+                        <Grid.Col span={6}>
+                            <Text>(YYYY-MM-DD)</Text>
+                        </Grid.Col>
+                    </Grid>
 
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-md-2">
-                            <button className="btn btn-primary" onClick={() => advancedSearch()}>Search</button>
-                            <button id="clearAll" className="btn border-black ms-2"
-                                    onClick={() => advancedClear()}>Clear all
-                            </button>
-                        </div>
-                    </div>
+                    <Group mt="lg">
+                        <Button
+                            size="md"
+                            variant="filled"
+                            onClick={() => advancedSearch()}
+                            >Search</Button>
+                        <Button
+                            size="md"
+                            variant="outline"
+                            onClick={() => advancedClear()}
+                            >Clear all</Button>
+                    </Group>
                 </Box>
             }
             {/* </Tabs.Panel> 
