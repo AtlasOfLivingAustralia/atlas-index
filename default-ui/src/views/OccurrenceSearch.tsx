@@ -1,13 +1,14 @@
 import {useEffect, useState} from "react";
 import {AdvancedSearch, Breadcrumb} from "../api/sources/model.ts";
 // import {Tab, Tabs} from "react-bootstrap";
-import { Box, Container, Divider, Tabs, Title } from '@mantine/core';
+import { Box, Button, Container, Divider, Group, rem, Space, Tabs, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
 // import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 // import '../css/search.css';
 import classes from '../desktop.module.css';
+import { IconSearch } from "@tabler/icons-react";
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
-
+    const theme = useMantineTheme();
     const [tab, setTab] = useState('simple');
     const [advancedOptions, setAdvancedOptions] = useState<AdvancedSearch>();
 
@@ -113,6 +114,11 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         alert('import wkt')
     }
 
+    const handleTabChange = (value: string | null) => {
+        const tabsTab = value || ''; 
+        setTab(tabsTab);
+    };
+
     return <>
         <Box className={classes.header}>
             <Container py="lg" size="lg">
@@ -123,6 +129,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             <Tabs
                 id="occurrence-tabs"
                 defaultValue={tab}
+                onChange={handleTabChange}
                 className=""
             >
                 <Container size="lg">
@@ -139,30 +146,54 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             </Tabs>
         </Box>
         <Container size="lg">
-            <Tabs.Panel value="simple" title="Simple search">
-                <div className="container-fluid ps-0">
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-9 col-md-9">
-                            <div className="input-group">
-                                <input type="text" className="form-control"
-                                    value={simpleTaxa}
-                                    onChange={e => setSimpleTaxa(e.target.value)}/>
-                                <button className="btn btn-primary" onClick={() => simpleSearch()}>Search</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
+            <Space h="xl" />
+            {tab === 'simple' && 
+                <Box>
+                    <Group style={{ display: 'flex', alignItems: 'center' }}>
+                        <TextInput
+                            value={simpleTaxa}
+                            size="md"
+                            mt="md"
+                            style={{ width: '70%' }} 
+                            onChange={(e) => setSimpleTaxa(e.target.value)}
+                            placeholder="Enter species/taxon"
+                            rightSectionWidth="auto"
+                            leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
+                            rightSection={
+                                <Button
+                                    size="compact-md"
+                                    variant="filled"
+                                    px={10} mx={5}
+                                    fullWidth
+                                    onClick={() => simpleSearch()}
+                                    >Search</Button>
+                            }
+                        />
+                    </Group>
+                    <Space h="xl" />
+                    <Box>
                         <span className="simpleSearchNote">
                             <b>Note:</b> the simple search attempts to match a known <b>species/taxon</b> - by its scientific name or common name. If there are no name matches, a <b>full text</b> search will be performed on your query
                         </span>
-                    </div>
-                </div>
-            </Tabs.Panel> 
-            <Tabs.Panel value="advanced" title="Advanced search">
-                <div className="container-fluid ps-0">
-                    <h4>Find records that have</h4>
-                    <div className="mb-3 row align-items-center text-end align-items-center text-end">
+                    </Box>
+                </Box>
+            }
+            {tab === 'advanced' && 
+                <Box>
+                    <Text fw={700}>Find records that have</Text>
+                    <Group>
+                        <Text>ALL of these words (full text)</Text>
+                        <TextInput 
+                            style={{ width: '70%' }}  
+                            value={advancedText}
+                            onChange={e => setAdvancedText(e.target.value)}
+                        />
+                    </Group>
+                    {/* <TextInput
+                        label="ALL of these words (full text)"
+                        placeholder=""
+                    /> */}
+                    {/* <div className="mb-3 row align-items-center text-end align-items-center text-end">
                         <label className="col-md-2 control-label" htmlFor="text">ALL of these words (full
                             text)</label>
                         <div className="col-md-6">
@@ -170,19 +201,26 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 value={advancedText}
                                 onChange={e => setAdvancedText(e.target.value)}/>
                         </div>
-                    </div>
+                    </div> */}
 
-                    <h4>Find records for ANY of the following taxa
-                        (matched/processed taxon concepts)</h4>
-
-                    <div className="mb-3 row align-items-center text-end">
+                    <Text fw={700}>Find records for ANY of the following taxa
+                        (matched/processed taxon concepts)</Text>
+                    <Group>
+                        <Text>ALL of these words (full text)</Text>
+                        <TextInput 
+                            style={{ width: '70%' }}  
+                            value={advancedTaxa1}
+                            onChange={e => setAdvancedTaxa1(e.target.value)}
+                        />
+                    </Group>
+                    {/* <div className="mb-3 row align-items-center text-end">
                         <label className="col-md-2 control-label" htmlFor="taxa_1">Species/Taxon</label>
                         <div className="col-md-6">
                             <input type="text" id="taxa_1" className="name_autocomplete form-control"
                                 value={advancedTaxa1}
                                 onChange={e => setAdvancedTaxa1(e.target.value)}/>
                         </div>
-                    </div>
+                    </div> */}
 
 
                     <div className="mb-3 row align-items-center text-end">
@@ -193,7 +231,6 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 onChange={e => setAdvancedTaxa2(e.target.value)}/>
                         </div>
                     </div>
-
 
                     <div className="mb-3 row align-items-center text-end" id="taxon_row_3">
                         <label className="col-md-2 control-label" htmlFor="taxa_3">Species/Taxon</label>
@@ -308,7 +345,6 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </div>
                     </div>
 
-
                     <div className="mb-3 row align-items-center text-end">
                         <label className="col-md-2 control-label" htmlFor="imcra"><abbr
                             title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> region</label>
@@ -326,7 +362,6 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </div>
                     </div>
 
-
                     <div className="mb-3 row align-items-center text-end">
                         <label className="col-md-2 control-label" htmlFor="lga">Local Govt. Area</label>
                         <div className="col-md-6">
@@ -342,7 +377,6 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             </select>
                         </div>
                     </div>
-
 
                     <div className="mb-3 row align-items-center text-end">
                         <label className="col-md-2 control-label" htmlFor="type_status">Type status</label>
@@ -471,9 +505,11 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             </button>
                         </div>
                     </div>
-                </div>
-            </Tabs.Panel> 
-            <Tabs.Panel value="taxon" title="Batch taxon search">
+                </Box>
+            }
+            {/* </Tabs.Panel> 
+            <Tabs.Panel value="taxon" title="Batch taxon search"> */}
+            {tab === 'taxon' && 
                 <div className="container-fluid ps-0">
                     <div className="mb-3 row align-items-center">
                         <div className="col-sm-8">
@@ -525,8 +561,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </div>
                     </div>
                 </div>
-            </Tabs.Panel> 
-            <Tabs.Panel value="catalogue" title="Catalog number search">
+        }
+            {/* </Tabs.Panel> 
+            <Tabs.Panel value="catalogue" title="Catalog number search"> */}
+            {tab === 'catalogue' && 
                 <div className="container-fluid ps-0">
                     <div className="mb-3 row align-items-center">
                         <div className="col-sm-8">
@@ -545,8 +583,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </div>
                     </div>
                 </div>
-            </Tabs.Panel> 
-            <Tabs.Panel value="event" title="Event search">
+            }
+            {/* </Tabs.Panel> 
+            <Tabs.Panel value="event" title="Event search"> */}
+            {tab === 'event' &&
                 <div className="container-fluid ps-0">
                     <div className="mb-3 row align-items-center">
                         <div className="col-sm-8">
@@ -637,9 +677,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </div>
                     </div>
                 </div>
-
-            </Tabs.Panel> 
-            <Tabs.Panel value="spatial" title="Spatial search">
+            }
+            {/* </Tabs.Panel> 
+            <Tabs.Panel value="spatial" title="Spatial search"> */}
+            {tab === 'spatial' &&
                 <div className="container-fluid ps-0">
                     <div className="mb-3 row">
                         <div className="col-sm-3 col-md-3">
@@ -691,7 +732,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </div>
                     </div>
                 </div>
-            </Tabs.Panel> 
+            }
+            {/* </Tabs.Panel>  */}
         </Container>
     </>
 }
