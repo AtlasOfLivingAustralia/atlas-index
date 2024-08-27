@@ -1,14 +1,37 @@
-import {useEffect, useState} from "react";
-import {AdvancedSearch, Breadcrumb} from "../api/sources/model.ts";
+import { useEffect, useState } from "react";
+import { AdvancedSearch, Breadcrumb } from "../api/sources/model.ts";
 // import {Tab, Tabs} from "react-bootstrap";
-import { Box, Button, Container, Divider, Grid, Group, MultiSelect, NativeSelect, rem, Space, Tabs, Text, TextInput, Title, useMantineTheme } from '@mantine/core';
+import { Accordion, Anchor, Box, Button, Code, Container, Divider, Flex, Grid, 
+    Group, NativeSelect, Radio, rem, Select, Space, Stack, Tabs, Text, Textarea, 
+    TextInput, Title, useMantineTheme } from '@mantine/core';
 // import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 // import '../css/search.css';
 import classes from '../desktop.module.css';
 import { IconSearch } from "@tabler/icons-react";
 
+interface AdvancedSearchInputs {
+    advancedText: string;
+    advancedTaxa: string[];
+    advancedRawTaxon: string;
+    advancedSpeciesGroup: string;
+    advancedInstitution: string;
+    advancedCountry: string;
+    advancedState: string;
+    advancedIbra: string;
+    advancedImcra: string;
+    advancedLga: string;
+    advancedTypeStatus: string;
+    advancedBasisOfRecord: string;
+    advancedDataResource: string;
+    advancedCollector: string;
+    advancedCatalogue: string;
+    advancedRecord: string;
+    advancedBeginDate: string;
+    advancedEndDate: string;
+}
+
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
-    const theme = useMantineTheme();
+    // const theme = useMantineTheme();
     const [tab, setTab] = useState('simple');
     const [advancedOptions, setAdvancedOptions] = useState<AdvancedSearch>();
 
@@ -16,28 +39,26 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     const [simpleTaxa, setSimpleTaxa] = useState('');
 
     // advanced search
-    const [advancedText, setAdvancedText] = useState('');
-    const [advancedTaxa, setAdvancedTaxa] = useState<any[]>([]);
-    const [advancedTaxa1, setAdvancedTaxa1] = useState('');
-    const [advancedTaxa2, setAdvancedTaxa2] = useState('');
-    const [advancedTaxa3, setAdvancedTaxa3] = useState('');
-    const [advancedTaxa4, setAdvancedTaxa4] = useState('');
-    const [advancedRawTaxon, setAdvancedRawTaxon] = useState('');
-    const [advancedSpeciesGroup, setAdvancedSpeciesGroup] = useState('');
-    const [advancedInstitution, setAdvancedInstitution] = useState('');
-    const [advancedCountry, setAdvancedCountry] = useState('');
-    const [advancedState, setAdvancedState] = useState('');
-    const [advancedIbra, setAdvancedIbra] = useState('');
-    const [advancedImcra, setAdvancedImcra] = useState('');
-    const [advancedLga, setAdvancedLga] = useState('');
-    const [advancedTypeStatus, setAdvancedTypeStatus] = useState('');
-    const [advancedBasisOfRecord, setAdvancedBasisOfRecord] = useState('');
-    const [advancedDataResource, setAdvancedDataResource] = useState<any[]>([]);
-    const [advancedCollector, setAdvancedCollector] = useState('');
-    const [advancedCatalogue, setAdvancedCatalogue] = useState('');
-    const [advancedRecord, setAdvancedRecord] = useState('');
-    const [advancedBeginDate, setAdvancedBeginDate] = useState('');
-    const [advancedEndDate, setAdvancedEndDate] = useState('');
+    const [advancedSearchFields, setAdvancedSearchFields] = useState<AdvancedSearchInputs>({
+        advancedText: '',
+        advancedTaxa: [],
+        advancedRawTaxon: '',
+        advancedSpeciesGroup: '',
+        advancedInstitution: '',
+        advancedCountry: '',
+        advancedState: '',
+        advancedIbra: '',
+        advancedImcra: '',
+        advancedLga: '',
+        advancedTypeStatus: '',
+        advancedBasisOfRecord: '',
+        advancedDataResource: '',
+        advancedCollector: '',
+        advancedCatalogue: '',
+        advancedRecord: '',
+        advancedBeginDate: '',
+        advancedEndDate: '',
+    });
 
     // batch taxon search
     const [taxonText, setTaxonText] = useState('');
@@ -80,14 +101,44 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
     function advancedClear() {
         console.log('clear advanced search');
+        setAdvancedSearchFields({
+            advancedText: '',
+            advancedTaxa: [],
+            advancedRawTaxon: '',
+            advancedSpeciesGroup: '',
+            advancedInstitution: '',
+            advancedCountry: '',
+            advancedState: '',
+            advancedIbra: '',
+            advancedImcra: '',
+            advancedLga: '',
+            advancedTypeStatus: '',
+            advancedBasisOfRecord: '',
+            advancedDataResource: '',
+            advancedCollector: '',
+            advancedCatalogue: '',
+            advancedRecord: '',
+            advancedBeginDate: '',
+            advancedEndDate: '',
+        });
     }
-
+    
     function taxonSearch() {
         console.log('taxon search');
     }
 
+    function taxonClear() {
+        console.log('clear taxon search');
+        setTaxonText('');
+    }
+
     function catalogueSearch() {
         console.log('catalogue search');
+    }
+
+    function catalogueClear() {
+        console.log('clear catalogue search');
+        setCatalogueText('');
     }
 
     function eventTermsSearch() {
@@ -120,17 +171,18 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         setTab(tabsTab);
     };
 
-    const handleTaxaInputChange = (index: number, value: string) => {
-        const newAdvancedTaxa = [...advancedTaxa];
-        newAdvancedTaxa[index] = value;
-        setAdvancedTaxa(newAdvancedTaxa);
+    const handleAdvancedInputChange = (field: keyof AdvancedSearchInputs, value: any) => {
+        setAdvancedSearchFields(prevState => ({
+            ...prevState,
+            [field]: value,
+        }));
     };
 
     return <>
         <Box className={classes.header}>
             <Container py="lg" size="lg">
-                <Title order={3} fw={400}>
-                    <strong className="w-100" id="searchHeader">Search for records in Atlas of Living Australia</strong>
+                <Title order={3} fw={500}>
+                    Search for records in Atlas of Living Australia
                 </Title>
             </Container>
             <Tabs
@@ -161,7 +213,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             value={simpleTaxa}
                             size="md"
                             mt="md"
-                            style={{ width: '70%' }} 
+                            style={{ width: '80%' }} 
                             onChange={(e) => setSimpleTaxa(e.target.value)}
                             placeholder="Enter species/taxon"
                             rightSectionWidth="auto"
@@ -179,9 +231,9 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                     </Group>
                     <Space h="xl" />
                     <Box>
-                        <span className="simpleSearchNote">
+                        <Text style={{ width: '80%' }} >
                             <b>Note:</b> the simple search attempts to match a known <b>species/taxon</b> - by its scientific name or common name. If there are no name matches, a <b>full text</b> search will be performed on your query
-                        </span>
+                        </Text>
                     </Box>
                 </Box>
             }
@@ -194,8 +246,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}><TextInput 
                             style={{ width: '80%' }}  
-                            value={advancedText}
-                            onChange={e => setAdvancedText(e.target.value)}
+                            value={advancedSearchFields.advancedText}
+                            onChange={e => handleAdvancedInputChange('advancedText', e.target.value)}
                         /></Grid.Col>
                     </Grid>
                     <Text fw={700} mt="lg" mb="sm">Find records for ANY of the following taxa
@@ -207,8 +259,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             </Grid.Col>
                             <Grid.Col span={9}><TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedTaxa[index]}
-                                onChange={e => handleTaxaInputChange(index, e.target.value)}
+                                value={advancedSearchFields.advancedTaxa[index] || ''}
+                                onChange={e => {
+                                    const newAdvancedTaxa = [...advancedSearchFields.advancedTaxa];
+                                    newAdvancedTaxa[index] = e.target.value;
+                                    handleAdvancedInputChange('advancedTaxa', newAdvancedTaxa);
+                                }}
                             /></Grid.Col>
                         </Grid>
                     ))}
@@ -216,24 +272,14 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                     <Grid align="center">
                         
                         <Grid.Col span={3} style={{ textAlign: "right" }}>
-                            <Text>ALL of these words (full text)</Text>
+                            <Text>Provided scientific name</Text>
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <TextInput 
-                            style={{ width: '80%' }}  
-                            value={advancedText}
-                            onChange={e => setAdvancedText(e.target.value)}
+                                style={{ width: '80%' }}  
+                                value={advancedSearchFields.advancedRawTaxon}
+                                onChange={e => handleAdvancedInputChange('advancedRawTaxon', e.target.value)}
                             />
-                        </Grid.Col>
-                        
-                        <Grid.Col span={3} style={{ textAlign: "right" }}>
-                            <Text>Provided scientific name</Text>
-                        </Grid.Col>
-                        <Grid.Col span={9}><TextInput 
-                            style={{ width: '80%' }}  
-                            value={advancedRawTaxon}
-                            onChange={e => setAdvancedRawTaxon(e.target.value)}
-                        />
                         </Grid.Col>
                         
                         <Grid.Col span={3} style={{ textAlign: "right" }}>
@@ -241,10 +287,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSpeciesGroup}
+                                value={advancedSearchFields.advancedSpeciesGroup}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedSpeciesGroup(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedSpeciesGroup', e.currentTarget.value)}
+                            >
                                 <option value="">-- select a species group --</option>
                                 {advancedOptions?.speciesGroups && advancedOptions.speciesGroups.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -257,15 +303,15 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedInstitution}
+                                value={advancedSearchFields.advancedInstitution}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedInstitution(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedInstitution', e.currentTarget.value)}
+                            >
                                 <option value="">-- select an institution or collection --</option>
                                 {advancedOptions?.institutions && advancedOptions.institutions.map((institution, idx) =>
                                     <optgroup key={idx} label={institution.name}>
-                                        {institution.collections.map((collection, idx) =>
-                                            <option key={idx} value={collection.fq}>{collection.name}</option>
+                                        {institution.collections.map((collection, ndx) =>
+                                            <option key={ndx} value={collection.fq}>{collection.name}</option>
                                         )}
                                     </optgroup>
                                 )}
@@ -277,10 +323,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedCountry}
+                                value={advancedSearchFields.advancedCountry}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedCountry(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedCountry', e.currentTarget.value)}
+                            >
                                 <option value="">-- select a country --</option>
                                 {advancedOptions?.countries && advancedOptions.countries.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -293,10 +339,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedCountry}
+                                value={advancedSearchFields.advancedState}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedState(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedState', e.currentTarget.value)}
+                            >
                                 <option value="">-- select a state/territory --</option>
                                 {advancedOptions?.states && advancedOptions.states.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -309,10 +355,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedCountry}
+                                value={advancedSearchFields.advancedIbra}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedIbra(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedIbra', e.currentTarget.value)}
+                            >
                                 <option value="">-- select an IBRA region --</option>
                                 {advancedOptions?.ibra && advancedOptions.ibra.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -325,10 +371,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedCountry}
+                                value={advancedSearchFields.advancedImcra}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedImcra(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedImcra', e.currentTarget.value)}
+                            >
                                 <option value="">-- select an IBRA region --</option>
                                 {advancedOptions?.imcra && advancedOptions.imcra.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -341,10 +387,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedCountry}
+                                value={advancedSearchFields.advancedLga}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedLga(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedLga', e.currentTarget.value)}
+                            >
                                 <option value="">-- select a local government area --</option>
                                 {advancedOptions?.lga && advancedOptions.lga.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -357,10 +403,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedTypeStatus}
+                                value={advancedSearchFields.advancedTypeStatus}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedTypeStatus(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedTypeStatus', e.currentTarget.value)}
+                            >
                                 <option value="">-- select a type status --</option>
                                 {advancedOptions?.typeStatus && advancedOptions.typeStatus.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -373,10 +419,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedBasisOfRecord}
+                                value={advancedSearchFields.advancedBasisOfRecord}
                                 style={{ width: '80%' }}
-                                onChange={(e) => setAdvancedBasisOfRecord(e.currentTarget.value)}
-                                >
+                                onChange={(e) => handleAdvancedInputChange('advancedBasisOfRecord', e.currentTarget.value)}
+                            >
                                 <option value="">-- select a basis of record --</option>
                                 {advancedOptions?.basisOfRecord && advancedOptions.basisOfRecord.map((item, idx) =>
                                     <option key={idx} value={item.fq}>{item.name}</option>
@@ -390,8 +436,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedCollector}
-                                onChange={e => setAdvancedCollector(e.target.value)}
+                                value={advancedSearchFields.advancedCollector}
+                                onChange={e => handleAdvancedInputChange('advancedCollector', e.target.value)}
                             />
                         </Grid.Col>
 
@@ -399,11 +445,11 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             <Text>Data Resource</Text>
                         </Grid.Col>
                         <Grid.Col span={9}>
-                            <MultiSelect
-                                data={advancedOptions?.dataResources as any[]}
-                                value={advancedDataResource}
+                            <Select
+                                // data={advancedOptions?.dataResources as any[]} // TODO: fix type
+                                value={advancedSearchFields.advancedDataResource}
                                 onChange={(selected) => {
-                                    setAdvancedDataResource(selected)
+                                    handleAdvancedInputChange('advancedDataResource', selected)
                                 }}
                                 searchable
                                 placeholder="Search or select a data resource"
@@ -417,8 +463,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedCatalogue}
-                                onChange={e => setAdvancedCatalogue(e.target.value)}
+                                value={advancedSearchFields.advancedCatalogue}
+                                onChange={e => handleAdvancedInputChange('advancedCatalogue', e.target.value)}
                             />
                         </Grid.Col>
 
@@ -428,8 +474,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedRecord}
-                                onChange={e => setAdvancedRecord(e.target.value)}
+                                value={advancedSearchFields.advancedRecord}
+                                onChange={e => handleAdvancedInputChange('advancedRecord', e.target.value)}
                             />
                         </Grid.Col>
 
@@ -439,14 +485,15 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span="auto">
                             <TextInput 
                                 style={{ width: '100%' }}  
-                                value={advancedBeginDate}
-                                onChange={e => setAdvancedBeginDate(e.target.value)}
+                                value={advancedSearchFields.advancedBeginDate}
+                                onChange={e => handleAdvancedInputChange('advancedBeginDate', e.target.value)}
                             />
                         </Grid.Col>
                         <Grid.Col span={6}>
                             <Text>(YYYY-MM-DD)</Text>
                         </Grid.Col>
                     </Grid>
+
                     <Grid align="center">  
                         <Grid.Col span={3} style={{ textAlign: "right" }}>
                             <Text>End date</Text>
@@ -454,8 +501,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span="auto">
                             <TextInput 
                                 style={{ width: '100%' }}  
-                                value={advancedEndDate}
-                                onChange={e => setAdvancedEndDate(e.target.value)}
+                                value={advancedSearchFields.advancedEndDate}
+                                onChange={e => handleAdvancedInputChange('advancedEndDate', e.target.value)}
                             />
                         </Grid.Col>
                         <Grid.Col span={6}>
@@ -477,233 +524,189 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                     </Group>
                 </Box>
             }
-            {/* </Tabs.Panel> 
-            <Tabs.Panel value="taxon" title="Batch taxon search"> */}
+
             {tab === 'taxon' && 
-                <div className="container-fluid ps-0">
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label htmlFor="raw_names" className="fw-bold mb-1">Enter a list of taxon names/scientific names, one name
-                                per line (common names not currently supported).</label>
-                            <textarea id="raw_names" className="form-control" rows={15} cols={60}
-                                    value={taxonText}
-                                    onChange={e => setTaxonText(e.target.value)}>
-                            </textarea>
-                        </div>
-                    </div>
+                <Box>
+                    <Text fw={500}>Enter a list of taxon names/scientific names, one name per line</Text>
+                    <Textarea
+                        style={{ width: '80%' }}
+                        mt="sm"
+                        value={taxonText}
+                        onChange={e => setTaxonText(e.target.value)}
+                        autosize={true}
+                        minRows={10}
+                        maxRows={15} 
+                    />
+                    <Flex align="flex-start" justify="flex-start" mt="md" gap="sm">
+                        <Text>Search on:</Text>
+                        <Stack>
+                            <Radio.Group
+                                value={taxonMode}
+                                onChange={setTaxonMode}
+                                name="taxonMode"
+                            >
+                                <Radio value="taxa" label="Matched name (via the ALA taxonomy)" />
+                                <Radio mt="xs" value="raw_scientificName" label="Supplied name (note: is case-sensitive so genus should be capitalised)" />
+                            </Radio.Group>
+                        </Stack>
+                    </Flex>
+                    <Group mt="lg">
+                        <Button
+                            size="md"
+                            variant="filled"
+                            onClick={() => taxonSearch()}
+                            >Search</Button>
+                        <Button
+                            size="md"
+                            variant="outline"
+                            onClick={() => taxonClear()}
+                            >Clear</Button>
+                    </Group>
+                </Box>
+            }
 
-                    <div className="mb-3 row">
-                        <div className="col-sm-1">
-                            Search on:
-                        </div>
-
-                        <div className="col-sm-6">
-                            <div className="form-check">
-                                <input type="radio" name="field" id="batchModeMatched" value="taxa"
-                                    checked={taxonMode === "taxa"} className="form-check-input"
-                                        onChange={(e) => setTaxonMode(e.target.value)}/>
-                                <label className="form-check-label" htmlFor="batchModeMatched">
-                                    Matched name&nbsp;
-                                    <abbr
-                                        title="Input names will be matched to their accepted scientific name in the ALA taxonomy. Results will include records for known synonyms">
-                                        (via the ALA taxonomy)</abbr>
-                                </label>
-                            </div>
-                            <div className="form-check">
-                                <input type="radio" name="field" id="batchModeRaw"
-                                    value="raw_scientificName" className="form-check-input"
-                                    checked={taxonMode === "raw_scientificName"}
-                                    onChange={(e) => setTaxonMode(e.target.value)}/>
-                                <label className="form-check-label" htmlFor="batchModeRaw">
-                                    Supplied name&nbsp;
-                                    <abbr
-                                        title="Input names will only match the scientific name supplied in the original occurrence record. Results will NOT include records for known synonyms. Note: searching is case sensitive.">
-                                        (note: is case-sensitive so genus should be
-                                        capitalised)</abbr>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => taxonSearch()}>Search</button>
-                        </div>
-                    </div>
-                </div>
-        }
-            {/* </Tabs.Panel> 
-            <Tabs.Panel value="catalogue" title="Catalog number search"> */}
             {tab === 'catalogue' && 
-                <div className="container-fluid ps-0">
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label htmlFor="catalogue_numbers" className="fw-bold mb-1">Enter a list of catalogue numbers (one number per
-                                line).</label>
-
-                            <textarea id="catalogue_numbers" className="form-control" rows={15}
-                                    cols={60}
-                                    value={catalogueText}
-                                    onChange={e => setCatalogueText(e.target.value)}></textarea>
-                        </div>
-                    </div>
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => catalogueSearch()}>Search</button>
-                        </div>
-                    </div>
-                </div>
-            }
-            {/* </Tabs.Panel> 
-            <Tabs.Panel value="event" title="Event search"> */}
+                <Box>
+                    <Text fw={500}>Enter a list of catalogue numbers, one number per line</Text>
+                    <Textarea
+                        style={{ width: '80%' }}
+                        mt="sm"
+                        value={catalogueText}
+                        onChange={e => setCatalogueText(e.target.value)}
+                        autosize={true}
+                        minRows={10}
+                        maxRows={15} 
+                    />
+                    <Group mt="lg">
+                        <Button
+                            size="md"
+                            variant="filled"
+                            onClick={() => catalogueSearch()}
+                            >Search</Button>
+                        <Button
+                            size="md"
+                            variant="outline"
+                            onClick={() => catalogueClear()}
+                            >Clear</Button>
+                    </Group>
+                </Box>
+            }      
+            
             {tab === 'event' &&
-                <div className="container-fluid ps-0">
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label htmlFor="event_ids" className="fw-bold mb-1">Search across event ID, parent event ID, field number and
-                                dataset / survey name.
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label className="fw-bold mb-1">
-                                Enter a list of terms (one per line).
-                            </label>
-
-                            <textarea id="event_keywords" className="form-control" rows={5}
-                                    cols={60}
-                                    value={eventTerms}
-                                    onChange={e => setEventTerms(e.target.value)}></textarea>
-                        </div>
-                    </div>
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => eventTermsSearch()}>Search</button>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of event IDs (one per line).</label>
-                            <textarea id="event_ids" className="form-control" rows={5}
-                                    cols={60}
-                                    value={eventIds}
-                                    onChange={e => setEventIds(e.target.value)}></textarea>
-                        </div>
-                    </div>
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => eventIdsSearch()}>Search</button>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of parent event IDs (one per
-                                line).</label>
-                            <textarea id="parent_event_ids" className="form-control" rows={5}
-                                    cols={60}
-                                    value={eventParentIds}
-                                    onChange={e => setEventParentIds(e.target.value)}></textarea>
-                        </div>
-                    </div>
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => eventParentIdsSearch()}>Search</button>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-                            <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of field numbers (one per line).</label>
-                            <textarea name="queries" id="field_numbers" className="form-control" rows={5}
-                                    cols={60}
-                                    value={eventFieldNumbers}
-                                    onChange={e => setEventFieldNumbers(e.target.value)}></textarea>
-                        </div>
-                    </div>
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => eventFieldNumbersSearch()}>Search</button>
-                        </div>
-                    </div>
-
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-8">
-
-                            <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of dataset / survey names (one per
-                                line). </label>
-                            <textarea name="queries" id="dataset_name" className="form-control" rows={5}
-                                    cols={60}
-                                    value={eventNames}
-                                    onChange={e => setEventNames(e.target.value)}></textarea>
-                        </div>
-                    </div>
-                    <div className="mb-3 row align-items-center">
-                        <div className="col-sm-2">
-                            <button className="btn btn-primary" onClick={() => eventNamesSearch()}>Search</button>
-                        </div>
-                    </div>
-                </div>
+                <Box>
+                    <Text fw={500}>Search across event ID, parent event ID, field number and dataset / survey name</Text>
+                    {[
+                        {
+                            label: 'Enter a list of terms (one per line).',
+                            id: 'event_keywords',
+                            value: eventTerms,
+                            setValue: setEventTerms,
+                            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setEventTerms(e.target.value),
+                            search: eventTermsSearch,
+                        },
+                        {
+                            label: 'Enter a list of event IDs (one per line).',
+                            id: 'event_ids',
+                            value: eventIds,
+                            setValue: setEventIds,
+                            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setEventIds(e.target.value),
+                            search: eventIdsSearch,
+                        },
+                        {
+                            label: 'Enter a list of parent event IDs (one per line).',
+                            id: 'parent_event_ids',
+                            value: eventParentIds,
+                            setValue: setEventParentIds,
+                            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setEventParentIds(e.target.value),
+                            search: eventParentIdsSearch,
+                        },
+                        {
+                            label: 'Enter a list of field numbers (one per line).',
+                            id: 'field_numbers',
+                            value: eventFieldNumbers,
+                            setValue: setEventFieldNumbers,
+                            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setEventFieldNumbers(e.target.value),
+                            search: eventFieldNumbersSearch,
+                        },
+                        {
+                            label: 'Enter a list of dataset / survey names (one per line).',
+                            id: 'dataset_name',
+                            value: eventNames,
+                            setValue: setEventNames,
+                            onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => setEventNames(e.target.value),
+                            search: eventNamesSearch,
+                        },
+                    ].map((item, index) => (
+                        <Box mt="md" key={index}>
+                            <Text>{item.label}</Text>
+                            <Textarea
+                                style={{ width: '80%' }}
+                                mt="xs" mb="xs"
+                                value={item.value}
+                                onChange={item.onChange}
+                                autosize={true}
+                                minRows={5} maxRows={5} 
+                            />
+                            <Group>
+                                <Button
+                                    size="compact-md"
+                                    variant="filled"
+                                    onClick={item.search}
+                                    >Search</Button>
+                                <Button
+                                    size="compact-md"
+                                    variant="outline"
+                                    onClick={() => {item.setValue('')}}
+                                    >Clear</Button>
+                            </Group>
+                            <Divider mt="md" style={{ width: '80%' }}/>
+                        </Box>
+                    ))}
+                </Box>
             }
-            {/* </Tabs.Panel> 
-            <Tabs.Panel value="spatial" title="Spatial search"> */}
+            
             {tab === 'spatial' &&
-                <div className="container-fluid ps-0">
-                    <div className="mb-3 row">
-                        <div className="col-sm-3 col-md-3">
-                            <div>
-                                Select one of the draw tools (polygon, rectangle, circle), draw a shape and click
-                                the
-                                search link that pops up.
-                            </div>
-                            <br/>
-
-                            <div className="panel-group panel-group-caret" id="importAreaPanel">
-                                <div className="panel panel-default">
-                                    <div className="panel-heading">
-                                        <div className="panel-group-toggle collapsed" data-toggle="collapse"
-                                        data-parent="#importAreaPanel" onClick={() => importWkt()}>
-                                            Import an existing GIS area
-                                        </div>
-                                    </div>
-
-                                    <div id="importAreaContent" className="panel-collapse">
-                                        <div className="panel-body">
-                                            <p>Import an existing GIS area (currently supported formats: <a
-                                                href="http://en.wikipedia.org/wiki/Well-known_text" target="_blank">Well
-                                                Known Text (WKT)</a> POLYGON shape)</p>
-
-                                            <p>To search with other spatial file formats (shapefile, KML, etc.),
-                                                please
-                                                use the <a href="https://spatial.ala.org.au/">Spatial Portal</a> -
-                                                via
-                                                the "Add to Map" ➜ "Areas" menu.
-                                            </p>
-
-                                            <p>Copy &amp; paste a WKT POLYGON string and click "Add to map":</p>
-                                            <textarea id="wktInput" style={{height: "280px", width: "95%"}}
-                                                    value={spatialWkt}
-                                                    onChange={e => setSpatialWkt(e.target.value)}></textarea>
-                                            <br/>
-                                            <button className="btn btn-primary btn-sm" id="addWkt">Add to map
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="col-sm-9 col-md-9">
-                            <div id="leafletMap" style={{height: "600px", position: "relative"}}>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <Grid>
+                    <Grid.Col span={3}>
+                        <Text>
+                            Select one of the draw tools (polygon, rectangle, circle), draw a shape and click
+                            the search link that pops up.
+                        </Text>
+                        <Accordion mt="md">
+                            <Accordion.Item value="1">
+                                <Accordion.Control>
+                                    Import an existing GIS area
+                                </Accordion.Control>
+                                <Accordion.Panel mt="sm">
+                                    <Text mt="sm">Import a GIS shape in <Anchor
+                                        href="http://en.wikipedia.org/wiki/Well-known_text" target="_blank">Well
+                                        Known Text (WKT)</Anchor> format.</Text>
+                                    <Text mt="sm" hidden>To search with other spatial file formats (shapefile, KML, etc.),
+                                        please use the <Anchor href="https://spial.ala.org.au/">Spatial Portal</Anchor>
+                                        - via the "Add to Map" ➜ "Areas" menu.
+                                    </Text>
+                                    <Text mt="sm">Copy &amp; paste a WKT string (e.g., <Code>POLYGON(...)</Code>):</Text>
+                                    <Textarea 
+                                        id="wktInput"  
+                                        mt="sm" 
+                                        // style={{height: "280px", width: "95%"}}                                            
+                                        value={spatialWkt}
+                                        onChange={e => setSpatialWkt(e.target.value)}
+                                        autosize={true}
+                                        minRows={7} maxRows={7} 
+                                    ></Textarea>
+                                    <Button mt="sm" mb="lg" variant="filled" size="compact-md" onClick={importWkt}>Add to map</Button>
+                                </Accordion.Panel>
+                            </Accordion.Item>
+                        </Accordion>
+                    </Grid.Col>
+                    <Grid.Col span={9}>
+                        <Box bg="gray.1">
+                            <div id="leafletMap" style={{height: "600px", position: "relative"}} />
+                        </Box>
+                    </Grid.Col>
+                </Grid>
             }
-            {/* </Tabs.Panel>  */}
         </Container>
     </>
 }
