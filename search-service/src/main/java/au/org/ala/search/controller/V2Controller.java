@@ -1,6 +1,7 @@
 package au.org.ala.search.controller;
 
 import au.org.ala.search.service.auth.WebService;
+import au.org.ala.search.service.queue.DownloadQueueService;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.queue.*;
@@ -8,6 +9,7 @@ import au.org.ala.search.model.dto.*;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
+import au.org.ala.search.service.queue.SearchConsumerService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
@@ -53,10 +56,11 @@ public class V2Controller {
     protected final AuthService authService;
     protected final ElasticsearchOperations elasticsearchOperations;
     protected final QueueService queueService;
+    protected final DownloadQueueService downloadQueueService;
     protected final DownloadFileStoreService downloadFileStoreService;
     protected final WebService webService;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadQueueService downloadQueueService, DownloadFileStoreService downloadFileStoreService, WebService webService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -65,6 +69,7 @@ public class V2Controller {
         this.queueService = queueService;
         this.downloadFileStoreService = downloadFileStoreService;
         this.webService = webService;
+        this.downloadQueueService = downloadQueueService;
     }
 
     @Tag(name = "Search")
@@ -298,7 +303,7 @@ public class V2Controller {
                     description = "A download request including a query and filename.",
                     content = @Content(
                             examples = @ExampleObject(
-                                    value = "{\"query\":\"Koala\", \"filename\":\"koala-20240101\"}"
+                                    value = "{\"q\":[\"Koala\"], \"filename\":\"koala-20240101\", \"taskType\":\"ALL\"}"
                             )))
             @RequestBody
             SearchQueueRequest searchDownloadRequest
@@ -445,4 +450,36 @@ public class V2Controller {
                 .header("content-disposition", "attachment;filename=" + taxon.replace(" ", "_") + ".csv")
                 .body(resp.get("resp"));
     }
-}
+
+    /**
+     * todo work out what kind of query should be passed in
+     *
+     * @param userId
+     * @param email
+     * @param sourceUrl
+     * @param taskType
+     * @return
+     */
+    @GetMapping("/requestDownload")
+    @Operation(summary = "Request a download", description = "Requests a download based on the provided message.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully requested download"),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public String requestDownload(
+            @Parameter(name = "userId", description = "The ID of the user",
+                    example = "dummy12345")
+            @RequestParam(name = "userId") String userId,
+            @Parameter(name = "email", description = "Receive status update",
+                    example = "dummy@dummy.com")
+            @RequestParam(name = "email") String email,
+            @Parameter(name = "sourceUrl", description = "Url of the query",
+                    example = "http://localhost/v2/search?q=Macropus&fq=idxtype:TAXON")
+            @RequestParam(name = "sourceUrl") String sourceUrl,
+            @RequestParam(name = "taskType", defaultValue = "ALL") String taskType)
+    {
+            downloadQueueService.request(userId, email, sourceUrl, taskType);
+            return "Download requested from: " + userId;
+        }
+    }

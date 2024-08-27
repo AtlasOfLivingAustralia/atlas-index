@@ -1,0 +1,57 @@
+version: '3.7'
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0-arm64
+    ports:
+      - "5601:5601"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0-arm64
+    container_name: species-lists-elastic
+    environment:
+      - node.name=elasticsearch
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - /data/species-lists/elastic:/usr/share/elasticsearch/data
+    restart: on-failure
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://elasticsearch:9200" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  mongodb:
+    image: mongo:6.0
+    container_name: search-service-mongo
+    restart: on-failure
+    ports:
+      - "27017:27017"
+    volumes:
+      - /data/species-lists/mongodb:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management  # Use the RabbitMQ image with the management plugin
+    container_name: rabbitmq_container  # Name of the container
+    ports:
+      - "5672:5672"  # Port for RabbitMQ (AMQP)
+      - "15672:15672"  # Port for RabbitMQ Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: atlas  # Default username
+      RABBITMQ_DEFAULT_PASS: password  # Default password
+      RABBITMQ_ERLANG_COOKIE: mysecretcookie  # Erlang cookie for clustering (optional)
+    volumes:
+      - /data/search-service/rabbitmq:/var/lib/rabbitmq  # Persist RabbitMQ data
+volumes:
+  elasticsearch-data:
+    driver: local

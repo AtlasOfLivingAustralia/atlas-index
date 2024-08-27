@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {IntlProvider, FormattedMessage} from "react-intl";
+//import 'react-vis/dist/style.css';
 import "../dashboard/dashboard.css";
 import {
     Chart as ChartJS,
