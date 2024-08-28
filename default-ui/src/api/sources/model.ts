@@ -1,4 +1,4 @@
-import {User} from "oidc-client-ts";
+import { User } from "oidc-client-ts";
 
 interface Breadcrumb {
     title: string;
@@ -98,6 +98,27 @@ interface AdvancedSearch {
     dataResources: Fq[];
 }
 
+interface AdvancedSearchInputs {
+    advancedText: string;
+    advancedTaxa: string[];
+    advancedRawTaxon: string;
+    advancedSpeciesGroup: string;
+    advancedInstitution: string;
+    advancedCountry: string;
+    advancedState: string;
+    advancedIbra: string;
+    advancedImcra: string;
+    advancedLga: string;
+    advancedTypeStatus: string;
+    advancedBasisOfRecord: string;
+    advancedDataResource: string | null;
+    advancedCollector: string;
+    advancedCatalogue: string;
+    advancedRecord: string;
+    advancedBeginDate: string;
+    advancedEndDate: string;
+}
+
 interface FacetItem {
     label: string;
     count: number;
@@ -106,7 +127,7 @@ interface FacetItem {
 
 interface Facet {
     label: string;
-    facets: FacetItem [];
+    facets: FacetItem[];
 }
 
 interface GroupedFacetData {
@@ -145,6 +166,7 @@ export type {
     QualityCategory,
     QualityFilter,
     AdvancedSearch,
+    AdvancedSearchInputs,
     Fq,
     Institution,
     GroupedFacetData,

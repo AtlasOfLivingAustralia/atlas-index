@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AdvancedSearch, Breadcrumb } from "../api/sources/model.ts";
+import { AdvancedSearch, AdvancedSearchInputs, Breadcrumb } from "../api/sources/model.ts";
 // import {Tab, Tabs} from "react-bootstrap";
 import { Accordion, Anchor, Box, Button, Code, Container, Divider, Flex, Grid, 
     Group, NativeSelect, Radio, rem, Select, Space, Stack, Tabs, Text, Textarea, 
@@ -8,27 +8,6 @@ import { Accordion, Anchor, Box, Button, Code, Container, Divider, Flex, Grid,
 // import '../css/search.css';
 import classes from '../desktop.module.css';
 import { IconSearch } from "@tabler/icons-react";
-
-interface AdvancedSearchInputs {
-    advancedText: string;
-    advancedTaxa: string[];
-    advancedRawTaxon: string;
-    advancedSpeciesGroup: string;
-    advancedInstitution: string;
-    advancedCountry: string;
-    advancedState: string;
-    advancedIbra: string;
-    advancedImcra: string;
-    advancedLga: string;
-    advancedTypeStatus: string;
-    advancedBasisOfRecord: string;
-    advancedDataResource: string;
-    advancedCollector: string;
-    advancedCatalogue: string;
-    advancedRecord: string;
-    advancedBeginDate: string;
-    advancedEndDate: string;
-}
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
     // const theme = useMantineTheme();
@@ -39,7 +18,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     const [simpleTaxa, setSimpleTaxa] = useState('');
 
     // advanced search
-    const [advancedSearchFields, setAdvancedSearchFields] = useState<AdvancedSearchInputs>({
+    const [advancedSearchInputs, setAdvancedSearchInputs] = useState<AdvancedSearchInputs>({
         advancedText: '',
         advancedTaxa: [],
         advancedRawTaxon: '',
@@ -101,7 +80,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
     function advancedClear() {
         console.log('clear advanced search');
-        setAdvancedSearchFields({
+        setAdvancedSearchInputs({
             advancedText: '',
             advancedTaxa: [],
             advancedRawTaxon: '',
@@ -114,7 +93,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             advancedLga: '',
             advancedTypeStatus: '',
             advancedBasisOfRecord: '',
-            advancedDataResource: '',
+            advancedDataResource: null, // Needed for Select component "reset"
             advancedCollector: '',
             advancedCatalogue: '',
             advancedRecord: '',
@@ -172,7 +151,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     };
 
     const handleAdvancedInputChange = (field: keyof AdvancedSearchInputs, value: any) => {
-        setAdvancedSearchFields(prevState => ({
+        setAdvancedSearchInputs(prevState => ({
             ...prevState,
             [field]: value,
         }));
@@ -246,7 +225,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}><TextInput 
                             style={{ width: '80%' }}  
-                            value={advancedSearchFields.advancedText}
+                            value={advancedSearchInputs.advancedText}
                             onChange={e => handleAdvancedInputChange('advancedText', e.target.value)}
                         /></Grid.Col>
                     </Grid>
@@ -259,9 +238,9 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             </Grid.Col>
                             <Grid.Col span={9}><TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedSearchFields.advancedTaxa[index] || ''}
+                                value={advancedSearchInputs.advancedTaxa[index] || ''}
                                 onChange={e => {
-                                    const newAdvancedTaxa = [...advancedSearchFields.advancedTaxa];
+                                    const newAdvancedTaxa = [...advancedSearchInputs.advancedTaxa];
                                     newAdvancedTaxa[index] = e.target.value;
                                     handleAdvancedInputChange('advancedTaxa', newAdvancedTaxa);
                                 }}
@@ -277,7 +256,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedSearchFields.advancedRawTaxon}
+                                value={advancedSearchInputs.advancedRawTaxon}
                                 onChange={e => handleAdvancedInputChange('advancedRawTaxon', e.target.value)}
                             />
                         </Grid.Col>
@@ -287,7 +266,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedSpeciesGroup}
+                                value={advancedSearchInputs.advancedSpeciesGroup}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedSpeciesGroup', e.currentTarget.value)}
                             >
@@ -303,7 +282,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedInstitution}
+                                value={advancedSearchInputs.advancedInstitution}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedInstitution', e.currentTarget.value)}
                             >
@@ -323,7 +302,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedCountry}
+                                value={advancedSearchInputs.advancedCountry}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedCountry', e.currentTarget.value)}
                             >
@@ -339,7 +318,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedState}
+                                value={advancedSearchInputs.advancedState}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedState', e.currentTarget.value)}
                             >
@@ -355,7 +334,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedIbra}
+                                value={advancedSearchInputs.advancedIbra}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedIbra', e.currentTarget.value)}
                             >
@@ -371,7 +350,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedImcra}
+                                value={advancedSearchInputs.advancedImcra}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedImcra', e.currentTarget.value)}
                             >
@@ -387,7 +366,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedLga}
+                                value={advancedSearchInputs.advancedLga}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedLga', e.currentTarget.value)}
                             >
@@ -403,7 +382,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedTypeStatus}
+                                value={advancedSearchInputs.advancedTypeStatus}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedTypeStatus', e.currentTarget.value)}
                             >
@@ -419,7 +398,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <NativeSelect
-                                value={advancedSearchFields.advancedBasisOfRecord}
+                                value={advancedSearchInputs.advancedBasisOfRecord}
                                 style={{ width: '80%' }}
                                 onChange={(e) => handleAdvancedInputChange('advancedBasisOfRecord', e.currentTarget.value)}
                             >
@@ -436,7 +415,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedSearchFields.advancedCollector}
+                                value={advancedSearchInputs.advancedCollector}
                                 onChange={e => handleAdvancedInputChange('advancedCollector', e.target.value)}
                             />
                         </Grid.Col>
@@ -446,12 +425,13 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         </Grid.Col>
                         <Grid.Col span={9}>
                             <Select
-                                // data={advancedOptions?.dataResources as any[]} // TODO: fix type
-                                value={advancedSearchFields.advancedDataResource}
+                                data={advancedOptions?.dataResources?.map((dr) => dr.fq)}
+                                value={advancedSearchInputs.advancedDataResource}
                                 onChange={(selected) => {
                                     handleAdvancedInputChange('advancedDataResource', selected)
                                 }}
-                                searchable
+                                searchable allowDeselect
+                                maxDropdownHeight={200}
                                 placeholder="Search or select a data resource"
                                 style={{ width: '80%' }}  
                             />
@@ -463,7 +443,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedSearchFields.advancedCatalogue}
+                                value={advancedSearchInputs.advancedCatalogue}
                                 onChange={e => handleAdvancedInputChange('advancedCatalogue', e.target.value)}
                             />
                         </Grid.Col>
@@ -474,7 +454,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span={9}>
                             <TextInput 
                                 style={{ width: '80%' }}  
-                                value={advancedSearchFields.advancedRecord}
+                                value={advancedSearchInputs.advancedRecord}
                                 onChange={e => handleAdvancedInputChange('advancedRecord', e.target.value)}
                             />
                         </Grid.Col>
@@ -485,7 +465,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span="auto">
                             <TextInput 
                                 style={{ width: '100%' }}  
-                                value={advancedSearchFields.advancedBeginDate}
+                                value={advancedSearchInputs.advancedBeginDate}
                                 onChange={e => handleAdvancedInputChange('advancedBeginDate', e.target.value)}
                             />
                         </Grid.Col>
@@ -501,7 +481,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Grid.Col span="auto">
                             <TextInput 
                                 style={{ width: '100%' }}  
-                                value={advancedSearchFields.advancedEndDate}
+                                value={advancedSearchInputs.advancedEndDate}
                                 onChange={e => handleAdvancedInputChange('advancedEndDate', e.target.value)}
                             />
                         </Grid.Col>
