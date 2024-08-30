@@ -10,23 +10,29 @@ import StatusView from "../components/species/statusView.tsx";
 import TraitsView from "../components/species/traitsView.tsx";
 import DatasetsView from "../components/species/datasetsView.tsx";
 import ResourcesView from "../components/species/resourcesView.tsx";
+import { Alert, Anchor, Badge, Box, Container, Divider, Flex, Grid, Image, Space, Tabs, Text, Title } from "@mantine/core";
+import classes from '../desktop.module.css';
+import { IconFlagFilled } from "@tabler/icons-react";
+import BreadcrumbSection from "../components/header/breadcrumbs.tsx";
+// import Breadcrumbs from "../components/breadcrumbs/breadcrumbs.tsx";
 
 function Species({setBreadcrumbs, queryString}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
     queryString?: string
 }) {
     const [tab, setTab] = useState('map');
-
-    const [result, setResult] = useState({});
-    const [resultV1, setResultV1] = useState({});
+    const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
+    const [resultV1, setResultV1] = useState<Record<PropertyKey, string | number | any>>({});
 
     useEffect(() => {
-        setBreadcrumbs([
-            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Default UI', href: '/'},
-            {title: 'Species', href: '/species'},
-        ]);
+        setBreadcrumbs([]); // Clear breadcrumbs so App.tsx doesn't show them
     }, []);
+
+    const breadcrumbValues: Breadcrumb[] = [
+        {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+        {title: 'Default UI', href: '/'},
+        {title: 'Species', href: '/species'},
+    ];
 
     useEffect(() => {
         let request = [queryString?.split("=")[1]]
@@ -52,96 +58,116 @@ function Species({setBreadcrumbs, queryString}: {
 
     }, [queryString]);
 
+    const handleTabChange = (value: string | null) => {
+        const tabsTab = value || ''; 
+        setTab(tabsTab);
+    };
+
+    const fontStyle = (rankId: string |number) => {
+        let format = '';
+        if (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) {
+            format = 'italic';
+        } 
+        return format
+    }
+
     return (
         <>
             {result &&
                 <>
-                    <div className="speciesPageBackground">
-                    <div className="container-fluid speciesPageBackground speciesPage">
-                        <div className="row justify-content-center">
-                            <div id="speciesListHeader" className="d-flex ps-0">
-                                <div className="speciesHeaderText">
-                                    <div className="speciesName">{result.name}</div>
-                                    <div className="speciesTypeTag">{result.rank}</div>
-                                    {result.commonName && result.commonName.map((name, idx) =>
-                                        idx < 3 && <div key={idx} className="speciesVernacular">{name}</div>
+                    <Box className={classes.speciesHeader}>
+                        <Container py="lg" size="lg">
+                            <BreadcrumbSection breadcrumbValues={breadcrumbValues}/>
+                            <Grid mt="md" mb="lg">
+                                <Grid.Col span={6}>
+                                    <Title order={3} fw={600} fs={fontStyle(result.rankID)}>
+                                        {result.name}
+                                    </Title>
+                                    <Badge color="gray" radius="sm" mt={6} mb={6} pt={3}>{result.rank}</Badge>
+                                    {result.commonName && result.commonName.map((name: string, idx: number) =>
+                                        idx < 3 && 
+                                            <Text key={idx} size="lg" mt={6}>{name}</Text>
+                                        
                                     )}
-                                    <div className="speciesLink" onClick={() => setTab('names')}>See names</div>
-                                    <div className="speciesTextSummary">{result.nameComplete}</div>
-
-                                    <div className="speciesInvasive d-flex">
-                                        <div className="bi bi-flag-fill speciesInvasiveFlag"></div>
-                                        <div>This species is <span className="speciesInvasiveLink"
-                                                                   onClick={() => setTab('status')}>considered invasive</span> in
+                                    <Anchor fs="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
+                                    <Text mt={8}>{result.nameComplete}</Text>
+                                    <Alert  icon={<IconFlagFilled />} mt={6} pt={5} pb={5} mr="md"> 
+                                        This species is <Anchor fz="sm" className="speciesInvasiveLink"
+                                            onClick={() => setTab('status')}>considered invasive</Anchor> in
                                             some part of Australia and may be of biosecurity concern.
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="speciesImageBlock">
-                                    {result.image && result.image.split(',').map((id, idx) =>
-                                            idx == 0 && <div className="speciesImg">
-                                                <img
-                                                    src={"https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=" + id}></img>
-                                            </div>
+                                    </Alert>
+                                </Grid.Col>
+                                <Grid.Col span={4}>
+                                    {result.image && result.image.split(',').map((id: string, idx: number) =>
+                                        idx == 0 && 
+                                            <Image key={idx}  src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                                     )}
-                                </div>
-                                <div className="speciesImageBlockTall">
-                                    {result.image && result.image.split(',').map((id, idx) =>
-                                            idx == 0 && <div className="speciesImgTall">
-                                                <img
-                                                    src={"https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=" + id}></img>
-                                            </div>
+                                </Grid.Col>
+                                <Grid.Col span={2}>
+                                    {result.image && result.image.split(',').map((id: string, idx: number) =>
+                                        idx == 0 && 
+                                            <Image key={idx} src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                                     )}
-                                    {result.image && result.image.split(',').map((id, idx) =>
-                                            idx == 0 && <div className="speciesImgTall">
-                                                <img
-                                                    src={"https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=" + id}></img>
-                                            </div>
+                                    {result.image && result.image.split(',').map((id: string, idx: number) =>
+                                        idx == 0 && 
+                                            <Image key={idx} mt="sm" src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                                     )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    </div>
-                    <div className="container-fluid speciesPage">
-                        <div className="row justify-content-center">
-                            <Tabs
-                                id="result-tabs"
-                                activeKey={tab}
-                                onSelect={(k) => setTab(k || '')}
-                                transition={false}
-                            >
-                                <Tab eventKey="map" title="Occurrence map">
-                                    <MapView result={result} tab={tab}/>
-                                </Tab>
-                                <Tab eventKey="classification" title="Classification">
-                                    <ClassificationView result={result}/>
-                                </Tab>
-                                <Tab eventKey="description" title="Description">
-                                    <DescriptionView result={result}/>
-                                </Tab>
-                                <Tab eventKey="media" title="Images and sounds">
-                                    <ImagesView result={result}/>
-                                </Tab>
-                                <Tab eventKey="names" title="Names">
-                                    <NamesView result={result} resultV1={resultV1}/>
-                                </Tab>
-                                <Tab eventKey="status" title="Status">
-                                    <StatusView result={result} resultV1={resultV1}/>
-                                </Tab>
-                                <Tab eventKey="traits" title="Traits">
-                                    <TraitsView result={result} resultV1={resultV1}/>
-                                </Tab>
-                                <Tab eventKey="datasets" title="Datasets">
-                                    <DatasetsView result={result} resultV1={resultV1}/>
-                                </Tab>
-                                <Tab eventKey="resources" title="Resources">
-                                    <ResourcesView result={result} resultV1={resultV1}/>
-                                </Tab>
-                            </Tabs>
-                        </div>
-                    </div>
-
+                                </Grid.Col>
+                            </Grid>
+                        </Container>
+                    </Box> 
+                    <Box>
+                        <Tabs
+                            id="occurrence-tabs"
+                            defaultValue={tab}
+                            onChange={handleTabChange} >
+                            <Container size="lg">
+                                <Tabs.List>
+                                    <Tabs.Tab value="map">Occurrence map</Tabs.Tab>
+                                    <Tabs.Tab value="classification">Classification</Tabs.Tab>
+                                    <Tabs.Tab value="description">Description</Tabs.Tab>
+                                    <Tabs.Tab value="media">Images and sounds</Tabs.Tab>
+                                    <Tabs.Tab value="names">Names</Tabs.Tab>
+                                    <Tabs.Tab value="status">Status</Tabs.Tab>
+                                    <Tabs.Tab value="traits">Traits</Tabs.Tab>
+                                    <Tabs.Tab value="datasets">Datasets</Tabs.Tab>
+                                    <Tabs.Tab value="resources">Resources</Tabs.Tab>
+                                </Tabs.List>  
+                            </Container>
+                            <Divider mt={-1} />  
+                        </Tabs>
+                    </Box>
+                    <Container size="lg">
+                        <Space h="xl" />
+                        {tab === 'map' && 
+                            <MapView result={result} tab={tab}/>
+                        }
+                        {tab === 'classification' && 
+                            <ClassificationView result={result}/>
+                        }
+                        {tab === 'description' && 
+                            <DescriptionView result={result}/>
+                        }
+                        {tab === 'media' && 
+                            <ImagesView result={result}/>
+                        }
+                        {tab === 'names' && 
+                            <NamesView result={result} resultV1={resultV1}/>
+                        }
+                        {tab === 'status' && 
+                            <StatusView result={result} resultV1={resultV1}/>
+                        }
+                        {tab === 'traits' && 
+                            <TraitsView result={result} resultV1={resultV1}/>
+                        }
+                        {tab === 'datasets' && 
+                            <DatasetsView result={result} resultV1={resultV1}/>
+                        }
+                        {tab === 'resources' && 
+                            <ResourcesView result={result} resultV1={resultV1}/>
+                        }
+                        <Space h="xl" />
+                    </Container>
                     <div className="speciesFooter speciesPage">
                         <div className="speciesFooterLine"></div>
                         <div className="bi bi-arrow-up-circle-fill float-end speciesFooterUp"

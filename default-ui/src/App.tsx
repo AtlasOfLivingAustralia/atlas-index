@@ -3,9 +3,8 @@ import {Breadcrumb, ListsUser} from "./api/sources/model";
 import React, {MouseEventHandler, useEffect, useState} from "react";
 import {useAuth} from "react-oidc-context";
 import {User} from "oidc-client-ts";
-import { IconChevronLeft } from "@tabler/icons-react";
 import { Footer, Header, IndigenousAcknowledgement } from "ala-mantine";
-import { Anchor, Box, Breadcrumbs, Container, Divider, Space, Text, useMantineColorScheme, useMantineTheme } from "@mantine/core";
+import { Anchor, Box, Container, Divider, Space, } from "@mantine/core";
 
 import UserContext from "./helpers/UserContext.ts";
 // import 'bootstrap/dist/css/bootstrap.css';
@@ -21,17 +20,13 @@ import OccurrenceSearch from "./views/OccurrenceSearch.tsx";
 import OccurrenceList from "./views/OccurrenceList.tsx";
 import Occurrence from "./views/Occurrence.tsx";
 import Species from "./views/Species.tsx";
-// import ColorSchemeToggle  from './components/ColorSchemeToggle/ColorSchemeToggle.tsx';
-// import { theme } from 'ala-mantine';
 
-// import "bootstrap-icons/font/bootstrap-icons.css";
 import "@fontsource/roboto";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-// import 'react-bootstrap-typeahead/css/Typeahead.css';
-// import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import '@mantine/core/styles.css';
 import classes from './desktop.module.css';
+import BreadcrumbSection from "./components/header/breadcrumbs.tsx";
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -53,11 +48,6 @@ export default function App() {
 
     const auth = useAuth();
     const location = useLocation();
-
-    const theme = useMantineTheme();
-    const { colorScheme, toggleColorScheme } = useMantineColorScheme({
-        keepTransitions: true,
-    });
 
     useEffect(() => {
         const handlePopState = (event: any) => {
@@ -118,7 +108,6 @@ export default function App() {
                     </>
                 )
                 }
-            
             </>
         );
     });
@@ -182,19 +171,14 @@ export default function App() {
             <Header 
                 onAuthClick={login} 
                 isAuthenticated={currentUser ? true : false}
-                onThemeToggleClick={toggleColorScheme}
             />
-            <Box className={classes.header}>
-                <Container py="lg" size="lg">
-                    <Breadcrumbs separator={<IconChevronLeft size={16} className={classes.breadcrumb}/>} separatorMargin={4}>
-                        {/* <Text size="sm">Home</Text>
-                        <Text size="sm">Search species</Text> */}
-                        {breadcrumbItems.map((item, index) => (
-                            <Text key={index} size="sm">{item}</Text>
-                        ))}
-                    </Breadcrumbs>
-                </Container>
-            </Box>
+             { breadcrumbItems.length > 0 && // Some pages don't have breadcrumbs or include them in the page
+                <Box className={classes.header}>
+                    <Container py="lg" size="lg">
+                        <BreadcrumbSection breadcrumbValues={breadcrumbs} />    
+                    </Container>
+                </Box> 
+            }
             <Routes>
                 <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                                             login={() => login()} logout={() => logout()}/>}/>

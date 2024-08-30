@@ -18,6 +18,30 @@
     display: none;
   }
 }
+
+.speciesHeader {
+  z-index: 0;
+  background-repeat: no-repeat;
+  background-position: right -70px top -20px;
+  background-size: 60%;
+
+  @mixin light {
+    background-color: var(--mantine-color-concrete-0);
+    background-image: url('/logo/logo-back-light.svg');
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-charcoal-8);
+    background-image: url('/logo/logo-back-dark.svg');
+  }
+
+  /* Mobile Sizes */
+  @media (max-width: calc(48em - 1px)) {
+    display: none;
+  }
+}
+
+
 .breadcrumb {
   color: var(--mantine-color-gray-7);
 
