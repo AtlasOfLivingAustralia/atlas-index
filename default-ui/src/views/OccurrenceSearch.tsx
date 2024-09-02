@@ -6,7 +6,7 @@ import { Accordion, Anchor, Box, Button, Code, Container, Divider, Flex, Grid,
     TextInput, Title, useMantineTheme } from '@mantine/core';
 // import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 // import '../css/search.css';
-import classes from '../desktop.module.css';
+import classes from '../App.module.css';
 import { IconSearch } from "@tabler/icons-react";
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {

@@ -2,7 +2,7 @@ import { Anchor, Breadcrumbs, Text } from '@mantine/core';
 import { IconChevronLeft } from '@tabler/icons-react';
 import React, { useState } from 'react';
 import { Breadcrumb } from '../../api/sources/model';
-import classes from '../../desktop.module.css';
+import classes from '../../App.module.css';
 import { Link } from 'react-router-dom';
 
 interface BreadcrumbsProps {

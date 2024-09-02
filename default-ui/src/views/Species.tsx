@@ -11,7 +11,7 @@ import TraitsView from "../components/species/traitsView.tsx";
 import DatasetsView from "../components/species/datasetsView.tsx";
 import ResourcesView from "../components/species/resourcesView.tsx";
 import { Alert, Anchor, Badge, Box, Code, Container, Divider, Flex, Grid, Image, Space, Tabs, Text, Title } from "@mantine/core";
-import classes from '../desktop.module.css';
+import classes from '../App.module.css';
 import { IconFlagFilled } from "@tabler/icons-react";
 import BreadcrumbSection from "../components/header/breadcrumbs.tsx";
 // import Breadcrumbs from "../components/breadcrumbs/breadcrumbs.tsx";

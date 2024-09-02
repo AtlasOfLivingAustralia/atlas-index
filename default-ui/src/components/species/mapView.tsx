@@ -1,18 +1,14 @@
-import {
-    MapContainer,
-    TileLayer
-} from 'react-leaflet';
-import {FullscreenControl} from "react-leaflet-fullscreen";
-import "react-leaflet-fullscreen/styles.css";
-
-import 'leaflet/dist/leaflet.css';
-import {LatLng} from "leaflet";
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
+import { MapContainer, TileLayer } from 'react-leaflet';
+import { LatLng} from "leaflet";
+import { FullscreenControl } from "react-leaflet-fullscreen";
 import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Radio, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconArrowRight, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
-import '../../css/search.css';
 
-const center = new LatLng(-22, 131)
+import 'leaflet/dist/leaflet.css';
+import 'react-leaflet-fullscreen/styles.css';
+
+const center = new LatLng(-27, 133);
 
 interface MapViewProps {
     queryString?: string,
@@ -62,14 +58,12 @@ function MapView({queryString, tab, result}: MapViewProps) {
             variant="outline" 
             size="md"
             fullWidth
-            autoContrast
-            radius="sm"
             style={{
                 height: "100%",
                 textAlign: "left",
                 lineHeight: "1.3",
-                paddingTop: "15px",
-                paddingBottom: "14px",
+                paddingTop: "12px",
+                paddingBottom: "11px",
             }}
             rightSection={<IconArrowRight />}
         >{props?.children}</Button>
@@ -93,15 +87,26 @@ function MapView({queryString, tab, result}: MapViewProps) {
             </>}
         </Title>
         <Flex gap="lg" mt={6}>
-            <div className="speciesMap">
-                <MapContainer ref={mapRef} center={center} zoom={4} scrollWheelZoom={false} worldCopyJump={true}>
+            <Box style={{
+                height: "100%",
+                width: "100%",
+                borderRadius: "10px",
+            }}>
+                <MapContainer 
+                    ref={mapRef} 
+                    center={center} 
+                    zoom={4} 
+                    scrollWheelZoom={false} 
+                    worldCopyJump={true} 
+                    style={{height: "530px", borderRadius: "10px"}}
+                >
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
                     />
                     <FullscreenControl position={"topleft"}/>
                 </MapContainer>
-            </div>
+            </Box>
             <Box>
                 <Flex justify="flex-start" align="center" gap="sm">
                     <IconAdjustmentsHorizontal />
@@ -109,12 +114,12 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 </Flex>
                 <Divider mt="lg" mb="lg" />
                 <Checkbox checked={showOccurrences} size="xs" 
-                        onChange={() => {setShowOccurrences(!showOccurrences)}} 
-                        label="Species records" />
+                    onChange={() => {setShowOccurrences(!showOccurrences)}} 
+                    label="Species records" />
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="md">Expert distribution maps</Text>
                 { distributions && distributions.map((dist, idx) =>
-                    <Box>
+                    <Box key={idx}>
                         <Checkbox checked={dist.checked} size="xs" 
                             id={"dist" + idx}
                             label={dist.areaName} />
@@ -143,9 +148,8 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     rightSection={<IconReload />}>Refresh</Button>
             </Box>
         </Flex>
-        <Divider mt="lg" mb="lg" />
-        <Flex justify="flex-start" align="center" gap="xs">
-            <IconInfoCircleFilled />
+        <Flex justify="flex-start" align="center" gap="xs" mt="xl">
+            <IconInfoCircleFilled size={24}/>
             <Text fw={800} fz={16}>About this map</Text>
         </Flex>
         <Text mt="sm" mb="lg">
@@ -162,94 +166,6 @@ function MapView({queryString, tab, result}: MapViewProps) {
             <Grid.Col span={3}><ExploreButton>How to submit <br/>observations</ExploreButton></Grid.Col>
             <Grid.Col span={3}><ExploreButton>Receive alerts for <br/>new records</ExploreButton></Grid.Col>
         </Grid>
-        {/* <div className="d-flex">
-            <div className="speciesMap">
-                <MapContainer ref={mapRef} center={center} zoom={4} scrollWheelZoom={false} worldCopyJump={true}>
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
-                    />
-                    <FullscreenControl position={"topleft"}/>
-                </MapContainer>
-            </div>
-            <div className="speciesMapControl">
-                <div className="speciesRefineView"><span className="bi bi-sliders"></span>Refine view</div>
-
-                <div className="speciesMapControlItem form-check speciesMapControlItemHr">
-                    <input className="form-check-input" type="checkbox" value="" id="occurrenceSightings"/>
-                    <label className="form-check-label" htmlFor="occurrenceSightings">
-                        Occurrence sightings
-                    </label>
-                </div>
-
-                <div className="speciesMapControlItem speciesMapControlItemHr d-none" >
-                    <div className="speciesMapControlDist">Expert distribution maps</div>
-                    {distributions && distributions.map((dist, idx) =>
-                        <div key={idx} className="form-check speciesMapControlDistItem">
-                            <input className="form-check-input" type="checkbox" value="" id={"dist" + idx}/>
-                            <label className="form-check-label" htmlFor={"dist" + idx}>
-                                {dist.areaName}
-                            </label>
-                            <div className="speciesMapControlDistItemTxt">
-                                provided by&nbsp;
-                                <div className="speciesLink">{dist.dataResourceName}</div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <div className="speciesMapControlItem">
-                    <div className="speciesMapControlDist">Map type</div>
-                    <div className="form-check speciesMapControlLayerItem">
-                        <input className="form-check-input" type="checkbox" value="" id="mapTypeDefault"/>
-                        <label className="form-check-label" htmlFor="mapTypeDefault">
-                            Default
-                        </label>
-                    </div>
-                    <div className="form-check speciesMapControlLayerItem">
-                        <input className="form-check-input" type="checkbox" value="" id="mapTypeTerrain"/>
-                        <label className="form-check-label" htmlFor="mapTypeTerrain">
-                            Terrain
-                        </label>
-                    </div>
-                </div>
-
-                <div className="speciesMapControlRefresh">
-                    Refresh <span className="bi bi-arrow-clockwise"></span>
-                </div>
-
-            </div>
-        </div> */}
-        {/* <div className="speciesMapAbout">
-            <span className="bi bi-info-circle-fill"></span>
-            About this map
-        </div>
-        <div className="speciesMapText">
-            Occurrence records show where a species has been recorded, and may not show the full extent of its known
-            distribution. Records may contain some error. Expert distributions show species distributions modelled by
-            experts or the coarse known distributions of species.
-        </div>
-        <div className="speciesMapGetStarted">
-            Get started
-        </div>
-        <div className="speciesMapButtons d-flex justify-content-between">
-            <div className="speciesMapButton d-flex">
-                <div style={{marginRight: "30px"}}>Explore and download occurrence records</div>
-                <div className="bi bi-arrow-right-short ms-auto species-red"></div>
-            </div>
-            <div className="speciesMapButton d-flex">
-                <div style={{marginRight: "30px"}}>Advanced mapping</div>
-                <div className="bi bi-arrow-right-short ms-auto species-red"></div>
-            </div>
-            <div className="speciesMapButton d-flex">
-                <div style={{marginRight: "30px"}}>How to submit observations</div>
-                <div className="bi bi-arrow-right-short ms-auto species-red"></div>
-            </div>
-            <div className="speciesMapButton d-flex">
-                <div style={{marginRight: "30px"}}>Receive alerts for new records</div>
-                <div className="bi bi-arrow-right-short ms-auto species-red"></div>
-            </div>
-        </div> */}
     </>
 }
 

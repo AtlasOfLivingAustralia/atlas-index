@@ -2,7 +2,7 @@ import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useState} from "react";
 import {AtlasLog, Breadcrumb, ListsUser, TaskType} from "../api/sources/model.ts";
 import { Box, Code, Container, Divider, Space, Tabs, Text } from "@mantine/core";
-// import classes from '../desktop.module.css';
+// import classes from '../App.module.css';
 // import {Tab, Tabs} from "react-bootstrap";
 
 function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {

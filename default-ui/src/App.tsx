@@ -7,7 +7,6 @@ import { Footer, Header, IndigenousAcknowledgement } from "ala-mantine";
 import { Anchor, Box, Container, Divider, Space, } from "@mantine/core";
 
 import UserContext from "./helpers/UserContext.ts";
-// import 'bootstrap/dist/css/bootstrap.css';
 import Home from "./views/Home.tsx"
 import Dashboard from "./views/Dashboard.tsx"
 import AtlasAdmin from "./views/AtlasAdmin.tsx"
@@ -20,13 +19,13 @@ import OccurrenceSearch from "./views/OccurrenceSearch.tsx";
 import OccurrenceList from "./views/OccurrenceList.tsx";
 import Occurrence from "./views/Occurrence.tsx";
 import Species from "./views/Species.tsx";
+import BreadcrumbSection from "./components/header/breadcrumbs.tsx";
 
 import "@fontsource/roboto";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import '@mantine/core/styles.css';
-import classes from './desktop.module.css';
-import BreadcrumbSection from "./components/header/breadcrumbs.tsx";
+import classes from './App.module.css';
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
