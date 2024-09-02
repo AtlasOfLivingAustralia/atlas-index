@@ -166,7 +166,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             </Container>
             <Tabs
                 id="occurrence-tabs"
-                defaultValue={tab}
+                value={tab}
                 onChange={handleTabChange}
                 className=""
             >

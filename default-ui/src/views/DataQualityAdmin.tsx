@@ -140,7 +140,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                         <Tabs
                             id="data-quality-tabs"
                             onChange={handleTabChange}
-                            defaultValue={tab}
+                            value={tab}
                             className=""
                         >
                             <Tabs.List>

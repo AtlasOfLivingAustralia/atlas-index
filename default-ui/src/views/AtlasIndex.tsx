@@ -139,7 +139,7 @@ function AtlasIndex({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                 <Container size="lg">
                     <Tabs
                             id="admin-tabs"
-                            defaultValue={tab}
+                            value={tab}
                             onChange={handleTabChange}
                             className=""
                         >

@@ -377,7 +377,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             <Text size="xl" fw="500">Atlas Admin</Text>
                             <Tabs id="admin-tabs"
                                 onChange={handleTabChange}
-                                defaultValue={tab}
+                                value={tab}
                                 className="">
                                 <Tabs.List>
                                     <Tabs.Tab value="tasks">Run Admin Tasks</Tabs.Tab>
