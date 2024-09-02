@@ -1,0 +1,9 @@
+.currentTaxa {
+    @mixin light {
+        background-color: var(--mantine-color-charcoal-2);
+    }
+
+    @mixin dark {
+        background-color: var(--mantine-color-charcoal-8);
+    }
+}

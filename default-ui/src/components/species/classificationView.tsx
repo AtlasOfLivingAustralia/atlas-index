@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Anchor, Flex, Grid, Text } from "@mantine/core";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
+import classes from "./species.module.css";
 
 interface ViewProps {
     result?: Record<PropertyKey, string | number | any >
@@ -34,36 +35,34 @@ function ClassificationView({result}: ViewProps) {
         return rank.charAt(0).toUpperCase() + rank.slice(1);
     }
 
-    return <>
+    return (
         <Grid>
             <Grid.Col span={9}>
                 { hierarchy && hierarchy.map((item, idx) =>
                     <Flex 
                         key={idx} 
                         data-guid={item.guid}
-                        className="taxa" 
+                        className={ idx === hierarchy.length -1 ? classes.currentTaxa : "" }
                         style={{
                             marginLeft: (idx * 20) + "px",
-                            backgroundColor:  idx < hierarchy.length - 1 ? "inherit" : "lightgray",
+                            borderRadius: "5px",
                         }}
                     >
                         <Text miw={110} pl="md" fw="bold">{capitalize(item.rank)}</Text>
                         <Anchor component={Link} to={`/species?id=${item.guid}`}>{item.name}</Anchor>
                     </Flex>
                 )}
-
-            { children && children.map((child, idx) =>
-                <Flex 
-                    key={idx} 
-                    // className="taxa" 
-                    style={{
-                        marginLeft: (hierarchy.length * 20 + 1) + "px"
-                    }}
-                >
-                    <Text miw={110} pl="md" fw="bold">{capitalize(child.rank)}</Text>
-                    <Anchor component={Link} to={`/species?id=${child.guid}`} >{child.nameComplete}</Anchor>
-                </Flex>
-            )}
+                { children && children.map((child, idx) =>
+                    <Flex 
+                        key={idx} 
+                        style={{
+                            marginLeft: (hierarchy.length * 20 + 1) + "px"
+                        }}
+                    >
+                        <Text miw={110} pl="md" fw="bold">{capitalize(child.rank)}</Text>
+                        <Anchor component={Link} to={`/species?id=${child.guid}`} >{child.nameComplete}</Anchor>
+                    </Flex>
+                )}
             </Grid.Col>
             <Grid.Col span={3}>
                 <Flex justify="flex-start" align="center" gap="xs">
@@ -77,7 +76,7 @@ function ClassificationView({result}: ViewProps) {
                 </Text>
             </Grid.Col>
         </Grid>
-    </>
+    )
 }
 
 export default ClassificationView;
