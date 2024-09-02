@@ -1,12 +1,15 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Anchor, Flex, Grid, Text } from "@mantine/core";
+import { IconInfoCircleFilled } from "@tabler/icons-react";
 
-interface MapViewProps {
-    result?: {}
+interface ViewProps {
+    result?: Record<PropertyKey, string | number | any >
 }
 
-function ClassificationView({result}: MapViewProps) {
-    const [children, setChildren] = useState([]);
-    const [hierarchy, setHierarchy] = useState([]);
+function ClassificationView({result}: ViewProps) {
+    const [children, setChildren] = useState<any[]>([]);
+    const [hierarchy, setHierarchy] = useState<any[]>([]);
 
     useEffect(() => {
         if (result?.guid) {
@@ -16,7 +19,7 @@ function ClassificationView({result}: MapViewProps) {
             })
         }
         if (result?.rankOrder) {
-            let items = []
+            let items: Record<PropertyKey, string | number | any >[] = []
             for (let rank of result.rankOrder.split(',')) {
                 items = [{rank: rank, name: result['rk_' + rank], guid: result['rkid_' + rank]}, ...items]
             }
@@ -26,50 +29,54 @@ function ClassificationView({result}: MapViewProps) {
     }, [result]);
 
 
-    function capitalize(rank) {
+    function capitalize(rank: string) {
         // capitalize first letter
         return rank.charAt(0).toUpperCase() + rank.slice(1);
     }
 
     return <>
-        <div className="classificationView">
-            {hierarchy && hierarchy.map((item, idx) =>
-                idx < hierarchy.length - 1 ?
-                    <div key={idx} className={"speciesRow" + (idx == hierarchy.length - 1 ? ' speciesLast' : '')}
-                         style={{marginLeft: (idx * 20) + "px"}}>
-                        <div className="speciesRank float-start">{capitalize(item.rank)}</div>
-                        <div className="speciesClassificationLink float-start">{item.name}</div>
-                    </div>
-                    :
-                    <div key={idx} className={"speciesRow" + (idx == hierarchy.length - 1 ? ' speciesLast' : '')}
-                         style={{marginLeft: (idx * 20) + "px"}}>
-                        <div className="speciesRank">{capitalize(item.rank)}</div>
-                        <div className="speciesClassificationLink">{item.name}</div>
-                    </div>
-            )}
+        <Grid>
+            <Grid.Col span={9}>
+                { hierarchy && hierarchy.map((item, idx) =>
+                    <Flex 
+                        key={idx} 
+                        data-guid={item.guid}
+                        className="taxa" 
+                        style={{
+                            marginLeft: (idx * 20) + "px",
+                            backgroundColor:  idx < hierarchy.length - 1 ? "inherit" : "lightgray",
+                        }}
+                    >
+                        <Text miw={110} pl="md" fw="bold">{capitalize(item.rank)}</Text>
+                        <Anchor component={Link} to={`/species?id=${item.guid}`}>{item.name}</Anchor>
+                    </Flex>
+                )}
 
-            {children && children.map((child, idx) =>
-                <div key={idx} className="d-flex speciesRow" style={{marginLeft: (hierarchy.length * 20) + "px"}}>
-                    <div className="speciesRank">{capitalize(child.rank)}</div>
-                    <div className="speciesClassificationLink">{child.nameComplete}</div>
-                </div>
+            { children && children.map((child, idx) =>
+                <Flex 
+                    key={idx} 
+                    // className="taxa" 
+                    style={{
+                        marginLeft: (hierarchy.length * 20 + 1) + "px"
+                    }}
+                >
+                    <Text miw={110} pl="md" fw="bold">{capitalize(child.rank)}</Text>
+                    <Anchor component={Link} to={`/species?id=${child.guid}`} >{child.nameComplete}</Anchor>
+                </Flex>
             )}
-
-            <div className="classificationInfo">
-                <div className="classificationAbout">
-                    <span className="bi bi-info-circle-fill"></span>
-                    About classification
-                </div>
-                <div className="classificationInfoText">
+            </Grid.Col>
+            <Grid.Col span={3}>
+                <Flex justify="flex-start" align="center" gap="xs">
+                    <IconInfoCircleFilled size={24}/>
+                    <Text fw={800} fz={16}>About classification</Text>
+                </Flex>
+                <Text fz={14} mt="sm">
                     Classification of organisms allows us to group them and imply how they are related to each other.
-                    This
-                    includes a hierarchy of ranks e.g. kingdom, phylum etc. for more information see An introduction to
+                    This includes a hierarchy of ranks e.g. kingdom, phylum etc. for more information see An introduction to
                     taxonomy
-                </div>
-            </div>
-        </div>
-
-
+                </Text>
+            </Grid.Col>
+        </Grid>
     </>
 }
 
