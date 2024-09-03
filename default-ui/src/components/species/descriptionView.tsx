@@ -1,11 +1,21 @@
-import {Children, useEffect, useState} from "react";
+import { Box, Flex, Title, Text, Anchor } from "@mantine/core";
+import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
+import classes from "./species.module.css";
 
 interface MapViewProps {
-    result?: {}
+    result?: Record<PropertyKey, string | number | any >
+}
+
+interface Section {
+    title: string | undefined;
+    innerItem: string;
+    sourceHtml: string | JSX.Element;
+    rights: string | JSX.Element;
 }
 
 function DescriptionView({result}: MapViewProps) {
-    const [sections, setSections] = useState([]);
+    const [sections, setSections] = useState<Section[]>([]);
 
     useEffect(() => {
         if (result?.name) {
@@ -13,7 +23,7 @@ function DescriptionView({result}: MapViewProps) {
         }
     }, [result]);
 
-    function fetchPage(name) {
+    function fetchPage(name: string) {
         // fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_'))).then(response => response.text()).then(text => {
         //     parseText(text, true, name)
         // })
@@ -24,12 +34,13 @@ function DescriptionView({result}: MapViewProps) {
         })
     }
 
-    function parseText(text, testPage, targetName) {
+    function parseText(text: string, testPage: boolean, targetName: string) {
 
         // check for a redirect "mw:PageProp/redirect"
         const parser = new DOMParser();
         const doc = parser.parseFromString(text, 'text/html');
         const redirect = doc.querySelector('link[rel="mw:PageProp/redirect"]');
+
         if (redirect) {
             const redirectItem = redirect.getAttribute('href')?.replace(/^.*\//, '');
             if (redirectItem) {
@@ -38,20 +49,34 @@ function DescriptionView({result}: MapViewProps) {
             return;
         }
 
-        for (let item of doc.querySelectorAll('.infobox')) item.remove();
-        for (let item of doc.querySelectorAll('.infobox.biota')) item.remove();
-        for (let item of doc.querySelectorAll('.mw-editsection')) item.remove();
-        for (let item of doc.querySelectorAll('.navbar')) item.remove();
-        for (let item of doc.querySelectorAll('.reference')) item.remove();
-        for (let item of doc.querySelectorAll('.error')) item.remove();
-        for (let item of doc.querySelectorAll('.box-Unreferenced_section')) item.remove();
-        for (let item of doc.querySelectorAll('.portalbox')) item.remove();
+        const selectorsToRemove = [
+            '.infobox',
+            '.infobox.biota',
+            '.mw-editsection',
+            '.navbar',
+            '.reference',
+            '.error',
+            '.box-Unreferenced_section',
+            '.portalbox',
+            '.clade',
+        ];
 
-        const node = doc.querySelector('body');
+        for (const selector of selectorsToRemove) {
+            for (const item of doc.querySelectorAll(selector)) {
+                item.remove();
+            }
+        }
 
-        var newSections = [];
-        var tested = !testPage
-        var valid = true;
+        const node: HTMLElement | null = doc.querySelector('body');
+
+        var newSections: Section[] = [];
+        // var tested = !testPage
+        // var valid = true;
+
+        if (!node) {
+            return
+        }
+
         for (let item of node.children) {
             if (item.tagName == "SECTION") {
                 // basic test for validity
@@ -98,9 +123,10 @@ function DescriptionView({result}: MapViewProps) {
                 {/*wikipedia.licence.label=Creative Commons Attribution-ShareAlike License 4.0*/}
                 newSections.push({
                     title: title,
-                    innerItem: item.innerHTML.replaceAll('href="./', "href=\"" + "https://wikipedia.org/wiki/"),
-                    sourceHtml: "<a href='https://wikipedia.org/wiki/" + encodeURI(targetName) + "'target='wikipedia'>Wikipedia</a>&nbsp;Content may be excluded.",
-                    rights: "<a href='https://creativecommons.org/licenses/by-sa/4.0/'>Creative Commons Attribution-ShareAlike License 4.0</a>"
+                    innerItem: item.innerHTML.replace(/href="\.\//g, "href=\"https://wikipedia.org/wiki/"),
+                    sourceHtml: <Text span><Anchor href={`https://wikipedia.org/wiki/${encodeURI(targetName)}`} 
+                        target='wikipedia'>Wikipedia</Anchor>&nbsp;–&nbsp;some content may be excluded.</Text>,
+                    rights: <Anchor href='https://creativecommons.org/licenses/by-sa/4.0/'>Creative Commons Attribution-ShareAlike License 4.0</Anchor>
                 })
             }
 
@@ -115,24 +141,23 @@ function DescriptionView({result}: MapViewProps) {
     }
 
     return <>
-        {/*{text && <div dangerouslySetInnerHTML={{__html: text}}></div> }*/}
-
-        <div className="speciesDescription">
-
-        {sections && sections.map((section, idx) =>
-            <div key={idx}>
-                <div className="speciesSectionTitle">{section.title}</div>
-                <div className="speciesSectionText" dangerouslySetInnerHTML={{__html: section.innerItem}}></div>
-                <div className="speciesSectionText d-flex">
-                    Source:&nbsp;
-                    <div dangerouslySetInnerHTML={{__html: section.sourceHtml}}></div>
-                    <div dangerouslySetInnerHTML={{__html: section.rights}}></div>
-                </div>
-                {idx != sections.length - 1 && <div className="sectionFoot"></div>}
-            </div>
+        { sections && sections.map((section, idx) =>
+            <Box key={idx}>
+                <Title order={3} mb="md" mt="md">{section.title}</Title>
+                <Box className={classes.speciesSectionText} 
+                    dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(section.innerItem, 
+                        // strip style attribute to avoid odd looking font face and font colour issues
+                        { FORBID_ATTR: ['style'] } 
+                        ) 
+                    }}
+                ></Box>
+                <Flex gap="md">
+                    <Text>Source: { section.sourceHtml }</Text>
+                    <Text>Rights: { section.rights }</Text>
+                </Flex>
+            </Box>
         )}
-        </div>
-
     </>
 }
 

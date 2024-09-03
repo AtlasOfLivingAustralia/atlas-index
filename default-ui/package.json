@@ -18,6 +18,7 @@
     "ala-mantine": "file:.yalc/ala-mantine",
     "bootstrap-icons": "^1.11.3",
     "chart.js": "^4.4.2",
+    "dompurify": "^3.1.6",
     "leaflet": "^1.9.4",
     "markdown-to-jsx": "^7.4.7",
     "oidc-client-ts": "^3.0.1",
@@ -46,6 +47,7 @@
     "postcss": "^8.4.40",
     "postcss-preset-mantine": "^1.17.0",
     "postcss-simple-vars": "^7.0.1",
+    "prettier": "^3.3.3",
     "typescript": "^5.0.2",
     "vite": "^4.5.3"
   }

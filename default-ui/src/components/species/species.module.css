@@ -7,3 +7,52 @@
         background-color: var(--mantine-color-charcoal-8);
     }
 }
+
+.speciesSectionText a {
+    @mixin light {
+        color: var(--mantine-color-ocean-9);
+        &:hover {
+            color: var(--mantine-color-peacock-9);
+        }
+    }
+    
+    @mixin dark {
+        color: var(--mantine-color-glacial-2);
+        &:hover {
+    color: var(--mantine-color-seafoam-4);
+        }
+    }
+}
+
+
+.speciesSectionText {
+    @mixin light {
+        color: var(--mantine-color-gray-7);
+    }
+
+    @mixin dark {
+        color: var(--mantine-color-gray-2);
+    }
+
+    > figure {
+        margin-block-start: 10px;
+        margin-inline-start: 10px;
+
+        figcaption {
+            font-size: var(--text-fz, var(--mantine-font-size-sm));
+        }
+        
+        audio {
+            width: 250px;
+            height: 54px;
+            display: inline !important;
+            box-sizing: border-box;
+        }
+
+        .multiimageinner {
+            max-width: 352px;
+        }
+    }
+
+    
+}
