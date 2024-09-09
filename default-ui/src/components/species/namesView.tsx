@@ -53,7 +53,15 @@ function NamesView({result, resultV1}: MapViewProps) {
                     {resultV1?.synonyms && resultV1.synonyms.map((item, idx) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text></Table.Td>
+                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
+                            </Table.Td>
+                            <Table.Td>
+                                {item?.infoSourceURL ?
+                                    <Anchor href={item?.infoSourceURL}>{item?.infoSourceName || item?.nameAuthority}</Anchor>
+                                    :
+                                    <>{item?.infoSourceName}</>
+                                }
+                            </Table.Td>
                         </Table.Tr>
                     )}
                 </Table.Tbody>
@@ -70,7 +78,15 @@ function NamesView({result, resultV1}: MapViewProps) {
                     {resultV1?.variants && resultV1.synonyms.map((item, idx) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text></Table.Td>
+                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
+                            </Table.Td>
+                            <Table.Td>
+                                {item?.infoSourceURL ?
+                                    <Anchor href={item?.infoSourceURL}>{item?.infoSourceName || item?.nameAuthority}</Anchor>
+                                    :
+                                    <>{item?.infoSourceName}</>
+                                }
+                            </Table.Td>
                         </Table.Tr>
                     )}
                 </Table.Tbody>
@@ -87,7 +103,15 @@ function NamesView({result, resultV1}: MapViewProps) {
                     {resultV1?.identifiers && resultV1.synonyms.map((item, idx) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text></Table.Td>
+                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
+                            </Table.Td>
+                            <Table.Td>
+                                {item?.infoSourceURL ?
+                                    <Anchor href={item?.infoSourceURL}>{item?.infoSourceName || item?.nameAuthority}</Anchor>
+                                    :
+                                    <>{item?.infoSourceName}</>
+                                }
+                            </Table.Td>
                         </Table.Tr>
                     )}
                 </Table.Tbody>
@@ -108,7 +132,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                         <Table.Td>{item?.nameString}</Table.Td>
                         <Table.Td>
                             {item?.infoSourceURL ?
-                                <Anchor href={item?.infoSourceURL} target="_source">{item?.infoSourceName}</Anchor>
+                                <Anchor inherit href={item?.infoSourceURL} target="_source">{item?.infoSourceName}</Anchor>
                                 :
                                 item?.infoSourceName
                             }
@@ -144,7 +168,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                         <Table.Td>{item?.nameString}</Table.Td>
                         <Table.Td>
                             {item?.infoSourceURL ?
-                                <Anchor href={item?.infoSourceURL} target="_source">{item?.infoSourceName}</Anchor>
+                                <Anchor inherit href={item?.infoSourceURL} target="_source">{item?.infoSourceName}</Anchor>
                                 :
                                 item?.infoSourceName
                             }
