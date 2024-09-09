@@ -24,7 +24,6 @@
     }
 }
 
-
 .speciesSectionText {
     @mixin light {
         color: var(--mantine-color-gray-7);
@@ -48,11 +47,9 @@
             display: inline !important;
             box-sizing: border-box;
         }
-
-        .multiimageinner {
-            max-width: 352px;
-        }
     }
+}
 
-    
+.gallerySortLabel {
+    font-size: var(--text-fz, var(--mantine-font-size-md)) !important;
 }
