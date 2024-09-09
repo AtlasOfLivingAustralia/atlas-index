@@ -1,6 +1,9 @@
+import { Anchor, Badge, Box, Flex, Grid, Table, Text, Title } from "@mantine/core";
+import { IconInfoCircleFilled } from "@tabler/icons-react";
+
 interface MapViewProps {
-    result?: {},
-    resultV1?: {}
+    result?:  Record<PropertyKey, string | number | any >,
+    resultV1?:  Record<PropertyKey, string | number | any >
 }
 
 function StatusView({result, resultV1}: MapViewProps) {
@@ -59,79 +62,85 @@ function StatusView({result, resultV1}: MapViewProps) {
     ]
 
     return <>
-        <div className="statusView">
+        <Box>
+            <Title order={3} mb="md" mt="md">Native / introduced</Title>
+            <Flex justify="flex-start" align="center" gap="xs" mb="sm">
+                <IconInfoCircleFilled size={18}/>
+                <Text fw={800} fz={16}>About native / introduced</Text>
+            </Flex>
+            <Text fz="sm">
+                This indicates if a species is regarded as introduced to Australia, a state, or territory.
+                This can also include Australian native species which have been introduced in areas beyond
+                their natural range, e.g a species native to NSW introduced to WA.&nbsp;
+                <Anchor inherit onClick={(e) => { e.preventDefault(); alert('Requires a URL to be provided'); }} 
+                    target="_source">Find out more</Anchor>
+            </Text>
+            <Table striped="even" mt="sm" mb="sm">
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th>Place</Table.Th>
+                        <Table.Th>Status</Table.Th>
+                        <Table.Th>Source</Table.Th>
+                    </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                    {/* TODO: substitute with actual native/introduced data */}
+                    {resultV1?.conservationStatuses && Object.keys(resultV1.conservationStatuses).map((key, idx) =>
+                        <Table.Tr key={idx}>
+                            <Table.Td>{resultV1.conservationStatuses[key].dr}</Table.Td>
+                            <Table.Td>{resultV1.conservationStatuses[key].status}</Table.Td>
+                            <Table.Td>{resultV1.conservationStatuses[key].dr}</Table.Td>
+                        </Table.Tr>
+                    )}
+                </Table.Tbody>
+            </Table>
 
-            <div className="namesSectionHeader">Native / Introduced</div>
-            <div className="namesInfo">
-                <div className="classificationAbout">
-                    <span className="bi bi-info-circle-fill"></span>
-                    About native / introduced
-                </div>
-                <div className="classificationInfoText">
-                    This indicates if a species is regarded as introduced to Australia, a state, or territory.
-                    This can also include Australian native species which have been introduced in areas beyond
-                    their natural range, e.g a species native to NSW introduced to WA.&nbsp;
-                    <span className="namesLink">Find out more</span>
-                </div>
-            </div>
-            <div className="namesRowHeader d-flex">
-                <div className="statusRowHeaderLabelLeft">Place</div>
-                <div className="statusRowHeaderLabelMiddle">Status</div>
-                <div className="statusRowHeaderLabelRight">Source</div>
-            </div>
-            {resultV1?.conservationStatuses && Object.keys(resultV1.conservationStatuses).map((key, idx) =>
-                <div className={"namesRow d-flex " + (idx % 2 == 1 && "namesRowOdd")} key={idx}>
-                    <div className="statusRowName">{resultV1.conservationStatuses[key].dr}</div>
-                    <div className="statusRowSource">{resultV1.conservationStatuses[key].status}</div>
-                    <div className="statusRowStatus">{resultV1.conservationStatuses[key].dr}</div>
-                </div>
-            )}
+            <Title order={3} mb="md" mt="md">Conservation status</Title>
+            <Table striped="even" mt="sm" mb="sm">
+                <Table.Thead>
+                    <Table.Tr>
+                        <Table.Th>Level</Table.Th>
+                        <Table.Th>Source status</Table.Th>
+                        <Table.Th>IUCN equivalent class</Table.Th>
+                    </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                    {resultV1?.conservationStatuses && Object.keys(resultV1.conservationStatuses).map((key, idx) =>
+                        <Table.Tr key={idx}>
+                            <Table.Td>{resultV1.conservationStatuses[key].dr}</Table.Td>
+                            <Table.Td>{resultV1.conservationStatuses[key].status}</Table.Td>
+                            <Table.Td>{ iucnClasses && iucnClasses.map((item, idx) =>
+                                item.status.includes(resultV1.conservationStatuses[key].status) &&
+                                    <Badge key={idx} circle size="lg" color={item.bg} 
+                                    style={{color: item.fg}}>{item.code}</Badge>
+                                )}
+                            </Table.Td>
+                        </Table.Tr>
+                    )}
+                </Table.Tbody>
+            </Table>
 
-            <div className="namesSectionFoot"></div>
-            <div className="namesSectionHeader">Conservation status</div>
-            <div className="namesRowHeader d-flex">
-                <div className="statusRowHeaderLabelLeft">Level</div>
-                <div className="statusRowHeaderLabelMiddle">Status</div>
-                <div className="statusRowHeaderLabelRight">ICUN Equivalent Class</div>
-            </div>
-            {resultV1?.conservationStatuses && Object.keys(resultV1.conservationStatuses).map((key, idx) =>
-                <div className={"namesRow d-flex " + (idx % 2 == 1 && "namesRowOdd")} key={idx}>
-                    <div className="statusRowName">{resultV1.conservationStatuses[key].dr}</div>
-                    <div className="statusRowSource">{resultV1.conservationStatuses[key].status}</div>
-                    <div className="statusRowStatus">
-                        {iucnClasses && iucnClasses.map((item, idx) =>
-                            item.status.includes(resultV1.conservationStatuses[key].status) &&
-                                <div key={idx} className="iucnRow col-4">
-                                    <div className="iucnIcon" style={{backgroundColor: item.bg, color: item.fg}}>{item.code}</div>
-                                </div>
-                        )}
-                    </div>
-                </div>
-            )}
-            <div className="namesInfo">
-                <div className="classificationAbout">
-                    <span className="bi bi-info-circle-fill"></span>
-                    About the IUCN Equivalent Classes
-                </div>
-                <div className="classificationInfoText">
-                    Atlas of Living Australia have interpreted state and territory status classes to align to the
-                    equivalent
-                    International Union for Conservation of Nature (IUCN) Classes.
-                    &nbsp;
-                    <span className="namesLink">Find out more</span>
-                </div>
-            </div>
-
-            <div className="iucnSection row">
+            <Flex justify="flex-start" align="center" gap="xs" mb="sm">
+                <IconInfoCircleFilled size={18}/>
+                <Text fw={800} fz={16}>About the IUCN Equivalent Classes</Text>
+            </Flex>
+            <Text fz="sm">
+                Atlas of Living Australia have interpreted state and territory status classes to align to the
+                equivalent International Union for Conservation of Nature (IUCN) Classes. <Anchor inherit 
+                    onClick={(e) => { e.preventDefault(); alert('Requires a URL to be provided'); }} 
+                    target="_source">Find out more</Anchor>
+            </Text>
+            <Grid justify="flex-start" align="center" mt="sm">
                 {iucnClasses && iucnClasses.map((item, idx) =>
-                    <div key={idx} className="iucnRow col-4 d-flex">
-                        <div className="iucnIcon" style={{backgroundColor: item.bg, color: item.fg}}>{item.code}</div>
-                        <div className="iucnLabel">{item.name}</div>
-                    </div>
+                    <Grid.Col key={idx} span={4}>
+                        <Flex justify="flex-start" align="center" gap="xs">
+                            <Badge circle size="lg" color={item.bg} style={{color: item.fg}}>{item.code}</Badge>
+                            <Text span size="xs">{item.name}</Text>
+                        </Flex>
+                    </Grid.Col>
                 )}
-            </div>
-
-        </div>
+            </Grid>
+        </Box>
     </>
 }
 
