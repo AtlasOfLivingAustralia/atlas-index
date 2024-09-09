@@ -39,6 +39,12 @@ docker-compose -f src/main/docker/docker-compose.yml up
 ./gradlew bootRun
 ```
 
+OR 
+
+```
+mvn spring-boot:run
+```
+
 Open the Swagger UI for REST services at `http://localhost:8080`.
 
 ## Docker hub
