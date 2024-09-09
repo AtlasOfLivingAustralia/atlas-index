@@ -53,3 +53,18 @@
 .gallerySortLabel {
     font-size: var(--text-fz, var(--mantine-font-size-md)) !important;
 }
+
+.nameFormatted {
+    font-style: italic;
+    .rank-species {
+        .name {
+            font-style: italic;
+        }
+    }
+}
+
+
+
+.rankSpecies > .name {
+    font-style: italic !important;
+}
