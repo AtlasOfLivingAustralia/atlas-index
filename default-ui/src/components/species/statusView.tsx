@@ -61,6 +61,20 @@ function StatusView({result, resultV1}: MapViewProps) {
         }
     ]
 
+    const StatusBadge = ({status}: {status: string}) => {
+        return iucnClasses && iucnClasses.map((item, idx) =>
+            item.status.includes(status) &&
+                <Badge 
+                    key={idx} 
+                    circle size="lg" 
+                    h={30}
+                    w={30}
+                    color={item.bg} 
+                    style={{ color: item.fg, paddingLeft: '3px' }}
+                >{item.code}</Badge>
+            )
+    }
+
     return <>
         <Box>
             <Title order={3} mb="md" mt="md">Native / introduced</Title>
@@ -111,8 +125,7 @@ function StatusView({result, resultV1}: MapViewProps) {
                             <Table.Td>{resultV1.conservationStatuses[key].status}</Table.Td>
                             <Table.Td>{ iucnClasses && iucnClasses.map((item, idx) =>
                                 item.status.includes(resultV1.conservationStatuses[key].status) &&
-                                    <Badge key={idx} circle size="lg" color={item.bg} 
-                                    style={{color: item.fg}}>{item.code}</Badge>
+                                    <StatusBadge status={resultV1.conservationStatuses[key].status} />
                                 )}
                             </Table.Td>
                         </Table.Tr>
@@ -134,7 +147,7 @@ function StatusView({result, resultV1}: MapViewProps) {
                 {iucnClasses && iucnClasses.map((item, idx) =>
                     <Grid.Col key={idx} span={4}>
                         <Flex justify="flex-start" align="center" gap="xs">
-                            <Badge circle size="lg" color={item.bg} style={{color: item.fg}}>{item.code}</Badge>
+                            <StatusBadge status={item.name} />
                             <Text span size="xs">{item.name}</Text>
                         </Flex>
                     </Grid.Col>
