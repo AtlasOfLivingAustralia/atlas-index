@@ -1,7 +1,7 @@
 import {} from "react";
 
 interface BibliographyProps {
-
+    resource: { thumbnail: string };
 }
 
 function Bibliography({resource}: BibliographyProps) {
