@@ -1,15 +1,19 @@
 import {useEffect, useState} from "react";
-import Bibliography from "../citation/bibliography.tsx";
+import Bibliography from "../resources/bibliography.tsx";
+import { Box, Notification, Skeleton, Title } from "@mantine/core";
 
 interface MapViewProps {
-    result?: {},
-    resultV1?: {}
+    result?:  Record<PropertyKey, string | number | any >,
+    resultV1?:  Record<PropertyKey, string | number | any >
 }
 
 function ResourcesView({result, resultV1}: MapViewProps) {
 
-    // const [bhl, setBhl] = useState([]);
-    const bhl = [
+    const [bhl, setBhl] = useState([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+
+    const bhl2 = [
             {
                 "BHLType": "Part",
                 "FoundIn": "Metadata",
@@ -100,36 +104,55 @@ function ResourcesView({result, resultV1}: MapViewProps) {
 
         let page = 1;
         let s = [result.name];
+
         if (resultV1?.synonyms) {
             resultV1.synonyms.forEach((synonym: any) => {
                 s.push(synonym.nameString)
             })
         }
+
         let url = "https://www.biodiversitylibrary.org/api3" +
             "?op=PublicationSearch" +
             "&searchterm=" + encodeURIComponent('"' + s.join('" OR "') + '"') +
             "&searchtype=C&page=" + page + "&apikey=" + encodeURIComponent(import.meta.env.VITE_BHL_API_KEY) + "&format=json"
-
-        // fetch(url)
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         console.log(data)
-        //         if (data?.Result) {
-        //             setBhl(data.Result)
-        //         }
-        //     })
+        setLoading(true);
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data)
+                if (data?.Result) {
+                    setBhl(data.Result)
+                }
+            })
+            .catch(error => {
+                console.error('Failed to fetch BHL data - ' + error);
+                setErrorMessage('Failed to fetch BHL data - ' + error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }, [result]);
 
 
     return <>
-        <div className="resourcesView">
-            <div className="namesSectionHeader">
-                Literature
-            </div>
-            <div className="sectionSubHeader">
-                Biodiversity Heritage Library
-            </div>
-            {bhl && bhl.map((resource, index) =>
+        <Box>
+            <Title order={3} mb="md" mt="md">Literature</Title>
+            <Title order={4} c="gray" mb="sm" mt="sm">Biodiversity Heritage Library</Title>
+
+            { loading && 
+            <Skeleton height={800} mt="lg" width="100%" radius="md" />
+            }
+            { errorMessage && 
+                <Notification
+                    withBorder 
+                    mt="lg"
+                    onClose={() => setErrorMessage('')}
+                    title="Error loading datasets"
+                >
+                    {errorMessage}
+                </Notification>
+            }
+            { bhl && bhl.map((resource, index) =>
                 <div className="resourceBox" key={index}>
                     {resource.thumbnail && <div className="pull-right"><img
                         className="img-thumbnail bhl-thumbnail" src="${item.thumbnailUrl}"/></div>
@@ -187,7 +210,7 @@ function ResourcesView({result, resultV1}: MapViewProps) {
                     <div className="bi bi-arrow-right-short ms-auto species-red"></div>
                 </div>
             </div>
-        </div>
+        </Box>
     </>
 }
 
