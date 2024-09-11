@@ -1,6 +1,6 @@
-.currentTaxa {
+.currentTaxa, .citeAusTraits {
     @mixin light {
-        background-color: var(--mantine-color-charcoal-2);
+        background-color: var(--mantine-color-charcoal-1);
     }
 
     @mixin dark {
@@ -8,7 +8,7 @@
     }
 }
 
-.speciesSectionText a {
+.speciesSectionText a, .traitsSectionText a {
     @mixin light {
         color: var(--mantine-color-ocean-9);
         &:hover {

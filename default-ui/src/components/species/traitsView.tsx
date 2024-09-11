@@ -1,15 +1,33 @@
+import { ActionIcon, Anchor, Box, Button, Flex, Grid, Image, Loader, Notification, Paper, Space, Table, Text, Title } from "@mantine/core";
+import { IconDownload, IconExternalLink, IconInfoCircleFilled } from "@tabler/icons-react";
 import {useEffect, useState} from "react";
+import DOMPurify from "dompurify";
+import FormatName from "../nameUtils/formatName";
+import classes from './species.module.css';
 
 interface MapViewProps {
-    result?: {},
-    resultV1?: {}
+    result?:  Record<PropertyKey, string | number | any >,
+    resultV1?:  Record<PropertyKey, string | number | any >
+}
+
+interface TraitLoadings {
+    type: null | 'count' | 'summary';
+    loading: null | boolean;
+    errorMessage: null | string;
 }
 
 function TraitsView({result, resultV1}: MapViewProps) {
 
     const [traitsText, setTraitsText] = useState('');
+
     const [hasMoreValues, setHasMoreValues] = useState(false);
-    const [traits, setTraits] = useState({});
+    const [traits, setTraits] = useState<Record<PropertyKey, string | number | any >>({});
+
+    const [loadingCounts, setLoadingCounts] = useState(false);
+    const [errorMessageCounts, setErrorMessageCounts] = useState('');
+
+    const [loadingSummary, setLoadingSummary] = useState(false);
+    const [errorMessageSummary, setErrorMessageSummary] = useState('');
 
     // const traitsCount = [
     //     {
@@ -135,43 +153,59 @@ function TraitsView({result, resultV1}: MapViewProps) {
         if (!result?.guid) {
             return;
         }
-
-        fetch(import.meta.env.VITE_APP_BIE_URL + "/trait-count" + getAusTraitsParam(), {
-        headers: {
-            'Content-Type': 'application/json'}
+        setLoadingCounts(true);
+        setErrorMessageCounts('');
+        const countUrl = import.meta.env.VITE_APP_BIE_URL + "/trait-count" + getAusTraitsParam();
+        fetch(countUrl, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
         })
             .then(response => response.json())
             .then(data => {
                 if (data && data.length > 0) {
-                    // var text = traitsCount[0].explanation
-                    var text = data[0].explanation
-                    text = text.replace('AusTraits', '<a className="link" target="_blank" href="' + import.meta.env.VITE_AUSTRAITS_HOME + '">AusTraits</a>')
-                    text = text.replace(data[0].taxon, '<i>' + data[0].taxon + '</i>')
-
-                    // replace doi.org[^ ]* with <a className="link">doi.org[^ ]*</a>
-                    text = text.replace(/(doi.org[^ ]*)/g, '<a className="link" target="_blank" href="https://$1">$1</a>')
-
+                    let text = data[0].explanation;
+                    text = text.replace('AusTraits', `<a target="_blank" href={import.meta.env.VITE_AUSTRAITS_HOME}>AusTraits</a>`);
+                    text = text.replace(data[0].taxon, '<i>' + data[0].taxon + '</i>');
+                    text = text.replace(/(doi.org[^ ]*)/g, '<a target="_blank" href="https://$1">$1</a>');
                     setTraitsText(text);
                 }
             })
+            .catch(error => {
+                console.warn("Trait-count error", error);
+                setErrorMessageCounts("Traits counts - " + error + " - " + countUrl);
+            })
+            .finally(() => {
+                setLoadingCounts(false);
+            });
 
-        fetch(import.meta.env.VITE_APP_BIE_URL + "/trait-summary" + getAusTraitsParam(), {
+        setLoadingCounts(true);
+        setErrorMessageCounts('');
+        const summaryUrl = import.meta.env.VITE_APP_BIE_URL + "/trait-summary" + getAusTraitsParam();
+        fetch(summaryUrl, {
             headers: {
                 'Content-Type': 'application/json'}
         })
-            .then(response => response.json())
-            .then(data => {
-                var hasMore = false;
-                if (data?.categorical_traits) {
-                    data.categorical_traits.forEach(item => {
-                        if (item.trait_values.endsWith("*")) {
-                            hasMore = true;
-                        }
-                    })
-                    setHasMoreValues(hasMore)
-                    setTraits(data)
-                }
-            })
+        .then(response => response.json())
+        .then(data => {
+            var hasMore = false;
+            if (data?.categorical_traits) {
+                data.categorical_traits.forEach((item: Record<string, any>) => {
+                    if (item.trait_values.endsWith("*")) {
+                        hasMore = true;
+                    }
+                })
+                setHasMoreValues(hasMore)
+                setTraits(data)
+            }
+        })
+        .catch(error => {
+            console.warn("Trait-summary error", error);
+            setErrorMessageSummary("Traits summary - " + error + " - " + summaryUrl);
+        })
+        .finally(() => {
+            setLoadingSummary(false);
+        });
     }, [result]);
 
     function getAusTraitsParam() {
@@ -183,121 +217,197 @@ function TraitsView({result, resultV1}: MapViewProps) {
     }
 
     return <>
-        <div className="traitsView">
-            <div className="d-flex">
-                <img src={import.meta.env.VITE_APP_AUSTRAITS_LOGO} className="traitsLogo" alt="Austraits logo"/>
-
-                <div className="ms-auto traitsInfo">
-                    <div className="traitsInfoText">
-                        {traitsText && <div dangerouslySetInnerHTML={{__html: traitsText}}></div>}
-                    </div>
-
-                    <div className="traitsButtons d-flex">
-                        <a className="btn traitsButtonDefinitions ms-auto" target="_blank" href={import.meta.env.VITE_AUSTRAITS_DEFINITIONS}>AusTraits definitions</a>
-                        <a className="btn traitsButtonCsv" target="_blank" href={import.meta.env.VITE_APP_BIE_URL + "/download-taxon-data" + getAusTraitsParam()}>Download CSV</a>
-                    </div>
-                </div>
-            </div>
-
-            <div className="d-flex traitsDataBlock">
-                <div className="traitsInfoBox">
-                    <div className="classificationAbout">
-                        <span className="bi bi-info-circle-fill"></span>
-                        About traits
-                    </div>
-                    <div className="classificationInfoText">
-                        <p>
-                        The trait data shown here are a selection from <a className="link" target="_blank" href={import.meta.env.VITE_AUSTRAITS_HOME}>AusTraits</a>, an
-                        open-source,
-                        harmonised database of Australian plant trait data, sourced from individual researchers,
-                        government entities (e.g. herbaria) or NGOs across Australia.
-                        </p>
-                        <p>
-                        Traits vary in scope from morphological attributes (e.g. leaf area, seed mass, plant height) to
-                        ecological attributes (e.g. fire response, flowering time, pollinators) and physiological
-                        measures of performance (e.g. photosynthetic gas exchange, water-use efficiency.)&nbsp;
-                        <a className="link" target="_blank">Find out more</a>
-                        </p>
-                        <p>
-                        Source: <a className="link" target="_blank" href={import.meta.env.VITE_AUSTRAITS_DOI}>Zenodo</a>
-                        <br/>
-                        Rights holder: <a className="link" target="_blank" href={import.meta.env.VITE_AUSTRAITS_HOME}>AusTraits</a>
-                        <br/>
-                        Provided by: <a className="link" target="_blank" href={import.meta.env.VITE_AUSTRAITS_HOME}>AusTraits</a>
-                        </p>
-                        <div className="traitsCite">
-                            <div className="traitsCiteTitle">How to cite AusTraits data</div>
-                            <div className="traitsCiteText">
-                            <p>
-                                Falster, Gallagher et al (2021) AusTraits, a curated plant trait database for the Australian
-                                flora. Scientific Data 8: 254,&nbsp;
-                                <a className="link" target="_blank" href="https://doi.org/10.1038/s41597-021-01006-6">https://doi.org/10.1038/s41597-021-01006-6</a>
-                                &nbsp;- followed by the ALA url and access date For more information about citing information on the
-                                ALA, see - <a className="link" target="_blank" href={import.meta.env.VITE_CITE_URL}>Citing the ALA</a>.
-                            </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="ms-auto traitsData">
-                    {traits?.categorical_traits?.length > 0  && <>
-                        <div className="namesSectionHeader">Categorical Traits</div>
-                        {hasMoreValues &&
-                            <div className="traitsCategoricalInfo">* Data sources in AusTraits report multiple values for
-                                this
-                                trait, suggesting variation across the taxon's range and life stages. Please download the
-                                raw
-                                data with information about the context of data collection to assess whether they are
-                                relevant
-                                to your project.</div>
+        <Grid className={classes.traitsSectionText}>
+            <Grid.Col span={3}>
+                <Flex justify="flex-start" align="center" gap="xs" mb="sm">
+                    <IconInfoCircleFilled size={18}/>
+                    <Text fw={800} >About traits</Text>
+                </Flex>
+                <Text mt="sm">
+                    The trait data shown here are a selection from{" "}
+                    <Anchor inherit href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
+                        AusTraits
+                    </Anchor>
+                    , an open-source, harmonised database of Australian plant trait data, sourced from individual researchers, government entities (e.g. herbaria) or NGOs across Australia.
+                </Text>
+                <Text mt="sm">
+                    Traits vary in scope from morphological attributes (e.g. leaf area, seed mass, plant height) to ecological attributes (e.g. fire response, flowering time, pollinators) and physiological measures of performance (e.g. photosynthetic gas exchange, water-use efficiency).{" "}
+                    <Anchor inherit href="#" target="_blank">
+                        Find out more
+                    </Anchor>
+                </Text>
+                <Text mt="sm">
+                    Source:{" "}
+                    <Anchor inherit href={import.meta.env.VITE_AUSTRAITS_DOI} target="_blank">
+                        Zenodo
+                    </Anchor>
+                    <br />
+                    Rights holder:{" "}
+                    <Anchor inherit href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
+                        AusTraits
+                    </Anchor>
+                    <br />
+                    Provided by:{" "}
+                    <Anchor inherit href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
+                        AusTraits
+                    </Anchor>
+                </Text>
+                <Image src={import.meta.env.VITE_APP_AUSTRAITS_LOGO} alt="Austraits logo" mt="lg" mb="lg"/>
+                <Paper 
+                    mt="lg" 
+                    p="md"
+                    radius="md"
+                    className={classes.citeAusTraits}
+                >
+                    <Text fw={800}>How to cite AusTraits data</Text>
+                    <Text mt="sm">
+                        Falster, Gallagher et al (2021) AusTraits, a curated plant trait database for the Australian flora. Scientific Data 8: 254,{" "}
+                        <Anchor inherit href="https://doi.org/10.1038/s41597-021-01006-6" target="_blank">
+                            https://doi.org/10.1038/s41597-021-01006-6
+                        </Anchor>{" "}
+                        - followed by the ALA url and access date For more information about citing information on the ALA, see -{" "}
+                        <Anchor inherit href={import.meta.env.VITE_CITE_URL} target="_blank">
+                            Citing the ALA
+                        </Anchor>
+                        .
+                    </Text>
+                </Paper>
+            </Grid.Col>
+            <Grid.Col span={1}>
+                <Space />
+            </Grid.Col>
+            <Grid.Col span={8}>
+                { loadingCounts && 
+                    <Text ta="center" mt="md"><Loader size="md" /></Text>
+                }
+                { errorMessageCounts && 
+                    <Notification 
+                        withBorder 
+                        onClose={() => setErrorMessageCounts('')}
+                        title="Error loading trait data"
+                    >
+                        {errorMessageCounts}
+                    </Notification>
+                }
+                { traitsText && !loadingCounts && !errorMessageCounts && 
+                    <>
+                        <Text dangerouslySetInnerHTML={{
+                                __html: DOMPurify.sanitize(traitsText)}}></Text>
+                        <Flex gap="lg" mt="lg" mb="lg">
+                            <Button 
+                                variant="outline"
+                                onClick={() => {
+                                    window.open(import.meta.env.VITE_AUSTRAITS_DEFINITIONS, '_blank');
+                                }}
+                                rightSection={<IconExternalLink size={20} />}
+                            >
+                                AusTraits definitions
+                            </Button>
+                            <Button 
+                                variant="outline"
+                                onClick={() => {
+                                    window.open(import.meta.env.VITE_APP_BIE_URL + "/download-taxon-data" + getAusTraitsParam(), '_blank');
+                                }}
+                                rightSection={<IconDownload size={20} />}
+                            >
+                                Download CSV
+                            </Button>
+                        </Flex>
+                        
+                        {traits?.categorical_traits?.length > 0  && 
+                            <>
+                                <Title order={3} mb="md" mt="md">Categorical Traits</Title>
+                                { hasMoreValues &&
+                                    <Text fs="italic">* Data sources in AusTraits report multiple values for this
+                                        trait, suggesting variation across the taxon's range and life stages. Please download the raw
+                                        data with information about the context of data collection to assess whether they are
+                                        relevant to your project.</Text>
+                                }
+                                <Table striped="even" mb="sm" mt="sm">
+                                    <Table.Thead>
+                                        <Table.Tr>
+                                            <Table.Th>Trait name</Table.Th>
+                                            <Table.Th>Trait value</Table.Th>
+                                            <Table.Th>Definition</Table.Th>
+                                        </Table.Tr>
+                                    </Table.Thead>
+                                    <Table.Tbody>
+                                        { traits?.categorical_traits.map((item: Record<string, any>, idx: number) =>
+                                            <Table.Tr key={idx}>
+                                                <Table.Td>{item.trait_name}</Table.Td>
+                                                <Table.Td>{item.trait_values}</Table.Td>
+                                                <Table.Td>
+                                                    <ActionIcon 
+                                                        variant="default" 
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            window.open(item.definition, '_blank');
+                                                        }}
+                                                    >
+                                                        <IconExternalLink/>
+                                                    </ActionIcon>
+                                                </Table.Td>
+                                            </Table.Tr>
+                                        )}
+                                    </Table.Tbody>
+                                </Table>
+                            </>
                         }
-                        <div className="namesRowHeader d-flex">
-                            <div className="speciesTableHeaderItem traitsConservationName">Trait Name</div>
-                            <div className="speciesTableHeaderItem traitsConservationValue">Trait Value</div>
-                            <div className="speciesTableHeaderItem traitsConservationLink">Definition</div>
-                        </div>
-                        {traits?.categorical_traits.map((item, idx) =>
-                            <div className={"namesRow d-flex " + (idx % 2 == 1 && "namesRowOdd")} key={idx}>
-                                <div className="speciesTableItem traitsConservationName">{item.trait_name}</div>
-                                <div className="speciesTableItem traitsConservationValue">{item.trait_values}</div>
-                                <div className="speciesTableItem traitsConservationLink"><a target="_blank"
-                                                                                            href={item.definition}>
-                                    <div className="bi bi-box-arrow-up-right"></div>
-                                </a>
-                                </div>
-                            </div>
-                        )}
-                        </>
-                    }
-
-                    {traits?.categorical_traits?.length > 0 && traits?.numeric_traits?.length > 0 && <div className="namesSectionFoot"></div>}
-
-                    {traits?.numeric_traits?.length > 0 && <>
-                        <div className="namesSectionHeader">Numeric Traits</div>
-                        <div className="namesRowHeader d-flex">
-                            <div className="speciesTableHeaderItem traitNumericName">Trait Name</div>
-                            <div className="speciesTableHeaderItem traitNumericMin">Min</div>
-                            <div className="speciesTableHeaderItem traitNumericMean">Mean</div>
-                            <div className="speciesTableHeaderItem traitNumericMax">Max</div>
-                            <div className="speciesTableHeaderItem traitNumericUnit">Unit</div>
-                            <div className="speciesTableHeaderItem traitNumericUrl">Definition</div>
-                        </div>
-                        {traits?.numeric_traits && traits?.numeric_traits.map((item, idx) =>
-                            <div className={"namesRow d-flex " + (idx % 2 == 1 && "namesRowOdd")} key={idx}>
-                                <div className="speciesTableItem traitNumericName">{item.trait_name}</div>
-                                <div className="speciesTableItem traitNumericMin">{item.min}</div>
-                                <div className="speciesTableItem traitNumericMean">{item.mean}</div>
-                                <div className="speciesTableItem traitNumericMax">{item.max}</div>
-                                <div className="speciesTableItem traitNumericUnit">{item.unit}</div>
-                                <div className="speciesTableItem traitNumericUrl"><a target="_blank" href={item.definition}><div className="bi bi-box-arrow-up-right"></div></a></div>
-                            </div>
-                        )}
+                        { loadingSummary && 
+                            <Text ta="center" mt="md"><Loader size="md" /></Text>
+                        }
+                        { errorMessageSummary && 
+                            <Notification 
+                                withBorder 
+                                onClose={() => setErrorMessageSummary('')}
+                                title="Error loading trait data"
+                            >
+                                {errorMessageSummary}
+                            </Notification>
+                        }
+                        { traits?.numeric_traits?.length > 0  && 
+                            <>
+                                <Title order={3} mb="md" mt="md">Numeric Traits</Title>
+                                <Table striped="even" mb="sm" mt="sm">
+                                    <Table.Thead>
+                                        <Table.Tr>
+                                            <Table.Th>Trait Name</Table.Th>
+                                            <Table.Th>Min</Table.Th>
+                                            <Table.Th>Mean</Table.Th>
+                                            <Table.Th>Max</Table.Th>
+                                            <Table.Th>Unit</Table.Th>
+                                            <Table.Th>Definition</Table.Th>
+                                        </Table.Tr>
+                                    </Table.Thead>
+                                    <Table.Tbody>
+                                        { traits?.numeric_traits.map((item: Record<string, any>, idx: number) =>
+                                            <Table.Tr key={idx}>
+                                                <Table.Td>{item.trait_name}</Table.Td>
+                                                <Table.Td>{item.min}</Table.Td>
+                                                <Table.Td>{item.mean}</Table.Td>
+                                                <Table.Td>{item.max}</Table.Td>
+                                                <Table.Td>{item.unit}</Table.Td>
+                                                <Table.Td>
+                                                    <ActionIcon 
+                                                        variant="default" 
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            window.open(item.definition, '_blank');
+                                                        }}
+                                                    >
+                                                        <IconExternalLink/>
+                                                    </ActionIcon>
+                                                </Table.Td>
+                                            </Table.Tr>
+                                        )}
+                                    </Table.Tbody>
+                                </Table>
+                            </>
+                        }
                     </>
-                    }
-                </div>
-            </div>
-
-        </div>
+                }
+            </Grid.Col>
+        </Grid>
     </>
 }
 
