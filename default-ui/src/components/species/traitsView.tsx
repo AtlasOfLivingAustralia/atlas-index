@@ -1,4 +1,4 @@
-import { ActionIcon, Anchor, Box, Button, Flex, Grid, Image, Loader, Notification, Paper, Space, Table, Text, Title } from "@mantine/core";
+import { ActionIcon, Anchor, Box, Button, Flex, Grid, Image, Loader, Notification, Paper, Skeleton, Space, Table, Text, Title } from "@mantine/core";
 import { IconDownload, IconExternalLink, IconInfoCircleFilled } from "@tabler/icons-react";
 import {useEffect, useState} from "react";
 import DOMPurify from "dompurify";
@@ -153,8 +153,10 @@ function TraitsView({result, resultV1}: MapViewProps) {
         if (!result?.guid) {
             return;
         }
+
         setLoadingCounts(true);
         setErrorMessageCounts('');
+
         const countUrl = import.meta.env.VITE_APP_BIE_URL + "/trait-count" + getAusTraitsParam();
         fetch(countUrl, {
             headers: {
@@ -179,8 +181,9 @@ function TraitsView({result, resultV1}: MapViewProps) {
                 setLoadingCounts(false);
             });
 
-        setLoadingCounts(true);
-        setErrorMessageCounts('');
+        setLoadingSummary(true);
+        setErrorMessageSummary('');
+        
         const summaryUrl = import.meta.env.VITE_APP_BIE_URL + "/trait-summary" + getAusTraitsParam();
         fetch(summaryUrl, {
             headers: {
@@ -278,7 +281,10 @@ function TraitsView({result, resultV1}: MapViewProps) {
             </Grid.Col>
             <Grid.Col span={8}>
                 { loadingCounts && 
-                    <Text ta="center" mt="md"><Loader size="md" /></Text>
+                    <>
+                        <Skeleton height={75} mt="lg" width="90%" radius="md" />
+                        <Skeleton height={40} mt="lg" width="50%" radius="md" />
+                    </>
                 }
                 { errorMessageCounts && 
                     <Notification 
@@ -353,57 +359,61 @@ function TraitsView({result, resultV1}: MapViewProps) {
                                 </Table>
                             </>
                         }
-                        { loadingSummary && 
-                            <Text ta="center" mt="md"><Loader size="md" /></Text>
-                        }
-                        { errorMessageSummary && 
-                            <Notification 
-                                withBorder 
-                                onClose={() => setErrorMessageSummary('')}
-                                title="Error loading trait data"
-                            >
-                                {errorMessageSummary}
-                            </Notification>
-                        }
-                        { traits?.numeric_traits?.length > 0  && 
-                            <>
-                                <Title order={3} mb="md" mt="md">Numeric Traits</Title>
-                                <Table striped="even" mb="sm" mt="sm">
-                                    <Table.Thead>
-                                        <Table.Tr>
-                                            <Table.Th>Trait Name</Table.Th>
-                                            <Table.Th>Min</Table.Th>
-                                            <Table.Th>Mean</Table.Th>
-                                            <Table.Th>Max</Table.Th>
-                                            <Table.Th>Unit</Table.Th>
-                                            <Table.Th>Definition</Table.Th>
-                                        </Table.Tr>
-                                    </Table.Thead>
-                                    <Table.Tbody>
-                                        { traits?.numeric_traits.map((item: Record<string, any>, idx: number) =>
-                                            <Table.Tr key={idx}>
-                                                <Table.Td>{item.trait_name}</Table.Td>
-                                                <Table.Td>{item.min}</Table.Td>
-                                                <Table.Td>{item.mean}</Table.Td>
-                                                <Table.Td>{item.max}</Table.Td>
-                                                <Table.Td>{item.unit}</Table.Td>
-                                                <Table.Td>
-                                                    <ActionIcon 
-                                                        variant="default" 
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            window.open(item.definition, '_blank');
-                                                        }}
-                                                    >
-                                                        <IconExternalLink/>
-                                                    </ActionIcon>
-                                                </Table.Td>
-                                            </Table.Tr>
-                                        )}
-                                    </Table.Tbody>
-                                </Table>
-                            </>
-                        }
+                    </>
+                }
+
+                { loadingSummary && 
+                    <>
+                        <Skeleton height={40} mt="lg" width="40%" radius="md" />
+                        <Skeleton height={800} mt="lg" width="90%" radius="md" />
+                    </>
+                }
+                { errorMessageSummary && 
+                    <Notification 
+                        withBorder 
+                        onClose={() => setErrorMessageSummary('')}
+                        title="Error loading trait data"
+                    >
+                        {errorMessageSummary}
+                    </Notification>
+                }
+                { traits?.numeric_traits?.length > 0  && 
+                    <>
+                        <Title order={3} mb="md" mt="md">Numeric Traits</Title>
+                        <Table striped="even" mb="sm" mt="sm">
+                            <Table.Thead>
+                                <Table.Tr>
+                                    <Table.Th>Trait Name</Table.Th>
+                                    <Table.Th>Min</Table.Th>
+                                    <Table.Th>Mean</Table.Th>
+                                    <Table.Th>Max</Table.Th>
+                                    <Table.Th>Unit</Table.Th>
+                                    <Table.Th>Definition</Table.Th>
+                                </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                                { traits?.numeric_traits.map((item: Record<string, any>, idx: number) =>
+                                    <Table.Tr key={idx}>
+                                        <Table.Td>{item.trait_name}</Table.Td>
+                                        <Table.Td>{item.min}</Table.Td>
+                                        <Table.Td>{item.mean}</Table.Td>
+                                        <Table.Td>{item.max}</Table.Td>
+                                        <Table.Td>{item.unit}</Table.Td>
+                                        <Table.Td>
+                                            <ActionIcon 
+                                                variant="default" 
+                                                size="sm"
+                                                onClick={() => {
+                                                    window.open(item.definition, '_blank');
+                                                }}
+                                            >
+                                                <IconExternalLink/>
+                                            </ActionIcon>
+                                        </Table.Td>
+                                    </Table.Tr>
+                                )}
+                            </Table.Tbody>
+                        </Table>
                     </>
                 }
             </Grid.Col>
