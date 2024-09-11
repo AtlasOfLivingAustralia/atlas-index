@@ -2,7 +2,7 @@ import { ActionIcon, Anchor, Box, Button, Flex, Grid, Image, Loader, Notificatio
 import { IconDownload, IconExternalLink, IconInfoCircleFilled } from "@tabler/icons-react";
 import {useEffect, useState} from "react";
 import DOMPurify from "dompurify";
-import FormatName from "../nameUtils/formatName";
+// import FormatName from "../nameUtils/formatName";
 import classes from './species.module.css';
 
 interface MapViewProps {
@@ -168,7 +168,7 @@ function TraitsView({result, resultV1}: MapViewProps) {
                 if (data && data.length > 0) {
                     let text = data[0].explanation;
                     text = text.replace('AusTraits', `<a target="_blank" href={import.meta.env.VITE_AUSTRAITS_HOME}>AusTraits</a>`);
-                    text = text.replace(data[0].taxon, '<i>' + data[0].taxon + '</i>');
+                    text = text.replace(data[0].taxon, '<i>' + data[0].taxon + '</i>'); // TODO: use FormatName component (formats using rankID)
                     text = text.replace(/(doi.org[^ ]*)/g, '<a target="_blank" href="https://$1">$1</a>');
                     setTraitsText(text);
                 }
@@ -183,7 +183,7 @@ function TraitsView({result, resultV1}: MapViewProps) {
 
         setLoadingSummary(true);
         setErrorMessageSummary('');
-        
+
         const summaryUrl = import.meta.env.VITE_APP_BIE_URL + "/trait-summary" + getAusTraitsParam();
         fetch(summaryUrl, {
             headers: {
@@ -295,7 +295,7 @@ function TraitsView({result, resultV1}: MapViewProps) {
                         {errorMessageCounts}
                     </Notification>
                 }
-                { traitsText && !loadingCounts && !errorMessageCounts && 
+                { traitsText && 
                     <>
                         <Text dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(traitsText)}}></Text>
