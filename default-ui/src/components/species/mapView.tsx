@@ -3,7 +3,8 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import { LatLng} from "leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
 import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Radio, Text, Title } from '@mantine/core';
-import { IconAdjustmentsHorizontal, IconArrowRight, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
+import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
+import LargeLinkButton from "../common/ExternalLinkButton";
 
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-fullscreen/styles.css';
@@ -15,6 +16,11 @@ interface MapViewProps {
     tab?: string,
     result?: Record<PropertyKey, string | number | any >
 }
+
+interface OnlineResource {
+    name: string | JSX.Element;
+    url: string;
+};
 
 function MapView({queryString, tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
@@ -51,23 +57,30 @@ function MapView({queryString, tab, result}: MapViewProps) {
     function formatNumber(occurrenceCount: any) {
         return occurrenceCount.toLocaleString();
     }
-
-    const ExploreButton = (props: any) => {
-        return <Button 
-            component="span" 
-            variant="outline" 
-            size="md"
-            fullWidth
-            style={{
-                height: "100%",
-                textAlign: "left",
-                lineHeight: "1.3",
-                paddingTop: "12px",
-                paddingBottom: "11px",
-            }}
-            rightSection={<IconArrowRight />}
-        >{props?.children}</Button>
-    }
+    
+    const createAlertForTaxon = (guid: string | undefined) => {
+        // Implement your logic here to create the alert URL based on the guid
+        return `javascript:alert('TODO: Create alert for taxon ${guid}')`;
+    };
+    
+    const onlineResources: OnlineResource[] = [
+        {
+            name: <>Explore and download <br/>occurrence records</>,
+            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/search}`
+        },
+        {
+            name: "Advanced mapping",
+            url: "https://spatial.ala.org.au"
+        },
+        {
+            name: <>How to submit <br/>observations</>,
+            url: "https://www.ala.org.au/home/record-a-sighting/"
+        },
+        {
+            name: <>Receive alerts for <br/>new records</>,
+            url: createAlertForTaxon(result?.guid)
+        }
+    ];
 
     if (!result) {
         return <></>
@@ -160,11 +173,12 @@ function MapView({queryString, tab, result}: MapViewProps) {
         <Title order={4} fw={800} mt="xl" mb="lg">
             Get started
         </Title>
-        <Grid>
-            <Grid.Col span={3}><ExploreButton>Explore and download <br/>occurrence records</ExploreButton></Grid.Col>
-            <Grid.Col span={3}><ExploreButton>Advanced mapping</ExploreButton></Grid.Col>
-            <Grid.Col span={3}><ExploreButton>How to submit <br/>observations</ExploreButton></Grid.Col>
-            <Grid.Col span={3}><ExploreButton>Receive alerts for <br/>new records</ExploreButton></Grid.Col>
+        <Grid mt="lg" gutter={35}>
+            {onlineResources.map((resource: OnlineResource, idx) => (
+                <Grid.Col span={3} key={idx}>
+                    <LargeLinkButton url={resource.url}>{resource.name}</LargeLinkButton>
+                </Grid.Col>
+            ))}
         </Grid>
     </>
 }

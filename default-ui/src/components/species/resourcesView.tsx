@@ -1,6 +1,8 @@
-import { Box, Button, Divider, Grid, Space, Text, Title } from '@mantine/core';
-import BhlContent from '../resources/BhlContent.tsx';
+import { useEffect, useState } from 'react';
+import { Anchor, Box, Button, Divider, Grid, Notification, Paper, Skeleton, Space, Text, Title } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
+import classes from '../species/species.module.css';
+import LargeLinkButton from '../common/ExternalLinkButton';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>;
@@ -10,37 +12,111 @@ interface MapViewProps {
 interface Resource {
     name: string | JSX.Element;
     url: string;
+    external?: boolean;
+}
+
+interface Author {
+    Name: string;
+}
+
+interface BhlResource {
+    BHLType: string;
+    FoundIn: string;
+    Volume: string;
+    Authors: Author[];
+    PartUrl: string;
+    PartID: string;
+    Genre: string;
+    Title: string;
+    ContainerTitle: string;
+    Issue: string;
+    Date: string;
+    PageRange: string;
+    thumbnail: string;
 }
 
 function ResourcesView({ result, resultV1 }: MapViewProps) {
+    const [bhl, setBhl] = useState<BhlResource[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
+
+    useEffect(() => {
+        if (!result?.name || !resultV1) {
+            return;
+        }
+
+        let page = 1;
+        let s = [result.name];
+
+        if (resultV1?.synonyms) {
+            resultV1.synonyms.forEach((synonym: any) => {
+                s.push(synonym.nameString);
+            });
+        }
+
+        let url =
+            'https://www.biodiversitylibrary.org/api3' +
+            '?op=PublicationSearch' +
+            '&searchterm=' +
+            encodeURIComponent('"' + s.join('" OR "') + '"') +
+            '&searchtype=C&page=' +
+            page +
+            '&apikey=' +
+            encodeURIComponent(import.meta.env.VITE_BHL_API_KEY) +
+            '&format=json';
+        setLoading(true);
+        setErrorMessage('');
+        fetch(url)
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                if (data?.Result) {
+                    setBhl(data.Result);
+                }
+            })
+            .catch((error) => {
+                console.error('Failed to fetch BHL data - ' + error);
+                setErrorMessage('Failed to fetch BHL data - ' + error);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, [result, resultV1]);
+    
     const onlineResources: Resource[] = [
         {
-            name: <Text fw="bold" ta="left" p="sm" pl={0}>Australian Reference<br/> Genome Atlas (ARGA)</Text>,
-            url: "https://www.arga.net.au/"
+            name: <>Australian Reference<br/> Genome Atlas (ARGA)</>,
+            url: "https://www.arga.net.au/",
+            external: true
         },
         {
             name: "API",
-            url: "https://api.ala.org.au/"
+            url: "https://api.ala.org.au/",
         },
         {
             name: "Australian Museum",
-            url: "https://australian.museum/"
+            url: "https://australian.museum/",
+            external: true
         },
         {
             name: "Queensland Museum",
-            url: "https://www.qm.qld.gov.au/"
+            url: "https://www.qm.qld.gov.au/",
+            external: true
         },
         {
             name: "Fauna of Australia Profile",
-            url: "https://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/index"
+            url: "https://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/index",
+            external: true
         },
         {
-            name: <Text fw="bold" ta="left" p="sm" pl={0}>Species Profile and Threats<br/> Database (SPRAT)</Text>,
-            url: "https://www.environment.gov.au/cgi-bin/sprat/public/publicspecies.pl"
+            name: <>Species Profile and Threats<br/> Database (SPRAT)</>,
+            url: "https://www.environment.gov.au/cgi-bin/sprat/public/publicspecies.pl",
+            external: true
         },
         {
             name: "PestSmart Management Toolkit",
-            url: "https://pestsmart.org.au/"
+            url: "https://pestsmart.org.au/",
+            external: true
         }
     ];
     return (
@@ -48,23 +124,67 @@ function ResourcesView({ result, resultV1 }: MapViewProps) {
             <Title order={3} mb="md" mt="md">
                 Literature
             </Title>
-            <BhlContent result={result} resultV1={resultV1} />
+            
+            <Title order={4} c="gray" mb="sm" mt="sm">
+                Biodiversity Heritage Library
+            </Title>
+
+            { loading && <Skeleton height={800} mt="lg" width="100%" radius="md" /> }
+            { errorMessage && (
+                <Notification
+                    withBorder
+                    mt="lg"
+                    onClose={() => setErrorMessage('')}
+                    title="Error loading datasets"
+                >
+                    {errorMessage}
+                </Notification>
+            )}
+            { bhl && bhl.map((resource, index) => (
+                    <Paper className={classes.citation}  mt="sm" p="md" key={index} >
+                        {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
+                        {resource.Authors?.length > 1 && (
+                            <>
+                                {resource.Authors?.length > 2 && ", "}
+                                {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")},
+                            </>
+                        )}
+                        {resource.Title && resource.PartUrl && (
+                            <> {" "}
+                                <Anchor href={resource.PartUrl} target="_blank" rel="noreferrer">
+                                    {resource.Title}
+                                </Anchor>,
+                            </>)}
+                        {resource.ContainerTitle && (
+                            <> {" "}
+                                <i>{resource.ContainerTitle}</i>,
+                            </>)}
+                        {resource.Volume && (
+                            <> {" "}
+                                <Text span fw="bold">{resource.Volume}</Text>,
+                            </>)}
+                        {resource.Issue && (
+                            <> {" ("}
+                                {resource.Issue}{")"},
+                            </>)}
+                        {resource.Date && (
+                            <> {" "}
+                                {resource.Date},
+                            </>)}
+                        {resource.PageRange && (
+                            <> {" "}
+                                {resource.PageRange}
+                            </>)}
+                    </Paper>
+                ))
+            }
             <Space h="lg" />
             <Divider mt="lg" mb="lg"/>
             <Title order={4} c="gray" mb="lg" mt="lg">Online resources</Title>
-            <Grid mt="lg"  gutter={35}>
+            <Grid mt="lg" gutter={35}>
                 {onlineResources.map((resource: Resource, idx) => (
                     <Grid.Col span={4} key={idx}>
-                        <Button 
-                            fullWidth
-                            justify="space-between"
-                            variant="default"  
-                            style={{ borderColor: 'var(--mantine-color-rust-outline)' }}
-                            rightSection={<IconArrowRight size={20} color={'var(--mantine-color-rust-outline)'}/>}
-                            onClick={() => window.open(resource.url, "_blank")}
-                            h={75}
-                            size="md"
-                        >{resource.name}</Button>
+                        <LargeLinkButton url={resource.url} external={resource.external}>{resource.name}</LargeLinkButton>
                     </Grid.Col>
                 ))}
             </Grid>
