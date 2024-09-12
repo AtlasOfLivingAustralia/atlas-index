@@ -117,7 +117,7 @@ function Species({setBreadcrumbs, queryString}: {
     return (
         <>
             <Box className={classes.speciesHeader}>
-                <Container py="lg" size="lg">
+                <Container py="xl" size="lg">
                     <BreadcrumbSection breadcrumbValues={breadcrumbValues}/>
                     <Grid mt="md" mb="lg">
                         <Grid.Col span={6}>

@@ -1,3 +1,24 @@
+.speciesHeader {
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-position: right -10px top -20px;
+
+    @mixin light {
+        background-color: var(--mantine-color-concrete-0);
+        background-image: url('../../../public/logo/logo-back-light.svg');
+    }
+
+    @mixin dark {
+        background-color: var(--mantine-color-charcoal-9);
+        background-image: url('../../../public/logo/logo-back-dark.svg');
+    }
+
+    /* Mobile Sizes */
+    @media (max-width: calc(48em - 1px)) {
+        display: none;
+    }
+}
+
 .currentTaxa, .citeAusTraits {
     @mixin light {
         background-color: var(--mantine-color-charcoal-1);

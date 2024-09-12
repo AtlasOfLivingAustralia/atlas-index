@@ -1,4 +1,4 @@
-import { Box, Flex, Title, Text, Anchor } from "@mantine/core";
+import { Box, Flex, Title, Text, Anchor, Skeleton } from "@mantine/core";
 import { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 import classes from "./species.module.css";
@@ -16,6 +16,7 @@ interface Section {
 
 function DescriptionView({result}: MapViewProps) {
     const [sections, setSections] = useState<Section[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         if (result?.name) {
@@ -24,8 +25,17 @@ function DescriptionView({result}: MapViewProps) {
     }, [result]);
 
     function fetchPage(name: string) {
-        fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_'))).then(response => response.text()).then(text => {
+
+        setLoading(true)
+        fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_')))
+        .then(response => response.text()).then(text => {
             parseText(text, true, name)
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            setLoading(false)
         })
 
         // TODO: remove test example for live fetch
@@ -141,6 +151,12 @@ function DescriptionView({result}: MapViewProps) {
     }
 
     return <>
+        { loading && 
+                    <Box>
+                        <Skeleton height={40} mt="lg" width="20%" radius="md" />
+                        <Skeleton height={800} mt="lg" width="90%" radius="md" />
+                    </Box>
+                }
         { sections && sections.map((section, idx) =>
             <Box key={idx}>
                 <Title order={3} mb="md" mt="md">{section.title}</Title>

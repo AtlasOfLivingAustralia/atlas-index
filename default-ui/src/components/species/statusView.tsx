@@ -109,7 +109,7 @@ function StatusView({result, resultV1}: MapViewProps) {
                 </Table.Tbody>
             </Table>
 
-            <Title order={3} mb="md" mt="md">Conservation status</Title>
+            <Title order={3} mb="md" mt="lg">Conservation status</Title>
             <Table striped="even" mt="sm" mb="sm">
                 <Table.Thead>
                     <Table.Tr>
@@ -125,7 +125,7 @@ function StatusView({result, resultV1}: MapViewProps) {
                             <Table.Td>{resultV1.conservationStatuses[key].status}</Table.Td>
                             <Table.Td>{ iucnClasses && iucnClasses.map((item, idx) =>
                                 item.status.includes(resultV1.conservationStatuses[key].status) &&
-                                    <StatusBadge status={resultV1.conservationStatuses[key].status} />
+                                    <StatusBadge key={idx} status={resultV1.conservationStatuses[key].status} />
                                 )}
                             </Table.Td>
                         </Table.Tr>
@@ -133,7 +133,7 @@ function StatusView({result, resultV1}: MapViewProps) {
                 </Table.Tbody>
             </Table>
 
-            <Flex justify="flex-start" align="center" gap="xs" mb="sm">
+            <Flex justify="flex-start" align="center" gap="xs" mb="sm" mt="lg">
                 <IconInfoCircleFilled size={18}/>
                 <Text fw={800} fz={16}>About the IUCN Equivalent Classes</Text>
             </Flex>

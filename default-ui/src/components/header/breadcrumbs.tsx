@@ -33,7 +33,7 @@ const BreadcrumbSection: React.FC<BreadcrumbsProps> = ({
     <div className="breadcrumbs"> {/* Add a class for styling */}
       <Breadcrumbs separator={<IconChevronLeft size={16} className={classes.breadcrumb}/>} separatorMargin={4} >
           {breadcrumbItems.map((item: any, index: number) => (
-              <Text key={index} size="sm">{item}</Text>
+              <Text component='div' key={index} size="sm">{item}</Text>
           ))}
       </Breadcrumbs>
     </div>

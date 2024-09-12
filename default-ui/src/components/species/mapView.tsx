@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { LatLng} from "leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
-import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Popover, Radio, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Overlay, Popover, Radio, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
-import LargeLinkButton from "../common/ExternalLinkButton";
+import LargeLinkButton from "../common/externalLinkButton";
 
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-fullscreen/styles.css';
@@ -27,6 +27,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
     const [distributions, setDistributions] = useState<any[]>([]);
     const [showOccurrences, setShowOccurrences] = useState(true);
     const [mapControls, setMapControls] = useState('default');
+    const [opened, setOpened] = useState(false);
     const mapRef = useRef(null);
 
     useEffect(() => {
@@ -126,16 +127,18 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     <FullscreenControl position={"topleft"}/>
                 </MapContainer> */}
                 <Popover 
-                    width={400}
-                    // opened
+                    width="auto"
+                    withArrow 
+                    shadow="md"
+                    opened={opened} onChange={setOpened}
                     position="right"
                 >
                     <Popover.Target>
-                        <span style={{ display: 'inline-block', cursor: 'pointer' }}>
+                        <span style={{ display: 'inline-block', cursor: 'pointer' }} onClick={() => setOpened((o) => !o)}>
                             <img src={generateImageUrl()} alt={`Record density map`} />
                         </span>
                     </Popover.Target>
-                    <Popover.Dropdown>
+                    <Popover.Dropdown style={{ textAlign: 'center' }}>
                         <Button variant="filled" fullWidth
                             onClick={() => { 
                                 window.open(`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}#mapView`, '_map') 
@@ -143,11 +146,13 @@ function MapView({queryString, tab, result}: MapViewProps) {
                             size="md">
                             View an interactive version of this map
                         </Button>
+                        <Text mt="sm" fz="sm">Opens the ALA occurrence data explorer in a new window</Text>
+                        {/* <Button variant="outline" mt="sm" onClick={() => setOpened((o) => !o)}>Close</Button> */}
                     </Popover.Dropdown>
                 </Popover>
                 
             </Box>
-            <Box>
+            <Box pos="relative" pl={5}>
                 <Flex justify="flex-start" align="center" gap="sm">
                     <IconAdjustmentsHorizontal />
                     <Text fw="bold">Refine view</Text>
@@ -186,6 +191,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     radius="xl"
                     fullWidth
                     rightSection={<IconReload />}>Refresh</Button>
+                <Overlay color="#000" backgroundOpacity={0} blur={2} />
             </Box>
         </Flex>
         <Flex justify="flex-start" align="center" gap="xs" mt="xl">
