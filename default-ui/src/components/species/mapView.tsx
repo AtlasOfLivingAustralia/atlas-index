@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { LatLng} from "leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
-import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Radio, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Popover, Radio, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
 import LargeLinkButton from "../common/ExternalLinkButton";
 
@@ -59,18 +59,18 @@ function MapView({queryString, tab, result}: MapViewProps) {
     }
     
     const createAlertForTaxon = (guid: string | undefined) => {
-        // Implement your logic here to create the alert URL based on the guid
+        // Create alert for taxon
         return `javascript:alert('TODO: Create alert for taxon ${guid}')`;
     };
     
     const onlineResources: OnlineResource[] = [
         {
             name: <>Explore and download <br/>occurrence records</>,
-            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/search}`
+            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}`
         },
         {
             name: "Advanced mapping",
-            url: "https://spatial.ala.org.au"
+            url: `https://spatial.ala.org.au?q=lsid:${result?.guid}`
         },
         {
             name: <>How to submit <br/>observations</>,
@@ -81,6 +81,12 @@ function MapView({queryString, tab, result}: MapViewProps) {
             url: createAlertForTaxon(result?.guid)
         }
     ];
+
+    const generateImageUrl = () => {
+        // Generate the URL string here
+        // https://api.ala.org.au/occurrences/occurrences/static?q=lsid%3Ahttps%3A%2F%2Fbiodiversity.org.au%2Fafd%2Ftaxa%2F2a4e373b-913a-4e2a-a53f-74828f6dae7e&forceRefresh=false&forcePointsDisplay=false&pointColour=0000ff&pointHeatMapThreshold=500&opacity=1
+        return `https://api.ala.org.au/occurrences/occurrences/static?q=lsid%3A${result?.guid}&forceRefresh=false&forcePointsDisplay=false&pointColour=0000ff&pointHeatMapThreshold=500&opacity=1`;
+    };
 
     if (!result) {
         return <></>
@@ -105,7 +111,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 width: "100%",
                 borderRadius: "10px",
             }}>
-                <MapContainer 
+                {/* <MapContainer 
                     ref={mapRef} 
                     center={center} 
                     zoom={4} 
@@ -118,7 +124,28 @@ function MapView({queryString, tab, result}: MapViewProps) {
                         url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
                     />
                     <FullscreenControl position={"topleft"}/>
-                </MapContainer>
+                </MapContainer> */}
+                <Popover 
+                    width={400}
+                    // opened
+                    position="right"
+                >
+                    <Popover.Target>
+                        <span style={{ display: 'inline-block', cursor: 'pointer' }}>
+                            <img src={generateImageUrl()} alt={`Record density map`} />
+                        </span>
+                    </Popover.Target>
+                    <Popover.Dropdown>
+                        <Button variant="filled" fullWidth
+                            onClick={() => { 
+                                window.open(`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}#mapView`, '_map') 
+                            }}
+                            size="md">
+                            View an interactive version of this map
+                        </Button>
+                    </Popover.Dropdown>
+                </Popover>
+                
             </Box>
             <Box>
                 <Flex justify="flex-start" align="center" gap="sm">

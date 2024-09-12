@@ -10,11 +10,13 @@ import StatusView from "../components/species/statusView.tsx";
 import TraitsView from "../components/species/traitsView.tsx";
 import DatasetsView from "../components/species/datasetsView.tsx";
 import ResourcesView from "../components/species/resourcesView.tsx";
-import { Alert, Anchor, Badge, Box, Code, Container, Divider, Flex, Grid, Image, Space, Tabs, Text, Title } from "@mantine/core";
-import classes from '../App.module.css';
-import { IconFlagFilled } from "@tabler/icons-react";
+import { Alert, Anchor, Box, Code, Container, Divider, Grid, Image, List, Space, Tabs, Text, Title } from "@mantine/core";
+import { IconCircleFilled, IconFlagFilled } from "@tabler/icons-react";
 import BreadcrumbSection from "../components/header/breadcrumbs.tsx";
+import capitalizeFirstLetter from "../helpers/Capitalise.ts";
 // import Breadcrumbs from "../components/breadcrumbs/breadcrumbs.tsx";
+
+import classes from '../components/species/species.module.css';
 
 function Species({setBreadcrumbs, queryString}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -105,7 +107,7 @@ function Species({setBreadcrumbs, queryString}: {
                         </Title>
                     </Container>
                 </Box>  
-                <Container size="lg">
+                <Container size="lg" mt="xl">
                     <Text fz="lg" mt="xl">No taxa found for <Code fz="lg">{queryString}</Code></Text>
                 </Container>
             </>
@@ -119,17 +121,29 @@ function Species({setBreadcrumbs, queryString}: {
                     <BreadcrumbSection breadcrumbValues={breadcrumbValues}/>
                     <Grid mt="md" mb="lg">
                         <Grid.Col span={6}>
-                            <Title order={3} fw={600} fs={fontStyle(result.rankID)}>
+                            <Title order={2} fw={600} fs={fontStyle(result.rankID)} mt="md" mb="xs">
                                 {result.name}
                             </Title>
-                            <Badge color="gray" radius="sm" mt={6} mb={6} pt={3}>{result.rank}</Badge>
+                            {/* <Badge color="gray" radius="sm" mt={6} mb={6} pt={3}>{result.rank}</Badge> */}
+                            <List 
+                                center
+                                size="xs"
+                                mb="lg"
+                                classNames={{ itemIcon: classes.rankName }}
+                                >   
+                                <List.Item 
+                                    fz={14} 
+                                    icon={ <IconCircleFilled size={10} color="gray"/> } 
+                                >{capitalizeFirstLetter(result.rank)}</List.Item>
+                            </List>
                             {result.commonName && result.commonName.map((name: string, idx: number) =>
                                 idx < 3 && 
                                     <Text key={idx} size="lg" mt={6}>{name}</Text>
                                 
                             )}
-                            <Anchor fs="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
-                            <Text mt={8}>{result.nameComplete}</Text>
+                            <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
+                            {/* <Text mt={8}>{result.nameComplete}</Text> */}
+                            <Text mt="sm">{result.shortDesription || `The ${result.commonName && result.commonName[0] || result.name} is... Create or extract a short species description for use on hero section of species pages.`}</Text>
                             { result && result.invasiveStatuses &&
                                 <Alert  icon={<IconFlagFilled />} mt="md" pt={5} pb={5} mr="md"> 
                                     This species is <Anchor inherit fw={600}

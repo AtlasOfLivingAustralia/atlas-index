@@ -24,14 +24,14 @@ function DescriptionView({result}: MapViewProps) {
     }, [result]);
 
     function fetchPage(name: string) {
-        // fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_'))).then(response => response.text()).then(text => {
-        //     parseText(text, true, name)
-        // })
-
-        // TODO: remove test example for live fetch
-        fetch("http://localhost:8082/static/wiki/Test.html").then(response => response.text()).then(text => {
+        fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_'))).then(response => response.text()).then(text => {
             parseText(text, true, name)
         })
+
+        // TODO: remove test example for live fetch
+        // fetch("http://localhost:8082/static/wiki/Test.html").then(response => response.text()).then(text => {
+        //     parseText(text, true, name)
+        // })
     }
 
     function parseText(text: string, testPage: boolean, targetName: string) {

@@ -73,8 +73,10 @@
     }
 }
 
-
-
 .rankSpecies > .name {
     font-style: italic !important;
+}
+
+.rankName {
+    margin-inline-end: 6px !important;
 }

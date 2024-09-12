@@ -13,16 +13,13 @@ const LargeLinkButton: React.FC<LinkButtonProps> = ({
 }: LinkButtonProps) => {
     
     return (
-        <Button
-            fullWidth
-            justify="space-between"
-            variant="default"  
-            style={{ borderColor: 'var(--mantine-color-rust-outline)' }}
-            rightSection={<IconArrowRight size={20} color={'var(--mantine-color-rust-outline)'}/>}
+        <Button 
+            w="100%" 
+            h="4.1em" 
+            size="md" 
+            rightSection={<IconArrowRight size={18} />}
             onClick={() => window.open(url, external ? "_blank": "_self")}
-            h={75}
-            size="md"
-        ><Text fw="bold" ta="left" p="sm" pl={0}>{children}</Text></Button>
+        >{children}</Button>
     );
 }
 

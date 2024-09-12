@@ -146,18 +146,27 @@ function ResourcesView({ result, resultV1 }: MapViewProps) {
                         {resource.Authors?.length > 1 && (
                             <>
                                 {resource.Authors?.length > 2 && ", "}
-                                {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")},
+                                {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
                             </>
                         )}
+                        {resource.Authors?.length > 1 && resource.Date && (
+                            <> {"("}
+                                {resource.Date}
+                                {")."}
+                            </>)}
                         {resource.Title && resource.PartUrl && (
                             <> {" "}
                                 <Anchor href={resource.PartUrl} target="_blank" rel="noreferrer">
                                     {resource.Title}
-                                </Anchor>,
+                                </Anchor>.
                             </>)}
                         {resource.ContainerTitle && (
                             <> {" "}
-                                <i>{resource.ContainerTitle}</i>,
+                                <i>{resource.ContainerTitle}</i>.
+                            </>)}
+                        {(!resource.Authors || resource.Authors?.length === 0) && resource.Date && (
+                            <> {resource.Date}
+                                {"; "}
                             </>)}
                         {resource.Volume && (
                             <> {" "}
@@ -166,10 +175,6 @@ function ResourcesView({ result, resultV1 }: MapViewProps) {
                         {resource.Issue && (
                             <> {" ("}
                                 {resource.Issue}{")"},
-                            </>)}
-                        {resource.Date && (
-                            <> {" "}
-                                {resource.Date},
                             </>)}
                         {resource.PageRange && (
                             <> {" "}
