@@ -5,11 +5,10 @@ import { IconInfoCircleFilled } from "@tabler/icons-react";
 // import './species.module.css';
 
 interface MapViewProps {
-    result?:  Record<PropertyKey, string | number | any >,
-    resultV1?:  Record<PropertyKey, string | number | any >
+    result?:  Record<PropertyKey, string | number | any >
 }
 
-function NamesView({result, resultV1}: MapViewProps) {
+function NamesView({ result }: MapViewProps) {
 
     return <>
         <Box>
@@ -50,7 +49,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {resultV1?.synonyms && resultV1.synonyms.map((item, idx) =>
+                    {result?.synonyms && result.synonyms.map((item, idx) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
@@ -75,7 +74,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {resultV1?.variants && resultV1.synonyms.map((item, idx) =>
+                    {result?.variants && result.synonyms.map((item, idx) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
@@ -100,7 +99,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {resultV1?.identifiers && resultV1.synonyms.map((item, idx) =>
+                    {result?.identifiers && result.synonyms.map((item, idx) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
@@ -126,7 +125,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                {resultV1?.commonNames && resultV1.commonNames.map((item, idx) =>
+                {result?.commonNames && result.commonNames.map((item, idx) =>
                     item?.status !== 'traditionalKnowledge' &&
                     <Table.Tr key={idx}>
                         <Table.Td>{item?.nameString}</Table.Td>
@@ -162,7 +161,7 @@ function NamesView({result, resultV1}: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                {resultV1?.commonNames && resultV1.commonNames.map((item, idx) =>
+                {result?.commonNames && result.commonNames.map((item, idx) =>
                     item?.status === 'traditionalKnowledge' &&
                     <Table.Tr key={idx}>
                         <Table.Td>{item?.nameString}</Table.Td>

@@ -6,8 +6,7 @@ import DOMPurify from "dompurify";
 import classes from './species.module.css';
 
 interface MapViewProps {
-    result?:  Record<PropertyKey, string | number | any >,
-    resultV1?:  Record<PropertyKey, string | number | any >
+    result?:  Record<PropertyKey, string | number | any >
 }
 
 interface TraitLoadings {
@@ -16,7 +15,7 @@ interface TraitLoadings {
     errorMessage: null | string;
 }
 
-function TraitsView({result, resultV1}: MapViewProps) {
+function TraitsView({ result }: MapViewProps) {
 
     const [traitsText, setTraitsText] = useState('');
 

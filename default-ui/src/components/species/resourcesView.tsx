@@ -6,7 +6,6 @@ import LargeLinkButton from '../common/ExternalLinkButton';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>;
-    resultV1?: Record<PropertyKey, string | number | any>;
 }
 
 interface Resource {
@@ -35,21 +34,21 @@ interface BhlResource {
     thumbnail: string;
 }
 
-function ResourcesView({ result, resultV1 }: MapViewProps) {
+function ResourcesView({ result }: MapViewProps) {
     const [bhl, setBhl] = useState<BhlResource[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
 
     useEffect(() => {
-        if (!result?.name || !resultV1) {
+        if (!result?.name || !result) {
             return;
         }
 
         let page = 1;
         let s = [result.name];
 
-        if (resultV1?.synonyms) {
-            resultV1.synonyms.forEach((synonym: any) => {
+        if (result?.synonyms) {
+            result.synonyms.forEach((synonym: any) => {
                 s.push(synonym.nameString);
             });
         }
@@ -80,7 +79,7 @@ function ResourcesView({ result, resultV1 }: MapViewProps) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [result, resultV1]);
+    }, [result]);
     
     const onlineResources: Resource[] = [
         {

@@ -187,7 +187,7 @@ function ImagesView({result}: MapViewProps) {
                         )}
                         { loading && 
                             [...Array(10)].map((_ , idx) => 
-                                <Box key={idx} w={210} h={250}>
+                                <Box key={idx} w={260} h={210}>
                                     <Skeleton height="100%" width="100%" radius="md" />
                                 </Box>
                             )

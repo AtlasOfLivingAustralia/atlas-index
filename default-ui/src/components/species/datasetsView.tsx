@@ -3,8 +3,7 @@ import { Anchor, Flex, Notification, Skeleton, Table, TableData, Text } from "@m
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 interface MapViewProps {
-    result?:  Record<PropertyKey, string | number | any >,
-    resultV1?:  Record<PropertyKey, string | number | any >
+    result?:  Record<PropertyKey, string | number | any >
 }
 
 interface Dataset {
@@ -14,7 +13,7 @@ interface Dataset {
     records: number;
 }
 
-function DatasetsView({result, resultV1}: MapViewProps) {
+function DatasetsView({result}: MapViewProps) {
 
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [loading, setLoading] = useState<boolean>(false);

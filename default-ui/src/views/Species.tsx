@@ -23,7 +23,7 @@ function Species({setBreadcrumbs, queryString}: {
     queryString?: string
 }) {
     const [tab, setTab] = useState('map');
-    const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
+    const [resultV2, setResultV2] = useState<Record<PropertyKey, string | number | any >>({});
     const [resultV1, setResultV1] = useState<Record<PropertyKey, string | number | any>>({});
 
     const [loadingV1, setLoadingV1] = useState<boolean>(true);
@@ -64,7 +64,7 @@ function Species({setBreadcrumbs, queryString}: {
                 // Hard-code missing data TODO: remove
                 data[0].conservationStatuses = [ true ]
                 data[0].invasiveStatuses = [ true ]
-                setResult(data[0])
+                setResultV2(data[0])
             } 
         })
         .catch(error => {
@@ -116,10 +116,25 @@ function Species({setBreadcrumbs, queryString}: {
         return (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) ? 'italic' : 'normal';
     }
 
-    const combinedResults = { ...result, ...resultV1 }; // Only used for "Not found" block
-    console.log("combinedResult", combinedResults);
+    const result = { ...resultV2, ...resultV1 }; // Only used for "Not found" block
+    
+    const haveCommonKeys = (obj1: Record<PropertyKey, string | number | any>, obj2: Record<PropertyKey, string | number | any>): boolean => {
+        const keys1 = new Set(Object.keys(obj1));
+        const keys2 = Object.keys(obj2);
+        
+        for (const key of keys2) {
+            if (keys1.has(key)) {
+                console.log("Found dupe key", key, resultV1.key, resultV2.key);
+                return true;
+            }
+        }
+        
+        return false;
+    }
 
-    if ((dataV1Fetched && dataV2Fetched) && Object.keys(combinedResults).length === 0) {
+    console.log("combinedResult", result, haveCommonKeys(resultV1, resultV2));
+
+    if ((dataV1Fetched && dataV2Fetched) && Object.keys(result).length === 0) {
         return (
             <>
                 <Box className={classes.speciesHeader}>
@@ -148,7 +163,7 @@ function Species({setBreadcrumbs, queryString}: {
                             <Title order={2} fw={600} fs={fontStyle(result.rankID)} mt="md" mb="xs">
                                 {result.name}
                             </Title>
-                            {/* <Badge color="gray" radius="sm" mt={6} mb={6} pt={3}>{result.rank}</Badge> */}
+                            {/* <Badge color="gray" radius="sm" mt={6} mb={6} pt={3}>{combinedResult.rank}</Badge> */}
                             <List 
                                 center
                                 size="xs"
@@ -166,7 +181,7 @@ function Species({setBreadcrumbs, queryString}: {
                                 
                             )}
                             <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
-                            {/* <Text mt={8}>{result.nameComplete}</Text> */}
+                            {/* <Text mt={8}>{combinedResult.nameComplete}</Text> */}
                             <Text mt="sm">{result.shortDesription || `The ${result.commonName && result.commonName[0] || result.name} is... Create or extract a short species description for use on hero section of species pages.`}</Text>
                             { result && result.invasiveStatuses &&
                                 <Alert  icon={<IconFlagFilled />} mt="md" pt={5} pb={5} mr="md"> 
@@ -232,19 +247,19 @@ function Species({setBreadcrumbs, queryString}: {
                     <ImagesView result={result}/>
                 }
                 {tab === 'names' && 
-                    <NamesView result={result} resultV1={resultV1}/>
+                    <NamesView result={result} />
                 }
                 {tab === 'status' && 
-                    <StatusView result={result} resultV1={resultV1}/>
+                    <StatusView result={result} />
                 }
                 {tab === 'traits' && 
-                    <TraitsView result={result} resultV1={resultV1}/>
+                    <TraitsView result={result} />
                 }
                 {tab === 'datasets' && 
-                    <DatasetsView result={result} resultV1={resultV1}/>
+                    <DatasetsView result={result} />
                 }
                 {tab === 'resources' && 
-                    <ResourcesView result={result} resultV1={resultV1}/>
+                    <ResourcesView result={result} />
                 }
                 <Space h="xl" />
             </Container>

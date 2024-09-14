@@ -2,11 +2,10 @@ import { Anchor, Badge, Box, Flex, Grid, Table, Text, Title } from "@mantine/cor
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 interface MapViewProps {
-    result?:  Record<PropertyKey, string | number | any >,
-    resultV1?:  Record<PropertyKey, string | number | any >
+    result?:  Record<PropertyKey, string | number | any >
 }
 
-function StatusView({result, resultV1}: MapViewProps) {
+function StatusView({ result }: MapViewProps) {
 
     // TODO: This should be fetched from a static source
     const iucnClasses = [
@@ -99,11 +98,11 @@ function StatusView({result, resultV1}: MapViewProps) {
                 </Table.Thead>
                 <Table.Tbody>
                     {/* TODO: substitute with actual native/introduced data */}
-                    {resultV1?.conservationStatuses && Object.keys(resultV1.conservationStatuses).map((key, idx) =>
+                    {result?.conservationStatuses && Object.keys(result.conservationStatuses).map((key, idx) =>
                         <Table.Tr key={idx}>
-                            <Table.Td>{resultV1.conservationStatuses[key].dr}</Table.Td>
-                            <Table.Td>{resultV1.conservationStatuses[key].status}</Table.Td>
-                            <Table.Td>{resultV1.conservationStatuses[key].dr}</Table.Td>
+                            <Table.Td>{result.conservationStatuses[key].dr}</Table.Td>
+                            <Table.Td>{result.conservationStatuses[key].status}</Table.Td>
+                            <Table.Td>{result.conservationStatuses[key].dr}</Table.Td>
                         </Table.Tr>
                     )}
                 </Table.Tbody>
@@ -119,13 +118,13 @@ function StatusView({result, resultV1}: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {resultV1?.conservationStatuses && Object.keys(resultV1.conservationStatuses).map((key, idx) =>
+                    {result?.conservationStatuses && Object.keys(result.conservationStatuses).map((key, idx) =>
                         <Table.Tr key={idx}>
-                            <Table.Td>{resultV1.conservationStatuses[key].dr}</Table.Td>
-                            <Table.Td>{resultV1.conservationStatuses[key].status}</Table.Td>
+                            <Table.Td>{result.conservationStatuses[key].dr}</Table.Td>
+                            <Table.Td>{result.conservationStatuses[key].status}</Table.Td>
                             <Table.Td>{ iucnClasses && iucnClasses.map((item, idx) =>
-                                item.status.includes(resultV1.conservationStatuses[key].status) &&
-                                    <StatusBadge key={idx} status={resultV1.conservationStatuses[key].status} />
+                                item.status.includes(result.conservationStatuses[key].status) &&
+                                    <StatusBadge key={idx} status={result.conservationStatuses[key].status} />
                                 )}
                             </Table.Td>
                         </Table.Tr>
