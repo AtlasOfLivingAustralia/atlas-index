@@ -45,6 +45,7 @@ function Species({setBreadcrumbs, queryString}: {
         let request = [queryString?.split("=")[1]]
         setLoadingV2(true);
         setDataV1Fetched(false);
+        setResultV2({});
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/species", {
             method: 'POST',
             body: JSON.stringify(request),
@@ -78,6 +79,7 @@ function Species({setBreadcrumbs, queryString}: {
 
         setLoadingV1(true);
         setDataV1Fetched(false);
+        setResultV1({});
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v1/species/" + request, {
             headers: {
                 'Content-Type': 'application/json'
@@ -116,8 +118,7 @@ function Species({setBreadcrumbs, queryString}: {
         return (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) ? 'italic' : 'normal';
     }
 
-    const result = { ...resultV2, ...resultV1 }; // Only used for "Not found" block
-    
+    const result = { ...resultV2, ...resultV1 }; 
     const haveCommonKeys = (obj1: Record<PropertyKey, string | number | any>, obj2: Record<PropertyKey, string | number | any>): boolean => {
         const keys1 = new Set(Object.keys(obj1));
         const keys2 = Object.keys(obj2);
@@ -133,6 +134,8 @@ function Species({setBreadcrumbs, queryString}: {
     }
 
     console.log("combinedResult", result, haveCommonKeys(resultV1, resultV2));
+    // console.log("resultV1", resultV1);
+    // console.log("resultV2", resultV2);
 
     if ((dataV1Fetched && dataV2Fetched) && Object.keys(result).length === 0) {
         return (
@@ -175,7 +178,7 @@ function Species({setBreadcrumbs, queryString}: {
                                     icon={ <IconCircleFilled size={10} color="gray"/> } 
                                 >{capitalizeFirstLetter(result.rank)}</List.Item>
                             </List>
-                            {result.commonName && result.commonName.map((name: string, idx: number) =>
+                            { result.commonName && result.commonName.map((name: string, idx: number) =>
                                 idx < 3 && 
                                     <Text key={idx} size="lg" mt={6}>{name}</Text>
                                 
@@ -193,17 +196,17 @@ function Species({setBreadcrumbs, queryString}: {
                             
                         </Grid.Col>
                         <Grid.Col span={4}>
-                            {result.image && result.image.split(',').map((id: string, idx: number) =>
+                            { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 && 
                                     <Image key={idx}  src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                             )}
                         </Grid.Col>
                         <Grid.Col span={2}>
-                            {result.image && result.image.split(',').map((id: string, idx: number) =>
+                            { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 && 
                                     <Image key={idx} src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                             )}
-                            {result.image && result.image.split(',').map((id: string, idx: number) =>
+                            { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 && 
                                     <Image key={idx} mt="sm" src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                             )}
