@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Anchor, Box, Button, Code, Divider, Grid, Notification, Paper, Skeleton, Space, Text, Title } from '@mantine/core';
+import { Anchor, Box, Button, Code, Divider, Grid, Notification, Paper, Skeleton, Space, Table, Text, Title } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
 import classes from '../species/species.module.css';
 import LargeLinkButton from '../common/ExternalLinkButton';
@@ -39,8 +39,10 @@ interface BhlResource {
 
 function ResourcesView({ result }: MapViewProps) {
     const [bhl, setBhl] = useState<BhlResource[]>([]);
+    const [bhlQuery, setBhlQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const maxBhlSize: number = 10;
 
     useEffect(() => {
         if (!result?.name || !result) {
@@ -56,11 +58,17 @@ function ResourcesView({ result }: MapViewProps) {
             });
         }
 
+        const searchQuery = encodeURIComponent('"' + s.join('" OR "') + '"');
+
+        // Generate link for humans
+        // https://biodiversitylibrary.org/search?SearchTerm="Macropus giganteus"+OR+"Macropus giganteus tasmaniensis"&SearchCat=M#/names
+        setBhlQuery(`https://biodiversitylibrary.org/search?SearchTerm=${searchQuery}&SearchCat=M#/names`); 
+
         let url =
             'https://www.biodiversitylibrary.org/api3' +
             '?op=PublicationSearch' +
             '&searchterm=' +
-            encodeURIComponent('"' + s.join('" OR "') + '"') +
+            searchQuery +
             '&searchtype=C&page=' +
             page +
             '&apikey=' +
@@ -141,63 +149,88 @@ function ResourcesView({ result }: MapViewProps) {
                     {errorMessage}
                 </Notification>
             )}
-            { bhl && bhl.map((resource, index) => (
-                    
-                    <Paper className={classes.citation}  mt="sm" p="md" key={index} >
-                        {/* <Code>{JSON.stringify(resource)}</Code> */}
-                        {resource.Authors?.length === 1 ? (
-                            <>{resource.Authors[0].Name}</>
-                        ) : (
-                            <>
-                                {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
-                                {resource.Authors?.length > 1 && (
-                                    <>
-                                        {resource.Authors?.length > 2 && ", "}
-                                        {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
-                                    </>
-                                )}
-                            </>
-                        )}
-                        {resource.Authors?.length > 0 && (resource.Date || resource.PublicationDate) && (
-                            <>
-                                {" ("}
-                                {resource.Date || resource.PublicationDate}
-                                {")"}
-                            </>)}
-                        {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
-                            <>{resource.Authors?.length > 0 && ". "}<Text span fs={resource.ItemUrl && 'italic'}> 
-                                <Anchor href={resource.PartUrl || resource.ItemUrl} target="_blank" rel="noreferrer">
-                                    {resource.Title}
-                                </Anchor>.</Text>
-                            </>)}
-                        {resource.ContainerTitle && (
-                            <> {" "}
-                                <i>{resource.ContainerTitle}</i>.
-                            </>)}
-                        {resource.PublisherName && (
-                            <>{" "}
-                                {resource.PublisherName}.
-                            </>
-                        )}
-                        {(!resource.Authors || resource.Authors?.length === 0) && resource.Date && (
-                            <> {resource.Date}
-                                {"; "}
-                            </>)}
-                        {resource.Volume && (
-                            <> {" "}
-                                <Text span fw="bold">{resource.Volume}</Text>,
-                            </>)}
-                        {resource.Issue && (
-                            <> {" ("}
-                                {resource.Issue}{")"},
-                            </>)}
-                        {resource.PageRange && (
-                            <> {" "}
-                                {resource.PageRange}
-                            </>)}
-                    </Paper>
-                ))
+            {
+                bhl &&
+                <>
+                    <Text>
+                        Showing {1} to {maxBhlSize} of {bhl.length == 100 ? `${bhl.length}+` : bhl.length} results for {result?.name}.{" "}
+                        <Anchor inherit href={bhlQuery} target="bhl">View all result</Anchor>.
+                    </Text>
+                    <Table striped="even" verticalSpacing="sm" mt="xs" fz="md">
+                        <Table.Thead>
+                            <Table.Tr>
+                                <Table.Th>#</Table.Th>
+                                <Table.Th>Reference</Table.Th>
+                            </Table.Tr>
+                        </Table.Thead>
+                        <Table.Tbody>
+                            { bhl.map((resource, index) => (
+                                index < maxBhlSize && 
+                                    <Table.Tr>
+                                        <Table.Td style={{verticalAlign: 'top'}}>
+                                            {index + 1} 
+                                            </Table.Td>
+                                        <Table.Td>
+                                            {/* <Code>{JSON.stringify(resource)}</Code> */}
+                                            {resource.Authors?.length === 1 ? (
+                                                <>{resource.Authors[0].Name}</>
+                                            ) : (
+                                                <>
+                                                    {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
+                                                    {resource.Authors?.length > 1 && (
+                                                        <>
+                                                            {resource.Authors?.length > 2 && ", "}
+                                                            {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
+                                            {resource.Authors?.length > 0 && (resource.Date || resource.PublicationDate) && (
+                                                <>
+                                                    {" ("}
+                                                    {resource.Date || resource.PublicationDate}
+                                                    {")"}
+                                                </>)}
+                                            {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
+                                                <>{resource.Authors?.length > 0 && ". "}<Text inherit span fs={resource.ItemUrl && 'italic'}> 
+                                                    <Anchor fz="md" inherit href={resource.PartUrl || resource.ItemUrl} target="bhl">
+                                                        {resource.Title}
+                                                    </Anchor>.</Text>
+                                                </>)}
+                                            {resource.ContainerTitle && (
+                                                <> {" "}
+                                                    <i>{resource.ContainerTitle}</i>.
+                                                </>)}
+                                            {resource.PublisherName && (
+                                                <>{" "}
+                                                    {resource.PublisherName}.
+                                                </>
+                                            )}
+                                            {(!resource.Authors || resource.Authors?.length === 0) && resource.Date && (
+                                                <> {resource.Date}
+                                                    {"; "}
+                                                </>)}
+                                            {resource.Volume && (
+                                                <> {" "}
+                                                    <Text inherit span fw="bold">{resource.Volume}</Text>,
+                                                </>)}
+                                            {resource.Issue && (
+                                                <> {" ("}
+                                                    {resource.Issue}{")"},
+                                                </>)}
+                                            {resource.PageRange && (
+                                                <> {" "}
+                                                    {resource.PageRange}
+                                                </>)}
+                                        </Table.Td>
+                                    </Table.Tr>
+                                )
+                            )}
+                        </Table.Tbody>
+                    </Table>
+                </>
             }
+            
             <Space h="lg" />
             <Divider mt="lg" mb="lg"/>
             <Title order={4} c="gray" mb="lg" mt="lg">Online resources</Title>
