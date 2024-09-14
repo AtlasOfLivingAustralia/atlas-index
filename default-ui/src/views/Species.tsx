@@ -26,6 +26,11 @@ function Species({setBreadcrumbs, queryString}: {
     const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
     const [resultV1, setResultV1] = useState<Record<PropertyKey, string | number | any>>({});
 
+    const [loadingV1, setLoadingV1] = useState<boolean>(true);
+    const [loadingV2, setLoadingV2] = useState<boolean>(true);
+    const [dataV1Fetched, setDataV1Fetched] = useState(false);
+    const [dataV2Fetched, setDataV2Fetched] = useState(false);
+
     useEffect(() => {
         setBreadcrumbs([]); // Clear breadcrumbs so App.tsx doesn't show them
     }, []);
@@ -38,6 +43,8 @@ function Species({setBreadcrumbs, queryString}: {
 
     useEffect(() => {
         let request = [queryString?.split("=")[1]]
+        setLoadingV2(true);
+        setDataV1Fetched(false);
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/species", {
             method: 'POST',
             body: JSON.stringify(request),
@@ -58,13 +65,19 @@ function Species({setBreadcrumbs, queryString}: {
                 data[0].conservationStatuses = [ true ]
                 data[0].invasiveStatuses = [ true ]
                 setResult(data[0])
-            }
+            } 
         })
         .catch(error => {
             console.warn(error);
             // setResult({});
         })
+        .finally(() => {   
+            setLoadingV2(false);
+            setDataV1Fetched(true);
+        });
 
+        setLoadingV1(true);
+        setDataV1Fetched(false);
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v1/species/" + request, {
             headers: {
                 'Content-Type': 'application/json'
@@ -78,12 +91,19 @@ function Species({setBreadcrumbs, queryString}: {
             }
         })
         .then(data => {
-            data && setResultV1(data);
+            if (data) {
+                setResultV1(data);
+            } 
         })
         .catch(error => {
             console.warn(error);
             // setResultV1({});
+        })
+        .finally(() => {
+            setLoadingV1(false);
+            setDataV2Fetched(true);
         });
+
     }, [queryString]);
 
     const handleTabChange = (value: string | null) => {
@@ -96,7 +116,10 @@ function Species({setBreadcrumbs, queryString}: {
         return (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) ? 'italic' : 'normal';
     }
 
-    if (!result || Object.keys(result).length === 0) {
+    const combinedResults = { ...result, ...resultV1 }; // Only used for "Not found" block
+    console.log("combinedResult", combinedResults);
+
+    if ((dataV1Fetched && dataV2Fetched) && Object.keys(combinedResults).length === 0) {
         return (
             <>
                 <Box className={classes.speciesHeader}>
@@ -115,8 +138,9 @@ function Species({setBreadcrumbs, queryString}: {
     } 
 
     return (
-        <>
-            <Box className={classes.speciesHeader}>
+    <>  { Object.keys(result).length > 0 &&
+            <>
+                <Box className={classes.speciesHeader}>
                 <Container py="xl" size="lg">
                     <BreadcrumbSection breadcrumbValues={breadcrumbValues}/>
                     <Grid mt="md" mb="lg">
@@ -229,8 +253,10 @@ function Species({setBreadcrumbs, queryString}: {
                 <div className="bi bi-arrow-up-circle-fill float-end speciesFooterUp"
                     onClick={() => window.scrollTo(0, 0)}></div>
             </div>
-        </>
-    );
+            </> 
+        }
+    </>
+    );  
 }
 
 export default Species;
