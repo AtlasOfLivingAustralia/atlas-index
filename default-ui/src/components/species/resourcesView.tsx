@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Anchor, Box, Button, Divider, Grid, Notification, Paper, Skeleton, Space, Text, Title } from '@mantine/core';
+import { Anchor, Box, Button, Code, Divider, Grid, Notification, Paper, Skeleton, Space, Text, Title } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
 import classes from '../species/species.module.css';
 import LargeLinkButton from '../common/ExternalLinkButton';
@@ -24,12 +24,15 @@ interface BhlResource {
     Volume: string;
     Authors: Author[];
     PartUrl: string;
+    ItemUrl: string;
     PartID: string;
     Genre: string;
     Title: string;
     ContainerTitle: string;
     Issue: string;
     Date: string;
+    PublicationDate: string;
+    PublisherName: string;
     PageRange: string;
     thumbnail: string;
 }
@@ -139,29 +142,43 @@ function ResourcesView({ result }: MapViewProps) {
                 </Notification>
             )}
             { bhl && bhl.map((resource, index) => (
+                    
                     <Paper className={classes.citation}  mt="sm" p="md" key={index} >
-                        {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
-                        {resource.Authors?.length > 1 && (
+                        {/* <Code>{JSON.stringify(resource)}</Code> */}
+                        {resource.Authors?.length === 1 ? (
+                            <>{resource.Authors[0].Name}</>
+                        ) : (
                             <>
-                                {resource.Authors?.length > 2 && ", "}
-                                {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
+                                {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
+                                {resource.Authors?.length > 1 && (
+                                    <>
+                                        {resource.Authors?.length > 2 && ", "}
+                                        {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
+                                    </>
+                                )}
                             </>
                         )}
-                        {resource.Authors?.length > 1 && resource.Date && (
-                            <> {"("}
-                                {resource.Date}
-                                {")."}
+                        {resource.Authors?.length > 0 && (resource.Date || resource.PublicationDate) && (
+                            <>
+                                {" ("}
+                                {resource.Date || resource.PublicationDate}
+                                {")"}
                             </>)}
-                        {resource.Title && resource.PartUrl && (
-                            <> {" "}
-                                <Anchor href={resource.PartUrl} target="_blank" rel="noreferrer">
+                        {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
+                            <>{resource.Authors?.length > 0 && ". "}<Text span fs={resource.ItemUrl && 'italic'}> 
+                                <Anchor href={resource.PartUrl || resource.ItemUrl} target="_blank" rel="noreferrer">
                                     {resource.Title}
-                                </Anchor>.
+                                </Anchor>.</Text>
                             </>)}
                         {resource.ContainerTitle && (
                             <> {" "}
                                 <i>{resource.ContainerTitle}</i>.
                             </>)}
+                        {resource.PublisherName && (
+                            <>{" "}
+                                {resource.PublisherName}.
+                            </>
+                        )}
                         {(!resource.Authors || resource.Authors?.length === 0) && resource.Date && (
                             <> {resource.Date}
                                 {"; "}
