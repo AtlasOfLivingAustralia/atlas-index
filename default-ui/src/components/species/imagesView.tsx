@@ -1,6 +1,6 @@
-import { Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Image, Radio, Text } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconReload } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { Box, Button, Checkbox, Divider, Flex, Grid, Image, Radio, Skeleton, Text } from "@mantine/core";
+import { IconAdjustmentsHorizontal, IconReload } from "@tabler/icons-react";
 import classes from "./species.module.css";
 
 interface MapViewProps {
@@ -23,19 +23,22 @@ function ImagesView({result}: MapViewProps) {
     const [page, setPage] = useState<number>(0);
     const [type, setType] = useState<string>('all');
     const [sortDir, setSortDir] = useState('desc');
+    const [licenceType, setLicenceType] = useState<string[]>([]);
+    const [licenceTypeActive, setLicenceTypeActive] = useState<string[]>([]);
     const [includeOccurrences, setIncludeOccurrences] = useState(true);
     const [includeSpecimens, setIncludeSpecimens] = useState(true);
     const [occurrenceCount, setOccurrenceCount] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const pageSize = 10;
 
     useEffect(() => {
-        fetchImages()
-    }, [result, page, sortDir, includeOccurrences, includeSpecimens, type]);
+        fetchImages();
+    }, [result, page, sortDir, includeOccurrences, includeSpecimens, type, licenceTypeActive]);
 
     function fetchImages() {
         if (!result?.guid) {
-            return
+            return;
         }
 
         const typeFqMap: Record<PropertyKey, string> = {
@@ -45,8 +48,8 @@ function ImagesView({result}: MapViewProps) {
             sound: "&fq=multimedia:Sound"
         };
 
+        const facets = '&facets=license,dataResourceName';
         const typeFq = typeFqMap[type] || "";
-
         let specimenFq;
         if (includeSpecimens && includeOccurrences) {
             specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
@@ -59,8 +62,10 @@ function ImagesView({result}: MapViewProps) {
         }
 
         let mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
-
+        setLoading(true);
+        clearFacetValues();
         fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
+            facets +
             '&start=' + (page * pageSize) +
             '&pageSize=' + pageSize +
             '&dir=' + sortDir +
@@ -88,41 +93,69 @@ function ImagesView({result}: MapViewProps) {
                         }
                     }
                 })
+                data.facetResults.map((facet: any) => {
+                    if (facet.fieldName === 'license') {
+                        facet.fieldResult.map((field: any) => {  
+                            setLicenceType([...licenceType, field.label]);
+                        })
+                    }
+                    if (facet.fieldName === 'dataResourceName') {
+                        facet.fieldResult.map((field: any) => {  
+                            // setDataResources([...dataResources, field.label]);
+                        })
+                    }
+                })
+
                 if (page == 0) {
                     setItems(list);
                     setOccurrenceCount(data.totalRecords);
                 } else {
                     setItems([...items, ...list]);
                 }
+            }).catch(error => {
+                console.error('Failed to fetch images - ' + error);
+            }).finally(() => {
+                setLoading(false);
             });
     }
 
+    const clearFacetValues = () => {
+        setLicenceType([]);
+        // setLicenceTypeActive([]);
+        // setDataResources([]);
+    }
+
+    const getImageUrl = (id: string) => {
+        return `${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/proxyImageThumbnail?imageId=${id}`;
+    }
 
     function resetView() {
         setPage(0);
-        // setItems([]);
     }
 
-    return <>
+    const handleImageError = (idx: number, e: any) => {
+        console.log('Image error', e.target?.src, idx);
+        setItems(prevItems => prevItems.filter((_, index) => index !== idx));
+    };
+
+    const updateLicenceType = (value: string) => {
+        if (licenceTypeActive.includes(value)) {
+            setLicenceTypeActive(licenceTypeActive.filter(item => item !== value));
+        } else {
+            setLicenceTypeActive([...licenceTypeActive, value]);
+        }
+        // alert("Filtering by licence type not yet supported. Licence type: " + licenceTypeActive);
+    }
+
+    return (
         <Box>
-            <Flex gap="md">
-                <Button variant={type === 'all' ? 'filled' : 'outline'}   onClick={() => {resetView();setType('all')}}>View all</Button>
+            <Flex gap="md" mt="md">
+                <Button variant={type === 'all' ? 'filled' : 'outline'} onClick={() => {resetView();setType('all')}}>View all</Button>
                 <Button variant={type === 'image' ? 'filled' : 'outline'} onClick={() => {resetView();setType('image')}}>Images</Button>
                 <Button variant={type === 'sound' ? 'filled' : 'outline'} onClick={() => {resetView();setType('sound')}}>Sounds</Button>
                 <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
             </Flex>
-            {/* <div className="d-flex">
-                <div className={"btn " + (type === 'all' ? 'speciesImageBtnSelected' : 'speciesImageBtn')}
-                    onClick={() => {resetView();setType('all')}}>View all</div>
-                <div className={"btn  " + (type === 'image'? 'speciesImageBtnSelected' : 'speciesImageBtn')}
-                    onClick={() => {resetView();setType('image')}}>Images</div>
-                <div className={"btn  " + (type === 'sound' ? 'speciesImageBtnSelected' : 'speciesImageBtn')}
-                    onClick={() => {resetView();setType('sound')}}>Sounds</div>
-                <div className={"btn  " + (type === 'video' ? 'speciesImageBtnSelected' : 'speciesImageBtn')}
-                    onClick={() => {resetView();setType('video')}}>Videos</div>
-            </div> */}
-
-            <Text mt="md" mb="md" size="sm" fw="bold">
+            <Text mt="lg" mb="md" size="sm" fw="bold">
                 Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results
             </Text>
             <Grid>
@@ -134,15 +167,31 @@ function ImagesView({result}: MapViewProps) {
                         wrap="wrap"
                     >
                         {items && items.map((item, idx) =>
-                            <Box key={idx}>
+                            <Flex 
+                                key={idx}
+                                justify="center"
+                            >
                                 {item.type === 'image' && 
-                                    <Image className="speciesImageBlockImg" key={idx} src={"https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=" + item.id}></Image>}
+                                    <Image 
+                                        radius="md" 
+                                        h={210}
+                                        maw={280}
+                                        src={ getImageUrl(item.id) }
+                                        onError={(e) => handleImageError(idx, e)}
+                                    />}
                                 {item.type === 'sound' && 
                                     <audio key={idx} controls></audio>}
                                 {item.type === 'video' && 
                                     <video key={idx} controls></video>}
-                            </Box>
+                            </Flex>
                         )}
+                        { loading && 
+                            [...Array(10)].map((_ , idx) => 
+                                <Box key={idx} w={210} h={250}>
+                                    <Skeleton height="100%" width="100%" radius="md" />
+                                </Box>
+                            )
+                        }
                     </Flex>
                 </Grid.Col>
                 <Grid.Col span={3}>
@@ -162,41 +211,40 @@ function ImagesView({result}: MapViewProps) {
                         <Radio size="xs"  value="asc"
                             label="Oldest" />
                     </Radio.Group>
-                    {/* <Checkbox 
-                        size="xs" 
-                        checked={sortDir === 'desc'}
-                        onChange={(e) => {
-                            if (e.target.checked) {
-                                resetView();
-                                setSortDir('desc')
-                            }
-                        }}
-                        label="Sort by" 
-                    /> */}
                     <Divider mt="lg" mb="lg" />
-                    <Text fw="bold" mb="md">Expert distribution maps</Text>
-                    {/* { distributions && distributions.map((dist, idx) =>
-                        <Box key={idx}>
-                            <Checkbox checked={dist.checked} size="xs" 
-                                id={"dist" + idx}
-                                label={dist.areaName} />
-                            <Text fz="sm" ml="xl">
-                                provided by&nbsp;
-                                <Anchor inherit href="#">{dist.dataResourceName}</Anchor>
-                            </Text>
-                        </Box>
-                    )} */}
+                    <Text fw="bold" mb="md">Record type</Text>
+                    <Checkbox checked={includeOccurrences} size="xs" 
+                        onChange={() => {setIncludeOccurrences(!includeOccurrences)}} 
+                        label="Occurrence records" />
+                    <Checkbox checked={includeSpecimens} size="xs"
+                        onChange={() => {setIncludeSpecimens(!includeSpecimens)}}
+                        label="Specimens" />
                     <Divider mt="lg" mb="lg" />
-                    {/* <Text fw="bold" mb="md">Map type</Text>
-                    <Radio.Group 
-                        value={mapControls}
-                        onChange={setMapControls}
-                    > 
-                        <Radio size="xs" value="default"
-                            label="Default" />
-                        <Radio size="xs"  value="terrain"
-                            label="Terrain" />
-                    </Radio.Group> */}
+                    <Text fw="bold" mb="md">Licence type</Text>
+                    { licenceType.map((item, idx) => 
+                        <Checkbox key={idx} size="xs"
+                            checked={licenceTypeActive.includes(item)}
+                            onChange={() => { updateLicenceType(item)}}
+                            label={item} />
+                    )}
+                    {/* <Checkbox size="xs"
+                        checked={licenceTypeActive.includes('CC0')}
+                        onChange={() => { updateLicenceType('CC0')}}
+                        label="CC0" />
+                    <Checkbox size="xs"  
+                        checked={licenceTypeActive.includes('CC-BY')}
+                        onChange={() => { updateLicenceType('CC-BY')}}
+                        label="CC-BY" />
+                    <Checkbox size="xs"  
+                        checked={licenceTypeActive.includes('CC-BY-NC')}
+                        onChange={() => { updateLicenceType('CC-BY-NC')}}
+                        label="CC-BY-NC" />
+                    <Checkbox size="xs"  
+                        checked={licenceTypeActive.includes('other')}
+                        onChange={() => { updateLicenceType('other')}}
+                        label="Other" /> */}
+                    <Divider mt="lg" mb="lg" />
+                    <Text fw="bold" mb="md">Institution</Text>
                     <Button 
                         mt="lg" 
                         variant="default" 
@@ -205,61 +253,8 @@ function ImagesView({result}: MapViewProps) {
                         rightSection={<IconReload />}>Refresh</Button>
                 </Grid.Col>
             </Grid>
-                {/* <div className="speciesImagesControl">
-                    <div className="speciesRefineView"><span className="bi bi-sliders"></span>Refine results</div>
-                    <div className="speciesMapControlItem speciesMapControlItemHr">
-                        <div className="speciesMapControlDist">Sort by</div>
-                        <div className="form-check speciesMapControlDistItem">
-                            <input className="form-check-input" type="radio" value="desc" name="sortBy" id={"sortBy1"}
-                                    checked={sortDir === 'desc'}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            resetView();
-                                            setSortDir('desc')}}}/>
-                            <label className="form-check-label" htmlFor={"sortBy1"}>
-                                Latest
-                            </label>
-                        </div>
-                        <div className="form-check speciesMapControlDistItem">
-                            <input className="form-check-input" type="radio" value="asc" name="sortBy" id={"sortBy2"}
-                                    checked={sortDir === 'asc'}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            resetView();
-                                            setSortDir('asc')}}}/>
-                            <label className="form-check-label" htmlFor={"sortBy2"}>
-                                Oldest
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="speciesMapControlItem">
-                        <div className="speciesMapControlDist">Record type</div>
-                        <div className="form-check speciesMapControlDistItem">
-                            <input className="form-check-input" type="checkbox" checked={includeOccurrences} id={"typeOccurrence"}
-                                onChange={() => {
-                                    resetView(); setIncludeOccurrences(!includeOccurrences)}}/>
-                            <label className="form-check-label" htmlFor={"typeOccurrence"}>
-                                Occurrences
-                            </label>
-                        </div>
-                        <div className="form-check speciesMapControlDistItem">
-                            <input className="form-check-input" type="checkbox" checked={includeSpecimens} id={"typeSpecimens"}
-                                onChange={() => {resetView();setIncludeSpecimens(!includeSpecimens)}}/>
-                            <label className="form-check-label" htmlFor={"typeSpecimens"}>
-                                Specimens
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="speciesMapControlRefresh">
-                        Refresh <span className="bi bi-arrow-clockwise"></span>
-                    </div>
-
-                </div> */}
-            {/* </Flex> */}
         </Box>
-    </>
+    );
 }
 
 export default ImagesView;
