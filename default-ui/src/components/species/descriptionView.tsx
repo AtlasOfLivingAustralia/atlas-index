@@ -33,9 +33,10 @@ function DescriptionView({result}: MapViewProps) {
         })
         .catch(error => {
             console.error('Error:', error);
+            setLoading(false);
         })
         .finally(() => {
-            setLoading(false)
+            // setLoading(false); // Moved to parseText which is slowwwww
         })
 
         // TODO: remove test example for live fetch
@@ -141,7 +142,7 @@ function DescriptionView({result}: MapViewProps) {
             }
 
             setSections(newSections)
-
+            setLoading(false)
         }
 
         // var valid = true
