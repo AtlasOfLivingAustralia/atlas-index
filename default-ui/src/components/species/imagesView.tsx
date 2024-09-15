@@ -149,7 +149,7 @@ function ImagesView({result}: MapViewProps) {
 
     return (
         <Box>
-            <Flex gap="md" mt="md">
+            <Flex gap="md" mt="md" direction={{ base: 'column', sm: 'row' }}>
                 <Button variant={type === 'all' ? 'filled' : 'outline'} onClick={() => {resetView();setType('all')}}>View all</Button>
                 <Button variant={type === 'image' ? 'filled' : 'outline'} onClick={() => {resetView();setType('image')}}>Images</Button>
                 <Button variant={type === 'sound' ? 'filled' : 'outline'} onClick={() => {resetView();setType('sound')}}>Sounds</Button>
@@ -159,7 +159,7 @@ function ImagesView({result}: MapViewProps) {
                 Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results
             </Text>
             <Grid>
-                <Grid.Col span={9}>
+                <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
                     <Flex gap="sm" 
                         justify="flex-start"
                         align="flex-start"
@@ -194,7 +194,7 @@ function ImagesView({result}: MapViewProps) {
                         }
                     </Flex>
                 </Grid.Col>
-                <Grid.Col span={3}>
+                <Grid.Col span={3} className={classes.hideMobile}>
                     <Flex justify="flex-start" align="center" gap="sm">
                         <IconAdjustmentsHorizontal />
                         <Text fw="bold">Refine view</Text>

@@ -220,7 +220,7 @@ function TraitsView({ result }: MapViewProps) {
 
     return <>
         <Grid className={classes.traitsSectionText}>
-            <Grid.Col span={3}>
+            <Grid.Col span={{ base: 12, md: 3, lg: 3 }}>
                 <Flex justify="flex-start" align="center" gap="xs" mb="sm">
                     <IconInfoCircleFilled size={18}/>
                     <Text fw={800} >About traits</Text>
@@ -275,10 +275,10 @@ function TraitsView({ result }: MapViewProps) {
                     </Text>
                 </Paper>
             </Grid.Col>
-            <Grid.Col span={1}>
+            <Grid.Col span={{ base: 0, md: 0, lg: 1 }}>
                 <Space />
             </Grid.Col>
-            <Grid.Col span={8}>
+            <Grid.Col span={{ base: 12, md: 8, lg: 8 }}>
                 { loadingCounts && 
                     <>
                         <Skeleton height={75} mt="lg" width="90%" radius="md" />
@@ -298,7 +298,7 @@ function TraitsView({ result }: MapViewProps) {
                     <>
                         <Text dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(traitsText)}}></Text>
-                        <Flex gap="lg" mt="lg" mb="lg">
+                        <Flex gap="lg" mt="lg" mb="lg" direction={{ base: 'column', md: 'row' }}>
                             <Button 
                                 variant="outline"
                                 onClick={() => {

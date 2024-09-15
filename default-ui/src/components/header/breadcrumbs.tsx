@@ -19,7 +19,7 @@ const BreadcrumbSection: React.FC<BreadcrumbsProps> = ({
     return (
         <>
             {index < breadcrumbValues.length - 1 ? (
-                <Anchor component={Link} to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Anchor>
+                <Anchor inherit component={Link} to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Anchor>
             ) : (
                 <>{breadcrumb.title}</>
             )

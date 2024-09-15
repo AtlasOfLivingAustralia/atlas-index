@@ -10,7 +10,7 @@ import StatusView from "../components/species/statusView.tsx";
 import TraitsView from "../components/species/traitsView.tsx";
 import DatasetsView from "../components/species/datasetsView.tsx";
 import ResourcesView from "../components/species/resourcesView.tsx";
-import { Alert, Anchor, Box, Code, Container, Divider, Grid, Image, List, Space, Tabs, Text, Title } from "@mantine/core";
+import { Alert, Anchor, Box, Code, Container, Divider, Flex, Grid, Image, List, Space, Tabs, Text, Title } from "@mantine/core";
 import { IconCircleFilled, IconFlagFilled } from "@tabler/icons-react";
 import BreadcrumbSection from "../components/header/breadcrumbs.tsx";
 import capitalizeFirstLetter from "../helpers/Capitalise.ts";
@@ -159,18 +159,18 @@ function Species({setBreadcrumbs, queryString}: {
     <>  { Object.keys(result).length > 0 &&
             <>
                 <Box className={classes.speciesHeader}>
-                <Container py="xl" size="lg">
-                    <BreadcrumbSection breadcrumbValues={breadcrumbValues}/>
-                    <Grid mt="md" mb="lg">
-                        <Grid.Col span={6}>
-                            <Title order={2} fw={600} fs={fontStyle(result.rankID)} mt="md" mb="xs">
+                <Container py={{ base: 'sm', lg: 'xl'}} size="lg">
+                    <BreadcrumbSection breadcrumbValues={breadcrumbValues} />
+                    <Grid mt={{ base: 'xs', lg: 'md'}} mb="lg">
+                        <Grid.Col span={{ base: 12, md: 6, lg: 6 }}>
+                            <Title order={2} fw={600} fs={fontStyle(result.rankID)} mt={{ base: 0, lg: 'md'}} mb={{ base: 4, lg: 'xs'}}>
                                 {result.name}
                             </Title>
                             {/* <Badge color="gray" radius="sm" mt={6} mb={6} pt={3}>{combinedResult.rank}</Badge> */}
                             <List 
                                 center
                                 size="xs"
-                                mb="lg"
+                                mb={{ base: 'xs', lg: 'md'}}
                                 classNames={{ itemIcon: classes.rankName }}
                                 >   
                                 <List.Item 
@@ -180,8 +180,7 @@ function Species({setBreadcrumbs, queryString}: {
                             </List>
                             { result.commonName && result.commonName.map((name: string, idx: number) =>
                                 idx < 3 && 
-                                    <Text key={idx} size="lg" mt={6}>{name}</Text>
-                                
+                                    <Text key={idx} size="lg" mt={{ base: 0, lg: 6}}>{name}</Text>
                             )}
                             <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
                             {/* <Text mt={8}>{combinedResult.nameComplete}</Text> */}
@@ -195,21 +194,23 @@ function Species({setBreadcrumbs, queryString}: {
                             }
                             
                         </Grid.Col>
-                        <Grid.Col span={4}>
+                        <Grid.Col span={{ base: 12, md: 6, lg: 4 }}>
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 && 
                                     <Image key={idx}  src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                             )}
                         </Grid.Col>
-                        <Grid.Col span={2}>
-                            { result.image && result.image.split(',').map((id: string, idx: number) =>
+                        <Grid.Col span={{ base: 12, md: 2, lg: 2 }} className={classes.hideMobile}>
+                            <Flex gap={12} direction={{ base: 'row', lg: 'column' }}>
+                                { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 && 
                                     <Image key={idx} src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
                             )}
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 && 
-                                    <Image key={idx} mt="sm" src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
+                                    <Image key={idx} src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image"  />
                             )}
+                            </Flex>
                         </Grid.Col>
                     </Grid>
                 </Container>

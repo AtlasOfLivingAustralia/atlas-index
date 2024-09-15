@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Anchor, Box, Button, Code, Divider, Grid, Notification, Paper, Skeleton, Space, Table, Text, Title } from '@mantine/core';
+import { Anchor, Box, Button, Code, Divider, Grid, Notification, Skeleton, Space, Table, Text, Title } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
 import classes from '../species/species.module.css';
 import LargeLinkButton from '../common/ExternalLinkButton';
+import FormatName from '../nameUtils/formatName';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>;
@@ -135,7 +136,7 @@ function ResourcesView({ result }: MapViewProps) {
             </Title>
             
             <Title order={4} c="gray" mb="sm" mt="sm">
-                Biodiversity Heritage Library
+                Biodiversity Heritage Library (BHL)
             </Title>
 
             { loading && <Skeleton height={800} mt="lg" width="100%" radius="md" /> }
@@ -144,17 +145,19 @@ function ResourcesView({ result }: MapViewProps) {
                     withBorder
                     mt="lg"
                     onClose={() => setErrorMessage('')}
-                    title="Error loading datasets"
+                    title="Error loading BHL results"
                 >
                     {errorMessage}
                 </Notification>
             )}
             {
-                bhl &&
+                bhl && bhl.length > 0 &&
                 <>
-                    <Text>
-                        Showing {1} to {maxBhlSize} of {bhl.length == 100 ? `${bhl.length}+` : bhl.length} results for {result?.name}.{" "}
-                        <Anchor inherit href={bhlQuery} target="bhl">View all result</Anchor>.
+                    <Text mt="md">
+                        Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} of {" "}
+                        {bhl.length == 100 ? `${bhl.length}+` : bhl.length} result{bhl.length > 1 && 's'} for {" "}
+                        <FormatName name={result?.name} rankId={result?.rankID} />.{" "}
+                        <Anchor inherit href={bhlQuery} target="bhl">View all results on BHL</Anchor>.
                     </Text>
                     <Table striped="even" verticalSpacing="sm" mt="xs" fz="md">
                         <Table.Thead>
@@ -230,13 +233,16 @@ function ResourcesView({ result }: MapViewProps) {
                     </Table>
                 </>
             }
+            { !loading && (!bhl || bhl.length === 0) &&
+                <Text mt="md">No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
+            }
             
             <Space h="lg" />
             <Divider mt="lg" mb="lg"/>
             <Title order={4} c="gray" mb="lg" mt="lg">Online resources</Title>
-            <Grid mt="lg" gutter={35}>
+            <Grid mt="lg" gutter={{base: 15, md: 20, lg: 35}}>
                 {onlineResources.map((resource: Resource, idx) => (
-                    <Grid.Col span={4} key={idx}>
+                    <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={idx}>
                         <LargeLinkButton url={resource.url} external={resource.external}>{resource.name}</LargeLinkButton>
                     </Grid.Col>
                 ))}

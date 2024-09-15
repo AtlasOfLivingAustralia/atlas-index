@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { LatLng} from "leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
-import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Overlay, Popover, Radio, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Image, Overlay, Popover, Radio, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
 import LargeLinkButton from "../common/externalLinkButton";
 
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-fullscreen/styles.css';
+import classes from "./species.module.css";
 
 const center = new LatLng(-27, 133);
 
@@ -106,7 +107,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 <Text fw={500} inherit span> occurrence records</Text>
             </>}
         </Title>
-        <Flex gap="lg" mt={6}>
+        <Flex gap={{ base: "sm", md: "md", lg: "lg" }} mt="md">
             <Box style={{
                 height: "100%",
                 width: "100%",
@@ -129,16 +130,18 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 <Popover 
                     width="auto"
                     withArrow 
+                    arrowSize={10}
+                    offset={-120}
                     shadow="md"
                     opened={opened} onChange={setOpened}
-                    position="right"
+                    position="bottom" // {{ base: 'bottom', lg: 'right'}}
                 >
                     <Popover.Target>
                         <span style={{ display: 'inline-block', cursor: 'pointer' }} onClick={() => setOpened((o) => !o)}>
-                            <img src={generateImageUrl()} alt={`Record density map`} />
+                            <Image src={generateImageUrl()} alt={`Record density map`} maw="100%"/>
                         </span>
                     </Popover.Target>
-                    <Popover.Dropdown style={{ textAlign: 'center' }}>
+                    <Popover.Dropdown style={{ textAlign: 'center' }} maw="95%">
                         <Button variant="filled" fullWidth
                             onClick={() => { 
                                 window.open(`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}#mapView`, '_map') 
@@ -152,7 +155,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 </Popover>
                 
             </Box>
-            <Box pos="relative" pl={5}>
+            <Box pos="relative" pl={5} className={classes.hideMobile}>
                 <Flex justify="flex-start" align="center" gap="sm">
                     <IconAdjustmentsHorizontal />
                     <Text fw="bold">Refine view</Text>
@@ -206,9 +209,9 @@ function MapView({queryString, tab, result}: MapViewProps) {
         <Title order={4} fw={800} mt="xl" mb="lg">
             Get started
         </Title>
-        <Grid mt="lg" gutter={35}>
+        <Grid mt="lg" gutter={{base: 15, md: 20, lg: 35}}>
             {onlineResources.map((resource: OnlineResource, idx) => (
-                <Grid.Col span={3} key={idx}>
+                <Grid.Col span={{ base: 12, md: 6, lg: 3 }} key={idx}>
                     <LargeLinkButton url={resource.url}>{resource.name}</LargeLinkButton>
                 </Grid.Col>
             ))}

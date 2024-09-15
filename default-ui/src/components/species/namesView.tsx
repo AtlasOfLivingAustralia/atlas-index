@@ -17,7 +17,7 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th>Accepted name</Table.Th>
-                        <Table.Th>Source</Table.Th>
+                        <Table.Th w="15%">Source</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -45,7 +45,7 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th>Synonyms</Table.Th>
-                        <Table.Th>Source</Table.Th>
+                        <Table.Th w="15%">Source</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -70,7 +70,7 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th>Variants</Table.Th>
-                        <Table.Th>Source</Table.Th>
+                        <Table.Th w="15%">Source</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -95,7 +95,7 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th>Identifiers</Table.Th>
-                        <Table.Th>Source</Table.Th>
+                        <Table.Th w="15%">Source</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -121,7 +121,7 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Thead>
                     <Table.Tr>
                         <Table.Th>Common name</Table.Th>
-                        <Table.Th>Source</Table.Th>
+                        <Table.Th w="15%">Source</Table.Th>
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
