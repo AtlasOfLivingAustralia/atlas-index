@@ -13,15 +13,23 @@ import classes from "./species.module.css";
 const center = new LatLng(-27, 133);
 
 interface MapViewProps {
-    queryString?: string,
-    tab?: string,
-    result?: Record<PropertyKey, string | number | any >
+    queryString?: string;
+    tab?: string;
+    result?: Record<PropertyKey, string | number | any >;
 }
 
 interface OnlineResource {
     name: string | JSX.Element;
     url: string;
 };
+
+interface Distribution {
+    geomIdx: string;
+    dataResourceUid: string;
+    areaName: string;
+    dataResourceName: string;
+    url?: string;
+}
 
 function MapView({queryString, tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
@@ -51,7 +59,8 @@ function MapView({queryString, tab, result}: MapViewProps) {
             //     setDistributions(data)
             // })
             if (result.distributions) {
-                setDistributions(JSON.parse(result.distributions))
+                // setDistributions(JSON.parse(result.distributions))
+                generateDistributionMapObj(result?.distributions)
             }
         }
     }, [result]);
@@ -60,7 +69,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
         return occurrenceCount.toLocaleString();
     }
     
-    const createAlertForTaxon = (guid: string | undefined) => {
+    function createAlertForTaxon(guid: string | undefined) {
         // Create alert for taxon
         return `javascript:alert('TODO: Create alert for taxon ${guid}')`;
     };
@@ -84,11 +93,36 @@ function MapView({queryString, tab, result}: MapViewProps) {
         }
     ];
 
-    const generateImageUrl = () => {
-        // Generate the URL string here
-        // https://api.ala.org.au/occurrences/occurrences/static?q=lsid%3Ahttps%3A%2F%2Fbiodiversity.org.au%2Fafd%2Ftaxa%2F2a4e373b-913a-4e2a-a53f-74828f6dae7e&forceRefresh=false&forcePointsDisplay=false&pointColour=0000ff&pointHeatMapThreshold=500&opacity=1
-        return `https://api.ala.org.au/occurrences/occurrences/static?q=lsid%3A${result?.guid}&forceRefresh=false&forcePointsDisplay=false&pointColour=0000ff&pointHeatMapThreshold=500&opacity=1`;
+    function generateStaticMapImageUrl() {
+        // TODO: create a static map using hex bins
+        const otherParams = "&forceRefresh=false&forcePointsDisplay=false&pointColour=0000ff&pointHeatMapThreshold=500&opacity=1"
+        return `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/static?q=lsid%3A${result?.guid}${otherParams}`;
     };
+
+    // https://spatial.ala.org.au/ws/distribution/map/png/5233
+    //  
+    // "[{\"geomIdx\":\"5233\",\"dataResourceUid\":\"dr804\",\"areaName\":\"Expert distribution Dromaius novaehollandiae\",\"dataResourceName\":\"BirdLife International species range maps\"}]"
+    function generateDistributionMapObj(distributions: Distribution[] | string | null) {
+        let spatialObject: Distribution[] = [];
+
+        const addUrl = (distros: Distribution[]) : Distribution[] => {
+            distros.forEach((distro) => {
+                distro.url = `${import.meta.env.VITE_SPATIAL_URL}/ws/distribution/map/png/${distro.geomIdx}`;
+            });
+
+            return distros;
+        }
+
+        if (distributions && typeof distributions === 'string') {
+            const distributions2 = JSON.parse(distributions.replace(/\\"/g, '"')); // JSON is escaped inside a JSON value
+            spatialObject = addUrl(distributions2 || []);
+        } else if (distributions && typeof distributions === 'object') {
+            spatialObject = addUrl(distributions);
+        }
+
+        // console.log("generateDistributionMap spatialObject", spatialObject);
+        setDistributions(spatialObject);
+    }
 
     if (!result) {
         return <></>
@@ -138,7 +172,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 >
                     <Popover.Target>
                         <span style={{ display: 'inline-block', cursor: 'pointer' }} onClick={() => setOpened((o) => !o)}>
-                            <Image src={generateImageUrl()} alt={`Record density map`} maw="100%"/>
+                            <Image src={generateStaticMapImageUrl()} alt={`Record density map`} maw="100%"/>
                         </span>
                     </Popover.Target>
                     <Popover.Dropdown style={{ textAlign: 'center' }} maw="95%">
@@ -153,6 +187,24 @@ function MapView({queryString, tab, result}: MapViewProps) {
                         {/* <Button variant="outline" mt="sm" onClick={() => setOpened((o) => !o)}>Close</Button> */}
                     </Popover.Dropdown>
                 </Popover>
+                <Flex justify="flex-start" align="center" gap="xs" mt="xl">
+                    <IconInfoCircleFilled size={24}/>
+                    <Text fw={800} fz={16}>About this map</Text>
+                </Flex>
+                <Text mt="sm" mb="lg">
+                    Occurrence records show where a species has been recorded, and may not show the full extent of its known
+                    distribution. Records may contain some error. Expert distributions show species distributions modelled by
+                    experts or the coarse known distributions of species.
+                </Text>
+                { distributions && distributions.map((dist, _i) =>
+                    <>
+                        <Divider mt="lg" mb="lg" />
+                        <Text fw="bold" fz="lg" mt="sm">{dist.areaName || 'Expert distribution '} provided 
+                            by <Anchor inherit href={`${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}`}
+                            target="_blank">{dist.dataResourceName}</Anchor></Text>
+                        <Image src={dist.url} alt={`Expert distribution map`}  w="512px"/>
+                    </>
+                )}
                 
             </Box>
             <Box pos="relative" pl={5} className={classes.hideMobile}>
@@ -197,15 +249,6 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 <Overlay color="#000" backgroundOpacity={0} blur={2} />
             </Box>
         </Flex>
-        <Flex justify="flex-start" align="center" gap="xs" mt="xl">
-            <IconInfoCircleFilled size={24}/>
-            <Text fw={800} fz={16}>About this map</Text>
-        </Flex>
-        <Text mt="sm" mb="lg">
-            Occurrence records show where a species has been recorded, and may not show the full extent of its known
-            distribution. Records may contain some error. Expert distributions show species distributions modelled by
-            experts or the coarse known distributions of species.
-        </Text>
         <Title order={4} fw={800} mt="xl" mb="lg">
             Get started
         </Title>
