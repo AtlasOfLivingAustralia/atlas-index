@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer } from 'react-leaflet';
-import { LatLng} from "leaflet";
+import { MapContainer, TileLayer, WMSTileLayer } from 'react-leaflet';
+import { LatLng, map} from "leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
-import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Image, Overlay, Popover, Radio, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Image, Overlay, Popover, Radio, Switch, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
 import LargeLinkButton from "../common/externalLinkButton";
 
@@ -11,7 +11,7 @@ import 'react-leaflet-fullscreen/styles.css';
 import classes from "./species.module.css";
 
 const center = new LatLng(-27, 133);
-
+// const mapType: 'static' | 'leaflet' = "leaflet";
 interface MapViewProps {
     queryString?: string;
     tab?: string;
@@ -29,14 +29,16 @@ interface Distribution {
     areaName: string;
     dataResourceName: string;
     url?: string;
+    checked?: boolean;
 }
 
 function MapView({queryString, tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
-    const [distributions, setDistributions] = useState<any[]>([]);
     const [showOccurrences, setShowOccurrences] = useState(true);
-    const [mapControls, setMapControls] = useState('default');
+    const [baseLayers, setBaseLayers] = useState('default');
+    const [distributions, setDistributions] = useState<Distribution[]>([]);
     const [opened, setOpened] = useState(false);
+    const [mapType, setMapType] = useState<'static' | 'leaflet'>('leaflet');
     const mapRef = useRef(null);
 
     useEffect(() => {
@@ -70,7 +72,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
     }
     
     function createAlertForTaxon(guid: string | undefined) {
-        // Create alert for taxon
+        // TODO: Implement alert creation
         return `javascript:alert('TODO: Create alert for taxon ${guid}')`;
     };
     
@@ -93,35 +95,51 @@ function MapView({queryString, tab, result}: MapViewProps) {
         }
     ];
 
+    function getAlaWmsUrl() {
+        // const wmsParams = `&FORMAT=image/png&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=EPSG:900913&WIDTH=256&HEIGHT=256`;
+        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${result?.guid}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:4Cffc557,3,72fcad54,30,99f99650,300,BFf57e4d,3000,FFf26649`;
+        return wmsUrl;
+    }
+
+    function getDistroWmsUrl(_id: string) {
+        const id = '7042280'; // TODO: Hard-coded for Emu - work out how to get the spatial id from the geomIdx
+        // https://spatial.ala.org.au/geoserver/ALA/wms?&service=WMS&request=GetMap&layers=ALA:Objects&styles=polygon&format=image/png8&transparent=true&version=1.1.1&viewparams=s:8816609
+        return `${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${id}&`;
+    }
+
     function generateStaticMapImageUrl() {
-        // TODO: create a static map using hex bins
+        // TODO: create a static map using hex bins OR delete if going with dynamic map
         const otherParams = "&forceRefresh=false&forcePointsDisplay=false&pointColour=0000ff&pointHeatMapThreshold=500&opacity=1"
         return `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/static?q=lsid%3A${result?.guid}${otherParams}`;
     };
 
     // https://spatial.ala.org.au/ws/distribution/map/png/5233
-    //  
     // "[{\"geomIdx\":\"5233\",\"dataResourceUid\":\"dr804\",\"areaName\":\"Expert distribution Dromaius novaehollandiae\",\"dataResourceName\":\"BirdLife International species range maps\"}]"
     function generateDistributionMapObj(distributions: Distribution[] | string | null) {
-        let spatialObject: Distribution[] = [];
+        let spatialObjects: Distribution[] = [];
 
+        // Utility function to add 'url' and 'checked' attrs to distribution object (state management)
         const addUrl = (distros: Distribution[]) : Distribution[] => {
             distros.forEach((distro) => {
                 distro.url = `${import.meta.env.VITE_SPATIAL_URL}/ws/distribution/map/png/${distro.geomIdx}`;
+                distro.checked = false;
             });
 
             return distros;
         }
 
         if (distributions && typeof distributions === 'string') {
-            const distributions2 = JSON.parse(distributions.replace(/\\"/g, '"')); // JSON is escaped inside a JSON value
-            spatialObject = addUrl(distributions2 || []);
-        } else if (distributions && typeof distributions === 'object') {
-            spatialObject = addUrl(distributions);
+            // Hack to handle escaped JSON inside a JSON value
+            const distributions2 = JSON.parse(distributions.replace(/\\"/g, '"'));
+            spatialObjects = addUrl(distributions2 || []);
+        } else if (distributions && Array.isArray(distributions)) {
+            // Assume it's already parsed
+            spatialObjects = addUrl(distributions);
+        } else {
+            console.error("generateDistributionMap: Invalid distribution data", distributions);
         }
 
-        // console.log("generateDistributionMap spatialObject", spatialObject);
-        setDistributions(spatialObject);
+        setDistributions(spatialObjects);
     }
 
     if (!result) {
@@ -135,44 +153,100 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 obfuscated. <Anchor inherit href="#">More info</Anchor>.
             </Alert>
         }
-        <Title order={4} fw={800} mt="lg" mb="lg">
-            {occurrenceCount >= 0 && <>
-                {formatNumber(occurrenceCount)}
-                <Text fw={500} inherit span> occurrence records</Text>
-            </>}
-        </Title>
+        <Flex gap="xl" align="center" direction="row">
+            <Title order={4} fw={800} mt="lg" mb="lg" miw={{base: "", sm: "480px", md: "696px", lg: "814px"}}>
+                {occurrenceCount >= 0 && <>
+                    {formatNumber(occurrenceCount)}
+                    <Text fw={500} inherit span> occurrence records</Text>
+                </>}
+            </Title>
+            <Switch
+                size="xl"
+                onLabel="Dynamic" 
+                offLabel="Static" 
+                label={<Text c="grey" fs="lg" pt={5}>Demo only</Text>}
+                checked={mapType === 'leaflet'}
+                onChange={(event) => setMapType(event.currentTarget.checked ? 'leaflet' : 'static')}
+            />
+        </Flex>
         <Flex gap={{ base: "sm", md: "md", lg: "lg" }} mt="md">
             <Box style={{
                 height: "100%",
                 width: "100%",
                 borderRadius: "10px",
             }}>
-                {/* <MapContainer 
-                    ref={mapRef} 
-                    center={center} 
-                    zoom={4} 
-                    scrollWheelZoom={false} 
-                    worldCopyJump={true} 
-                    style={{height: "530px", borderRadius: "10px"}}
-                >
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
-                    />
-                    <FullscreenControl position={"topleft"}/>
-                </MapContainer> */}
                 <Popover 
                     width="auto"
                     withArrow 
                     arrowSize={10}
                     offset={-120}
                     shadow="md"
-                    opened={opened} onChange={setOpened}
+                    middlewares={{ flip: false, shift: false }}
+                    opened={opened} 
+                    onChange={setOpened}
+                    floatingStrategy="fixed"
                     position="bottom" // {{ base: 'bottom', lg: 'right'}}
                 >
                     <Popover.Target>
-                        <span style={{ display: 'inline-block', cursor: 'pointer' }} onClick={() => setOpened((o) => !o)}>
-                            <Image src={generateStaticMapImageUrl()} alt={`Record density map`} maw="100%"/>
+                        <span style={{ display: 'block', cursor: 'pointer' }} onClick={() => setOpened((o) => !o)}>
+                            { mapType === 'leaflet' && 
+                                <Box pos="relative">
+                                    <MapContainer 
+                                        ref={mapRef} 
+                                        center={center} 
+                                        zoom={4} 
+                                        // zoomControl={false}
+                                        // scrollWheelZoom={false} 
+                                        worldCopyJump={true} 
+                                        style={{height: "530px", borderRadius: "10px"}}
+                                    >
+                                        { baseLayers === 'default' && 
+                                            <TileLayer
+                                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
+                                                zIndex={1}
+                                            />
+                                        }
+                                        { baseLayers === 'terrain' && 
+                                            <TileLayer
+                                                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                                                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                                                zIndex={1}
+                                            />
+                                        }
+                                        { showOccurrences && 
+                                            <WMSTileLayer
+                                                url={getAlaWmsUrl()}
+                                                layers="ALA:occurrences"
+                                                format="image/png"
+                                                transparent={true}
+                                                attribution="Atlas of Living Australia"
+                                                zIndex={15}
+                                            />
+                                        }
+                                        { distributions && distributions.map((dist, idx) => 
+                                            dist.checked && <WMSTileLayer
+                                                key={idx}
+                                                url={getDistroWmsUrl(dist.geomIdx)}
+                                                layers="ALA:Objects"
+                                                format="image/png"
+                                                styles="polygon"
+                                                transparent={true}
+                                                opacity={0.6}
+                                                attribution={dist.dataResourceName}
+                                                zIndex={10}
+                                            />
+                                        )}  
+                                        <FullscreenControl position={"topleft"}/>
+                                    </MapContainer>
+                                    {/* <Overlay color="#000" backgroundOpacity={0} blur={0} /> */}
+                                </Box>
+                            }
+                            { mapType === 'static' && 
+                                <Flex align="center" justify="center" w="100%" py={38}>
+                                    <Image src={generateStaticMapImageUrl()} alt={`Record density map`} maw="512px" />
+                                </Flex>
+                            }
                         </span>
                     </Popover.Target>
                     <Popover.Dropdown style={{ textAlign: 'center' }} maw="95%">
@@ -184,7 +258,6 @@ function MapView({queryString, tab, result}: MapViewProps) {
                             View an interactive version of this map
                         </Button>
                         <Text mt="sm" fz="sm">Opens the ALA occurrence data explorer in a new window</Text>
-                        {/* <Button variant="outline" mt="sm" onClick={() => setOpened((o) => !o)}>Close</Button> */}
                     </Popover.Dropdown>
                 </Popover>
                 <Flex justify="flex-start" align="center" gap="xs" mt="xl">
@@ -196,14 +269,14 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     distribution. Records may contain some error. Expert distributions show species distributions modelled by
                     experts or the coarse known distributions of species.
                 </Text>
-                { distributions && distributions.map((dist, _i) =>
-                    <>
+                { mapType === 'static' && distributions && distributions.map((dist, idx) =>
+                    <Box key={idx}>
                         <Divider mt="lg" mb="lg" />
                         <Text fw="bold" fz="lg" mt="sm">{dist.areaName || 'Expert distribution '} provided 
                             by <Anchor inherit href={`${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}`}
                             target="_blank">{dist.dataResourceName}</Anchor></Text>
                         <Image src={dist.url} alt={`Expert distribution map`}  w="512px"/>
-                    </>
+                    </Box>
                 )}
                 
             </Box>
@@ -220,20 +293,29 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 <Text fw="bold" mb="md">Expert distribution maps</Text>
                 { distributions && distributions.map((dist, idx) =>
                     <Box key={idx}>
-                        <Checkbox checked={dist.checked} size="xs" 
+                        <Checkbox 
+                            checked={dist.checked} 
+                            onChange={() => { 
+                                const updatedDistributions = distributions.map((d, i) => 
+                                    i === idx ? { ...d, checked: !d.checked } : d
+                                );
+                                setDistributions(updatedDistributions);
+                            }} 
+                            size="xs" 
                             id={"dist" + idx}
-                            label={dist.areaName} />
-                        <Text fz="sm" ml="xl">
-                            provided by&nbsp;
-                            <Anchor inherit href="#">{dist.dataResourceName}</Anchor>
-                        </Text>
+                            label={
+                                <>{dist.areaName}<Text fs='normal' fz='sm' mt={4}>provided by{' '}
+                                    <Anchor inherit href="#">{dist.dataResourceName}</Anchor></Text>
+                                </>
+                            } 
+                        />
                     </Box>
                 )}
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="md">Map type</Text>
                 <Radio.Group 
-                    value={mapControls}
-                    onChange={setMapControls}
+                    value={baseLayers}
+                    onChange={setBaseLayers}
                 > 
                     <Radio size="xs" value="default"
                         label="Default" />
@@ -245,8 +327,14 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     variant="default" 
                     radius="xl"
                     fullWidth
-                    rightSection={<IconReload />}>Refresh</Button>
-                <Overlay color="#000" backgroundOpacity={0} blur={2} />
+                    rightSection={<IconReload />}
+                    onClick={() => { 
+                        alert('Bang, goes the totally redundant button');
+                    }}
+                >Refresh</Button>
+                { mapType === 'static' && 
+                    <Overlay color="#000" backgroundOpacity={0} blur={2} />
+                }
             </Box>
         </Flex>
         <Title order={4} fw={800} mt="xl" mb="lg">
