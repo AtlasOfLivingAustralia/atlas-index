@@ -34,7 +34,7 @@ interface Distribution {
 
 function MapView({queryString, tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
-    const [showOccurrences, setShowOccurrences] = useState(true);
+    const [showOccurrences, setShowOccurrences] = useState<string>('');
     const [baseLayers, setBaseLayers] = useState('default');
     const [distributions, setDistributions] = useState<Distribution[]>([]);
     const [opened, setOpened] = useState(false);
@@ -56,6 +56,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
             //     .then(response => response.json())
             //     .then(data => setOccurrenceCount(data.totalRecords));
             setOccurrenceCount(result?.occurrenceCount)
+            setShowOccurrences(result?.guid);
 
             // fetch("https://spatial.ala.org.au/ws/distribution/lsids/" + result.guid + "?nowkt=true").then(response => response.json()).then(data => {
             //     setDistributions(data)
@@ -95,16 +96,12 @@ function MapView({queryString, tab, result}: MapViewProps) {
         }
     ];
 
-    function getAlaWmsUrl() {
+    function getAlaWmsUrl(guid: string) {
+        // TODO: Fix hex binning to be dynamic, based on range of records for the species
+        // TODO: Add a legend for the hex binning colours
         // const wmsParams = `&FORMAT=image/png&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=EPSG:900913&WIDTH=256&HEIGHT=256`;
-        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${result?.guid}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:4Cffc557,3,72fcad54,30,99f99650,300,BFf57e4d,3000,FFf26649`;
+        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${guid}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:4Cffc557,3,72fcad54,30,99f99650,300,BFf57e4d,3000,FFf26649`;
         return wmsUrl;
-    }
-
-    function getDistroWmsUrl(_id: string) {
-        const id = '7042280'; // TODO: Hard-coded for Emu - work out how to get the spatial id from the geomIdx
-        // https://spatial.ala.org.au/geoserver/ALA/wms?&service=WMS&request=GetMap&layers=ALA:Objects&styles=polygon&format=image/png8&transparent=true&version=1.1.1&viewparams=s:8816609
-        return `${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${id}&`;
     }
 
     function generateStaticMapImageUrl() {
@@ -113,13 +110,11 @@ function MapView({queryString, tab, result}: MapViewProps) {
         return `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/static?q=lsid%3A${result?.guid}${otherParams}`;
     };
 
-    // https://spatial.ala.org.au/ws/distribution/map/png/5233
-    // "[{\"geomIdx\":\"5233\",\"dataResourceUid\":\"dr804\",\"areaName\":\"Expert distribution Dromaius novaehollandiae\",\"dataResourceName\":\"BirdLife International species range maps\"}]"
     function generateDistributionMapObj(distributions: Distribution[] | string | null) {
         let spatialObjects: Distribution[] = [];
 
         // Utility function to add 'url' and 'checked' attrs to distribution object (state management)
-        const addUrl = (distros: Distribution[]) : Distribution[] => {
+        const augmentDistroData = (distros: Distribution[]) : Distribution[] => {
             distros.forEach((distro) => {
                 distro.url = `${import.meta.env.VITE_SPATIAL_URL}/ws/distribution/map/png/${distro.geomIdx}`;
                 distro.checked = false;
@@ -131,10 +126,10 @@ function MapView({queryString, tab, result}: MapViewProps) {
         if (distributions && typeof distributions === 'string') {
             // Hack to handle escaped JSON inside a JSON value
             const distributions2 = JSON.parse(distributions.replace(/\\"/g, '"'));
-            spatialObjects = addUrl(distributions2 || []);
+            spatialObjects = augmentDistroData(distributions2 || []);
         } else if (distributions && Array.isArray(distributions)) {
             // Assume it's already parsed
-            spatialObjects = addUrl(distributions);
+            spatialObjects = augmentDistroData(distributions);
         } else {
             console.error("generateDistributionMap: Invalid distribution data", distributions);
         }
@@ -216,7 +211,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                                         }
                                         { showOccurrences && 
                                             <WMSTileLayer
-                                                url={getAlaWmsUrl()}
+                                                url={getAlaWmsUrl(showOccurrences)}
                                                 layers="ALA:occurrences"
                                                 format="image/png"
                                                 transparent={true}
@@ -227,8 +222,8 @@ function MapView({queryString, tab, result}: MapViewProps) {
                                         { distributions && distributions.map((dist, idx) => 
                                             dist.checked && <WMSTileLayer
                                                 key={idx}
-                                                url={getDistroWmsUrl(dist.geomIdx)}
-                                                layers="ALA:Objects"
+                                                url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${dist.geomIdx}&`}
+                                                layers="ALA:Distributions"
                                                 format="image/png"
                                                 styles="polygon"
                                                 transparent={true}
@@ -286,11 +281,11 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     <Text fw="bold">Refine view</Text>
                 </Flex>
                 <Divider mt="lg" mb="lg" />
-                <Checkbox checked={showOccurrences} size="xs" 
-                    onChange={() => {setShowOccurrences(!showOccurrences)}} 
+                <Checkbox checked={showOccurrences.length > 0} size="xs" 
+                    onChange={() => {setShowOccurrences(showOccurrences.length > 0 ? '' : result?.guid)}} 
                     label="Species records" />
                 <Divider mt="lg" mb="lg" />
-                <Text fw="bold" mb="md">Expert distribution maps</Text>
+                <Text fw="bold" mb="sm">Expert distribution maps</Text>
                 { distributions && distributions.map((dist, idx) =>
                     <Box key={idx}>
                         <Checkbox 
@@ -311,6 +306,9 @@ function MapView({queryString, tab, result}: MapViewProps) {
                         />
                     </Box>
                 )}
+                { distributions && distributions.length === 0 &&
+                    <Text size="sm" c="grey">No expert distribution maps available</Text>
+                }
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="md">Map type</Text>
                 <Radio.Group 
