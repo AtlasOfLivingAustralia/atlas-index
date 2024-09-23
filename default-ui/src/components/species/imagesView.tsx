@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { Box, Button, Checkbox, Divider, Flex, Grid, Image, Radio, Skeleton, Text } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconReload } from "@tabler/icons-react";
+import { useCallback, useEffect, useState } from "react";
+import { Anchor, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Radio, Skeleton, Text } from "@mantine/core";
+import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconReload } from "@tabler/icons-react";
 import classes from "./species.module.css";
+import { useDisclosure } from "@mantine/hooks";
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any >
@@ -18,28 +19,90 @@ interface Items {
     type: string;
 }   
 
+interface ActiveFacet {
+    displayName: string
+    name: string
+    value: string
+}
+
+interface FacetResult {
+    count: number
+    fq: string
+    i18nCode: string
+    label: string
+}
+
+interface ActiveFacetObj {
+    [key: string]: ActiveFacet[];
+}
+
+interface FacetResult {
+    fieldName: string
+    fieldResult: FacetResult[]
+}
+
 function ImagesView({result}: MapViewProps) {
     const [items, setItems] = useState<Items[]>([]);
+    // const [activeFacets, setActiveFacets] = useState<ActiveFacetObj>({});
+    // field-agnostic filters
+    const [facetResults, setFacetResults] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (unfilterded)
+    // const [facetResultsAll, setFacetResultsAll] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (filterded)
+    const [fqResults, setFqResults] = useState<ActiveFacetObj>({}); // from `activeFacetObj` in the JSON response (filterded)
+    // const [fqResultsAll, setFqResultsAll] = useState<ActiveFacetObj>({}); // from `activeFacetObj` in the JSON response (unfilterded)
+    const [fqUserTrigged, setFqUserTrigged] = useState<string[]>([]); // from user interaction (filterded)
+
     const [page, setPage] = useState<number>(0);
     const [type, setType] = useState<string>('all');
     const [sortDir, setSortDir] = useState('desc');
-    const [licenceType, setLicenceType] = useState<string[]>([]);
-    const [licenceTypeActive, setLicenceTypeActive] = useState<string[]>([]);
+    // const [licenceType, setLicenceType] = useState<string[]>([]);
+    // const [licenceTypeActive, setLicenceTypeActive] = useState<string[]>([]);
     const [includeOccurrences, setIncludeOccurrences] = useState(true);
     const [includeSpecimens, setIncludeSpecimens] = useState(true);
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    // Control of expand/collapse state for facets display
+    const [expandCollapseState, setExpandCollapseState] = useState({
+        license: false,
+        dataResourceName: false,
+        basisOfRecord: false // Add more facets as needed
+    });
+    const toggleExpandCollapse = (facet: keyof typeof expandCollapseState) => {
+        setExpandCollapseState(prevState => ({
+            ...prevState,
+            [facet]: !prevState[facet]
+        }));
+    };
 
+    const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
     const pageSize = 10;
+    const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
+    const imagesBaseUrl = "https://images.ala.org.au"; // import.meta.env.VITE_APP_IMAGE_BASE_URL;
+    const maxVisibleFacets = 4;
+
+    // useEffect(() => {
+    //     fetchImages(true);
+    // }, [result, page, sortDir, includeOccurrences, includeSpecimens, type, licenceTypeActive]);
 
     useEffect(() => {
-        fetchImages();
-    }, [result, page, sortDir, includeOccurrences, includeSpecimens, type, licenceTypeActive]);
+        fetchImages(true); // fetch images with user filters
+        fetchImages(false); // fetch facet results for unfiltered query
+    }, [result, page, sortDir, fqUserTrigged]);
 
-    function fetchImages() {
+    const buildLicenseFqs = () => {
+        let fqString = '&fq=license:*';
+        // TODO: filtering code goes here - should be field agnostic
+        // if (licenceTypeActive.length > 0) {
+        // } 
+        // (licenceTypeActive.length > 0) ? `&fq=license:${licenceTypeActive.join('&fq=license:')}` : '&fq=license:*';
+        return fqString
+    }
+    
+    function fetchImages(includeUserFq: boolean = true) {
         if (!result?.guid) {
             return;
         }
+
+        // console.log("fetchImages", includeUserFq, fqUserTrigged);
 
         const typeFqMap: Record<PropertyKey, string> = {
             all: "&fq=multimedia:*",
@@ -48,8 +111,19 @@ function ImagesView({result}: MapViewProps) {
             sound: "&fq=multimedia:Sound"
         };
 
-        const facets = '&facets=license,dataResourceName';
-        const typeFq = typeFqMap[type] || "";
+        const facets = `&facets=${facetFields.join(',')}`; 
+        let typeFq = '';
+        let userFq = '';
+        let pageSizeRequest = pageSize;
+
+        if (includeUserFq) {
+            typeFq = typeFqMap[type] || '';
+            userFq = fqUserTrigged.map(fq => `&fq=-${fq}`).join('');
+            // licenseFq = buildLicenseFqs();
+        } else {
+            pageSizeRequest = 0; // only need the facet results
+        }
+
         let specimenFq;
         if (includeSpecimens && includeOccurrences) {
             specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
@@ -60,22 +134,27 @@ function ImagesView({result}: MapViewProps) {
         } else {
             setItems([]);
         }
-
-        let mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
+        // setLicenceType([]);
+        const mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
+        // const licenseFq = buildLicenseFqs
         setLoading(true);
         clearFacetValues();
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
+        fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
             facets +
             '&start=' + (page * pageSize) +
-            '&pageSize=' + pageSize +
+            '&pageSize=' + pageSizeRequest +
             '&dir=' + sortDir +
             '&sort=eventDate' +
-            typeFq +
-            specimenFq +
-            mediaFilter)
+            '&fq=' + facetFields.join(":*&fq=") + ":*" + // default include all values for the facet fields
+            userFq 
+            // typeFq +
+            // specimenFq +
+            // licenseFq +
+            // mediaFilter
+        )
             .then(response => response.json())
             .then(data => {
-                let list: { id: string, type: string }[] = [];
+                const list: { id: string, type: string }[] = [];
                 data.occurrences.map((item: Occurrence) => {
                     if (item.images && (type === 'all' || type === 'image')) {
                         for (let id of item.images) {
@@ -93,40 +172,43 @@ function ImagesView({result}: MapViewProps) {
                         }
                     }
                 })
-                data.facetResults.map((facet: any) => {
-                    if (facet.fieldName === 'license') {
-                        facet.fieldResult.map((field: any) => {  
-                            setLicenceType([...licenceType, field.label]);
-                        })
-                    }
-                    if (facet.fieldName === 'dataResourceName') {
-                        facet.fieldResult.map((field: any) => {  
-                            // setDataResources([...dataResources, field.label]);
-                        })
-                    }
-                })
 
-                if (page == 0) {
-                    setItems(list);
-                    setOccurrenceCount(data.totalRecords);
+                if (includeUserFq) {
+                    setFqResults(data.activeFacetObj);
+                    // setFacetResults(data.facetResults);
+
+                    if (page == 0) {
+                        setItems(list);
+                        setOccurrenceCount(data.totalRecords);
+                    } else {
+                        setItems([...items, ...list]);
+                    }
                 } else {
-                    setItems([...items, ...list]);
+                    // setFqResultsAll(data.activeFacetObj);
+                    setFacetResults(data.facetResults);
                 }
+
             }).catch(error => {
                 console.error('Failed to fetch images - ' + error);
             }).finally(() => {
                 setLoading(false);
             });
+
+            // console.log("fqs", fqResults, fqResultsAll, includeUserFq);
     }
 
     const clearFacetValues = () => {
-        setLicenceType([]);
+        // setLicenceType([]);
+        // setActiveFacets({});
+        setFacetResults([]);
+        setFqResults({});
+        // setFqResultsAll({});
         // setLicenceTypeActive([]);
         // setDataResources([]);
     }
 
     const getImageUrl = (id: string) => {
-        return `${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/proxyImageThumbnail?imageId=${id}`;
+        return `${imagesBaseUrl}/image/proxyImageThumbnail?imageId=${id}`;
     }
 
     function resetView() {
@@ -134,18 +216,67 @@ function ImagesView({result}: MapViewProps) {
     }
 
     const handleImageError = (idx: number, e: any) => {
-        console.log('Image error', e.target?.src, idx);
+        // console.log('Image error', e.target?.src, idx);
         setItems(prevItems => prevItems.filter((_, index) => index !== idx));
     };
 
-    const updateLicenceType = (value: string) => {
-        if (licenceTypeActive.includes(value)) {
-            setLicenceTypeActive(licenceTypeActive.filter(item => item !== value));
-        } else {
-            setLicenceTypeActive([...licenceTypeActive, value]);
-        }
-        // alert("Filtering by licence type not yet supported. Licence type: " + licenceTypeActive);
+    const removeQuotes = (str: string): string => {
+        // Regular expression to match leading and trailing quotes
+        return str.replace(/^["']+|["']+$/g, '');
+    };
+    
+
+    const facetIsActive = useCallback((facetName: string, facetValue: string) : boolean => {
+        // const facetValue: string = activeFacets?.[name]?.[0]?.value || '';
+        // return facetValue.includes(value) || facetValue.endsWith('*');
+        // assume its active unless there is a negative fq set for it
+        // facet.value will be in the format `fieldName:value`, e.g. `license:CC-BY`
+        // const facetIsRemoved = fqResults[`-${facetName}`]?.some((facet: ActiveFacet) => facet?.value?.split(':')?.pop()?.includes(facetValue));
+        const facetValues = fqResults[`-${facetName}`]?.map((facet: ActiveFacet) => facet.value.split(':').pop());
+        // const facetIsRemoved = removeQuotes(facetValues?.[0] || '') === facetValue;
+        const facetIsRemoved = facetValues?.some(value => removeQuotes(value || '') === facetValue);
+        // console.log("facetIsActive", facetName, facetValue, facetValues, facetIsRemoved);
+        return !facetIsRemoved; // if its removed, then its not active
+    }, [fqResults]);
+
+    const getFieldResults = useCallback((name: string) : FacetResult[] => {
+        return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
+    }, [facetResults]);
+
+    const updateUserFqs = (name: string, value: string, active: boolean) => {
+        active 
+            ? setFqUserTrigged([...fqUserTrigged, `${name}:"${encodeURIComponent(value)}"`])
+            : setFqUserTrigged(fqUserTrigged.filter(fq => fq !== `${name}:"${encodeURIComponent(value)}"`));
     }
+
+    const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets }: { fieldName: string, limit?: number }) => {
+        return (
+            <>
+                {getFieldResults(fieldName)?.map((item, idx) => 
+                    <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
+                        <Checkbox 
+                            size="xs"
+                            checked={facetIsActive(fieldName, item.label)}
+                            onChange={() => { updateUserFqs(fieldName, item.label, facetIsActive(fieldName, item.label))}}
+                            label={`${item.label} (${item.count})`} 
+                        />
+                    </Collapse>
+                )}
+                {getFieldResults(fieldName)?.length > limit &&
+                    <Anchor 
+                        onClick={() => toggleExpandCollapse(fieldName as keyof typeof expandCollapseState)} 
+                        mt={5} 
+                        style={{ width: '80%', display: 'block', textAlign: 'center'}}
+                    >
+                        {expandCollapseState[fieldName as keyof typeof expandCollapseState] 
+                            ? <IconChevronUp /> 
+                            : <IconChevronDown />
+                        }
+                    </Anchor>
+                }
+            </>
+        );
+    }; 
 
     return (
         <Box>
@@ -156,7 +287,7 @@ function ImagesView({result}: MapViewProps) {
                 <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
             </Flex>
             <Text mt="lg" mb="md" size="sm" fw="bold">
-                Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results
+                Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results ({items.length})
             </Text>
             <Grid>
                 <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
@@ -175,7 +306,7 @@ function ImagesView({result}: MapViewProps) {
                                     <Image 
                                         radius="md" 
                                         h={210}
-                                        maw={280}
+                                        maw={260}
                                         src={ getImageUrl(item.id) }
                                         onError={(e) => handleImageError(idx, e)}
                                     />}
@@ -213,38 +344,14 @@ function ImagesView({result}: MapViewProps) {
                     </Radio.Group>
                     <Divider mt="lg" mb="lg" />
                     <Text fw="bold" mb="md">Record type</Text>
-                    <Checkbox checked={includeOccurrences} size="xs" 
-                        onChange={() => {setIncludeOccurrences(!includeOccurrences)}} 
-                        label="Occurrence records" />
-                    <Checkbox checked={includeSpecimens} size="xs"
-                        onChange={() => {setIncludeSpecimens(!includeSpecimens)}}
-                        label="Specimens" />
+                    <FilterCheckBoxGroup fieldName="basisOfRecord" limit={5}/>
                     <Divider mt="lg" mb="lg" />
                     <Text fw="bold" mb="md">Licence type</Text>
-                    { licenceType.map((item, idx) => 
-                        <Checkbox key={idx} size="xs"
-                            checked={licenceTypeActive.includes(item)}
-                            onChange={() => { updateLicenceType(item)}}
-                            label={item} />
-                    )}
-                    {/* <Checkbox size="xs"
-                        checked={licenceTypeActive.includes('CC0')}
-                        onChange={() => { updateLicenceType('CC0')}}
-                        label="CC0" />
-                    <Checkbox size="xs"  
-                        checked={licenceTypeActive.includes('CC-BY')}
-                        onChange={() => { updateLicenceType('CC-BY')}}
-                        label="CC-BY" />
-                    <Checkbox size="xs"  
-                        checked={licenceTypeActive.includes('CC-BY-NC')}
-                        onChange={() => { updateLicenceType('CC-BY-NC')}}
-                        label="CC-BY-NC" />
-                    <Checkbox size="xs"  
-                        checked={licenceTypeActive.includes('other')}
-                        onChange={() => { updateLicenceType('other')}}
-                        label="Other" /> */}
-                    <Divider mt="lg" mb="lg" />
+                    <FilterCheckBoxGroup fieldName="license" />
+                    <Divider mt="sm" mb="lg" />
                     <Text fw="bold" mb="md">Institution</Text>
+                    <FilterCheckBoxGroup fieldName="dataResourceName" />
+                    
                     <Button 
                         mt="lg" 
                         variant="default" 
