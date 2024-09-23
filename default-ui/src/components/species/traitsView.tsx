@@ -1,6 +1,6 @@
-import { ActionIcon, Anchor, Box, Button, Flex, Grid, Image, Loader, Notification, Paper, Skeleton, Space, Table, Text, Title } from "@mantine/core";
+import { Anchor, Button, Flex, Grid, Image, Notification, Paper, Skeleton, Space, Table, Text, Title, UnstyledButton } from "@mantine/core";
 import { IconDownload, IconExternalLink, IconInfoCircleFilled } from "@tabler/icons-react";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 // import FormatName from "../nameUtils/formatName";
 import classes from './species.module.css';
@@ -342,15 +342,15 @@ function TraitsView({ result }: MapViewProps) {
                                                 <Table.Td>{item.trait_name}</Table.Td>
                                                 <Table.Td>{item.trait_values}</Table.Td>
                                                 <Table.Td>
-                                                    <ActionIcon 
+                                                    <UnstyledButton 
                                                         variant="default" 
                                                         size="sm"
                                                         onClick={() => {
                                                             window.open(item.definition, '_blank');
                                                         }}
                                                     >
-                                                        <IconExternalLink/>
-                                                    </ActionIcon>
+                                                        <IconExternalLink size={18} />
+                                                    </UnstyledButton>
                                                 </Table.Td>
                                             </Table.Tr>
                                         )}
@@ -399,15 +399,15 @@ function TraitsView({ result }: MapViewProps) {
                                         <Table.Td>{item.max}</Table.Td>
                                         <Table.Td>{item.unit}</Table.Td>
                                         <Table.Td>
-                                            <ActionIcon 
+                                            <UnstyledButton 
                                                 variant="default" 
                                                 size="sm"
                                                 onClick={() => {
                                                     window.open(item.definition, '_blank');
                                                 }}
                                             >
-                                                <IconExternalLink/>
-                                            </ActionIcon>
+                                                <IconExternalLink size={18}/>
+                                            </UnstyledButton>
                                         </Table.Td>
                                     </Table.Tr>
                                 )}
