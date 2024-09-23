@@ -56,7 +56,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
             //     .then(response => response.json())
             //     .then(data => setOccurrenceCount(data.totalRecords));
             setOccurrenceCount(result?.occurrenceCount)
-            setShowOccurrences(result?.guid);
+            setShowOccurrences(result?.guid); // Workaround to update records layer when taxon changes
 
             // fetch("https://spatial.ala.org.au/ws/distribution/lsids/" + result.guid + "?nowkt=true").then(response => response.json()).then(data => {
             //     setDistributions(data)
@@ -100,7 +100,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
         // TODO: Fix hex binning to be dynamic, based on range of records for the species
         // TODO: Add a legend for the hex binning colours
         // const wmsParams = `&FORMAT=image/png&TRANSPARENT=true&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&STYLES=&SRS=EPSG:900913&WIDTH=256&HEIGHT=256`;
-        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${guid}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:4Cffc557,3,72fcad54,30,99f99650,300,BFf57e4d,3000,FFf26649`;
+        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${guid}&OUTLINE=false&OUTLINECOLOUR=0xFFFFFF&ENV=size:3;colormode:hexbin;color:4Cffc557,3,72fcad54,30,99f99650,300,BFf57e4d,3000,FFf26649`;
         return wmsUrl;
     }
 
@@ -149,17 +149,18 @@ function MapView({queryString, tab, result}: MapViewProps) {
             </Alert>
         }
         <Flex gap="xl" align="center" direction="row">
-            <Title order={4} fw={800} mt="lg" mb="lg" miw={{base: "", sm: "480px", md: "696px", lg: "814px"}}>
+            <Title order={4} fw={800} mt="lg" mb="lg" miw={{base: "", sm: "480px", md: "696px", lg: "884px"}}>
                 {occurrenceCount >= 0 && <>
                     {formatNumber(occurrenceCount)}
                     <Text fw={500} inherit span> occurrence records</Text>
                 </>}
             </Title>
             <Switch
-                size="xl"
-                onLabel="Dynamic" 
-                offLabel="Static" 
-                label={<Text c="grey" fs="lg" pt={5}>Demo only</Text>}
+                // display="none"
+                size="md"
+                onLabel="D" 
+                offLabel="S" 
+                label={<Text c="grey" fs="lg" pt={1}>Demo mode</Text>}
                 checked={mapType === 'leaflet'}
                 onChange={(event) => setMapType(event.currentTarget.checked ? 'leaflet' : 'static')}
             />
