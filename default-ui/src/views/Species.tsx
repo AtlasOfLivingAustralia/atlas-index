@@ -17,6 +17,7 @@ import capitalizeFirstLetter from "../helpers/Capitalise.ts";
 // import Breadcrumbs from "../components/breadcrumbs/breadcrumbs.tsx";
 
 import classes from '../components/species/species.module.css';
+import { useDocumentTitle } from "@mantine/hooks";
 
 function Species({setBreadcrumbs, queryString}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -30,7 +31,8 @@ function Species({setBreadcrumbs, queryString}: {
     const [loadingV2, setLoadingV2] = useState<boolean>(true);
     const [dataV1Fetched, setDataV1Fetched] = useState(false);
     const [dataV2Fetched, setDataV2Fetched] = useState(false);
-
+    useDocumentTitle(`${resultV2?.name}: ${resultV2?.commonName?.join(', ')}`);
+    
     useEffect(() => {
         setBreadcrumbs([]); // Clear breadcrumbs so App.tsx doesn't show them
     }, []);
