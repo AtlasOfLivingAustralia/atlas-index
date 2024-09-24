@@ -11,7 +11,7 @@ interface MapViewProps {
 interface Occurrence {
     images: string[];
     videos: string[];
-    sound: string[];
+    sounds: string[];
 }
 
 interface Items {
@@ -82,7 +82,7 @@ function ImagesView({result}: MapViewProps) {
     useEffect(() => {
         fetchImages(true); // fetch images with user filters
         fetchImages(false); // fetch facet results for unfiltered query
-    }, [result, page, sortDir, fqUserTrigged]);
+    }, [result, page, sortDir, fqUserTrigged, type]);
     
     function fetchImages(includeUserFq: boolean = true) {
         if (!result?.guid) {
@@ -99,22 +99,25 @@ function ImagesView({result}: MapViewProps) {
         };
 
         const facets = `&facets=${facetFields.join(',')}`; 
-        let typeFq = '';
+        // let typeFq = '';
         let userFq = '';
         const pageSizeRequest = includeUserFq ? pageSize : 0;
-
+        const typeFq = typeFqMap[type] || '';
+        
         if (includeUserFq) {
-            typeFq = typeFqMap[type] || '';
+            
             userFq = fqUserTrigged.map(fq => `&fq=-${fq}`).join('');
             // licenseFq = buildLicenseFqs();
         } 
 
-        // let specimenFq;
-        // if (includeSpecimens && includeOccurrences) {
+        let specimenFq = '';
+        // if (!fqUserTrigged.includes('basisOfRecord')) {
         //     specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
-        // } else if (includeSpecimens) {
+        // } else if (fqUserTrigged.includes('basisOfRecord') && fqUserTrigged.includes('PreservedSpecimen')) {
+            
         //     specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
-        // } else if (includeOccurrences) {
+        // } else if (fqUserTrigged.includes('basisOfRecord') && !fqUserTrigged.includes('PreservedSpecimen')) {
+            
         //     specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
         // } else {
         //     setItems([]);
@@ -131,9 +134,9 @@ function ImagesView({result}: MapViewProps) {
             '&sort=eventDate' +
             '&fq=' + facetFields.join(":*&fq=") + ":*" + // default include all values for the facet fields
             userFq +
+            specimenFq +
+            typeFq +
             mediaFilter
-            // typeFq +
-            // specimenFq +
             // licenseFq +
             // mediaFilter
         )
@@ -153,11 +156,11 @@ function ImagesView({result}: MapViewProps) {
                         // }
                         list.push({id: item.videos[0], type: 'video'});
                     }
-                    if (item.sound && (type === 'all' || type === 'sound')) {
+                    if (item.sounds && (type === 'all' || type === 'sound')) {
                         // for (let id of item.sound) {
                         //     list.push({id: id, type: 'sound'});
                         // }
-                        list.push({id: item.sound[0], type: 'sound'});
+                        list.push({id: item.sounds[0], type: 'sound'});
                     }
                 })
 
@@ -185,7 +188,7 @@ function ImagesView({result}: MapViewProps) {
     }
 
     const getImageUrl = (id: string) => {
-        return `${imagesBaseUrl}/image/proxyImageThumbnail?imageId=${id}`;
+        return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
     }
 
     function resetView() {
@@ -262,17 +265,18 @@ function ImagesView({result}: MapViewProps) {
     return (
         <Box>
             <Flex gap="md" mt="md" direction={{ base: 'column', sm: 'row' }}>
-                <Button variant={type === 'all' ? 'filled' : 'outline'} onClick={() => {resetView();setType('all')}}>View all</Button>
+                <Button variant={type === 'all'   ? 'filled' : 'outline'} onClick={() => {resetView();setType('all')}}>View all</Button>
                 <Button variant={type === 'image' ? 'filled' : 'outline'} onClick={() => {resetView();setType('image')}}>Images</Button>
                 <Button variant={type === 'sound' ? 'filled' : 'outline'} onClick={() => {resetView();setType('sound')}}>Sounds</Button>
                 <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
             </Flex>
             <Text mt="lg" mb="md" size="sm" fw="bold">
-                Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results.
-                {' '}
+                Showing {occurrenceCount > 0 ? (occurrenceCount < pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
+                of {occurrenceCount} results.{' '}
                 <Anchor 
                     href={`https://biocache.ala.org.au/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
                     target="_blanks"
+                    inherit
                 >View all results on ALA occurrence explorer</Anchor>
             </Text>
             <Grid>
@@ -297,9 +301,41 @@ function ImagesView({result}: MapViewProps) {
                                         onError={(e) => handleImageError(idx, e)}
                                     />}
                                 {item.type === 'sound' && 
-                                    <audio key={idx} controls></audio>}
+                                    <Flex maw={240} justify="center" align="center" direction="column">
+                                        <audio key={idx} controls preload="auto">
+                                            {/* https://images.ala.org.au/proxyImage?imageId=9464cc88-4347-4ba8-aa1e-b4766e926d47 */}
+                                            <source 
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
+                                                type="audio/mpeg" 
+                                            />
+                                        </audio>
+                                        <Anchor 
+                                            display="block" 
+                                            target="_blank"
+                                            mt="xs"
+                                            size="sm"
+                                            href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
+                                        >Sound file details</Anchor>
+                                    </Flex>
+                                }
                                 {item.type === 'video' && 
-                                    <video key={idx} controls></video>}
+                                    <Flex maw={240} justify="center" align="center" direction="column">
+                                        <video key={idx} controls preload="auto">
+                                            {/* https://images.ala.org.au/proxyImage?imageId=9464cc88-4347-4ba8-aa1e-b4766e926d47 */}
+                                            <source 
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
+                                                type="video/mp4" 
+                                            />
+                                        </video>
+                                        <Anchor 
+                                            display="block" 
+                                            target="_blank"
+                                            size="sm"
+                                            mt="xs"
+                                            href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
+                                        >Video file details</Anchor>
+                                    </Flex>
+                                }
                             </Flex>
                         )}
                         { loading && 
@@ -310,7 +346,7 @@ function ImagesView({result}: MapViewProps) {
                             )
                         }
                     </Flex>
-                    {items && 
+                    {items && items.length > 0 &&
                         <Flex justify="center" align="center">
                             <Button 
                                 mt="lg" 
@@ -319,6 +355,7 @@ function ImagesView({result}: MapViewProps) {
                                 pr={40}
                                 pl={50}
                                 onClick={() => setPage(page + 1)}
+                                disabled={(page + 1) * pageSize >= occurrenceCount}
                                 rightSection={<IconChevronDown />}
                             >Load more</Button>
                         </Flex>
