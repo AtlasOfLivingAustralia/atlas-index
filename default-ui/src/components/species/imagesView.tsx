@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Pill, Radio, Skeleton, Text } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronRight, IconChevronUp, IconReload, IconZoomReset } from "@tabler/icons-react";
+import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Pill, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
+import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronRight, IconChevronUp, IconExternalLink, IconReload, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -56,11 +56,14 @@ function ImagesView({result}: MapViewProps) {
     // const [includeSpecimens, setIncludeSpecimens] = useState(true);
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    // Control of modal for image details
+    const [openModalId, setOpenModalId] = useState<string | null>(null);
+    const [opened, { open, close }] = useDisclosure(false);
     // Control of expand/collapse state for facets display
     const [expandCollapseState, setExpandCollapseState] = useState({
         license: false,
         dataResourceName: false,
-        basisOfRecord: false // Add more facets as needed
+        basisOfRecord: false 
     });
     const toggleExpandCollapse = (facet: keyof typeof expandCollapseState) => {
         setExpandCollapseState(prevState => ({
@@ -72,7 +75,7 @@ function ImagesView({result}: MapViewProps) {
     const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
     const pageSize = 10;
     const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
-    const imagesBaseUrl = "https://images.ala.org.au"; // import.meta.env.VITE_APP_IMAGE_BASE_URL;
+    // const imagesBaseUrl = "https://images.ala.org.au"; // import.meta.env.VITE_APP_IMAGE_BASE_URL;
     const maxVisibleFacets = 4;
 
     // useEffect(() => {
@@ -187,8 +190,12 @@ function ImagesView({result}: MapViewProps) {
             // console.log("fqs", fqResults, fqResultsAll, includeUserFq);
     }
 
-    const getImageUrl = (id: string) => {
+    const getImageThumbnailUrl = (id: string) => {
         return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
+    }
+
+    const getImageOriginalUrl = (id: string) => {
+        return `${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/proxyImage?imageId=${id}`;
     }
 
     function resetView() {
@@ -212,7 +219,16 @@ function ImagesView({result}: MapViewProps) {
         return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
     }, [facetResults]);
 
+    // Modal event handlers
+    const handleOpenModal = (id: string) => {
+        setOpenModalId(id);
+        open();
+    };
     
+    const handleCloseModal = () => {
+        setOpenModalId(null);
+        close();
+    };
 
     const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets }: { fieldName: string, limit?: number }) => {
         const updateUserFqs = (fq: string, active: boolean) => {
@@ -293,13 +309,36 @@ function ImagesView({result}: MapViewProps) {
                                 justify="center"
                             >
                                 {item.type === 'image' && 
-                                    <Image 
-                                        radius="md" 
-                                        h={210}
-                                        maw={260}
-                                        src={ getImageUrl(item.id) }
-                                        onError={(e) => handleImageError(idx, e)}
-                                    />}
+                                    <>
+                                        <UnstyledButton onClick={() => handleOpenModal(item.id)}>
+                                            <Image 
+                                                radius="md" 
+                                                h={210}
+                                                maw={260}
+                                                src={ getImageThumbnailUrl(item.id) }
+                                                onError={(e) => handleImageError(idx, e)}
+                                            />
+                                        </UnstyledButton>
+                                        <Modal
+                                            opened={opened && openModalId === item.id}
+                                            onClose={handleCloseModal}
+                                            size="auto"
+                                            title={ <Anchor 
+                                                    display="block" 
+                                                    target="_blank"
+                                                    ml={5}
+                                                    fw="bold"
+                                                    mt="xs"
+                                                    size="md"
+                                                    href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
+                                                >View image file details <IconExternalLink size={20}/></Anchor>}
+                                        >
+                                            <Image 
+                                                radius="md" 
+                                                src={ getImageOriginalUrl(item.id) }
+                                            />
+                                        </Modal>
+                                    </>}
                                 {item.type === 'sound' && 
                                     <Flex maw={240} justify="center" align="center" direction="column">
                                         <audio key={idx} controls preload="auto">
