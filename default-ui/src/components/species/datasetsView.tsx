@@ -1,5 +1,5 @@
-import {useEffect, useState} from "react";
-import { Anchor, Flex, Notification, Skeleton, Table, TableData, Text } from "@mantine/core";
+import {useCallback, useEffect, useState} from "react";
+import { Anchor, Flex, Notification, Skeleton, Table, Text } from "@mantine/core";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 
 interface MapViewProps {
@@ -18,34 +18,6 @@ function DatasetsView({result}: MapViewProps) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
-
-    // TODO: This should be fetched from a static source
-    // const datasets: Dataset[] = [
-    //     {
-    //         "name": "Atlas of Living Australia",
-    //         "dataResourceUid" : "dr1",
-    //         "licence": "CC-BY 3.0",
-    //         "records": 1234
-    //     },
-    //     {
-    //         "name": "GBIF",
-    //         "dataResourceUid" : "dr2",
-    //         "licence": "CC-BY 3.0",
-    //         "records": 1234
-    //     },
-    //     {
-    //         "name": "ALA1",
-    //         "dataResourceUid" : "dr3",
-    //         "licence": "CC-BY 3.0",
-    //         "records": 1234
-    //     },
-    //     {
-    //         "name": "ALA2",
-    //         "dataResourceUid" : "dr4",
-    //         "licence": "CC-BY 3.0",
-    //         "records": 1234
-    //     }
-    // ]
 
     useEffect(() => {
         if (!result?.guid) {
@@ -95,7 +67,7 @@ function DatasetsView({result}: MapViewProps) {
                         setErrorMessage('Failed to fetch licenses - ' + error);
                     })
                     .finally(() => {
-                        // setLoading(false);
+                        setLoading(false);
                     });
             })
             .catch(error => {
@@ -106,10 +78,8 @@ function DatasetsView({result}: MapViewProps) {
             });
     }, [result]);
 
-    // Format the dataset table data for rendering
-    const [tableData, setTableData] = useState<TableData>({});
-    useEffect(() => {
-        setTableData({
+    const populateTableData = useCallback(() => {
+        return {
             head: ['Dataset', 'Licence', 'Records'],
             body: datasets.map((item) => [
                 <Anchor target="_blank" href={"https://collections.ala.org.au/public/show/" + item.dataResourceUid}>
@@ -121,7 +91,7 @@ function DatasetsView({result}: MapViewProps) {
                     {item.records.toLocaleString()}
                 </Anchor>
             ]),
-        });
+        };
     }, [datasets]);
 
     return <>
@@ -151,7 +121,7 @@ function DatasetsView({result}: MapViewProps) {
         { datasets.length > 0 &&
             <Table 
                 striped="even" 
-                data={tableData} 
+                data={populateTableData()} 
                 mt="lg" 
             />
         }

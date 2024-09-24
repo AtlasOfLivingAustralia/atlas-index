@@ -323,6 +323,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 </Radio.Group>
                 <Button 
                     mt="lg" 
+                    display='none' // TODO: Remove this line if not using as "reset map" button
                     variant="default" 
                     radius="xl"
                     fullWidth
