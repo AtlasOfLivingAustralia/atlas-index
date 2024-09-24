@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Anchor, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Radio, Skeleton, Text } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconReload } from "@tabler/icons-react";
+import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Pill, Radio, Skeleton, Text } from "@mantine/core";
+import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronRight, IconChevronUp, IconReload, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -46,18 +46,14 @@ function ImagesView({result}: MapViewProps) {
     // const [activeFacets, setActiveFacets] = useState<ActiveFacetObj>({});
     // field-agnostic filters
     const [facetResults, setFacetResults] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    // const [facetResultsAll, setFacetResultsAll] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (filterded)
-    const [fqResults, setFqResults] = useState<ActiveFacetObj>({}); // from `activeFacetObj` in the JSON response (filterded)
-    // const [fqResultsAll, setFqResultsAll] = useState<ActiveFacetObj>({}); // from `activeFacetObj` in the JSON response (unfilterded)
-    const [fqUserTrigged, setFqUserTrigged] = useState<string[]>([]); // from user interaction (filterded)
+    const [activeFacets, setActiveFacets] = useState<ActiveFacetObj>({}); // from `activeFacetObj` in the JSON response (filterded)
+    const [fqUserTrigged, setFqUserTrigged] = useState<string[]>([]); // from user interaction with the checkboxes
 
     const [page, setPage] = useState<number>(0);
     const [type, setType] = useState<string>('all');
-    const [sortDir, setSortDir] = useState('desc');
-    // const [licenceType, setLicenceType] = useState<string[]>([]);
-    // const [licenceTypeActive, setLicenceTypeActive] = useState<string[]>([]);
-    const [includeOccurrences, setIncludeOccurrences] = useState(true);
-    const [includeSpecimens, setIncludeSpecimens] = useState(true);
+    const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
+    // const [includeOccurrences, setIncludeOccurrences] = useState(true);
+    // const [includeSpecimens, setIncludeSpecimens] = useState(true);
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
     // Control of expand/collapse state for facets display
@@ -87,15 +83,6 @@ function ImagesView({result}: MapViewProps) {
         fetchImages(true); // fetch images with user filters
         fetchImages(false); // fetch facet results for unfiltered query
     }, [result, page, sortDir, fqUserTrigged]);
-
-    const buildLicenseFqs = () => {
-        let fqString = '&fq=license:*';
-        // TODO: filtering code goes here - should be field agnostic
-        // if (licenceTypeActive.length > 0) {
-        // } 
-        // (licenceTypeActive.length > 0) ? `&fq=license:${licenceTypeActive.join('&fq=license:')}` : '&fq=license:*';
-        return fqString
-    }
     
     function fetchImages(includeUserFq: boolean = true) {
         if (!result?.guid) {
@@ -114,31 +101,28 @@ function ImagesView({result}: MapViewProps) {
         const facets = `&facets=${facetFields.join(',')}`; 
         let typeFq = '';
         let userFq = '';
-        let pageSizeRequest = pageSize;
+        const pageSizeRequest = includeUserFq ? pageSize : 0;
 
         if (includeUserFq) {
             typeFq = typeFqMap[type] || '';
             userFq = fqUserTrigged.map(fq => `&fq=-${fq}`).join('');
             // licenseFq = buildLicenseFqs();
-        } else {
-            pageSizeRequest = 0; // only need the facet results
-        }
+        } 
 
-        let specimenFq;
-        if (includeSpecimens && includeOccurrences) {
-            specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
-        } else if (includeSpecimens) {
-            specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
-        } else if (includeOccurrences) {
-            specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
-        } else {
-            setItems([]);
-        }
+        // let specimenFq;
+        // if (includeSpecimens && includeOccurrences) {
+        //     specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
+        // } else if (includeSpecimens) {
+        //     specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
+        // } else if (includeOccurrences) {
+        //     specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
+        // } else {
+        //     setItems([]);
+        // }
         // setLicenceType([]);
         const mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
         // const licenseFq = buildLicenseFqs
         setLoading(true);
-        clearFacetValues();
         fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
             facets +
             '&start=' + (page * pageSize) +
@@ -146,7 +130,8 @@ function ImagesView({result}: MapViewProps) {
             '&dir=' + sortDir +
             '&sort=eventDate' +
             '&fq=' + facetFields.join(":*&fq=") + ":*" + // default include all values for the facet fields
-            userFq 
+            userFq +
+            mediaFilter
             // typeFq +
             // specimenFq +
             // licenseFq +
@@ -157,25 +142,27 @@ function ImagesView({result}: MapViewProps) {
                 const list: { id: string, type: string }[] = [];
                 data.occurrences.map((item: Occurrence) => {
                     if (item.images && (type === 'all' || type === 'image')) {
-                        for (let id of item.images) {
-                            list.push({id: id, type: 'image'});
-                        }
+                        // for (let id of item.images) {
+                        //     list.push({id: id, type: 'image'});
+                        // }
+                        list.push({id: item.images[0], type: 'image'});
                     }
                     if (item.videos && (type === 'all' || type === 'video')) {
-                        for (let id of item.videos) {
-                            list.push({id: id, type: 'video'});
-                        }
+                        // for (let id of item.videos) {
+                        //     list.push({id: id, type: 'video'});
+                        // }
+                        list.push({id: item.videos[0], type: 'video'});
                     }
                     if (item.sound && (type === 'all' || type === 'sound')) {
-                        for (let id of item.sound) {
-                            list.push({id: id, type: 'sound'});
-                        }
+                        // for (let id of item.sound) {
+                        //     list.push({id: id, type: 'sound'});
+                        // }
+                        list.push({id: item.sound[0], type: 'sound'});
                     }
                 })
 
                 if (includeUserFq) {
-                    setFqResults(data.activeFacetObj);
-                    // setFacetResults(data.facetResults);
+                    setActiveFacets(data.activeFacetObj);
 
                     if (page == 0) {
                         setItems(list);
@@ -197,16 +184,6 @@ function ImagesView({result}: MapViewProps) {
             // console.log("fqs", fqResults, fqResultsAll, includeUserFq);
     }
 
-    const clearFacetValues = () => {
-        // setLicenceType([]);
-        // setActiveFacets({});
-        setFacetResults([]);
-        setFqResults({});
-        // setFqResultsAll({});
-        // setLicenceTypeActive([]);
-        // setDataResources([]);
-    }
-
     const getImageUrl = (id: string) => {
         return `${imagesBaseUrl}/image/proxyImageThumbnail?imageId=${id}`;
     }
@@ -220,45 +197,49 @@ function ImagesView({result}: MapViewProps) {
         setItems(prevItems => prevItems.filter((_, index) => index !== idx));
     };
 
-    const removeQuotes = (str: string): string => {
-        // Regular expression to match leading and trailing quotes
-        return str.replace(/^["']+|["']+$/g, '');
-    };
-    
-
     const facetIsActive = useCallback((facetName: string, facetValue: string) : boolean => {
-        // const facetValue: string = activeFacets?.[name]?.[0]?.value || '';
-        // return facetValue.includes(value) || facetValue.endsWith('*');
-        // assume its active unless there is a negative fq set for it
-        // facet.value will be in the format `fieldName:value`, e.g. `license:CC-BY`
-        // const facetIsRemoved = fqResults[`-${facetName}`]?.some((facet: ActiveFacet) => facet?.value?.split(':')?.pop()?.includes(facetValue));
-        const facetValues = fqResults[`-${facetName}`]?.map((facet: ActiveFacet) => facet.value.split(':').pop());
-        // const facetIsRemoved = removeQuotes(facetValues?.[0] || '') === facetValue;
-        const facetIsRemoved = facetValues?.some(value => removeQuotes(value || '') === facetValue);
-        // console.log("facetIsActive", facetName, facetValue, facetValues, facetIsRemoved);
+        // console.log("facetIsActive", facetName, facetValue, fqResults[`-${facetName}`]);
+        // const facetValues = fqResults[`-${facetName}`]?.map((facet: ActiveFacet) => facet.value.split(':').pop());
+        // const facetIsRemoved = facetValues?.some(value => removeQuotes(value || '') === facetValue);
+        const facetIsRemoved = activeFacets[`-${facetName}`]?.some(fq => fq.value.substring(1,) === facetValue);
         return !facetIsRemoved; // if its removed, then its not active
-    }, [fqResults]);
+    }, [activeFacets]);
 
     const getFieldResults = useCallback((name: string) : FacetResult[] => {
         return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
     }, [facetResults]);
 
-    const updateUserFqs = (name: string, value: string, active: boolean) => {
-        active 
-            ? setFqUserTrigged([...fqUserTrigged, `${name}:"${encodeURIComponent(value)}"`])
-            : setFqUserTrigged(fqUserTrigged.filter(fq => fq !== `${name}:"${encodeURIComponent(value)}"`));
-    }
+    
 
     const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets }: { fieldName: string, limit?: number }) => {
+        const updateUserFqs = (fq: string, active: boolean) => {
+            resetView();
+            active 
+                ? setFqUserTrigged(prevState => {
+                    // prevent duplicates (usually only happens in dev mode)
+                    const newSet = new Set([...prevState, fq]);
+                    return Array.from(newSet);
+                    })
+                : setFqUserTrigged(fqUserTrigged.filter(filter => filter !== fq));
+        }  ;
+        
         return (
             <>
                 {getFieldResults(fieldName)?.map((item, idx) => 
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
                         <Checkbox 
                             size="xs"
-                            checked={facetIsActive(fieldName, item.label)}
-                            onChange={() => { updateUserFqs(fieldName, item.label, facetIsActive(fieldName, item.label))}}
-                            label={`${item.label} (${item.count})`} 
+                            checked={facetIsActive(fieldName, item.fq)}
+                            onChange={() => { updateUserFqs(item.fq, facetIsActive(fieldName, item.fq))}}
+                            label={<>
+                                {item.label}
+                                <Badge 
+                                    variant="light" 
+                                    color="rgba(100, 100, 100, 1)" 
+                                    ml={8} pt={2} pr={8} pl={8} 
+                                    radius="lg"
+                                >{item.count}</Badge>
+                            </>}
                         />
                     </Collapse>
                 )}
@@ -287,7 +268,12 @@ function ImagesView({result}: MapViewProps) {
                 <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
             </Flex>
             <Text mt="lg" mb="md" size="sm" fw="bold">
-                Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results ({items.length})
+                Showing {occurrenceCount > 0 ? (page+1)*pageSize : 0} of {occurrenceCount} results.
+                {' '}
+                <Anchor 
+                    href={`https://biocache.ala.org.au/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
+                    target="_blanks"
+                >View all results on ALA occurrence explorer</Anchor>
             </Text>
             <Grid>
                 <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
@@ -324,6 +310,19 @@ function ImagesView({result}: MapViewProps) {
                             )
                         }
                     </Flex>
+                    {items && 
+                        <Flex justify="center" align="center">
+                            <Button 
+                                mt="lg" 
+                                variant="default" 
+                                radius="xl"
+                                pr={40}
+                                pl={50}
+                                onClick={() => setPage(page + 1)}
+                                rightSection={<IconChevronDown />}
+                            >Load more</Button>
+                        </Flex>
+                        }
                 </Grid.Col>
                 <Grid.Col span={3} className={classes.hideMobile}>
                     <Flex justify="flex-start" align="center" gap="sm">
@@ -334,7 +333,7 @@ function ImagesView({result}: MapViewProps) {
                     <Radio.Group 
                         classNames={{ label: classes.gallerySortLabel }}
                         value={sortDir}
-                        onChange={setSortDir}
+                        onChange={(value: string) => setSortDir(value as 'desc' | 'asc')}
                         label="Sort by"
                     >
                         <Radio size="xs" value="desc"
@@ -343,13 +342,16 @@ function ImagesView({result}: MapViewProps) {
                             label="Oldest" />
                     </Radio.Group>
                     <Divider mt="lg" mb="lg" />
+
                     <Text fw="bold" mb="md">Record type</Text>
                     <FilterCheckBoxGroup fieldName="basisOfRecord" limit={5}/>
                     <Divider mt="lg" mb="lg" />
+
                     <Text fw="bold" mb="md">Licence type</Text>
                     <FilterCheckBoxGroup fieldName="license" />
                     <Divider mt="sm" mb="lg" />
-                    <Text fw="bold" mb="md">Institution</Text>
+
+                    <Text fw="bold" mb="md">Dataset</Text>
                     <FilterCheckBoxGroup fieldName="dataResourceName" />
                     
                     <Button 
@@ -357,7 +359,12 @@ function ImagesView({result}: MapViewProps) {
                         variant="default" 
                         radius="xl"
                         fullWidth
-                        rightSection={<IconReload />}>Refresh</Button>
+                        onClick={() => {
+                            resetView();
+                            setFqUserTrigged([]);
+                        }}
+                        disabled={fqUserTrigged.length === 0}
+                        rightSection={<IconZoomReset />}>Reset</Button>
                 </Grid.Col>
             </Grid>
         </Box>
