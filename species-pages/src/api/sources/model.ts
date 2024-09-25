@@ -39,41 +39,6 @@ interface ListsUser {
     isLoading: () => boolean
 }
 
-interface QualityFilter {
-    id: number;
-    enabled: boolean;
-    description: string;
-    filter: string;
-    displayOrder: number;
-    inverseFilter: string;
-}
-
-interface QualityCategory {
-    id: number;
-    enabled: boolean;
-    name: string;
-    label: string;
-    description: string;
-    displayOrder: number;
-    inverseFilter: string;
-    qualityFilters: QualityFilter[];
-}
-
-interface QualityProfile {
-    id: number;
-    name: string
-    shortName: string
-    description: string
-    contactName: string
-    contactEmail: string
-    enabled: boolean
-    isDefault: boolean
-    displayOrder: number
-    dateCreated: Date | undefined
-    lastUpdated: Date | undefined
-    categories: QualityCategory[];
-}
-
 interface Fq {
     name: string;
     fq: string;
@@ -134,13 +99,6 @@ interface GroupedFacetData {
     [key: string]: Facet[];
 }
 
-interface DataQualityInfo {
-    profile: string;
-    unfilteredCount: number | undefined;
-    selectedFilters: string[] | undefined;
-    expand: boolean;
-}
-
 interface FieldInfo {
     name: string,
     description: string,
@@ -162,15 +120,11 @@ export type {
     ListsUser,
     AtlasLog,
     TaskType,
-    QualityProfile,
-    QualityCategory,
-    QualityFilter,
     AdvancedSearch,
     AdvancedSearchInputs,
     Fq,
     Institution,
     GroupedFacetData,
-    DataQualityInfo,
     FieldInfo,
     IndexFields
 };
