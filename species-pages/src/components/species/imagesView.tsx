@@ -75,12 +75,7 @@ function ImagesView({result}: MapViewProps) {
     const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
     const pageSize = 10;
     const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
-    // const imagesBaseUrl = "https://images.ala.org.au"; // import.meta.env.VITE_APP_IMAGE_BASE_URL;
     const maxVisibleFacets = 4;
-
-    // useEffect(() => {
-    //     fetchImages(true);
-    // }, [result, page, sortDir, includeOccurrences, includeSpecimens, type, licenceTypeActive]);
 
     useEffect(() => {
         fetchImages(true); // fetch images with user filters
@@ -91,8 +86,6 @@ function ImagesView({result}: MapViewProps) {
         if (!result?.guid) {
             return;
         }
-
-        // console.log("fetchImages", includeUserFq, fqUserTrigged);
 
         const typeFqMap: Record<PropertyKey, string> = {
             all: "&fq=multimedia:*",
@@ -340,8 +333,8 @@ function ImagesView({result}: MapViewProps) {
                                         </Modal>
                                     </>}
                                 {item.type === 'sound' && 
-                                    <Flex maw={240} justify="center" align="center" direction="column">
-                                        <audio key={idx} controls preload="auto">
+                                    <Flex maw={240} h={200} justify="center" align="center" direction="column">
+                                        <audio key={idx} controls preload="auto" style={{ maxWidth: '240px'}}>
                                             {/* https://images.ala.org.au/proxyImage?imageId=9464cc88-4347-4ba8-aa1e-b4766e926d47 */}
                                             <source 
                                                 src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
