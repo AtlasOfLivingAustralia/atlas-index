@@ -1,6 +1,6 @@
 # Species Pages SPA
 
-Replacement for the ALA BIE (als-bie-hub), implemented in React using the Mantine UI library.
+Replacement for the ALA BIE ([`ala-bie-hub`](https://github.com/AtlasOfLivingAustralia/ala-bie-hub)), implemented in React using the [Mantine UI](https://mantine.dev/) library.
 
 Uses:
 - React
