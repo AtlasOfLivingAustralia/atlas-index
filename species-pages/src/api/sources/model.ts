@@ -1,7 +1,7 @@
 import { User } from "oidc-client-ts";
 
 interface Breadcrumb {
-    title: string;
+    title: string | React.ReactNode;
     href: string | undefined | null;
 }
 

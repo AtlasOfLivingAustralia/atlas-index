@@ -18,6 +18,7 @@ import capitalizeFirstLetter from "../helpers/Capitalise.ts";
 
 import classes from '../components/species/species.module.css';
 import { useDocumentTitle } from "@mantine/hooks";
+import FormatName from "../components/nameUtils/formatName.tsx";
 
 function Species({setBreadcrumbs, queryString}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -26,7 +27,8 @@ function Species({setBreadcrumbs, queryString}: {
     const [tab, setTab] = useState('map');
     const [resultV2, setResultV2] = useState<Record<PropertyKey, string | number | any >>({});
     const [resultV1, setResultV1] = useState<Record<PropertyKey, string | number | any>>({});
-
+    const result = { ...resultV2, ...resultV1 }; 
+    
     const [loadingV1, setLoadingV1] = useState<boolean>(true);
     const [loadingV2, setLoadingV2] = useState<boolean>(true);
     const [dataV1Fetched, setDataV1Fetched] = useState(false);
@@ -39,8 +41,8 @@ function Species({setBreadcrumbs, queryString}: {
 
     const breadcrumbValues: Breadcrumb[] = [
         {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-        {title: 'Default UI', href: '/'},
-        {title: 'Species', href: '/species'},
+        {title: 'Species search', href: '/'},
+        {title: <FormatName name={result.name} rankId={result.rankID}/>, href: ''},
     ];
 
     useEffect(() => {
@@ -120,7 +122,6 @@ function Species({setBreadcrumbs, queryString}: {
         return (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) ? 'italic' : 'normal';
     }
 
-    const result = { ...resultV2, ...resultV1 }; 
     const haveCommonKeys = (obj1: Record<PropertyKey, string | number | any>, obj2: Record<PropertyKey, string | number | any>): boolean => {
         const keys1 = new Set(Object.keys(obj1));
         const keys2 = Object.keys(obj2);
