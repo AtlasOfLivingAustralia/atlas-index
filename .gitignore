@@ -4,6 +4,7 @@ node_modules/
 dist/
 node/
 .env.local
+*/.yalc/
 
 ### STS ###
 .apt_generated
@@ -38,3 +39,4 @@ build/
 /mvnw
 /mvnw.cmd
 /nginx.conf
+.history
