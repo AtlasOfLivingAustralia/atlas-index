@@ -1,0 +1,117 @@
+.speciesHeader {
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-position: right -10px top -20px;
+
+    @mixin light {
+        background-color: var(--mantine-color-concrete-0);
+        background-image: url('../../../public/logo/logo-back-light.svg');
+    }
+
+    @mixin dark {
+        background-color: var(--mantine-color-charcoal-9);
+        background-image: url('../../../public/logo/logo-back-dark.svg');
+    }
+
+    /* Mobile Sizes */
+    /* @media (max-width: calc(48em - 1px)) {
+        display: none;
+    } */
+
+    /* @mixin light {
+        background-color: var(--mantine-color-light-grey-2);
+    }
+    @mixin dark {
+        background-color: var(--mantine-color-dark-4);
+    } */
+}
+
+.hideMobile {
+    /* Mobile Sizes */
+    @media (max-width: calc(48em - 1px)) {
+        display: none;
+    }
+}
+
+.currentTaxa, .citeAusTraits {
+    @mixin light {
+        background-color: var(--mantine-color-light-grey-1);
+    }
+
+    @mixin dark {
+        background-color: var(--mantine-color-dark-4);
+    }
+}
+
+.citation {
+    @mixin light {
+        background-color: var(--mantine-color-light-grey-1);
+    }
+
+    @mixin dark {
+        background-color: var(--mantine-color-dark-4);
+    }
+}
+
+.speciesSectionText a, .traitsSectionText a {
+    @mixin light {
+        color: var(--mantine-color-ocean-9);
+        &:hover {
+            color: var(--mantine-color-peacock-9);
+        }
+    }
+    
+    @mixin dark {
+        color: var(--mantine-color-glacial-2);
+        &:hover {
+    color: var(--mantine-color-seafoam-4);
+        }
+    }
+}
+
+.speciesSectionText {
+    @mixin light {
+        color: var(--mantine-color-gray-7);
+    }
+
+    @mixin dark {
+        color: var(--mantine-color-gray-2);
+    }
+
+    > figure {
+        margin-block-start: 10px;
+        margin-inline-start: 10px;
+
+        figcaption {
+            font-size: var(--text-fz, var(--mantine-font-size-sm));
+        }
+        
+        audio {
+            width: 250px;
+            height: 54px;
+            display: inline !important;
+            box-sizing: border-box;
+        }
+    }
+}
+
+.gallerySortLabel {
+    font-size: var(--text-fz, var(--mantine-font-size-md)) !important;
+}
+
+.nameFormatted {
+    font-style: italic;
+    .rank-species {
+        .name {
+            font-style: italic;
+        }
+    }
+}
+
+.rankSpecies > .name {
+    font-style: italic !important;
+}
+
+.rankName {
+    margin-inline-end: 6px !important;
+}
