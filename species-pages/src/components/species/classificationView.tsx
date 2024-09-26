@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Anchor, Flex, Grid, Text } from "@mantine/core";
+import { Anchor, Flex, Grid, Skeleton, Text } from "@mantine/core";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import classes from "./species.module.css";
 
@@ -11,6 +11,8 @@ interface ViewProps {
 function ClassificationView({result}: ViewProps) {
     const [children, setChildren] = useState<any[]>([]);
     const [hierarchy, setHierarchy] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     useEffect(() => {
         if (result?.guid) {
@@ -38,6 +40,12 @@ function ClassificationView({result}: ViewProps) {
     return (
         <Grid>
             <Grid.Col span={9}>
+                { loading &&
+                    <Skeleton height={40} />
+                }
+                { errorMessage && 
+                    <Text c="red">{errorMessage}</Text>
+                }
                 { hierarchy && hierarchy.map((item, idx) =>
                     <Flex 
                         key={idx} 
