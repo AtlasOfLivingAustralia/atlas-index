@@ -196,6 +196,7 @@ function ImagesView({result}: MapViewProps) {
 
     function resetView() {
         setPage(0);
+        setFqUserTrigged({});
     }
 
     // Remove image from list if it fails to load
@@ -258,7 +259,7 @@ function ImagesView({result}: MapViewProps) {
     const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets }: { fieldName: string, limit?: number }) => {
         // anonymous method to update the fqUserTrigged state
         const updateUserFqs = (fq: string, active: boolean) => {
-            resetView();
+            setPage(0);
             !active 
                 ? setFqUserTrigged(prevState => {
                     const newFq = { ...prevState };
@@ -287,11 +288,12 @@ function ImagesView({result}: MapViewProps) {
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
                         <Checkbox 
                             size="xs"
-                            disabled={fqValueIsDisabled(fieldName, item.label, item.fq)}
+                            // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
+                            // disabled={fqValueIsDisabled(fieldName, item.label, item.fq)}
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                <Text span c={fqValueIsDisabled(fieldName, item.label, item.fq) ? 'gray' : 'default'}>{item.label}</Text>
+                                <Text span c={fqValueIsDisabled(fieldName, item.label, item.fq) && false ? 'gray' : 'default'}>{item.label}</Text>
                                 <Badge 
                                     variant="light" 
                                     color="rgba(100, 100, 100, 1)" 
@@ -326,7 +328,7 @@ function ImagesView({result}: MapViewProps) {
                 <Button variant={type === 'sound' ? 'filled' : 'outline'} onClick={() => {resetView();setType('sound')}}>Sounds</Button>
                 <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
             </Flex>
-            <Text mt="lg" mb="md" size="sm" fw="bold">
+            <Text mt="lg" mb="md" size="md" fw="bold">
                 Showing {occurrenceCount > 0 ? (occurrenceCount < (page+1)*pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
                 of {formatNumber(occurrenceCount)} results.{' '}
                 <Anchor 
@@ -385,6 +387,7 @@ function ImagesView({result}: MapViewProps) {
                                             <source 
                                                 src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
                                                 type="audio/mpeg" 
+                                                width={240}
                                             />
                                         </audio>
                                         <Anchor 
@@ -398,10 +401,14 @@ function ImagesView({result}: MapViewProps) {
                                 }
                                 {item.type === 'video' && 
                                     <Flex maw={240} h={200} justify="center" align="center" direction="column">
-                                        <video key={idx} controls preload="auto" style={{ maxWidth: '240px'}}>
+                                        <video key={idx} controls preload="auto" style={{ maxWidth: '240px', maxHeight: '170px'}}>
                                             <source 
                                                 src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
-                                                type="video/mp4" 
+                                                height={200}
+                                                width={240}
+                                                // Magpie examples use "video/3gpp" but hard-coding this still does not show the video content, just sound.
+                                                // Update: Confirming the 2 Magpie examples do not contain video content, just sound.
+                                                // Platypus page does contain video content, which plays in place.
                                             />
                                         </video>
                                         <Anchor 
