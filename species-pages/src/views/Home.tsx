@@ -106,6 +106,12 @@ function Home({setBreadcrumbs, login, logout}: {
                         <List.Item>
                             <Anchor 
                                 component={Link} 
+                                to="/species?id=https://biodiversity.org.au/afd/taxa/ac61fd14-4950-4566-b384-304bd99ca75f"
+                            >Duck-Billed Platypus – <i>Ornithorhynchus anatinus</i></Anchor>
+                        </List.Item>
+                        <List.Item>
+                            <Anchor 
+                                component={Link} 
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/f557abd1-fc45-4152-869e-b31d4b5d886e"
                             >Common Bearded Dragon – <i>Pogona barbata</i></Anchor>
                         </List.Item>
