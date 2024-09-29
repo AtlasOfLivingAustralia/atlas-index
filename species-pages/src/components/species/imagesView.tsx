@@ -36,7 +36,7 @@ interface ActiveFacetObj {
     [key: string]: ActiveFacet[];
 }
 
-interface FacetResult {
+interface FacetResultSet {
     fieldName: string
     fieldResult: FacetResult[]
 }
@@ -45,23 +45,58 @@ interface UserFq {
     [key: string]: string[];
 }
 
+const fieldMapping = {
+    basisOfRecord: {
+        'Human observation': 'Occurrences',
+        'Machine observation': 'Occurrences',
+        'Preserved specimen': 'Specimens',
+        'Fossil specimen': 'Specimens',
+        'Living specimen': 'Specimens',
+        'Material sample': 'Specimens',
+        'Observation': 'Occurrences',
+        'Occurrence': 'Occurrences',
+        'Not supplied': 'Occurrences'
+    },
+    license: {  // by	by-nc	by-nc-nd	by-nc-sa	by-nd	by-sa 0
+        'CC0': 'CC0',
+        'CC-BY 4.0 (Int)': 'CC-BY',
+        'CC-BY-NC': 'CC-BY-NC',
+        'CC-BY': 'CC-BY',
+        'CC-BY-NC 4.0 (Int)': 'CC-BY-NC',
+        'CC-BY 3.0 (Au)': 'CC-BY',
+        'CC-BY-Int': 'CC-BY',
+        'CC-BY 3.0 (Int)': 'CC-BY',
+        'CC-BY-NC 3.0 (Au)': 'CC-BY-NC',
+        'CC-BY 4.0 (Au)': 'CC-BY',
+        'CC-BY-SA 4.0 (Int)': 'CC-BY-SA',
+        'CC-BY-NC-SA 4.0 (Int)': 'CC-BY-NC-SA',
+        'Creative Commons - license at record level': 'Creative Commons - license at record level',
+        'CC-BY-NC-ND 4.0 (Int)': 'CC-BY-NC-ND',
+        'CC-BY 3.0 (NZ)': 'CC-BY',
+        // 'Not supplied': 'Not supplied',
+    }
+};
+
+// Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
+const fieldLink: Record<string, string[]> = {
+    'license-XXX': ['https://creativecommons.org/licenses/','/4.0/deed.en'],
+}
+
 function ImagesView({result}: MapViewProps) {
     const [items, setItems] = useState<Items[]>([]);
-    // field-agnostic filters
-    const [facetResults, setFacetResults] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (filterded)
+    const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
+    const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
-
     const [page, setPage] = useState<number>(0);
-    const [type, setType] = useState<string>('all');
+    const [type, setType] = useState<string>('all'); // image, video, sound
     const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
-    // const [includeOccurrences, setIncludeOccurrences] = useState(true);
-    // const [includeSpecimens, setIncludeSpecimens] = useState(true);
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
+
     // Control of modal for image details
     const [openModalId, setOpenModalId] = useState<string | null>(null);
     const [opened, { open, close }] = useDisclosure(false);
+
     // Control of expand/collapse state for facets display
     const [expandCollapseState, setExpandCollapseState] = useState({
         license: false,
@@ -78,8 +113,8 @@ function ImagesView({result}: MapViewProps) {
     const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
     const pageSize = 10;
     const facetLimit = 15;
-    const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
     const maxVisibleFacets = 4;
+    const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
 
     useEffect(() => {
         fetchImages(true); // fetch images with user filters
@@ -110,17 +145,24 @@ function ImagesView({result}: MapViewProps) {
         const userFq = includeUserFq ? transformFqUserTrigged() : '';
 
         let specimenFq = '';
-        // if (!fqUserTrigged.includes('basisOfRecord')) {
-        //     specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
-        // } else if (fqUserTrigged.includes('basisOfRecord') && fqUserTrigged.includes('PreservedSpecimen')) {
-            
-        //     specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
-        // } else if (fqUserTrigged.includes('basisOfRecord') && !fqUserTrigged.includes('PreservedSpecimen')) {
-            
-        //     specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
+
+    
+        // if (includeUserFq) {
+        //     if (includeSpecimens && includeOccurrences) {
+        //         console.log("includeSpecimens && includeOccurrences");
+        //         // specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
+        //     } else if (includeSpecimens) {
+        //         specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
+        //     } else if (includeOccurrences) {
+        //         specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
+        //     } else {
+        //         // setItems([]);
+        //         specimenFq = ''
+        //     }
         // } else {
-        //     setItems([]);
+        //     specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
         // }
+
         // setLicenceType([]);
         const mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
         // const licenseFq = buildLicenseFqs
@@ -213,6 +255,20 @@ function ImagesView({result}: MapViewProps) {
         return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
     }, [facetResults]);
 
+    // Helper to invert a Record<string, string> object to Record<string, string[]>  
+    // E.g., `{a: 'b', 'c': 'b', 'd': 'e'} -> {b: ['a','c'], d: ['e']}`
+    function invertObject(obj: Record<string, string>): Record<string, string[]> {
+        return Object.fromEntries(
+            Object.entries(obj).reduce((acc, [key, value]) => {
+                if (!acc.has(value)) {
+                    acc.set(value, []);
+                }
+                acc.get(value).push(key);
+                return acc;
+            }, new Map())
+        );
+    }
+
     // Modal event handlers
     const handleOpenModal = (id: string) => {
         setOpenModalId(id);
@@ -253,10 +309,10 @@ function ImagesView({result}: MapViewProps) {
         const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== facetName).every(key => fqUserTrigged[key].length === 0);   
         // console.log('fqValueIsDisabled', facetName, facetValue, isChecked, isZero, onlyOneFilterActiveInSameGroup);
         return !isChecked && !isZero && !onlyOneFilterActiveInSameGroup;
-    }
+    };
 
     // Checkbox group reusable component
-    const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets }: { fieldName: string, limit?: number }) => {
+    const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets, grouped = false }: { fieldName: string, limit?: number, grouped?: boolean }) => {
         // anonymous method to update the fqUserTrigged state
         const updateUserFqs = (fq: string, active: boolean) => {
             setPage(0);
@@ -273,18 +329,39 @@ function ImagesView({result}: MapViewProps) {
                 });
         };
 
+        let fieldsToDisplay: FacetResult[] = getFieldResults(fieldName);
+
+        if (grouped) {
+            // If the field is grouped, then we need to create synthetic entries based on the fieldMapping
+            const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
+            const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
+            const syntheticFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
+                
+                const totalCount: number = fieldsToDisplay?.filter(field => values.includes(field.label)).reduce((acc, field) => acc + field.count, 0);
+                const fq: string = fieldsToDisplay
+                    ?.filter(field => values.includes(field.label))
+                    .map(field => field.fq)
+                    .join('+OR+');
+                return { label: key, count: totalCount, fq: fq, i18nCode: '' };
+            });
+
+            fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
+        } 
+
         // Get the display count for a facet value - if a filter is active, then may be 2 values - total and filtered
         // TODO: Potentially confusing for users, might need to be rethought
+        // Not currently used -> delete if not needed
         const getDisplayCount = (fieldName: string, label: string, count: number): string => {
             const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);    
+            // console.log('getDisplayCount', fieldName, label, count, onlyOneFilterActiveInSameGroup, getMinRecordCount(fieldName, label));
             return count == getMinRecordCount(fieldName, label) || onlyOneFilterActiveInSameGroup 
-                ? count.toString() 
+                ? count?.toString() 
                 : `${count} / ${getMinRecordCount(fieldName, label)}`;
         }
         
         return (
             <>
-                {getFieldResults(fieldName)?.map((item, idx) => 
+                {fieldsToDisplay?.map((item, idx) => 
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
                         <Checkbox 
                             size="xs"
@@ -293,18 +370,26 @@ function ImagesView({result}: MapViewProps) {
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                <Text span c={fqValueIsDisabled(fieldName, item.label, item.fq) && false ? 'gray' : 'default'}>{item.label}</Text>
+                                <Text span c={fqValueIsDisabled(fieldName, item.label, item.fq) && false ? 'gray' : 'default'}>
+                                { fieldLink[fieldName] 
+                                    ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor> 
+                                    : item.label }
+                                </Text>
                                 <Badge 
                                     variant="light" 
                                     color="rgba(100, 100, 100, 1)" 
                                     ml={8} pt={2} pr={8} pl={8} 
                                     radius="lg"
-                                >{getDisplayCount(fieldName, item.label, item.count)}</Badge>
+                                >
+                                    {/* {getDisplayCount(fieldName, item.label, item.count)} */}
+                                    {formatNumber(item.count)}
+                                </Badge>
                             </>}
+                            styles={{ inner: { marginTop: 3} }}
                         />
                     </Collapse>
                 )}
-                {getFieldResults(fieldName)?.length > limit &&
+                {fieldsToDisplay?.length > limit &&
                     <Anchor 
                         onClick={() => toggleExpandCollapse(fieldName as keyof typeof expandCollapseState)} 
                         mt={5} 
@@ -460,21 +545,26 @@ function ImagesView({result}: MapViewProps) {
                             resetView(); 
                             setSortDir(value as 'desc' | 'asc')
                         }}
-                        // label="Sort by"
                     >
-                        <Radio size="xs" value="desc"
+                        <Radio  
+                            size="xs" 
+                            value="desc" 
+                            styles={{ inner: { marginTop: 2} }}
                             label="Latest" />
-                        <Radio size="xs"  value="asc"
+                        <Radio 
+                            size="xs"  
+                            value="asc"
+                            styles={{ inner: { marginTop: 2} }}
                             label="Oldest" />
                     </Radio.Group>
                     <Divider mt="lg" mb="lg" />
 
                     <Text fw="bold" mb="sm">Record type</Text>
-                    <FilterCheckBoxGroup fieldName="basisOfRecord" limit={5}/>
+                    <FilterCheckBoxGroup fieldName="basisOfRecord" grouped={true} />
                     <Divider mt="lg" mb="lg" />
 
                     <Text fw="bold" mb="sm">Licence type</Text>
-                    <FilterCheckBoxGroup fieldName="license" />
+                    <FilterCheckBoxGroup fieldName="license" grouped={true} />
                     <Divider mt="sm" mb="lg" />
 
                     <Text fw="bold" mb="sm">Dataset</Text>
