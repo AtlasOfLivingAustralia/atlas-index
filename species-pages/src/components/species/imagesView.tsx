@@ -17,23 +17,13 @@ interface Occurrence {
 interface Items {
     id: string;
     type: string;
-}   
-
-interface ActiveFacet {
-    displayName: string
-    name: string
-    value: string
-}
+}  
 
 interface FacetResult {
     count: number
     fq: string
     i18nCode: string
     label: string
-}
-
-interface ActiveFacetObj {
-    [key: string]: ActiveFacet[];
 }
 
 interface FacetResultSet {
@@ -57,7 +47,7 @@ const fieldMapping = {
         'Occurrence': 'Occurrences',
         'Not supplied': 'Occurrences'
     },
-    license: {  // by	by-nc	by-nc-nd	by-nc-sa	by-nd	by-sa 0
+    license: {  
         'CC0': 'CC0',
         'CC-BY 4.0 (Int)': 'CC-BY',
         'CC-BY-NC': 'CC-BY-NC',
@@ -348,9 +338,9 @@ function ImagesView({result}: MapViewProps) {
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
         } 
 
-        // Get the display count for a facet value - if a filter is active, then may be 2 values - total and filtered
+        // Get the display count for a facet value - if a filter is active, then may be 2 values -> total / filtered
         // TODO: Potentially confusing for users, might need to be rethought
-        // Not currently used -> delete if not needed
+        // Not currently used -> TODO: delete if not needed
         const getDisplayCount = (fieldName: string, label: string, count: number): string => {
             const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);    
             // console.log('getDisplayCount', fieldName, label, count, onlyOneFilterActiveInSameGroup, getMinRecordCount(fieldName, label));
@@ -417,7 +407,7 @@ function ImagesView({result}: MapViewProps) {
                 Showing {occurrenceCount > 0 ? (occurrenceCount < (page+1)*pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
                 of {formatNumber(occurrenceCount)} results.{' '}
                 <Anchor 
-                    href={`https://biocache.ala.org.au/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
+                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
                     target="_blanks"
                     inherit
                 >View all results on ALA occurrence explorer</Anchor>
