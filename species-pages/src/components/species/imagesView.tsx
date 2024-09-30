@@ -3,12 +3,13 @@ import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Im
 import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import { useDisclosure } from "@mantine/hooks";
+import capitalizeFirstLetter from "../../helpers/Capitalise";
 
-interface MapViewProps {
+interface MediaViewProps {
     result?: Record<PropertyKey, string | number | any >
 }
 
-interface Occurrence {
+interface MediaTypes {
     images: string[];
     videos: string[];
     sounds: string[];
@@ -35,17 +36,18 @@ interface UserFq {
     [key: string]: string[];
 }
 
+// "Grouped" filters require a mapping for the values to be grouped together
 const fieldMapping = {
     basisOfRecord: {
-        'Human observation': 'Occurrences',
-        'Machine observation': 'Occurrences',
+        'Human observation': 'Observations',
+        'Machine observation': 'Observations',
         'Preserved specimen': 'Specimens',
         'Fossil specimen': 'Specimens',
         'Living specimen': 'Specimens',
         'Material sample': 'Specimens',
-        'Observation': 'Occurrences',
-        'Occurrence': 'Occurrences',
-        'Not supplied': 'Occurrences'
+        'Observation': 'Observations',
+        'Occurrence': 'Observations',
+        'Not supplied': 'Observations'
     },
     license: {  
         'CC0': 'CC0',
@@ -72,13 +74,13 @@ const fieldLink: Record<string, string[]> = {
     'license-XXX': ['https://creativecommons.org/licenses/','/4.0/deed.en'],
 }
 
-function ImagesView({result}: MapViewProps) {
+function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
     const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
-    const [page, setPage] = useState<number>(0);
-    const [type, setType] = useState<string>('all'); // image, video, sound
+    const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
+    const [mediaType, setMediaType] = useState<string>('all'); // image, video, sound
     const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -105,23 +107,22 @@ function ImagesView({result}: MapViewProps) {
     const facetLimit = 15;
     const maxVisibleFacets = 4;
     const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
+    const mediaFqMap: Record<PropertyKey, string> = {
+        all: "&fq=multimedia:*",
+        image: "&fq=multimedia:Image",
+        sound: "&fq=multimedia:Sound",
+        video: "&fq=multimedia:Video",
+    };
 
     useEffect(() => {
         fetchImages(true); // fetch images with user filters
         fetchImages(false); // fetch facet results for unfiltered query
-    }, [result, page, sortDir, fqUserTrigged, type]);
+    }, [result, page, sortDir, fqUserTrigged, mediaType]);
     
     function fetchImages(includeUserFq: boolean = true) {
         if (!result?.guid) {
             return;
         }
-
-        const typeFqMap: Record<PropertyKey, string> = {
-            all: "&fq=multimedia:*",
-            image: "&fq=multimedia:Image",
-            video: "&fq=multimedia:Video",
-            sound: "&fq=multimedia:Sound"
-        };
 
         // Function to transform fqUserTrigged into a fq string
         const transformFqUserTrigged = (): string => {
@@ -131,31 +132,9 @@ function ImagesView({result}: MapViewProps) {
 
         const facets = `&facets=${facetFields.join(',')}`; 
         const pageSizeRequest = includeUserFq ? pageSize : 0;
-        const typeFq = typeFqMap[type] || '';
+        const mediaFq = mediaFqMap[mediaType] || '&fq=multimedia:*';
         const userFq = includeUserFq ? transformFqUserTrigged() : '';
 
-        let specimenFq = '';
-
-    
-        // if (includeUserFq) {
-        //     if (includeSpecimens && includeOccurrences) {
-        //         console.log("includeSpecimens && includeOccurrences");
-        //         // specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
-        //     } else if (includeSpecimens) {
-        //         specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
-        //     } else if (includeOccurrences) {
-        //         specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
-        //     } else {
-        //         // setItems([]);
-        //         specimenFq = ''
-        //     }
-        // } else {
-        //     specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
-        // }
-
-        // setLicenceType([]);
-        const mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
-        // const licenseFq = buildLicenseFqs
         setLoading(true);
         fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
             facets +
@@ -163,36 +142,32 @@ function ImagesView({result}: MapViewProps) {
             '&pageSize=' + pageSizeRequest +
             '&dir=' + sortDir +
             '&sort=eventDate' +
+            '&qualityProfile=ALA' +
             '&flimit=' + facetLimit +
-            '&fq=' + facetFields.join(":*&fq=") + ":*" + // default include all values for the facet fields
             userFq +
-            specimenFq +
-            typeFq +
-            mediaFilter
-            // licenseFq +
-            // mediaFilter
+            mediaFq
         )
             .then(response => response.json())
             .then(data => {
                 const list: { id: string, type: string }[] = [];
-                data.occurrences.map((item: Occurrence) => {
+                data.occurrences.map((item: MediaTypes) => {
                     // The following `for` loops are commented out as it distorts the `counts`, due to
                     // multiple media files per record result in an indeterminate number of media files
                     // (i.e., ask for 10 get more than 10). So we take only the first file per record.
                     // TODO: Delete the `for` loops if we're sticking with Biocache API (vs using image-service API)
-                    if (item.images && (type === 'all' || type === 'image')) {
+                    if (item.images && (mediaType === 'all' || mediaType === 'image')) {
                         // for (let id of item.images) {
                         //     list.push({id: id, type: 'image'});
                         // }
                         list.push({id: item.images[0], type: 'image'});
                     }
-                    if (item.videos && (type === 'all' || type === 'video')) {
+                    if (item.videos && (mediaType === 'all' || mediaType === 'video')) {
                         // for (let id of item.videos) {
                         //     list.push({id: id, type: 'video'});
                         // }
                         list.push({id: item.videos[0], type: 'video'});
                     }
-                    if (item.sounds && (type === 'all' || type === 'sound')) {
+                    if (item.sounds && (mediaType === 'all' || mediaType === 'sound')) {
                         // for (let id of item.sound) {
                         //     list.push({id: id, type: 'sound'});
                         // }
@@ -238,7 +213,7 @@ function ImagesView({result}: MapViewProps) {
     };
 
     const formatNumber = (num: number) => {
-        return new Intl.NumberFormat('en').format(num);
+        return new Intl.NumberFormat('en').format(num); // TODO: move to helper and add locale detection
     }
 
     const getFieldResults = useCallback((name: string) : FacetResult[] => {
@@ -246,7 +221,7 @@ function ImagesView({result}: MapViewProps) {
     }, [facetResults]);
 
     // Helper to invert a Record<string, string> object to Record<string, string[]>  
-    // E.g., `{a: 'b', 'c': 'b', 'd': 'e'} -> {b: ['a','c'], d: ['e']}`
+    // E.g., `{a: 'one', b: 'one, c: 'two'} -> {one: ['a','b'], two: ['c']}`
     function invertObject(obj: Record<string, string>): Record<string, string[]> {
         return Object.fromEntries(
             Object.entries(obj).reduce((acc, [key, value]) => {
@@ -270,7 +245,7 @@ function ImagesView({result}: MapViewProps) {
         close();
     };
 
-    // Bunch of methods to handle facet filtering - Rube Goldberg machine unfortunately
+    // Bunch of methods to handle facet filtering - A bit of a Rube Goldberg machine unfortunately
 
     // Check if a facet value is active (should be shown as checked)
     const fqValueIsActive = (facetName: string, facetValue: string) : boolean => {
@@ -303,7 +278,7 @@ function ImagesView({result}: MapViewProps) {
 
     // Checkbox group reusable component
     const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets, grouped = false }: { fieldName: string, limit?: number, grouped?: boolean }) => {
-        // anonymous method to update the fqUserTrigged state
+        // Update the fqUserTrigged state when clicked
         const updateUserFqs = (fq: string, active: boolean) => {
             setPage(0);
             !active 
@@ -326,8 +301,15 @@ function ImagesView({result}: MapViewProps) {
             const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
             const syntheticFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
+                const avilableValues = fieldsToDisplay?.filter(field => values.includes(field.label));
                 
-                const totalCount: number = fieldsToDisplay?.filter(field => values.includes(field.label)).reduce((acc, field) => acc + field.count, 0);
+                // If no `facetResults` values are available for the synthetic field, 
+                // then we need to create an empty entry with count 0 (disabled)
+                if (!avilableValues || avilableValues.length === 0) {
+                    return { label: key, count: 0, fq: '', i18nCode: '' };
+                }
+
+                const totalCount: number = avilableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
                 const fq: string = fieldsToDisplay
                     ?.filter(field => values.includes(field.label))
                     .map(field => field.fq)
@@ -339,7 +321,7 @@ function ImagesView({result}: MapViewProps) {
         } 
 
         // Get the display count for a facet value - if a filter is active, then may be 2 values -> total / filtered
-        // TODO: Potentially confusing for users, might need to be rethought
+        // Potentially confusing for users, might need to be rethought
         // Not currently used -> TODO: delete if not needed
         const getDisplayCount = (fieldName: string, label: string, count: number): string => {
             const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);    
@@ -357,10 +339,11 @@ function ImagesView({result}: MapViewProps) {
                             size="xs"
                             // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
                             // disabled={fqValueIsDisabled(fieldName, item.label, item.fq)}
+                            disabled={item.count === 0}
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                <Text span c={fqValueIsDisabled(fieldName, item.label, item.fq) && false ? 'gray' : 'default'}>
+                                <Text span c={item.count === 0 ? 'gray' : 'default'}>
                                 { fieldLink[fieldName] 
                                     ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor> 
                                     : item.label }
@@ -398,10 +381,16 @@ function ImagesView({result}: MapViewProps) {
     return (
         <Box>
             <Flex gap="md" mt="md" direction={{ base: 'column', sm: 'row' }}>
-                <Button variant={type === 'all'   ? 'filled' : 'outline'} onClick={() => {resetView();setType('all')}}>View all</Button>
-                <Button variant={type === 'image' ? 'filled' : 'outline'} onClick={() => {resetView();setType('image')}}>Images</Button>
-                <Button variant={type === 'sound' ? 'filled' : 'outline'} onClick={() => {resetView();setType('sound')}}>Sounds</Button>
-                <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
+            { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
+                <Button 
+                    key={idx}
+                    variant={key === mediaType ? 'filled' : 'outline'} 
+                    onClick={() => {
+                        resetView();
+                        setMediaType(key);
+                    }}
+                >{capitalizeFirstLetter(key)}{key !== 'all' && 's'}</Button>
+            )}
             </Flex>
             <Text mt="lg" mb="md" size="md" fw="bold">
                 Showing {occurrenceCount > 0 ? (occurrenceCount < (page+1)*pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
@@ -410,7 +399,7 @@ function ImagesView({result}: MapViewProps) {
                     href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
                     target="_blanks"
                     inherit
-                >View all results on ALA occurrence explorer</Anchor>
+                >View all occurrence records</Anchor>
             </Text>
             <Grid>
                 <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
