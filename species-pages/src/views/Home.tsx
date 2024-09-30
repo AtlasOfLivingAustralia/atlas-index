@@ -76,6 +76,18 @@ function Home({setBreadcrumbs, login, logout}: {
                         <List.Item>
                             <Anchor 
                                 component={Link} 
+                                to="/species?id=https://biodiversity.org.au/afd/taxa/55213c39-1809-442e-b5fb-03fb99e8d97a"
+                            >Australian King-Parrot – <i>Alisterus scapularis</i></Anchor>
+                        </List.Item>
+                        <List.Item>
+                            <Anchor 
+                                component={Link} 
+                                to="/species?id=https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5"
+                            >Australian Magpie – <i>Gymnorhina tibicen</i></Anchor>
+                        </List.Item>
+                        <List.Item>
+                            <Anchor 
+                                component={Link} 
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/c0c829b2-834e-4cf9-b288-2cc2035573ff"
                             >Barramundi – <i>Lates calcarifer</i></Anchor>
                         </List.Item>
@@ -90,6 +102,12 @@ function Home({setBreadcrumbs, login, logout}: {
                                 component={Link} 
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531"
                             >Swamp Wallaby – <i>Wallabia bicolor</i></Anchor>
+                        </List.Item>
+                        <List.Item>
+                            <Anchor 
+                                component={Link} 
+                                to="/species?id=https://biodiversity.org.au/afd/taxa/ac61fd14-4950-4566-b384-304bd99ca75f"
+                            >Duck-Billed Platypus – <i>Ornithorhynchus anatinus</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor 

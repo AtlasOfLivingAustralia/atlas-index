@@ -62,6 +62,7 @@ function DatasetsView({result}: MapViewProps) {
                             }
                         }
                         setDatasets(newDatasets);
+                        // setLoading(false);
                     })
                     .catch(error => {
                         setErrorMessage('Failed to fetch licenses - ' + error);
@@ -74,7 +75,7 @@ function DatasetsView({result}: MapViewProps) {
                 setErrorMessage('Failed to fetch datasets - ' + error);
             })
             .finally(() => {
-                setLoading(false);
+                loading && setLoading(false);
             });
     }, [result]);
 

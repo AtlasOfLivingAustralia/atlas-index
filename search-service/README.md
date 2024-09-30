@@ -37,8 +37,9 @@ docker-compose -f src/main/docker/docker-compose.yml up
 ### Running the application locally
 
 ```bash
-./gradlew bootRun
-```
+ # Check Java 21 is current JVM with `java -version`
+ mvn spring-boot:run
+ ```
 
 Open the Swagger UI for REST services at `http://localhost:8080`.
 

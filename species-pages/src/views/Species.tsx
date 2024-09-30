@@ -41,7 +41,7 @@ function Species({setBreadcrumbs, queryString}: {
 
     const breadcrumbValues: Breadcrumb[] = [
         {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-        {title: 'Species search', href: '/'},
+        {title: 'Search species', href: '/'},
         {title: <FormatName name={result.name} rankId={result.rankID}/>, href: ''},
     ];
 
@@ -179,7 +179,7 @@ function Species({setBreadcrumbs, queryString}: {
                                 <List.Item 
                                     fz={14} 
                                     icon={ <IconCircleFilled size={10} color="gray"/> } 
-                                >{capitalizeFirstLetter(result.rank)}</List.Item>
+                                >{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</List.Item>
                             </List>
                             { result.commonName && result.commonName.map((name: string, idx: number) =>
                                 idx < 3 && 

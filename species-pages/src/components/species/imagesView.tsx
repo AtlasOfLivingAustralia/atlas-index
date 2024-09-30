@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Pill, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronRight, IconChevronUp, IconExternalLink, IconReload, IconZoomReset } from "@tabler/icons-react";
+import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
+import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import { useDisclosure } from "@mantine/hooks";
+import capitalizeFirstLetter from "../../helpers/Capitalise";
 
-interface MapViewProps {
+interface MediaViewProps {
     result?: Record<PropertyKey, string | number | any >
 }
 
-interface Occurrence {
+interface MediaTypes {
     images: string[];
     videos: string[];
     sounds: string[];
@@ -17,13 +18,7 @@ interface Occurrence {
 interface Items {
     id: string;
     type: string;
-}   
-
-interface ActiveFacet {
-    displayName: string
-    name: string
-    value: string
-}
+}  
 
 interface FacetResult {
     count: number
@@ -32,33 +27,68 @@ interface FacetResult {
     label: string
 }
 
-interface ActiveFacetObj {
-    [key: string]: ActiveFacet[];
-}
-
-interface FacetResult {
+interface FacetResultSet {
     fieldName: string
     fieldResult: FacetResult[]
 }
 
-function ImagesView({result}: MapViewProps) {
-    const [items, setItems] = useState<Items[]>([]);
-    // const [activeFacets, setActiveFacets] = useState<ActiveFacetObj>({});
-    // field-agnostic filters
-    const [facetResults, setFacetResults] = useState<FacetResult[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    const [activeFacets, setActiveFacets] = useState<ActiveFacetObj>({}); // from `activeFacetObj` in the JSON response (filterded)
-    const [fqUserTrigged, setFqUserTrigged] = useState<string[]>([]); // from user interaction with the checkboxes
+interface UserFq {
+    [key: string]: string[];
+}
 
-    const [page, setPage] = useState<number>(0);
-    const [type, setType] = useState<string>('all');
+// "Grouped" filters require a mapping for the values to be grouped together
+const fieldMapping = {
+    basisOfRecord: {
+        'Human observation': 'Observations',
+        'Machine observation': 'Observations',
+        'Preserved specimen': 'Specimens',
+        'Fossil specimen': 'Specimens',
+        'Living specimen': 'Specimens',
+        'Material sample': 'Specimens',
+        'Observation': 'Observations',
+        'Occurrence': 'Observations',
+        'Not supplied': 'Observations'
+    },
+    license: {  
+        'CC0': 'CC0',
+        'CC-BY 4.0 (Int)': 'CC-BY',
+        'CC-BY-NC': 'CC-BY-NC',
+        'CC-BY': 'CC-BY',
+        'CC-BY-NC 4.0 (Int)': 'CC-BY-NC',
+        'CC-BY 3.0 (Au)': 'CC-BY',
+        'CC-BY-Int': 'CC-BY',
+        'CC-BY 3.0 (Int)': 'CC-BY',
+        'CC-BY-NC 3.0 (Au)': 'CC-BY-NC',
+        'CC-BY 4.0 (Au)': 'CC-BY',
+        'CC-BY-SA 4.0 (Int)': 'CC-BY-SA',
+        'CC-BY-NC-SA 4.0 (Int)': 'CC-BY-NC-SA',
+        'Creative Commons - license at record level': 'Creative Commons - license at record level',
+        'CC-BY-NC-ND 4.0 (Int)': 'CC-BY-NC-ND',
+        'CC-BY 3.0 (NZ)': 'CC-BY',
+        // 'Not supplied': 'Not supplied',
+    }
+};
+
+// Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
+const fieldLink: Record<string, string[]> = {
+    'license-XXX': ['https://creativecommons.org/licenses/','/4.0/deed.en'],
+}
+
+function ImagesView({result}: MediaViewProps) {
+    const [items, setItems] = useState<Items[]>([]);
+    const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
+    const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (filterded)
+    const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
+    const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
+    const [mediaType, setMediaType] = useState<string>('all'); // image, video, sound
     const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
-    // const [includeOccurrences, setIncludeOccurrences] = useState(true);
-    // const [includeSpecimens, setIncludeSpecimens] = useState(true);
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
+
     // Control of modal for image details
     const [openModalId, setOpenModalId] = useState<string | null>(null);
     const [opened, { open, close }] = useDisclosure(false);
+
     // Control of expand/collapse state for facets display
     const [expandCollapseState, setExpandCollapseState] = useState({
         license: false,
@@ -74,60 +104,37 @@ function ImagesView({result}: MapViewProps) {
 
     const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
     const pageSize = 10;
-    const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
-    // const imagesBaseUrl = "https://images.ala.org.au"; // import.meta.env.VITE_APP_IMAGE_BASE_URL;
+    const facetLimit = 15;
     const maxVisibleFacets = 4;
-
-    // useEffect(() => {
-    //     fetchImages(true);
-    // }, [result, page, sortDir, includeOccurrences, includeSpecimens, type, licenceTypeActive]);
+    const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
+    const mediaFqMap: Record<PropertyKey, string> = {
+        all: "&fq=multimedia:*",
+        image: "&fq=multimedia:Image",
+        sound: "&fq=multimedia:Sound",
+        video: "&fq=multimedia:Video",
+    };
 
     useEffect(() => {
         fetchImages(true); // fetch images with user filters
         fetchImages(false); // fetch facet results for unfiltered query
-    }, [result, page, sortDir, fqUserTrigged, type]);
+    }, [result, page, sortDir, fqUserTrigged, mediaType]);
     
     function fetchImages(includeUserFq: boolean = true) {
         if (!result?.guid) {
             return;
         }
 
-        // console.log("fetchImages", includeUserFq, fqUserTrigged);
-
-        const typeFqMap: Record<PropertyKey, string> = {
-            all: "&fq=multimedia:*",
-            image: "&fq=multimedia:Image",
-            video: "&fq=multimedia:Video",
-            sound: "&fq=multimedia:Sound"
-        };
+        // Function to transform fqUserTrigged into a fq string
+        const transformFqUserTrigged = (): string => {
+            const fqParts = Object.values(fqUserTrigged).map((values) => `&fq=${values.join("+OR+")}`);
+            return fqParts.length > 0 ? fqParts.join("") : '';
+        }
 
         const facets = `&facets=${facetFields.join(',')}`; 
-        // let typeFq = '';
-        let userFq = '';
         const pageSizeRequest = includeUserFq ? pageSize : 0;
-        const typeFq = typeFqMap[type] || '';
-        
-        if (includeUserFq) {
-            
-            userFq = fqUserTrigged.map(fq => `&fq=-${fq}`).join('');
-            // licenseFq = buildLicenseFqs();
-        } 
+        const mediaFq = mediaFqMap[mediaType] || '&fq=multimedia:*';
+        const userFq = includeUserFq ? transformFqUserTrigged() : '';
 
-        let specimenFq = '';
-        // if (!fqUserTrigged.includes('basisOfRecord')) {
-        //     specimenFq = '&fq=(-typeStatus:*%20AND%20-basisOfRecord:PreservedSpecimen%20AND%20-identificationQualifier:"Uncertain"%20AND%20spatiallyValid:true%20AND%20-userAssertions:50001%20AND%20-userAssertions:50005)%20OR%20(basisOfRecord:PreservedSpecimen%20AND%20-typeStatus:*)'
-        // } else if (fqUserTrigged.includes('basisOfRecord') && fqUserTrigged.includes('PreservedSpecimen')) {
-            
-        //     specimenFq = '&fq=basisOfRecord:PreservedSpecimen&fq=-typeStatus:*'
-        // } else if (fqUserTrigged.includes('basisOfRecord') && !fqUserTrigged.includes('PreservedSpecimen')) {
-            
-        //     specimenFq = '&fq=-typeStatus:*&fq=-basisOfRecord:PreservedSpecimen&fq=-identificationQualifier:"Uncertain"&fq=spatiallyValid:true&fq=-userAssertions:50001&fq=-userAssertions:50005'
-        // } else {
-        //     setItems([]);
-        // }
-        // setLicenceType([]);
-        const mediaFilter = '&qualityProfile=ALA&fq=-(duplicateStatus:ASSOCIATED%20AND%20duplicateType:DIFFERENT_DATASET)'
-        // const licenseFq = buildLicenseFqs
         setLoading(true);
         fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
             facets +
@@ -135,31 +142,32 @@ function ImagesView({result}: MapViewProps) {
             '&pageSize=' + pageSizeRequest +
             '&dir=' + sortDir +
             '&sort=eventDate' +
-            '&fq=' + facetFields.join(":*&fq=") + ":*" + // default include all values for the facet fields
+            '&qualityProfile=ALA' +
+            '&flimit=' + facetLimit +
             userFq +
-            specimenFq +
-            typeFq +
-            mediaFilter
-            // licenseFq +
-            // mediaFilter
+            mediaFq
         )
             .then(response => response.json())
             .then(data => {
                 const list: { id: string, type: string }[] = [];
-                data.occurrences.map((item: Occurrence) => {
-                    if (item.images && (type === 'all' || type === 'image')) {
+                data.occurrences.map((item: MediaTypes) => {
+                    // The following `for` loops are commented out as it distorts the `counts`, due to
+                    // multiple media files per record result in an indeterminate number of media files
+                    // (i.e., ask for 10 get more than 10). So we take only the first file per record.
+                    // TODO: Delete the `for` loops if we're sticking with Biocache API (vs using image-service API)
+                    if (item.images && (mediaType === 'all' || mediaType === 'image')) {
                         // for (let id of item.images) {
                         //     list.push({id: id, type: 'image'});
                         // }
                         list.push({id: item.images[0], type: 'image'});
                     }
-                    if (item.videos && (type === 'all' || type === 'video')) {
+                    if (item.videos && (mediaType === 'all' || mediaType === 'video')) {
                         // for (let id of item.videos) {
                         //     list.push({id: id, type: 'video'});
                         // }
                         list.push({id: item.videos[0], type: 'video'});
                     }
-                    if (item.sounds && (type === 'all' || type === 'sound')) {
+                    if (item.sounds && (mediaType === 'all' || mediaType === 'sound')) {
                         // for (let id of item.sound) {
                         //     list.push({id: id, type: 'sound'});
                         // }
@@ -168,26 +176,21 @@ function ImagesView({result}: MapViewProps) {
                 })
 
                 if (includeUserFq) {
-                    setActiveFacets(data.activeFacetObj);
-
                     if (page == 0) {
                         setItems(list);
                         setOccurrenceCount(data.totalRecords);
+                        setFacetResultsFiltered(data.facetResults);
                     } else {
                         setItems([...items, ...list]);
                     }
                 } else {
-                    // setFqResultsAll(data.activeFacetObj);
                     setFacetResults(data.facetResults);
                 }
-
             }).catch(error => {
                 console.error('Failed to fetch images - ' + error);
             }).finally(() => {
                 setLoading(false);
             });
-
-            // console.log("fqs", fqResults, fqResultsAll, includeUserFq);
     }
 
     const getImageThumbnailUrl = (id: string) => {
@@ -200,24 +203,36 @@ function ImagesView({result}: MapViewProps) {
 
     function resetView() {
         setPage(0);
+        setFqUserTrigged({});
     }
 
-    const handleImageError = (idx: number, e: any) => {
-        // console.log('Image error', e.target?.src, idx);
+    // Remove image from list if it fails to load
+    const handleImageError = (idx: number, _e: any) => {
+        // console.log('Image error', _e.target?.src, idx);
         setItems(prevItems => prevItems.filter((_, index) => index !== idx));
     };
 
-    const facetIsActive = useCallback((facetName: string, facetValue: string) : boolean => {
-        // console.log("facetIsActive", facetName, facetValue, fqResults[`-${facetName}`]);
-        // const facetValues = fqResults[`-${facetName}`]?.map((facet: ActiveFacet) => facet.value.split(':').pop());
-        // const facetIsRemoved = facetValues?.some(value => removeQuotes(value || '') === facetValue);
-        const facetIsRemoved = activeFacets[`-${facetName}`]?.some(fq => fq.value.substring(1,) === facetValue);
-        return !facetIsRemoved; // if its removed, then its not active
-    }, [activeFacets]);
+    const formatNumber = (num: number) => {
+        return new Intl.NumberFormat('en').format(num); // TODO: move to helper and add locale detection
+    }
 
     const getFieldResults = useCallback((name: string) : FacetResult[] => {
         return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
     }, [facetResults]);
+
+    // Helper to invert a Record<string, string> object to Record<string, string[]>  
+    // E.g., `{a: 'one', b: 'one, c: 'two'} -> {one: ['a','b'], two: ['c']}`
+    function invertObject(obj: Record<string, string>): Record<string, string[]> {
+        return Object.fromEntries(
+            Object.entries(obj).reduce((acc, [key, value]) => {
+                if (!acc.has(value)) {
+                    acc.set(value, []);
+                }
+                acc.get(value).push(key);
+                return acc;
+            }, new Map())
+        );
+    }
 
     // Modal event handlers
     const handleOpenModal = (id: string) => {
@@ -230,39 +245,124 @@ function ImagesView({result}: MapViewProps) {
         close();
     };
 
-    const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets }: { fieldName: string, limit?: number }) => {
+    // Bunch of methods to handle facet filtering - A bit of a Rube Goldberg machine unfortunately
+
+    // Check if a facet value is active (should be shown as checked)
+    const fqValueIsActive = (facetName: string, facetValue: string) : boolean => {
+        const fqTriggeredForField = fqUserTrigged[facetName];
+        return (fqTriggeredForField) ? fqTriggeredForField?.includes(facetValue) : false;
+    };
+
+    const filteredCountIsZero = (fieldName: string, label: string): boolean => 
+        getMinRecordCount(fieldName, label) > 0;
+    
+
+    // Get the minimum record count for a facet value by inspecting both facetResults and facetResultsFiltered
+    const getMinRecordCount = (fieldName: string, label: string): number => 
+        facetResultsFiltered.length === 0 
+            ? facetResults?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0
+            : facetResultsFiltered?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0;
+    
+
+    // Check if a facet will show zero results if clicked (should be shown as disabled)
+    // If only one checkbox is active in a group and no other groups, then the checkbox should be enabled (OR logic)
+    // If multiple checkboxes are active in multiple groups, then only non-zero facetResults are active (AND logic)
+    // TODO: Potentially confusing for users, might need to be rethought
+    const fqValueIsDisabled = (facetName: string, facetValue: string, fqValue: string): boolean => {
+        const isChecked = fqValueIsActive(facetName, fqValue);
+        const isZero = filteredCountIsZero(facetName, facetValue);
+        const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== facetName).every(key => fqUserTrigged[key].length === 0);   
+        // console.log('fqValueIsDisabled', facetName, facetValue, isChecked, isZero, onlyOneFilterActiveInSameGroup);
+        return !isChecked && !isZero && !onlyOneFilterActiveInSameGroup;
+    };
+
+    // Checkbox group reusable component
+    const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets, grouped = false }: { fieldName: string, limit?: number, grouped?: boolean }) => {
+        // Update the fqUserTrigged state when clicked
         const updateUserFqs = (fq: string, active: boolean) => {
-            resetView();
-            active 
+            setPage(0);
+            !active 
                 ? setFqUserTrigged(prevState => {
-                    // prevent duplicates (usually only happens in dev mode)
-                    const newSet = new Set([...prevState, fq]);
-                    return Array.from(newSet);
-                    })
-                : setFqUserTrigged(fqUserTrigged.filter(filter => filter !== fq));
-        }  ;
+                    const newFq = { ...prevState };
+                    newFq[fieldName] = [...(newFq[fieldName] || []), fq];
+                    return newFq;
+                })
+                : setFqUserTrigged(prevState => {
+                    const newFq = { ...prevState };
+                    newFq[fieldName] = newFq[fieldName]?.filter(filter => filter !== fq);
+                    return newFq;
+                });
+        };
+
+        let fieldsToDisplay: FacetResult[] = getFieldResults(fieldName);
+
+        if (grouped) {
+            // If the field is grouped, then we need to create synthetic entries based on the fieldMapping
+            const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
+            const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
+            const syntheticFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
+                const avilableValues = fieldsToDisplay?.filter(field => values.includes(field.label));
+                
+                // If no `facetResults` values are available for the synthetic field, 
+                // then we need to create an empty entry with count 0 (disabled)
+                if (!avilableValues || avilableValues.length === 0) {
+                    return { label: key, count: 0, fq: '', i18nCode: '' };
+                }
+
+                const totalCount: number = avilableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
+                const fq: string = fieldsToDisplay
+                    ?.filter(field => values.includes(field.label))
+                    .map(field => field.fq)
+                    .join('+OR+');
+                return { label: key, count: totalCount, fq: fq, i18nCode: '' };
+            });
+
+            fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
+        } 
+
+        // Get the display count for a facet value - if a filter is active, then may be 2 values -> total / filtered
+        // Potentially confusing for users, might need to be rethought
+        // Not currently used -> TODO: delete if not needed
+        const getDisplayCount = (fieldName: string, label: string, count: number): string => {
+            const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);    
+            // console.log('getDisplayCount', fieldName, label, count, onlyOneFilterActiveInSameGroup, getMinRecordCount(fieldName, label));
+            return count == getMinRecordCount(fieldName, label) || onlyOneFilterActiveInSameGroup 
+                ? count?.toString() 
+                : `${count} / ${getMinRecordCount(fieldName, label)}`;
+        }
         
         return (
             <>
-                {getFieldResults(fieldName)?.map((item, idx) => 
+                {fieldsToDisplay?.map((item, idx) => 
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
                         <Checkbox 
                             size="xs"
-                            checked={facetIsActive(fieldName, item.fq)}
-                            onChange={() => { updateUserFqs(item.fq, facetIsActive(fieldName, item.fq))}}
+                            // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
+                            // disabled={fqValueIsDisabled(fieldName, item.label, item.fq)}
+                            disabled={item.count === 0}
+                            checked={fqValueIsActive(fieldName, item.fq)}
+                            onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                {item.label}
+                                <Text span c={item.count === 0 ? 'gray' : 'default'}>
+                                { fieldLink[fieldName] 
+                                    ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor> 
+                                    : item.label }
+                                </Text>
                                 <Badge 
                                     variant="light" 
                                     color="rgba(100, 100, 100, 1)" 
                                     ml={8} pt={2} pr={8} pl={8} 
                                     radius="lg"
-                                >{item.count}</Badge>
+                                >
+                                    {/* {getDisplayCount(fieldName, item.label, item.count)} */}
+                                    {formatNumber(item.count)}
+                                </Badge>
                             </>}
+                            styles={{ inner: { marginTop: 3} }}
                         />
                     </Collapse>
                 )}
-                {getFieldResults(fieldName)?.length > limit &&
+                {fieldsToDisplay?.length > limit &&
                     <Anchor 
                         onClick={() => toggleExpandCollapse(fieldName as keyof typeof expandCollapseState)} 
                         mt={5} 
@@ -281,19 +381,25 @@ function ImagesView({result}: MapViewProps) {
     return (
         <Box>
             <Flex gap="md" mt="md" direction={{ base: 'column', sm: 'row' }}>
-                <Button variant={type === 'all'   ? 'filled' : 'outline'} onClick={() => {resetView();setType('all')}}>View all</Button>
-                <Button variant={type === 'image' ? 'filled' : 'outline'} onClick={() => {resetView();setType('image')}}>Images</Button>
-                <Button variant={type === 'sound' ? 'filled' : 'outline'} onClick={() => {resetView();setType('sound')}}>Sounds</Button>
-                <Button variant={type === 'video' ? 'filled' : 'outline'} onClick={() => {resetView();setType('video')}}>Videos</Button>
+            { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
+                <Button 
+                    key={idx}
+                    variant={key === mediaType ? 'filled' : 'outline'} 
+                    onClick={() => {
+                        resetView();
+                        setMediaType(key);
+                    }}
+                >{capitalizeFirstLetter(key)}{key !== 'all' && 's'}</Button>
+            )}
             </Flex>
-            <Text mt="lg" mb="md" size="sm" fw="bold">
-                Showing {occurrenceCount > 0 ? (occurrenceCount < pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
-                of {occurrenceCount} results.{' '}
+            <Text mt="lg" mb="md" size="md" fw="bold">
+                Showing {occurrenceCount > 0 ? (occurrenceCount < (page+1)*pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
+                of {formatNumber(occurrenceCount)} results.{' '}
                 <Anchor 
-                    href={`https://biocache.ala.org.au/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
+                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
                     target="_blanks"
                     inherit
-                >View all results on ALA occurrence explorer</Anchor>
+                >View all occurrence records</Anchor>
             </Text>
             <Grid>
                 <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
@@ -340,12 +446,12 @@ function ImagesView({result}: MapViewProps) {
                                         </Modal>
                                     </>}
                                 {item.type === 'sound' && 
-                                    <Flex maw={240} justify="center" align="center" direction="column">
-                                        <audio key={idx} controls preload="auto">
-                                            {/* https://images.ala.org.au/proxyImage?imageId=9464cc88-4347-4ba8-aa1e-b4766e926d47 */}
+                                    <Flex maw={240} h={200} justify="center" align="center" direction="column">
+                                        <audio key={idx} controls preload="auto" style={{ maxWidth: '240px'}}>
                                             <source 
                                                 src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
                                                 type="audio/mpeg" 
+                                                width={240}
                                             />
                                         </audio>
                                         <Anchor 
@@ -358,12 +464,15 @@ function ImagesView({result}: MapViewProps) {
                                     </Flex>
                                 }
                                 {item.type === 'video' && 
-                                    <Flex maw={240} justify="center" align="center" direction="column">
-                                        <video key={idx} controls preload="auto">
-                                            {/* https://images.ala.org.au/proxyImage?imageId=9464cc88-4347-4ba8-aa1e-b4766e926d47 */}
+                                    <Flex maw={240} h={200} justify="center" align="center" direction="column">
+                                        <video key={idx} controls preload="auto" style={{ maxWidth: '240px', maxHeight: '170px'}}>
                                             <source 
                                                 src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
-                                                type="video/mp4" 
+                                                height={200}
+                                                width={240}
+                                                // Magpie examples use "video/3gpp" but hard-coding this still does not show the video content, just sound.
+                                                // Update: Confirming the 2 Magpie examples do not contain video content, just sound.
+                                                // Platypus page does contain video content, which plays in place.
                                             />
                                         </video>
                                         <Anchor 
@@ -396,7 +505,7 @@ function ImagesView({result}: MapViewProps) {
                                 onClick={() => setPage(page + 1)}
                                 disabled={(page + 1) * pageSize >= occurrenceCount}
                                 rightSection={<IconChevronDown />}
-                            >Load more</Button>
+                            >View more</Button>
                         </Flex>
                         }
                 </Grid.Col>
@@ -406,28 +515,38 @@ function ImagesView({result}: MapViewProps) {
                         <Text fw="bold">Refine view</Text>
                     </Flex>
                     <Divider mt="lg" mb="lg" />
+                    
+                    <Text fw="bold" mb="sm">Sort by</Text>
                     <Radio.Group 
                         classNames={{ label: classes.gallerySortLabel }}
                         value={sortDir}
-                        onChange={(value: string) => setSortDir(value as 'desc' | 'asc')}
-                        label="Sort by"
+                        onChange={(value: string) => { 
+                            resetView(); 
+                            setSortDir(value as 'desc' | 'asc')
+                        }}
                     >
-                        <Radio size="xs" value="desc"
+                        <Radio  
+                            size="xs" 
+                            value="desc" 
+                            styles={{ inner: { marginTop: 2} }}
                             label="Latest" />
-                        <Radio size="xs"  value="asc"
+                        <Radio 
+                            size="xs"  
+                            value="asc"
+                            styles={{ inner: { marginTop: 2} }}
                             label="Oldest" />
                     </Radio.Group>
                     <Divider mt="lg" mb="lg" />
 
-                    <Text fw="bold" mb="md">Record type</Text>
-                    <FilterCheckBoxGroup fieldName="basisOfRecord" limit={5}/>
+                    <Text fw="bold" mb="sm">Record type</Text>
+                    <FilterCheckBoxGroup fieldName="basisOfRecord" grouped={true} />
                     <Divider mt="lg" mb="lg" />
 
-                    <Text fw="bold" mb="md">Licence type</Text>
-                    <FilterCheckBoxGroup fieldName="license" />
+                    <Text fw="bold" mb="sm">Licence type</Text>
+                    <FilterCheckBoxGroup fieldName="license" grouped={true} />
                     <Divider mt="sm" mb="lg" />
 
-                    <Text fw="bold" mb="md">Dataset</Text>
+                    <Text fw="bold" mb="sm">Dataset</Text>
                     <FilterCheckBoxGroup fieldName="dataResourceName" />
                     
                     <Button 
@@ -437,9 +556,9 @@ function ImagesView({result}: MapViewProps) {
                         fullWidth
                         onClick={() => {
                             resetView();
-                            setFqUserTrigged([]);
+                            setFqUserTrigged({});
                         }}
-                        disabled={fqUserTrigged.length === 0}
+                        disabled={Object.keys(fqUserTrigged).length === 0}
                         rightSection={<IconZoomReset />}>Reset</Button>
                 </Grid.Col>
             </Grid>
