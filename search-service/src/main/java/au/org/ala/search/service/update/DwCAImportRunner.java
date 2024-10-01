@@ -243,8 +243,12 @@ public class DwCAImportRunner {
         String languageUri = null;
         if (StringUtils.isNotEmpty(language)) {
             LanguageInfo li = languageService.getLanguageInfo(language);
-            languageName = li.name;
-            languageUri = li.uri;
+
+            // silently skip if language is not found
+            if (li != null) {
+                languageName = li.name;
+                languageUri = li.uri;
+            }
         }
 
         String source = core.value(DcTerm.source);

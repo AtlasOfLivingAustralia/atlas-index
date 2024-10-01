@@ -7,12 +7,9 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Home from "./views/Home.tsx"
 import Dashboard from "./views/Dashboard.tsx"
 import AtlasAdmin from "./views/AtlasAdmin.tsx"
-import Vocab from "./views/Vocab.tsx";
 import AtlasIndex from "./views/AtlasIndex.tsx";
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
-import Api from "./views/Api.tsx";
-import MapView from "./views/Map.tsx";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import DataQualityAdmin from "./views/DataQualityAdmin.tsx";
 import {User} from "oidc-client-ts";
@@ -22,7 +19,9 @@ import "@fontsource/roboto";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import Occurrence from "./views/Occurrence.tsx";
-import Species from "./views/Species.tsx";
+import {cacheFetchText} from "./helpers/CacheFetch.tsx";
+
+const alreadyLoaded: string[] = [];
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -41,6 +40,8 @@ export default function App() {
     const [currentUser, setCurrentUser] = useState<ListsUser | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const [queryString, setQueryString] = useState(useQuery().toString());
+    const [externalHeaderHtml, setExternalHeaderHtml] = useState('');
+    const [externalFooterHtml, setExternalFooterHtml] = useState('');
 
     const auth = useAuth();
     const location = useLocation();
@@ -74,6 +75,33 @@ export default function App() {
 
         window.addEventListener('hashchange', handleHashChange);
 
+        // The header "dark mode" is a problem, because it feels like too much work for an admin page.
+        // Attempt to set it to light mode; see the header's application.js
+        localStorage.setItem('theme', "light");
+        cacheFetchText(import.meta.env.VITE_HTML_EXTERNAL_HEADER_URL, {
+            method: 'GET'
+        }, null).then(text => {
+            var noScriptText = headerFooterProcessing(import.meta.env.VITE_HTML_EXTERNAL_HEADER_URL, text);
+            setExternalHeaderHtml(noScriptText);
+
+            // Begin processing footer only when header is finished
+            cacheFetchText(import.meta.env.VITE_HTML_EXTERNAL_FOOTER_URL, {
+                method: 'GET'
+            }, null).then(text => {
+                var noScriptText = headerFooterProcessing(import.meta.env.VITE_HTML_EXTERNAL_FOOTER_URL, text);
+                setExternalFooterHtml(noScriptText);
+
+                // TODO: move remainderText into config as it is specific to the external header, or maybe inline
+                // TODO: do something about the header css required, bootstrap.min, autocomplete.min, autocomplete-extra.min
+                var remainderText = "<script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/jquery.min.js\"></script>\n" +
+                    "    <script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/bootstrap.min.js\"></script>\n" +
+                    "    <script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/autocomplete.min.js\"></script>\n" +
+                    "    <script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/application.js\"></script>"
+
+                headerFooterProcessing(import.meta.env.VITE_HTML_EXTERNAL_HEADER_URL, remainderText);
+            });
+        });
+
         // Cleanup when the component is unmounted
         // return () => {
         //     console.log("remove popstate listener")
@@ -91,6 +119,17 @@ export default function App() {
             setQueryString('')
         }
     }, [location]);
+
+    // Update the external header logined/logged out status should the currentUser or externalHeaderHtml change
+    useEffect(() => {
+        const signedOutElements = document.querySelectorAll('div.signedOut');
+        if (currentUser?.isAdmin()) {
+            signedOutElements.forEach(element => {
+                element.classList.remove('signedOut');
+                element.classList.add('signedIn');
+            });
+        }
+    }, [currentUser, externalHeaderHtml])
 
     // const breadcrumbItems = breadcrumbMap.map(item => item.title);
     const breadcrumbItems = breadcrumbs.map((breadcrumb: Breadcrumb, index) => {
@@ -122,8 +161,33 @@ export default function App() {
                 logout_uri: import.meta.env.VITE_OIDC_REDIRECT_URL
             }
         });
+
+        // TODO: update header css "signedIn" class to "signedOut"
     };
 
+    function headerFooterProcessing(sourceUrl: string, text: string) : string {
+        // do substitutions of the template
+        text = text.replace(/::loginURL::/g, "\" disabled=\"disabled");
+        text = text.replace(/::logoutURL::/g, "\" disabled=\"disabled");
+
+        // This might do nothing because currentUser is likely undefined at this point
+        if (currentUser?.isAdmin()) {
+            text = text.replace(/::loginStatus::/g, "signedIn");
+        } else {
+            text = text.replace(/::loginStatus::/g, "signedOut");
+        }
+
+        // This is a potential issue if relative paths are not substituted correctly because the app base url is
+        // used first and this can prevent the css being applied correctly.
+        var baseUrl = sourceUrl.replace(/\/[^/]*$/, "/");
+        text = text.replace(/<img src="img\//g, "<img src=\"" + baseUrl + "img/");
+
+        var noScriptText = text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
+
+        loadJavascript(text)
+
+        return noScriptText;
+    }
     function getUser(): User | null | undefined {
         return auth.user
     }
@@ -161,63 +225,116 @@ export default function App() {
         })
     }
 
+    // Intercepts header and footer clicks to handle login and logout
+    function clickHandler(e: any) {
+        if (e.target.classList.contains('ala-header-button-sign-in')) {
+            if (login) {
+                login();
+            }
+            e.preventDefault()
+        } else if (e.target.classList.contains('ala-header-button-sign-out')) {
+            if (logout) {
+                logout();
+            }
+            e.preventDefault()
+        }
+    }
+
+    // Loads the text and any inline or remote scripts correctly.
+    function loadJavascript(text: string) {
+        var srcUrl;
+        var srcText;
+        var script1 = text.match(/(<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>)/g);
+        if (script1 && script1.length > 0) {
+            text = text.replace(script1[0], "");
+            var srcMatches = script1[0].match(/src=["']([^'"]*)/)
+            if (srcMatches && srcMatches.length > 1) {
+                srcUrl = srcMatches[1]
+            } else {
+                // get inner script
+                var txt = script1[0].match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+                if (txt && txt.length > 1) {
+                    srcText = txt[1]
+                }
+            }
+        }
+
+        if (srcUrl) {
+            if (alreadyLoaded.indexOf(srcUrl) < 0) {
+                const script = document.createElement("script");
+                script.src = srcUrl;
+                script.async = true;
+                script.onload = () => loadJavascript(text);
+                document.body.appendChild(script);
+
+                alreadyLoaded.push(srcUrl);
+            }
+        } else if (srcText) {
+            if (alreadyLoaded.indexOf(srcText) < 0) {
+                const script = document.createElement("script");
+                script.innerHTML = srcText;
+                script.async = true;
+                script.onload = () => loadJavascript(text);
+                document.body.appendChild(script);
+
+                alreadyLoaded.push(srcText);
+            }
+        }
+    }
+
     return (
         <UserContext.Provider value={currentUser}>
             <main>
-                {/*<Modal title="About" opened={auth.isLoading} onClose={() => console.log("auth checked")}>*/}
-                {/*    <Group>*/}
-                {/*        <Loader color="orange"/>*/}
-                {/*        <Text>Logging in...</Text>*/}
-                {/*    </Group>*/}
-                {/*</Modal>*/}
-            </main>
-            <main>
-                <header className="bg-black" style={{paddingBottom: "26px", paddingTop: "15px"}}>
-                    <div className="container-fluid">
-                        <div className="d-flex gap-3">
-                            <div className="">
-                                <a href="/" className="">
-                                    <img className="logoImage" src={import.meta.env.VITE_LOGO_URL} alt="ALA logo"
-                                         width={'335px'} style={{marginTop: '10px', marginLeft: '14px'}}/>
-                                </a>
-                            </div>
+                {/*the default header when there is no external header*/}
+                {!externalHeaderHtml &&
+                    <header className="bg-black" style={{paddingBottom: "26px", paddingTop: "15px"}}>
+                        <div className="container-fluid">
+                            <div className="d-flex gap-3">
+                                <div className="">
+                                    <a href="/" className="">
+                                        <img className="logoImage" src={import.meta.env.VITE_LOGO_URL} alt="ALA logo"
+                                             width={'335px'} style={{marginTop: '10px', marginLeft: '14px'}}/>
+                                    </a>
+                                </div>
 
-                            {/*<form className="col-12 col-lg-auto mb-3 mb-lg-0 me-lg-3">*/}
-                            {/*    <input type="search" className="form-control form-control-dark" placeholder="Search..."*/}
-                            {/*           aria-label="Search"/>*/}
-                            {/*</form>*/}
-                            <div className="d-flex ms-auto align-items-center">
-                                <ul className="nav">
-                                    <li>
-                                        <a href="https://www.ala.org.au/contact-us/" target="_blank"
-                                           className="nav-link text-white">Contact us</a>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div className="vr d-flex text-white"></div>
-                            <div className="d-flex align-items-center">
-                                {currentUser ? (
-                                    <>
-                                        <button type="button" onClick={myProfile}
-                                                className="btn text-white border-white text-end">
-                                            Profile
-                                            - {currentUser?.user()?.profile?.name || (currentUser?.user()?.profile?.given_name + ' ' + currentUser?.user()?.profile?.family_name)} {currentUser?.isAdmin() ? '(ADMIN)' : ''}
-                                        </button>
-                                        <button type="button" onClick={logout}
-                                                className="btn text-white border-white text-end">Logout
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <button type="button" onClick={() => login()}
-                                                className="btn text-white border-white text-end">Login
-                                        </button>
-                                    </>
-                                )}
+                                <div className="d-flex ms-auto align-items-center">
+                                    <ul className="nav">
+                                        <li>
+                                            <a href="https://www.ala.org.au/contact-us/" target="_blank"
+                                               className="nav-link text-white">Contact us</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div className="vr d-flex text-white"></div>
+                                <div className="d-flex align-items-center">
+                                    {currentUser ? (
+                                        <>
+                                            <button type="button" onClick={myProfile}
+                                                    className="btn text-white border-white text-end">
+                                                Profile
+                                                - {currentUser?.user()?.profile?.name || (currentUser?.user()?.profile?.given_name + ' ' + currentUser?.user()?.profile?.family_name)} {currentUser?.isAdmin() ? '(ADMIN)' : ''}
+                                            </button>
+                                            <button type="button" onClick={logout}
+                                                    className="btn text-white border-white text-end">Logout
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button type="button" onClick={() => login()}
+                                                    className="btn text-white border-white text-end">Login
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </header>
+                    </header>
+                }
+
+                {externalHeaderHtml &&
+                    <div onClick={clickHandler}
+                         dangerouslySetInnerHTML={{__html: externalHeaderHtml}}></div>
+                }
 
                 <div className="mt-0"/>
 
@@ -233,25 +350,17 @@ export default function App() {
                     </div>
                 </section>
 
-                {/*<div className="mt-1"/>*/}
-
                 <Routes>
-                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                   login={() => login()} logout={() => logout()}/>}/>
+                    <Route path="/"
+                           element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/dashboard"
                            element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/atlas-admin"
                            element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/data-quality-admin" element={<DataQualityAdmin
                         setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/vocab"
-                           element={<Vocab setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/atlas-index"
                            element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/api"
-                           element={<Api setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/map"
-                           element={<MapView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     <Route path="/occurrence-search"
                            element={<OccurrenceSearch
                                setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
@@ -261,11 +370,15 @@ export default function App() {
                     <Route path="/occurrence"
                            element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                                                 queryString={queryString}/>}/>
-                    <Route path="/species"
-                           element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                queryString={queryString}/>}/>
                 </Routes>
 
+                {externalFooterHtml &&
+                    <div onClick={clickHandler}
+                         dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
+                }
+
+                <link rel="stylesheet" type="text/css"
+                      href={import.meta.env.VITE_CSS_EXTERNAL_TEST}/>
             </main>
         </UserContext.Provider>
     );
