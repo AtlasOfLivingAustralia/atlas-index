@@ -3,9 +3,9 @@ import { Link, Route, Routes, useLocation } from 'react-router-dom';
 import { Breadcrumb, ListsUser } from './api/sources/model';
 import { User } from 'oidc-client-ts';
 import { useAuth } from 'react-oidc-context';
-import { Anchor, Box, Container, Divider, Space, Title } from '@mantine/core';
+import { Anchor, Box, Container, Divider, Space } from '@mantine/core';
 
-import { Footer, Header, IndigenousAcknowledgement } from "ala-mantine";
+import { Footer, Header, IndigenousAcknowledgement } from "@atlasoflivingaustralia/ala-mantine";
 import Species from './views/Species';
 
 import "@fontsource/roboto";
@@ -104,19 +104,6 @@ const App: React.FC = () => {
         return <div>Configuration error... {auth.error.message}</div>;
     }
 
-    const myProfile = () => {
-        window.location.href = import.meta.env.VITE_OIDC_AUTH_PROFILE
-    };
-
-    const logout = () => {
-        auth.signoutRedirect({
-            extraQueryParams: {
-                client_id: auth.settings.client_id,
-                logout_uri: import.meta.env.VITE_OIDC_REDIRECT_URL
-            }
-        });
-    };
-
     function getUser(): User | null | undefined {
         return auth.user
     }
@@ -157,31 +144,29 @@ const App: React.FC = () => {
     return (
         <UserContext.Provider value={currentUser}>
             <Header
-                onAuthClick={login} 
+                onAuthClick={login}
                 isAuthenticated={currentUser ? true : false}
             />
              { breadcrumbItems.length > 0 && // Some pages don't have breadcrumbs or include them in the page
                 <Box className={classes.header}>
                     <Container py="lg" size="lg">
-                        <BreadcrumbSection breadcrumbValues={breadcrumbs} />    
+                        <BreadcrumbSection breadcrumbValues={breadcrumbs} />
                     </Container>
-                </Box> 
+                </Box>
             }
             <Routes>
-                <Route 
-                    path="/" 
+                <Route
+                    path="/"
                     element={
-                        <Home 
+                        <Home
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                            login={() => login()}
-                            logout={() => logout()}
                         />
                     }
                 />
-                <Route 
+                <Route
                     path="/species"
                     element={
-                        <Species 
+                        <Species
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                             queryString={queryString}
                         />

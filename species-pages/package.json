@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "homepage": "https://ala-index.dev.ala.org.au/species",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -10,12 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@atlasoflivingaustralia/ala-mantine": "0.1.2",
     "@fontsource/roboto": "^5.0.13",
     "@mantine/core": "^7.11.2",
     "@mantine/hooks": "^7.11.2",
     "@tabler/icons-react": "^3.11.0",
+    "@types/dompurify": "^3.0.5",
     "@types/swagger-ui-react": "^4.18.3",
-    "ala-mantine": "file:.yalc/ala-mantine",
     "bootstrap-icons": "^1.11.3",
     "chart.js": "^4.4.2",
     "dompurify": "^3.1.6",

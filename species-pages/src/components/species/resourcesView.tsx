@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Anchor, Box, Button, Code, Divider, Grid, Notification, Skeleton, Space, Table, Text, Title } from '@mantine/core';
-import { IconArrowRight } from '@tabler/icons-react';
-import classes from '../species/species.module.css';
-import LargeLinkButton from '../common/ExternalLinkButton';
+import { Anchor, Box, Divider, Grid, Notification, Skeleton, Space, Table, Text, Title } from '@mantine/core';
+import LargeLinkButton from '../common/externalLinkButton';
 import FormatName from '../nameUtils/formatName';
 
 interface MapViewProps {
@@ -62,11 +60,10 @@ function ResourcesView({ result }: MapViewProps) {
         const searchQuery = encodeURIComponent('"' + s.join('" OR "') + '"');
 
         // Generate link for humans
-        // https://biodiversitylibrary.org/search?SearchTerm="Macropus giganteus"+OR+"Macropus giganteus tasmaniensis"&SearchCat=M#/names
-        setBhlQuery(`https://biodiversitylibrary.org/search?SearchTerm=${searchQuery}&SearchCat=M#/names`); 
+        setBhlQuery(import.meta.env.VITE_APP_BHL_URL + `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`);
 
         let url =
-            'https://www.biodiversitylibrary.org/api3' +
+            import.meta.env.VITE_APP_BHL_URL + '/api3' +
             '?op=PublicationSearch' +
             '&searchterm=' +
             searchQuery +
@@ -92,7 +89,7 @@ function ResourcesView({ result }: MapViewProps) {
                 setLoading(false);
             });
     }, [result]);
-    
+
     const onlineResources: Resource[] = [
         {
             name: <>Australian Reference<br/> Genome Atlas (ARGA)</>,
@@ -134,7 +131,7 @@ function ResourcesView({ result }: MapViewProps) {
             <Title order={3} mb="md" mt="md">
                 Literature
             </Title>
-            
+
             <Title order={4} c="gray" mb="sm" mt="sm">
                 Biodiversity Heritage Library (BHL)
             </Title>
@@ -168,10 +165,10 @@ function ResourcesView({ result }: MapViewProps) {
                         </Table.Thead>
                         <Table.Tbody>
                             { bhl.map((resource, index) => (
-                                index < maxBhlSize && 
+                                index < maxBhlSize &&
                                     <Table.Tr>
                                         <Table.Td style={{verticalAlign: 'top'}}>
-                                            {index + 1} 
+                                            {index + 1}
                                             </Table.Td>
                                         <Table.Td>
                                             {/* <Code>{JSON.stringify(resource)}</Code> */}
@@ -195,7 +192,7 @@ function ResourcesView({ result }: MapViewProps) {
                                                     {")"}
                                                 </>)}
                                             {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
-                                                <>{resource.Authors?.length > 0 && ". "}<Text inherit span fs={resource.ItemUrl && 'italic'}> 
+                                                <>{resource.Authors?.length > 0 && ". "}<Text inherit span fs={resource.ItemUrl && 'italic'}>
                                                     <Anchor fz="md" inherit href={resource.PartUrl || resource.ItemUrl} target="bhl">
                                                         {resource.Title}
                                                     </Anchor>.</Text>
@@ -236,7 +233,7 @@ function ResourcesView({ result }: MapViewProps) {
             { !loading && (!bhl || bhl.length === 0) &&
                 <Text mt="md">No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
             }
-            
+
             <Space h="lg" />
             <Divider mt="lg" mb="lg"/>
             <Title order={4} c="gray" mb="lg" mt="lg">Online resources</Title>

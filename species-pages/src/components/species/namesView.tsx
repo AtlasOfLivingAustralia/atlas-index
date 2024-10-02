@@ -1,5 +1,4 @@
 import { Anchor, Box, Flex, Table, Text, Title } from "@mantine/core";
-import DOMPurify from "dompurify";
 import classes from "./species.module.css";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 // import './species.module.css';
@@ -23,16 +22,17 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Tbody>
                 <Table.Tr>
                     <Table.Td>
-                        <Text 
+                        <Text
                             dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(
+                                // this is from our names index and is already sanitized
+                                __html:
                                     // TODO: find a better way to apply CSS rules
                                     result?.nameFormatted
                                         .replace(/class="scientific-name rank-subspecies"/g, `class="${classes.rankSpecies}"`)
                                         .replace(/class="scientific-name rank-species"/g, `class="${classes.rankSpecies}"`)
                                         .replace(/class="scientific-name rank-genus"/g, `class="${classes.rankSpecies}"`)
                                         .replace(/class="name"/g, `class="${classes.name}"`)
-                                ) 
+
                             }}
                         ></Text>
                     </Table.Td>
@@ -49,10 +49,11 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {result?.synonyms && result.synonyms.map((item, idx) =>
+                    {result?.synonyms && result.synonyms.map((item : any, idx: any) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
+                                // this is from our names index and already sanitized
+                                __html: item?.nameFormatted}}></Text>
                             </Table.Td>
                             <Table.Td>
                                 {item?.infoSourceURL ?
@@ -74,10 +75,11 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {result?.variants && result.synonyms.map((item, idx) =>
+                    {result?.variants && result.synonyms.map((item: any, idx: any) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
+                                // this is from our names index and already sanitized
+                                __html: item?.nameFormatted}}></Text>
                             </Table.Td>
                             <Table.Td>
                                 {item?.infoSourceURL ?
@@ -99,10 +101,11 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                    {result?.identifiers && result.synonyms.map((item, idx) =>
+                    {result?.identifiers && result.synonyms.map((item: any, idx: any) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(item?.nameFormatted)}}></Text>
+                                // this is from our names index and already sanitized
+                                __html: item?.nameFormatted}}></Text>
                             </Table.Td>
                             <Table.Td>
                                 {item?.infoSourceURL ?
@@ -125,7 +128,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                {result?.commonNames && result.commonNames.map((item, idx) =>
+                {result?.commonNames && result.commonNames.map((item: any, idx: any) =>
                     item?.status !== 'traditionalKnowledge' &&
                     <Table.Tr key={idx}>
                         <Table.Td>{item?.nameString}</Table.Td>
@@ -148,10 +151,10 @@ function NamesView({ result }: MapViewProps) {
             </Flex>
             <Text fz="sm">
                 The links from the Indigenous name provide more information about Indigenous Ecological
-                Knowledge (IEK) relating to the species. The link from language group links to the 
-                Australian Institute of Aboriginal and Torres Strait Islander Studies 
-                (<Anchor href="https://aiatsis.gov.au" target="_source">AIATSIS</Anchor>) 
-                information about the language. 
+                Knowledge (IEK) relating to the species. The link from language group links to the
+                Australian Institute of Aboriginal and Torres Strait Islander Studies
+                (<Anchor href="https://aiatsis.gov.au" target="_source">AIATSIS</Anchor>)
+                information about the language.
             </Text>
             <Table striped="even" mt="sm">
                 <Table.Thead>
@@ -161,7 +164,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
-                {result?.commonNames && result.commonNames.map((item, idx) =>
+                {result?.commonNames && result.commonNames.map((item: any, idx: any) =>
                     item?.status === 'traditionalKnowledge' &&
                     <Table.Tr key={idx}>
                         <Table.Td>{item?.nameString}</Table.Td>

@@ -29,7 +29,7 @@ function DescriptionView({result}: MapViewProps) {
         setLoading(true)
         fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_')))
         .then(response => response.text()).then(text => {
-            parseText(text, true, name)
+            parseText(text, name)
         })
         .catch(error => {
             console.error('Error:', error);
@@ -45,7 +45,7 @@ function DescriptionView({result}: MapViewProps) {
         // })
     }
 
-    function parseText(text: string, testPage: boolean, targetName: string) {
+    function parseText(text: string, targetName: string) {
 
         // check for a redirect "mw:PageProp/redirect"
         const parser = new DOMParser();
@@ -135,7 +135,7 @@ function DescriptionView({result}: MapViewProps) {
                 newSections.push({
                     title: title,
                     innerItem: item.innerHTML.replace(/href="\.\//g, "href=\"https://wikipedia.org/wiki/"),
-                    sourceHtml: <Text span><Anchor href={`https://wikipedia.org/wiki/${encodeURI(targetName)}`} 
+                    sourceHtml: <Text span><Anchor href={`https://wikipedia.org/wiki/${encodeURI(targetName)}`}
                         target='wikipedia'>Wikipedia</Anchor>&nbsp;–&nbsp;some content may be excluded.</Text>,
                     rights: <Anchor href='https://creativecommons.org/licenses/by-sa/4.0/'>Creative Commons Attribution-ShareAlike License 4.0</Anchor>
                 })
@@ -152,7 +152,7 @@ function DescriptionView({result}: MapViewProps) {
     }
 
     return <>
-        { loading && 
+        { loading &&
                     <Box>
                         <Skeleton height={40} mt="lg" width="20%" radius="md" />
                         <Skeleton height={800} mt="lg" width="90%" radius="md" />
@@ -161,12 +161,12 @@ function DescriptionView({result}: MapViewProps) {
         { sections && sections.map((section, idx) =>
             <Box key={idx}>
                 <Title order={3} mb="md" mt="md">{section.title}</Title>
-                <Box className={classes.speciesSectionText} 
+                <Box className={classes.speciesSectionText}
                     dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(section.innerItem, 
+                        __html: DOMPurify.sanitize(section.innerItem,
                         // strip style attribute to avoid odd looking font face and font colour issues
-                        { FORBID_ATTR: ['style'] } 
-                        ) 
+                        { FORBID_ATTR: ['style'] }
+                        )
                     }}
                 ></Box>
                 <Flex gap="md">

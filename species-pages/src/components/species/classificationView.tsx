@@ -11,13 +11,13 @@ interface ViewProps {
 function ClassificationView({result}: ViewProps) {
     const [children, setChildren] = useState<any[]>([]);
     const [hierarchy, setHierarchy] = useState<any[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [errorMessage, setErrorMessage] = useState<string>('');
+    const [loading] = useState<boolean>(false);
+    const [errorMessage] = useState<string>('');
 
     useEffect(() => {
         if (result?.guid) {
-            fetch("http://localhost:8081/v1/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:\"" + encodeURIComponent(result.guid) + "\"").then(response => response.json()).then(data => {
-                data.searchResults.sort((a, b) => (a.nameComplete < b.nameComplete ? -1 : (a.nameComplete > b.nameComplete ? 1 : 0)))
+            fetch(import.meta.env.VITE_APP_BIE_URL + "/v1/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:\"" + encodeURIComponent(result.guid) + "\"").then(response => response.json()).then(data => {
+                data.searchResults.sort((a: any, b: any) => (a.nameComplete < b.nameComplete ? -1 : (a.nameComplete > b.nameComplete ? 1 : 0)))
                 setChildren(data.searchResults)
             })
         }
@@ -43,12 +43,12 @@ function ClassificationView({result}: ViewProps) {
                 { loading &&
                     <Skeleton height={40} />
                 }
-                { errorMessage && 
+                { errorMessage &&
                     <Text c="red">{errorMessage}</Text>
                 }
                 { hierarchy && hierarchy.map((item, idx) =>
-                    <Flex 
-                        key={idx} 
+                    <Flex
+                        key={idx}
                         data-guid={item.guid}
                         className={ idx === hierarchy.length -1 ? classes.currentTaxa : "" }
                         style={{
@@ -61,8 +61,8 @@ function ClassificationView({result}: ViewProps) {
                     </Flex>
                 )}
                 { children && children.map((child, idx) =>
-                    <Flex 
-                        key={idx} 
+                    <Flex
+                        key={idx}
                         style={{
                             marginLeft: (hierarchy.length * 20 + 1) + "px"
                         }}

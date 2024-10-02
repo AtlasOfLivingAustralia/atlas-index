@@ -9,11 +9,11 @@ interface MapViewProps {
     result?:  Record<PropertyKey, string | number | any >
 }
 
-interface TraitLoadings {
-    type: null | 'count' | 'summary';
-    loading: null | boolean;
-    errorMessage: null | string;
-}
+// interface TraitLoadings {
+//     type: null | 'count' | 'summary';
+//     loading: null | boolean;
+//     errorMessage: null | string;
+// }
 
 function TraitsView({ result }: MapViewProps) {
 
@@ -255,8 +255,8 @@ function TraitsView({ result }: MapViewProps) {
                     </Anchor>
                 </Text>
                 <Image src={import.meta.env.VITE_APP_AUSTRAITS_LOGO} alt="Austraits logo" mt="lg" mb="lg"/>
-                <Paper 
-                    mt="lg" 
+                <Paper
+                    mt="lg"
                     p="md"
                     radius="md"
                     className={classes.citeAusTraits}
@@ -279,27 +279,27 @@ function TraitsView({ result }: MapViewProps) {
                 <Space />
             </Grid.Col>
             <Grid.Col span={{ base: 12, md: 8, lg: 8 }}>
-                { loadingCounts && 
+                { loadingCounts &&
                     <>
                         <Skeleton height={75} mt="lg" width="90%" radius="md" />
                         <Skeleton height={40} mt="lg" width="50%" radius="md" />
                     </>
                 }
-                { errorMessageCounts && 
-                    <Notification 
-                        withBorder 
+                { errorMessageCounts &&
+                    <Notification
+                        withBorder
                         onClose={() => setErrorMessageCounts('')}
                         title="Error loading trait data"
                     >
                         {errorMessageCounts}
                     </Notification>
                 }
-                { traitsText && 
+                { traitsText &&
                     <>
                         <Text dangerouslySetInnerHTML={{
                                 __html: DOMPurify.sanitize(traitsText)}}></Text>
                         <Flex gap="lg" mt="lg" mb="lg" direction={{ base: 'column', md: 'row' }}>
-                            <Button 
+                            <Button
                                 variant="outline"
                                 onClick={() => {
                                     window.open(import.meta.env.VITE_AUSTRAITS_DEFINITIONS, '_blank');
@@ -308,7 +308,7 @@ function TraitsView({ result }: MapViewProps) {
                             >
                                 AusTraits definitions
                             </Button>
-                            <Button 
+                            <Button
                                 variant="outline"
                                 onClick={() => {
                                     window.open(import.meta.env.VITE_APP_BIE_URL + "/download-taxon-data" + getAusTraitsParam(), '_blank');
@@ -318,8 +318,8 @@ function TraitsView({ result }: MapViewProps) {
                                 Download CSV
                             </Button>
                         </Flex>
-                        
-                        {traits?.categorical_traits?.length > 0  && 
+
+                        {traits?.categorical_traits?.length > 0  &&
                             <>
                                 <Title order={3} mb="md" mt="md">Categorical Traits</Title>
                                 { hasMoreValues &&
@@ -342,8 +342,8 @@ function TraitsView({ result }: MapViewProps) {
                                                 <Table.Td>{item.trait_name}</Table.Td>
                                                 <Table.Td>{item.trait_values}</Table.Td>
                                                 <Table.Td>
-                                                    <UnstyledButton 
-                                                        variant="default" 
+                                                    <UnstyledButton
+                                                        variant="default"
                                                         size="sm"
                                                         onClick={() => {
                                                             window.open(item.definition, '_blank');
@@ -361,22 +361,22 @@ function TraitsView({ result }: MapViewProps) {
                     </>
                 }
 
-                { loadingSummary && 
+                { loadingSummary &&
                     <>
                         <Skeleton height={40} mt="lg" width="40%" radius="md" />
                         <Skeleton height={800} mt="lg" width="90%" radius="md" />
                     </>
                 }
-                { errorMessageSummary && 
-                    <Notification 
-                        withBorder 
+                { errorMessageSummary &&
+                    <Notification
+                        withBorder
                         onClose={() => setErrorMessageSummary('')}
                         title="Error loading trait data"
                     >
                         {errorMessageSummary}
                     </Notification>
                 }
-                { traits?.numeric_traits?.length > 0  && 
+                { traits?.numeric_traits?.length > 0  &&
                     <>
                         <Title order={3} mb="md" mt="md">Numeric Traits</Title>
                         <Table striped="even" mb="sm" mt="sm">
@@ -399,8 +399,8 @@ function TraitsView({ result }: MapViewProps) {
                                         <Table.Td>{item.max}</Table.Td>
                                         <Table.Td>{item.unit}</Table.Td>
                                         <Table.Td>
-                                            <UnstyledButton 
-                                                variant="default" 
+                                            <UnstyledButton
+                                                variant="default"
                                                 size="sm"
                                                 onClick={() => {
                                                     window.open(item.definition, '_blank');

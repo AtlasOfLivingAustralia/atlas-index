@@ -18,7 +18,7 @@ interface MediaTypes {
 interface Items {
     id: string;
     type: string;
-}  
+}
 
 interface FacetResult {
     count: number
@@ -49,7 +49,7 @@ const fieldMapping = {
         'Occurrence': 'Observations',
         'Not supplied': 'Observations'
     },
-    license: {  
+    license: {
         'CC0': 'CC0',
         'CC-BY 4.0 (Int)': 'CC-BY',
         'CC-BY-NC': 'CC-BY-NC',
@@ -77,7 +77,7 @@ const fieldLink: Record<string, string[]> = {
 function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (filterded)
+    //const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
     const [mediaType, setMediaType] = useState<string>('all'); // image, video, sound
@@ -93,7 +93,7 @@ function ImagesView({result}: MediaViewProps) {
     const [expandCollapseState, setExpandCollapseState] = useState({
         license: false,
         dataResourceName: false,
-        basisOfRecord: false 
+        basisOfRecord: false
     });
     const toggleExpandCollapse = (facet: keyof typeof expandCollapseState) => {
         setExpandCollapseState(prevState => ({
@@ -106,7 +106,7 @@ function ImagesView({result}: MediaViewProps) {
     const pageSize = 10;
     const facetLimit = 15;
     const maxVisibleFacets = 4;
-    const biocacheBaseUrl = "https://biocache-ws.ala.org.au/ws"; // import.meta.env.VITE_APP_BIOCACHE_URL;
+    const biocacheBaseUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
     const mediaFqMap: Record<PropertyKey, string> = {
         all: "&fq=multimedia:*",
         image: "&fq=multimedia:Image",
@@ -118,7 +118,7 @@ function ImagesView({result}: MediaViewProps) {
         fetchImages(true); // fetch images with user filters
         fetchImages(false); // fetch facet results for unfiltered query
     }, [result, page, sortDir, fqUserTrigged, mediaType]);
-    
+
     function fetchImages(includeUserFq: boolean = true) {
         if (!result?.guid) {
             return;
@@ -130,7 +130,7 @@ function ImagesView({result}: MediaViewProps) {
             return fqParts.length > 0 ? fqParts.join("") : '';
         }
 
-        const facets = `&facets=${facetFields.join(',')}`; 
+        const facets = `&facets=${facetFields.join(',')}`;
         const pageSizeRequest = includeUserFq ? pageSize : 0;
         const mediaFq = mediaFqMap[mediaType] || '&fq=multimedia:*';
         const userFq = includeUserFq ? transformFqUserTrigged() : '';
@@ -179,7 +179,7 @@ function ImagesView({result}: MediaViewProps) {
                     if (page == 0) {
                         setItems(list);
                         setOccurrenceCount(data.totalRecords);
-                        setFacetResultsFiltered(data.facetResults);
+                        //setFacetResultsFiltered(data.facetResults);
                     } else {
                         setItems([...items, ...list]);
                     }
@@ -220,7 +220,7 @@ function ImagesView({result}: MediaViewProps) {
         return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
     }, [facetResults]);
 
-    // Helper to invert a Record<string, string> object to Record<string, string[]>  
+    // Helper to invert a Record<string, string> object to Record<string, string[]>
     // E.g., `{a: 'one', b: 'one, c: 'two'} -> {one: ['a','b'], two: ['c']}`
     function invertObject(obj: Record<string, string>): Record<string, string[]> {
         return Object.fromEntries(
@@ -239,7 +239,7 @@ function ImagesView({result}: MediaViewProps) {
         setOpenModalId(id);
         open();
     };
-    
+
     const handleCloseModal = () => {
         setOpenModalId(null);
         close();
@@ -253,35 +253,35 @@ function ImagesView({result}: MediaViewProps) {
         return (fqTriggeredForField) ? fqTriggeredForField?.includes(facetValue) : false;
     };
 
-    const filteredCountIsZero = (fieldName: string, label: string): boolean => 
-        getMinRecordCount(fieldName, label) > 0;
-    
+    // const filteredCountIsZero = (fieldName: string, label: string): boolean =>
+    //     getMinRecordCount(fieldName, label) > 0;
+
 
     // Get the minimum record count for a facet value by inspecting both facetResults and facetResultsFiltered
-    const getMinRecordCount = (fieldName: string, label: string): number => 
-        facetResultsFiltered.length === 0 
-            ? facetResults?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0
-            : facetResultsFiltered?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0;
-    
+    // const getMinRecordCount = (fieldName: string, label: string): number =>
+    //     facetResultsFiltered.length === 0
+    //         ? facetResults?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0
+    //         : facetResultsFiltered?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0;
+
 
     // Check if a facet will show zero results if clicked (should be shown as disabled)
     // If only one checkbox is active in a group and no other groups, then the checkbox should be enabled (OR logic)
     // If multiple checkboxes are active in multiple groups, then only non-zero facetResults are active (AND logic)
     // TODO: Potentially confusing for users, might need to be rethought
-    const fqValueIsDisabled = (facetName: string, facetValue: string, fqValue: string): boolean => {
-        const isChecked = fqValueIsActive(facetName, fqValue);
-        const isZero = filteredCountIsZero(facetName, facetValue);
-        const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== facetName).every(key => fqUserTrigged[key].length === 0);   
-        // console.log('fqValueIsDisabled', facetName, facetValue, isChecked, isZero, onlyOneFilterActiveInSameGroup);
-        return !isChecked && !isZero && !onlyOneFilterActiveInSameGroup;
-    };
+    // const fqValueIsDisabled = (facetName: string, facetValue: string, fqValue: string): boolean => {
+    //     const isChecked = fqValueIsActive(facetName, fqValue);
+    //     const isZero = filteredCountIsZero(facetName, facetValue);
+    //     const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== facetName).every(key => fqUserTrigged[key].length === 0);
+    //     // console.log('fqValueIsDisabled', facetName, facetValue, isChecked, isZero, onlyOneFilterActiveInSameGroup);
+    //     return !isChecked && !isZero && !onlyOneFilterActiveInSameGroup;
+    // };
 
     // Checkbox group reusable component
     const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets, grouped = false }: { fieldName: string, limit?: number, grouped?: boolean }) => {
         // Update the fqUserTrigged state when clicked
         const updateUserFqs = (fq: string, active: boolean) => {
             setPage(0);
-            !active 
+            !active
                 ? setFqUserTrigged(prevState => {
                     const newFq = { ...prevState };
                     newFq[fieldName] = [...(newFq[fieldName] || []), fq];
@@ -302,8 +302,8 @@ function ImagesView({result}: MediaViewProps) {
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
             const syntheticFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
                 const avilableValues = fieldsToDisplay?.filter(field => values.includes(field.label));
-                
-                // If no `facetResults` values are available for the synthetic field, 
+
+                // If no `facetResults` values are available for the synthetic field,
                 // then we need to create an empty entry with count 0 (disabled)
                 if (!avilableValues || avilableValues.length === 0) {
                     return { label: key, count: 0, fq: '', i18nCode: '' };
@@ -318,24 +318,24 @@ function ImagesView({result}: MediaViewProps) {
             });
 
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
-        } 
+        }
 
         // Get the display count for a facet value - if a filter is active, then may be 2 values -> total / filtered
         // Potentially confusing for users, might need to be rethought
         // Not currently used -> TODO: delete if not needed
-        const getDisplayCount = (fieldName: string, label: string, count: number): string => {
-            const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);    
-            // console.log('getDisplayCount', fieldName, label, count, onlyOneFilterActiveInSameGroup, getMinRecordCount(fieldName, label));
-            return count == getMinRecordCount(fieldName, label) || onlyOneFilterActiveInSameGroup 
-                ? count?.toString() 
-                : `${count} / ${getMinRecordCount(fieldName, label)}`;
-        }
-        
+        // const getDisplayCount = (fieldName: string, label: string, count: number): string => {
+        //     const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);
+        //     // console.log('getDisplayCount', fieldName, label, count, onlyOneFilterActiveInSameGroup, getMinRecordCount(fieldName, label));
+        //     return count == getMinRecordCount(fieldName, label) || onlyOneFilterActiveInSameGroup
+        //         ? count?.toString()
+        //         : `${count} / ${getMinRecordCount(fieldName, label)}`;
+        // }
+
         return (
             <>
-                {fieldsToDisplay?.map((item, idx) => 
+                {fieldsToDisplay?.map((item, idx) =>
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
-                        <Checkbox 
+                        <Checkbox
                             size="xs"
                             // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
                             // disabled={fqValueIsDisabled(fieldName, item.label, item.fq)}
@@ -344,14 +344,14 @@ function ImagesView({result}: MediaViewProps) {
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
                                 <Text span c={item.count === 0 ? 'gray' : 'default'}>
-                                { fieldLink[fieldName] 
-                                    ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor> 
+                                { fieldLink[fieldName]
+                                    ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor>
                                     : item.label }
                                 </Text>
-                                <Badge 
-                                    variant="light" 
-                                    color="rgba(100, 100, 100, 1)" 
-                                    ml={8} pt={2} pr={8} pl={8} 
+                                <Badge
+                                    variant="light"
+                                    color="rgba(100, 100, 100, 1)"
+                                    ml={8} pt={2} pr={8} pl={8}
                                     radius="lg"
                                 >
                                     {/* {getDisplayCount(fieldName, item.label, item.count)} */}
@@ -363,28 +363,28 @@ function ImagesView({result}: MediaViewProps) {
                     </Collapse>
                 )}
                 {fieldsToDisplay?.length > limit &&
-                    <Anchor 
-                        onClick={() => toggleExpandCollapse(fieldName as keyof typeof expandCollapseState)} 
-                        mt={5} 
+                    <Anchor
+                        onClick={() => toggleExpandCollapse(fieldName as keyof typeof expandCollapseState)}
+                        mt={5}
                         style={{ width: '80%', display: 'block', textAlign: 'center'}}
                     >
-                        {expandCollapseState[fieldName as keyof typeof expandCollapseState] 
-                            ? <IconChevronUp /> 
+                        {expandCollapseState[fieldName as keyof typeof expandCollapseState]
+                            ? <IconChevronUp />
                             : <IconChevronDown />
                         }
                     </Anchor>
                 }
             </>
         );
-    }; 
+    };
 
     return (
         <Box>
             <Flex gap="md" mt="md" direction={{ base: 'column', sm: 'row' }}>
             { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
-                <Button 
+                <Button
                     key={idx}
-                    variant={key === mediaType ? 'filled' : 'outline'} 
+                    variant={key === mediaType ? 'filled' : 'outline'}
                     onClick={() => {
                         resetView();
                         setMediaType(key);
@@ -395,7 +395,7 @@ function ImagesView({result}: MediaViewProps) {
             <Text mt="lg" mb="md" size="md" fw="bold">
                 Showing {occurrenceCount > 0 ? (occurrenceCount < (page+1)*pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
                 of {formatNumber(occurrenceCount)} results.{' '}
-                <Anchor 
+                <Anchor
                     href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
                     target="_blanks"
                     inherit
@@ -403,22 +403,22 @@ function ImagesView({result}: MediaViewProps) {
             </Text>
             <Grid>
                 <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
-                    <Flex gap="sm" 
+                    <Flex gap="sm"
                         justify="flex-start"
                         align="flex-start"
                         direction="row"
                         wrap="wrap"
                     >
                         {items && items.map((item, idx) =>
-                            <Flex 
+                            <Flex
                                 key={idx}
                                 justify="center"
                             >
-                                {item.type === 'image' && 
+                                {item.type === 'image' &&
                                     <>
                                         <UnstyledButton onClick={() => handleOpenModal(item.id)}>
-                                            <Image 
-                                                radius="md" 
+                                            <Image
+                                                radius="md"
                                                 h={210}
                                                 maw={260}
                                                 src={ getImageThumbnailUrl(item.id) }
@@ -429,8 +429,8 @@ function ImagesView({result}: MediaViewProps) {
                                             opened={opened && openModalId === item.id}
                                             onClose={handleCloseModal}
                                             size="auto"
-                                            title={ <Anchor 
-                                                    display="block" 
+                                            title={ <Anchor
+                                                    display="block"
                                                     target="_blank"
                                                     ml={5}
                                                     fw="bold"
@@ -439,23 +439,23 @@ function ImagesView({result}: MediaViewProps) {
                                                     href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
                                                 >View image file details <IconExternalLink size={20}/></Anchor>}
                                         >
-                                            <Image 
-                                                radius="md" 
+                                            <Image
+                                                radius="md"
                                                 src={ getImageOriginalUrl(item.id) }
                                             />
                                         </Modal>
                                     </>}
-                                {item.type === 'sound' && 
+                                {item.type === 'sound' &&
                                     <Flex maw={240} h={200} justify="center" align="center" direction="column">
                                         <audio key={idx} controls preload="auto" style={{ maxWidth: '240px'}}>
-                                            <source 
-                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
-                                                type="audio/mpeg" 
+                                            <source
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
+                                                type="audio/mpeg"
                                                 width={240}
                                             />
                                         </audio>
-                                        <Anchor 
-                                            display="block" 
+                                        <Anchor
+                                            display="block"
                                             target="_blank"
                                             mt="xs"
                                             size="sm"
@@ -463,11 +463,11 @@ function ImagesView({result}: MediaViewProps) {
                                         >Sound file details</Anchor>
                                     </Flex>
                                 }
-                                {item.type === 'video' && 
+                                {item.type === 'video' &&
                                     <Flex maw={240} h={200} justify="center" align="center" direction="column">
                                         <video key={idx} controls preload="auto" style={{ maxWidth: '240px', maxHeight: '170px'}}>
-                                            <source 
-                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`} 
+                                            <source
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
                                                 height={200}
                                                 width={240}
                                                 // Magpie examples use "video/3gpp" but hard-coding this still does not show the video content, just sound.
@@ -475,8 +475,8 @@ function ImagesView({result}: MediaViewProps) {
                                                 // Platypus page does contain video content, which plays in place.
                                             />
                                         </video>
-                                        <Anchor 
-                                            display="block" 
+                                        <Anchor
+                                            display="block"
                                             target="_blank"
                                             size="sm"
                                             mt="xs"
@@ -486,8 +486,8 @@ function ImagesView({result}: MediaViewProps) {
                                 }
                             </Flex>
                         )}
-                        { loading && 
-                            [...Array(10)].map((_ , idx) => 
+                        { loading &&
+                            [...Array(10)].map((_ , idx) =>
                                 <Box key={idx} w={260} h={210}>
                                     <Skeleton height="100%" width="100%" radius="md" />
                                 </Box>
@@ -496,9 +496,9 @@ function ImagesView({result}: MediaViewProps) {
                     </Flex>
                     {items && items.length > 0 &&
                         <Flex justify="center" align="center">
-                            <Button 
-                                mt="lg" 
-                                variant="default" 
+                            <Button
+                                mt="lg"
+                                variant="default"
                                 radius="xl"
                                 pr={40}
                                 pl={50}
@@ -515,23 +515,23 @@ function ImagesView({result}: MediaViewProps) {
                         <Text fw="bold">Refine view</Text>
                     </Flex>
                     <Divider mt="lg" mb="lg" />
-                    
+
                     <Text fw="bold" mb="sm">Sort by</Text>
-                    <Radio.Group 
+                    <Radio.Group
                         classNames={{ label: classes.gallerySortLabel }}
                         value={sortDir}
-                        onChange={(value: string) => { 
-                            resetView(); 
+                        onChange={(value: string) => {
+                            resetView();
                             setSortDir(value as 'desc' | 'asc')
                         }}
                     >
-                        <Radio  
-                            size="xs" 
-                            value="desc" 
+                        <Radio
+                            size="xs"
+                            value="desc"
                             styles={{ inner: { marginTop: 2} }}
                             label="Latest" />
-                        <Radio 
-                            size="xs"  
+                        <Radio
+                            size="xs"
                             value="asc"
                             styles={{ inner: { marginTop: 2} }}
                             label="Oldest" />
@@ -548,10 +548,10 @@ function ImagesView({result}: MediaViewProps) {
 
                     <Text fw="bold" mb="sm">Dataset</Text>
                     <FilterCheckBoxGroup fieldName="dataResourceName" />
-                    
-                    <Button 
-                        mt="lg" 
-                        variant="default" 
+
+                    <Button
+                        mt="lg"
+                        variant="default"
                         radius="xl"
                         fullWidth
                         onClick={() => {

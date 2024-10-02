@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, WMSTileLayer } from 'react-leaflet';
-import { LatLng, map} from "leaflet";
+import { LatLng} from "leaflet";
 import { FullscreenControl } from "react-leaflet-fullscreen";
 import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Image, Overlay, Popover, Radio, Switch, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
@@ -32,7 +32,7 @@ interface Distribution {
     checked?: boolean;
 }
 
-function MapView({queryString, tab, result}: MapViewProps) {
+function MapView({tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
     const [showOccurrences, setShowOccurrences] = useState<string>('');
     const [baseLayers, setBaseLayers] = useState('default');
@@ -71,12 +71,12 @@ function MapView({queryString, tab, result}: MapViewProps) {
     function formatNumber(occurrenceCount: any) {
         return occurrenceCount.toLocaleString();
     }
-    
+
     function createAlertForTaxon(guid: string | undefined) {
         // TODO: Implement alert creation
         return `javascript:alert('TODO: Create alert for taxon ${guid}')`;
     };
-    
+
     const onlineResources: OnlineResource[] = [
         {
             name: <>Explore and download <br/>occurrence records</>,
@@ -143,7 +143,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
 
     return <>
         { result.conservationStatuses &&
-            <Alert icon={<IconFlagFilled />} style={{ display: 'inline-block' }} mt="lg" pt={7} pb={6} pr="lg"> 
+            <Alert icon={<IconFlagFilled />} style={{ display: 'inline-block' }} mt="lg" pt={7} pb={6} pr="lg">
                 This species is <Text fw={600} inherit span>considered sensitive</Text> in at least one jurisdiction. Some or all occurrence data has been
                 obfuscated. <Anchor inherit href="#">More info</Anchor>.
             </Alert>
@@ -158,8 +158,8 @@ function MapView({queryString, tab, result}: MapViewProps) {
             <Switch
                 // display="none"
                 size="md"
-                onLabel="D" 
-                offLabel="S" 
+                onLabel="D"
+                offLabel="S"
                 label={<Text c="grey" fs="lg" pt={1}>Demo mode</Text>}
                 checked={mapType === 'leaflet'}
                 onChange={(event) => setMapType(event.currentTarget.checked ? 'leaflet' : 'static')}
@@ -171,46 +171,46 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 width: "100%",
                 borderRadius: "10px",
             }}>
-                <Popover 
+                <Popover
                     width="auto"
-                    withArrow 
+                    withArrow
                     arrowSize={10}
                     offset={-120}
                     shadow="md"
                     middlewares={{ flip: false, shift: false }}
-                    opened={opened} 
+                    opened={opened}
                     onChange={setOpened}
                     floatingStrategy="fixed"
                     position="bottom" // {{ base: 'bottom', lg: 'right'}}
                 >
                     <Popover.Target>
                         <span style={{ display: 'block', cursor: 'pointer' }} onClick={() => setOpened((o) => !o)}>
-                            { mapType === 'leaflet' && 
+                            { mapType === 'leaflet' &&
                                 <Box pos="relative">
-                                    <MapContainer 
-                                        ref={mapRef} 
-                                        center={center} 
-                                        zoom={4} 
+                                    <MapContainer
+                                        ref={mapRef}
+                                        center={center}
+                                        zoom={4}
                                         // zoomControl={false}
-                                        // scrollWheelZoom={false} 
-                                        worldCopyJump={true} 
+                                        // scrollWheelZoom={false}
+                                        worldCopyJump={true}
                                         style={{height: "530px", borderRadius: "10px"}}
                                     >
-                                        { baseLayers === 'default' && 
+                                        { baseLayers === 'default' &&
                                             <TileLayer
                                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                                 url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
                                                 zIndex={1}
                                             />
                                         }
-                                        { baseLayers === 'terrain' && 
+                                        { baseLayers === 'terrain' &&
                                             <TileLayer
                                                 attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
                                                 url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                                                 zIndex={1}
                                             />
                                         }
-                                        { showOccurrences && 
+                                        { showOccurrences &&
                                             <WMSTileLayer
                                                 url={getAlaWmsUrl(showOccurrences)}
                                                 layers="ALA:occurrences"
@@ -220,7 +220,7 @@ function MapView({queryString, tab, result}: MapViewProps) {
                                                 zIndex={15}
                                             />
                                         }
-                                        { distributions && distributions.map((dist, idx) => 
+                                        { distributions && distributions.map((dist, idx) =>
                                             dist.checked && <WMSTileLayer
                                                 key={idx}
                                                 url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${dist.geomIdx}&`}
@@ -232,13 +232,13 @@ function MapView({queryString, tab, result}: MapViewProps) {
                                                 attribution={dist.dataResourceName}
                                                 zIndex={10}
                                             />
-                                        )}  
+                                        )}
                                         <FullscreenControl position={"topleft"}/>
                                     </MapContainer>
                                     {/* <Overlay color="#000" backgroundOpacity={0} blur={0} /> */}
                                 </Box>
                             }
-                            { mapType === 'static' && 
+                            { mapType === 'static' &&
                                 <Flex align="center" justify="center" w="100%" py={38}>
                                     <Image src={generateStaticMapImageUrl()} alt={`Record density map`} maw="512px" />
                                 </Flex>
@@ -247,8 +247,8 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     </Popover.Target>
                     <Popover.Dropdown style={{ textAlign: 'center' }} maw="95%">
                         <Button variant="filled" fullWidth
-                            onClick={() => { 
-                                window.open(`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}#mapView`, '_map') 
+                            onClick={() => {
+                                window.open(`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}#mapView`, '_map')
                             }}
                             size="md">
                             View an interactive version of this map
@@ -268,13 +268,13 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 { mapType === 'static' && distributions && distributions.map((dist, idx) =>
                     <Box key={idx}>
                         <Divider mt="lg" mb="lg" />
-                        <Text fw="bold" fz="lg" mt="sm">{dist.areaName || 'Expert distribution '} provided 
+                        <Text fw="bold" fz="lg" mt="sm">{dist.areaName || 'Expert distribution '} provided
                             by <Anchor inherit href={`${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}`}
                             target="_blank">{dist.dataResourceName}</Anchor></Text>
                         <Image src={dist.url} alt={`Expert distribution map`}  w="512px"/>
                     </Box>
                 )}
-                
+
             </Box>
             <Box pos="relative" pl={5} className={classes.hideMobile}>
                 <Flex justify="flex-start" align="center" gap="sm">
@@ -282,28 +282,28 @@ function MapView({queryString, tab, result}: MapViewProps) {
                     <Text fw="bold">Refine view</Text>
                 </Flex>
                 <Divider mt="lg" mb="lg" />
-                <Checkbox checked={showOccurrences.length > 0} size="xs" 
-                    onChange={() => {setShowOccurrences(showOccurrences.length > 0 ? '' : result?.guid)}} 
+                <Checkbox checked={showOccurrences.length > 0} size="xs"
+                    onChange={() => {setShowOccurrences(showOccurrences.length > 0 ? '' : result?.guid)}}
                     label="Species records" />
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="sm">Expert distribution maps</Text>
                 { distributions && distributions.map((dist, idx) =>
                     <Box key={idx}>
-                        <Checkbox 
-                            checked={dist.checked} 
-                            onChange={() => { 
-                                const updatedDistributions = distributions.map((d, i) => 
+                        <Checkbox
+                            checked={dist.checked}
+                            onChange={() => {
+                                const updatedDistributions = distributions.map((d, i) =>
                                     i === idx ? { ...d, checked: !d.checked } : d
                                 );
                                 setDistributions(updatedDistributions);
-                            }} 
-                            size="xs" 
+                            }}
+                            size="xs"
                             id={"dist" + idx}
                             label={
                                 <>{dist.areaName}<Text fs='normal' fz='sm' mt={4}>provided by{' '}
                                     <Anchor inherit href="#">{dist.dataResourceName}</Anchor></Text>
                                 </>
-                            } 
+                            }
                         />
                     </Box>
                 )}
@@ -312,27 +312,27 @@ function MapView({queryString, tab, result}: MapViewProps) {
                 }
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="md">Map type</Text>
-                <Radio.Group 
+                <Radio.Group
                     value={baseLayers}
                     onChange={setBaseLayers}
-                > 
+                >
                     <Radio size="xs" value="default"
                         label="Default" />
                     <Radio size="xs"  value="terrain"
                         label="Terrain" />
                 </Radio.Group>
-                <Button 
-                    mt="lg" 
+                <Button
+                    mt="lg"
                     display='none' // TODO: Remove this line if not using as "reset map" button
-                    variant="default" 
+                    variant="default"
                     radius="xl"
                     fullWidth
                     rightSection={<IconReload />}
-                    onClick={() => { 
+                    onClick={() => {
                         alert('Bang, goes the totally redundant button');
                     }}
                 >Refresh</Button>
-                { mapType === 'static' && 
+                { mapType === 'static' &&
                     <Overlay color="#000" backgroundOpacity={0} blur={2} />
                 }
             </Box>

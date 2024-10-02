@@ -26,7 +26,7 @@ function DatasetsView({result}: MapViewProps) {
 
         setLoading(true);
         setErrorMessage('');
-        fetch("https://biocache.ala.org.au/ws/occurrences/search?q=lsid:\"" + encodeURIComponent(result.guid) + "\"&pageSize=0&facet=true&facets=dataResourceUid", {
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search?q=lsid:\"" + encodeURIComponent(result.guid) + "\"&pageSize=0&facet=true&facets=dataResourceUid", {
             headers: { 'Content-Type': 'application/json' }
         })
             .then(response => response.json())
@@ -40,14 +40,14 @@ function DatasetsView({result}: MapViewProps) {
                             name: item.label,
                             dataResourceUid: dr,
                             records: item.count,
-                            licence: "" 
+                            licence: ""
                         });
                         drs.push("id:" + dr)
                     }
                 }
 
                 // get licences
-                fetch("http://localhost:8081/v2/search?q=idxtype:DATARESOURCE&fq=" + encodeURIComponent(drs.join(" OR ")) + "&fl=id,license&pageSize=1000", {
+                fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=idxtype:DATARESOURCE&fq=" + encodeURIComponent(drs.join(" OR ")) + "&fl=id,license&pageSize=1000", {
                     headers: {
                         'Content-Type': 'application/json'
                     }
@@ -83,11 +83,11 @@ function DatasetsView({result}: MapViewProps) {
         return {
             head: ['Dataset', 'Licence', 'Records'],
             body: datasets.map((item) => [
-                <Anchor target="_blank" href={"https://collections.ala.org.au/public/show/" + item.dataResourceUid}>
+                <Anchor target="_blank" href={import.meta.env.VITE_APP_COLLECTORY_URL + "/public/show/" + item.dataResourceUid}>
                     {item.name}
                 </Anchor>,
                 item.licence,
-                <Anchor target="_blank" href={"https://biocache.ala.org.au/occurrences/search?q=lsid:\"" + result?.guid 
+                <Anchor target="_blank" href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/search?q=lsid:\"" + result?.guid
                     + "\"&fq=dataResourceUid:" + item.dataResourceUid}>
                     {item.records.toLocaleString()}
                 </Anchor>
@@ -101,17 +101,17 @@ function DatasetsView({result}: MapViewProps) {
             <Text fw="bold">About datasets</Text>
         </Flex>
         <Text mt="sm">
-            Much of the content in the Atlas of Living Australia, such as occurrence records, 
-            environmental data, images and the conservation status of species, comes from 
-            data sets provided by collecting institutions, government departments, individual 
-            collectors and community groups. 
+            Much of the content in the Atlas of Living Australia, such as occurrence records,
+            environmental data, images and the conservation status of species, comes from
+            data sets provided by collecting institutions, government departments, individual
+            collectors and community groups.
         </Text>
-        { loading && 
+        { loading &&
             <Skeleton height={800} mt="lg" width="100%" radius="md" />
         }
-        { errorMessage && 
-            <Notification 
-                withBorder 
+        { errorMessage &&
+            <Notification
+                withBorder
                 mt="lg"
                 onClose={() => setErrorMessage('')}
                 title="Error loading datasets"
@@ -120,10 +120,10 @@ function DatasetsView({result}: MapViewProps) {
             </Notification>
         }
         { datasets.length > 0 &&
-            <Table 
-                striped="even" 
-                data={populateTableData()} 
-                mt="lg" 
+            <Table
+                striped="even"
+                data={populateTableData()}
+                mt="lg"
             />
         }
     </>

@@ -1,6 +1,6 @@
 import { Anchor, Breadcrumbs, Text } from '@mantine/core';
 import { IconChevronLeft } from '@tabler/icons-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Breadcrumb } from '../../api/sources/model';
 import classes from '../../App.module.css';
 import { Link } from 'react-router-dom';
@@ -24,7 +24,7 @@ const BreadcrumbSection: React.FC<BreadcrumbsProps> = ({
                 <>{breadcrumb.title}</>
             )
             }
-        
+
         </>
       );
   });

@@ -5,7 +5,7 @@ import {Link} from "react-router-dom";
 import { rem, Box, Button, Container, Group, Space, Text, TextInput, Title, Anchor, List, Divider } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 
-function Home({setBreadcrumbs, login, logout}: {
+function Home({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
     login?: () => void,
     logout?: () => void
@@ -39,7 +39,7 @@ function Home({setBreadcrumbs, login, logout}: {
                             value={simpleTaxa}
                             size="md"
                             mt="md"
-                            style={{ width: '80%' }} 
+                            style={{ width: '80%' }}
                             onChange={(e) => setSimpleTaxa(e.target.value)}
                             placeholder="Enter species/taxon"
                             rightSectionWidth="auto"
@@ -68,50 +68,50 @@ function Home({setBreadcrumbs, login, logout}: {
                     <Space h="md" />
                     <List>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/2a4e373b-913a-4e2a-a53f-74828f6dae7e"
                             >Emu – <i>Dromaius novaehollandiae</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/55213c39-1809-442e-b5fb-03fb99e8d97a"
                             >Australian King-Parrot – <i>Alisterus scapularis</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5"
                             >Australian Magpie – <i>Gymnorhina tibicen</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/c0c829b2-834e-4cf9-b288-2cc2035573ff"
                             >Barramundi – <i>Lates calcarifer</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://id.biodiversity.org.au/taxon/apni/51436646"
                             >Golden Wattle – <i>Acacia pycnantha</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531"
                             >Swamp Wallaby – <i>Wallabia bicolor</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/ac61fd14-4950-4566-b384-304bd99ca75f"
                             >Duck-Billed Platypus – <i>Ornithorhynchus anatinus</i></Anchor>
                         </List.Item>
                         <List.Item>
-                            <Anchor 
-                                component={Link} 
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/f557abd1-fc45-4152-869e-b31d4b5d886e"
                             >Common Bearded Dragon – <i>Pogona barbata</i></Anchor>
                         </List.Item>
