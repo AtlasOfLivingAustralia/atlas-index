@@ -10,7 +10,7 @@ Generate ALA token for profiles API access
 1. Create an application with userdetails, "my applications" page.
 2. Request an increase to the token expiry for this clientID. At least 1 day.
 3. Generate a token for this clientID.
-4. Save the `access_token` value to a file, e.g. `/data/ala-token`, or as defined in `config.json`.
+4. Save the `access_token` value to a file, e.g. `/data/alaToken`, or as defined in `config.json`.
 
 Get list of wikipedia titles 
 1. Download the latest wikipedia titles list from `https://dumps.wikimedia.org/enwiki/latest/`, `enwiki-latest-all-titles-in-ns0`.
@@ -65,6 +65,16 @@ The output json consists of metadata and HTML content for a map of accepted taxo
   }
 }
 ```
+
+## Merging data sources
+
+Runnign with the `{filename}` as `merge` to merge. This merges all of the data sources, including the
+`overrides.json`, into the output directory as `./{last2TaxonIChars}/{URL encoded taxonID}.json`.
+
+TODO: more info on merging
+- errors.csv
+- testing some of the output JSON
+- copying to an appropriate destination
 
 ## Errors
 

@@ -125,7 +125,7 @@ public class FetchData {
     }
 
     private static void mergeSources(List sources) throws IOException, CsvValidationException {
-        List<Map<String, Map<String, String>>> allData = new ArrayList<>();
+        List<Map> allData = new ArrayList<>();
         List<Map<String, String>> allMetadata = new ArrayList<>();
 
         // read overrides
@@ -144,7 +144,7 @@ public class FetchData {
             File file = new File(filename);
             if (file.exists()) {
                 System.out.println("loading: " + json);
-                Map<String, Map<String, String>> data = new ObjectMapper().readValue(file, Map.class);
+                Map data = new ObjectMapper().readValue(file, Map.class);
                 allData.add(data);
                 allMetadata.add(metadataItem);
             } else if ("wikipedia".equalsIgnoreCase(json)) {
@@ -152,8 +152,10 @@ public class FetchData {
 
                 // This will build the wikipedia.json file, if it is not already built.
                 // For including the latest wikipedia page parsing.
-                Map<String, Map<String, String>> wikipedia = loadWikipedia();
-                allData.add(wikipedia);
+                Map wikipedia = loadWikipedia();
+                Map wrapper = new HashMap();
+                wrapper.put("taxa", wikipedia);
+                allData.add(wrapper);
                 allMetadata.add(metadataItem);
             } else {
                 System.out.println("cannot find file:" + filename);
@@ -185,19 +187,24 @@ public class FetchData {
 
             Map<String, Map<String, String>> override = overrides.get(guid);
 
+            int sourceCount = 0;
+
             for (int i = 0; i < allData.size(); i++) {
-                Map<String, Map<String, String>> taxa = allData.get(i);
+                Map<String, Map<String, String>> taxa = (Map<String, Map<String, String>>) allData.get(i).get("taxa");
                 if (taxa == null) {
                     continue;
                 }
 
+                // "item" is a map with "url", "name", "attribution", and the optional fields
                 Map<String, String> item = taxa.get(guid);
                 if (item != null) {
+                    sourceCount++;
+
                     Map<String, String> metadata = allMetadata.get(i);
                     String url = item.get("url");
 
                     Map<String, String> mergedItem = new HashMap<>();
-                    Map<String, String> overrideItem = override.get(allMetadata.get(i).get("filename"));
+                    Map<String, String> overrideItem = override != null ? override.get(allMetadata.get(i).get("filename")) : null;
                     if (overrideItem != null) {
                         if (overrideItem.isEmpty()) {
                             // do not merge when removing content
@@ -210,10 +217,20 @@ public class FetchData {
                     }
 
                     mergedItem.put("name", metadata.get("name"));
-                    mergedItem.put("attribution", metadata.get("attribution").replace("*URL*", url));
 
-                    merged.add(mergedItem);
+                    String attribution = metadata.get("attribution");
+                    mergedItem.put("attribution", attribution.replace("*URL*", url));
+
+                    // Do not add the merged item if it is empty.
+                    // It is empty when when it has only "url", "name" and "attribution".
+                    if (mergedItem.size() > 3) {
+                        merged.add(mergedItem);
+                    }
                 }
+            }
+
+            if (sourceCount > 1) {
+                System.out.println("merged " + guid + " from " + sourceCount + " sources");
             }
 
             if (!merged.isEmpty()) {
