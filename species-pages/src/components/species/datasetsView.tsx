@@ -83,7 +83,7 @@ function DatasetsView({result}: MapViewProps) {
         return {
             head: ['Dataset', 'Licence', 'Records'],
             body: datasets.map((item) => [
-                <Anchor target="_blank" href={import.meta.env.VITE_APP_COLLECTORY_URL + "/public/show/" + item.dataResourceUid}>
+                <Anchor target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + "/public/show/" + item.dataResourceUid}>
                     {item.name}
                 </Anchor>,
                 item.licence,

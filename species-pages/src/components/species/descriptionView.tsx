@@ -1,177 +1,72 @@
-import { Box, Flex, Title, Text, Anchor, Skeleton } from "@mantine/core";
+import {Box, Flex, Title, Text, Divider, Skeleton, Space} from "@mantine/core";
 import { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 import classes from "./species.module.css";
+import {IconInfoCircleFilled} from "@tabler/icons-react";
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any >
 }
 
-interface Section {
-    title: string | undefined;
-    innerItem: string;
-    sourceHtml: string | JSX.Element;
-    rights: string | JSX.Element;
-}
-
 function DescriptionView({result}: MapViewProps) {
-    const [sections, setSections] = useState<Section[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [descriptions, setDescriptions] = useState<any[]>([]);
 
     useEffect(() => {
         if (result?.name) {
-            fetchPage(result?.name)
+            fetchPage(result?.guid)
         }
     }, [result]);
 
-    function fetchPage(name: string) {
+    function fetchPage(lsid: string) {
 
         setLoading(true)
-        fetch("https://en.wikipedia.org/api/rest_v1/page/html/" + encodeURIComponent(name.replace(' ', '_')))
-        .then(response => response.text()).then(text => {
-            parseText(text, name)
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            setLoading(false);
+
+        // doubly encoded; once for the file name, once for service (e.g. Cloudfront or http-server) that translate the URL encoding to the file name
+        var lsidEncoded = encodeURIComponent(encodeURIComponent(lsid))
+
+        fetch(import.meta.env.VITE_TAXON_DESCRIPTIONS_URL + "/" + lsidEncoded.substring(lsidEncoded.length - 2) + "/" + lsidEncoded + ".json")
+        .then(response => response.json()).then(json => {
+            setDescriptions(json)
         })
         .finally(() => {
-            // setLoading(false); // Moved to parseText which is slowwwww
+            setLoading(false);
         })
-
-        // TODO: remove test example for live fetch
-        // fetch("http://localhost:8082/static/wiki/Test.html").then(response => response.text()).then(text => {
-        //     parseText(text, true, name)
-        // })
-    }
-
-    function parseText(text: string, targetName: string) {
-
-        // check for a redirect "mw:PageProp/redirect"
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        const redirect = doc.querySelector('link[rel="mw:PageProp/redirect"]');
-
-        if (redirect) {
-            const redirectItem = redirect.getAttribute('href')?.replace(/^.*\//, '');
-            if (redirectItem) {
-                fetchPage(redirectItem)
-            }
-            return;
-        }
-
-        const selectorsToRemove = [
-            '.infobox',
-            '.infobox.biota',
-            '.mw-editsection',
-            '.navbar',
-            '.reference',
-            '.error',
-            '.box-Unreferenced_section',
-            '.portalbox',
-            '.clade',
-        ];
-
-        for (const selector of selectorsToRemove) {
-            for (const item of doc.querySelectorAll(selector)) {
-                item.remove();
-            }
-        }
-
-        const node: HTMLElement | null = doc.querySelector('body');
-
-        var newSections: Section[] = [];
-        // var tested = !testPage
-        // var valid = true;
-
-        if (!node) {
-            return
-        }
-
-        for (let item of node.children) {
-            if (item.tagName == "SECTION") {
-                // basic test for validity
-                // TODO: enable this test. Today it is using static data for a fixed taxon so it will fail on all other taxon
-                // if (!tested) {
-                //     var uppercaseData = text.toUpperCase()
-                //     tested = true
-                //     valid = false
-                //     if (result?.data?.rk_family) {
-                //         valid = uppercaseData.indexOf(result?.data?.rk_family.toUpperCase()) > 0
-                //     }
-                //     if (!valid && result?.data?.rk_order) {
-                //         valid = uppercaseData.indexOf(result?.data?.rk_family.toUpperCase()) > 0
-                //     }
-                //     if (!valid && result?.data?.rk_class) {
-                //         valid = uppercaseData.indexOf(result?.data?.rk_class.toUpperCase()) > 0
-                //     }
-                //     if (!valid && result?.data?.rk_phylum) {
-                //         valid = uppercaseData.indexOf(result?.data?.rk_phylum.toUpperCase()) > 0
-                //     }
-                //     if (!valid) {
-                //         return
-                //     }
-                // }
-
-                // identify the title
-                var title
-                if (item.children?.item(0)?.tagName.match(/H[0-9]/)) {
-                    title = item.children.item(0)?.innerHTML
-                    item.children.item(0)?.remove()
-                } else {
-                    // description.title.default=Summary
-                    title = "Summary"
-                }
-
-                // keep only 'taxon identifiers' table, if it is present
-                var newItems = item.querySelectorAll('[aria-labelledby="Taxon_identifiers"]')
-                if (newItems && newItems.length > 0) {
-                    item = document.createElement("div")
-                    item.appendChild(newItems[0])
-                }
-
-                {/*wikipedia.licence.comment=Content may be excluded.*/}
-                {/*wikipedia.licence.label=Creative Commons Attribution-ShareAlike License 4.0*/}
-                newSections.push({
-                    title: title,
-                    innerItem: item.innerHTML.replace(/href="\.\//g, "href=\"https://wikipedia.org/wiki/"),
-                    sourceHtml: <Text span><Anchor href={`https://wikipedia.org/wiki/${encodeURI(targetName)}`}
-                        target='wikipedia'>Wikipedia</Anchor>&nbsp;–&nbsp;some content may be excluded.</Text>,
-                    rights: <Anchor href='https://creativecommons.org/licenses/by-sa/4.0/'>Creative Commons Attribution-ShareAlike License 4.0</Anchor>
-                })
-            }
-
-            setSections(newSections)
-            setLoading(false)
-        }
-
-        // var valid = true
-        // node.each(function (idx, item) {
-        //     // include SECTIONS
-        // })
     }
 
     return <>
+        <Flex justify="flex-start" align="center" gap="xs" mb="sm">
+            <IconInfoCircleFilled size={18}/>
+            <Text fw={800} fz={16}>About descriptions</Text>
+        </Flex>
+        <Text fz="sm">
+            Descriptive content has been sourced from several authoritative sources of information e.g. museums and herbaria. Links to further information are included in each section.
+        </Text>
+        <Space h="px60" />
         { loading &&
                     <Box>
-                        <Skeleton height={40} mt="lg" width="20%" radius="md" />
-                        <Skeleton height={800} mt="lg" width="90%" radius="md" />
+                        {/*<Skeleton height={40} mt="lg" width="20%" radius="md" />*/}
+                        <Skeleton height={40} mt="lg" width="90%" radius="md" />
                     </Box>
                 }
-        { sections && sections.map((section, idx) =>
+        { descriptions && descriptions.map((description, idx) =>
             <Box key={idx}>
-                <Title order={3} mb="md" mt="md">{section.title}</Title>
-                <Box className={classes.speciesSectionText}
-                    dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(section.innerItem,
-                        // strip style attribute to avoid odd looking font face and font colour issues
-                        { FORBID_ATTR: ['style'] }
-                        )
-                    }}
-                ></Box>
-                <Flex gap="md">
-                    <Text>Source: { section.sourceHtml }</Text>
-                    <Text>Rights: { section.rights }</Text>
+                { idx > 0 && <Divider mt="px40" mb="px40"/> }
+                <Title order={3}>{description.name}</Title>
+                { description && Object.keys(description).map((key, idx) =>
+                    // if key is not in the list of keys to display, skip
+                    !['name', 'attribution', 'url'].includes(key) &&
+                        <Box key={idx} className={classes.speciesSection}>
+                            <Space h="px30"/>
+                            {/* The title 'summary' is present only on wikipedia data and should be suppressed */}
+                            { 'summary' !== key && <Title order={4} mb="px15" style={{ color: '#637073' }}>{key}</Title> }
+                            {/* TODO: content should be sanitized by the time it arrives on this page, by taxon-descriptions tool */}
+                            <Box className={classes.speciesSectionText} dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}} />
+                        </Box>
+                )}
+                <Flex gap="md" mt="px30">
+                    <Text>Source: </Text>
+                    <Text dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description.attribution)}}></Text>
                 </Flex>
             </Box>
         )}

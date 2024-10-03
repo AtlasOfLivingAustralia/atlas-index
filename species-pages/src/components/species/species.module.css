@@ -60,7 +60,7 @@
             color: var(--mantine-color-peacock-9);
         }
     }
-    
+
     @mixin dark {
         color: var(--mantine-color-glacial-2);
         &:hover {
@@ -85,7 +85,7 @@
         figcaption {
             font-size: var(--text-fz, var(--mantine-font-size-sm));
         }
-        
+
         audio {
             width: 250px;
             height: 54px;
@@ -114,4 +114,9 @@
 
 .rankName {
     margin-inline-end: 6px !important;
+}
+
+/* section for handling the cleansed species description HTML from profiles, wikipedia, etc */
+.speciesSectionText p {
+    margin-block: 0px;
 }

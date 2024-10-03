@@ -234,7 +234,7 @@ function Species({setBreadcrumbs, queryString}: {
                 </Tabs>
             </Box>
             <Container size="lg">
-                <Space h="xl" />
+                <Space h="px60" />
                 {tab === 'map' &&
                     <MapView result={result} tab={tab}/>
                 }

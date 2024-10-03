@@ -32,6 +32,18 @@ const oidcConfig = {
 
 };
 
+// TODO: When the UI is more or less finished, move this up to ala-mantine
+// TODO: Make spacing variable, in case it is used for a component that automatically changes between mobile and desktop
+// custom spacing
+Object.assign(theme, {
+    spacing: {
+        px60: "60px",
+        px40: "40px",
+        px30: "30px",
+        px15: "15px"
+    }
+});
+
 root.render(
     // TODO: react-leaflet does not handle strict mode
     <React.StrictMode>
