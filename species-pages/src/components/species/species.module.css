@@ -120,3 +120,13 @@
 .speciesSectionText p {
     margin-block: 0px;
 }
+
+/* TODO: there is an ongoing discussion about putting the pattern library colours into the theme so they can be used without additional lookups */
+.h4grey {
+    color: #637073 !important; /* grey */
+}
+
+/* TODO: fix usage of this override when https://github.com/AtlasOfLivingAustralia/ala-mantine/issues/11 is resolved */
+.primaryButton button {
+    height: 69px !important;
+}

@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+// TODO: When the new species group definitions are finalized (https://github.com/AtlasOfLivingAustralia/ux-ui/issues/162)
+//  major changes will be required to this implementation. The new JSON file format will match the namematching service.
+
 @Service
 public class SpeciesGroupService {
     private static final Logger logger = LoggerFactory.getLogger(SpeciesGroupService.class);

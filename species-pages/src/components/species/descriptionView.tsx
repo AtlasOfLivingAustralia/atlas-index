@@ -59,7 +59,7 @@ function DescriptionView({result}: MapViewProps) {
                         <Box key={idx} className={classes.speciesSection}>
                             <Space h="px30"/>
                             {/* The title 'summary' is present only on wikipedia data and should be suppressed */}
-                            { 'summary' !== key && <Title order={4} mb="px15" style={{ color: '#637073' }}>{key}</Title> }
+                            { 'summary' !== key && <Title order={4} mb="px15" className={classes.h4grey}>{key}</Title> }
                             {/* TODO: content should be sanitized by the time it arrives on this page, by taxon-descriptions tool */}
                             <Box className={classes.speciesSectionText} dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}} />
                         </Box>

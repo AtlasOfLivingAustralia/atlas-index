@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Anchor, Box, Divider, Grid, Notification, Skeleton, Space, Table, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, Divider, Grid, Notification, Skeleton, Space, Text, Title } from '@mantine/core';
 import LargeLinkButton from '../common/externalLinkButton';
 import FormatName from '../nameUtils/formatName';
+import classes from "./species.module.css";
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>;
@@ -41,7 +42,7 @@ function ResourcesView({ result }: MapViewProps) {
     const [bhlQuery, setBhlQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
-    const maxBhlSize: number = 10;
+    const maxBhlSize: number = 5;
 
     useEffect(() => {
         if (!result?.name || !result) {
@@ -82,7 +83,6 @@ function ResourcesView({ result }: MapViewProps) {
                 }
             })
             .catch((error) => {
-                console.error('Failed to fetch BHL data - ' + error);
                 setErrorMessage('Failed to fetch BHL data - ' + error);
             })
             .finally(() => {
@@ -90,6 +90,9 @@ function ResourcesView({ result }: MapViewProps) {
             });
     }, [result]);
 
+    /* TODO: Use the external spreadsheet for this managed list of resource links. It will include RULES that will be
+        used to determine which resources to display on the page. https://github.com/AtlasOfLivingAustralia/ux-ui/issues/255
+     */
     const onlineResources: Resource[] = [
         {
             name: <>Australian Reference<br/> Genome Atlas (ARGA)</>,
@@ -128,15 +131,19 @@ function ResourcesView({ result }: MapViewProps) {
     ];
     return (
         <Box>
-            <Title order={3} mb="md" mt="md">
+            <Title order={3}>
                 Literature
             </Title>
 
-            <Title order={4} c="gray" mb="sm" mt="sm">
+            <Space h="px30" />
+
+            <Title order={4} className={classes.h4grey}>
                 Biodiversity Heritage Library (BHL)
             </Title>
 
-            { loading && <Skeleton height={800} mt="lg" width="100%" radius="md" /> }
+            <Space h="px30" />
+
+            { loading && <Skeleton height={40} mt="lg" width="100%" radius="md" /> }
             { errorMessage && (
                 <Notification
                     withBorder
@@ -150,96 +157,86 @@ function ResourcesView({ result }: MapViewProps) {
             {
                 bhl && bhl.length > 0 &&
                 <>
-                    <Text mt="md">
+                    <Text>
                         Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} of {" "}
                         {bhl.length == 100 ? `${bhl.length}+` : bhl.length} result{bhl.length > 1 && 's'} for {" "}
                         <FormatName name={result?.name} rankId={result?.rankID} />.{" "}
-                        <Anchor inherit href={bhlQuery} target="bhl">View all results on BHL</Anchor>.
+                        <Anchor inherit href={bhlQuery} target="bhl">View all results</Anchor>.
                     </Text>
-                    <Table striped="even" verticalSpacing="sm" mt="xs" fz="md">
-                        <Table.Thead>
-                            <Table.Tr>
-                                <Table.Th>#</Table.Th>
-                                <Table.Th>Reference</Table.Th>
-                            </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                            { bhl.map((resource, index) => (
-                                index < maxBhlSize &&
-                                    <Table.Tr>
-                                        <Table.Td style={{verticalAlign: 'top'}}>
-                                            {index + 1}
-                                            </Table.Td>
-                                        <Table.Td>
-                                            {/* <Code>{JSON.stringify(resource)}</Code> */}
-                                            {resource.Authors?.length === 1 ? (
-                                                <>{resource.Authors[0].Name}</>
-                                            ) : (
+                    { bhl.map((resource, index) => (
+                        index < maxBhlSize &&
+                            <>
+                                <Space h="px15" />
+                                <Alert variant="ala-light">
+                                    {resource.Authors?.length === 1 ? (
+                                        <>{resource.Authors[0].Name}</>
+                                    ) : (
+                                        <>
+                                            {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
+                                            {resource.Authors?.length > 1 && (
                                                 <>
-                                                    {resource.Authors?.slice(0, -2).map((author) => author.Name).join(", ")}
-                                                    {resource.Authors?.length > 1 && (
-                                                        <>
-                                                            {resource.Authors?.length > 2 && ", "}
-                                                            {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
-                                                        </>
-                                                    )}
+                                                    {resource.Authors?.length > 2 && ", "}
+                                                    {resource.Authors?.slice(-2).map((author) => author.Name).join(" and ")}
                                                 </>
                                             )}
-                                            {resource.Authors?.length > 0 && (resource.Date || resource.PublicationDate) && (
-                                                <>
-                                                    {" ("}
-                                                    {resource.Date || resource.PublicationDate}
-                                                    {")"}
-                                                </>)}
-                                            {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
-                                                <>{resource.Authors?.length > 0 && ". "}<Text inherit span fs={resource.ItemUrl && 'italic'}>
-                                                    <Anchor fz="md" inherit href={resource.PartUrl || resource.ItemUrl} target="bhl">
-                                                        {resource.Title}
-                                                    </Anchor>.</Text>
-                                                </>)}
-                                            {resource.ContainerTitle && (
-                                                <> {" "}
-                                                    <i>{resource.ContainerTitle}</i>.
-                                                </>)}
-                                            {resource.PublisherName && (
-                                                <>{" "}
-                                                    {resource.PublisherName}.
-                                                </>
-                                            )}
-                                            {(!resource.Authors || resource.Authors?.length === 0) && resource.Date && (
-                                                <> {resource.Date}
-                                                    {"; "}
-                                                </>)}
-                                            {resource.Volume && (
-                                                <> {" "}
-                                                    <Text inherit span fw="bold">{resource.Volume}</Text>,
-                                                </>)}
-                                            {resource.Issue && (
-                                                <> {" ("}
-                                                    {resource.Issue}{")"},
-                                                </>)}
-                                            {resource.PageRange && (
-                                                <> {" "}
-                                                    {resource.PageRange}
-                                                </>)}
-                                        </Table.Td>
-                                    </Table.Tr>
-                                )
-                            )}
-                        </Table.Tbody>
-                    </Table>
+                                        </>
+                                    )}
+                                    {resource.Authors?.length > 0 && (resource.Date || resource.PublicationDate) && (
+                                        <>
+                                            {" ("}
+                                            {resource.Date || resource.PublicationDate}
+                                            {")"}
+                                        </>)}
+                                    {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
+                                        <>{resource.Authors?.length > 0 && ". "}<Text inherit span fs={resource.ItemUrl && 'italic'}>
+                                            <Anchor fz="md" inherit href={resource.PartUrl || resource.ItemUrl} target="bhl">
+                                                {resource.Title}
+                                            </Anchor>.</Text>
+                                        </>)}
+                                    {resource.ContainerTitle && (
+                                        <> {" "}
+                                            <i>{resource.ContainerTitle}</i>.
+                                        </>)}
+                                    {resource.PublisherName && (
+                                        <>{" "}
+                                            {resource.PublisherName}.
+                                        </>
+                                    )}
+                                    {(!resource.Authors || resource.Authors?.length === 0) && resource.Date && (
+                                        <> {resource.Date}
+                                            {"; "}
+                                        </>)}
+                                    {resource.Volume && (
+                                        <> {" "}
+                                            <Text inherit span fw="bold">{resource.Volume}</Text>,
+                                        </>)}
+                                    {resource.Issue && (
+                                        <> {" ("}
+                                            {resource.Issue}{")"},
+                                        </>)}
+                                    {resource.PageRange && (
+                                        <> {" "}
+                                            {resource.PageRange}
+                                        </>)}
+                                </Alert>
+                            </>
+                        )
+                    )}
+
                 </>
             }
             { !loading && (!bhl || bhl.length === 0) &&
-                <Text mt="md">No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
+                <Text>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
             }
 
-            <Space h="lg" />
-            <Divider mt="lg" mb="lg"/>
-            <Title order={4} c="gray" mb="lg" mt="lg">Online resources</Title>
-            <Grid mt="lg" gutter={{base: 15, md: 20, lg: 35}}>
+            <Space h="px60" />
+            <Divider/>
+            <Space h="px40" />
+            <Title order={3}>Other resources</Title>
+            <Space h="px30" />
+            <Grid gutter={{base: 15, md: 20, lg: 35}}>
                 {onlineResources.map((resource: Resource, idx) => (
-                    <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={idx}>
+                    <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={idx} className={classes.primaryButton}>
                         <LargeLinkButton url={resource.url} external={resource.external}>{resource.name}</LargeLinkButton>
                     </Grid.Col>
                 ))}
