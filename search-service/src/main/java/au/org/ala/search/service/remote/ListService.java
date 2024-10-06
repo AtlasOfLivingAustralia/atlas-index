@@ -48,6 +48,10 @@ public class ListService {
         return list("isAuthoritative=eq:true");
     }
 
+    public List<Map<String, Object>> sdsLists() {
+        return list("isSDS=eq:true");
+    }
+
     public List<Map<String, Object>> list(String params) {
         ResponseEntity<Map> response = restTemplate.exchange(
                 listsUrl + "/ws/speciesList?" + params + "&max=" + listsSearchMax,

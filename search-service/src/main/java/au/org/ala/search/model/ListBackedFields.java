@@ -4,7 +4,8 @@ public enum ListBackedFields {
     WIKI("wikiUrl_s"),
     HIDDEN("hiddenImages_s"),
     IMAGE("image"),
-    NOT_FOUND("");
+    NOT_FOUND(""),
+    NATIVE_INTRODUCED("native_introduced_s"); // JSON map of " Place: Status" pairs
 
     final public String field;
 

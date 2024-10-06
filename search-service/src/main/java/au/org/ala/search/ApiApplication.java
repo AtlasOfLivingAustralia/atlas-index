@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -36,6 +37,7 @@ import static org.apache.tomcat.util.buf.EncodedSolidusHandling.DECODE;
 @SpringBootApplication
 @EnableAsync
 @EnableCaching
+@EnableScheduling
 public class ApiApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiApplication.class);

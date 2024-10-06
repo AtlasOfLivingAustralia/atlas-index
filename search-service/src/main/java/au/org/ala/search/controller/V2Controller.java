@@ -1,6 +1,7 @@
 package au.org.ala.search.controller;
 
 import au.org.ala.search.service.auth.WebService;
+import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.queue.*;
@@ -10,6 +11,7 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
+import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -43,6 +45,7 @@ public class V2Controller {
     public static final String SPECIES_ID = "species_v2";
     public static final String SEARCH_AUTO_ID = "autocomplete_v2";
     public static final String LIST_ID = "list_v2";
+    private final ListCache listCache;
 
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     public String baseUrl;
@@ -56,7 +59,7 @@ public class V2Controller {
     protected final DownloadFileStoreService downloadFileStoreService;
     protected final WebService webService;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -65,6 +68,7 @@ public class V2Controller {
         this.queueService = queueService;
         this.downloadFileStoreService = downloadFileStoreService;
         this.webService = webService;
+        this.listCache = listCache;
     }
 
     @Tag(name = "Search")
@@ -151,6 +155,22 @@ public class V2Controller {
                 for (Object entry : data.entrySet()) {
                     taxon.put(((Map.Entry) entry).getKey(), ((Map.Entry) entry).getValue());
                 }
+            }
+
+            // Inject listId->name mapping so that it is available to the UI
+            Map<String, String> listNamesMap = new HashMap<>();
+            for (Object obj : taxon.keySet()) {
+                String key = (String) obj;
+                if (key.startsWith("iucn_") || key.startsWith("conservation_") || key.startsWith("sds_")) {
+                    String listId = key.replaceAll("iucn_|conservation_|sds_|_s", "");
+                    String name = listCache.listNames.get(listId);
+                    if (StringUtils.isNotEmpty(name)) {
+                        listNamesMap.put(listId, name);
+                    }
+                }
+            }
+            if (!listNamesMap.isEmpty()) {
+                taxon.put("listNames", listNamesMap);
             }
 
             result.add(taxon);

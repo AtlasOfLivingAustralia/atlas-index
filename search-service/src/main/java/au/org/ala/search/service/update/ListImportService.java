@@ -38,6 +38,7 @@ public class ListImportService {
     private String listsUiUrl;
     @Value("${lists.conservation.statusField}")
     private String listsConservationStatusField;
+    private String getListsConservationIUCNStatusField = "IUCN_equivalent_status";
     @Value("${lists.favourite.config}")
     private String favouriteConfig;
     @Value("${lists.images.ids}")
@@ -58,6 +59,9 @@ public class ListImportService {
 
     @Value("${lists.wiki.field}")
     private String listsWikiField;
+
+    @Value("${lists.native-introduced}")
+    private String nativeIntroduced;
 
     // used to surpress duplicate error messages
     private boolean kvpError;
@@ -94,6 +98,7 @@ public class ListImportService {
 
         // there are only a small number of authoritativeLists
         List<Map<String, Object>> lists = listService.authoritativeLists();
+        List<Map<String, Object>> sdsLists = listService.sdsLists();
         List<String> conservationLists = new ArrayList<>();
         List<String> attributeLists = new ArrayList<>();
         List<IndexQuery> authLists = processLists(existingLists, lists, conservationLists, attributeLists);
@@ -101,7 +106,12 @@ public class ListImportService {
         long deleted = elasticService.removeDeletedItems(existingLists);
         logService.log(taskType, "delete: " + deleted);
 
-        logService.log(taskType, "import conservation values");
+        // TODO: While this function will correctly handle the addition and update of species lists for each field in
+        //  the index, some, if not all, do not remove fields from the index when the associated list is also removed
+        //  or no longer in the category used to populate the index.
+        //  Need to fix this for at least these index fields: iucn_listId, conservation_listId, attributes_listId, sds_listId.
+
+        logService.log(taskType, "import conservation values (data.conservation_listId)");
         int conservationCounter = 0;
         for (String listId : conservationLists) {
             conservationCounter = importKvpList(
@@ -110,6 +120,29 @@ public class ListImportService {
                     (it -> {
                         for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
                             if (map.get("key").equals(listsConservationStatusField)) {
+                                return map.get("value");
+                            }
+                        }
+                        if (!kvpError) {
+                            logService.log(taskType, "Conservation list " + listId + " has a null value in field " + listsConservationStatusField);
+                            kvpError = true;
+                        }
+                        return null;
+                    }),
+                    true).size();
+        }
+
+        // IUCN status is found in conservation lists, but a different field.
+        logService.log(taskType, "import conservation values (data.iucn_listId)");
+        int conservationIUCNCounter = 0;
+        for (String listId : conservationLists) {
+            conservationIUCNCounter = importKvpList(
+                    Collections.singletonList(listId),
+                    "data.iucn_" + listId + "_s",
+                    (it -> {
+                        Map conservation = new HashMap();
+                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
+                            if (map.get("key").equals(getListsConservationIUCNStatusField)) {
                                 return map.get("value");
                             }
                         }
@@ -272,6 +305,56 @@ public class ListImportService {
                     true).size();
         }
 
+        // The expect input and output for native/introduced is explained here
+        // https://github.com/AtlasOfLivingAustralia/atlas-index/issues/11#issuecomment-2395219841
+        logService.log(taskType, "import native/introduced");
+        int nativeIntroducedCounter = 0;
+        if (StringUtils.isNotEmpty(nativeIntroduced)) {
+            nativeIntroducedCounter = importKvpList(
+                    Collections.singletonList(nativeIntroduced),
+                    ListBackedFields.NATIVE_INTRODUCED.field,
+                    (it -> {
+                        Map nativeIntroduced = new HashMap();
+                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
+                            String key = map.get("key");
+                            String value = map.get("value");
+                            if (key.endsWith(" Status") && StringUtils.isNotEmpty(value)) {
+                                nativeIntroduced.put(key.substring(0, key.length() - 7), value);
+                            }
+                        }
+
+                        String result = null;
+                        if (!nativeIntroduced.isEmpty()) {
+                            try {
+                                result = new ObjectMapper().writeValueAsString(nativeIntroduced);
+                            } catch (Exception ignored) {}
+                        }
+
+                        return result;
+                    }),
+                    true).size();
+        }
+
+        // Track the SDS list that a taxon if found within
+        logService.log(taskType, "import sds");
+        int sdsCounter = 0;
+        for (Map<String, Object> list : sdsLists) {
+            String listId = list.get("dataResourceUid").toString();
+            sdsCounter = importKvpList(
+                    Collections.singletonList(listId),
+                    "sds_" + listId + "_s",
+                    (it -> {
+                        // TODO: There is no requirement to use the category value, should this even be a useful field.
+                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
+                            if (map.get("key").equals("category")) {
+                                return map.get("value");
+                            }
+                        }
+                        return "true";
+                    }),
+                    true).size();
+        }
+
         // nested fields may have changed, cache the new list
         elasticService.indexFields(true);
 
@@ -279,7 +362,10 @@ public class ListImportService {
                 + ", conservation: " + conservationCounter + ", attributes: " + attributesCounter
                 + ", favourites: " + favouritesCounter + ", hiddenImages: " + hiddenImagesCounter
                 + ", preferredImages (all): " + preferredImageCounter + ", wiki: " + wikiCounter
-                + ", list images: " + listImageCounter);
+                + ", list images: " + listImageCounter
+                + ", native/introduced: " + nativeIntroducedCounter
+                + ", conservationIUCN: " + conservationIUCNCounter
+                + ", sds: " + sdsCounter);
 
         return CompletableFuture.completedFuture(true);
     }
