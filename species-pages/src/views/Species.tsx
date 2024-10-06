@@ -25,13 +25,12 @@ function Species({setBreadcrumbs, queryString}: {
     queryString?: string
 }) {
     const [tab, setTab] = useState('map');
-    const [resultV2, setResultV2] = useState<Record<PropertyKey, string | number | any >>({});
-    const [resultV1, setResultV1] = useState<Record<PropertyKey, string | number | any>>({});
-    const result = { ...resultV2, ...resultV1 };
+    const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
 
-    const [dataV1Fetched, setDataV1Fetched] = useState(false);
-    const [dataV2Fetched, setDataV2Fetched] = useState(false);
-    useDocumentTitle(`${resultV2?.name}: ${resultV2?.commonName?.join(', ')}`);
+    const [dataFetched, setDataFetched] = useState(false);
+    const [invasiveStatus, setInvasiveStatus] = useState(false);
+
+    useDocumentTitle(`${result?.name}: ${result?.commonName?.join(', ')}`);
 
     useEffect(() => {
         setBreadcrumbs([]); // Clear breadcrumbs so App.tsx doesn't show them
@@ -45,8 +44,8 @@ function Species({setBreadcrumbs, queryString}: {
 
     useEffect(() => {
         let request = [queryString?.split("=")[1]]
-        setDataV1Fetched(false);
-        setResultV2({});
+        setDataFetched(false);
+        setResult({});
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/species", {
             method: 'POST',
             body: JSON.stringify(request),
@@ -63,10 +62,26 @@ function Species({setBreadcrumbs, queryString}: {
         })
         .then(data => {
             if (data[0] && data[0] !== null) {
-                // Hard-code missing data TODO: remove
-                data[0].conservationStatuses = [ true ]
-                data[0].invasiveStatuses = [ true ]
-                setResultV2(data[0])
+                var sdsStatusValue = false
+                Object.keys(data[0]).map(key => {
+                    if (key.startsWith('sds_')) {
+                        sdsStatusValue = true;
+                    }
+                });
+                data[0].sdsStatus = sdsStatusValue;
+
+                var invasiveStatusValue = false;
+                if (data[0]?.native_introduced_s) {
+                    var nativeIntroduced = JSON.parse(data[0].native_introduced_s);
+                    Object.keys(nativeIntroduced).map(key => {
+                        if (nativeIntroduced[key].toLowerCase().includes('invasive')) {
+                            invasiveStatusValue = true;
+                        }
+                    });
+                }
+                setInvasiveStatus(invasiveStatusValue);
+
+                setResult(data[0])
             }
         })
         .catch(error => {
@@ -74,34 +89,7 @@ function Species({setBreadcrumbs, queryString}: {
             // setResult({});
         })
         .finally(() => {
-            setDataV1Fetched(true);
-        });
-
-        setDataV1Fetched(false);
-        setResultV1({});
-        fetch(import.meta.env.VITE_APP_BIE_URL + "/v1/species/" + request, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('V1 error: ' + response.status);
-            }
-        })
-        .then(data => {
-            if (data) {
-                setResultV1(data);
-            }
-        })
-        .catch(error => {
-            console.warn(error);
-            // setResultV1({});
-        })
-        .finally(() => {
-            setDataV2Fetched(true);
+            setDataFetched(true);
         });
 
     }, [queryString]);
@@ -116,25 +104,7 @@ function Species({setBreadcrumbs, queryString}: {
         return (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) ? 'italic' : 'normal';
     }
 
-    const haveCommonKeys = (obj1: Record<PropertyKey, string | number | any>, obj2: Record<PropertyKey, string | number | any>): boolean => {
-        const keys1 = new Set(Object.keys(obj1));
-        const keys2 = Object.keys(obj2);
-
-        for (const key of keys2) {
-            if (keys1.has(key)) {
-                console.log("Found dupe key", key, resultV1.key, resultV2.key);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    console.log("combinedResult", result, haveCommonKeys(resultV1, resultV2));
-    // console.log("resultV1", resultV1);
-    // console.log("resultV2", resultV2);
-
-    if ((dataV1Fetched && dataV2Fetched) && Object.keys(result).length === 0) {
+    if (dataFetched && Object.keys(result).length === 0) {
         return (
             <>
                 <Box className={classes.speciesHeader}>
@@ -182,8 +152,8 @@ function Species({setBreadcrumbs, queryString}: {
                             <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
                             {/* <Text mt={8}>{combinedResult.nameComplete}</Text> */}
                             <Text mt="sm">{result.shortDesription || `The ${result.commonName && result.commonName[0] || result.name} is... Create or extract a short species description for use on hero section of species pages.`}</Text>
-                            { result && result.invasiveStatuses &&
-                                <Alert  icon={<IconFlagFilled />} mt="md" pt={5} pb={5} mr="md">
+                            { invasiveStatus &&
+                                <Alert icon={<IconFlagFilled />} mt="md" pt={5} pb={5} mr="md">
                                     This species is <Anchor inherit fw={600}
                                     onClick={() => setTab('status')}>considered invasive</Anchor> in
                                     some part of Australia and may be of biosecurity concern.

@@ -78,5 +78,7 @@ VITE_SPATIAL_URL=https://spatial.ala.org.au
 
 # Base URL for the output of taxon-descriptions "merge" step
 VITE_TAXON_DESCRIPTIONS_URL=http://localhost:8082/static/taxon-descriptions
+
+VITE_SDS_INFO_URL=https://support.ala.org.au/support/solutions/articles/6000261705-working-with-threatened-migratory-and-sensitive-species-information-in-the-ala
 ```
 

@@ -49,6 +49,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
+                    {/*TODO: add synonyms to V2 API*/}
                     {result?.synonyms && result.synonyms.map((item : any, idx: any) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
@@ -75,6 +76,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
+                    {/*TODO: add variants to V2 API*/}
                     {result?.variants && result.synonyms.map((item: any, idx: any) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
@@ -101,6 +103,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
+                    {/*TODO: add identifiers to V2 API*/}
                     {result?.identifiers && result.synonyms.map((item: any, idx: any) =>
                         <Table.Tr key={idx}>
                             <Table.Td><Text dangerouslySetInnerHTML={{
@@ -128,6 +131,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
+                {/*TODO: add commonNames to V2 API*/}
                 {result?.commonNames && result.commonNames.map((item: any, idx: any) =>
                     item?.status !== 'traditionalKnowledge' &&
                     <Table.Tr key={idx}>
@@ -164,6 +168,7 @@ function NamesView({ result }: MapViewProps) {
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
+                {/*TODO: add commonNames to V2 API*/}
                 {result?.commonNames && result.commonNames.map((item: any, idx: any) =>
                     item?.status === 'traditionalKnowledge' &&
                     <Table.Tr key={idx}>

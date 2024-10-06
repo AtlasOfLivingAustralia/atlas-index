@@ -142,10 +142,10 @@ function MapView({tab, result}: MapViewProps) {
     }
 
     return <>
-        { result.conservationStatuses &&
+        { result.sdsStatus &&
             <Alert icon={<IconFlagFilled />} style={{ display: 'inline-block' }} mt="lg" pt={7} pb={6} pr="lg">
                 This species is <Text fw={600} inherit span>considered sensitive</Text> in at least one jurisdiction. Some or all occurrence data has been
-                obfuscated. <Anchor inherit href="#">More info</Anchor>.
+                obfuscated. <Anchor inherit href={import.meta.env.VITE_SDS_INFO_URL}>More info</Anchor>.
             </Alert>
         }
         <Flex gap="xl" align="center" direction="row">

@@ -52,6 +52,7 @@ function ResourcesView({ result }: MapViewProps) {
         let page = 1;
         let s = [result.name];
 
+        // TODO: add .synonyms to the V2 API
         if (result?.synonyms) {
             result.synonyms.forEach((synonym: any) => {
                 s.push(synonym.nameString);
@@ -131,35 +132,36 @@ function ResourcesView({ result }: MapViewProps) {
     ];
     return (
         <Box>
-            <Title order={3}>
-                Literature
-            </Title>
-
-            <Space h="px30" />
-
-            <Title order={4} className={classes.h4grey}>
-                Biodiversity Heritage Library (BHL)
-            </Title>
-
-            <Space h="px30" />
-
-            { loading && <Skeleton height={40} mt="lg" width="100%" radius="md" /> }
-            { errorMessage && (
-                <Notification
-                    withBorder
-                    mt="lg"
-                    onClose={() => setErrorMessage('')}
-                    title="Error loading BHL results"
-                >
-                    {errorMessage}
-                </Notification>
-            )}
+            { loading && <><Skeleton height={40} width="100%" radius="md" />
+                <Space h="px30" /> </>}
+            { errorMessage &&
+                <>
+                    <Notification
+                        withBorder
+                        onClose={() => setErrorMessage('')}
+                        title="Error loading BHL results"
+                    >
+                        {errorMessage}
+                    </Notification>
+                    <Space h="px30" />
+                </>
+            }
             {
                 bhl && bhl.length > 0 &&
                 <>
+                    <Title order={3}>
+                        Literature
+                    </Title>
+
+                    <Space h="px30" />
+
+                    <Title order={4} className={classes.h4grey}>
+                        Biodiversity Heritage Library (BHL)
+                    </Title>
+
+                    <Space h="px30" />
                     <Text>
-                        Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} of {" "}
-                        {bhl.length == 100 ? `${bhl.length}+` : bhl.length} result{bhl.length > 1 && 's'} for {" "}
+                        Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length}  for {" "}
                         <FormatName name={result?.name} rankId={result?.rankID} />.{" "}
                         <Anchor inherit href={bhlQuery} target="bhl">View all results</Anchor>.
                     </Text>
@@ -223,15 +225,20 @@ function ResourcesView({ result }: MapViewProps) {
                         )
                     )}
 
+                    <Space h="px60" />
+                    <Divider/>
+                    <Space h="px40" />
+
                 </>
             }
-            { !loading && (!bhl || bhl.length === 0) &&
-                <Text>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
-            }
+            {/*{ !loading && (!bhl || bhl.length === 0) &&*/}
+            {/*    <Text>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>*/}
+            {/*<Space h="px60" />*/}
+            {/*<Divider/>*/}
+            {/*<Space h="px40" />*/}
+            {/*}*/}
 
-            <Space h="px60" />
-            <Divider/>
-            <Space h="px40" />
+
             <Title order={3}>Other resources</Title>
             <Space h="px30" />
             <Grid gutter={{base: 15, md: 20, lg: 35}}>

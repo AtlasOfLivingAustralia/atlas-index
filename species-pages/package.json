@@ -5,8 +5,8 @@
   "type": "module",
   "homepage": "https://ala-index.dev.ala.org.au/species",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node generateBuildInfo.js && vite",
+    "build": "node generateBuildInfo.js && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },

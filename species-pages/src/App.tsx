@@ -16,6 +16,7 @@ import classes from './App.module.css';
 import UserContext from './helpers/UserContext';
 import BreadcrumbSection from './components/header/breadcrumbs';
 import Home from './views/Home';
+import buildInfo from './buildInfo.json';
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -71,6 +72,12 @@ const App: React.FC = () => {
         //     console.log("remove popstate listener")
         //     window.removeEventListener('popstate', handlePopState);
         // };
+
+        // Add build info to head meta tags
+        const meta = document.createElement('meta');
+        meta.name = 'buildInfo';
+        meta.content = JSON.stringify(buildInfo);
+        document.head.appendChild(meta);
     }, []);
 
     // This helps usage of 'navigate("path?params")' pick up the params
