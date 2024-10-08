@@ -5,6 +5,19 @@ This tool is intended to run every 6 months to update the data extracts.
 
 The data extracts are used to produce a JSON file for each accepted taxon ID.
 
+## Usage
+Every 6 months, take the following steps to update the data extracts and merge for the UI:
+1. Get the config file, see ansible-inventories
+2. Get the ALA token, see userdetails
+3. Get the wikipedia titles, see below
+4. Get the accepted names, see below 
+5. Run getAll.sh, see ansible-inventories 
+6. Copy zipped extracts (JSON files and wikipedia HTML) to a shared location for backup, see S3 
+7. Get the overrides.json, see S3 
+8. Merge the output, see below 
+9. Review the output, see below 
+10. Copy the output to the destination, see below
+
 ## Dependencies
 Generate ALA token for profiles API access
 1. Create an application with userdetails, "my applications" page.
@@ -68,17 +81,14 @@ The output json consists of metadata and HTML content for a map of accepted taxo
 
 ## Merging data sources
 
-Runnign with the `{filename}` as `merge` to merge. This merges all of the data sources, including the
+Running with the `{filename}` as `merge` to merge. This merges all of the data sources, including the
 `overrides.json`, into the output directory as `./{last2TaxonIChars}/{URL encoded taxonID}.json`.
 
-TODO: more info on merging
-- errors.csv
-- testing some of the output JSON
-- copying to an appropriate destination
-
-## Errors
-
-See `/data/wikipedia-tmp/errors.csv` for a list of taxonIds that need to be manually resolved. Resolution is done by creating a new entry in `/data/wikipedia-tmp/overrides.csv`, details on how to do this are below.
+### Merge outputs
+- `{config mergeDir}/{last2TaxonIChars}/{URL encoded taxonID}.json`, JSON file for species-pages UI. Copy to the location to be accessed at the URL in the species-pages config.
+- `{config mergeDir}/errors.csv`, CSV of wikipedia pages excluded because they are flagged as ambiguous. If excluded in error, add to the overrides.json file to include the content.
+- `{config mergeDir}/review{idx}.html`, HTML files, with a maximum of 500 taxa per file, for review of the HTML content.
+- System out reports guids that have data from > 2 sources. This is to assist with identifying JSON files that need inspection.
 
 ## Configuration
 

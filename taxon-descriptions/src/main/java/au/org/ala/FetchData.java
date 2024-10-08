@@ -6,6 +6,7 @@ import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.xml.sax.SAXException;
@@ -40,10 +41,8 @@ public class FetchData {
 
     public static void main(final String[] args) throws Exception {
 
-        String configFile = args[0];
-        String filename = args[1];
-
-        System.out.println(filename);
+        String configFile = "/data/src/ansible-inventories/atlas-index/local/taxon-descriptions/config.json"; //args[0];
+        String filename = "merge"; //args[1];
 
         Map config = new ObjectMapper().readValue(new File(configFile), Map.class);
 
@@ -73,7 +72,8 @@ public class FetchData {
         List sources = (List) config.get("sources");
 
         if (filename.equalsIgnoreCase("merge")) {
-            mergeSources(sources);
+            Merge merge = new Merge(wikipediaUrl, wikipediaTmp, acceptedCsv, mergeDir, overrideFile);
+            merge.mergeSources(sources);
             System.out.println("finished merge");
             return;
         }
@@ -114,7 +114,10 @@ public class FetchData {
         } else if (type.equalsIgnoreCase("species-list")) {
             output.put("taxa", downloadSpeciesList(id, fields, name, attribution));
         } else if (type.equalsIgnoreCase("wikipedia")) {
-            output.put("taxa", downloadWikipedia(fields, name, attribution));
+            downloadWikipedia(fields, name, attribution);
+
+            // wikipedia data does not get aggregated into a single .json file
+            return;
         }
 
         // write the output to a file
@@ -122,200 +125,6 @@ public class FetchData {
         try (FileWriter file = new FileWriter(wikipediaTmp + "/" + filename + ".json")) {
             file.write(new ObjectMapper().writeValueAsString(output));
         }
-    }
-
-    private static void mergeSources(List sources) throws IOException, CsvValidationException {
-        List<Map> allData = new ArrayList<>();
-        List<Map<String, String>> allMetadata = new ArrayList<>();
-
-        // read overrides
-        System.out.println("loading overrides");
-        Map<String, Map<String, Map<String, String>>> overrides = new ObjectMapper().readValue(new File(overrideFile), Map.class);
-
-        for (int i = 0; i < sources.size(); i++) {
-            Map source = (Map) sources.get(i);
-            String attribution = source.get("attribution").toString();
-            String name = source.get("name").toString();
-            String json = source.get("filename").toString();
-
-            Map metadataItem = Map.of("name", name, "attribution", attribution, "filename", json);
-
-            String filename = wikipediaTmp + "/" + json + ".json";
-            File file = new File(filename);
-            if (file.exists()) {
-                System.out.println("loading: " + json);
-                Map data = new ObjectMapper().readValue(file, Map.class);
-                allData.add(data);
-                allMetadata.add(metadataItem);
-            } else if ("wikipedia".equalsIgnoreCase(json)) {
-                System.out.println("loading from cached html: " + json);
-
-                // This will build the wikipedia.json file, if it is not already built.
-                // For including the latest wikipedia page parsing.
-                Map wikipedia = loadWikipedia();
-                Map wrapper = new HashMap();
-                wrapper.put("taxa", wikipedia);
-                allData.add(wrapper);
-                allMetadata.add(metadataItem);
-            } else {
-                System.out.println("cannot find file:" + filename);
-            }
-        }
-
-        // writing
-        System.out.println("writing merged data");
-
-        CSVReader reader = new CSVReader(new FileReader(acceptedCsv));
-        // ignore header; guid,scientificName,genus_s,family_s,order_s,class_s,phylum_s,kingdom_s
-        reader.readNext();
-
-        int row = 0;
-        int written = 0;
-        String[] nextLine;
-        while ((nextLine = reader.readNext()) != null) {
-            row++;
-            String guid = nextLine[0];
-            String scientificName = nextLine[1];
-            String genus = nextLine[2];
-            String family = nextLine[3];
-            String order = nextLine[4];
-            String clazz = nextLine[5];
-            String phylum = nextLine[6];
-            String kingdom = nextLine[7];
-
-            List<Map<String, String>> merged = new ArrayList<>();
-
-            Map<String, Map<String, String>> override = overrides.get(guid);
-
-            int sourceCount = 0;
-
-            for (int i = 0; i < allData.size(); i++) {
-                Map<String, Map<String, String>> taxa = (Map<String, Map<String, String>>) allData.get(i).get("taxa");
-                if (taxa == null) {
-                    continue;
-                }
-
-                // "item" is a map with "url", "name", "attribution", and the optional fields
-                Map<String, String> item = taxa.get(guid);
-                if (item != null) {
-                    sourceCount++;
-
-                    Map<String, String> metadata = allMetadata.get(i);
-                    String url = item.get("url");
-
-                    Map<String, String> mergedItem = new HashMap<>();
-                    Map<String, String> overrideItem = override != null ? override.get(allMetadata.get(i).get("filename")) : null;
-                    if (overrideItem != null) {
-                        if (overrideItem.isEmpty()) {
-                            // do not merge when removing content
-                            continue;
-                        }
-                        url = overrideItem.get("url");
-                        mergedItem.putAll(overrideItem);
-                    } else {
-                        mergedItem.putAll(item);
-                    }
-
-                    mergedItem.put("name", metadata.get("name"));
-
-                    String attribution = metadata.get("attribution");
-                    mergedItem.put("attribution", attribution.replace("*URL*", url));
-
-                    // Do not add the merged item if it is empty.
-                    // It is empty when when it has only "url", "name" and "attribution".
-                    if (mergedItem.size() > 3) {
-                        merged.add(mergedItem);
-                    }
-                }
-            }
-
-            if (sourceCount > 1) {
-                System.out.println("merged " + guid + " from " + sourceCount + " sources");
-            }
-
-            if (!merged.isEmpty()) {
-                // TODO: use something more robust to limit the number of files in a directory, and coordinate
-                //  with the UI so it can be found
-
-                String encodedGuid = URLEncoder.encode(guid);
-                String rightChar = encodedGuid.substring(encodedGuid.length() - 2);
-
-                File file = new File(mergeDir + "/" + rightChar + "/" + encodedGuid + ".json");
-                file.getParentFile().mkdirs();
-                try (FileWriter writer = new FileWriter(file)) {
-                    writer.write(new ObjectMapper().writeValueAsString(merged));
-                }
-
-                written++;
-            }
-        }
-
-        System.out.println("number of files merged: " + written);
-    }
-
-    private static Map<String, Map<String, String>> loadWikipedia() throws IOException, CsvValidationException {
-        Map<String, Map<String, String>> taxa = new HashMap<>();
-
-        // get a list of all previously downloaded files, recursively through directories, one level deep
-        Map<String, File> existingFiles = new HashMap<>();
-        File[] files = new File(wikipediaTmp).listFiles();
-        for (File file : files) {
-            if (file.getName().endsWith(".html")) {
-                existingFiles.put(file.getName().replace(".html", ""), file);
-            } else if (file.isDirectory()) {
-                File[] subFiles = file.listFiles();
-                for (File subFile : subFiles) {
-                    if (subFile.getName().endsWith(".html")) {
-                        existingFiles.put(subFile.getName().replace(".html", ""), subFile);
-                    }
-                }
-            }
-        }
-
-        CSVWriter errorWriter = new CSVWriter(new FileWriter(wikipediaTmp + "/errors.csv"));
-        errorWriter.writeNext(new String[]{"error message", "guid", "wikiUrl", "genus", "family", "order", "class", "phylum", "kingdom", "cached html file"});
-        File matchedFile = new File(wikipediaTmp + "/matched.csv");
-        CSVReader reader = new CSVReader(new FileReader(matchedFile));
-        String[] nextLine;
-        int row = 0;
-        int failedToReadCachedHtml = 0;
-        int fileNotFound = 0;
-        while ((nextLine = reader.readNext()) != null) {
-            row++;
-
-            String guid = nextLine[0];
-            String wikiTitle = nextLine[1];
-            String genus = nextLine[2];
-            String family = nextLine[3];
-            String order = nextLine[4];
-            String clazz = nextLine[5];
-            String phylum = nextLine[6];
-            String kingdom = nextLine[7];
-
-            String filename = URLEncoder.encode(guid);
-
-            File file = existingFiles.get(filename);
-
-            if (file != null && file.exists()) {
-                Map item = getWikipediaSummary(wikiTitle, guid, genus, family, order, clazz, phylum, kingdom, file, errorWriter);
-                if (item != null) {
-                    taxa.put(guid, item);
-                } else {
-                    failedToReadCachedHtml++;
-                }
-            } else {
-                System.out.println("file not found: " + filename);
-                fileNotFound++;
-            }
-        }
-
-        errorWriter.flush();
-        errorWriter.close();
-
-        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " read errors: " + failedToReadCachedHtml + ", see " + wikipediaTmp + "/errors.csv");
-        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " file not found: " + fileNotFound);
-
-        return taxa;
     }
 
     private static Map<String, Object> downloadProfiles(String id, List<String> fields, String name, String attribution) throws IOException {
@@ -540,48 +349,7 @@ public class FetchData {
 
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " finished caching html");
 
-        CSVWriter errorWriter = new CSVWriter(new FileWriter(wikipediaTmp + "/errors.csv"));
-        errorWriter.writeNext(new String[]{"error message", "guid", "wikiUrl", "genus", "family", "order", "class", "phylum", "kingdom", "cached html file"});
-        reader = new CSVReader(new FileReader(matchedFile));
-        row = 0;
-        int failedToReadCachedHtml = 0;
-        int fileNotFound = 0;
-        while ((nextLine = reader.readNext()) != null) {
-            row++;
-
-            String guid = nextLine[0];
-            String wikiTitle = nextLine[1];
-            String genus = nextLine[2];
-            String family = nextLine[3];
-            String order = nextLine[4];
-            String clazz = nextLine[5];
-            String phylum = nextLine[6];
-            String kingdom = nextLine[7];
-
-            String filename = URLEncoder.encode(guid);
-
-            File file = existingFiles.get(filename);
-
-            if (file.exists()) {
-                Map item = getWikipediaSummary(wikiTitle, guid, genus, family, order, clazz, phylum, kingdom, file, errorWriter);
-                if (item != null) {
-                    taxa.put(guid, item);
-                } else {
-                    failedToReadCachedHtml++;
-                    System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " failed to read cached html: " + guid + ", " + wikiTitle + ", " + file.getPath());
-                }
-            } else {
-                fileNotFound++;
-            }
-        }
-
-        errorWriter.flush();
-        errorWriter.close();
-
-        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " failed to read cached html: " + failedToReadCachedHtml);
-        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " file not found: " + fileNotFound);
-
-        return taxa;
+        return null;
     }
 
     private static void createWikipediaMatchedFile(File matchedFile) throws IOException, CsvValidationException {
@@ -649,73 +417,6 @@ public class FetchData {
             writer.close();
         } catch (Exception e) {
             System.out.println("Error fetching wikipedia html for: " + title + ", " + e.getMessage());
-        }
-    }
-
-    static Map getWikipediaSummary(String title, String guid, String genus, String family, String order, String clazz, String phylum, String kingdom, File outputFile, CSVWriter errorLog) throws IOException {
-        try {
-            Document doc = Jsoup.parse(outputFile);
-
-            // build the link url
-            String link = "https://en.wikipedia.org/wiki/" + doc.selectFirst("link[rel=dc:isVersionOf]").attributes().get("href").replaceAll("^.*/", "");
-
-            // test for higher taxa
-            String text = doc.text().toLowerCase();
-            int found = 0;
-            if (StringUtils.isNotEmpty(genus) && text.contains(genus.toLowerCase())) found++;
-            if (StringUtils.isNotEmpty(family) && text.contains(family.toLowerCase())) found++;
-            if (StringUtils.isNotEmpty(order) && text.contains(order.toLowerCase())) found++;
-            if (StringUtils.isNotEmpty(clazz) && text.contains(clazz.toLowerCase())) found++;
-            if (StringUtils.isNotEmpty(phylum) && text.contains(phylum.toLowerCase())) found++;
-            if (StringUtils.isNotEmpty(kingdom) && text.contains(kingdom.toLowerCase())) found++;
-
-            if (found == 0) {
-                // TODO: implement a detection mechanism for these, as a subset will be disambiguation pages containing
-                //  the actual link. These will need to be appended to /data/wikipedia-tmp/matched.csv, for a 2nd run.
-
-                // TODO: implement a mechanism to take these !found pages to a human for review and manual entry
-
-                if (errorLog != null) {
-                    errorLog.writeNext(new String[]{"ambiguous page", guid, wikipediaUrl + title, genus, family, order, clazz, phylum, kingdom, outputFile.getPath()});
-                }
-                return null;
-            }
-
-            // remove some content
-            doc.select(".infobox").remove();
-            doc.select(".infobox.biota").remove();
-            doc.select(".mw-editsection").remove();
-            doc.select(".navbar").remove();
-            doc.select(".reference").remove();
-            doc.select(".error").remove();
-            doc.select(".box-Unreferenced_section").remove();
-            doc.select(".portalbox").remove();
-            doc.select("[style=display:none]").remove();
-            doc.select("[role=note]").remove();
-
-            // find first tag named SECTION
-            Element sectionElement = doc.selectFirst("section");
-            StringBuilder sb = new StringBuilder();
-            if (sectionElement != null) {
-                List<Element> paragraphs = sectionElement.select("p");
-                for (Element paragraph : paragraphs) {
-                    if (!paragraph.text().trim().isEmpty()) {
-                        sb.append(paragraph.html());
-                    }
-                }
-            }
-
-            if (sb.length() == 0) {
-                return null;
-            }
-
-            Map item = new HashMap();
-            item.put("url", link);
-            item.put("summary", sb.toString());
-            return item;
-        } catch (Exception e) {
-            System.out.println("Error fetching wikipedia html for: " + title + ", " + e.getMessage());
-            return null;
         }
     }
 
