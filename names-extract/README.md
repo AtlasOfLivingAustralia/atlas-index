@@ -1,4 +1,4 @@
-TODO: Move to ala-namematching-service (the next project up the dependency tree)
+TODO: Move to ala-name-matching (the next project up the dependency tree), see https://github.com/AtlasOfLivingAustralia/ala-name-matching/issues/229
 
 # Purpose
 The names index DwCA is missing useful information that exists in the names index lucene. This projects extracts 
