@@ -5,6 +5,7 @@ dist/
 node/
 .env.local
 */.yalc/
+buildInfo.json
 
 ### STS ###
 .apt_generated

@@ -15,10 +15,16 @@ import { IconCircleFilled, IconFlagFilled } from "@tabler/icons-react";
 import BreadcrumbSection from "../components/header/breadcrumbs.tsx";
 import capitalizeFirstLetter from "../helpers/Capitalise.ts";
 // import Breadcrumbs from "../components/breadcrumbs/breadcrumbs.tsx";
+// @ts-ignore
+import {TaxonDescription} from "../../api/sources/model.ts";
+
+import descriptionLabelsConfig from "../config/firstDescriptionLabels.json";
+const descriptionLabels: string[] = descriptionLabelsConfig as string[];
 
 import classes from '../components/species/species.module.css';
 import { useDocumentTitle } from "@mantine/hooks";
 import FormatName from "../components/nameUtils/formatName.tsx";
+import DOMPurify from "dompurify";
 
 function Species({setBreadcrumbs, queryString}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -26,6 +32,8 @@ function Species({setBreadcrumbs, queryString}: {
 }) {
     const [tab, setTab] = useState('map');
     const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
+    const [descriptions, setDescriptions] = useState<TaxonDescription[]>([]);
+    const [firstDescription, setFirstDescription] = useState<string>('');
 
     const [dataFetched, setDataFetched] = useState(false);
     const [invasiveStatus, setInvasiveStatus] = useState(false);
@@ -82,6 +90,8 @@ function Species({setBreadcrumbs, queryString}: {
                 setInvasiveStatus(invasiveStatusValue);
 
                 setResult(data[0])
+
+                fetchDescriptions(data[0]?.guid)
             }
         })
         .catch(error => {
@@ -122,6 +132,33 @@ function Species({setBreadcrumbs, queryString}: {
         );
     }
 
+    function fetchDescriptions(lsid: string) {
+
+        // doubly encoded; once for the file name, once for service (e.g. Cloudfront or http-server) that translate the URL encoding to the file name
+        var lsidEncoded = encodeURIComponent(encodeURIComponent(lsid))
+
+        fetch(import.meta.env.VITE_TAXON_DESCRIPTIONS_URL + "/" + lsidEncoded.substring(lsidEncoded.length - 2) + "/" + lsidEncoded + ".json")
+            .then(response => response.json()).then(json => {
+            setDescriptions(json)
+
+            // find the first description, TODO: document this in the README, and move to a config file
+            var firstDescriptionElement = json.find((element: any) =>
+                Object.keys(element).some(key => descriptionLabels.includes(key))
+            )
+            if (firstDescriptionElement) {
+                var firstDescriptionKey = Object.keys(firstDescriptionElement).find((key: any) =>
+                    descriptionLabels.includes(key)
+                )
+                if (firstDescriptionKey) {
+                    setFirstDescription(firstDescriptionElement[firstDescriptionKey])
+                }
+            }
+        }).catch(() => {
+            // This will disable the 'loading' indicator in DescriptionView
+            setDescriptions([])
+        });
+    }
+
     return (
     <>  { Object.keys(result).length > 0 &&
             <>
@@ -151,7 +188,9 @@ function Species({setBreadcrumbs, queryString}: {
                             )}
                             <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
                             {/* <Text mt={8}>{combinedResult.nameComplete}</Text> */}
-                            <Text mt="sm">{result.shortDesription || `The ${result.commonName && result.commonName[0] || result.name} is... Create or extract a short species description for use on hero section of species pages.`}</Text>
+                            {firstDescription &&
+                                <Text mt="sm" dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(firstDescription)}} />
+                            }
                             { invasiveStatus &&
                                 <Alert icon={<IconFlagFilled />} mt="md" pt={5} pb={5} mr="md">
                                     This species is <Anchor inherit fw={600}
@@ -212,7 +251,7 @@ function Species({setBreadcrumbs, queryString}: {
                     <ClassificationView result={result}/>
                 }
                 {tab === 'description' &&
-                    <DescriptionView result={result}/>
+                    <DescriptionView descriptions={descriptions}/>
                 }
                 {tab === 'media' &&
                     <ImagesView result={result}/>

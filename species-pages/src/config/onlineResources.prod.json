@@ -1,0 +1,263 @@
+[
+  {
+    "name": "Fauna of Australia - Mammalia",
+    "url": "https://www.dcceew.gov.au/science-research/abrs/publications/fauna-of-australia/fauna-1b",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Mammals"]
+    }
+  },
+  {
+    "name": "Fauna of Australia - Australian Mammal Literature",
+    "url": "https://www.dcceew.gov.au/science-research/abrs/publications/fauna-of-australia/fauna-calaby",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Mammals"]
+    }
+  },
+  {
+    "name": "Fauna of Australia - Amphibia and Reptilia",
+    "url": "https://www.dcceew.gov.au/science-research/abrs/publications/fauna-of-australia/fauna-2a",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Frogs", "Snakes and Lizards"]
+    }
+  },
+  {
+    "name": "Fauna of Australia - Polchaetes and Allies",
+    "url": "https://www.dcceew.gov.au/science-research/abrs/publications/fauna-of-australia/fauna-4a",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Segmented Worms"]
+    }
+  },
+  {
+    "name": "NT Government - Threatened animals",
+    "url": "https://nt.gov.au/environment/animals/threatened-animals",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Animals"],
+      "inSpeciesList": ["dr651"]
+    }
+  },
+  {
+    "name": "NT Government - Threatened Plants",
+    "url": "https://nt.gov.au/environment/native-plants/threatened-plants",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Plants"],
+      "inSpeciesList": ["dr651"]
+    }
+  },
+  {
+    "name": "Qld Government - Threatened Species",
+    "url": "https://www.qld.gov.au/environment/plants-animals/conservation/threatened-species/resources",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr652"]
+    }
+  },
+  {
+    "name": "NSW Government - Threatened Species",
+    "url": "https://threatenedspecies.bionet.nsw.gov.au/",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr650"]
+    }
+  },
+  {
+    "name": "Tas Government - Threatened Species",
+    "url": "https://nre.tas.gov.au/conservation/threatened-species-and-communities/lists-of-threatened-species/full-list-of-threatened-species",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr654"]
+    }
+  },
+  {
+    "name": "Vic Government - Threatened Species",
+    "url": "https://www.environment.vic.gov.au/conserving-threatened-species/threatened-species",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr655"]
+    }
+  },
+  {
+    "name": "EPBC Act - Threatened Species",
+    "url": "https://www.environment.gov.au/cgi-bin/sprat/public/sprat.pl",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr656"]
+    }
+  },
+  {
+    "name": "Fungi of Queensland",
+    "url": "https://qldfungi.org.au/fungi-id/foq-main-page",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Fungi"]
+    }
+  },
+  {
+    "name": "WA Government - Florabase",
+    "url": "https://florabase.dbca.wa.gov.au/search/advanced",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vascular plants"]
+    }
+  },
+  {
+    "name": "NT Government - eFlora",
+    "url": "http://eflora.nt.gov.au/search?heading=sNTFlora",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vascular plants"]
+    }
+  },
+  {
+    "name": "Royal Botanic Gardens, Sydney - Plantnet",
+    "url": "https://plantnet.rbgsyd.nsw.gov.au/search/simple.htm",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vascular plants"]
+    }
+  },
+  {
+    "name": "Royal Botanic Gardens, Melbourne - Vicflora",
+    "url": "https://vicflora.rbg.vic.gov.au/flora/search",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vascular plants"]
+    }
+  },
+  {
+    "name": "Flora of Tasmania Online",
+    "url": "https://flora.tmag.tas.gov.au/",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vascular plants"]
+    }
+  },
+  {
+    "name": "SA Government - eFlora",
+    "url": "http://www.flora.sa.gov.au/census.shtml",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vascular plants", "Fungi", "Algae"]
+    }
+  },
+  {
+    "name": "Algaebase",
+    "url": "https://www.algaebase.org/",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Algae"]
+    }
+  },
+  {
+    "name": "Australian Moths Online",
+    "url": "https://moths.csiro.au/",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Butterflies, Moths"]
+    }
+  },
+  {
+    "name": "Fish Base",
+    "url": "https://www.fishbase.org.au/search.php",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Fish and Sharks"]
+    }
+  },
+  {
+    "name": "World Register of Marine Species",
+    "url": "https://www.marinespecies.org/aphia.php?p=search",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Vertebrates", "Animals", "Sea Spiders", "Shellfish", "Echinoderms", "Molluscs", "Corals, Jellyfish, Sea Anemones", "Sponges", "Comb Jellies", "Other Chordates", "Algae"]
+    }
+  },
+  {
+    "name": "Tas Government - Fauna of Tasmania",
+    "url": "https://nre.tas.gov.au/wildlife-management/fauna-of-tasmania",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Animals"]
+    }
+  },
+  {
+    "name": "FungiMap",
+    "url": "https://fungimap.org.au/fungi-down-under-100-target-species/",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Fungi"]
+    }
+  },
+  {
+    "name": "Australian Reference Genome Atlas",
+    "url": "https://app.arga.org.au/",
+    "external": true
+  },
+  {
+    "name": "QLD Government - Species Profile Search",
+    "url": "https://apps.des.qld.gov.au/species-search/",
+    "external": true
+  },
+  {
+    "name": "Global Biodiversity Information Facility",
+    "url": "https://www.gbif.org/",
+    "external": true
+  },
+  {
+    "name": "DAFF - Plant Pests and Diseases",
+    "url": "https://www.agriculture.gov.au/biosecurity-trade/pests-diseases-weeds/plant",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr22913"]
+    }
+  },
+  {
+    "name": "Qld Government - Plant Pests and Diseases",
+    "url": "https://www.business.qld.gov.au/industries/farms-fishing-forestry/agriculture/biosecurity/plants",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Plants"],
+      "inSpeciesList": ["dr22913"]
+    }
+  },
+  {
+    "name": "Qld Government - Invasive Animals",
+    "url": "https://www.business.qld.gov.au/industries/farms-fishing-forestry/agriculture/biosecurity/animals/invasive",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Animals"],
+      "inSpeciesList": ["dr22913"]
+    }
+  },
+  {
+    "name": "PestSmart",
+    "url": "https://pestsmart.org.au/pest-animals/",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Animals"],
+      "inSpeciesList": ["dr22913"]
+    }
+  },
+  {
+    "name": "Vic Government - Priority Pest Animals",
+    "url": "https://agriculture.vic.gov.au/biosecurity/pest-animals/priority-pest-animals",
+    "external": true,
+    "rules": {
+      "inSpeciesGroup": ["Animals"],
+      "inSpeciesList": ["dr22913"]
+    }
+  },
+  {
+    "name": "Aust Government - Marine Pests",
+    "url": "https://www.marinepests.gov.au/pests/identify",
+    "external": true,
+    "rules": {
+      "inSpeciesList": ["dr22913"]
+    }
+  }
+]

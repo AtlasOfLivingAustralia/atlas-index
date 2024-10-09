@@ -115,6 +115,13 @@ interface IndexFields {
     [key: string]: FieldInfo;
 }
 
+interface TaxonDescription {
+    name: string;
+    url: string;
+    attribution: string;
+    [key: string]: string;
+}
+
 export type {
     Breadcrumb,
     ListsUser,
@@ -126,5 +133,6 @@ export type {
     Institution,
     GroupedFacetData,
     FieldInfo,
-    IndexFields
+    IndexFields,
+    TaxonDescription
 };

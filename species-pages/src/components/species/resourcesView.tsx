@@ -12,6 +12,10 @@ interface Resource {
     name: string | JSX.Element;
     url: string;
     external?: boolean;
+    rules?: {
+        inSpeciesGroup?: string[];
+        inSpeciesList?: string[];
+    };
 }
 
 interface Author {
@@ -42,6 +46,7 @@ function ResourcesView({ result }: MapViewProps) {
     const [bhlQuery, setBhlQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [onlineResources, setOnlineResources] = useState<Resource[]>([]);
     const maxBhlSize: number = 5;
 
     useEffect(() => {
@@ -89,47 +94,60 @@ function ResourcesView({ result }: MapViewProps) {
             .finally(() => {
                 setLoading(false);
             });
+
+        // TODO: This is ugly. Make it better.
+        const env = import.meta.env.VITE_MODE; // 'development' or 'production'
+        const importResources = env === 'development'
+            ? import('../../config/onlineResources.test.json')
+            : import('../../config/onlineResources.prod.json');
+
+        importResources
+            .then(module => setOnlineResources(module.default))
+            .catch(error => console.error('Error loading resources:', error));
     }, [result]);
 
-    /* TODO: Use the external spreadsheet for this managed list of resource links. It will include RULES that will be
-        used to determine which resources to display on the page. https://github.com/AtlasOfLivingAustralia/ux-ui/issues/255
+    /* TODO: Move this to an external file so it can be different between test and prod, for the species listIds.
+         Source spreadsheet can be found in https://github.com/AtlasOfLivingAustralia/ux-ui/issues/255
+
+         Rules are applied such that
+         1. If no rules exist for a resource, it is visible
+         2. All rules must return TRUE for the resource to be visible
+         3. A rule returns TRUE if any of the item values exist in the list of rule values.
+           - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Mammals", "Reptiles"], the rule returns TRUE
+           - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Reptiles", "Amphibians"], the rule returns FALSE
      */
-    const onlineResources: Resource[] = [
-        {
-            name: <>Australian Reference<br/> Genome Atlas (ARGA)</>,
-            url: "https://www.arga.net.au/",
-            external: true
-        },
-        {
-            name: "API",
-            url: "https://api.ala.org.au/",
-        },
-        {
-            name: "Australian Museum",
-            url: "https://australian.museum/",
-            external: true
-        },
-        {
-            name: "Queensland Museum",
-            url: "https://www.qm.qld.gov.au/",
-            external: true
-        },
-        {
-            name: "Fauna of Australia Profile",
-            url: "https://www.environment.gov.au/biodiversity/abrs/online-resources/fauna/index",
-            external: true
-        },
-        {
-            name: <>Species Profile and Threats<br/> Database (SPRAT)</>,
-            url: "https://www.environment.gov.au/cgi-bin/sprat/public/publicspecies.pl",
-            external: true
-        },
-        {
-            name: "PestSmart Management Toolkit",
-            url: "https://pestsmart.org.au/",
-            external: true
+
+    function isResourceVisible(resource: Resource): boolean  {
+        var testsPassed = 0;
+        var testsApplied = 0;
+
+        for (const key in resource.rules) {
+            if (key === 'inSpeciesGroup') {
+                testsApplied++;
+
+                for (const speciesGroup in result?.speciesGroup) {
+                    if (resource.rules[key]?.includes(result?.speciesGroup[speciesGroup])) {
+                        testsPassed++;
+                        break;
+                    }
+                }
+            }
+
+            if (key === 'inSpeciesList') {
+                testsApplied++;
+
+                for (const speciesList in result?.speciesList) {
+                    if (resource.rules[key]?.includes(result?.speciesList[speciesList])) {
+                        testsPassed++;
+                        break;
+                    }
+                }
+            }
         }
-    ];
+
+        return testsApplied === testsPassed;
+    }
+
     return (
         <Box>
             { loading && <><Skeleton height={40} width="100%" radius="md" />
@@ -243,9 +261,13 @@ function ResourcesView({ result }: MapViewProps) {
             <Space h="px30" />
             <Grid gutter={{base: 15, md: 20, lg: 35}}>
                 {onlineResources.map((resource: Resource, idx) => (
-                    <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={idx} className={classes.primaryButton}>
-                        <LargeLinkButton url={resource.url} external={resource.external}>{resource.name}</LargeLinkButton>
-                    </Grid.Col>
+                    <>
+                    { isResourceVisible(resource) &&
+                        <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={idx} className={classes.primaryButton}>
+                            <LargeLinkButton url={resource.url} external={resource.external}>{resource.name}</LargeLinkButton>
+                        </Grid.Col>
+                    }
+                    </>
                 ))}
             </Grid>
         </Box>

@@ -1,38 +1,14 @@
 import {Box, Flex, Title, Text, Divider, Skeleton, Space} from "@mantine/core";
-import { useEffect, useState } from "react";
 import DOMPurify from "dompurify";
 import classes from "./species.module.css";
 import {IconInfoCircleFilled} from "@tabler/icons-react";
+import {TaxonDescription} from "../../api/sources/model.ts";
 
 interface MapViewProps {
-    result?: Record<PropertyKey, string | number | any >
+    descriptions?: TaxonDescription[];
 }
 
-function DescriptionView({result}: MapViewProps) {
-    const [loading, setLoading] = useState<boolean>(false);
-    const [descriptions, setDescriptions] = useState<any[]>([]);
-
-    useEffect(() => {
-        if (result?.name) {
-            fetchPage(result?.guid)
-        }
-    }, [result]);
-
-    function fetchPage(lsid: string) {
-
-        setLoading(true)
-
-        // doubly encoded; once for the file name, once for service (e.g. Cloudfront or http-server) that translate the URL encoding to the file name
-        var lsidEncoded = encodeURIComponent(encodeURIComponent(lsid))
-
-        fetch(import.meta.env.VITE_TAXON_DESCRIPTIONS_URL + "/" + lsidEncoded.substring(lsidEncoded.length - 2) + "/" + lsidEncoded + ".json")
-        .then(response => response.json()).then(json => {
-            setDescriptions(json)
-        })
-        .finally(() => {
-            setLoading(false);
-        })
-    }
+function DescriptionView({descriptions}: MapViewProps) {
 
     return <>
         <Flex justify="flex-start" align="center" gap="xs" mb="sm">
@@ -43,9 +19,8 @@ function DescriptionView({result}: MapViewProps) {
             Descriptive content has been sourced from several authoritative sources of information e.g. museums and herbaria. Links to further information are included in each section.
         </Text>
         <Space h="px60" />
-        { loading &&
+        {descriptions === undefined &&
                     <Box>
-                        {/*<Skeleton height={40} mt="lg" width="20%" radius="md" />*/}
                         <Skeleton height={40} mt="lg" width="90%" radius="md" />
                     </Box>
                 }
@@ -60,7 +35,7 @@ function DescriptionView({result}: MapViewProps) {
                             <Space h="px30"/>
                             {/* The title 'summary' is present only on wikipedia data and should be suppressed */}
                             { 'summary' !== key && <Title order={4} mb="px15" className={classes.h4grey}>{key}</Title> }
-                            {/* TODO: content should be sanitized by the time it arrives on this page, by taxon-descriptions tool */}
+                            {/* Leaving this header 'just in case'. taxon-descriptions does sanitize this content. */}
                             <Box className={classes.speciesSectionText} dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}} />
                         </Box>
                 )}
