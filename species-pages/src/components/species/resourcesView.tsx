@@ -95,7 +95,7 @@ function ResourcesView({ result }: MapViewProps) {
                 setLoading(false);
             });
 
-        // TODO: This is ugly. Make it better.
+        // TODO: This is ugly. Make it nice.
         const env = import.meta.env.VITE_MODE; // 'development' or 'production'
         const importResources = env === 'development'
             ? import('../../config/onlineResources.test.json')
@@ -105,17 +105,6 @@ function ResourcesView({ result }: MapViewProps) {
             .then(module => setOnlineResources(module.default))
             .catch(error => console.error('Error loading resources:', error));
     }, [result]);
-
-    /* TODO: Move this to an external file so it can be different between test and prod, for the species listIds.
-         Source spreadsheet can be found in https://github.com/AtlasOfLivingAustralia/ux-ui/issues/255
-
-         Rules are applied such that
-         1. If no rules exist for a resource, it is visible
-         2. All rules must return TRUE for the resource to be visible
-         3. A rule returns TRUE if any of the item values exist in the list of rule values.
-           - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Mammals", "Reptiles"], the rule returns TRUE
-           - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Reptiles", "Amphibians"], the rule returns FALSE
-     */
 
     function isResourceVisible(resource: Resource): boolean  {
         var testsPassed = 0;
@@ -187,7 +176,7 @@ function ResourcesView({ result }: MapViewProps) {
                         index < maxBhlSize &&
                             <>
                                 <Space h="px15" />
-                                <Alert variant="ala-light">
+                                <Alert variant="ala-light" className={classes.lightLarge}>
                                     {resource.Authors?.length === 1 ? (
                                         <>{resource.Authors[0].Name}</>
                                     ) : (

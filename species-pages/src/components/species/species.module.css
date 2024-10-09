@@ -130,3 +130,8 @@
 .primaryButton button {
     height: 69px !important;
 }
+
+/* TODO: refactor this out when the variant can be used instead see https://github.com/AtlasOfLivingAustralia/ala-mantine/issues/12 */
+.lightLarge {
+    padding: 15px 15px 18px 18px !important;
+}

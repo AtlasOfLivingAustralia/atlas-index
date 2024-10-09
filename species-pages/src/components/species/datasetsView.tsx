@@ -1,6 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
-import { Anchor, Flex, Notification, Skeleton, Table, Text } from "@mantine/core";
-import { IconInfoCircleFilled } from "@tabler/icons-react";
+import { Anchor, Notification, Skeleton, Table } from "@mantine/core";
 
 interface MapViewProps {
     result?:  Record<PropertyKey, string | number | any >
@@ -96,23 +95,12 @@ function DatasetsView({result}: MapViewProps) {
     }, [datasets]);
 
     return <>
-        <Flex justify="flex-start" align="center" gap="xs" mb="sm">
-            <IconInfoCircleFilled size={18}/>
-            <Text fw="bold">About datasets</Text>
-        </Flex>
-        <Text mt="sm">
-            Much of the content in the Atlas of Living Australia, such as occurrence records,
-            environmental data, images and the conservation status of species, comes from
-            data sets provided by collecting institutions, government departments, individual
-            collectors and community groups.
-        </Text>
         { loading &&
             <Skeleton height={800} mt="lg" width="100%" radius="md" />
         }
         { errorMessage &&
             <Notification
                 withBorder
-                mt="lg"
                 onClose={() => setErrorMessage('')}
                 title="Error loading datasets"
             >

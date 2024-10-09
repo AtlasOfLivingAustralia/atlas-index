@@ -82,3 +82,25 @@ VITE_TAXON_DESCRIPTIONS_URL=http://localhost:8082/static/taxon-descriptions
 VITE_SDS_INFO_URL=https://support.ala.org.au/support/solutions/articles/6000261705-working-with-threatened-migratory-and-sensitive-species-information-in-the-ala
 ```
 
+## Other configuration
+### ./config/firstDescriptionLabels.json
+This file is used to determine what appears in the header, beneath the common names. It is the list of description tab 
+content labels that contain suitably curated content for the first description tab. 
+### ./config/onlineResource.{test | prod}.json
+This file is used to determine the online resource links that appear at the end of the online resources tab. It is a 
+list of objects with the following properties:
+- `name`: the text that appears on the button
+- `url`: the URL that the button links to
+- `external`: true to indicate it opens in a new tab
+- `rules`: an array of rules that determine whether the button is visible.
+
+The rules determine what buttons are visible: 
+- `inSpeciesGroup`: an array of species groups
+- `inSpeciesList`: an array of authoritative list IDs
+
+Rules are applied such that
+1. If no rules exist for a resource, it is visible
+2. All rules must return TRUE for the resource to be visible
+3. A rule returns TRUE if any of the item values exist in the list of rule values.
+- e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Mammals", "Reptiles"], the rule returns TRUE
+- e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Reptiles", "Amphibians"], the rule returns FALSE
