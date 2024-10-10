@@ -161,6 +161,11 @@ function StatusView({ result }: MapViewProps) {
                 </Grid>
             </>
         }
+
+        { (!nativeIntroduced || Object.keys(nativeIntroduced).length == 0) &&
+            (!conservationStatus || Object.keys(conservationStatus).length == 0) &&
+            <Text>No status information available</Text>
+        }
         </Box>
     </>
 }

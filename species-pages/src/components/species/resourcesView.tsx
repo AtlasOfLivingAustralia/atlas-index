@@ -3,6 +3,7 @@ import { Alert, Anchor, Box, Divider, Grid, Notification, Skeleton, Space, Text,
 import LargeLinkButton from '../common/externalLinkButton';
 import FormatName from '../nameUtils/formatName';
 import classes from "./species.module.css";
+import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>;
@@ -139,34 +140,30 @@ function ResourcesView({ result }: MapViewProps) {
 
     return (
         <Box>
-            { loading && <><Skeleton height={40} width="100%" radius="md" />
-                <Space h="px30" /> </>}
+            <Title order={3}>
+                Literature
+            </Title>
+
+            <Space h="px30" />
+
+            <Title order={4} className={classes.h4grey}>
+                Biodiversity Heritage Library (BHL)
+            </Title>
+            <Space h="px30" />
+
+            { loading && <><Skeleton height={40} width="100%" radius="md" /></>}
             { errorMessage &&
                 <>
-                    <Notification
-                        withBorder
-                        onClose={() => setErrorMessage('')}
-                        title="Error loading BHL results"
-                    >
-                        {errorMessage}
-                    </Notification>
-                    <Space h="px30" />
+                    <Alert icon={<FlagIcon />}>
+                        <b>Error loading BHL results.</b>
+                        <p>Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.</p>
+                        <code>{errorMessage}</code>
+                    </Alert>
                 </>
             }
             {
                 bhl && bhl.length > 0 &&
                 <>
-                    <Title order={3}>
-                        Literature
-                    </Title>
-
-                    <Space h="px30" />
-
-                    <Title order={4} className={classes.h4grey}>
-                        Biodiversity Heritage Library (BHL)
-                    </Title>
-
-                    <Space h="px30" />
                     <Text>
                         Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length}  for {" "}
                         <FormatName name={result?.name} rankId={result?.rankID} />.{" "}
@@ -231,20 +228,14 @@ function ResourcesView({ result }: MapViewProps) {
                             </>
                         )
                     )}
-
-                    <Space h="px60" />
-                    <Divider/>
-                    <Space h="px40" />
-
                 </>
             }
-            {/*{ !loading && (!bhl || bhl.length === 0) &&*/}
-            {/*    <Text>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>*/}
-            {/*<Space h="px60" />*/}
-            {/*<Divider/>*/}
-            {/*<Space h="px40" />*/}
-            {/*}*/}
-
+            { !loading && !errorMessage && (!bhl || bhl.length === 0) &&
+                <Text>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
+            }
+            <Space h="px60" />
+            <Divider/>
+            <Space h="px40" />
 
             <Title order={3}>Other resources</Title>
             <Space h="px30" />
