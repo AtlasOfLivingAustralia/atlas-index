@@ -3,7 +3,6 @@ package au.org.ala.search.controller;
 import au.org.ala.search.model.cache.LanguageInfo;
 import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.auth.WebService;
-import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.model.SearchItemIndex;
@@ -14,7 +13,6 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,6 +36,8 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * bie-index API services, minus some admin services
@@ -176,7 +176,7 @@ public class V2Controller {
                 updateNamesData(taxon, mapper, "vernacularData");
                 updateNamesData(taxon, mapper, "identifierData");
                 updateNamesData(taxon, mapper, "variantData");
-            } catch(JsonProcessingException ignored){
+            } catch(IOException ignored){
             }
 
             // Inject listId->name mapping so that it is available to the UI
@@ -216,17 +216,32 @@ public class V2Controller {
     }
 
     /**
-     * Update the string of JSON with a JSON list for the taxon Map object "name"
+     * Update the base64 + compressed JSON with a JSON list for a taxon Map object
      *
      * @param taxon taxon Map with the object that is a string of JSON
      * @param mapper ObjectMapper so it does not need to be created each time
      * @param name the name of the object in the taxon Map
-     * @throws JsonProcessingException
+     * @throws IOException
      */
-    private void updateNamesData(Map taxon, ObjectMapper mapper, String name) throws JsonProcessingException {
+    private void updateNamesData(Map taxon, ObjectMapper mapper, String name) throws IOException {
         if (taxon.containsKey(name)) {
-            List data = mapper.readValue(taxon.get(name).toString(), List.class);
-            taxon.put(name, data);
+            String base64 = taxon.get(name).toString();
+            if (base64 != null && !base64.isEmpty()) {
+                byte[] compressedBytes = Base64.getDecoder().decode(base64);
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(compressedBytes);
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                try (GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream)) {
+                    byte[] buffer = new byte[1024];
+                    int len;
+                    while ((len = gzipInputStream.read(buffer)) != -1) {
+                        byteArrayOutputStream.write(buffer, 0, len);
+                    }
+                }
+
+                List data = mapper.readValue(byteArrayOutputStream.toString("UTF-8"), List.class);
+                taxon.put(name, data);
+            }
         }
     }
 

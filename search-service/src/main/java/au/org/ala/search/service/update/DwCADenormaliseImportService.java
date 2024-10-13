@@ -17,8 +17,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 @Service
 public class DwCADenormaliseImportService {
@@ -401,8 +404,8 @@ public class DwCADenormaliseImportService {
             }
 
             try {
-                item.variantData = objectMapper.writeValueAsString(variantData);
-            } catch (JsonProcessingException ignored) {
+                item.variantData = formatBinary(objectMapper.writeValueAsString(variantData));
+            } catch (IOException ignored) {
             }
         }
         item.priority = priority != null ? priority : priorityNorm;
@@ -430,8 +433,8 @@ public class DwCADenormaliseImportService {
             }
 
             try {
-                item.vernacularData = objectMapper.writeValueAsString(vernacularData);
-            } catch (JsonProcessingException ignored) {
+                item.vernacularData = formatBinary(objectMapper.writeValueAsString(vernacularData));
+            } catch (IOException ignored) {
             }
         }
 
@@ -455,8 +458,8 @@ public class DwCADenormaliseImportService {
             }
 
             try {
-                item.identifierData = objectMapper.writeValueAsString(identifierData);
-            } catch (JsonProcessingException ignored) {
+                item.identifierData = formatBinary(objectMapper.writeValueAsString(identifierData));
+            } catch (IOException ignored) {
             }
         }
 
@@ -490,12 +493,32 @@ public class DwCADenormaliseImportService {
 
                     synonymData.add(syn);
                 }
-            }
-
-            try {
-                item.synonymData = objectMapper.writeValueAsString(synonymData);
-            } catch (JsonProcessingException ignored) {
+                try {
+                    item.synonymData = formatBinary(objectMapper.writeValueAsString(synonymData));
+                } catch (IOException ignored) {
+                }
             }
         }
+    }
+
+    /**
+     * Convert the input string to a compressed and base64 encoded string.
+     *
+     * @param input
+     * @return
+     * @throws IOException
+     */
+    private String formatBinary(String input) throws IOException {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
+            gzipOutputStream.write(input.getBytes("UTF-8"));
+        }
+
+        byte[] compressedBytes = byteArrayOutputStream.toByteArray();
+        return Base64.getEncoder().encodeToString(compressedBytes);
     }
 }

@@ -285,17 +285,17 @@
     "commonNameSingle": {
       "type": "keyword"
     },
-    "commonNameData": {
-      "type": "keyword",
-      "index": false
+    "vernacularData": {
+      "type": "binary"
     },
     "synonymData": {
-      "type": "keyword",
-      "index": false
+      "type": "binary"
     },
     "variantData": {
-      "type": "keyword",
-      "index": false
+      "type": "binary"
+    },
+    "identifierData": {
+      "type": "binary"
     },
     "itemCount": {
       "type": "integer"

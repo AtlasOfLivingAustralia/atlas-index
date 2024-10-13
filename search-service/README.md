@@ -372,3 +372,12 @@ The default `languages.json` is constructed from [AIATSIS language code](https:/
   languageCode: { name: "languageName", uri: "languageUri" }
 }
 ```
+
+# More TODOs
+
+1. Species pages require names data and this can be quite large. This is currently compressed and stored in binary 
+elasticsearch fields but this may not be the best place for it. It may be better to either store it in the same
+way as the taxon-descriptions (on a file server), or in the database (mongodb). File server is probably the best
+because the information is only updated when the names index is updated. This raises the question that the 
+taxon-descriptions might be best extended to taxon-data. This would then be suitable for all infrequently updated 
+information that is not indexed.
