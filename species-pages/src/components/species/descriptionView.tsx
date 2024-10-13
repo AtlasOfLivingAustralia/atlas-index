@@ -11,10 +11,11 @@ interface MapViewProps {
 function DescriptionView({descriptions}: MapViewProps) {
 
     return <>
-        <Flex justify="flex-start" align="center" gap="xs" mb="sm">
+        <Flex justify="flex-start" align="center" gap="5px">
             <IconInfoCircleFilled size={18}/>
             <Text fw={800} fz={16}>About descriptions</Text>
         </Flex>
+        <Space h="px10" />
         <Text fz="sm">
             Descriptive content has been sourced from several authoritative sources of information e.g. museums and herbaria. Links to further information are included in each section.
         </Text>

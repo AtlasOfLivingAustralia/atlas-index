@@ -256,7 +256,7 @@ function MapView({tab, result}: MapViewProps) {
                         <Text mt="sm" fz="sm">Opens the ALA occurrence data explorer in a new window</Text>
                     </Popover.Dropdown>
                 </Popover>
-                <Flex justify="flex-start" align="center" gap="xs" mt="xl">
+                <Flex justify="flex-start" align="center" gap="5px" mt="xl">
                     <IconInfoCircleFilled size={24}/>
                     <Text fw={800} fz={16}>About this map</Text>
                 </Flex>

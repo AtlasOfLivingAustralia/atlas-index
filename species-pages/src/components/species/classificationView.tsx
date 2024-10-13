@@ -73,7 +73,7 @@ function ClassificationView({result}: ViewProps) {
                 )}
             </Grid.Col>
             <Grid.Col span={3}>
-                <Flex justify="flex-start" align="center" gap="xs">
+                <Flex justify="flex-start" align="center" gap="5px">
                     <IconInfoCircleFilled size={24}/>
                     <Text fw={800} fz={16}>About classification</Text>
                 </Flex>

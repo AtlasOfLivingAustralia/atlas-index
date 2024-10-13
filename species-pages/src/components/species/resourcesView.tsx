@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Anchor, Box, Divider, Grid, Notification, Skeleton, Space, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Box, Divider, Grid, Skeleton, Space, Text, Title } from '@mantine/core';
 import LargeLinkButton from '../common/externalLinkButton';
 import FormatName from '../nameUtils/formatName';
 import classes from "./species.module.css";

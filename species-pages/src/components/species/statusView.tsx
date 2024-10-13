@@ -69,7 +69,7 @@ function StatusView({ result }: MapViewProps) {
                 <>
                 <Title order={3}>Native / introduced</Title>
                     <Space h="px30" />
-                    <Flex justify="flex-start" align="center" gap="xs">
+                    <Flex justify="flex-start" align="center" gap="5px">
                         <IconInfoCircleFilled size={18}/>
                         <Text fw={800} fz={16}>About native / introduced</Text>
                     </Flex>
@@ -136,7 +136,7 @@ function StatusView({ result }: MapViewProps) {
                 </Table>
 
                 <Space h="px60" />
-                <Flex justify="flex-start" align="center" gap="xs">
+                <Flex justify="flex-start" align="center" gap="5px">
                     <IconInfoCircleFilled size={18}/>
                     <Text fw={800} fz={16}>About the IUCN Equivalent Classes</Text>
                 </Flex>

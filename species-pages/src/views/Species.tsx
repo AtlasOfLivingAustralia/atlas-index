@@ -141,7 +141,9 @@ function Species({setBreadcrumbs, queryString}: {
             .then(response => response.json()).then(json => {
             setDescriptions(json)
 
-            // find the first description, TODO: document this in the README, and move to a config file
+            // find the first description
+            // This is a bit of a hack, but we will attempt to limit the resulting text to 3 lines in the header, even
+            // if it is HTML not plain text.
             var firstDescriptionElement = json.find((element: any) =>
                 Object.keys(element).some(key => descriptionLabels.includes(key))
             )
@@ -150,7 +152,7 @@ function Species({setBreadcrumbs, queryString}: {
                     descriptionLabels.includes(key)
                 )
                 if (firstDescriptionKey) {
-                    setFirstDescription(firstDescriptionElement[firstDescriptionKey])
+                    setFirstDescription(trimParagraph(firstDescriptionElement[firstDescriptionKey], 230)) // 230 is a guess
                 }
             }
         }).catch(() => {
@@ -159,13 +161,42 @@ function Species({setBreadcrumbs, queryString}: {
         });
     }
 
+    function trimParagraph(html: any, maxCharacters: number) {
+        // Trim this HTML, that is probably just text and other basic tags contained in a <p> tag.
+        // 1. Split into sentences.
+        // 2. Include sentences unless the total length exceeds maxCharacters.
+
+        // Create a temporary DOM element to parse the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+
+        // Extract text content from the HTML
+        const textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+        // Split the text content into sentences
+        // TODO: This is a very basic sentence splitting, and should be adjusted as required.
+        const sentences = textContent.match(/[^\.!\?]+[\.!\?]+(?=\s|$)/g) || [];
+
+        // Join sentences until the total length exceeds maxCharacters
+        let trimmedText = '';
+        for (const sentence of sentences) {
+            if (trimmedText.length + sentence.length > maxCharacters) {
+                break;
+            }
+            trimmedText += sentence;
+        }
+
+        return trimmedText;
+    }
+
+
     return (
     <>  { Object.keys(result).length > 0 &&
             <>
                 <Box className={classes.speciesHeader}>
                 <Container py={{ base: 'sm', lg: 'xl'}} size="lg">
                     <BreadcrumbSection breadcrumbValues={breadcrumbValues} />
-                    <Grid mt={{ base: 'xs', lg: 'md'}} mb="lg">
+                    <Grid mt={{ base: 'xs', lg: 'md'}} mb="lg" gutter={0}>
                         <Grid.Col span={{ base: 12, md: 6, lg: 6 }}>
                             <Title order={2} fw={600} fs={fontStyle(result.rankID)} mt={{ base: 0, lg: 'md'}} mb={{ base: 4, lg: 'xs'}}>
                                 {result.name}
@@ -203,18 +234,24 @@ function Species({setBreadcrumbs, queryString}: {
                         <Grid.Col span={{ base: 12, md: 6, lg: 4 }}>
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
-                                    <Image key={idx}  src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
+                                <Box mr="sm" mb="sm">
+                                    <Image key={idx} src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"/>
+                                </Box>
                             )}
                         </Grid.Col>
                         <Grid.Col span={{ base: 12, md: 2, lg: 2 }} className={classes.hideMobile}>
                             <Flex gap={12} direction={{ base: 'row', lg: 'column' }}>
                                 { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
-                                    <Image key={idx} src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image" />
+                                    <Box mr="sm" mb="sm">
+                                        <Image key={idx} src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image" />
+                                    </Box>
                             )}
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
-                                    <Image key={idx} src={"https://images.ala.org.au/image/proxyImageThumbnail?imageId=" + id} alt="species image"  />
+                                    <Box mr="sm" mb="sm">
+                                        <Image key={idx} src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"  />
+                                    </Box>
                             )}
                             </Flex>
                         </Grid.Col>

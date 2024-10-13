@@ -135,3 +135,7 @@
 .lightLarge {
     padding: 15px 15px 18px 18px !important;
 }
+
+.traitsLeftColumnWidth {
+    width: 305px;
+}
