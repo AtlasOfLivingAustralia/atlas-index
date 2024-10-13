@@ -89,7 +89,7 @@ public class ListImportService {
             }
         }
     }
-
+    // TODO: longer term, the taxon updates from species lists should be "one update per taxon" rather than the current implementation of "one update per taxon per field". This will most significantly improve the first update for a new names index due to the large number of elasticsearch requests performed to get the document ids. It is much less of an impact for the incremental updates that take place when re-running.
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
         logService.log(taskType, "Starting lists import");
@@ -97,11 +97,11 @@ public class ListImportService {
         Map<String, Date> existingLists = elasticService.queryItems("idxtype", IndexDocType.SPECIESLIST.name());
 
         // there are only a small number of authoritativeLists
-        List<Map<String, Object>> lists = listService.authoritativeLists();
+        List<Map<String, Object>> authoritativeLists = listService.authoritativeLists();
         List<Map<String, Object>> sdsLists = listService.sdsLists();
         List<String> conservationLists = new ArrayList<>();
         List<String> attributeLists = new ArrayList<>();
-        List<IndexQuery> authLists = processLists(existingLists, lists, conservationLists, attributeLists);
+        List<IndexQuery> authLists = processLists(existingLists, authoritativeLists, conservationLists, attributeLists);
         int counter = elasticService.flushImmediately(authLists);
         long deleted = elasticService.removeDeletedItems(existingLists);
         logService.log(taskType, "delete: " + deleted);
@@ -355,6 +355,32 @@ public class ListImportService {
                     true).size();
         }
 
+        // This section maintains the field "speciesList" for each taxon that appears in authoritative lists. This field
+        // contains a list of listIds that the taxon appears in. The initial purpose is for use with species-pages
+        // resource tab where there are buttons that will be visible depending on what lists the taxon appears in.
+        logService.log(taskType, "import speciesList field with lists of auth lists");
+        int allListsCounter = 0;
+        List<String> allLists = new ArrayList<>(10000);
+        Map<String, List<String>> allListsLookup = new HashMap<>();
+        for (Map<String, Object> list : authoritativeLists) {
+            String listId = list.get("dataResourceUid").toString();
+            allLists.add(listId);
+            Set<String> ids = listService.items(listId).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
+
+            for (String id : ids) {
+                List<String> listIds = allListsLookup.get(id);
+                if (listIds == null) {
+                    listIds = new ArrayList();
+                    allListsLookup.put(id, listIds);
+                }
+                listIds.add(listId);
+            }
+        }
+        if (!allLists.isEmpty()) {
+            List<String> updatedIds = setFieldValues("speciesList", allListsLookup);
+            allListsCounter = updatedIds.size();
+        }
+
         // nested fields may have changed, cache the new list
         elasticService.indexFields(true);
 
@@ -365,7 +391,8 @@ public class ListImportService {
                 + ", list images: " + listImageCounter
                 + ", native/introduced: " + nativeIntroducedCounter
                 + ", conservationIUCN: " + conservationIUCNCounter
-                + ", sds: " + sdsCounter);
+                + ", sds: " + sdsCounter
+                + ", auth lists: " + allListsCounter);
 
         return CompletableFuture.completedFuture(true);
     }
@@ -567,5 +594,87 @@ public class ListImportService {
         }
 
         elasticService.updateImmediately(buffer);
+    }
+
+    /**
+     * Utility function that updates a taxon field using a map of taxonIds and values
+     *
+     * @param field          field to update
+     * @param taxonIdMap     map of taxonId and list of values for the field
+     * @return list of ids that were updated
+     */
+    private List<String> setFieldValues(
+            String field, Map<String, List<String>> taxonIdMap) {
+        List<String> updatedIds = new ArrayList<>();
+        List<UpdateQuery> buffer = new ArrayList<>();
+        Set<String> seenIds = new HashSet();
+
+        kvpError = false;
+
+        int counter = 0;
+        int duplicateIds = 0;
+
+        try {
+            Map<String, String[]> existingItems = elasticService.queryItems(field, "*", "guid", new String[]{"guid", "id", field}, -1);
+
+            for (Map.Entry<String, List<String>> entry : taxonIdMap.entrySet()) {
+                String guid = entry.getKey();
+                if (StringUtils.isEmpty(guid)) {
+                    continue;
+                }
+
+                String[] stored = existingItems.remove(guid);
+
+                // alternative null values
+                if (stored != null && "[]".equals(stored[2])) {
+                    stored = null;
+                }
+
+                if (stored != null && !arraysEqual(stored[2], entry.getValue())) {
+                    // existing values to change
+                    Document doc = Document.create();
+                    doc.put(field, entry.getValue());
+                    buffer.add(UpdateQuery.builder(stored[1]).withDocument(doc).build());
+                    updatedIds.add(stored[1]);
+                } else if (stored == null) {
+                    // new value to create
+                    String id = elasticService.queryTaxonId(guid);
+                    if (id != null) {
+                        Document doc = Document.create();
+                        doc.put(field, entry.getValue());
+                        buffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                        updatedIds.add(id);
+                    } else {
+                        logService.log(taskType, "taxonId missing: " + guid);
+                    }
+                }
+            }
+
+            // clear field for those that no longer exist
+            for (Map.Entry<String, String[]> es : existingItems.entrySet()) {
+                Document doc = Document.create();
+                doc.put(field, null);
+                buffer.add(UpdateQuery.builder(es.getValue()[1]).withDocument(doc).build());
+                updatedIds.add(es.getValue()[1]);
+            }
+
+            counter += buffer.size();
+            // Had a problem with updating nested contents. Wait for update.
+            elasticService.updateImmediately(buffer);
+            buffer.clear();
+
+            logService.log(taskType,
+                    "finished list " + field + ", new:" + counter
+                            + ", removed:" + existingItems.size());
+        } catch (Exception e) {
+            logService.log(taskType, "failed list " + field + ", " + e.getMessage());
+            logger.error("failed list " + field + ", " + e.getMessage(), e);
+        }
+
+        return updatedIds;
+    }
+
+    private boolean arraysEqual(String s, List<String> value) {
+        return false;
     }
 }

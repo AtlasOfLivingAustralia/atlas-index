@@ -3,10 +3,13 @@ package au.org.ala.search.service.update;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.cache.*;
+import au.org.ala.search.model.dto.DatasetInfo;
 import au.org.ala.search.model.dto.RankedName;
 import au.org.ala.search.model.dto.SubGroup;
 import au.org.ala.search.service.SpeciesGroupService;
 import au.org.ala.search.service.remote.LogService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.utils.file.csv.CSVReader;
 import org.slf4j.Logger;
@@ -193,7 +196,7 @@ public class DwCADenormaliseImportService {
         }
 
         int lastIdx = anyIdx;
-        while (lastIdx < fa.length - 2
+        while (lastIdx < fa.length - 2 && fa[sortByAcceptedConceptID[lastIdx + 1]].acceptedConceptID != null
                 && fa[sortByAcceptedConceptID[lastIdx + 1]].acceptedConceptID.equals(guid)) {
             lastIdx++;
         }
@@ -201,6 +204,42 @@ public class DwCADenormaliseImportService {
         String[] found = new String[lastIdx - firstIdx + 1];
         for (int i = firstIdx; i <= lastIdx; i++) {
             found[i - firstIdx] = fa[sortByAcceptedConceptID[i]].scientificName;
+        }
+        return found;
+    }
+
+    private DenormalTaxon[] findAssociatedTaxon(final String guid) {
+        final DenormalTaxon[] fa = cache.cacheTaxon;
+        int anyIdx = Arrays.binarySearch(sortByAcceptedConceptID, -1, (o1, o2) -> {
+            String a = o1 == -1 ? guid : fa[o1].acceptedConceptID;
+            String b = o2 == -1 ? guid : fa[o2].acceptedConceptID;
+
+            a = a == null ? "" : a;
+            b = b == null ? "" : b;
+            return a.compareTo(b);
+        });
+
+        if (anyIdx < 0) {
+            return null;
+        }
+
+        int firstIdx = anyIdx;
+        while (firstIdx > 0
+                && fa[sortByAcceptedConceptID[firstIdx - 1]].acceptedConceptID != null
+                && fa[sortByAcceptedConceptID[firstIdx - 1]].acceptedConceptID.equals(guid)) {
+            firstIdx--;
+        }
+
+        int lastIdx = anyIdx;
+        while (lastIdx < fa.length - 2
+                && fa[sortByAcceptedConceptID[lastIdx + 1]].acceptedConceptID != null
+                && fa[sortByAcceptedConceptID[lastIdx + 1]].acceptedConceptID.equals(guid)) {
+            lastIdx++;
+        }
+
+        DenormalTaxon[] found = new DenormalTaxon[lastIdx - firstIdx + 1];
+        for (int i = firstIdx; i <= lastIdx; i++) {
+            found[i - firstIdx] = fa[sortByAcceptedConceptID[i]];
         }
         return found;
     }
@@ -239,7 +278,7 @@ public class DwCADenormaliseImportService {
         return orderA - orderB;
     }
 
-    private void getParentValues(String guid, Map<String, String> parentData, List<String> speciesGroups, List<String> speciesSubgroups, List<String> seenGuid, List<String> rankSeen) {
+    private void getParentValues(String guid, Map<String, String> parentData, List<RankedName> rankedNames, List<String> seenGuid, List<String> rankSeen) {
         DenormalTaxon parent = findCachedTaxonByGuid(guid);
         if (parent != null) {
             if (StringUtils.isNotEmpty(parent.rank) && parent.rankID != 0) {
@@ -258,13 +297,9 @@ public class DwCADenormaliseImportService {
                 // order
                 rankSeen.add(normalisedRank + uniqueSuffix);
 
-                // we have a unique rank name and value, check if it's in the species group list
+                // we have a unique rank name and value, keep the value so it can be used to find the species group later
                 RankedName rn = new RankedName(parent.scientificName.toLowerCase(), normalisedRank);
-                SubGroup speciesGroup = speciesGroupService.invertedSpeciesGroups.get(rn);
-                if (speciesGroup != null) {
-                    speciesGroups.add(speciesGroup.group);
-                    speciesSubgroups.add(speciesGroup.subGroup);
-                }
+                rankedNames.add(rn);
             }
             // key == parentGuid for DenormalTaxon
             if (parent.key != null) {
@@ -275,7 +310,7 @@ public class DwCADenormaliseImportService {
                     return;
                 }
 
-                getParentValues(parent.key, parentData, speciesGroups, speciesSubgroups, seenGuid, rankSeen);
+                getParentValues(parent.key, parentData, rankedNames, seenGuid, rankSeen);
             }
         }
     }
@@ -284,6 +319,8 @@ public class DwCADenormaliseImportService {
     // e.g. instead of the old denormalize (parent + recursion for children), this will follow to the parent
     // to get the data.rk* values
     public void denormalizeItemOnly(SearchItemIndex item) {
+        ObjectMapper objectMapper = new ObjectMapper();
+
         // taxon with acceptedTaxonID value undergo different denormalization
         if (item.acceptedConceptID != null) {
             String linkText = buildLinkText(item.scientificName);
@@ -298,26 +335,34 @@ public class DwCADenormaliseImportService {
         // find parent data.rk* values
         if (item.parentGuid != null) {
             Map<String, String> parentData = new HashMap<>();
-            List<String> speciesGroups = new ArrayList<>();
-            List<String> speciesSubgroups = new ArrayList<>();
             List<String> seenGuid = new ArrayList<>();
             List<String> rankSeen = new ArrayList<>();
+            List<RankedName> rankNames = new ArrayList<>();
             seenGuid.add(item.guid);
 
-            getParentValues(item.parentGuid, parentData, speciesGroups, speciesSubgroups, seenGuid, rankSeen);
+            getParentValues(item.parentGuid, parentData, rankNames, seenGuid, rankSeen);
 
             // An approach to retain the order rk_*/rkid_* as the tree is traversed. Probably not the best approach.
             parentData.put("rankOrder", StringUtils.join(rankSeen, ","));
 
-            if (!speciesGroups.isEmpty()) {
-                item.speciesGroup = speciesGroups.toArray(new String[0]);
-                item.speciesSubgroup = speciesSubgroups.toArray(new String[0]);
+            // add the current item to the rankNames list
+            rankNames.add(new RankedName(item.scientificName.toLowerCase(), item.rank));
+            if (!rankNames.isEmpty()) {
+                List<String> speciesGroups = speciesGroupService.groupsFor(rankNames);
+                if (speciesGroups != null && !speciesGroups.isEmpty()) {
+                    item.speciesGroup = speciesGroups.toArray(new String[0]);
+                }
             }
 
             if (item.data == null) {
                 item.data = parentData;
             } else {
                 item.data.putAll(parentData);
+            }
+        } else {
+            List<String> speciesGroups = speciesGroupService.groupsFor(Collections.singletonList(new RankedName(item.scientificName.toLowerCase(), item.rank)));
+            if (speciesGroups != null && !speciesGroups.isEmpty()) {
+                item.speciesGroup = speciesGroups.toArray(new String[0]);
             }
         }
 
@@ -339,6 +384,26 @@ public class DwCADenormaliseImportService {
             names.remove(item.scientificName);
             names.remove(item.nameComplete);
             if (!names.isEmpty()) item.nameVariant = names.toArray(new String[0]);
+
+            // convert variants to JSON String for storage (not indexed)
+            List<Map<String, String>> variantData = new ArrayList<>();
+            // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into synonymData
+            for (DenormalVariant variant : variants) {
+                Map<String, String> variantItem = new HashMap<>();
+                if (variant.scientificName != null) variantItem.put("scientificName", variant.scientificName);
+                if (variant.nameAccordingTo != null) variantItem.put("nameAccordingTo", variant.nameAccordingTo);
+                if (variant.namePublishedIn != null) variantItem.put("namePublishedIn", variant.namePublishedIn);
+                if (variant.source != null) variantItem.put("source", variant.source);
+
+                DatasetInfo attribution = cache.attributionMap.getOrDefault(variant.datasetID, null);
+                if (attribution != null && attribution.datasetName != null) variantItem.put("datasetName", attribution.datasetName);
+                variantData.add(variantItem);
+            }
+
+            try {
+                item.variantData = objectMapper.writeValueAsString(variantData);
+            } catch (JsonProcessingException ignored) {
+            }
         }
         item.priority = priority != null ? priority : priorityNorm;
 
@@ -348,10 +413,51 @@ public class DwCADenormaliseImportService {
             // aligns commonName with namematching-service
             String namesServiceCommonName = cacheCommonName.get(item.guid);
             item.commonNameSingle = namesServiceCommonName != null ? namesServiceCommonName : commonNames[0].name;
+
+            List<Map<String, String>> vernacularData = new ArrayList<>();
+            // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID, status into vernacularData
+            for (DenormalVernacular commonName : commonNames) {
+                Map<String, String> vern = new HashMap<>();
+                if (commonName.name != null) vern.put("name", commonName.name);
+                if (commonName.source != null) vern.put("source", commonName.source);
+                if (commonName.status != null) vern.put("status", commonName.status);
+                if (commonName.language != null) vern.put("language", commonName.language);
+
+                DatasetInfo attribution = cache.attributionMap.getOrDefault(commonName.datasetID, null);
+                if (attribution != null && attribution.datasetName != null) vern.put("datasetName", attribution.datasetName);
+
+                vernacularData.add(vern);
+            }
+
+            try {
+                item.vernacularData = objectMapper.writeValueAsString(vernacularData);
+            } catch (JsonProcessingException ignored) {
+            }
         }
 
         if (identifiers != null) {
             item.additionalIdentifiers = Arrays.stream(identifiers).map(it -> it.guid).distinct().toArray(String[]::new);
+
+            // convert identifiers to JSON String for storage (not indexed)
+            List<Map<String, String>> identifierData = new ArrayList<>();
+            // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into synonymData
+            for (DenormalIdentifier identifier : identifiers) {
+                Map<String, String> identifierItem = new HashMap<>();
+                identifierItem.put("guid", identifier.guid);
+                if (identifier.nameAccordingTo != null) identifierItem.put("nameAccordingTo", identifier.nameAccordingTo);
+                if (identifier.namePublishedIn != null) identifierItem.put("namePublishedIn", identifier.namePublishedIn);
+                if (identifier.source != null) identifierItem.put("source", identifier.source);
+
+                DatasetInfo attribution = cache.attributionMap.getOrDefault(identifier.datasetID, null);
+                if (attribution != null && attribution.datasetName != null) identifierItem.put("datasetName", attribution.datasetName);
+
+                identifierData.add(identifierItem);
+            }
+
+            try {
+                item.identifierData = objectMapper.writeValueAsString(identifierData);
+            } catch (JsonProcessingException ignored) {
+            }
         }
 
         String[] names = findAssociatedNames(item.guid);
@@ -363,6 +469,33 @@ public class DwCADenormaliseImportService {
         DenormalTaxon ltItem = linkIdentifiers.get(linkText);
         if (ltItem != null && ltItem.guid.equals(item.guid) && !linkIdentifierConflict.contains(linkText)) {
             item.linkIdentifier = linkText;
+        }
+
+        // aggregate some synonym data for this TAXON, if it is the accepted concept
+        if (item.acceptedConceptID == null) {
+            DenormalTaxon[] synonyms = findAssociatedTaxon(item.guid);
+
+            List<Map<String, String>> synonymData = new ArrayList<>();
+            // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into synonymData
+            if (synonyms != null) {
+                for (DenormalTaxon synonym : synonyms) {
+                    Map<String, String> syn = new HashMap<>();
+                    syn.put("scientificName", synonym.scientificName);
+                    if (synonym.nameAccordingTo != null) syn.put("nameAccordingTo", synonym.nameAccordingTo);
+                    if (synonym.namePublishedIn != null) syn.put("namePublishedIn", synonym.namePublishedIn);
+                    if (synonym.source != null) syn.put("source", synonym.source);
+
+                    DatasetInfo attribution = cache.attributionMap.getOrDefault(synonym.datasetID, null);
+                    if (attribution != null && attribution.datasetName != null) syn.put("datasetName", attribution.datasetName);
+
+                    synonymData.add(syn);
+                }
+            }
+
+            try {
+                item.synonymData = objectMapper.writeValueAsString(synonymData);
+            } catch (JsonProcessingException ignored) {
+            }
         }
     }
 }

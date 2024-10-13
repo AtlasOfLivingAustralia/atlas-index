@@ -212,7 +212,7 @@ public class DwCAImportRunner {
         counter += buffer.size();
         elasticService.flush(buffer);
 
-        logService.log(taskType, term.simpleName() + " indexing finished: " + counter);
+        logService.log(taskType, term.simpleName() + (cacheOnly != null ? " cached "  + pos: " indexing finished: " + counter));
 
         return CompletableFuture.completedFuture(counter);
     }
@@ -327,10 +327,17 @@ public class DwCAImportRunner {
 
         String id = UUID.randomUUID().toString();
 
+        String source = core.value(DcTerm.source); // This is the source URL
+        String datasetID = core.value(DwcTerm.datasetID); // This is the datasetID, get the name using dataResourceUid
+
         return DenormalVernacular.builder()
                 .guid(id)
                 .name(vernacularName)
                 .key(taxonID) // taxonID is stored in key for DenormalVernacular
+                .source(source)
+                .datasetID(datasetID)
+                .status(core.value(ALATerm.status))
+                .language(language)
                 .build();
     }
 
@@ -389,6 +396,11 @@ public class DwCAImportRunner {
         return DenormalIdentifier.builder()
                 .guid(identifier)
                 .key(taxonID) // taxonGuid is key for DenormalIdentifier
+                .scientificName(core.value(DwcTerm.scientificName))
+                .source(core.value(DcTerm.source))
+                .datasetID(core.value(DwcTerm.datasetID))
+                .nameAccordingTo(core.value(DwcTerm.nameAccordingTo))
+                .namePublishedIn(core.value(DwcTerm.namePublishedIn))
                 .build();
     }
 
@@ -576,7 +588,12 @@ public class DwCAImportRunner {
                 .scientificName(scientificName)
                 .nameComplete(buildNameComplete(nameComplete, scientificName, scientificNameAuthorship))
                 .nameType(nameType)
-                .acceptedConceptID(synonym ? acceptedNameUsageID : null).build();
+                .acceptedConceptID(synonym ? acceptedNameUsageID : null)
+                .nameAccordingTo(core.value(DwcTerm.nameAccordingTo))
+                .namePublishedIn(core.value(DwcTerm.namePublishedIn))
+                .source(core.value(DcTerm.source))
+                .datasetID(core.value(DwcTerm.datasetID))
+                .build();
     }
 
     DenormalVariant buildDenormalVariant(Record core) {
@@ -594,6 +611,10 @@ public class DwCAImportRunner {
                 .scientificName(scientificName)
                 .nameComplete(buildNameComplete(nameComplete, scientificName, scientificNameAuthorship))
                 .priority(priority)
+                .source(core.value(DcTerm.source))
+                .datasetID(core.value(DwcTerm.datasetID))
+                .namePublishedIn(core.value(DwcTerm.namePublishedIn))
+                .nameAccordingTo(core.value(DwcTerm.nameAccordingTo))
                 .build();
     }
 

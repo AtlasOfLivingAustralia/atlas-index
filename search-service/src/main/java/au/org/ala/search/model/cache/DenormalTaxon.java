@@ -18,6 +18,10 @@ public class DenormalTaxon extends Denormal {
     public String taxonomicStatus;
     public String nameType;
     public String favourite;
+    public String nameAccordingTo;
+    public String namePublishedIn;
+    public String source;
+    public String datasetID;
 
     public DenormalTaxon(SearchItemIndex item) {
         super(item.parentGuid);
@@ -31,5 +35,9 @@ public class DenormalTaxon extends Denormal {
         this.taxonomicStatus = item.taxonomicStatus;
         this.nameType = item.nameType;
         this.favourite = item.favourite;
+        this.nameAccordingTo = item.nameAccordingTo;
+        this.namePublishedIn = item.namePublishedIn;
+        this.source = item.source;
+        this.datasetID = item.datasetID;
     }
 }

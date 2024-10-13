@@ -1,6 +1,9 @@
 package au.org.ala.search.controller;
 
+import au.org.ala.search.model.cache.LanguageInfo;
+import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.auth.WebService;
+import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.model.SearchItemIndex;
@@ -11,6 +14,8 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -58,8 +63,9 @@ public class V2Controller {
     protected final QueueService queueService;
     protected final DownloadFileStoreService downloadFileStoreService;
     protected final WebService webService;
+    protected final LanguageService languageService;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -69,6 +75,7 @@ public class V2Controller {
         this.downloadFileStoreService = downloadFileStoreService;
         this.webService = webService;
         this.listCache = listCache;
+        this.languageService = languageService;
     }
 
     @Tag(name = "Search")
@@ -129,6 +136,10 @@ public class V2Controller {
 
         List<Map> result = new ArrayList<>();
         for (String q : qs) {
+            if (StringUtils.isBlank(q)) {
+                continue;
+            }
+
             String id = elasticService.cleanupId(q);
 
             Map taxon = elasticService.getTaxonMap(id, true, true);
@@ -157,6 +168,17 @@ public class V2Controller {
                 }
             }
 
+            // Inject an object for synonymData, vernacularData, identifierData, variantData.
+            // Replaces JSON string with JSON list.
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                updateNamesData(taxon, mapper, "synonymData");
+                updateNamesData(taxon, mapper, "vernacularData");
+                updateNamesData(taxon, mapper, "identifierData");
+                updateNamesData(taxon, mapper, "variantData");
+            } catch(JsonProcessingException ignored){
+            }
+
             // Inject listId->name mapping so that it is available to the UI
             Map<String, String> listNamesMap = new HashMap<>();
             for (Object obj : taxon.keySet()) {
@@ -173,9 +195,39 @@ public class V2Controller {
                 taxon.put("listNames", listNamesMap);
             }
 
+            // Inject vernacular name language info
+            if (taxon.containsKey("vernacularData")) {
+                List<Map> vernacularData = (List<Map>) taxon.get("vernacularData");
+                for (Map vernacular : vernacularData) {
+                    String languageCode = (String) vernacular.get("language");
+                    if (StringUtils.isNotEmpty(languageCode)) {
+                        LanguageInfo languageInfo = languageService.getLanguageInfo(languageCode);
+                        if (languageInfo != null) {
+                            vernacular.put("languageName", languageInfo.name);
+                            vernacular.put("languageURL", languageInfo.uri);
+                        }
+                    }
+                }
+            }
+
             result.add(taxon);
         }
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Update the string of JSON with a JSON list for the taxon Map object "name"
+     *
+     * @param taxon taxon Map with the object that is a string of JSON
+     * @param mapper ObjectMapper so it does not need to be created each time
+     * @param name the name of the object in the taxon Map
+     * @throws JsonProcessingException
+     */
+    private void updateNamesData(Map taxon, ObjectMapper mapper, String name) throws JsonProcessingException {
+        if (taxon.containsKey(name)) {
+            List data = mapper.readValue(taxon.get(name).toString(), List.class);
+            taxon.put(name, data);
+        }
     }
 
     @Tag(name = "Search")

@@ -10,10 +10,18 @@ Subset of SearchItemIndex for caching
 public class DenormalVernacular extends Denormal {
     public String guid;
     public String name;
+    public String source; // source URL
+    public String datasetID; // collectory dataResourceUid
+    public String status; // status of the vernacular name, e.g. "traditionalKnowledge"
+    public String language; // language code of the vernacular name, e.g. "N90"
 
     public DenormalVernacular(SearchItemIndex item) {
         super(item.taxonGuid);
         this.guid = item.guid;
         this.name = item.name;
+        this.source = item.source;
+        this.datasetID = item.datasetID;
+        this.status = item.status;
+        this.language = item.language;
     }
 }

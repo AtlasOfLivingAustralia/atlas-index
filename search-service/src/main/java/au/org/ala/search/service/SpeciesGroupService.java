@@ -16,38 +16,79 @@ import org.springframework.stereotype.Service;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-// TODO: When the new species group definitions are finalized (https://github.com/AtlasOfLivingAustralia/ux-ui/issues/162)
-//  major changes will be required to this implementation. The new JSON file format will match the namematching service.
-
+/**
+ * Service for species groups files in the format of namematching service.
+ *
+ * The concept of "subGroup" no longer applies.
+ *
+ * */
 @Service
 public class SpeciesGroupService {
     private static final Logger logger = LoggerFactory.getLogger(SpeciesGroupService.class);
 
     public Map<RankedName, SubGroup> invertedSpeciesGroups;
 
+    Map<String, List<SpeciesGroup>> groupByRank = new ConcurrentHashMap<>();
+
+    public SpeciesGroupService() {
+        invertedSpeciesGroups = new HashMap<>();
+    }
+
+    public static void main(String[] args) {
+        SpeciesGroupService speciesGroupService = new SpeciesGroupService();
+        try {
+            speciesGroupService.init();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<RankedName> rankedNames = new ArrayList<>();
+        rankedNames.add(new RankedName("Ostracoda".toLowerCase(), "class"));
+        System.out.println(speciesGroupService.groupsFor(rankedNames));
+    }
+
+    public List<String> groupsFor(List<RankedName> rankedNames) {
+        if (rankedNames == null || rankedNames.isEmpty()) {
+            return null;
+        }
+
+        List<String> speciesGroups = new ArrayList<>(5);
+        List<SpeciesGroup> candidateGroups = new ArrayList<>(5);
+
+        // do a search for candidate groups that satisfy the rank and include names
+        for (RankedName rankedName : rankedNames) {
+            String rank = normaliseRank(rankedName.getRank());
+            List<SpeciesGroup> groups = groupByRank.get(rank);
+            if (groups != null) {
+                for (SpeciesGroup group : groups) {
+                    if (group.included != null && group.included.contains(rankedName.getName())) {
+                        candidateGroups.add(group);
+                    }
+                }
+            }
+        }
+
+        // exclude groups that have excluded names anywhere in the list of rankedNames
+        for (SpeciesGroup candidateGroup : candidateGroups) {
+            boolean exclude = false;
+            for (RankedName rankedName : rankedNames) {
+                if (candidateGroup.excluded != null && candidateGroup.excluded.contains(rankedName.getName())) {
+                    exclude = true;
+                    break;
+                }
+            }
+            if (!exclude) {
+                speciesGroups.add(candidateGroup.name);
+            }
+        }
+
+        return speciesGroups;
+    }
+
     @Value("${speciesGroup.path}")
     private String speciesGroupPath;
-
-    private static Map<RankedName, SubGroup> invertSpeciesGroups(List<SpeciesGroup> speciesGroups) {
-        Map<RankedName, SubGroup> result = new ConcurrentHashMap<>();
-
-        speciesGroups.forEach(
-                speciesGroup -> speciesGroup.taxa.forEach(taxa -> result.put(
-                        new RankedName(taxa.name.toLowerCase(), normaliseRank(speciesGroup.taxonRank)),
-                        new SubGroup(speciesGroup.speciesGroup, taxa.common))));
-
-        return result;
-    }
-
-    private static List<SpeciesGroup> loadSpeciesGroups(InputStream inputStream) throws IOException {
-        ObjectMapper om = new ObjectMapper();
-        return om.readValue(inputStream, new TypeReference<>() {
-        });
-    }
 
     static String normaliseRank(String rank) {
         return rank != null ? rank.toLowerCase().replaceAll("[^a-z]", "_") : null;
@@ -55,11 +96,40 @@ public class SpeciesGroupService {
 
     @PostConstruct
     void init() throws IOException {
-        loadInvertedSpeciesGroupMap();
-    }
+        List<SpeciesGroup> speciesGroups = loadSpeciesGroups();
+        if (speciesGroups != null) {
+            for (SpeciesGroup speciesGroup : speciesGroups) {
+                // substitute rank "class" for input spec "classs"
+                if (speciesGroup.rank.equals("classs")) {
+                    speciesGroup.rank = "class";
+                }
 
-    private void loadInvertedSpeciesGroupMap() throws IOException {
-        invertedSpeciesGroups = invertSpeciesGroups(loadSpeciesGroups());
+                String rank = normaliseRank(speciesGroup.rank);
+                List<SpeciesGroup> groups = groupByRank.get(rank);
+                if (groups == null) {
+                    groups = new ArrayList<>();
+                    groupByRank.put(rank, groups);
+                }
+
+                // normalise the included and excluded names
+                if (speciesGroup.included != null) {
+                    Set<String> names = new HashSet<>();
+                    for (String name : speciesGroup.included) {
+                        names.add(name.toLowerCase());
+                    }
+                    speciesGroup.included = names;
+                }
+                if (speciesGroup.excluded != null) {
+                    Set<String> names = new HashSet<>();
+                    for (String name : speciesGroup.excluded) {
+                        names.add(name.toLowerCase());
+                    }
+                    speciesGroup.excluded = names;
+                }
+
+                groups.add(speciesGroup);
+            }
+        }
     }
 
     private List<SpeciesGroup> loadSpeciesGroups() throws IOException {
@@ -70,7 +140,9 @@ public class SpeciesGroupService {
             } else {
                 is = Resources.getResource("speciesGroups.json").openStream();
             }
-            return loadSpeciesGroups(is);
+
+            ObjectMapper om = new ObjectMapper();
+            return om.readValue(is, new TypeReference<List<SpeciesGroup>>() {});
         } catch (IOException e) {
             logger.error("failed to load speciesGroups " + speciesGroupPath, e);
         } finally {

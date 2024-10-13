@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class DwCAImportService {
@@ -61,16 +62,17 @@ public class DwCAImportService {
         logService.log(taskType, "Starting DwCA import");
 
         List<DenormalCache> caches = new ArrayList<>();
+        Map<String, DatasetInfo> attributionMap = new ConcurrentHashMap<>();
         for (String dir : retrieveAvailableDwCAPaths()) {
-            caches.add(importDwcA(dir, true));
+            caches.add(importDwcA(dir, true, attributionMap));
         }
 
         // consolidate caches
-        DenormalCache cache = new DenormalCache(aggregateTaxon(caches), aggregateIdentifier(caches), aggregateVariant(caches), aggregateVernacular(caches));
+        DenormalCache cache = new DenormalCache(aggregateTaxon(caches), aggregateIdentifier(caches), aggregateVariant(caches), aggregateVernacular(caches), attributionMap);
         dwCADenormaliseImportService.setCache(cache);
 
         for (String dir : retrieveAvailableDwCAPaths()) {
-            importDwcA(dir, false);
+            importDwcA(dir, false, attributionMap);
         }
 
         dwCADenormaliseImportService.deleteCaches();
@@ -175,7 +177,7 @@ public class DwCAImportService {
         return aggregate;
     }
 
-    private DenormalCache importDwcA(String dir, boolean cacheOnly) {
+    private DenormalCache importDwcA(String dir, boolean cacheOnly, Map<String, DatasetInfo> attributionMap) {
         String logLabel = cacheOnly ? "building cache" : "importing archive";
         DenormalCache cache = null;
         try {
@@ -199,15 +201,12 @@ public class DwCAImportService {
             }
 
             // retrieve datasets
-            Map<String, DatasetInfo> attributionMap;
+            if (attributionMap.isEmpty()) {
+                attributionMap.putAll(getDatasets(archive));
+            }
 
-            // dataset extension available?
-            ArchiveFile datasetArchiveFile = archive.getExtension(DcTerm.rightsHolder);
-            logService.log(taskType, "Dataset extension detected: " + (datasetArchiveFile != null));
-            if (datasetArchiveFile != null) {
-                attributionMap = readAttribution(datasetArchiveFile);
-                logService.log(taskType, "Datasets read: " + attributionMap.size());
-            } else {
+            if (attributionMap.isEmpty()) {
+                logService.log(taskType, "Error No datasets found in the archive");
                 return null;
             }
 
@@ -251,6 +250,20 @@ public class DwCAImportService {
         return cache;
     }
 
+    private Map<String, DatasetInfo> getDatasets(Archive archive) {
+        Map<String, DatasetInfo> attributionMap = null;
+
+        // dataset extension available?
+        ArchiveFile datasetArchiveFile = archive.getExtension(DcTerm.rightsHolder);
+        logService.log(taskType, "Dataset extension detected: " + (datasetArchiveFile != null));
+        if (datasetArchiveFile != null) {
+            attributionMap = readAttribution(datasetArchiveFile);
+            logService.log(taskType, "Datasets read: " + attributionMap.size());
+        }
+
+        return attributionMap;
+    }
+
     private List<String> retrieveAvailableDwCAPaths() {
         List<String> filePaths = new ArrayList<>();
         File dir = new File(dwcaDir);
@@ -270,7 +283,7 @@ public class DwCAImportService {
     }
 
     private Map<String, DatasetInfo> readAttribution(ArchiveFile datasetArchiveFile) {
-        Map<String, DatasetInfo> datasets = new HashMap<>();
+        Map<String, DatasetInfo> datasets = new ConcurrentHashMap<>();
 
         for (Record record : datasetArchiveFile) {
             String datasetID = record.id();

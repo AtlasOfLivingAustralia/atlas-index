@@ -1,27 +1,18 @@
 package au.org.ala.search.service;
 
 import au.org.ala.search.model.cache.LanguageInfo;
-import au.org.ala.search.model.dto.IndexedField;
-import au.org.ala.search.model.dto.Rank;
-import au.org.ala.search.names.RankType;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Service
 public class LanguageService {

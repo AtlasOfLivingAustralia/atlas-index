@@ -117,4 +117,8 @@ public class SearchItemIndex {
     public String[] nameVariant;
     public String[] additionalIdentifiers;
     public String[] additionalNames_m_s;
+    public String synonymData; // JSON object with synonym data for species page names tab
+    public String variantData; // JSON object with variant data for species page names tab
+    public String identifierData; // JSON object with variant data for species page names tab
+    public String vernacularData; // JSON object with vernacular data for species page names tab
 }

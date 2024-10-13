@@ -279,8 +279,23 @@
         "all"
       ]
     },
+    "speciesList": {
+      "type": "keyword"
+    },
     "commonNameSingle": {
       "type": "keyword"
+    },
+    "commonNameData": {
+      "type": "keyword",
+      "index": false
+    },
+    "synonymData": {
+      "type": "keyword",
+      "index": false
+    },
+    "variantData": {
+      "type": "keyword",
+      "index": false
     },
     "itemCount": {
       "type": "integer"

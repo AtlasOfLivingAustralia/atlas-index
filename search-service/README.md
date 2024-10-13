@@ -61,7 +61,7 @@ TODO [helm-charts](https://github.com/AtlasOfLivingAustralia/helm-charts) reposi
 - OIDC only. No CAS support.
 - Using Elasticsearch instead of SOLR.
 - Using a single index instead of swapping between online and offline.
-- An initial index build is significantly faster. The trade-off is a higher memory requirement (3GB) that will scale
+- An initial index build is significantly faster. The trade-off is a higher memory requirement (4.5GB) that will scale
   with the size of the DwCA names indexes imported.
 - Removed JSON config files (TODO what about the mapping file required for conservation-lists.json backwards
   compatibility?)
