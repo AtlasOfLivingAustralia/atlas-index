@@ -1,9 +1,0 @@
-{
-  "version": "v1",
-  "packages": {
-    "ala-mantine": {
-      "signature": "8319e7c43759c443ba4b057689d93818",
-      "file": true
-    }
-  }
-}
