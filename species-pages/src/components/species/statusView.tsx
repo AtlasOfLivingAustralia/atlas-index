@@ -74,7 +74,7 @@ function StatusView({ result }: MapViewProps) {
                         <Text fw={800} fz={16}>About native / introduced</Text>
                     </Flex>
                     <Space h="px10" />
-                    <Text fz="sm">
+                    <Text>
                         This indicates if a species is regarded as introduced to Australia, a state, or territory.
                         This can also include Australian native species which have been introduced in areas beyond
                         their natural range, e.g a species native to NSW introduced to WA.&nbsp;
@@ -141,7 +141,7 @@ function StatusView({ result }: MapViewProps) {
                     <Text fw={800} fz={16}>About the IUCN Equivalent Classes</Text>
                 </Flex>
                 <Space h="px10" />
-                <Text fz="sm">
+                <Text>
                     As each state and territory have different classifications under their threatened species
                     legislation, the Atlas of Living Australia have interpreted state and territory status
                     classes to align to the equivalent International Union for Conservation of Nature (IUCN) Classes. <Anchor inherit

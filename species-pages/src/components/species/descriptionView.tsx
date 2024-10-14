@@ -16,7 +16,7 @@ function DescriptionView({descriptions}: MapViewProps) {
             <Text fw={800} fz={16}>About descriptions</Text>
         </Flex>
         <Space h="px10" />
-        <Text fz="sm">
+        <Text>
             Descriptive content has been sourced from several authoritative sources of information e.g. museums and herbaria. Links to further information are included in each section.
         </Text>
         <Space h="px60" />

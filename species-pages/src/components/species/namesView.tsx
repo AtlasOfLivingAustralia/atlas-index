@@ -161,7 +161,7 @@ function NamesView({ result }: MapViewProps) {
                 </>
             }
 
-            {commonNames && <>
+            {commonNames && commonNames.length > 0 && <>
                 <Divider/>
                 <Space h="px30" />
                 <Title order={3}>Common names</Title>
@@ -210,7 +210,7 @@ function NamesView({ result }: MapViewProps) {
                     <Text fw={800} fz={16}>About indigenous names</Text>
                 </Flex>
                 <Space h="px10" />
-                <Text fz="sm">
+                <Text>
                     The links from the Indigenous name provide more information about Indigenous Ecological
                     Knowledge (IEK) relating to the species. The link from language group links to the
                     Australian Institute of Aboriginal and Torres Strait Islander Studies

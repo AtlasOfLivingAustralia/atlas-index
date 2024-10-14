@@ -33,7 +33,23 @@
     }
 }
 
-.currentTaxa, .citeAusTraits {
+.currentTaxa p, .currentTaxa a {
+    line-height: 34px;
+}
+
+.currentTaxa p {
+    padding-left: 12px !important;
+}
+
+.currentTaxa a {
+    padding-right: 11px !important;
+}
+
+.currentTaxa {
+    margin-top: 5px;
+    margin-bottom: 10px !important;
+    display: inline-flex !important;
+
     @mixin light {
         background-color: var(--mantine-color-light-grey-1);
     }

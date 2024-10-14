@@ -96,7 +96,7 @@ function DatasetsView({result}: MapViewProps) {
 
     return <>
         { loading &&
-            <Skeleton height={800} mt="lg" width="100%" radius="md" />
+            <Skeleton height={800} width="100%" radius="md" />
         }
         { errorMessage &&
             <Notification
