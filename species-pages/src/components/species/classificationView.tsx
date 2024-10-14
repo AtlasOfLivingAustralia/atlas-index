@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Anchor, Flex, Grid, Notification, Skeleton, Space, Text } from "@mantine/core";
+import { Alert, Anchor, Flex, Grid, Skeleton, Space, Text } from "@mantine/core";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import FormatName from "../nameUtils/formatName.tsx";
+import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
 
 interface ViewProps {
     result?: Record<PropertyKey, string | number | any >
@@ -12,15 +13,26 @@ interface ViewProps {
 function ClassificationView({result}: ViewProps) {
     const [children, setChildren] = useState<any[]>([]);
     const [hierarchy, setHierarchy] = useState<any[]>([]);
-    const [loading] = useState<boolean>(false);
-    const [errorMessage] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(true);
+    const [errorMessage, setErrorMessage] = useState<string>('');
 
     useEffect(() => {
         if (result?.guid) {
-            fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:\"" + encodeURIComponent(result.guid) + "\"").then(response => response.json()).then(data => {
-                data.searchResults.sort((a: any, b: any) => (a.nameComplete < b.nameComplete ? -1 : (a.nameComplete > b.nameComplete ? 1 : 0)))
-                setChildren(data.searchResults)
-            })
+            fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:\"" + encodeURIComponent(result.guid) + "\"")
+                .then(response => response.json())
+                .then(data => {
+                    if (data?.searchResults) {
+                        data.searchResults.sort((a: any, b: any) => (a.nameComplete < b.nameComplete ? -1 : (a.nameComplete > b.nameComplete ? 1 : 0)))
+                        setChildren(data.searchResults)
+                    } else if (data?.status != 200 && data?.error) {
+                        // Not sure why a 404 will end up here instead of the catch
+                        setErrorMessage(data.error)
+                    }
+                }).catch((error) => {
+                    setErrorMessage(error)
+                }).finally(() => {
+                    setLoading(false)
+                });
         }
         if (result?.rankOrder) {
             let items: Record<PropertyKey, string | number | any >[] = []
@@ -42,10 +54,9 @@ function ClassificationView({result}: ViewProps) {
     return (
         <Grid>
             <Grid.Col span={9}>
-                { loading &&
-                    <Skeleton height={40} />
-                }
-                { !errorMessage && !loading && hierarchy.length === 0 && <>
+                { /* the choice made here is to display all of the hierarchy at once, rather than parents and children separately */}
+                { loading && <Skeleton height={40} width="90%" radius="md" />}
+                { !loading && hierarchy.length === 0 && <>
                         {/* TODO: this is needed only for kingdom records. They do not currently have hierarchy information */}
                             <Flex
                                 data-guid={result?.guid}
@@ -60,7 +71,7 @@ function ClassificationView({result}: ViewProps) {
                             </Flex>
                     </>
                 }
-                { hierarchy && hierarchy.map((item, idx) =>
+                { !loading && hierarchy && hierarchy.map((item, idx) =>
                     <Flex
                         key={idx}
                         data-guid={item.guid}
@@ -87,12 +98,11 @@ function ClassificationView({result}: ViewProps) {
                     </Flex>
                 )}
                 { errorMessage &&
-                    <Notification
-                        withBorder
-                        title="Error loading classification"
-                    >
-                        {errorMessage}
-                    </Notification>
+                    <Alert icon={<FlagIcon />}>
+                        <b>Error loading child taxa.</b>
+                        <p>Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.</p>
+                        <code>{errorMessage}</code>
+                    </Alert>
                 }
             </Grid.Col>
             <Grid.Col span={3}>

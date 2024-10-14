@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useState} from "react";
-import { Anchor, Notification, Skeleton, Table } from "@mantine/core";
+import { Anchor, Alert, Skeleton, Table, Text } from "@mantine/core";
+import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
 
 interface MapViewProps {
     result?:  Record<PropertyKey, string | number | any >
@@ -32,6 +33,11 @@ function DatasetsView({result}: MapViewProps) {
             .then(data => {
                 let newDatasets = [];
                 let drs = [];
+                if (!data || !data.facetResults || data.facetResults.length === 0) {
+                    setLoading(false)
+                    return;
+                }
+
                 for (let item of data.facetResults[0].fieldResult) {
                     if (item.label) {
                         let dr = item.fq.replace("dataResourceUid:", "").replaceAll('"', '');
@@ -61,7 +67,6 @@ function DatasetsView({result}: MapViewProps) {
                             }
                         }
                         setDatasets(newDatasets);
-                        // setLoading(false);
                     })
                     .catch(error => {
                         setErrorMessage('Failed to fetch licenses - ' + error);
@@ -74,7 +79,7 @@ function DatasetsView({result}: MapViewProps) {
                 setErrorMessage('Failed to fetch datasets - ' + error);
             })
             .finally(() => {
-                loading && setLoading(false);
+                setLoading(false);
             });
     }, [result]);
 
@@ -96,23 +101,23 @@ function DatasetsView({result}: MapViewProps) {
 
     return <>
         { loading &&
-            <Skeleton height={800} width="100%" radius="md" />
+            <Skeleton height={40} width="100%" radius="md" />
         }
         { errorMessage &&
-            <Notification
-                withBorder
-                onClose={() => setErrorMessage('')}
-                title="Error loading datasets"
-            >
-                {errorMessage}
-            </Notification>
+            <Alert icon={<FlagIcon />}>
+                <b>Error loading datasets</b>
+                <p>Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.</p>
+                <code>{errorMessage}</code>
+            </Alert>
         }
         { datasets.length > 0 &&
             <Table
                 striped="even"
                 data={populateTableData()}
-                mt="lg"
             />
+        }
+        { !loading && !errorMessage && datasets.length == 0 &&
+            <Text>No datasets found</Text>
         }
     </>
 }

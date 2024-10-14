@@ -46,6 +46,9 @@ function DescriptionView({descriptions}: MapViewProps) {
                 </Flex>
             </Box>
         )}
+        { descriptions && descriptions.length === 0 &&
+            <Text>No descriptions found</Text>
+        }
     </>
 }
 
