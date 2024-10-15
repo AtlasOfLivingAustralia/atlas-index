@@ -81,8 +81,9 @@ public class LayerImportService {
                 logService.log(taskType, "found " + layers.size() + " layers");
 
                 for (Map<String, Object> layer : layers) {
-                    String url = spatialUrl + layerPath + layer.get("name");
-                    String name = (String) layer.get("displayname");
+                    String name = (String) layer.get("name");
+                    String url = spatialUrl + layerPath + name;
+                    String displayName = (String) layer.get("displayname");
                     Boolean enabled = (Boolean) layer.getOrDefault("enabled", false);
 
                     String notes = (String) layer.getOrDefault("notes", null);
@@ -99,6 +100,7 @@ public class LayerImportService {
                     String keywords = (String) layer.getOrDefault("keywords", null);
                     String domain = (String) layer.getOrDefault("domain", null);
                     String type = (String) layer.getOrDefault("type", null);
+                    String source = (String) layer.getOrDefault("source", null);
 
                     if (!enabled) {
                         continue;
@@ -108,20 +110,24 @@ public class LayerImportService {
                     SearchItemIndex stored = elasticService.getDocument(url);
 
                     if (stored == null
-                            || !stored.getName().equals(name)
+                            || !stored.getId().equals(url)
+                            || !stored.getGuid().equals(url)
+                            || !stored.getName().equals(displayName)
                             || !stringEquals(stored.getDescription(), body)
                             || !stringEquals(stored.getClassification1(), classification1)
                             || !stringEquals(stored.getClassification2(), classification2)
                             || !stringEquals(stored.getKeywords(), keywords)
                             || !stringEquals(stored.getDomain(), domain)
-                            || !stringEquals(stored.getType(), type)) {
+                            || !stringEquals(stored.getType(), type)
+                            || !stringEquals(stored.getSource(), source)
+                        ) {
                         updateList.put(
                                 url,
                                 SearchItemIndex.builder()
                                         .id(url)
                                         .guid(url)
                                         .idxtype(IndexDocType.LAYER.name())
-                                        .name(name)
+                                        .name(displayName)
                                         .description(body)
                                         .modified(new Date())
                                         .classification1(classification1)
@@ -129,6 +135,7 @@ public class LayerImportService {
                                         .keywords(keywords)
                                         .domain(domain)
                                         .type(type)
+                                        .source(source)
                                         .image(spatialUrl + "/layer/img/" + name + ".jpg")
                                         .build());
                     }

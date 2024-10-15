@@ -41,6 +41,13 @@ Object.assign(theme, {
         px40: "40px",
         px30: "30px",
         px15: "15px"
+    },
+    components: {
+        Button: {
+            styles: {
+                root: { ":active": { transform: "none" } },
+            },
+        },
     }
 });
 

@@ -118,7 +118,7 @@ public class WordpressImportService {
                     try {
                         Date current = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssX").parse(lastmod);
                         Date stored = existingPages.get(pageUrl);
-                        if (stored == null || stored.compareTo(current) < 0) {
+                        if (true || stored == null || stored.compareTo(current) < 0) {
                             locations.put(pageUrl, current);
                         }
 
@@ -145,6 +145,13 @@ public class WordpressImportService {
             String fullUrl = url + contentOnlyParams;
             Document document = Jsoup.connect(fullUrl).timeout(timeout).get();
 
+            // extract the category from the URL
+            String category1 = null;
+            String [] parts = url.split("/");
+            if (parts.length > 3) {
+                category1 = parts[3];
+            }
+
             // some summary/landing pages do not work with `content-only=1`, so we don't want to index
             // them
             if (!document.select("body.ala-content").isEmpty()
@@ -154,6 +161,12 @@ public class WordpressImportService {
 
             String title = document.select(titleSelector).text();
             String main = document.select(contentSelector).text();
+            Elements imageElements = document.select("article img");
+            String image = null;
+            if (!imageElements.isEmpty()) {
+                image = imageElements.get(0).attr("src");
+            }
+
             return SearchItemIndex.builder()
                     .id(url)
                     .guid(url)
@@ -161,6 +174,8 @@ public class WordpressImportService {
                     .name(title)
                     .description(main)
                     .modified(lastmod)
+                    .classification1(category1)
+                    .image(image)
                     .build();
         } catch (IOException e) {
             logService.log(taskType, "cannot index " + url + ", " + e.getMessage());

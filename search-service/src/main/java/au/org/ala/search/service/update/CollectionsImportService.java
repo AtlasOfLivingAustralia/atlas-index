@@ -3,6 +3,7 @@ package au.org.ala.search.service.update;
 import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.service.remote.BiocacheService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,40 +30,43 @@ public class CollectionsImportService {
     private static final Logger logger = LoggerFactory.getLogger(CollectionsImportService.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
+    protected final BiocacheService biocacheService;
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${collections.url}")
     private String collectionsUrl;
 
-    public CollectionsImportService(ElasticService elasticService, LogService logService) {
+    public CollectionsImportService(ElasticService elasticService, LogService logService, BiocacheService biocacheService) {
         this.elasticService = elasticService;
         this.logService = logService;
+        this.biocacheService = biocacheService;
     }
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
         logService.log(taskType, "Starting");
-        int counter = importEntity("dataResource", IndexDocType.DATARESOURCE);
+
+        int counter = importEntity("dataResource", IndexDocType.DATARESOURCE, biocacheService.entityCounts("dataResourceUid"));
 
         // reset datasetMap cache
         if (elasticService.datasetMap != null) {
             elasticService.datasetMap.clear();
         }
 
-        counter += importEntity("dataProvider", IndexDocType.DATAPROVIDER);
-        counter += importEntity("institution", IndexDocType.INSTITUTION);
-        counter += importEntity("collection", IndexDocType.COLLECTION);
+        counter += importEntity("dataProvider", IndexDocType.DATAPROVIDER, biocacheService.entityCounts("dataProviderUid"));
+        counter += importEntity("institution", IndexDocType.INSTITUTION, biocacheService.entityCounts("institutionUid"));
+        counter += importEntity("collection", IndexDocType.COLLECTION, biocacheService.entityCounts("collectionUid"));
         logService.log(taskType, "Finished updates: " + counter);
         return CompletableFuture.completedFuture(true);
     }
 
-    private int importEntity(String name, IndexDocType type) {
+    private int importEntity(String name, IndexDocType type, Map<String, Integer> entityCounts) {
         logService.log(taskType, "Starting " + name + " import");
 
         List<IndexQuery> buffer = new ArrayList<>();
 
         Map<String, Date> existingLists = elasticService.queryItems("idxtype", type.name());
 
-        Map<String, SearchItemIndex> items = getEntityList(name, type, existingLists);
+        Map<String, SearchItemIndex> items = getEntityList(name, type, existingLists, entityCounts);
 
         int counter = 0;
 
@@ -85,7 +89,7 @@ public class CollectionsImportService {
 
     // removes pages from existingPages as they are found
     private Map<String, SearchItemIndex> getEntityList(
-            String entityName, IndexDocType type, Map<String, Date> existingLists) {
+            String entityName, IndexDocType type, Map<String, Date> existingLists, Map<String, Integer> entityCounts) {
         Map<String, SearchItemIndex> updateList = new HashMap<>();
 
         int batchSize = 100;
@@ -102,7 +106,7 @@ public class CollectionsImportService {
                     batchIds.add(uid);
 
                     if (batchIds.size() == batchSize) {
-                        getEntityBatch(updateList, existingLists, entityName, type, batchIds);
+                        getEntityBatch(updateList, existingLists, entityName, type, batchIds, entityCounts);
                         batchIds.clear();
                     }
                 }
@@ -119,12 +123,17 @@ public class CollectionsImportService {
             Map<String, Date> existingLists,
             String entityName,
             IndexDocType type,
-            List<String> batchIds) {
+            List<String> batchIds,
+            Map<String, Integer> entityCounts) {
         List<SearchItemIndex> items = getItems(entityName, type, batchIds);
 
         for (SearchItemIndex item : items) {
             Date stored = existingLists.get(item.getId());
-            if (stored == null || stored.compareTo(item.getModified()) < 0) {
+            if (stored == null || stored.compareTo(item.getModified()) < 0
+                    || !entityCounts.getOrDefault(item.getId(), 0).equals(item.getOccurrenceCount())
+            || true /*TODO: remove test code */) {
+
+                item.setOccurrenceCount(entityCounts.getOrDefault(item.getId(), 0));
                 updateList.put(item.getId(), item);
             }
 
@@ -170,7 +179,7 @@ public class CollectionsImportService {
             String websiteUrl = (String) properties.getOrDefault("websiteUrl", null);
 
             Map<String, Object> logoRef = (Map<String, Object>) properties.getOrDefault("logoRef", new HashMap<>());
-            String image = logoRef.getOrDefault("uri", "").toString();
+            String image = (String) logoRef.getOrDefault("uri", null);
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'");
             Date lastmod;

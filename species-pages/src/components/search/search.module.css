@@ -1,0 +1,36 @@
+.filterButton:active {
+    transform: none;
+}
+
+.filterButton svg {
+    margin-right: 5px;
+}
+
+.groupName {
+    color: #C44D34;
+
+    /* Desktop/H4/Semibold */
+    font-family: Roboto;
+    font-size: 26px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 32px; /* 123.077% */
+}
+
+.listItemName {
+    color: #003A70;
+
+    /* Desktop/Body/Semibold italic underline */
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 600;
+    line-height: 24px; /* 150% */
+    text-decoration-line: underline;
+}
+
+.overflowText {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

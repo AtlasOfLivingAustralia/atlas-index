@@ -17,6 +17,7 @@ import UserContext from './helpers/UserContext';
 import BreadcrumbSection from './components/header/breadcrumbs';
 import Home from './views/Home';
 import buildInfo from './buildInfo.json';
+import Search from "./views/Search.tsx";
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -174,6 +175,15 @@ const App: React.FC = () => {
                     path="/species"
                     element={
                         <Species
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                            queryString={queryString}
+                        />
+                    }
+                />
+                <Route
+                    path="/search"
+                    element={
+                        <Search
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                             queryString={queryString}
                         />
