@@ -9,6 +9,7 @@
         <module>default-ui</module>
         <module>names-extract</module>
         <module>search-service</module>
+        <module>species-pages</module>
         <module>search-test</module>
 <!--        <module>static-server</module>-->
         <module>taxon-descriptions</module>

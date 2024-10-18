@@ -24,6 +24,7 @@ mvn package
 
 Required files, copy from github
 
+TODO: There is a new groups.json. It is added to search-service. Some inconsistencies will exist with production and test environments until the new groups.json deployed elsewhere.    
 ```
 wget -O "/data/ala-namematching-service/config/groups.json" "https://raw.githubusercontent.com/AtlasOfLivingAustralia/ala-install/master/ansible/roles/namematching-service/files/groups.json"
 wget -O "/data/ala-namematching-service/config/subgroups.json" "https://raw.githubusercontent.com/AtlasOfLivingAustralia/ala-install/master/ansible/roles/namematching-service/files/subgroups.json"

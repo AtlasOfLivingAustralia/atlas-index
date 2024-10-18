@@ -34,3 +34,178 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.filterButton, .filterButton:hover, .filterButton:active {
+    color: #212121;
+    transform: none !important;
+    height: 38px;
+    padding-left: 10px;
+    padding-right: 15px;
+}
+
+.filterButton span {
+    margin-top: -1px;
+}
+
+.filterButton span span svg {
+    margin-right: 5px;
+}
+
+.tile {
+    height: 369px;
+    border-radius: 10px;
+    background-color: #F2F2F2;
+    overflow: hidden;
+}
+
+.tileNoImage {
+    height: 219px;
+    border-radius: 10px;
+    background-color: #F2F2F2;
+    overflow: hidden;
+}
+
+.tileContent {
+    padding: 15px 20px 20px;
+}
+
+.tileContent p svg {
+    line-height: 20px;
+}
+
+.disabledFilter span svg {
+    margin-right: 5px;
+}
+
+.activeFilter span svg {
+    margin-right: 5px;
+}
+
+.activeFilter {
+    color: white !important;
+    transform: none;
+
+    @mixin light {
+        border-color: var(--mantine-color-charcoal-9);
+        background-color: var(--mantine-color-charcoal-9);
+    }
+
+    @mixin dark {
+        border-color: var(--mantine-color-rust-6);
+        background-color: var(--mantine-color-rust-6);
+    }
+}
+
+.refineTitle {
+    color: #212121;
+
+    /* Desktop/Intro/Semibold */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 28px; /* 140% */
+}
+
+.resultsTitle {
+    color: #212121;
+
+    /* Desktop/Intro/Reg */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 28px; /* 140% */
+}
+
+.resultsTitleBold {
+    color: #212121;
+
+    /* Desktop/Intro/Reg */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 28px; /* 140% */
+}
+
+.resultsTitleItalic {
+    color: #212121;
+
+    /* Desktop/Intro/Reg */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 28px; /* 140% */
+}
+
+.topResult {
+    color: #212121;
+
+    /* Desktop/Body/Semibold */
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px; /* 150% */
+}
+
+.alaSelect {
+    height: 38px;
+}
+
+.alaSelect div input {
+    border: 1px solid #212121;
+    border-radius: 5px;
+    height: 38px;
+}
+
+.alaSelect div svg {
+    color: #212121;
+    height: 16px !important;
+    width: 16px !important;
+
+}
+
+.refineSectionTitle {
+    color: #C44D34 !important;
+
+    /* Desktop/Body/Semibold */
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px; /* 150% */
+}
+
+.paginationButton {
+    border-radius: 5px;
+    border: 1px solid #637073;
+    background: #FFF;
+    color: #212121;
+    padding: 8px 15px 10px 15px;
+}
+
+.paginationButton:hover {
+    border-radius: 5px;
+    background: #637073;
+    color: #FFF;
+}
+
+.paginationButtonSelected {
+    border-radius: 5px;
+    background: #212121;
+    color: #FFF;
+    padding: 8px 15px 10px 15px;
+}
+
+.next {
+    background: #C44D34 !important;
+    color: #FFF;
+}
+
+.next:hover {
+    background: #637073 !important;
+}
+

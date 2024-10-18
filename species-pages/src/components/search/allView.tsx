@@ -1,19 +1,23 @@
-import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import {Alert, Anchor, Box, Button, Container, Divider, Flex, Grid, Image, Skeleton, Space, Text} from "@mantine/core";
-import {IconInfoCircleFilled} from "@tabler/icons-react";
+import {Fragment, useEffect, useState} from "react";
+import {Anchor, Button, Divider, Flex, Grid, Image, Space, Text} from "@mantine/core";
 import classes from "./search.module.css";
-import FormatName from "../nameUtils/formatName.tsx";
-import {FlagIcon, ListIcon, TilesIcon, ArrowRightIcon, FolderIcon} from '@atlasoflivingaustralia/ala-mantine';
-import { useNavigate } from "react-router-dom";
-
-
+import {ListIcon, TilesIcon, ArrowRightIcon} from '@atlasoflivingaustralia/ala-mantine';
+import {useNavigate} from "react-router-dom";
+import {speciesDefn} from "./speciesDefn.tsx";
+import {limitDescription, openUrl} from "./util.tsx";
+import {datasetsDefn} from "./datasetsDefn.tsx";
+import {dataprojectsDefn} from "./dataprojectsDefn.tsx";
+import {specieslistDefn} from "./specieslistDefn.tsx";
+import {environmentallayersDefn} from "./environmentallayersDefn.tsx";
+import {regionslocalitiesDefn} from "./regionslocalitiesDefn.tsx";
+import {wordpressDefn} from "./wordpressDefn.tsx";
+import {supportDefn} from "./supportDefn.tsx";
 
 interface ViewProps {
-    queryString?: String | undefined
+    queryString?: string | undefined
 }
 
-function ClassificationView({queryString}: ViewProps) {
+function AllView({queryString}: ViewProps) {
     const [filter, setFilter] = useState<string>("list");
     const [groups, setGroups] = useState<any[]>([]);
     const [taxonGroups, setTaxonGroups] = useState<any[]>([]);
@@ -27,7 +31,11 @@ function ClassificationView({queryString}: ViewProps) {
 
     const navigate = useNavigate();
 
-    const groupMapping = {
+    type MappingType = {
+        [key: string]: string | undefined;
+    };
+
+    const groupMapping: MappingType = {
         "TAXON": "Species",
         "LAYER": "Environmental Layers",
         "REGION": "Regions/localities",
@@ -44,24 +52,24 @@ function ClassificationView({queryString}: ViewProps) {
         "TAXONVARIANT": "Species",
         "BIOCOLLECT": "Data Projects",
         "DISTRIBUTION": undefined
-    }
+    };
 
-    const groupFq = {
-        "Species": "idxtype:TAXON OR idxtype:COMMON OR idxtype:IDENTIFIER OR idxtype:TAXONVARIANT",
+    const groupFq: MappingType = {
+        "Species": "idxtype:TAXON", // TODO: are these also required? OR idxtype:COMMON OR idxtype:IDENTIFIER OR idxtype:TAXONVARIANT",
         "Environmental Layers": "idxtype:LAYER",
         "Regions/localities": "idxtype:REGION OR idxtype:LOCALITY",
-        "Datasets": "idxtype:DATARESOURCE OR idxtype:DATAPROVIDER OR idxtype:COLLECTION OR idxtype:INSTITUTION",
+        "Datasets": "idxtype:DATARESOURCE", // TODO: are these also required? OR idxtype:DATAPROVIDER OR idxtype:COLLECTION OR idxtype:INSTITUTION",
         "Species List": "idxtype:SPECIESLIST",
         "ALA General Content": "idxtype:WORDPRESS",
         "Help Articles": "idxtype:KNOWLEDGEBASE",
         "Data Projects": "idxtype:BIOCOLLECT"
-    }
+    };
 
     useEffect(() => {
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=" + encodeURIComponent(queryString as string) + "&facets=idxtype&pageSize=0")
             .then(response => response.json())
             .then(data => {
-                var searchGroups = {
+                var searchGroups: { [key: string]: { count: number, label: string, items: any[] } } = {
                     "Species": {count: 0, label: "Species", items: []},
                     "Datasets": {count: 0, label: "Datasets", items: []},
                     "Species List": {count: 0, label: "Species List", items: []},
@@ -73,7 +81,7 @@ function ClassificationView({queryString}: ViewProps) {
                 }
                 if (data?.facetResults && data.facetResults[0] && data.facetResults[0].fieldResult) {
                     data.facetResults[0].fieldResult.forEach((facet: any) => {
-                        var group = groupMapping[facet.label];
+                        var group: string | undefined = groupMapping[facet.label];
                         if (group) {
                             searchGroups[group].count = searchGroups[group].count + facet.count;
                         }
@@ -93,11 +101,13 @@ function ClassificationView({queryString}: ViewProps) {
                 // fetch the first 4 results for each
                 Object.values(searchGroups).forEach((group: any) => {
                     if (group.count > 0) {
-                        fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=" + encodeURIComponent(queryString as string) + "&pageSize=4&fq=" + encodeURIComponent(groupFq[group.label]))
+                        fetch(import.meta.env.VITE_APP_BIE_URL +
+                            "/v2/search?q=" + encodeURIComponent(queryString as string) +
+                            "&pageSize=4&fq=" + encodeURIComponent(groupFq[group.label] || ""))
                             .then(response => response.json())
                             .then(data => {
                                 if (data?.searchResults) {
-                                    var list = []
+                                    var list: any [] = []
                                     data.searchResults.forEach((result: any) => {
                                         list.push(result)
                                     })
@@ -132,270 +142,27 @@ function ClassificationView({queryString}: ViewProps) {
         });
     }, [queryString]);
 
-    function formatWordpressCategory(category: string) {
-        if (!category) {
-            return category;
-        }
-        return category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    }
-
-    function formatListType(type: string) {
-        if (!type) {
-            return type;
-        }
-        return type.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    }
-
-    const getImageThumbnailUrl = (id: string) => {
-        // TODO: enable the following later on: return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
-        return `https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=${id}`;
-    }
-
-    const renderSpecies = (item: any) => {
-        return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => openSpeciesUrl(item.guid)} >
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image &&
-                <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={getImageThumbnailUrl(item.image)}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src="../../../public/missing-image.png"
-                    />
-                }
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text className={classes.listItemName}><FormatName name={item.scientificName || item.name}
-                                                                   rankId={item.rankID}/></Text>
-                <Text>{item.commonNameSingle}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                {item.speciesGroup && <Text>{item.speciesGroup.join(', ')}</Text>}
-                {item?.data?.rk_kingdom && <Text>Kingdom: {item?.data?.rk_kingdom}</Text>}
-                <Text><FolderIcon/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence records</Text>
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                {/*<Text>Short description lorem ipsum dolor sit amet consectetur adipiscing elit aliquam id dapibus ipsum.*/}
-                {/*    Aliquam in orci quis tortor rutrum laoreet in id sapien nulla eu...</Text>*/}
-            </div>
-        </Flex>
-    }
-
-    function openUrl(url: string){
-        window.open(url, "_blank");
-    }
-
-    function openSpeciesUrl(guid: string){
-        navigate(`/species?id=${guid}`);
-    }
-
-    function openRegionLocality(pid: string, description: string){
-        // test description, if it ends with "latitude longitude" then open explore your area
-        // otherwise, open regions.ala.org.au with the pid, or at least try to.
-    }
-
-    const renderDatasets = (item: any) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
-                    />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src="../../../public/missing-image.png"
-                    />
-                }
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text><FolderIcon/> contains {item.occurrenceCount} records</Text>
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    const renderSpeciesList = (item: any) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "342px", maxWidth: "342px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Text>{formatListType(item.type)}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text><FolderIcon/> contains {item.itemCount} taxa</Text>
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    const renderDataProjects = (item: any) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src="../../../public/missing-image.png"
-                    />
-                }
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                {/*<Text><FolderIcon/> contains {item.occurrenceCount} records</Text>*/}
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    const renderEnvironmentalLayer = (item: any) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src="../../../public/missing-image.png"
-                    />
-                }
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text className={classes.overflowText} title={item.keywords}>{item.keywords}</Text>
-                <Text className={classes.overflowText} title={item.source}>{item.source}</Text>
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    const renderRegionLocalities = (item: any) => {
-        return <Flex gap="30px" onClick={() => openRegionLocality(item.pid, item.description)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "342px", maxWidth: "342px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text>{item.fieldName}</Text>
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    const renderALAGeneralContent = (item: any) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src="../../../public/missing-image.png"
-                    />
-                }
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                <Text>{formatWordpressCategory(item.classification1)}</Text>
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    const renderHelpArticles = (item: any) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "342px", maxWidth: "342px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
-                {item.classification1 && <Text>{item.classification1}</Text>}
-                {item.classification2 && <Text>{item.classification2}</Text>}
-            </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
-                <Text title={item.description}>{limitDescription(item.description)}</Text>
-            </div>
-        </Flex>
-    }
-
-    function limitDescription(description: string) : string {
-        if(description && description.length > 230) {
-            return description.substring(0, 230) + "...";
-        }
-        return description;
+    function updateFilter(filterName: string) {
+        setFilter(filterName)
     }
 
     return (<>
             <Flex gap="15px">
-                <Text style={{lineHeight: "36px"}}>View
-                    as</Text> {/* this line height matches that of the ala-filter button */}
-                <Button variant={filter == "list" ? "filled" : "outline"} className={classes.filterButton}
-                        onClick={() => setFilter("list")}>
-                    <ListIcon/>List</Button>
-                <Button variant={filter == "tiles" ? "filled" : "outline"} className={classes.filterButton}
-                        onClick={() => setFilter("tiles")}>
-                    <TilesIcon/>Tiles</Button>
+                <Text style={{lineHeight: "36px"}}>View as</Text>
+                <Button variant="ala-filter" onClick={() => {
+                    updateFilter("list")
+                }}
+                        className={(filter == "list") ? classes.activeFilter : classes.disabledFilter}
+                >
+                    <ListIcon color="#637073"/>List</Button>
+                <Button onClick={() => updateFilter("tiles")} variant="ala-filter"
+                        className={(filter == "tiles") ? classes.activeFilter : classes.disabledFilter}
+                >
+                    <TilesIcon color="#637073"/>Tiles</Button>
             </Flex>
             {groups.map((group, index) =>
-                <>
-                    { group.count > 0 && <>
+                <Fragment key={index}>
+                    {group.count > 0 && <>
                         <Space h="60px"/>
                         <Flex style={{justifyContent: 'space-between'}}>
                             <Text className={classes.groupName}>{group.label}</Text>
@@ -403,68 +170,114 @@ function ClassificationView({queryString}: ViewProps) {
                             >See {group.count} results <ArrowRightIcon/></Anchor>
                         </Flex>
                         <Space h="30px"/>
-                        {group.label == "Species" && taxonGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderSpecies(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "Datasets" && datasetGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderDatasets(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "Species List" && speciesListGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderSpeciesList(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "Data Projects" && dataProjectGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderDataProjects(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "Environmental Layers" && environmentalLayerGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderEnvironmentalLayer(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "Regions/localities" && regionLocalityGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderRegionLocalities(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "ALA General Content" && alaGeneralContentGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderALAGeneralContent(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
-                        {group.label == "Help Articles" && helpArticlesGroups.map((item: any, index: number) =>
-                            <>
-                                {index > 0 && <Space h="10px"/>}
-                                {renderHelpArticles(item)}
-                                <Divider mt="15px"/>
-                            </>
-                        )}
+                        {filter == "list" && <>
+                            {group.label == "Species" && taxonGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {speciesDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "Datasets" && datasetGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {datasetsDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "Species List" && speciesListGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {specieslistDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "Data Projects" && dataProjectGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {dataprojectsDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "Environmental Layers" && environmentalLayerGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {environmentallayersDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "Regions/localities" && regionLocalityGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {regionslocalitiesDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "ALA General Content" && alaGeneralContentGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {wordpressDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                            {group.label == "Help Articles" && helpArticlesGroups.map((item: any, index: number) =>
+                                <Fragment key={index}>
+                                    {index > 0 && <Space h="10px"/>}
+                                    {supportDefn.renderListItemFn({item, navigate})}
+                                    <Divider mt="15px"/>
+                                </Fragment>
+                            )}
+                        </>}
+                        {filter == "tiles" &&
+                            <Grid gutter="40px">
+                                {group.label == "Species" && taxonGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {speciesDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "Datasets" && datasetGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {datasetsDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "Species List" && speciesListGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {specieslistDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "Data Projects" && dataProjectGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {dataprojectsDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "Environmental Layers" && environmentalLayerGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {environmentallayersDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "Regions/localities" && regionLocalityGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {regionslocalitiesDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "ALA General Content" && alaGeneralContentGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {wordpressDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                                {group.label == "Help Articles" && helpArticlesGroups.map((item: any, index: number) =>
+                                    <Grid.Col span={3} key={index}>
+                                        {supportDefn.renderTileItemFn({item, navigate})}
+                                    </Grid.Col>
+                                )}
+                            </Grid>
+                        }
                     </>
                     }
-                </>
+                </Fragment>
             )}
         </>
     )
 }
 
-export default ClassificationView;
+export default AllView;

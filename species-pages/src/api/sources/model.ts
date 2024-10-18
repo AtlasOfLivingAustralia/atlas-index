@@ -1,4 +1,5 @@
 import { User } from "oidc-client-ts";
+import {NavigateFunction} from "react-router-dom";
 
 interface Breadcrumb {
     title: string | React.ReactNode;
@@ -122,6 +123,25 @@ interface TaxonDescription {
     [key: string]: string;
 }
 
+interface GenericViewProps {
+    queryString?: String | undefined
+    fq: string
+    facetDefinitions: {
+        [key: string]: {
+            label: string
+            parseFacetFn?: (facet: any, facetList: any[]) => void
+        }
+    }
+    addCustomFacetsFn?: (url: string, data: any, setCustomFacetData: any) => void
+    renderListItemFn: ({ item, navigate }: RenderItemParams) => any
+    renderTileItemFn: ({ item, navigate }: RenderItemParams) => any
+}
+
+interface RenderItemParams {
+    item: any;
+    navigate: NavigateFunction;
+}
+
 export type {
     Breadcrumb,
     ListsUser,
@@ -134,5 +154,7 @@ export type {
     GroupedFacetData,
     FieldInfo,
     IndexFields,
-    TaxonDescription
+    TaxonDescription,
+    GenericViewProps,
+    RenderItemParams
 };
