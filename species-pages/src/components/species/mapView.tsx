@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, WMSTileLayer } from 'react-leaflet';
-import { LatLng } from "leaflet";
+import { LatLng, map } from "leaflet";
 import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Radio, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
 import LargeLinkButton from "../common/externalLinkButton";
@@ -45,8 +45,9 @@ function MapView({tab, result}: MapViewProps) {
         ["D36B3D", 100],
         ["C44D34", 1000],
         ["802937", null]
-    ]);
-    const recordLayerOpacity = 0.75
+    ]); // Note the count values are scaled by a factor below
+    const recordLayerOpacity = 0.7
+    const defaultZoom = 4;
 
     useEffect(() => {
         if (tab === 'map') {
@@ -68,6 +69,7 @@ function MapView({tab, result}: MapViewProps) {
         }
     }, [result]);
 
+    // Scale the hex bin values based on the number of records
     useEffect(() => {
         if (hexValuesScaled || !occurrenceCount || occurrenceCount < 1) {
             return;
@@ -88,7 +90,7 @@ function MapView({tab, result}: MapViewProps) {
         ])
         // console.log("scaleHexBinValues", occurrenceCount, binFactor, hexBinValues, hexBinValuesScaled);
         setHexBinValues(hexBinValuesScaled);
-        setHexValuesScaled(true);
+        setHexValuesScaled(true); // keep track of scaling "state"
     }, [occurrenceCount]);
 
     function formatNumber(occurrenceCount: any) {
@@ -183,7 +185,7 @@ function MapView({tab, result}: MapViewProps) {
                     <MapContainer
                         ref={mapRef}
                         center={center}
-                        zoom={4}
+                        zoom={defaultZoom}
                         scrollWheelZoom={false}
                         worldCopyJump={true}
                         style={{height: "530px", borderRadius: "10px"}}
@@ -290,13 +292,14 @@ function MapView({tab, result}: MapViewProps) {
                 </Radio.Group>
                 <Button
                     mt="lg"
-                    display='none' // TODO: Remove this line if not using as "reset map" button
                     variant="default"
                     radius="xl"
                     fullWidth
                     rightSection={<IconReload />}
+                    disabled={mapRef.current === null}
                     onClick={() => {
-                        alert('Bang, goes the totally redundant button');
+                        mapRef.current?.setView(center, defaultZoom);
+                        setBaseLayers('default');
                     }}
                 >Reset Map</Button>
             </Box>
