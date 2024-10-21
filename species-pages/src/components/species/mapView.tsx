@@ -46,10 +46,7 @@ function MapView({tab, result}: MapViewProps) {
         ["C44D34", 1000],
         ["802937", null]
     ]);
-    // revised colours 1: "FFD482,10,EAA876,100,DE916F,1000,D37B69,10000,A1606B"
-    // revised colours 2: "FFC577,10,E28946,100,D36B3D,1000,C44D34,10000,802937"
-    // original colours: "4Cffc557,3,72fcad54,30,99f99650,300,BFf57e4d,3000,FFf26649"
-    const recordLayerOpacity = 0.65 
+    const recordLayerOpacity = 0.75
 
     useEffect(() => {
         if (tab === 'map') {
