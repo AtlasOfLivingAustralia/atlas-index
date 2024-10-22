@@ -48,7 +48,8 @@ function Legend({ fillOpacity, hexBinValues }: { fillOpacity: number, hexBinValu
                 justify="space-around" 
                 align="flex-end" 
                 h={gridHeight} 
-                pl={4}
+                pl={2}
+                w={gridWidth * maxGridCount}
                 style={{ 
                     background: `linear-gradient(to right, ${legendEntries[0].colour}, ${legendEntries[4].colour})`, 
                     opacity: fillOpacity 
@@ -65,9 +66,9 @@ function Legend({ fillOpacity, hexBinValues }: { fillOpacity: number, hexBinValu
                     /></Grid.Col>
                 ))}
             </Grid>
-            <Grid pl={15} pr={10} grow>
+            <Grid pl={2} pr={8} grow justify="space-around" ta='center'>
                 {legendEntries.map((entry, idx) => (
-                    <Grid.Col key={idx} span={1} miw={gridWidth} fz="xs" c="black">
+                    <Grid.Col key={idx} span={1} maw={gridWidth} fz="xs" c="black">
                         {entry.upper}
                     </Grid.Col>
                 ))}

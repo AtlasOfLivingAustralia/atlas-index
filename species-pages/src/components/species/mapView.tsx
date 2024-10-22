@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, WMSTileLayer } from 'react-leaflet';
-import { LatLng, map } from "leaflet";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MapContainer, TileLayer, useMap, useMapEvents, WMSTileLayer } from 'react-leaflet';
+import { LatLng } from "leaflet";
 import { Alert, Anchor, Box, Button, Checkbox, Divider, Flex, Grid, Radio, Text, Title } from '@mantine/core';
 import { IconAdjustmentsHorizontal, IconFlagFilled, IconInfoCircleFilled, IconReload } from '@tabler/icons-react';
 import LargeLinkButton from "../common/externalLinkButton";
@@ -10,6 +10,7 @@ import 'react-leaflet-fullscreen/styles.css';
 import classes from "./species.module.css";
 import Legend from "./mapLegend";
 import Control from "react-leaflet-custom-control";
+import FormatName from "../nameUtils/formatName";
 
 const center = new LatLng(-28, 133);
 interface MapViewProps {
@@ -32,12 +33,32 @@ interface Distribution {
     checked?: boolean;
 }
 
+/**
+ * Child component of the Leaflet Map that listens to map events
+ * 
+ * @param setMapStateChanged useState setter 
+ * @returns 
+ */
+function MapStateUtil({setMapStateChanged}: {setMapStateChanged: (state: boolean) => void}) {
+    const map = useMap()
+    const onChange = useCallback(() => {
+        setMapStateChanged(true);
+    }, [map])
+    
+    // Listen to events on the map
+    const handlers = useMemo(() => ({ mouseup: onChange }), [])
+    useMapEvents(handlers) // register listener (can only be called in a child of MapContainer)
+
+    return <></>
+}
+
 function MapView({tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
     const [showOccurrences, setShowOccurrences] = useState<string>('');
     const [baseLayers, setBaseLayers] = useState('default');
     const [distributions, setDistributions] = useState<Distribution[]>([]);
     const [hexValuesScaled, setHexValuesScaled] = useState(false);
+    const [mapStateChanged, setMapStateChanged] = useState(false);
     const mapRef = useRef<L.Map | null>(null);
     const [hexBinValues, setHexBinValues] = useState<[string, number | null][]>([
         ["FFC577", 1],
@@ -45,7 +66,7 @@ function MapView({tab, result}: MapViewProps) {
         ["D36B3D", 100],
         ["C44D34", 1000],
         ["802937", null]
-    ]); // Note the count values are scaled by a factor below
+    ]); // Note the count values are scaled by a factor below 
     const recordLayerOpacity = 0.7
     const defaultZoom = 4;
 
@@ -119,7 +140,30 @@ function MapView({tab, result}: MapViewProps) {
             name: <>Receive alerts for <br/>new records</>,
             url: createAlertForTaxon(result?.guid)
         }
-    ];
+    ];    
+    
+    const mapStateIsDefault = useMemo(() => {
+        
+        console.log("mapStateIsDefault", baseLayers, showOccurrences, distributions, mapStateChanged);
+        
+        if (baseLayers !== 'default') {
+            return false;
+        }
+
+        if (showOccurrences === '') {
+            return false;
+        }
+
+        if (distributions && distributions.some(dist => dist.checked)) {
+            return false;
+        }
+
+        if (mapStateChanged) {
+            return false;
+        }
+
+        return true;
+    }, [baseLayers, showOccurrences, distributions, mapStateChanged]);
 
     function getAlaWmsUrl(guid: string) {
         const hexBinParam = hexBinValues.join(',').replace(/,$/, '');
@@ -152,7 +196,18 @@ function MapView({tab, result}: MapViewProps) {
             console.error("generateDistributionMap: Invalid distribution data", distributions);
         }
 
+        console.log("generateDistributionMapObj - distributions:", distributions);
+
         setDistributions(spatialObjects);
+    }
+
+    // Reset map to default state
+    const resetMap = () => {
+        mapRef.current?.setView(center, defaultZoom);
+        setBaseLayers('default');
+        setMapStateChanged(false);
+        setDistributions(distributions.map((dist) => ({ ...dist, checked: false })));
+        setShowOccurrences(result?.guid);
     }
 
     if (!result) {
@@ -190,6 +245,7 @@ function MapView({tab, result}: MapViewProps) {
                         worldCopyJump={true}
                         style={{height: "530px", borderRadius: "10px"}}
                     >
+                        <MapStateUtil setMapStateChanged={setMapStateChanged} />
                         { baseLayers === 'default' &&
                             <TileLayer
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -270,14 +326,14 @@ function MapView({tab, result}: MapViewProps) {
                             id={"dist" + idx}
                             label={
                                 <>{dist.areaName}<Text fs='normal' fz='sm' mt={4}>provided by{' '}
-                                    <Anchor inherit href="#">{dist.dataResourceName}</Anchor></Text>
+                                    <Anchor inherit href={dist.dataResourceUid ? `${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}` : '#'} target="_blank">{dist.dataResourceName}</Anchor></Text>
                                 </>
                             }
                         />
                     </Box>
                 )}
                 { distributions && distributions.length === 0 &&
-                    <Text size="sm" c="grey">No expert distribution maps available</Text>
+                    <Text size="sm" c="grey">No expert distribution maps available for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
                 }
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="md">Map type</Text>
@@ -296,11 +352,8 @@ function MapView({tab, result}: MapViewProps) {
                     radius="xl"
                     fullWidth
                     rightSection={<IconReload />}
-                    disabled={mapRef.current === null}
-                    onClick={() => {
-                        mapRef.current?.setView(center, defaultZoom);
-                        setBaseLayers('default');
-                    }}
+                    disabled={mapStateIsDefault}
+                    onClick={resetMap}
                 >Reset Map</Button>
             </Box>
         </Flex>
