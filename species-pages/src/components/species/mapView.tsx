@@ -100,7 +100,7 @@ function MapView({tab, result}: MapViewProps) {
             binFactor = 1;
         } else if (occurrenceCount < 50000) {
             binFactor = 2;
-        } else if (occurrenceCount < 100000) {
+        } else if (occurrenceCount < 200000) {
             binFactor = 5;
         } else if (occurrenceCount < 500000) {
             binFactor = 10;
@@ -260,7 +260,7 @@ function MapView({tab, result}: MapViewProps) {
                                 zIndex={1}
                             />
                         }
-                        { showOccurrences &&
+                        { showOccurrences && hexValuesScaled &&
                             <WMSTileLayer
                                 url={getAlaWmsUrl(showOccurrences)}
                                 layers="ALA:occurrences"
