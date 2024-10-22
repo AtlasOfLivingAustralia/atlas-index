@@ -109,6 +109,12 @@ function Home({setBreadcrumbs}: {
                         <List.Item>
                             <Anchor
                                 component={Link}
+                                to="/species?id=https://biodiversity.org.au/afd/taxa/f2f43ef9-89fd-4f89-8b06-0842e86cfe06"
+                            >Eastern Grey Kangaroo – <i>Macropus giganteus</i></Anchor>
+                        </List.Item>
+                        <List.Item>
+                            <Anchor
+                                component={Link}
                                 to="/species?id=https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531"
                             >Swamp Wallaby – <i>Wallabia bicolor</i></Anchor>
                         </List.Item>
