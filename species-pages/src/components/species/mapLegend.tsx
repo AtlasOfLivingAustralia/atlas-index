@@ -42,7 +42,7 @@ function Legend({ fillOpacity, hexBinValues }: { fillOpacity: number, hexBinValu
     return (
         <Box ml="sm" mb={5} style={{ borderRadius: '8px', backdropFilter: 'blur(5px)'}}>
             <Grid justify="center">
-                <Text mb={6} fz="sm" c="black">Number of records</Text>
+                <Text mb={6} fz="sm" c="black">Number of species records</Text>
             </Grid>
             <Grid   
                 justify="space-around" 
