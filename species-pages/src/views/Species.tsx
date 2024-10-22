@@ -234,8 +234,8 @@ function Species({setBreadcrumbs, queryString}: {
                         <Grid.Col span={{ base: 12, md: 6, lg: 4 }}>
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
-                                <Box mr="sm" mb="sm">
-                                    <Image key={idx} src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"/>
+                                <Box mr="sm" mb="sm" key={idx}>
+                                    <Image rc={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"/>
                                 </Box>
                             )}
                         </Grid.Col>
@@ -243,14 +243,14 @@ function Species({setBreadcrumbs, queryString}: {
                             <Flex gap={12} direction={{ base: 'row', lg: 'column' }}>
                                 { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
-                                    <Box mr="sm" mb="sm">
-                                        <Image key={idx} src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image" />
+                                    <Box mr="sm" mb="sm" key={idx}>
+                                        <Image src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image" />
                                     </Box>
                             )}
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
-                                    <Box mr="sm" mb="sm">
-                                        <Image key={idx} src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"  />
+                                    <Box mr="sm" mb="sm" key={idx}>
+                                        <Image src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"  />
                                     </Box>
                             )}
                             </Flex>
