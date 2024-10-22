@@ -177,6 +177,10 @@ public class CollectionsImportService {
             String license = (String) properties.getOrDefault("licenseType", null);
             String acronym = (String) properties.getOrDefault("acronym", null);
             String websiteUrl = (String) properties.getOrDefault("websiteUrl", null);
+            String state = (String) properties.getOrDefault("state", null);
+
+            Map<String, Object> provider = (Map<String, Object>) properties.getOrDefault("provider", new HashMap<>());
+            String dataProvider = (String) provider.getOrDefault("name", null);
 
             Map<String, Object> logoRef = (Map<String, Object>) properties.getOrDefault("logoRef", new HashMap<>());
             String image = (String) logoRef.getOrDefault("uri", null);
@@ -187,6 +191,14 @@ public class CollectionsImportService {
                 lastmod = sdf.parse((String) properties.get("lastUpdated"));
             } catch (Exception e) {
                 logService.log(taskType, "failed to parse lastUpdated date for " + id);
+                continue;
+            }
+
+            Date created;
+            try {
+                created = sdf.parse((String) properties.get("dateCreated"));
+            } catch (Exception e) {
+                logService.log(taskType, "failed to parse dateCreated date for " + id);
                 continue;
             }
 
@@ -207,6 +219,9 @@ public class CollectionsImportService {
                             .image(image)
                             .resourceType(resourceType)
                             .data(data)
+                            .created(created)
+                            .state(state)
+                            .dataProvider(dataProvider)
                             .build());
         }
         return result;

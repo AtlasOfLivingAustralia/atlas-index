@@ -1,4 +1,4 @@
-import { User } from "oidc-client-ts";
+import {User} from "oidc-client-ts";
 import {NavigateFunction} from "react-router-dom";
 
 interface Breadcrumb {
@@ -120,6 +120,7 @@ interface TaxonDescription {
     name: string;
     url: string;
     attribution: string;
+
     [key: string]: string;
 }
 
@@ -129,17 +130,26 @@ interface GenericViewProps {
     facetDefinitions: {
         [key: string]: {
             label: string
+            order: number
             parseFacetFn?: (facet: any, facetList: any[]) => void
         }
     }
-    addCustomFacetsFn?: (url: string, data: any, setCustomFacetData: any) => void
-    renderListItemFn: ({ item, navigate }: RenderItemParams) => any
-    renderTileItemFn: ({ item, navigate }: RenderItemParams) => any
+    sortByDate?: boolean
+    addCustomFacetsFn?: ({url, parentData, setCustomFacetData}: CustomFacetFn) => void
+    renderListItemFn: ({item, navigate, wide}: RenderItemParams) => any
+    renderTileItemFn: ({item, navigate, wide}: RenderItemParams) => any
 }
 
 interface RenderItemParams {
     item: any;
     navigate: NavigateFunction;
+    wide: boolean; // The "all" page item is wider than the item on the page that also has "refine results" on the left
+}
+
+interface CustomFacetFn {
+    url: string,
+    parentData: any,
+    setCustomFacetData: any
 }
 
 export type {
@@ -156,5 +166,6 @@ export type {
     IndexFields,
     TaxonDescription,
     GenericViewProps,
-    RenderItemParams
+    RenderItemParams,
+    CustomFacetFn
 };

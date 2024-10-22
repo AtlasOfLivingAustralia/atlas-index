@@ -26,6 +26,7 @@ interface GenericProps {
     queryString: string,
     props: GenericViewProps
 }
+
 function GenericView({
                          queryString,
                          props
@@ -37,13 +38,30 @@ function GenericView({
     const [sortValue, setSortValue] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
     const [facetLoading, setFacetLoading] = useState<boolean>(true);
+    const [customFacetLoading, setCustomFacetLoading] = useState<boolean>(true);
     const [facets, setFacets] = useState<any[]>([]);
     const [customFacetData, setCustomFacetData] = useState<any[]>([]);
     const [facetFqs, setFacetFqs] = useState<string[]>([]);
+    const [sortData, setSortData] = useState<any[]>([
+        {label: "Most relevant", value: ""},
+        {label: "Sort by A-Z", value: "&sort=name&dir=asc"},
+        {label: "Sort by Z-A", value: "&sort=name&dir=desc"},
+    ]);
 
     const navigate = useNavigate();
     const pageSize = 12;
     const deepPagingMaxPage = Math.floor(10000 / 12);
+
+    useEffect(() => {
+        if (props.sortByDate) {
+            setSortData([
+                {label: "Most relevant", value: ""},
+                {label: "Newest", value: "&sort=created&dir=desc"},
+                {label: "Sort by A-Z", value: "&sort=name&dir=asc"},
+                {label: "Sort by Z-A", value: "&sort=name&dir=desc"}
+            ]);
+        }
+    })
 
     useEffect(() => {
         // queryString has changed, reset facetFqs, page number and get results. Keep the same sort.
@@ -60,20 +78,32 @@ function GenericView({
         page?: number,
         facetFqs?: string []
     } = {}, getFacets: boolean) {
+        if (!queryString) {
+            // reset everything
+            setResultData([]);
+            setMaxResults(0);
+            setFacets([]);
+            setCustomFacetData([]);
+            setLoading(false);
+            setFacetLoading(false);
+            setCustomFacetLoading(false);
+            return;
+        }
+
         setLoading(true);
 
         if (getFacets) {
             setFacetLoading(true);
+            setCustomFacetLoading(true);
         }
 
-        console.log("getResults", queryString, overrides, getFacets)
         const thisSortValue = overrides?.sortParam !== undefined ? overrides.sortParam : sortValue;
         const thisPage = overrides?.page !== undefined ? overrides.page : page;
         const thisFacetFqs = overrides?.facetFqs !== undefined ? overrides.facetFqs : facetFqs;
 
         const url = import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=" + encodeURIComponent(queryString as string) +
             "&facets=" + Object.keys(props.facetDefinitions).join(",") +
-            (thisFacetFqs.length > 0 ? "&fq=" + thisFacetFqs.join("&fq=") : "") + // the 'drill down' does not update the facets section
+            (thisFacetFqs.length > 0 ? "&fq=" + thisFacetFqs.map(fq => encodeURIComponent(fq)).join("&fq=") : "") + // the 'drill down' does not update the facets section
             "&pageSize=" + pageSize + "&fq=" + encodeURIComponent(props.fq) + "&page=" + thisPage + thisSortValue;
 
         fetch(url)
@@ -90,42 +120,44 @@ function GenericView({
 
                     // begin facet processing only when this is an initial query
                     var facetList: any  [] = []
-                    console.log("total records", data.totalRecords, "f", data.facetResults)
-                    console.log("data.facetrResults", data.facetResults)
                     if (data?.facetResults && data.facetResults[0] && data.facetResults[0].fieldResult) {
-                        data.facetResults.forEach((facet: any) => {
-                            const parseFacetFn = props.facetDefinitions[facet.fieldName].parseFacetFn;
+                        // retain the order of the facets as defined in the facetDefinitions
+                        Object.keys(props.facetDefinitions).forEach((facetName: string) => {
+                            var facet = data.facetResults.find((f: any) => f.fieldName == facetName)
+                            if (facet) {
+                                const parseFacetFn = props.facetDefinitions[facetName].parseFacetFn;
 
-                            if (parseFacetFn) {
-                                // custom facet parsing
-                                parseFacetFn(facet, facetList);
-                            } else {
-                                // basic facets
-                                var items: any[] = []
-                                facet.fieldResult.forEach((status: any) => {
-                                    var fq = facet.fieldName + ":\"" + status.label + "\"";
-                                    items.push({
-                                        fq: fq,
-                                        label: capitalise(status.label),
-                                        count: status.count,
-                                        depth: 0
+                                if (parseFacetFn) {
+                                    // custom facet parsing
+                                    parseFacetFn(facet, facetList);
+                                } else {
+                                    // basic facets
+                                    var items: any[] = []
+                                    facet.fieldResult.forEach((status: any) => {
+                                        var fq = facet.fieldName + ":\"" + status.label + "\"";
+                                        items.push({
+                                            fq: fq,
+                                            label: capitalise(status.label),
+                                            count: status.count,
+                                            depth: 0
+                                        })
                                     })
-                                })
-                                if (items.length > 0) {
-                                    // sort by label
-                                    items.sort((a: any, b: any) => {
-                                        return a.label.localeCompare(b.label)
-                                    })
+                                    if (items.length > 0) {
+                                        // sort by label
+                                        items.sort((a: any, b: any) => {
+                                            return a.label.localeCompare(b.label)
+                                        })
 
-                                    facetList.push({
-                                        name: props.facetDefinitions[facet.fieldName].label,
-                                        items: items
-                                    })
+                                        facetList.push({
+                                            name: props.facetDefinitions[facet.fieldName].label,
+                                            items: items,
+                                            order: props.facetDefinitions[facet.fieldName].order
+                                        })
+                                    }
                                 }
                             }
-                        })
+                        });
 
-                        console.log("thisFacetFqs before !getFacets", thisFacetFqs)
                         if (!getFacets) {
                             // Update the existing "facets" counts with those found in "facetList".
                             // This keeps the counts up to date while retaining the "undo"/"back" functionality of the Refine UI.
@@ -156,7 +188,9 @@ function GenericView({
                         }
 
                         if (props.addCustomFacetsFn) {
-                            props.addCustomFacetsFn(url, data, setCustomFacetData);
+                            props.addCustomFacetsFn({url, parentData: data, setCustomFacetData: applyCustomFacetData});
+                        } else {
+                            setCustomFacetLoading(false);
                         }
                     }
                 } else {
@@ -171,28 +205,26 @@ function GenericView({
         });
     }
 
+    function applyCustomFacetData(data: any []) {
+        setCustomFacetData(data);
+        setCustomFacetLoading(false);
+    }
+
     function toggleItem(item: any) {
         setLoading(true);
 
         // TODO: gettign the error "A component is changing an uncontrolled input to be controlled", i assume from this
         // TODO: sometimes it will not remove the fq, is it because the UI needs locking first?
 
-        console.log("toggleItem", item, "facetFqs", facetFqs)
-
         let newFacetFqs = facetFqs.slice();
         if (!newFacetFqs.includes(item.fq)) {
             // add fq
             newFacetFqs = [...facetFqs, item.fq]
-            console.log("added")
         } else {
             // remove fq
             newFacetFqs = facetFqs.filter(fq => fq !== item.fq);
-            console.log("removed")
         }
         setFacetFqs(newFacetFqs);
-
-        console.log("newFacetFqs to go", newFacetFqs)
-
         setPage(0)
 
         getResults({facetFqs: newFacetFqs, page: 0}, false);
@@ -207,7 +239,7 @@ function GenericView({
     }
 
     return <>
-        { /* prevent input when loading */ }
+        { /* prevent input when loading */}
         {loading && <div style={{
             position: 'fixed',
             top: 0,
@@ -217,14 +249,13 @@ function GenericView({
             backgroundColor: 'rgba(255, 255, 255, 0)',
             zIndex: 9999,
             cursor: 'progress'
-        }}  onClick={(e) => e.preventDefault()}></div>}
-
+        }} onClick={(e) => e.preventDefault()}></div>}
 
         <Grid>
             <Grid.Col span={3}>
                 <Text className={classes.refineTitle}>Refine results</Text>
-                {facetLoading && <Skeleton height="100px"/>}
-                {!facetLoading && [...facets, ...customFacetData].map((facet: any, index: number) =>
+                {(facetLoading || customFacetLoading) && <Skeleton mt={15} height="100px"/>}
+                {!facetLoading && !customFacetLoading && [...facets, ...customFacetData].sort((a, b) => a.order - b.order).map((facet: any, index: number) =>
                     <Box key={index}>
                         <Space h="15px"/>
                         <Text className={classes.refineSectionTitle}>{facet.name}</Text>
@@ -235,11 +266,13 @@ function GenericView({
                                 <Flex gap="6px" style={{cursor: "pointer"}}
                                       ml={22 * item.depth}
                                 >
-                                    <Checkbox onChange={() => {toggleItem(item)}}
+                                    <Checkbox onChange={() => {
+                                        toggleItem(item)
+                                    }}
                                               disabled={item.count == 0}
                                               checked={item.selected}
                                     />
-                                    <Text>{item.label} ({item.count})</Text>
+                                    <Text fz={14}>{item.label} ({item.count})</Text>
                                 </Flex>
                             </>
                         )}
@@ -250,7 +283,8 @@ function GenericView({
                 {loading && <Skeleton height="28px"/>}
                 {!loading && <Flex>
                     <Text className={classes.resultsTitle}>Showing&nbsp;</Text>
-                    {maxResults > 0 && <Text className={classes.resultsTitleBold}>{(page) * pageSize + 1}-{maxResults < (page + 1) * pageSize ? maxResults : (page + 1) * pageSize}</Text>}
+                    {maxResults > 0 && <Text
+                        className={classes.resultsTitleBold}>{(page) * pageSize + 1}-{maxResults < (page + 1) * pageSize ? maxResults : (page + 1) * pageSize}</Text>}
                     {maxResults > 0 && <Text className={classes.resultsTitle}>&nbsp;of&nbsp;</Text>}
                     <Text className={classes.resultsTitleBold}>{maxResults}</Text>
                     <Text className={classes.resultsTitle}>&nbsp;results for&nbsp;</Text>
@@ -275,15 +309,11 @@ function GenericView({
                     </Flex>
                     <Flex gap="15px">
                         <Text style={{lineHeight: "36px"}}>Sort by</Text>
-                        <Select className={classes.alaSelect} data={[
-                            {label: "Most relevant", value: ""},
-                            {label: "Sort by A-Z", value: "&sort=name&dir=asc"},
-                            {label: "Sort by Z-A", value: "&sort=name&dir=desc"},
-                        ]} value={sortValue} onChange={(value: any) => {
-                            console.log("value", value)
-                            setSortValue(value);
-                            getResults({sortParam: value}, false);
-                        }}
+                        <Select className={classes.alaSelect} data={sortData} value={sortValue}
+                                onChange={(value: any) => {
+                                    setSortValue(value);
+                                    getResults({sortParam: value}, false);
+                                }}
                                 rightSection={<ChevronDownIcon/>}
                                 comboboxProps={{offset: 0}}
                                 withCheckIcon={false}
@@ -302,7 +332,7 @@ function GenericView({
                     {filter == "list" && resultData.map((item: any, index: number) =>
                         <>
                             {index > 0 && <Space h="10px"/>}
-                            {props.renderListItemFn({item, navigate})}
+                            {props.renderListItemFn({item, navigate, wide: false})}
                             <Divider mt="15px"/>
                         </>
                     )}
@@ -310,7 +340,7 @@ function GenericView({
                         <Grid gutter={40}>
                             {resultData.map((item: any, index: number) =>
                                 <Grid.Col span={4} key={index}>
-                                    {props.renderTileItemFn({item, navigate})}
+                                    {props.renderTileItemFn({item, navigate, wide: false})}
                                 </Grid.Col>
                             )}
                         </Grid>
@@ -319,7 +349,7 @@ function GenericView({
                 }
 
                 {/* TODO: do something about the variable height of the LIST content above. Paging with LIST view is jumping up and down a bit */}
-                {!facetLoading && <>
+                {!facetLoading && !customFacetLoading && <>
                     <Space h="60px"/>
 
                     {/* TODO: move this into a component */}

@@ -1,25 +1,26 @@
 import {Fragment, useEffect, useState} from "react";
-import {Anchor, Button, Divider, Flex, Grid, Image, Space, Text} from "@mantine/core";
+import {Anchor, Button, Divider, Flex, Grid, Space, Text} from "@mantine/core";
 import classes from "./search.module.css";
 import {ListIcon, TilesIcon, ArrowRightIcon} from '@atlasoflivingaustralia/ala-mantine';
 import {useNavigate} from "react-router-dom";
-import {speciesDefn} from "./speciesDefn.tsx";
-import {limitDescription, openUrl} from "./util.tsx";
-import {datasetsDefn} from "./datasetsDefn.tsx";
-import {dataprojectsDefn} from "./dataprojectsDefn.tsx";
-import {specieslistDefn} from "./specieslistDefn.tsx";
-import {environmentallayersDefn} from "./environmentallayersDefn.tsx";
-import {regionslocalitiesDefn} from "./regionslocalitiesDefn.tsx";
-import {wordpressDefn} from "./wordpressDefn.tsx";
-import {supportDefn} from "./supportDefn.tsx";
+import {speciesDefn} from "./props/speciesDefn.tsx";
+import {datasetsDefn} from "./props/datasetsDefn.tsx";
+import {dataprojectsDefn} from "./props/dataprojectsDefn.tsx";
+import {specieslistDefn} from "./props/specieslistDefn.tsx";
+import {environmentallayersDefn} from "./props/environmentallayersDefn.tsx";
+import {regionslocalitiesDefn} from "./props/regionslocalitiesDefn.tsx";
+import {wordpressDefn} from "./props/wordpressDefn.tsx";
+import {supportDefn} from "./props/supportDefn.tsx";
 
 interface ViewProps {
     queryString?: string | undefined
+    setTab: (tab: string) => void
 }
 
-function AllView({queryString}: ViewProps) {
+function AllView({queryString, setTab}: ViewProps) {
     const [filter, setFilter] = useState<string>("list");
     const [groups, setGroups] = useState<any[]>([]);
+    const [total, setTotal] = useState<number>(0);
     const [taxonGroups, setTaxonGroups] = useState<any[]>([]);
     const [datasetGroups, setDatasetGroups] = useState<any[]>([]);
     const [speciesListGroups, setSpeciesListGroups] = useState<any[]>([]);
@@ -41,24 +42,19 @@ function AllView({queryString}: ViewProps) {
         "REGION": "Regions/localities",
         "LOCALITY": "Regions/localities",
         "DATARESOURCE": "Datasets",
-        "DATAPROVIDER": "Datasets",
-        "COLLECTION": "Datasets",
-        "INSTITUTION": "Datasets",
         "SPECIESLIST": "Species List",
         "WORDPRESS": "ALA General Content",
         "KNOWLEDGEBASE": "Help Articles",
         "COMMON": "Species",
-        "IDENTIFIER": "Species",
-        "TAXONVARIANT": "Species",
         "BIOCOLLECT": "Data Projects",
         "DISTRIBUTION": undefined
     };
 
     const groupFq: MappingType = {
-        "Species": "idxtype:TAXON", // TODO: are these also required? OR idxtype:COMMON OR idxtype:IDENTIFIER OR idxtype:TAXONVARIANT",
+        "Species": "idxtype:TAXON OR idxtype:COMMON",
         "Environmental Layers": "idxtype:LAYER",
         "Regions/localities": "idxtype:REGION OR idxtype:LOCALITY",
-        "Datasets": "idxtype:DATARESOURCE", // TODO: are these also required? OR idxtype:DATAPROVIDER OR idxtype:COLLECTION OR idxtype:INSTITUTION",
+        "Datasets": "idxtype:DATARESOURCE",
         "Species List": "idxtype:SPECIESLIST",
         "ALA General Content": "idxtype:WORDPRESS",
         "Help Articles": "idxtype:KNOWLEDGEBASE",
@@ -66,18 +62,39 @@ function AllView({queryString}: ViewProps) {
     };
 
     useEffect(() => {
+        // reset groups
+        setGroups([])
+
+        // reset total
+        setTotal(0)
+
+        // reset lists
+        setTaxonGroups([])
+        setDatasetGroups([])
+        setSpeciesListGroups([])
+        setDataProjectGroups([])
+        setEnvironmentalLayerGroups([])
+        setRegionLocalityGroups([])
+        setAlaGeneralContentGroups([])
+        setHelpArticlesGroups([])
+
+        if (!queryString) {
+            console.log("No query string")
+            return;
+        }
+
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/search?q=" + encodeURIComponent(queryString as string) + "&facets=idxtype&pageSize=0")
             .then(response => response.json())
             .then(data => {
-                var searchGroups: { [key: string]: { count: number, label: string, items: any[] } } = {
-                    "Species": {count: 0, label: "Species", items: []},
-                    "Datasets": {count: 0, label: "Datasets", items: []},
-                    "Species List": {count: 0, label: "Species List", items: []},
-                    "Data Projects": {count: 0, label: "Data Projects", items: []},
-                    "Environmental Layers": {count: 0, label: "Environmental Layers", items: []},
-                    "Regions/localities": {count: 0, label: "Regions/localities", items: []},
-                    "ALA General Content": {count: 0, label: "ALA General Content", items: []},
-                    "Help Articles": {count: 0, label: "Help Articles", items: []}
+                var searchGroups: { [key: string]: { count: number, label: string, items: any[], tabName: string } } = {
+                    "Species": {count: 0, label: "Species", items: [], tabName: "species"},
+                    "Datasets": {count: 0, label: "Datasets", items: [], tabName: "datasets"},
+                    "Species List": {count: 0, label: "Species List", items: [], tabName: "specieslists"},
+                    "Data Projects": {count: 0, label: "Data Projects", items: [], tabName: "dataprojects"},
+                    "Environmental Layers": {count: 0, label: "Environmental Layers", items: [], tabName: "environmentallayers"},
+                    "Regions/localities": {count: 0, label: "Regions/localities", items: [], tabName: "regionslocalities"},
+                    "ALA General Content": {count: 0, label: "ALA General Content", items: [], tabName: "alageneralcontent"},
+                    "Help Articles": {count: 0, label: "Help Articles", items: [], tabName: "helparticles"}
                 }
                 if (data?.facetResults && data.facetResults[0] && data.facetResults[0].fieldResult) {
                     data.facetResults[0].fieldResult.forEach((facet: any) => {
@@ -88,15 +105,7 @@ function AllView({queryString}: ViewProps) {
                     })
                 }
 
-                // reset lists
-                setTaxonGroups([])
-                setDatasetGroups([])
-                setSpeciesListGroups([])
-                setDataProjectGroups([])
-                setEnvironmentalLayerGroups([])
-                setRegionLocalityGroups([])
-                setAlaGeneralContentGroups([])
-                setHelpArticlesGroups([])
+                setTotal(data.totalRecords)
 
                 // fetch the first 4 results for each
                 Object.values(searchGroups).forEach((group: any) => {
@@ -160,11 +169,13 @@ function AllView({queryString}: ViewProps) {
                 >
                     <TilesIcon color="#637073"/>Tiles</Button>
             </Flex>
+            {total == 0 && <Text mt={60}>No results found</Text>}
             {groups.map((group, index) =>
                 <Fragment key={index}>
                     {group.count > 0 && <>
                         <Space h="60px"/>
-                        <Flex style={{justifyContent: 'space-between'}}>
+                        <Flex style={{justifyContent: 'space-between'}}
+                            onClick={() => setTab(group.tabName)}>
                             <Text className={classes.groupName}>{group.label}</Text>
                             <Anchor className={classes.groupCount}
                             >See {group.count} results <ArrowRightIcon/></Anchor>
@@ -174,56 +185,56 @@ function AllView({queryString}: ViewProps) {
                             {group.label == "Species" && taxonGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {speciesDefn.renderListItemFn({item, navigate})}
+                                    {speciesDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "Datasets" && datasetGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {datasetsDefn.renderListItemFn({item, navigate})}
+                                    {datasetsDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "Species List" && speciesListGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {specieslistDefn.renderListItemFn({item, navigate})}
+                                    {specieslistDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "Data Projects" && dataProjectGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {dataprojectsDefn.renderListItemFn({item, navigate})}
+                                    {dataprojectsDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "Environmental Layers" && environmentalLayerGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {environmentallayersDefn.renderListItemFn({item, navigate})}
+                                    {environmentallayersDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "Regions/localities" && regionLocalityGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {regionslocalitiesDefn.renderListItemFn({item, navigate})}
+                                    {regionslocalitiesDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "ALA General Content" && alaGeneralContentGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {wordpressDefn.renderListItemFn({item, navigate})}
+                                    {wordpressDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
                             {group.label == "Help Articles" && helpArticlesGroups.map((item: any, index: number) =>
                                 <Fragment key={index}>
                                     {index > 0 && <Space h="10px"/>}
-                                    {supportDefn.renderListItemFn({item, navigate})}
+                                    {supportDefn.renderListItemFn({item, navigate, wide: true})}
                                     <Divider mt="15px"/>
                                 </Fragment>
                             )}
@@ -232,42 +243,42 @@ function AllView({queryString}: ViewProps) {
                             <Grid gutter="40px">
                                 {group.label == "Species" && taxonGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {speciesDefn.renderTileItemFn({item, navigate})}
+                                        {speciesDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Datasets" && datasetGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {datasetsDefn.renderTileItemFn({item, navigate})}
+                                        {datasetsDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Species List" && speciesListGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {specieslistDefn.renderTileItemFn({item, navigate})}
+                                        {specieslistDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Data Projects" && dataProjectGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {dataprojectsDefn.renderTileItemFn({item, navigate})}
+                                        {dataprojectsDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Environmental Layers" && environmentalLayerGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {environmentallayersDefn.renderTileItemFn({item, navigate})}
+                                        {environmentallayersDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Regions/localities" && regionLocalityGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {regionslocalitiesDefn.renderTileItemFn({item, navigate})}
+                                        {regionslocalitiesDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "ALA General Content" && alaGeneralContentGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {wordpressDefn.renderTileItemFn({item, navigate})}
+                                        {wordpressDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Help Articles" && helpArticlesGroups.map((item: any, index: number) =>
                                     <Grid.Col span={3} key={index}>
-                                        {supportDefn.renderTileItemFn({item, navigate})}
+                                        {supportDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                             </Grid>

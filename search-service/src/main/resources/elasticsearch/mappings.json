@@ -147,13 +147,16 @@
     "languageName": {
       "type": "keyword"
     },
-    "languageUrl": {
+    "languageUri": {
       "type": "keyword"
     },
     "source": {
       "type": "keyword"
     },
     "temporal": {
+      "type": "keyword"
+    },
+    "favorite": {
       "type": "keyword"
     },
     "locationID": {
@@ -240,10 +243,19 @@
     "nameType": {
       "type": "keyword"
     },
+    "classification": {
+      "type": "keyword"
+    },
     "classification1": {
       "type": "keyword"
     },
     "classification2": {
+      "type": "keyword"
+    },
+    "dataProvider": {
+      "type": "keyword"
+    },
+    "state": {
       "type": "keyword"
     },
     "domain": {

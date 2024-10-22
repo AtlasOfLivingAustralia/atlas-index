@@ -18,9 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Service
 public class AreaImportService {
@@ -92,6 +93,11 @@ public class AreaImportService {
             try {
                 logService.log(taskType, "field " + fieldId + " import starting");
 
+                // get the recency of the last import
+                Map fieldObj = objectMapper.readValue(URI.create(spatialUrl + "/field/" + fieldId + "?pageSize=0").toURL(), Map.class);
+                String lastUpdate = (String) fieldObj.get("last_update");
+                Date created = lastUpdate != null ? Date.from(ZonedDateTime.parse(lastUpdate, DateTimeFormatter.ISO_ZONED_DATE_TIME).toInstant()) : null;
+
                 int pageSize = 10000;
                 int start = 0;
                 boolean hasMore = true;
@@ -112,6 +118,8 @@ public class AreaImportService {
                         String id = fid + "-" + pid;
                         String name = (String) item.get("name");
                         String description = (String) item.getOrDefault("description", null);
+                        if ("null".equals(description)) description = null; // some descriptions are "null" strings
+
                         String bbox = (String) item.getOrDefault("bbox", null);
                         String featureType = (String) item.get("featureType");
                         String centroid = (String) item.get("centroid");
@@ -146,6 +154,7 @@ public class AreaImportService {
                                         .fieldName(fieldName)
                                         .areaKm(areaKm)
                                         .bbox(bbox)
+                                        .created(created)
                                         .build();
 
                         buffer.add(elasticService.buildIndexQuery(searchItemIndex));
@@ -162,8 +171,8 @@ public class AreaImportService {
                     counter += elasticService.flushImmediately(buffer);
                 }
             } catch (Exception e) {
-                logService.log(taskType, "failed to get fields " + spatialUrl + "/fields");
-                logger.error("failed to get fields " + spatialUrl + "/fields");
+                logService.log(taskType, "failed to get fields " + spatialUrl + "/fields; " + e.getMessage());
+                logger.error("failed to get fields " + spatialUrl + "/fields; " + e.getMessage());
             }
 
             logService.log(taskType, "field " + fieldId + " import finished");

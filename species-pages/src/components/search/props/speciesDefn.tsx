@@ -1,12 +1,12 @@
-import {GenericViewProps, RenderItemParams} from "../../api/sources/model.ts";
+import {CustomFacetFn, GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
 import {Flex, Image, Space, Text} from "@mantine/core";
-import classes from "./search.module.css";
+import classes from "../search.module.css";
 import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
-import {getImageThumbnailUrl} from "./util.tsx";
+import {getImageThumbnailUrl} from "../util.tsx";
 
-import speciesGroupMap from "../../../public/speciesGroupsMap.json"
-import capitalise from "../../helpers/Capitalise.ts";
-import FormatName from "../nameUtils/formatName.tsx";
+import speciesGroupMap from "../../../../public/speciesGroupsMap.json"
+import capitalise from "../../../helpers/Capitalise.ts";
+import FormatName from "../../nameUtils/formatName.tsx";
 
 interface SpeciesGroupMapType {
     [key: string]: {
@@ -120,12 +120,12 @@ function addForGroup(group: any, speciesGroupList: any[], items: any, depth: num
 }
 
 export const speciesDefn: GenericViewProps = {
-    // TODO: awaiting clarification if the fq should instead be: idxtype:TAXON OR idxtype:COMMON OR idxtype:IDENTIFIER OR idxtype:TAXONVARIANT
-    fq: "idxtype:TAXON AND -acceptedConceptID:*",
+    fq: "idxtype:TAXON OR idxtype:COMMON",
 
     facetDefinitions: {
         "status": {
             label: "Names",
+            order: 2,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // looking for status == 'traditionalKnowledge' only
                 facet.fieldResult.forEach((status: any) => {
@@ -140,7 +140,8 @@ export const speciesDefn: GenericViewProps = {
                                     count: status.count,
                                     depth: 0
                                 }
-                            ]
+                            ],
+                            order: 2
                         })
                     }
                 })
@@ -148,6 +149,7 @@ export const speciesDefn: GenericViewProps = {
         },
         "speciesGroup": {
             label: "Species group",
+            order: 3,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // put result in a map, then iterate over the speciesGroupsMap so the output is of the correct structure
                 var items: { [key: string]: number } = {}
@@ -163,16 +165,19 @@ export const speciesDefn: GenericViewProps = {
                 if (speciesGroupList.length > 0) {
                     facetList.push({
                         name: "Species group",
-                        items: speciesGroupList
+                        items: speciesGroupList,
+                        order: 3
                     })
                 }
             }
         },
         "taxonomicStatus": {
-            label: "Taxonomic status"
+            label: "Taxonomic status",
+            order: 4
         },
         "rank": {
             label: "Taxonomic rank",
+            order: 5,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom sort
                 var items: any [] = []
@@ -196,14 +201,15 @@ export const speciesDefn: GenericViewProps = {
 
                     facetList.push({
                         name: "Taxonomic rank",
-                        items: items
+                        items: items,
+                        order: 5
                     })
                 }
             }
         }
     },
 
-    renderListItemFn: ({item, navigate}: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide}: RenderItemParams) => {
         return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species?id=${item.guid}`)}>
             <div style={{minWidth: "62px", minHeight: "62px"}}>
                 {item.image &&
@@ -224,17 +230,17 @@ export const speciesDefn: GenericViewProps = {
                     />
                 }
             </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
+            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
                 <Text className={classes.listItemName}><FormatName name={item.scientificName || item.name}
                                                                    rankId={item.rankID}/></Text>
                 <Text>{item.commonNameSingle}</Text>
             </div>
-            <div style={{minWidth: "250px", maxWidth: "250px"}}>
+            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
                 {item.speciesGroup && <Text>{item.speciesGroup.join(', ')}</Text>}
                 {item?.data?.rk_kingdom && <Text>Kingdom: {item?.data?.rk_kingdom}</Text>}
                 <Text><FolderIcon color="#637073"/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence records</Text>
             </div>
-            <div style={{minWidth: "500px", maxWidth: "500px"}}>
+            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
                 {/*TODO: hero description goes here when it is defined*/}
             </div>
         </Flex>
@@ -259,5 +265,25 @@ export const speciesDefn: GenericViewProps = {
                 {/* TODO: hero description goes here when defined */}
             </div>
         </div>
+    },
+
+    addCustomFacetsFn: ({url, setCustomFacetData}: CustomFacetFn) => {
+        fetch(url + "&fq=image:*").then(response => response.json()).then(data => {
+            var items = [
+                {
+                    fq: "image:*",
+                    label: "Image available",
+                    count: data.totalRecords,
+                    depth: 0
+                }
+            ]
+            if (items.length > 0) {
+                setCustomFacetData([{
+                    name: "Type",
+                    items: items,
+                    order: 1
+                }])
+            }
+        });
     }
 }

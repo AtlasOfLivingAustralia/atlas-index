@@ -145,15 +145,14 @@ public class WordpressImportService {
             String fullUrl = url + contentOnlyParams;
             Document document = Jsoup.connect(fullUrl).timeout(timeout).get();
 
-            // extract the category from the URL
-            String category1 = null;
-            String [] parts = url.split("/");
-            if (parts.length > 3) {
-                category1 = parts[3];
+            // extract the category from the first meta property article:section
+            String category1 = "Other";
+            Elements catElement = document.select("meta[property=article:section]");
+            if (!catElement.isEmpty()) {
+                category1 = catElement.get(0).attr("content");
             }
 
-            // some summary/landing pages do not work with `content-only=1`, so we don't want to index
-            // them
+            // some summary/landing pages do not work with `content-only=1`, so we don't want to index them
             if (!document.select("body.ala-content").isEmpty()
                     || StringUtils.isEmpty(document.body().text())) {
                 return null;
@@ -176,6 +175,7 @@ public class WordpressImportService {
                     .modified(lastmod)
                     .classification1(category1)
                     .image(image)
+                    .created(lastmod)
                     .build();
         } catch (IOException e) {
             logService.log(taskType, "cannot index " + url + ", " + e.getMessage());

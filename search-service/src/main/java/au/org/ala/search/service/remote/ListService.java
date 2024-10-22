@@ -53,6 +53,7 @@ public class ListService {
     }
 
     public List<Map<String, Object>> list(String params) {
+        // TODO: paging
         ResponseEntity<Map> response = restTemplate.exchange(
                 listsUrl + "/ws/speciesList?" + params + "&max=" + listsSearchMax,
                     HttpMethod.GET,

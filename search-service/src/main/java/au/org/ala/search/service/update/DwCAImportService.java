@@ -220,11 +220,15 @@ public class DwCAImportService {
             CompletableFuture<Integer> vernacular = CompletableFuture.completedFuture(null);
             CompletableFuture<Integer> identifier = CompletableFuture.completedFuture(null);
 
+            // Legacy behaviour is to import identifiers into elasticsearch. While caching is required, the import is
+            // to be removed when deprecating legacy functionality.
             ArchiveFile identifierExtension = archive.getExtension(GbifTerm.Identifier);
             if (identifierExtension != null) {
                 identifier = dwCAImportRunner.importDwcARowType(identifierExtension, attributionMap, defaultDatasetName, modified, cache);
             }
 
+            // Legacy behaviour is to import variants into elasticsearch. While caching is required, the import is
+            // to be removed when deprecating legacy functionality.
             ArchiveFile variantExtension = archive.getExtension(ALATerm.TaxonVariant);
             if (variantExtension != null) {
                 variant = dwCAImportRunner.importDwcARowType(variantExtension, attributionMap, defaultDatasetName, modified, cache);

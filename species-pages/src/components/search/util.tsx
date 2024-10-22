@@ -1,12 +1,11 @@
-
-function limitDescription(description: string, max: number) : string {
-    if(description && description.length > max) {
+function limitDescription(description: string, max: number): string {
+    if (description && description.length > max) {
         return description.substring(0, max) + "...";
     }
     return description;
 }
 
-function openUrl(url: string){
+function openUrl(url: string) {
     window.open(url, "_blank");
 }
 
@@ -15,4 +14,4 @@ const getImageThumbnailUrl = (id: string) => {
     return `https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=${id}`;
 }
 
-export { limitDescription, openUrl, getImageThumbnailUrl };
+export {limitDescription, openUrl, getImageThumbnailUrl};

@@ -5,6 +5,7 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,6 +103,11 @@ public class LayerImportService {
                     String type = (String) layer.getOrDefault("type", null);
                     String source = (String) layer.getOrDefault("source", null);
 
+                    Long added = (Long) layer.get("dt_added");
+                    Date created = added != null ? new Date((Long) layer.get("dt_added")) : null;
+
+                    String aggregatedClassification = classification1 + (StringUtils.isNotEmpty(classification2) ? "|" + classification2 : "");
+
                     if (!enabled) {
                         continue;
                     }
@@ -132,11 +138,13 @@ public class LayerImportService {
                                         .modified(new Date())
                                         .classification1(classification1)
                                         .classification2(classification2)
+                                        .classification(aggregatedClassification)
                                         .keywords(keywords)
                                         .domain(domain)
                                         .type(type)
                                         .source(source)
                                         .image(spatialUrl + "/layer/img/" + name + ".jpg")
+                                        .created(created)
                                         .build());
                     }
 

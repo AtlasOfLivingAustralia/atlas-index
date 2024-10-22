@@ -22,6 +22,7 @@ public class DenormalTaxon extends Denormal {
     public String namePublishedIn;
     public String source;
     public String datasetID;
+    public String nameFormatted;
 
     public DenormalTaxon(SearchItemIndex item) {
         super(item.parentGuid);
@@ -39,5 +40,6 @@ public class DenormalTaxon extends Denormal {
         this.namePublishedIn = item.namePublishedIn;
         this.source = item.source;
         this.datasetID = item.datasetID;
+        this.nameFormatted = item.nameFormatted;
     }
 }
