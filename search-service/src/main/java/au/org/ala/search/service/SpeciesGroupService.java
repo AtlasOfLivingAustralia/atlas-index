@@ -45,7 +45,7 @@ public class SpeciesGroupService {
             e.printStackTrace();
         }
         List<RankedName> rankedNames = new ArrayList<>();
-        rankedNames.add(new RankedName("Ostracoda".toLowerCase(), "class"));
+        rankedNames.add(new RankedName("Chytridiomycota".toLowerCase(), "phylum"));
         System.out.println(speciesGroupService.groupsFor(rankedNames));
     }
 
@@ -99,9 +99,11 @@ public class SpeciesGroupService {
         List<SpeciesGroup> speciesGroups = loadSpeciesGroups();
         if (speciesGroups != null) {
             for (SpeciesGroup speciesGroup : speciesGroups) {
-                // substitute rank "class" for input spec "classs"
+                // substitute rank "class" for input spec "classs" and "subclass" for "subclasss"
                 if (speciesGroup.rank.equals("classs")) {
                     speciesGroup.rank = "class";
+                } else if(speciesGroup.rank.equals("subclasss")) {
+                    speciesGroup.rank = "subclass";
                 }
 
                 String rank = normaliseRank(speciesGroup.rank);

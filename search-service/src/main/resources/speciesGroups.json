@@ -242,7 +242,7 @@
   },
   {
     "name": "Scorpions, Pseudoscorpions and Whip Scorpions",
-    "rank": "",
+    "rank": "order",
     "included": [
       "PALPIGRADI",
       "PSEUDOSCORPIONES",
@@ -655,7 +655,7 @@
   },
   {
     "name": "Other Chordates",
-    "rank": "",
+    "rank": "subphylum",
     "included": [
       "CEPHALOCHORDATA",
       "TUNICATA"
@@ -856,7 +856,7 @@
   },
   {
     "name": "Fungi",
-    "rank": "classs",
+    "rank": "kingdom",
     "included": [
       "Fungi"
     ],
@@ -895,7 +895,7 @@
   },
   {
     "name": "Chytrids",
-    "rank": "phlyum",
+    "rank": "phylum",
     "included": [
       "Chytridiomycota"
     ],

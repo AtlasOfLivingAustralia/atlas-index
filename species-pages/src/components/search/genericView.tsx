@@ -57,8 +57,8 @@ function GenericView({
             setSortData([
                 {label: "Most relevant", value: ""},
                 {label: "Newest", value: "&sort=created&dir=desc"},
-                {label: "Sort by A-Z", value: "&sort=name&dir=asc"},
-                {label: "Sort by Z-A", value: "&sort=name&dir=desc"}
+                {label: "Sort by A-Z", value: "&sort=nameSort&dir=asc"},
+                {label: "Sort by Z-A", value: "&sort=nameSort&dir=desc"}
             ]);
         }
     })
