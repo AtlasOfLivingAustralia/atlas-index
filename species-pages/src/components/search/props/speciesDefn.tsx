@@ -212,7 +212,7 @@ export const speciesDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({item, navigate, wide}: RenderItemParams) => {
-        return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species?id=${item.guid}`)}>
+        return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species?id=${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
             <div style={{minWidth: "62px", minHeight: "62px"}}>
                 {item.image &&
                     <Image
@@ -233,9 +233,10 @@ export const speciesDefn: GenericViewProps = {
                 }
             </div>
             <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                <Text className={classes.listItemName}
+                {item.nameFormatted && <Text className={classes.listItemName}
                       dangerouslySetInnerHTML={{__html: item.nameFormatted}}
-                ></Text>
+                ></Text>}
+                {!item.nameFormatted && <Text>{item.name}</Text>}
                 <Text>{item.commonNameSingle}</Text>
             </div>
             <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
@@ -250,14 +251,15 @@ export const speciesDefn: GenericViewProps = {
     },
 
     renderTileItemFn: ({item, navigate}: RenderItemParams) => {
-        return <div className={classes.tile} onClick={() => navigate(`/species?id=${item.guid}`)}>
+        return <div className={classes.tile} onClick={() => navigate(`/species?id=${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
             <Image src={getImageThumbnailUrl(item.image)} height={150} width="auto"
                    onError={(e) => e.currentTarget.src = missingImage}
             />
 
             <div className={classes.tileContent}>
-                <Text className={classes.listItemName}
-                    dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
+                {item.nameFormatted && <Text className={classes.listItemName}
+                    dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>}
+                {!item.nameFormatted && <Text >{item.name}</Text>}
                 <Space h="8px"/>
                 {item.commonNameSingle && <Text fz={14}>{item.commonNameSingle}</Text>}
                 {item.speciesGroup && <Text fz={14}>{item.speciesGroup.join(', ')}</Text>}
