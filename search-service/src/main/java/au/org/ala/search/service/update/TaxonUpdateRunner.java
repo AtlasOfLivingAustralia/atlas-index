@@ -69,6 +69,9 @@ public class TaxonUpdateRunner {
 
                 if ((count == null && storedValue != 0) /* test for delete */
                         || (count != null && !count.equals(storedValue))) { /* test for update */
+                    // TODO: the search page also displays this information for idxtype:COMMON record, so keep track
+                    //  of the guid and new count and new image. Maybe we can use update by query guid:guid count=new Image and
+                    //  Occurrence count
                     doc.put("occurrenceCount", count);
                 }
 
