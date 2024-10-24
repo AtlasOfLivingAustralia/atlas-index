@@ -4,9 +4,11 @@ import classes from "../search.module.css";
 import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
 import {getImageThumbnailUrl} from "../util.tsx";
 
-import speciesGroupMap from "../../../../public/speciesGroupsMap.json"
+import speciesGroupMap from "../../../config/speciesGroupsMap.json"
 import capitalise from "../../../helpers/Capitalise.ts";
-import FormatName from "../../nameUtils/formatName.tsx";
+import missingImage from '../../../image/missing-image.png';
+
+import '../../../css/nameFormatting.css';
 
 interface SpeciesGroupMapType {
     [key: string]: {
@@ -218,7 +220,7 @@ export const speciesDefn: GenericViewProps = {
                         mah={62}
                         maw={62}
                         src={getImageThumbnailUrl(item.image)}
-                        onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
+                        onError={(e) => e.currentTarget.src = missingImage}
                     />
                 }
                 {!item.image &&
@@ -226,13 +228,14 @@ export const speciesDefn: GenericViewProps = {
                         radius="5px"
                         mah={62}
                         maw={62}
-                        src="../../../public/missing-image.png"
+                        src={missingImage}
                     />
                 }
             </div>
             <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                <Text className={classes.listItemName}><FormatName name={item.scientificName || item.name}
-                                                                   rankId={item.rankID}/></Text>
+                <Text className={classes.listItemName}
+                      dangerouslySetInnerHTML={{__html: item.nameFormatted}}
+                ></Text>
                 <Text>{item.commonNameSingle}</Text>
             </div>
             <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
@@ -249,12 +252,12 @@ export const speciesDefn: GenericViewProps = {
     renderTileItemFn: ({item, navigate}: RenderItemParams) => {
         return <div className={classes.tile} onClick={() => navigate(`/species?id=${item.guid}`)}>
             <Image src={getImageThumbnailUrl(item.image)} height={150} width="auto"
-                   onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
+                   onError={(e) => e.currentTarget.src = missingImage}
             />
 
             <div className={classes.tileContent}>
-                <Text className={classes.listItemName}><FormatName name={item.scientificName || item.name}
-                                                                   rankId={item.rankID}/></Text>
+                <Text className={classes.listItemName}
+                    dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
                 <Space h="8px"/>
                 {item.commonNameSingle && <Text fz={14}>{item.commonNameSingle}</Text>}
                 {item.speciesGroup && <Text fz={14}>{item.speciesGroup.join(', ')}</Text>}

@@ -2,6 +2,7 @@ import {GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts"
 import {Flex, Image, Space, Text} from "@mantine/core";
 import classes from "../search.module.css";
 import {limitDescription, openUrl} from "../util.tsx";
+import missingImage from '../../../image/missing-image.png';
 
 export const wordpressDefn: GenericViewProps = {
     fq: "idxtype:WORDPRESS",
@@ -23,7 +24,7 @@ export const wordpressDefn: GenericViewProps = {
                     mah={62}
                     maw={62}
                     src={item.image}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
+                    onError={(e) => e.currentTarget.src = missingImage}
                 />
                 }
                 {!item.image &&
@@ -31,7 +32,7 @@ export const wordpressDefn: GenericViewProps = {
                         radius="5px"
                         mah={62}
                         maw={62}
-                        src="../../../public/missing-image.png"
+                        src={missingImage}
                     />
                 }
             </div>
@@ -51,11 +52,11 @@ export const wordpressDefn: GenericViewProps = {
         return <div className={classes.tile} onClick={() => openUrl(item.guid)}>
             {item.image && <Image height={150} width="auto"
                                   src={item.image}
-                                  onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
+                                  onError={(e) => e.currentTarget.src = missingImage}
             />
             }
             {!item.image && <Image height={150} width="auto"
-                                   src="../../../public/missing-image.png"
+                                   src={missingImage}
             />
             }
 

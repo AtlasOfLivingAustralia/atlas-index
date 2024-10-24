@@ -1,0 +1,18 @@
+/*
+
+This is formatting of the names index nameFormatted field.
+
+For example:
+<span class="scientific-name rank-family"><span class="name">Chytridiaceae</span> <span class="author">Nowak.</span></span>
+
+<span class="scientific-name rank-species"><span class="name">Acacia</span> <span class="name">dodonaeifolia</span> (<span class="author base-author">Pers.</span>) <span class="author">Balb.</span> <span class="hybrid">x</span> <span class="name">Acacia</span> <span class="name">paradoxa</span> <span class="author">DC.</span></span>
+
+See speciesDefn.tsx for all ranks.
+
+The following CSS is from ala-bie-hub
+*/
+
+.scientific-name { font-style: normal; }
+.scientific-name.rank-genus .name { font-style: italic; }
+.scientific-name.rank-species .name { font-style: italic; }
+.scientific-name.rank-subspecies .name { font-style: italic; }

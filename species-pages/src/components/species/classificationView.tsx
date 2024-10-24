@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import { Alert, Anchor, Flex, Grid, Skeleton, Space, Text } from "@mantine/core";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import classes from "./species.module.css";
-import FormatName from "../nameUtils/formatName.tsx";
 import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
+
+import '../../css/nameFormatting.css';
 
 interface ViewProps {
     result?: Record<PropertyKey, string | number | any >
@@ -38,9 +39,9 @@ function ClassificationView({result}: ViewProps) {
             let items: Record<PropertyKey, string | number | any >[] = []
             for (let rank of result.rankOrder.split(',')) {
                 var rankString = rank.replace(/[0-9]/g, ' ') // remove the suffix number that is used to handle duplicates
-                items = [{rank: rankString, name: result['rk_' + rank], guid: result['rkid_' + rank]}, ...items]
+                items = [{rank: rankString, name: result['rkf_' + rank], guid: result['rkid_' + rank]}, ...items]
             }
-            items.push({rank: result.rank, name: result.name, guid: result.guid})
+            items.push({rank: result.rank, name: result.nameFormatted, guid: result.guid})
             setHierarchy(items)
         }
     }, [result]);
@@ -67,7 +68,8 @@ function ClassificationView({result}: ViewProps) {
                                 mb="3px"
                             >
                                 <Text miw={110} pl="md" fw="bold">{capitalize(result?.rank)}</Text>
-                                <Anchor component={Link} to={`/species?id=${result?.guid}`}><FormatName name={result?.scientificName} rankId={result?.rankID}/></Anchor>
+                                <Anchor component={Link} to={`/species?id=${result?.guid}`}
+                                    dangerouslySetInnerHTML={{__html: result?.nameFormatted}}></Anchor>
                             </Flex>
                     </>
                 }
@@ -83,18 +85,22 @@ function ClassificationView({result}: ViewProps) {
                         mb="3px"
                     >
                         <Text miw={110} pl="md" fw="bold">{capitalize(item.rank)}</Text>
-                        <Anchor component={Link} to={`/species?id=${item.guid}`} pl="sm"><FormatName name={item.name} rankId={item.rankID}/></Anchor>
+                        <Anchor component={Link} to={`/species?id=${item.guid}`} pl="sm"
+                            dangerouslySetInnerHTML={{__html: item.name}}
+                            ></Anchor>
                     </Flex>
                 )}
                 { children && children.map((child, idx) =>
                     <Flex
                         key={idx}
                         style={{
-                            marginLeft: (hierarchy.length * 20 + 1) + "px"
+                            marginLeft: (Math.max(1, hierarchy.length) * 20 + 1) + "px"
                         }}
                     >
                         <Text miw={110} pl="md" fw="bold">{capitalize(child.rank)}</Text>
-                        <Anchor component={Link} to={`/species?id=${child.guid}`} pl="sm"><FormatName name={child.nameComplete} rankId={child.rankID}/></Anchor>
+                        <Anchor component={Link} to={`/species?id=${child.guid}`} pl="sm"
+                            dangerouslySetInnerHTML={{__html: child.nameFormatted}}
+                        ></Anchor>
                     </Flex>
                 )}
                 { errorMessage &&

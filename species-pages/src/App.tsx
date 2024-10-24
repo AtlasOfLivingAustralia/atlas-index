@@ -185,7 +185,6 @@ const App: React.FC = () => {
                     element={
                         <Search
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                            queryString={queryString}
                         />
                     }
                 />

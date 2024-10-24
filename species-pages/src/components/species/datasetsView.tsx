@@ -77,10 +77,8 @@ function DatasetsView({result}: MapViewProps) {
             })
             .catch(error => {
                 setErrorMessage('Failed to fetch datasets - ' + error);
-            })
-            .finally(() => {
                 setLoading(false);
-            });
+            })
     }, [result]);
 
     const populateTableData = useCallback(() => {
