@@ -100,7 +100,7 @@ function MapView({tab, result}: MapViewProps) {
             binFactor = 1;
         } else if (occurrenceCount < 50000) {
             binFactor = 2;
-        } else if (occurrenceCount < 100000) {
+        } else if (occurrenceCount < 200000) {
             binFactor = 5;
         } else if (occurrenceCount < 500000) {
             binFactor = 10;
@@ -142,10 +142,7 @@ function MapView({tab, result}: MapViewProps) {
         }
     ];    
     
-    const mapStateIsDefault = useMemo(() => {
-        
-        console.log("mapStateIsDefault", baseLayers, showOccurrences, distributions, mapStateChanged);
-        
+    const mapStateIsDefault = useMemo(() => {        
         if (baseLayers !== 'default') {
             return false;
         }
@@ -167,7 +164,6 @@ function MapView({tab, result}: MapViewProps) {
 
     function getAlaWmsUrl(guid: string) {
         const hexBinParam = hexBinValues.join(',').replace(/,$/, '');
-        // console.log("getAlaWmsUrl hexBinParam", hexBinParam);
         const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${guid}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:${hexBinParam}`;
         return wmsUrl;
     }
@@ -196,8 +192,6 @@ function MapView({tab, result}: MapViewProps) {
             console.error("generateDistributionMap: Invalid distribution data", distributions);
         }
 
-        console.log("generateDistributionMapObj - distributions:", distributions);
-
         setDistributions(spatialObjects);
     }
 
@@ -216,7 +210,7 @@ function MapView({tab, result}: MapViewProps) {
 
     return <>
         { result.sdsStatus &&
-            <Alert icon={<IconFlagFilled />} style={{ display: 'inline-block' }} mt="lg" pt={7} pb={6} pr="lg">
+            <Alert icon={<IconFlagFilled />} style={{ display: 'inline-block' }} mb="xl" pt={7} pb={6} pr="lg">
                 This species is <Text fw={600} inherit span>considered sensitive</Text> in at least one jurisdiction. 
                 Some or all occurrence data has been
                 obfuscated. <Anchor inherit href={import.meta.env.VITE_SDS_INFO_URL}>More info</Anchor>.
@@ -260,7 +254,7 @@ function MapView({tab, result}: MapViewProps) {
                                 zIndex={1}
                             />
                         }
-                        { showOccurrences &&
+                        { showOccurrences && hexValuesScaled &&
                             <WMSTileLayer
                                 url={getAlaWmsUrl(showOccurrences)}
                                 layers="ALA:occurrences"
