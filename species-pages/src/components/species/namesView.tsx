@@ -65,13 +65,15 @@ function NamesView({ result }: MapViewProps) {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {result.synonymData.sort((a: any, b:any) => a.scientificName.localeCompare(b.scientificName)).map((item: any, idx: any) =>
+                        {result.synonymData.sort((a: any, b:any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
                             <Table.Tr key={idx}>
                                 <Table.Td>
                                     {item?.source ?
-                                        <Anchor inherit href={item?.source}>{item?.scientificName}</Anchor>
+                                        <Anchor inherit href={item?.source}
+                                            dangerouslySetInnerHTML={item.namedFormat}></Anchor>
                                         :
-                                        <Text inherit>{item.scientificName}</Text>
+                                        <Text inherit
+                                              dangerouslySetInnerHTML={item.namedFormat}></Text>
                                     }
                                     {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
                                     {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
@@ -100,13 +102,15 @@ function NamesView({ result }: MapViewProps) {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {result.variantData.sort((a: any, b:any) => a.scientificName.localeCompare(b.scientificName)).map((item: any, idx: any) =>
+                        {result.variantData.sort((a: any, b:any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
                             <Table.Tr key={idx}>
                                 <Table.Td>
                                     {item?.source ?
-                                        <Anchor inherit href={item?.source}>{item?.scientificName}</Anchor>
+                                        <Anchor inherit href={item?.source}
+                                                dangerouslySetInnerHTML={item.namedFormat}></Anchor>
                                         :
-                                        <Text inherit>{item.scientificName}</Text>
+                                        <Text inherit
+                                              dangerouslySetInnerHTML={item.namedFormat}></Text>
                                     }
                                     {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
                                     {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}

@@ -5,6 +5,7 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -119,6 +120,24 @@ public class KnowledgebaseImportService {
             String title = page.select(".content h2.heading").text();
             String body = page.select("article.article-body").text();
 
+            // get the categories from the breadcrumbs, up to 2 levels below root
+            Elements breadcrumbElement = page.select(".breadcrumb");
+            String category1 = null;
+            String category2 = null;
+            if (!breadcrumbElement.isEmpty()) {
+                Elements breadcrumbs = breadcrumbElement.get(0).select("a");
+                if (breadcrumbs.size() > 1) {
+                    category1 = breadcrumbs.get(1).text();
+                }
+                if (breadcrumbs.size() > 2) {
+                    category2 = breadcrumbs.get(2).text();
+                }
+            }
+
+            String aggregatedClassification = StringUtils.isNotEmpty(category1) ?
+                    category1 + (StringUtils.isNotEmpty(category2) ? "|" + category2 : "") :
+                    null;
+
             return SearchItemIndex.builder()
                     .id(url)
                     .guid(url)
@@ -126,6 +145,10 @@ public class KnowledgebaseImportService {
                     .name(title)
                     .description(body)
                     .modified(lastmod)
+                    .classification(aggregatedClassification)
+                    .classification1(category1)
+                    .classification2(category2)
+                    .created(lastmod)
                     .build();
         } catch (IOException e) {
             logService.log(taskType, "cannot index " + url + ", " + e.getMessage());

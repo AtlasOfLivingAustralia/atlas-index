@@ -118,7 +118,7 @@ public class WordpressImportService {
                     try {
                         Date current = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssX").parse(lastmod);
                         Date stored = existingPages.get(pageUrl);
-                        if (stored == null || stored.compareTo(current) < 0) {
+                        if (true || stored == null || stored.compareTo(current) < 0) {
                             locations.put(pageUrl, current);
                         }
 
@@ -145,8 +145,14 @@ public class WordpressImportService {
             String fullUrl = url + contentOnlyParams;
             Document document = Jsoup.connect(fullUrl).timeout(timeout).get();
 
-            // some summary/landing pages do not work with `content-only=1`, so we don't want to index
-            // them
+            // extract the category from the first meta property article:section
+            String category1 = "Other";
+            Elements catElement = document.select("meta[property=article:section]");
+            if (!catElement.isEmpty()) {
+                category1 = catElement.get(0).attr("content");
+            }
+
+            // some summary/landing pages do not work with `content-only=1`, so we don't want to index them
             if (!document.select("body.ala-content").isEmpty()
                     || StringUtils.isEmpty(document.body().text())) {
                 return null;
@@ -154,6 +160,12 @@ public class WordpressImportService {
 
             String title = document.select(titleSelector).text();
             String main = document.select(contentSelector).text();
+            Elements imageElements = document.select("article img");
+            String image = null;
+            if (!imageElements.isEmpty()) {
+                image = imageElements.get(0).attr("src");
+            }
+
             return SearchItemIndex.builder()
                     .id(url)
                     .guid(url)
@@ -161,6 +173,9 @@ public class WordpressImportService {
                     .name(title)
                     .description(main)
                     .modified(lastmod)
+                    .classification1(category1)
+                    .image(image)
+                    .created(lastmod)
                     .build();
         } catch (IOException e) {
             logService.log(taskType, "cannot index " + url + ", " + e.getMessage());

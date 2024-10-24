@@ -578,6 +578,9 @@ public class DwCAImportRunner {
             }
         }
 
+        // This is from the bie-index; use the supplied nameFormatted or attempt to build it
+        String nameFormatted = buildNameFormatted(core.value(ALATerm.nameFormatted), nameComplete, scientificName, scientificNameAuthorship, taxonRank);
+
         return DenormalTaxon.builder()
                 .guid(taxonID)
                 .name(scientificName)
@@ -593,6 +596,7 @@ public class DwCAImportRunner {
                 .namePublishedIn(core.value(DwcTerm.namePublishedIn))
                 .source(core.value(DcTerm.source))
                 .datasetID(core.value(DwcTerm.datasetID))
+                .nameFormatted(nameFormatted)
                 .build();
     }
 
@@ -615,6 +619,7 @@ public class DwCAImportRunner {
                 .datasetID(core.value(DwcTerm.datasetID))
                 .namePublishedIn(core.value(DwcTerm.namePublishedIn))
                 .nameAccordingTo(core.value(DwcTerm.nameAccordingTo))
+                .nameFormatted(core.value(ALATerm.nameFormatted))
                 .build();
     }
 

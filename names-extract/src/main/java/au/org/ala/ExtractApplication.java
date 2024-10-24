@@ -134,8 +134,8 @@ public class ExtractApplication extends Application<ALANameMatchingServiceConfig
                     if (speciesGroup != null && !speciesGroup.isEmpty()) {
                         writer.writeNext(new String[] { result.getTaxonConceptID(), om.writeValueAsString(speciesGroup) });
 
-                        // TODO: uncomment, update the elasticsearch URL in the compare function, and re-run to fully test speciesGroups
-//                        compare(result.getTaxonConceptID(), speciesGroup);
+                        // TODO: uncomment when testing elasticsearch vs namematching service
+                        //compare(result.getTaxonConceptID(), speciesGroup);
                     }
                 }
 
@@ -143,8 +143,8 @@ public class ExtractApplication extends Application<ALANameMatchingServiceConfig
                 if (speciesGroup != null && !speciesGroup.isEmpty()) {
                     writer.writeNext(new String[] { lsid, om.writeValueAsString(speciesGroup) });
 
-                    // TODO: uncomment, update the elasticsearch URL in the compare function, and re-run to fully test speciesGroups
-//                    compare(result.getTaxonConceptID(), speciesGroup);
+                    // TODO: uncomment when testing elasticsearch vs namematching service
+                    //compare(result.getTaxonConceptID(), speciesGroup);
                 }
             }
 
@@ -176,8 +176,8 @@ public class ExtractApplication extends Application<ALANameMatchingServiceConfig
      */
     private void compare(String lsid, List<String> speciesGroup) {
         try {
-            // URL for the Elasticsearch query
-            URL url = new URL("http://localhost:9200/search-20241011/_search");
+            // TODO: when testing speciesGroups, use the correct URL for elasticsearch
+            URL url = new URL("http://localhost:9200/search-20241014/_search");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("POST");

@@ -5,6 +5,7 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -81,8 +82,9 @@ public class LayerImportService {
                 logService.log(taskType, "found " + layers.size() + " layers");
 
                 for (Map<String, Object> layer : layers) {
-                    String url = spatialUrl + layerPath + layer.get("name");
-                    String name = (String) layer.get("displayname");
+                    String name = (String) layer.get("name");
+                    String url = spatialUrl + layerPath + name;
+                    String displayName = (String) layer.get("displayname");
                     Boolean enabled = (Boolean) layer.getOrDefault("enabled", false);
 
                     String notes = (String) layer.getOrDefault("notes", null);
@@ -99,6 +101,12 @@ public class LayerImportService {
                     String keywords = (String) layer.getOrDefault("keywords", null);
                     String domain = (String) layer.getOrDefault("domain", null);
                     String type = (String) layer.getOrDefault("type", null);
+                    String source = (String) layer.getOrDefault("source", null);
+
+                    Long added = (Long) layer.get("dt_added");
+                    Date created = added != null ? new Date((Long) layer.get("dt_added")) : null;
+
+                    String aggregatedClassification = classification1 + (StringUtils.isNotEmpty(classification2) ? "|" + classification2 : "");
 
                     if (!enabled) {
                         continue;
@@ -108,28 +116,35 @@ public class LayerImportService {
                     SearchItemIndex stored = elasticService.getDocument(url);
 
                     if (stored == null
-                            || !stored.getName().equals(name)
+                            || !stored.getId().equals(url)
+                            || !stored.getGuid().equals(url)
+                            || !stored.getName().equals(displayName)
                             || !stringEquals(stored.getDescription(), body)
                             || !stringEquals(stored.getClassification1(), classification1)
                             || !stringEquals(stored.getClassification2(), classification2)
                             || !stringEquals(stored.getKeywords(), keywords)
                             || !stringEquals(stored.getDomain(), domain)
-                            || !stringEquals(stored.getType(), type)) {
+                            || !stringEquals(stored.getType(), type)
+                            || !stringEquals(stored.getSource(), source)
+                        ) {
                         updateList.put(
                                 url,
                                 SearchItemIndex.builder()
                                         .id(url)
                                         .guid(url)
                                         .idxtype(IndexDocType.LAYER.name())
-                                        .name(name)
+                                        .name(displayName)
                                         .description(body)
                                         .modified(new Date())
                                         .classification1(classification1)
                                         .classification2(classification2)
+                                        .classification(aggregatedClassification)
                                         .keywords(keywords)
                                         .domain(domain)
                                         .type(type)
+                                        .source(source)
                                         .image(spatialUrl + "/layer/img/" + name + ".jpg")
+                                        .created(created)
                                         .build());
                     }
 

@@ -64,6 +64,15 @@ function Home({setBreadcrumbs}: {
                 </Box>
                 <Divider mt="xl" mb="xl"/>
                 <Box>
+                    <Title order={3}>Example search page</Title>
+                    <Space h="md" />
+                    <Anchor
+                        component={Link}
+                        to="/search"
+                    >Empty search page</Anchor>
+                </Box>
+                <Divider mt="xl" mb="xl"/>
+                <Box>
                     <Title order={3}>Example species pages</Title>
                     <Space h="md" />
                     <List>

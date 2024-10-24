@@ -12,6 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -65,5 +66,26 @@ public class BiocacheService {
             logger.error("failed to get " + biocacheWsUrl + "/index/speciesImages, statusCode: " + resp.get("statusCode"));
         }
         return (Map) resp.get("resp");
+    }
+
+    public Map<String, Integer> entityCounts(String facet) {
+        Map resp = webService.get(biocacheWsUrl + "/occurrences/search?q=" + facet + ":*&pageSize=0&flimit=-1&facets=" + facet, null, ContentType.APPLICATION_JSON, false, false, null);
+        if (((Integer) resp.get("statusCode")) != 200) {
+            logger.error("failed to get biocache facets for: " + facet + ", statusCode: " + resp.get("statusCode"));
+            return null;
+        }
+
+        Map<String, Integer> result = new HashMap();
+        List facetResults = (List) ((Map) resp.get("resp")).get("facetResults");
+        for (Object item : (List) ((Map)(facetResults.get(0))).get("fieldResult")) {
+            Map<String, Object> map = (Map<String, Object>) item;
+
+            // Normally "label" is will have the value required for the facet, however entities like dataResourceUid
+            // replace the ID with the name. Extract the ID from the "i18nCode" instead.
+            String i18nCode = map.get("i18nCode").toString();
+            result.put(i18nCode.substring(i18nCode.indexOf('.') + 1), (Integer) map.get("count"));
+        }
+
+        return result;
     }
 }

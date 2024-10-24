@@ -27,6 +27,9 @@ public class SearchItemIndex {
     public String name;
     public String description;
     public Date modified;
+    public Date created;
+    public String state;
+    public String dataProvider;
     public Integer priority;
     public Float searchWeight;
     public Float suggestWeight;
@@ -81,6 +84,7 @@ public class SearchItemIndex {
     public String acceptedNameUsageID;
     public String acceptedConceptID;
     public String nameType;
+    public String classification; // classification1 + "|" + classification2 for faceting
     public String classification1;
     public String classification2;
     public String domain;

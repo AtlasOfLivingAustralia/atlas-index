@@ -61,11 +61,10 @@ This enables consistency between bie-index and ala-namematching-service that is 
 # Species Groups and testing search-service against namematching-service
 
 There is one additional export, `lsid-speciesGroups.csv`, that on its own, or in combination with a modified 
-ExtractAppliation (uncomment the relevant code), can be used to test the search-service against the namematching-service.
+ExtractAppliation. To enable a comprehensive test between elasticsearch and name matching service, see the 3 ExtractApplication.java `TODO` statements to enable and configure this test.
 
-Noted differences and resolutions:
-- namematching-ws will do an additional name search. To accommodate, rename kingdom "Protozoa" with the accepted "PROTISTA".
-- namematching-ws will do an internal search to match "class:Agnatha" with "informal:Agnatha". To accommodate, add 2nd 
-Fishes group in the speciesGroups.json where the rank is "informal" and the "include" has "Agnatha".
+Noted differences that require additional configuration in the species groups file:
+- namematching-ws will do an additional name search. This means that the species groups file must be accurate.
+- namematching-ws will do an internal searches. This is not implied by the configuration file and results in some entries having >1 rank. To accommodate multiple ranks for a single group, duplicate the group for the "includes" of the other rank.
 
-TODO: repeat the comparison when speciesGroups.json is changed.
+TODO: The existing species groups required minor changes (see git history of this file). The proposed changes have some outstanding issues, see https://github.com/AtlasOfLivingAustralia/ux-ui/issues/162. After these are resolved, repeat the comprehensive species group testing.

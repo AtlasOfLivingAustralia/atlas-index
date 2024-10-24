@@ -412,11 +412,12 @@ public class ListImportService {
 
             for (Map<String, Object> list : lists) {
                 Date current = sdf.parse(list.get("lastUpdated").toString());
+                Date created = sdf.parse(list.get("dateCreated").toString());
                 String id = list.get("dataResourceUid").toString();
                 String name = list.get("listName").toString();
                 String url = listsUiUrl + id;
                 String listType = list.get("listType").toString();
-                String body = "list type: " + listType;
+                String description = (String) list.get("description");
 
                 if ((boolean) list.getOrDefault("isThreatened", false)) {
                     conservationLists.add(id);
@@ -428,23 +429,12 @@ public class ListImportService {
 
                 Date stored = existingLists.get(id);
                 if (stored == null || stored.compareTo(current) < 0) {
-                    for (String field : new String[]{"dateCreated", "itemCount", "isAuthoritative", "isInvasive", "isThreatened", "region"}) {
-                        String value = String.valueOf(list.get(field));
-                        if (StringUtils.isNotEmpty(value) && !"null".equals(value)) {
-                            if ("true".equals(value)) {
-                                body += ", " + field;
-                            } else if (!"false".equals(value)) {
-                                body += ", " + field + ": " + value;
-                            }
-                        }
-                    }
-
                     SearchItemIndex item = SearchItemIndex.builder()
                             .id(id)
                             .guid(url)
                             .idxtype(IndexDocType.SPECIESLIST.name())
                             .name(name)
-                            .description(body)
+                            .description(description)
                             .modified(current)
                             .dateCreated(String.valueOf(list.get("dateCreated")))
                             .itemCount((Integer) list.get("itemCount"))
@@ -453,6 +443,7 @@ public class ListImportService {
                             .isThreatened((Boolean) list.get("isThreatened"))
                             .region(String.valueOf(list.get("region")))
                             .type(listType)
+                            .created(created)
                             .build();
 
                     updateList.add(elasticService.buildIndexQuery(item));

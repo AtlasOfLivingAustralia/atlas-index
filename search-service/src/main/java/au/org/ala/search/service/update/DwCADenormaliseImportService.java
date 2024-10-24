@@ -296,6 +296,7 @@ public class DwCADenormaliseImportService {
                 }
                 parentData.put("rk_" + normalisedRank + uniqueSuffix, parent.scientificName);
                 parentData.put("rkid_" + normalisedRank + uniqueSuffix, parent.guid);
+                parentData.put("rkf_" + normalisedRank + uniqueSuffix, parent.nameFormatted);
 
                 // order
                 rankSeen.add(normalisedRank + uniqueSuffix);
@@ -393,7 +394,7 @@ public class DwCADenormaliseImportService {
             // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into synonymData
             for (DenormalVariant variant : variants) {
                 Map<String, String> variantItem = new HashMap<>();
-                if (variant.scientificName != null) variantItem.put("scientificName", variant.scientificName);
+                if (variant.scientificName != null) variantItem.put("nameFormatted", StringUtils.isNotEmpty(variant.nameFormatted) ? variant.nameFormatted : variant.scientificName);
                 if (variant.nameAccordingTo != null) variantItem.put("nameAccordingTo", variant.nameAccordingTo);
                 if (variant.namePublishedIn != null) variantItem.put("namePublishedIn", variant.namePublishedIn);
                 if (variant.source != null) variantItem.put("source", variant.source);
@@ -483,7 +484,7 @@ public class DwCADenormaliseImportService {
             if (synonyms != null) {
                 for (DenormalTaxon synonym : synonyms) {
                     Map<String, String> syn = new HashMap<>();
-                    syn.put("scientificName", synonym.scientificName);
+                    syn.put("nameFormatted", StringUtils.isNotEmpty(synonym.nameFormatted) ? synonym.nameFormatted : synonym.scientificName);
                     if (synonym.nameAccordingTo != null) syn.put("nameAccordingTo", synonym.nameAccordingTo);
                     if (synonym.namePublishedIn != null) syn.put("namePublishedIn", synonym.namePublishedIn);
                     if (synonym.source != null) syn.put("source", synonym.source);
