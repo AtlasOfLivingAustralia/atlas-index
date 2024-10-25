@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconZoomReset } from "@tabler/icons-react";
+import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconMovie, IconVolume, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import { useDisclosure } from "@mantine/hooks";
 import capitalizeFirstLetter from "../../helpers/Capitalise";
@@ -441,47 +441,98 @@ function ImagesView({result}: MediaViewProps) {
                                         >
                                             <Image
                                                 radius="md"
+                                                // fit="cover"
+                                                mah="80vh"
+                                                h="100%"
+                                                fallbackSrc="https://placehold.co/600x400?text=Loading"
                                                 src={ getImageOriginalUrl(item.id) }
                                             />
                                         </Modal>
                                     </>}
                                 {item.type === 'sound' &&
-                                    <Flex maw={240} h={200} justify="center" align="center" direction="column">
-                                        <audio key={idx} controls preload="auto" style={{ maxWidth: '240px'}}>
-                                            <source
-                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
-                                                type="audio/mpeg"
-                                                width={240}
-                                            />
-                                        </audio>
-                                        <Anchor
-                                            display="block"
-                                            target="_blank"
-                                            mt="xs"
-                                            size="sm"
-                                            href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
-                                        >Sound file details</Anchor>
+                                    <Flex maw={240} h={210} justify="center" align="center" direction="column">
+                                        <Button 
+                                            variant="subtle" color="gray"
+                                            h="100%"
+                                            w={200}
+                                            radius={10}
+                                            className={classes.mediaIconBtn}
+                                            style={{ textWrap: 'wrap' }}
+                                            onClick={() => handleOpenModal(item.id)}
+                                        >
+                                            <IconVolume size={100} stroke={1.5} color="gray" />
+                                                Sound file
+                                        </Button>
+                                        <Modal
+                                            opened={opened && openModalId === item.id}
+                                            onClose={handleCloseModal}
+                                            size="auto"
+                                            title={ <Anchor
+                                                    display="block"
+                                                    target="_blank"
+                                                    ml={5}
+                                                    fw="bold"
+                                                    mt="xs"
+                                                    size="md"
+                                                    href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
+                                                >View sound file details <IconExternalLink size={20}/></Anchor>}
+                                        >
+                                            <audio key={idx} controls preload="auto" style={{ width: '50vw', margin: '50px'}}>
+                                                <source
+                                                    src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
+                                                    type="audio/mpeg"
+                                                    width="100%"
+                                                />
+                                            </audio>
+                                        </Modal>
                                     </Flex>
                                 }
                                 {item.type === 'video' &&
-                                    <Flex maw={240} h={200} justify="center" align="center" direction="column">
-                                        <video key={idx} controls preload="auto" style={{ maxWidth: '240px', maxHeight: '170px'}}>
+                                    <Flex maw={240} h={210} justify="center" align="center" direction="column">
+                                        <Button 
+                                            variant="subtle" color="gray"
+                                            h="100%"
+                                            w={200}
+                                            radius={10}
+                                            className={classes.mediaIconBtn}
+                                            style={{ textWrap: 'wrap' }}
+                                            onClick={() => handleOpenModal(item.id)}
+                                        >
+                                            <IconMovie size={100} stroke={1.5} color="gray" />
+                                                Video file
+                                        </Button>
+                                        <Modal
+                                            opened={opened && openModalId === item.id}
+                                            onClose={handleCloseModal}
+                                            size="auto"
+                                            title={ <Anchor
+                                                    display="block"
+                                                    target="_blank"
+                                                    ml={5}
+                                                    fw="bold"
+                                                    mt="xs"
+                                                    size="md"
+                                                    href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
+                                                >View video file details <IconExternalLink size={20}/></Anchor>}
+                                        >
+                                            <video key={idx} controls preload="false" style={{ maxWidth: '100%', maxHeight: '80vh'}}>
                                             <source
                                                 src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
-                                                height={200}
-                                                width={240}
+                                                // height={200}
+                                                // width={240}
                                                 // Magpie examples use "video/3gpp" but hard-coding this still does not show the video content, just sound.
                                                 // Update: Confirming the 2 Magpie examples do not contain video content, just sound.
                                                 // Platypus page does contain video content, which plays in place.
                                             />
                                         </video>
-                                        <Anchor
+                                        </Modal>
+                                        {/* <Anchor
                                             display="block"
                                             target="_blank"
                                             size="sm"
                                             mt="xs"
                                             href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
-                                        >Video file details</Anchor>
+                                        >Video file details</Anchor> */}
                                     </Flex>
                                 }
                             </Flex>

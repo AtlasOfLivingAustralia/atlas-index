@@ -59,9 +59,9 @@
     }
 }
 
-.citation {
+.citation, .mediaIconBtn {
     @mixin light {
-        background-color: var(--mantine-color-light-grey-1);
+        background-color: var(--mantine-color-charcoal-1);
     }
 
     @mixin dark {
