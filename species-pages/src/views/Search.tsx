@@ -1,6 +1,5 @@
-import UserContext from "../helpers/UserContext.ts";
-import {useContext, useEffect, useState} from "react";
-import {Breadcrumb, ListsUser} from "../api/sources/model.ts";
+import {useEffect, useState} from "react";
+import {Breadcrumb} from "../api/sources/model.ts";
 import { Box, Button, Center, Container, Flex, Space, Tabs, Text, TextInput} from "@mantine/core";
 import classes from "./search.module.css";
 import { CloseIcon, SearchIcon, AllIcon, SpeciesIcon, DatasetsIcon, SpeciesListsIcon, DataProjectsIcon, EnvironmentalLayersIcon, RegionsIcon, ALAGeneralContentIcon, HelpArticlesIcon} from '@atlasoflivingaustralia/ala-mantine';
@@ -28,12 +27,13 @@ function Search({setBreadcrumbs}: {
 
     const [tab, setTab] = useState('all');
 
-    const currentUser = useContext(UserContext) as ListsUser;
-
     useEffect(() => {
         setBreadcrumbs([
+            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+            {title: 'Species search', href: '/'},
+            {title: 'Search', href: '/search'}
         ]);
-    }, [currentUser]);
+    }, []);
 
     const handleTabChange = (value: string | null) => {
         const tabsTab = value || '';
