@@ -18,6 +18,7 @@ import BreadcrumbSection from './components/header/breadcrumbs';
 import Home from './views/Home';
 import buildInfo from './buildInfo.json';
 import Search from "./views/Search.tsx";
+import DashboardPage from "./views/Dashboard.tsx";
 
 // Pass the query string to the App, for later use by components that need it.
 function useQuery() {
@@ -184,6 +185,14 @@ const App: React.FC = () => {
                     path="/search"
                     element={
                         <Search
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                        />
+                    }
+                />
+                <Route
+                    path="/dashboard"
+                    element={
+                        <DashboardPage
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                         />
                     }
