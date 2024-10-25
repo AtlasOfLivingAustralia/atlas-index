@@ -84,20 +84,22 @@ export const datasetsDefn: GenericViewProps = {
         </div>
     },
 
-    addCustomFacetsFn: ({url, parentData, setCustomFacetData}: CustomFacetFn) => {
+    addCustomFacetsFn: ({url, thisFacetFqs, parentData, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + "&fq=occurrenceCount:0").then(response => response.json()).then(data => {
             var items = [
                 {
                     fq: "occurrenceCount:0",
                     label: "Metadata only",
                     count: data.totalRecords,
-                    depth: 0
+                    depth: 0,
+                    selected: thisFacetFqs.includes("occurrenceCount:0")
                 },
                 {
                     fq: "-occurrenceCount:0 AND occurrenceCount:*", // TODO: support range queries in /v2/search
                     label: "Yes",
                     count: parentData.totalRecords - data.totalRecords,
-                    depth: 0
+                    depth: 0,
+                    selected: thisFacetFqs.includes("-occurrenceCount:0 AND occurrenceCount:*")
                 },
 
             ]

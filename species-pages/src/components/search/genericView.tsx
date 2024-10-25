@@ -190,7 +190,7 @@ function GenericView({
                         }
 
                         if (props.addCustomFacetsFn) {
-                            props.addCustomFacetsFn({url, parentData: data, setCustomFacetData: applyCustomFacetData});
+                            props.addCustomFacetsFn({url, getFacets, thisFacetFqs, parentData: data, setCustomFacetData: applyCustomFacetData});
                         } else {
                             setCustomFacetLoading(false);
                         }

@@ -272,14 +272,16 @@ export const speciesDefn: GenericViewProps = {
         </div>
     },
 
-    addCustomFacetsFn: ({url, setCustomFacetData}: CustomFacetFn) => {
+    addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + "&fq=image:*").then(response => response.json()).then(data => {
             var items = [
                 {
                     fq: "image:*",
                     label: "Image available",
                     count: data.totalRecords,
-                    depth: 0
+                    depth: 0,
+                    selected: thisFacetFqs.includes("image:*")
+
                 }
             ]
             if (items.length > 0) {

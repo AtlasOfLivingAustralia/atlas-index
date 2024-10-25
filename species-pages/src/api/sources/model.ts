@@ -135,7 +135,7 @@ interface GenericViewProps {
         }
     }
     sortByDate?: boolean
-    addCustomFacetsFn?: ({url, parentData, setCustomFacetData}: CustomFacetFn) => void
+    addCustomFacetsFn?: ({url, getFacets, parentData, setCustomFacetData}: CustomFacetFn) => void
     renderListItemFn: ({item, navigate, wide}: RenderItemParams) => any
     renderTileItemFn: ({item, navigate, wide}: RenderItemParams) => any
 }
@@ -148,6 +148,8 @@ interface RenderItemParams {
 
 interface CustomFacetFn {
     url: string,
+    getFacets: boolean,
+    thisFacetFqs: string[],
     parentData: any,
     setCustomFacetData: any
 }
