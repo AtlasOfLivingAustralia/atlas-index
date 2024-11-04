@@ -36,6 +36,15 @@ interface UserFq {
     [key: string]: string[];
 }
 
+enum MediaTypeEnum {
+    all = 'all',
+    image = 'image',
+    video = 'video',
+    sound = 'sound'
+}
+
+type MediaTypeValues = keyof typeof MediaTypeEnum;
+
 // "Grouped" filters require a mapping for the values to be grouped together
 const fieldMapping = {
     basisOfRecord: {
@@ -68,6 +77,7 @@ const fieldMapping = {
         // 'Not supplied': 'Not supplied',
     }
 };
+const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
 
 // Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
 const fieldLink: Record<string, string[]> = {
@@ -77,10 +87,9 @@ const fieldLink: Record<string, string[]> = {
 function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    //const [facetResultsFiltered, setFacetResultsFiltered] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
-    const [mediaType, setMediaType] = useState<string>('all'); // image, video, sound
+    const [mediaType, setMediaType] = useState<MediaTypeValues>('all'); // all, image, video, sound
     const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -102,12 +111,13 @@ function ImagesView({result}: MediaViewProps) {
         }));
     };
 
-    const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
     const pageSize = 10;
     const facetLimit = 15;
     const maxVisibleFacets = 4;
+    const gridHeight = 210;
+    const gridWidthTypical = 240;
     const biocacheBaseUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
-    const mediaFqMap: Record<PropertyKey, string> = {
+    const mediaFqMap: Record<MediaTypeValues, string> = {
         all: "&fq=multimedia:*",
         image: "&fq=multimedia:Image",
         sound: "&fq=multimedia:Sound",
@@ -155,23 +165,23 @@ function ImagesView({result}: MediaViewProps) {
                     // multiple media files per record result in an indeterminate number of media files
                     // (i.e., ask for 10 get more than 10). So we take only the first file per record.
                     // TODO: Delete the `for` loops if we're sticking with Biocache API (vs using image-service API)
-                    if (item.images && (mediaType === 'all' || mediaType === 'image')) {
+                    if (item.images && (mediaType === MediaTypeEnum.all || mediaType === MediaTypeEnum.image)) {
                         // for (let id of item.images) {
                         //     list.push({id: id, type: 'image'});
                         // }
-                        list.push({id: item.images[0], type: 'image'});
+                        list.push({id: item.images[0], type: MediaTypeEnum.image});
                     }
-                    if (item.videos && (mediaType === 'all' || mediaType === 'video')) {
+                    if (item.videos && (mediaType === MediaTypeEnum.all || mediaType === MediaTypeEnum.video)) {
                         // for (let id of item.videos) {
                         //     list.push({id: id, type: 'video'});
                         // }
-                        list.push({id: item.videos[0], type: 'video'});
+                        list.push({id: item.videos[0], type: MediaTypeEnum.video});
                     }
-                    if (item.sounds && (mediaType === 'all' || mediaType === 'sound')) {
+                    if (item.sounds && (mediaType === MediaTypeEnum.all || mediaType === MediaTypeEnum.sound)) {
                         // for (let id of item.sound) {
                         //     list.push({id: id, type: 'sound'});
                         // }
-                        list.push({id: item.sounds[0], type: 'sound'});
+                        list.push({id: item.sounds[0], type: MediaTypeEnum.sound});
                     }
                 })
 
@@ -378,16 +388,99 @@ function ImagesView({result}: MediaViewProps) {
         );
     };
 
+    // Thumbnail image component, with its own useState so we can show a skeleton while image is loading
+    const ImageThumbnailModal = ({imageId, type}:{imageId: string, type: MediaTypeValues}) => {
+        const [loading, setLoading] = useState(true);
+
+        return (
+            <Flex maw={gridWidthTypical} h={gridHeight} justify="center" align="center" direction="column">
+                {type === MediaTypeEnum.image &&
+                    <UnstyledButton onClick={() => handleOpenModal(imageId)}>
+                        <Image
+                            radius="md"
+                            h={loading ? 0 : gridHeight}
+                            maw={loading ? 0 : gridWidthTypical}
+                            src={getImageThumbnailUrl(imageId)}
+                            onLoad={(event) => {
+                                const target = event.target as HTMLImageElement;
+                                
+                                if (target && target.complete) {
+                                    setLoading(false);
+                                } 
+                            }}
+                            onError={(e) => handleImageError(0, e)}
+                        />
+                        {loading && <Skeleton height={gridHeight} width={gridHeight} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
+                    </UnstyledButton>
+                }
+                {(type === MediaTypeEnum.sound || type === MediaTypeEnum.video) &&
+                    <Button 
+                        variant="subtle" color="gray"
+                        h="100%"
+                        w={200}
+                        radius={10}
+                        className={classes.mediaIconBtn}
+                        style={{ textWrap: 'wrap' }}
+                        fz='md'
+                        onClick={() => handleOpenModal(imageId)}
+                    >
+                        { type === MediaTypeEnum.sound && <><IconVolume size={80} stroke={1.5} color="gray" />Sound file</> }
+                        { type === MediaTypeEnum.video && <><IconMovie size={80} stroke={1.5} color="gray" />Video file</> }
+                    </Button>
+                }    
+                <Modal
+                    opened={opened && openModalId === imageId}
+                    onClose={handleCloseModal}
+                    size="auto"
+                    title={ <Anchor
+                            display="block"
+                            target="_blank"
+                            ml={5}
+                            fw="bold"
+                            mt="xs"
+                            size="md"
+                            href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${imageId}`}
+                        >View {type} file details <IconExternalLink size={20}/></Anchor>}
+                >
+                    { type === MediaTypeEnum.image && 
+                        <Image
+                            radius="md"
+                            mah="80vh"
+                            h="100%"
+                            src={ getImageOriginalUrl(imageId) }
+                        />
+                    }
+                    { type === MediaTypeEnum.sound &&
+                        <audio controls preload="auto" style={{ width: '50vw', margin: '50px'}}>
+                            <source
+                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${imageId}`}
+                                type="audio/mpeg"
+                                width="100%"
+                            />
+                        </audio>
+                    }
+                    { type === MediaTypeEnum.video &&
+                        <video controls preload="false" style={{ maxWidth: '100%', maxHeight: '80vh'}}>
+                            <source
+                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${imageId}`}
+                            />
+                        </video>
+                    }
+                </Modal>
+            </Flex>
+        );
+    }
+
     return (
         <Box>
-            <Flex gap="md" mt="md" direction={{ base: 'column', sm: 'row' }}>
+            <Flex gap="md" direction={{ base: 'column', sm: 'row' }}>
             { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
                 <Button
                     key={idx}
                     variant={key === mediaType ? 'filled' : 'outline'}
                     onClick={() => {
                         resetView();
-                        setMediaType(key);
+                        setMediaType(key as MediaTypeValues);
                     }}
                 >{capitalizeFirstLetter(key)}{key !== 'all' && 's'}</Button>
             )}
@@ -414,132 +507,12 @@ function ImagesView({result}: MediaViewProps) {
                                 key={idx}
                                 justify="center"
                             >
-                                {item.type === 'image' &&
-                                    <>
-                                        <UnstyledButton onClick={() => handleOpenModal(item.id)}>
-                                            <Image
-                                                radius="md"
-                                                h={210}
-                                                maw={260}
-                                                src={ getImageThumbnailUrl(item.id) }
-                                                onError={(e) => handleImageError(idx, e)}
-                                            />
-                                        </UnstyledButton>
-                                        <Modal
-                                            opened={opened && openModalId === item.id}
-                                            onClose={handleCloseModal}
-                                            size="auto"
-                                            title={ <Anchor
-                                                    display="block"
-                                                    target="_blank"
-                                                    ml={5}
-                                                    fw="bold"
-                                                    mt="xs"
-                                                    size="md"
-                                                    href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
-                                                >View image file details <IconExternalLink size={20}/></Anchor>}
-                                        >
-                                            <Image
-                                                radius="md"
-                                                // fit="cover"
-                                                mah="80vh"
-                                                h="100%"
-                                                fallbackSrc="https://placehold.co/600x400?text=Loading"
-                                                src={ getImageOriginalUrl(item.id) }
-                                            />
-                                        </Modal>
-                                    </>}
-                                {item.type === 'sound' &&
-                                    <Flex maw={240} h={210} justify="center" align="center" direction="column">
-                                        <Button 
-                                            variant="subtle" color="gray"
-                                            h="100%"
-                                            w={200}
-                                            radius={10}
-                                            className={classes.mediaIconBtn}
-                                            style={{ textWrap: 'wrap' }}
-                                            onClick={() => handleOpenModal(item.id)}
-                                        >
-                                            <IconVolume size={100} stroke={1.5} color="gray" />
-                                                Sound file
-                                        </Button>
-                                        <Modal
-                                            opened={opened && openModalId === item.id}
-                                            onClose={handleCloseModal}
-                                            size="auto"
-                                            title={ <Anchor
-                                                    display="block"
-                                                    target="_blank"
-                                                    ml={5}
-                                                    fw="bold"
-                                                    mt="xs"
-                                                    size="md"
-                                                    href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
-                                                >View sound file details <IconExternalLink size={20}/></Anchor>}
-                                        >
-                                            <audio key={idx} controls preload="auto" style={{ width: '50vw', margin: '50px'}}>
-                                                <source
-                                                    src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
-                                                    type="audio/mpeg"
-                                                    width="100%"
-                                                />
-                                            </audio>
-                                        </Modal>
-                                    </Flex>
-                                }
-                                {item.type === 'video' &&
-                                    <Flex maw={240} h={210} justify="center" align="center" direction="column">
-                                        <Button 
-                                            variant="subtle" color="gray"
-                                            h="100%"
-                                            w={200}
-                                            radius={10}
-                                            className={classes.mediaIconBtn}
-                                            style={{ textWrap: 'wrap' }}
-                                            onClick={() => handleOpenModal(item.id)}
-                                        >
-                                            <IconMovie size={100} stroke={1.5} color="gray" />
-                                                Video file
-                                        </Button>
-                                        <Modal
-                                            opened={opened && openModalId === item.id}
-                                            onClose={handleCloseModal}
-                                            size="auto"
-                                            title={ <Anchor
-                                                    display="block"
-                                                    target="_blank"
-                                                    ml={5}
-                                                    fw="bold"
-                                                    mt="xs"
-                                                    size="md"
-                                                    href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
-                                                >View video file details <IconExternalLink size={20}/></Anchor>}
-                                        >
-                                            <video key={idx} controls preload="false" style={{ maxWidth: '100%', maxHeight: '80vh'}}>
-                                            <source
-                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${item.id}`}
-                                                // height={200}
-                                                // width={240}
-                                                // Magpie examples use "video/3gpp" but hard-coding this still does not show the video content, just sound.
-                                                // Update: Confirming the 2 Magpie examples do not contain video content, just sound.
-                                                // Platypus page does contain video content, which plays in place.
-                                            />
-                                        </video>
-                                        </Modal>
-                                        {/* <Anchor
-                                            display="block"
-                                            target="_blank"
-                                            size="sm"
-                                            mt="xs"
-                                            href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${item.id}`}
-                                        >Video file details</Anchor> */}
-                                    </Flex>
-                                }
+                                <ImageThumbnailModal imageId={item.id} type={item.type as MediaTypeValues} />
                             </Flex>
                         )}
                         { loading &&
                             [...Array(10)].map((_ , idx) =>
-                                <Box key={idx} w={260} h={210}>
+                                <Box key={idx} w={gridWidthTypical} h={gridHeight}>
                                     <Skeleton height="100%" width="100%" radius="md" />
                                 </Box>
                             )
