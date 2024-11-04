@@ -3,6 +3,7 @@ import {Flex, Image, Space, Text} from "@mantine/core";
 import classes from "../search.module.css";
 import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
 import {limitDescription, openUrl} from "../util.tsx";
+import missingImage from '../../../image/missing-image.png';
 
 export const datasetsDefn: GenericViewProps = {
     // TODO: awaiting clarification if the fq should instead be: idxtype:DATARESOURCE OR idxtype:DATAPROVIDER OR idxtype:COLLECTION OR idxtype:INSTITUTION
@@ -37,7 +38,7 @@ export const datasetsDefn: GenericViewProps = {
                     mah={62}
                     maw={62}
                     src={item.image}
-                    onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
+                    onError={(e) => e.currentTarget.src = missingImage}
                 />
                 }
                 {!item.image &&
@@ -45,7 +46,7 @@ export const datasetsDefn: GenericViewProps = {
                         radius="5px"
                         mah={62}
                         maw={62}
-                        src="../../../public/missing-image.png"
+                        src={missingImage}
                     />
                 }
             </div>
@@ -65,11 +66,11 @@ export const datasetsDefn: GenericViewProps = {
         return <div className={classes.tile} onClick={() => openUrl(item.guid)}>
             {item.image && <Image height={150} width="auto"
                                   src={item.image}
-                                  onError={(e) => e.currentTarget.src = "../../../public/missing-image.png"}
+                                  onError={(e) => e.currentTarget.src = missingImage}
             />
             }
             {!item.image && <Image height={150} width="auto"
-                                   src="../../../public/missing-image.png"
+                                   src={missingImage}
             />
             }
 
@@ -83,20 +84,22 @@ export const datasetsDefn: GenericViewProps = {
         </div>
     },
 
-    addCustomFacetsFn: ({url, parentData, setCustomFacetData}: CustomFacetFn) => {
+    addCustomFacetsFn: ({url, thisFacetFqs, parentData, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + "&fq=occurrenceCount:0").then(response => response.json()).then(data => {
             var items = [
                 {
                     fq: "occurrenceCount:0",
                     label: "Metadata only",
                     count: data.totalRecords,
-                    depth: 0
+                    depth: 0,
+                    selected: thisFacetFqs.includes("occurrenceCount:0")
                 },
                 {
                     fq: "-occurrenceCount:0 AND occurrenceCount:*", // TODO: support range queries in /v2/search
                     label: "Yes",
                     count: parentData.totalRecords - data.totalRecords,
-                    depth: 0
+                    depth: 0,
+                    selected: thisFacetFqs.includes("-occurrenceCount:0 AND occurrenceCount:*")
                 },
 
             ]

@@ -2,6 +2,7 @@ import { ConservationStatus, ConservationStatusKey } from "@atlasoflivingaustral
 import { Anchor, Box, Divider, Flex, Grid, Table, Text, Title, Space } from "@mantine/core";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import {useEffect, useState} from "react";
+import {openUrl} from "../search/util.tsx";
 
 interface MapViewProps {
     result?:  Record<PropertyKey, string | number | any >
@@ -78,7 +79,8 @@ function StatusView({ result }: MapViewProps) {
                         This indicates if a species is regarded as introduced to Australia, a state, or territory.
                         This can also include Australian native species which have been introduced in areas beyond
                         their natural range, e.g a species native to NSW introduced to WA.&nbsp;
-                        <Anchor inherit onClick={(e) => { e.preventDefault(); alert('Requires a URL to be provided'); }}
+                        <Anchor inherit onClick={(e) => { e.preventDefault();
+                            openUrl(import.meta.env.VITE_ALA_NATIVE_INTRODUCED_INFO_URL); }}
                             target="_source">Find out more</Anchor>
                     </Text>
                     <Space h="px30" />
@@ -145,7 +147,7 @@ function StatusView({ result }: MapViewProps) {
                     As each state and territory have different classifications under their threatened species
                     legislation, the Atlas of Living Australia have interpreted state and territory status
                     classes to align to the equivalent International Union for Conservation of Nature (IUCN) Classes. <Anchor inherit
-                        onClick={(e) => { e.preventDefault(); alert('Requires a URL to be provided'); }}
+                        onClick={(e) => { e.preventDefault(); openUrl(import.meta.env.VITE_SDS_INFO_URL)}}
                         target="_source">Find out more</Anchor>
                 </Text>
 

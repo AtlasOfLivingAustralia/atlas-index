@@ -132,6 +132,24 @@ function Home({setBreadcrumbs}: {
                         </List.Item>
                     </List>
                 </Box>
+                <Divider mt="xl" mb="xl"/>
+                <Box>
+                    <Title order={3}>Dashboard</Title>
+                    <Space h="md" />
+                    <Anchor
+                        component={Link}
+                        to="/dashboard"
+                    >Dashboard Page</Anchor>
+                </Box>
+                <Divider mt="xl" mb="xl"/>
+                <Box>
+                    <Title order={3}>Regions</Title>
+                    <Space h="md" />
+                    <Anchor
+                        component={Link}
+                        to="/regions"
+                    >Regions Page</Anchor>
+                </Box>
             </Container>
         </>
     );

@@ -23,8 +23,9 @@ const descriptionLabels: string[] = descriptionLabelsConfig as string[];
 
 import classes from '../components/species/species.module.css';
 import { useDocumentTitle } from "@mantine/hooks";
-import FormatName from "../components/nameUtils/formatName.tsx";
 import DOMPurify from "dompurify";
+
+import '../css/nameFormatting.css';
 
 function Species({setBreadcrumbs, queryString}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
@@ -47,7 +48,7 @@ function Species({setBreadcrumbs, queryString}: {
     const breadcrumbValues: Breadcrumb[] = [
         {title: 'Home', href: import.meta.env.VITE_HOME_URL},
         {title: 'Search species', href: '/'},
-        {title: <FormatName name={result.name} rankId={result.rankID}/>, href: ''},
+        {title: <div dangerouslySetInnerHTML={{__html: result.nameFormatted}}/>, href: ''},
     ];
 
     useEffect(() => {
@@ -235,7 +236,7 @@ function Species({setBreadcrumbs, queryString}: {
                             { result.image && result.image.split(',').map((id: string, idx: number) =>
                                 idx == 0 &&
                                 <Box mr="sm" mb="sm" key={idx}>
-                                    <Image rc={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"/>
+                                    <Image src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"/>
                                 </Box>
                             )}
                         </Grid.Col>

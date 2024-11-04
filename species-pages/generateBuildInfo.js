@@ -32,8 +32,8 @@ function convertSpeciesGroups() {
     })
 
     // write speciesGroupsMap to ./public/speciesGroupsMap.json
-    writeFileSync('./public/speciesGroupsMap.json', JSON.stringify(speciesGroupsMap, null, 2));
-    console.log('speciesGroupMap.json done');
+    writeFileSync('./src/config/speciesGroupsMap.json', JSON.stringify(speciesGroupsMap, null, 2));
+    console.log('./src/config/speciesGroupsMap.json done');
 }
 
 function getChildren(parent) {

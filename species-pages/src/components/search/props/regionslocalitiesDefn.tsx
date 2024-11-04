@@ -11,7 +11,7 @@ function formatCategory(category: string) {
     }
 }
 
-function openRegionLocality(item: any) {
+function openRegionLocality(item: any, navigate: any) {
     // idxtype:LOCALITY opens expore your area
     // idxtype:REGION opens spatial portal, because regions does not have a landing page for a pid
 
@@ -22,7 +22,8 @@ function openRegionLocality(item: any) {
         openUrl(import.meta.env.VITE_BIOCACHE_UI_URL + "/explore/your-area#" + lat + "|" + lng + "|12|ALL_SPECIES");
         return;
     } else {
-        openUrl(item.guid);
+        // id is of the form "fid-pid", get the pid
+        navigate(`/region?id=${item.id.split('-')[1]}`);
         return;
     }
 }
@@ -68,8 +69,8 @@ export const regionslocalitiesDefn: GenericViewProps = {
         }
     },
 
-    renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openRegionLocality(item)}
+    renderListItemFn: ({item, wide, navigate}: RenderItemParams) => {
+        return <Flex gap="30px" onClick={() => openRegionLocality(item, navigate)}
                      style={{cursor: "pointer"}}>
             <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
                 <Text className={classes.listItemName}>{item.name}</Text>
@@ -83,8 +84,8 @@ export const regionslocalitiesDefn: GenericViewProps = {
         </Flex>
     },
 
-    renderTileItemFn: ({item}: RenderItemParams) => {
-        return <div className={classes.tileNoImage} onClick={() => openRegionLocality(item)}>
+    renderTileItemFn: ({item, navigate}: RenderItemParams) => {
+        return <div className={classes.tileNoImage} onClick={() => openRegionLocality(item, navigate)}>
             <div className={classes.tileContent}>
                 <Text className={classes.listItemName}>{item.name}</Text>
                 <Space h="8px"/>

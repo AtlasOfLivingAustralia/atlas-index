@@ -2,7 +2,6 @@ import {useEffect, useState} from "react";
 import {
     Box,
     Button,
-    Checkbox,
     Divider,
     Flex,
     Grid,
@@ -21,6 +20,9 @@ import {
 import capitalise from "../../helpers/Capitalise.ts";
 import {GenericViewProps} from "../../api/sources/model.ts";
 import {useNavigate} from "react-router-dom";
+import CheckIcon from "../common/checkIcon.tsx";
+import CheckDisabledIcon from "../common/checkDisabledIcon.tsx";
+import CheckedIcon from "../common/checkedIcon.tsx";
 
 interface GenericProps {
     queryString: string,
@@ -188,7 +190,7 @@ function GenericView({
                         }
 
                         if (props.addCustomFacetsFn) {
-                            props.addCustomFacetsFn({url, parentData: data, setCustomFacetData: applyCustomFacetData});
+                            props.addCustomFacetsFn({url, getFacets, thisFacetFqs, parentData: data, setCustomFacetData: applyCustomFacetData});
                         } else {
                             setCustomFacetLoading(false);
                         }
@@ -263,15 +265,12 @@ function GenericView({
                         {facet.items && facet.items.map((item: any, index: number) =>
                             <>
                                 {index > 0 && <Space h="6px"/>}
-                                <Flex gap="6px" style={{cursor: "pointer"}}
+                                <Flex gap="6px" style={{cursor: (!item.selected && item.count == 0 ? "auto" : "pointer")}}
                                       ml={22 * item.depth}
                                 >
-                                    <Checkbox onChange={() => {
-                                        toggleItem(item)
-                                    }}
-                                              disabled={item.count == 0}
-                                              checked={item.selected}
-                                    />
+                                    {!item.selected && item.count > 0 && <CheckIcon size="16" onClick={() => { toggleItem(item)}}/>}
+                                    {!item.selected && item.count == 0 && <CheckDisabledIcon size="16"/>}
+                                    {item.selected && <CheckedIcon size="16" onClick={() => { toggleItem(item)}}/>}
                                     <Text fz={14}>{item.label} ({item.count})</Text>
                                 </Flex>
                             </>

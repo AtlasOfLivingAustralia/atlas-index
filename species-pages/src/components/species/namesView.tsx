@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Anchor, Box, Divider, Flex, Table, Text, Title, Space } from "@mantine/core";
-import classes from "./species.module.css";
 import { IconInfoCircleFilled } from "@tabler/icons-react";
-// import './species.module.css';
+
+import '../../css/nameFormatting.css';
 
 interface MapViewProps {
     result?:  Record<PropertyKey, string | number | any >
@@ -34,19 +34,7 @@ function NamesView({ result }: MapViewProps) {
                 <Table.Tbody>
                 <Table.Tr>
                     <Table.Td>
-                        <Text
-                            dangerouslySetInnerHTML={{
-                                // this is from our names index and is already sanitized
-                                __html:
-                                    // TODO: find a better way to apply CSS rules
-                                    result?.nameFormatted
-                                        .replace(/class="scientific-name rank-subspecies"/g, `class="${classes.rankSpecies}"`)
-                                        .replace(/class="scientific-name rank-species"/g, `class="${classes.rankSpecies}"`)
-                                        .replace(/class="scientific-name rank-genus"/g, `class="${classes.rankSpecies}"`)
-                                        .replace(/class="name"/g, `class="${classes.name}"`)
-
-                            }}
-                        ></Text>
+                        <Text dangerouslySetInnerHTML={{__html: result?.nameFormatted}}></Text>
                         {result?.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {result?.nameAccordingTo}</Text></>}
                         {result?.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {result?.namePublishedIn}</Text></>}
                     </Table.Td>
@@ -70,10 +58,10 @@ function NamesView({ result }: MapViewProps) {
                                 <Table.Td>
                                     {item?.source ?
                                         <Anchor inherit href={item?.source}
-                                            dangerouslySetInnerHTML={item.namedFormat}></Anchor>
+                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
                                         :
                                         <Text inherit
-                                              dangerouslySetInnerHTML={item.namedFormat}></Text>
+                                              dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
                                     }
                                     {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
                                     {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
@@ -107,10 +95,10 @@ function NamesView({ result }: MapViewProps) {
                                 <Table.Td>
                                     {item?.source ?
                                         <Anchor inherit href={item?.source}
-                                                dangerouslySetInnerHTML={item.namedFormat}></Anchor>
+                                                dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
                                         :
                                         <Text inherit
-                                              dangerouslySetInnerHTML={item.namedFormat}></Text>
+                                              dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
                                     }
                                     {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
                                     {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
