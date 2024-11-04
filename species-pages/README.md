@@ -84,13 +84,19 @@ VITE_SDS_INFO_URL=https://support.ala.org.au/support/solutions/articles/60002617
 VITE_BIOCACHE_UI_URL=https://biocache.ala.org.au
 
 VITE_ALA_NATIVE_INTRODUCED_INFO_URL=https://lists.ala.org.au/speciesListItem/list/dr26948
+
+VITE_APP_ALERTS_URL=https://alerts.ala.org.au
+VITE_APP_ALERT_RESOURCE_NAME=Atlas of Living Australia
+VITE_REGIONS_CONFIG_URL=https://ala-index.dev.ala.org.au/static/regions
 ```
 
 ## Other configuration
-### ./config/firstDescriptionLabels.json
+
+### ./src/config/firstDescriptionLabels.json
 This file is used to determine what appears in the header, beneath the common names. It is the list of description tab 
 content labels that contain suitably curated content for the first description tab. 
-### ./config/onlineResource.{test | prod}.json
+
+### ./src/config/onlineResource.{test | prod}.json
 This file is used to determine the online resource links that appear at the end of the online resources tab. It is a 
 list of objects with the following properties:
 - `name`: the text that appears on the button
@@ -108,3 +114,30 @@ Rules are applied such that
 3. A rule returns TRUE if any of the item values exist in the list of rule values.
 - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Mammals", "Reptiles"], the rule returns TRUE
 - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Reptiles", "Amphibians"], the rule returns FALSE
+
+### ./public/regions.json
+This file is used to determine the regions that appear on the `/regions` page. It is a list of objects with either:
+- `label`: label of the contextual layer
+- `fid`: layer's field id
+or
+- `label`: the name of the aggregation of regions
+- `fields`: list of objects with the following properties:
+  - `label`: label of the contextual layer
+  - `fid`: layer's field id
+  
+Update `buildRegionsConfig.js` so that it is using the correct spatial URL, as this is needed to fetch the required
+information for the `regionsList.json` file. Build this file using `node buildRegions.js`. Put the `regionsList.json` 
+file in the location such that it is found in the location defined by the VITE_REGIONS_CONFIG_URL environment variable. 
+It must be accessible by `{VITE_REGIONS_CONFIG_URL}/regionsList.json`.
+
+### ./public/speciesGroups.json
+This file is consistent with the namematching service file. It must align with search-service. It will produce the 
+file `./src/config/speciesGroupsMap.json`. The names-extract tool has information on testing this file.
+
+### ./src/config/speciesGroupsMap.json
+This file is constructed by the `generateBuildInfo.js` script and using `./public/speciesGroups.json`. This is done 
+during the dev and build scripts. It is used by the UI to be able to display the species group hierarchy.
+
+### ./src/config/speciesGroupsMapLegacyRegions.json
+This file is used to determine the species groups that appear on the `/regions` page. It is temporarily required
+because regions needs to have the same speciesGroupMap as biocache, and the search-service currently uses the future groups.
