@@ -23,7 +23,7 @@ function Legend({ fillOpacity, hexBinValues }: { fillOpacity: number, hexBinValu
                 colours[maxCount] = `#${hex.substring(0, 6)}` // remove alpha channel
             }
         })
-        console.log('extractValues', maxCount, hexBinValues, colours);
+        
         return colours
     }, [hexBinValues]);
 
