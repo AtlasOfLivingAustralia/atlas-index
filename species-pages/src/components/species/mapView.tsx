@@ -303,7 +303,7 @@ function MapView({tab, result}: MapViewProps) {
                 <Divider mt="lg" mb="lg" />
                 <Checkbox checked={showOccurrences.length > 0} size="xs"
                     onChange={() => {setShowOccurrences(showOccurrences.length > 0 ? '' : result?.guid)}}
-                    label="Species records" />
+                    label="Occurrence records" />
                 <Divider mt="lg" mb="lg" />
                 <Text fw="bold" mb="sm">Expert distribution maps</Text>
                 { distributions && distributions.map((dist, idx) =>

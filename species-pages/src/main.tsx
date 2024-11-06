@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import {HashRouter as Router} from 'react-router-dom';
+import { NuqsAdapter } from 'nuqs/adapters/react-router';
 import messages_en from "./translations/en.json";
 import {IntlProvider} from "react-intl";
 import {AuthProvider} from "react-oidc-context";
@@ -47,16 +48,18 @@ Object.assign(theme, {
 root.render(
     // TODO: react-leaflet does not handle strict mode
     <React.StrictMode>
-        <Router>
-            <AuthProvider {...oidcConfig}>
-                <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
-                }}>
-                    {/*<Notifications position="top-center" />*/}
-                    <MantineProvider theme={theme}>
-                        <App/>
-                    </MantineProvider>
-                </IntlProvider>
-            </AuthProvider>
-        </Router>
+        <NuqsAdapter>
+            <Router>
+                <AuthProvider {...oidcConfig}>
+                    <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
+                    }}>
+                        {/*<Notifications position="top-center" />*/}
+                        <MantineProvider theme={theme}>
+                            <App/>
+                        </MantineProvider>
+                    </IntlProvider>
+                </AuthProvider>
+            </Router>
+        </NuqsAdapter>
     </React.StrictMode>
 );

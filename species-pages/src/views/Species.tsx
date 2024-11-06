@@ -1,6 +1,12 @@
 import {useEffect, useState} from "react";
+import { Alert, Anchor, Box, Code, Container, Divider, Flex, Grid, Image, List, Space, Tabs, Text, Title } from "@mantine/core";
+import { useDocumentTitle } from "@mantine/hooks";
+import { IconCircleFilled, IconFlagFilled } from "@tabler/icons-react";
+import { useParams } from "react-router-dom";
+import { useQueryState } from "nuqs";
+import DOMPurify from "dompurify";
+
 import {Breadcrumb} from "../api/sources/model.ts";
-// import {Tab, Tabs} from "react-bootstrap";
 import MapView from "../components/species/mapView.tsx";
 import ClassificationView from "../components/species/classificationView.tsx";
 import DescriptionView from "../components/species/descriptionView.tsx";
@@ -10,34 +16,28 @@ import StatusView from "../components/species/statusView.tsx";
 import TraitsView from "../components/species/traitsView.tsx";
 import DatasetsView from "../components/species/datasetsView.tsx";
 import ResourcesView from "../components/species/resourcesView.tsx";
-import { Alert, Anchor, Box, Code, Container, Divider, Flex, Grid, Image, List, Space, Tabs, Text, Title } from "@mantine/core";
-import { IconCircleFilled, IconFlagFilled } from "@tabler/icons-react";
 import BreadcrumbSection from "../components/header/breadcrumbs.tsx";
 import capitalizeFirstLetter from "../helpers/Capitalise.ts";
 // import Breadcrumbs from "../components/breadcrumbs/breadcrumbs.tsx";
 // @ts-ignore
 import {TaxonDescription} from "../../api/sources/model.ts";
-
 import descriptionLabelsConfig from "../config/firstDescriptionLabels.json";
-const descriptionLabels: string[] = descriptionLabelsConfig as string[];
-
 import classes from '../components/species/species.module.css';
-import { useDocumentTitle } from "@mantine/hooks";
-import DOMPurify from "dompurify";
-
 import '../css/nameFormatting.css';
 
-function Species({setBreadcrumbs, queryString}: {
-    setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
-    queryString?: string
+const descriptionLabels: string[] = descriptionLabelsConfig as string[];
+
+function Species({setBreadcrumbs}: {
+    setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
-    const [tab, setTab] = useState('map');
+    const [tab, setTab] = useQueryState('tab', { defaultValue: 'map' }); 
     const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
     const [descriptions, setDescriptions] = useState<TaxonDescription[]>([]);
     const [firstDescription, setFirstDescription] = useState<string>('');
-
     const [dataFetched, setDataFetched] = useState(false);
     const [invasiveStatus, setInvasiveStatus] = useState(false);
+    let params = useParams();
+    const queryPath = params["*"] || '';
 
     useDocumentTitle(`${result?.name}: ${result?.commonName?.join(', ')}`);
 
@@ -52,7 +52,7 @@ function Species({setBreadcrumbs, queryString}: {
     ];
 
     useEffect(() => {
-        let request = [queryString?.split("=")[1]]
+        const request = queryPath ? [queryPath] : []; // needs to be an array for POST API
         setDataFetched(false);
         setResult({});
         fetch(import.meta.env.VITE_APP_BIE_URL + "/v2/species", {
@@ -80,6 +80,7 @@ function Species({setBreadcrumbs, queryString}: {
                 data[0].sdsStatus = sdsStatusValue;
 
                 var invasiveStatusValue = false;
+
                 if (data[0]?.native_introduced_s) {
                     var nativeIntroduced = JSON.parse(data[0].native_introduced_s);
                     Object.keys(nativeIntroduced).map(key => {
@@ -88,22 +89,20 @@ function Species({setBreadcrumbs, queryString}: {
                         }
                     });
                 }
+
                 setInvasiveStatus(invasiveStatusValue);
-
                 setResult(data[0])
-
                 fetchDescriptions(data[0]?.guid)
             }
         })
         .catch(error => {
             console.warn(error);
-            // setResult({});
         })
         .finally(() => {
             setDataFetched(true);
         });
 
-    }, [queryString]);
+    }, [queryPath]);
 
     const handleTabChange = (value: string | null) => {
         const tabsTab = value || '';
@@ -115,6 +114,7 @@ function Species({setBreadcrumbs, queryString}: {
         return (typeof rankId === 'number' && rankId <= 8000 && rankId >= 6000) ? 'italic' : 'normal';
     }
 
+    // If no data is found for taxon ID, show an error message
     if (dataFetched && Object.keys(result).length === 0) {
         return (
             <>
@@ -127,14 +127,13 @@ function Species({setBreadcrumbs, queryString}: {
                     </Container>
                 </Box>
                 <Container size="lg" mt="xl">
-                    <Text fz="lg" mt="xl">No taxa found for <Code fz="lg">{queryString}</Code></Text>
+                    <Text fz="lg" mt="xl">No taxon found for <Code fz="lg">{queryPath}</Code></Text>
                 </Container>
             </>
         );
     }
 
     function fetchDescriptions(lsid: string) {
-
         // doubly encoded; once for the file name, once for service (e.g. Cloudfront or http-server) that translate the URL encoding to the file name
         var lsidEncoded = encodeURIComponent(encodeURIComponent(lsid))
 
@@ -230,7 +229,6 @@ function Species({setBreadcrumbs, queryString}: {
                                     some part of Australia and may be of biosecurity concern.
                                 </Alert>
                             }
-
                         </Grid.Col>
                         <Grid.Col span={{ base: 12, md: 6, lg: 4 }}>
                             { result.image && result.image.split(',').map((id: string, idx: number) =>

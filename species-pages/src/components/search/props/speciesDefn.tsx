@@ -212,7 +212,7 @@ export const speciesDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({item, navigate, wide}: RenderItemParams) => {
-        return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species?id=${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
+        return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
             <div style={{minWidth: "62px", minHeight: "62px"}}>
                 {item.image &&
                     <Image
@@ -234,7 +234,7 @@ export const speciesDefn: GenericViewProps = {
             </div>
             <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
                 {item.nameFormatted && <Text className={classes.listItemName}
-                      dangerouslySetInnerHTML={{__html: item.nameFormatted}}
+                    dangerouslySetInnerHTML={{__html: item.nameFormatted}}
                 ></Text>}
                 {!item.nameFormatted && <Text>{item.name}</Text>}
                 <Text>{item.commonNameSingle}</Text>
@@ -251,9 +251,9 @@ export const speciesDefn: GenericViewProps = {
     },
 
     renderTileItemFn: ({item, navigate}: RenderItemParams) => {
-        return <div className={classes.tile} onClick={() => navigate(`/species?id=${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
+        return <div className={classes.tile} onClick={() => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
             <Image src={getImageThumbnailUrl(item.image)} height={150} width="auto"
-                   onError={(e) => e.currentTarget.src = missingImage}
+                onError={(e) => e.currentTarget.src = missingImage}
             />
 
             <div className={classes.tileContent}>

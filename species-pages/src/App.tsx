@@ -175,11 +175,10 @@ const App: React.FC = () => {
                     }
                 />
                 <Route
-                    path="/species"
+                    path="/species/*"
                     element={
                         <Species
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                            queryString={queryString}
                         />
                     }
                 />

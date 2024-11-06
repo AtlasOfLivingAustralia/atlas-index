@@ -393,14 +393,26 @@ function ImagesView({result}: MediaViewProps) {
         const [loading, setLoading] = useState(true);
 
         return (
-            <Flex maw={gridWidthTypical} h={gridHeight} justify="center" align="center" direction="column">
+            <Flex maw={gridWidthTypical} h={gridHeight} justify="center" align="center" direction="column" style={{overflow: 'hidden', borderRadius: 12}}>
                 {type === MediaTypeEnum.image &&
-                    <UnstyledButton onClick={() => handleOpenModal(imageId)}>
+                    <UnstyledButton 
+                        onClick={() => handleOpenModal(imageId)}
+                    >
                         <Image
                             radius="md"
                             h={loading ? 0 : gridHeight}
                             maw={loading ? 0 : gridWidthTypical}
                             src={getImageThumbnailUrl(imageId)}
+                            onMouseOver={(event) => {
+                                const target = event.target as HTMLImageElement;
+                                target.style.transform = 'scale(1.1)';
+                                target.style.transition = 'transform 0.3s ease';
+                            }}
+                            onMouseOut={(event) => {
+                                const target = event.target as HTMLImageElement;
+                                target.style.transform = 'scale(1.0)';
+                                target.style.transition = 'transform 0.3s ease';
+                            }}
                             onLoad={(event) => {
                                 const target = event.target as HTMLImageElement;
                                 
@@ -410,7 +422,7 @@ function ImagesView({result}: MediaViewProps) {
                             }}
                             onError={(e) => handleImageError(0, e)}
                         />
-                        {loading && <Skeleton height={gridHeight} width={gridHeight} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
+                        {loading && <Skeleton height={gridHeight} width={gridWidthTypical} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
                     </UnstyledButton>
                 }
                 {(type === MediaTypeEnum.sound || type === MediaTypeEnum.video) &&

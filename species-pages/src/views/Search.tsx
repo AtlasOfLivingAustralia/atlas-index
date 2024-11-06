@@ -51,15 +51,15 @@ function Search({setBreadcrumbs}: {
                     <Space h="30px"/>
                     <Flex justify="center">
                         <TextInput placeholder="Search species, datasets, content and more..." className={classes.searchInput}
-                           value={queryResultValue}
-                           onChange={(event) => setQueryResultValue(event.currentTarget.value)}
-                           onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
-                               if (event.key === 'Enter') {
-                                   setQueryResultValue(event.currentTarget.value);
-                                   setQueryResult(event.currentTarget.value);
-                                   event.preventDefault();
-                               }
-                            }}
+                            value={queryResultValue}
+                            onChange={(event) => setQueryResultValue(event.currentTarget.value)}
+                            onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+                                if (event.key === 'Enter') {
+                                    setQueryResultValue(event.currentTarget.value);
+                                    setQueryResult(event.currentTarget.value);
+                                    event.preventDefault();
+                                }
+                                }}
                         />
                         <Box style={{marginLeft: "-14px", marginTop: "12px", zIndex: "100", cursor: "pointer"}}>
                             <CloseIcon style={{marginLeft: "-30px"}} onClick={() => {setQueryResultValue(""); setQueryResult(""); }} />
