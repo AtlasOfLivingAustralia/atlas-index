@@ -68,7 +68,7 @@ function ClassificationView({result}: ViewProps) {
                                 mb="3px"
                             >
                                 <Text miw={110} pl="md" fw="bold">{capitalize(result?.rank)}</Text>
-                                <Anchor component={Link} to={`/species/${result?.guid}`}
+                                <Anchor component={Link} to={`/species/${result?.guid}?tab=classification`}
                                     dangerouslySetInnerHTML={{__html: result?.nameFormatted}}></Anchor>
                             </Flex>
                     </>
@@ -85,7 +85,7 @@ function ClassificationView({result}: ViewProps) {
                         mb="3px"
                     >
                         <Text miw={110} pl="md" fw="bold">{capitalize(item.rank)}</Text>
-                        <Anchor component={Link} to={`/species/${item.guid}`} pl="sm"
+                        <Anchor component={Link} to={`/species/${item.guid}?tab=classification`} pl="sm"
                             dangerouslySetInnerHTML={{__html: item.name}}
                             ></Anchor>
                     </Flex>
@@ -98,7 +98,7 @@ function ClassificationView({result}: ViewProps) {
                         }}
                     >
                         <Text miw={110} pl="md" fw="bold">{capitalize(child.rank)}</Text>
-                        <Anchor component={Link} to={`/species/${child.guid}`} pl="sm"
+                        <Anchor component={Link} to={`/species/${child.guid}?tab=classification`} pl="sm"
                             dangerouslySetInnerHTML={{__html: child.nameFormatted}}
                         ></Anchor>
                     </Flex>
