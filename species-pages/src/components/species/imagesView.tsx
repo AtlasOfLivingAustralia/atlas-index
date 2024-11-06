@@ -422,7 +422,7 @@ function ImagesView({result}: MediaViewProps) {
                             }}
                             onError={(e) => handleImageError(0, e)}
                         />
-                        {loading && <Skeleton height={gridHeight} width={gridHeight} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
+                        {loading && <Skeleton height={gridHeight} width={gridWidthTypical} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
                     </UnstyledButton>
                 }
                 {(type === MediaTypeEnum.sound || type === MediaTypeEnum.video) &&
