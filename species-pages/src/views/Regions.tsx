@@ -225,16 +225,16 @@ function Regions({setBreadcrumbs}: {
                                         <Accordion.Panel>
                                             <Space h={10}/>
                                             <Box style={{overflowY: "scroll", maxHeight: "300px"}}>
-                                                {item.fields && item.fields.map((field) => (
-                                                    <Flex onClick={() => setMapObject(field)}
-                                                          style={{cursor: "pointer"}}>
+                                                {item.fields && item.fields.map((field, idx) => (
+                                                    <Flex onClick={() => setMapObject(field)} 
+                                                            key={idx} style={{cursor: "pointer"}}>
                                                         <DotsOneIcon size={16}/>
                                                         <Text fz={14}>{field.name}</Text>
                                                     </Flex>
                                                 ))}
-                                                {item.objects && item.objects.map((obj) => (
+                                                {item.objects && item.objects.map((obj, idx) => (
                                                     <Flex onClick={() => setMapObject(item as SelectedLayer, obj)}
-                                                          style={{cursor: "pointer"}}>
+                                                            key={idx} style={{cursor: "pointer"}}>
                                                         <DotsOneIcon size={16}/>
                                                         <Text fz={14} title={obj.description}>{obj.name}</Text>
                                                     </Flex>
@@ -315,14 +315,14 @@ function Regions({setBreadcrumbs}: {
                             </Box>
                             <Flex mt={20}>
                                 <Checkbox checked={showLayer} size="16"
-                                          onChange={(event) => setShowLayer(event.currentTarget.checked)}
-                                          disabled={!selectedLayer}/><Text ml={10} fz={16}>All regions</Text>
+                                        onChange={(event) => setShowLayer(event.currentTarget.checked)}
+                                        disabled={!selectedLayer}/><Text ml={10} fz={16}>All regions</Text>
                             </Flex>
                             <Slider value={layerOpacity} onChangeEnd={setLayerOpacity} disabled={!selectedLayer}/>
                             <Flex mt={20}>
                                 <Checkbox checked={showObject} size="16"
-                                          onChange={(event) => setShowObject(event.currentTarget.checked)}
-                                          disabled={!selectedObject}/><Text ml={10} fz={16}>Selected region</Text>
+                                        onChange={(event) => setShowObject(event.currentTarget.checked)}
+                                        disabled={!selectedObject}/><Text ml={10} fz={16}>Selected region</Text>
                             </Flex>
                             <Slider value={objectOpacity} onChangeEnd={setObjectOpacity} disabled={!selectedObject}/>
                         </Box>
