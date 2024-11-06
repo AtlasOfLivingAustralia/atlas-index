@@ -524,7 +524,7 @@ function Region({setBreadcrumbs, queryString}: {
             .then(data => {
                 if (data.occurrences && data.occurrences.length > 0) {
                     const taxonId = data.occurrences[0].taxonConceptID;
-                    navigate(`/species?id=${taxonId}`);
+                    navigate(`/species/${taxonId}`);
                 }
             });
     }
