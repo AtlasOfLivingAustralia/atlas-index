@@ -79,55 +79,55 @@ function Home({setBreadcrumbs}: {
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/2a4e373b-913a-4e2a-a53f-74828f6dae7e"
+                                to="/species/https://biodiversity.org.au/afd/taxa/2a4e373b-913a-4e2a-a53f-74828f6dae7e"
                             >Emu – <i>Dromaius novaehollandiae</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/55213c39-1809-442e-b5fb-03fb99e8d97a"
+                                to="/species/https://biodiversity.org.au/afd/taxa/55213c39-1809-442e-b5fb-03fb99e8d97a"
                             >Australian King-Parrot – <i>Alisterus scapularis</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5"
+                                to="/species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5"
                             >Australian Magpie – <i>Gymnorhina tibicen</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/c0c829b2-834e-4cf9-b288-2cc2035573ff"
+                                to="/species/https://biodiversity.org.au/afd/taxa/c0c829b2-834e-4cf9-b288-2cc2035573ff"
                             >Barramundi – <i>Lates calcarifer</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://id.biodiversity.org.au/taxon/apni/51436646"
+                                to="/species/https://id.biodiversity.org.au/taxon/apni/51436646"
                             >Golden Wattle – <i>Acacia pycnantha</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/f2f43ef9-89fd-4f89-8b06-0842e86cfe06"
+                                to="/species/https://biodiversity.org.au/afd/taxa/f2f43ef9-89fd-4f89-8b06-0842e86cfe06"
                             >Eastern Grey Kangaroo – <i>Macropus giganteus</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531"
+                                to="/species/https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531"
                             >Swamp Wallaby – <i>Wallabia bicolor</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/ac61fd14-4950-4566-b384-304bd99ca75f"
+                                to="/species/https://biodiversity.org.au/afd/taxa/ac61fd14-4950-4566-b384-304bd99ca75f"
                             >Duck-Billed Platypus – <i>Ornithorhynchus anatinus</i></Anchor>
                         </List.Item>
                         <List.Item>
                             <Anchor
                                 component={Link}
-                                to="/species?id=https://biodiversity.org.au/afd/taxa/f557abd1-fc45-4152-869e-b31d4b5d886e"
+                                to="/species/https://biodiversity.org.au/afd/taxa/f557abd1-fc45-4152-869e-b31d4b5d886e"
                             >Common Bearded Dragon – <i>Pogona barbata</i></Anchor>
                         </List.Item>
                     </List>
