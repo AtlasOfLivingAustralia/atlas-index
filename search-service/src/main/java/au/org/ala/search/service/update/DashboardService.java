@@ -1,9 +1,9 @@
 package au.org.ala.search.service.update;
 
+import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dashboard.Record;
 import au.org.ala.search.model.dashboard.*;
-import au.org.ala.search.model.dashboard.bie.BieSearch;
 import au.org.ala.search.model.dashboard.biocache.BiocacheSearch;
 import au.org.ala.search.model.dashboard.biocache.FieldResult;
 import au.org.ala.search.model.dashboard.collectory.CollectionsSearch;
@@ -14,8 +14,11 @@ import au.org.ala.search.model.dashboard.images.ImageStatistics;
 import au.org.ala.search.model.dashboard.logger.Breakdown;
 import au.org.ala.search.model.dashboard.logger.LoggerSearch;
 import au.org.ala.search.model.dashboard.spatial.SpatialField;
+import au.org.ala.search.model.query.Op;
+import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.StaticFileStoreService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.util.QueryParserUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
@@ -24,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +48,7 @@ public class DashboardService {
 
     private final LogService logService;
     private final StaticFileStoreService staticFileStoreService;
+    private final ElasticService elasticService;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,11 +58,8 @@ public class DashboardService {
     @Value("${logger.url}")
     private String loggerUrl;
 
-    // TODO: use elasticService instead of bieUrl
-    @Value("${bie.url}")
-    private String bieUrl;
-    @Value("${bie.uiUrl}")
-    private String bieUiUrl;
+    @Value("${speciesUrlPrefix}")
+    private String speciesUIPrefix;
 
     @Value("${biocache.uiUrl}")
     private String biocacheUiUrl;
@@ -84,9 +86,13 @@ public class DashboardService {
     @Value("${images.url}")
     private String imagesUrl;
 
-    public DashboardService(LogService logService, StaticFileStoreService staticFileStoreService) {
+    @Value("${dashboard.states}")
+    private String dashboardStates;
+
+    public DashboardService(LogService logService, StaticFileStoreService staticFileStoreService, ElasticService elasticService) {
         this.logService = logService;
         this.staticFileStoreService = staticFileStoreService;
+        this.elasticService = elasticService;
     }
 
     @Async("processExecutor")
@@ -213,10 +219,6 @@ public class DashboardService {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), BiocacheSearch.class);
     }
 
-    private BieSearch getBie(String url) throws IOException {
-        return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), BieSearch.class);
-    }
-
     private LoggerSearch getLogger(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), LoggerSearch.class);
     }
@@ -331,7 +333,7 @@ public class DashboardService {
 
             record.count = getCollection(collectoryUrl + "/ws/dataResource/count/resourceType?public=true").total;
 
-            table.rows.add(new TableRow("institutions", bieUrl + "/search?q=idxtype:%22INSTITUTION%22",
+            table.rows.add(new TableRow("institutions", null,
                     new Integer[]{getCollection(collectoryUrl + "/ws/institution/count").total}));
 
             table.rows.add(new TableRow("collections",
@@ -511,10 +513,6 @@ public class DashboardService {
     }
 
     private int addNationalSpeciesLists(DashboardData dashboardData) {
-        if (StringUtils.isEmpty(bieUrl)) {
-            logService.log(taskType, "skipping nationalSpeciesLists");
-            return 0;
-        }
         try {
             logService.log(taskType, "updating nationalSpeciesLists");
             Record record = new Record();
@@ -525,13 +523,13 @@ public class DashboardService {
             record.tables.add(table);
 
             table.rows.add(new TableRow("acceptedNames", null,
-                    new Integer[]{getBie(bieUrl + "/search?q=(taxonomicStatus:accepted%20OR%20taxonomicStatus:inferredAccepted)&fq=idxtype:TAXON").searchResults.totalRecords}));
+                    new Integer[]{searchForTotal("taxonomicStatus:accepted OR taxonomicStatus:inferredAccepted", new String[]{"idxtype:TAXON"})}));
             table.rows.add(new TableRow("synonyms", null,
-                    new Integer[]{getBie(bieUrl + "/search?q=-(taxonomicStatus:accepted%20OR%20taxonomicStatus:inferredAccepted)&fq=idxtype:TAXON").searchResults.totalRecords}));
+                    new Integer[]{searchForTotal("-(taxonomicStatus:accepted OR taxonomicStatus:inferredAccepted)", new String[]{"idxtype:TAXON"})}));
             table.rows.add(new TableRow("speciesNames", null,
-                    new Integer[]{getBie(bieUrl + "/search?q=(taxonomicStatus:accepted%20OR%20taxonomicStatus:inferredAccepted)&fq=idxtype:TAXON&fq=rankID:7000").searchResults.totalRecords}));
+                    new Integer[]{searchForTotal("taxonomicStatus:accepted OR taxonomicStatus:inferredAccepted", new String[]{"idxtype:TAXON", "rankID:7000"})}));
             table.rows.add(new TableRow("speciesWithRecords", null,
-                    new Integer[]{getBie(bieUrl + "/search?q=(taxonomicStatus:accepted%20OR%20taxonomicStatus:inferredAccepted)&fq=idxtype:TAXON&fq=rankID:7000&fq=occurrenceCount:%5B0%20TO%20*%5D").searchResults.totalRecords}));
+                    new Integer[]{searchForTotal("taxonomicStatus:accepted OR taxonomicStatus:inferredAccepted", new String[]{"idxtype:TAXON", "rankID:7000", "-occurrenceCount:0", "occurrenceCount:*"})}));
 
             dashboardData.data.put("nationalSpeciesLists", record);
             return 0;
@@ -770,8 +768,7 @@ public class DashboardService {
         }
         try {
             logService.log(taskType, "updating states");
-            // TODO: move states to config
-            List<String> states = Arrays.stream(new String[]{"Australian Capital Territory", "New South Wales", "South Australia", "Northern Territory", "Western Australia", "Victoria", "Queensland", "Tasmania"}).toList();
+            List<String> states = Arrays.asList(dashboardStates.split(","));
             int otherCount = 0;
             int notProvided = 0;
 
@@ -835,15 +832,18 @@ public class DashboardService {
             BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=speciesGroup:" + speciesGroup + "&fq=taxonConceptID:*&pageSize=0&flimit=6&facets=taxonConceptID&fsort=count");
 
             for (FieldResult field : result.facetResults.getFirst().fieldResult) {
-                BieSearch bieSearch = getBie(bieUrl + "/species/" + URLEncoder.encode(field.label, StandardCharsets.UTF_8));
+
+                SearchHits<SearchItemIndex> item = elasticService.search(QueryParserUtil.parse("guid:\"" + field.label + "\"", new String[]{"idxtype:TAXON"}, elasticService::isValidField), 0, 1);
+
                 String commonName = "";
-                if (bieSearch.commonNames != null && !bieSearch.commonNames.isEmpty()) {
-                    // TODO: update to use bieSearch.commonNameSingle
-                    commonName = bieSearch.commonNames.getFirst().nameString;
+                String scientificName = field.label;
+                if (!item.getSearchHits().isEmpty()) {
+                    commonName = item.getSearchHits().get(0).getContent().commonNameSingle;
+                    scientificName = item.getSearchHits().get(0).getContent().name;
                 }
 
-                table.rows.add(new TableRow(bieSearch.taxonConcept.nameString + " - " + commonName,
-                        bieUiUrl + "/species/" + field.label,
+                table.rows.add(new TableRow(scientificName + " - " + commonName,
+                        speciesUIPrefix + field.label,
                         new Integer[]{field.count}));
             }
             return 0;
@@ -918,10 +918,12 @@ public class DashboardService {
                 if (field.layer.domain.contains("Terrestrial")) {
                     terrestrialLayers++;
                 }
-                if (others.containsKey(field.layer.classification1)) {
+                if (others.containsKey(field.layer.classification1) && field.layer.classification1 != null) {
                     others.put(field.layer.classification1, others.get(field.layer.classification1) + 1);
-                } else {
+                } else if (field.layer.classification1 != null) {
                     others.put(field.layer.classification1, 1);
+                } else {
+                    logService.log(taskType, "spatialLayers: error: a layer exists with no classification1");
                 }
             }
 
@@ -1029,6 +1031,12 @@ public class DashboardService {
             logger.error("failed to update collections: " + e.getMessage());
             return 1; // 1 error
         }
+    }
+
+    private int searchForTotal(String q, String[] fqs) {
+        Op op = QueryParserUtil.parse(q, fqs, elasticService::isValidField);
+        SearchHits<SearchItemIndex> result = elasticService.search(op, 0, 1);
+        return result != null ? (int) result.getTotalHits() : 0;
     }
 }
 

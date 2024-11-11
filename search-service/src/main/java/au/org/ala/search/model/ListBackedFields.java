@@ -5,7 +5,7 @@ public enum ListBackedFields {
     HIDDEN("hiddenImages_s"),
     IMAGE("image"),
     NOT_FOUND(""),
-    NATIVE_INTRODUCED("native_introduced_s"); // JSON map of " Place: Status" pairs
+    NATIVE_INTRODUCED("nativeIntroduced"); // JSON map of " Place: Status" pairs
 
     final public String field;
 

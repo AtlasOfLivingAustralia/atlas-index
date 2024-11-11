@@ -40,8 +40,6 @@ public class ListCache {
         cacheListNames();
     }
 
-    // TODO: this should be triggered via a RabbitMQ in a multi-instance deployment, and this will be triggered by
-    //  running the ListImportService
     @Scheduled(cron = "0 0 * * * ?")
     public void cacheListNames() {
         try {

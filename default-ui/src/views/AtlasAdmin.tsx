@@ -140,7 +140,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     function update(updateType: string) {
         setTaskString("Running " + updateType + " update...");
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/update?type=' + updateType, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + currentUser?.user()?.access_token,
             }

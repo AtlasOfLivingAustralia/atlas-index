@@ -51,8 +51,7 @@
             <table style="border: 1px solid white">
                 <tr>
                     <td style="width:300px;vertical-align: top;">
-                        <!-- TODO: use taxon.imageUrl instead of taxon.thumbnailUrl -->
-                        <img th:if="${not #strings.isEmpty(taxon.thumbnailUrl)}" th:src="${taxon.thumbnailUrl}"
+                        <img th:if="${not #strings.isEmpty(taxon.imageUrl)}" th:src="${taxon.imageUrl}"
                              style="border:1px solid white"
                              th:width='${taxon.imgWidth + "px"}' th:height='${taxon.imgHeight + "px"}'
                              class="imgThumbnail"/>

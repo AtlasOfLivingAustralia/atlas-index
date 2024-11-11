@@ -2,8 +2,10 @@ package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.query.Op;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.util.QueryParserUtil;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
@@ -71,26 +73,22 @@ public class TaxonUpdateService {
         fieldList.add(new FieldAndFormat.Builder().field("scientificName").build());
         fieldList.add(new FieldAndFormat.Builder().field("image").build());
 
+        String pit = null;
+
         int counter = 0;
         int pageSize = 1000;
         try {
             List<FieldValue> searchAfter = null;
 
-            Map<String, Object> query = new HashMap<>();
-            query.put("idxtype", "TAXON");
-            query.put("not exists acceptedConceptID", ""); // is parent
-            // TODO: clean this up in other places. the 'accepted' taxonomic status is one where there is not parent acceptedConceptID
-//            query.put(
-//                    "taxonomicStatus",
-//                    Arrays.stream(TaxonomicType.values())
-//                            .filter(TaxonomicType::isAccepted)
-//                            .map(TaxonomicType::getTerm)
-//                            .collect(Collectors.toList()));
+            pit = elasticService.openPointInTime();
+
+            Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND -acceptedConceptID:*", null, elasticService::isValidField);
+            co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
             boolean hasMore = true;
             while (hasMore) {
                 SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(
-                        null, searchAfter, pageSize, query, null, fieldList, null, false);
+                        pit, searchAfter, pageSize, queryOp, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
 
                 if (hits.isEmpty()) {
@@ -136,11 +134,20 @@ public class TaxonUpdateService {
             logService.log(taskType, "Error there was problem with occurrences import: " + ex.getMessage());
             logger.error("There was problem with occurrences import: " + ex.getMessage(), ex);
             return false;
+        } finally {
+            try {
+                if (pit != null) {
+                    elasticService.closePointInTime(pit);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to close point in time", e);
+            }
         }
         return true;
     }
 
-    // TODO: move this to DwCADenormaliseImportService - take the accepted name cache along
+    // Performance: this is not currently an issue, but when legacy components are deprecated also move this to
+    // DwCADenormaliseImportService - take the accepted name cache along.
     private boolean updateNonAccepted() {
         logService.log(taskType, "Start paging for non-accepted taxon");
 
@@ -149,22 +156,23 @@ public class TaxonUpdateService {
         List<FieldAndFormat> fieldList = new ArrayList<>(2);
         fieldList.add(new FieldAndFormat.Builder().field("acceptedConceptID").build());
 
+        String pit = null;
+
         int counter = 0;
         int pageSize = 10000;
         try {
+            pit = elasticService.openPointInTime();
 
             List<FieldValue> searchAfter = null;
 
-            Map<String, Object> query = new HashMap<>();
-            query.put("idxtype", "TAXON");
-            query.put("exists acceptedConceptID", "");
-            query.put("not exists acceptedConceptName", "");
+            Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND acceptedConceptID:* AND -acceptedConceptName:*", null, elasticService::isValidField);
+            co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
             boolean hasMore = true;
             while (hasMore) {
                 SearchResponse<SearchItemIndex> result =
                         elasticService.queryPointInTimeAfter(
-                                null, searchAfter, pageSize, query, null, fieldList, null, false);
+                                pit, searchAfter, pageSize, queryOp, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
 
                 if (hits.isEmpty()) {
@@ -203,6 +211,14 @@ public class TaxonUpdateService {
             logService.log(taskType, "Error there was problem with acceptedConceptName import: " + ex.getMessage());
             logger.error("There was problem with acceptedConceptName import: " + ex.getMessage(), ex);
             return false;
+        } finally {
+            try {
+                if (pit != null) {
+                    elasticService.closePointInTime(pit);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to close point in time", e);
+            }
         }
         return true;
     }

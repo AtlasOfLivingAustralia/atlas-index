@@ -12,6 +12,7 @@ public class TaxaBatchItem {
     String name;
     String scientificName;
     String author;
+    String nameComplete;
     String rank;
     String kingdom;
     String phylum;

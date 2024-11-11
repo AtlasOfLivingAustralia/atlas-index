@@ -20,9 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * TODO: support new species-lists
- */
 @Service
 public class ListService {
 
@@ -53,38 +50,64 @@ public class ListService {
     }
 
     public List<Map<String, Object>> list(String params) {
-        // TODO: paging
-        ResponseEntity<Map> response = restTemplate.exchange(
-                listsUrl + "/ws/speciesList?" + params + "&max=" + listsSearchMax,
+        List<Map<String, Object>> found = new ArrayList<>();
+
+        int pageSize = listsSearchMax;
+        int offset = 0;
+
+        boolean hasMore = true;
+
+        while (hasMore) {
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    listsUrl + "/ws/speciesList?" + params + "&max=" + pageSize + "&offset=" + offset,
                     HttpMethod.GET,
                     null,
                     Map.class);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            Map<String, Object> responseMap = response.getBody();
-            return (List<Map<String, Object>>) responseMap.get("lists");
-        } else {
-            logger.error("failed to get lists for params: " + params);
+            offset += pageSize;
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseMap = response.getBody();
+                List<Map<String, Object>> currentPage = (List<Map<String, Object>>) responseMap.get("lists");
+                found.addAll(currentPage);
+                hasMore = currentPage.size() == pageSize;
+            } else {
+                logger.error("failed to get lists for params: " + params);
+                hasMore = false;
+            }
         }
 
-        return new ArrayList<>();
+        return found;
     }
 
     public List<Map<String, Object>> items(String listId) {
-        // TODO: species list paging, because I recall the max is internally limited
-        ResponseEntity<List> response = restTemplate.exchange(
-                listsUrl + "/ws/speciesListItems/" + listId + "?includeKVP=true&max=" + listsSearchMax,
+        int pageSize = listsSearchMax;
+        int offset = 0;
+        boolean hasMore = true;
+
+        List<Map<String, Object>> found = new ArrayList<>();
+
+        while (hasMore) {
+            ResponseEntity<List> response = restTemplate.exchange(
+                    listsUrl + "/ws/speciesListItems/" + listId + "?includeKVP=true&max=" + pageSize + "&offset=" + offset,
                     HttpMethod.GET,
                     null,
                     List.class);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            return (List<Map<String, Object>>) response.getBody();
-        } else {
-            logger.error("failed to get list items: " + listId);
+            offset += pageSize;
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                List<Map<String, Object>> currentPage = (List<Map<String, Object>>) response.getBody();
+                found.addAll(currentPage);
+
+                hasMore = currentPage.size() == pageSize;
+            } else {
+                logger.error("failed to get list items: " + listId);
+                hasMore = false;
+            }
         }
 
-        return new ArrayList<>();
+        return found;
     }
 
 

@@ -2,9 +2,12 @@ package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.query.Op;
 import au.org.ala.search.names.TaxonomicType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.service.remote.SitemapFileStoreService;
+import au.org.ala.search.util.QueryParserUtil;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
@@ -19,12 +22,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 @Service
 public class SitemapService {
@@ -37,19 +42,19 @@ public class SitemapService {
     static int MAX_SIZE = 9 * 1024 * 1024; // use 9MB to keep the actual file size below 10MB (a gateway limit)
     protected final ElasticService elasticService;
     protected final LogService logService;
+    protected final SitemapFileStoreService sitemapFileStoreService;
     List<Date> lastMod = new ArrayList<>();
     Date currentLastMod;
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    @Value("${sitemap.path}")
-    private String sitemapPath;
-    @Value("${species.url}")
+    @Value("${sitemap.url}")
     private String uiUrl;
-    @Value("${species.speciesUrl}")
+    @Value("${speciesUrlPrefix}")
     private String speciesUrl;
 
-    public SitemapService(ElasticService elasticService, LogService logService) {
+    public SitemapService(ElasticService elasticService, LogService logService, SitemapFileStoreService sitemapFileStoreService) {
         this.elasticService = elasticService;
         this.logService = logService;
+        this.sitemapFileStoreService = sitemapFileStoreService;
     }
 
     @Async("processExecutor")
@@ -60,6 +65,8 @@ public class SitemapService {
 
         buildSitemapPages();
         buildSitemapIndex();
+
+        removeObsoleteFiles();
 
         logService.log(taskType, "Finished");
 
@@ -73,27 +80,43 @@ public class SitemapService {
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?><sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
         for (int i = 0; i < lastMod.size(); i++) {
-            sb.append("<sitemap><url>").append(uiUrl).append("/sitemap").append(i).append(".xml").append("</url>");
+            sb.append("<sitemap><loc>").append(uiUrl).append("/sitemap").append(i).append(".xml.gz").append("</loc>");
             sb.append("<lastmod>").append(simpleDateFormat.format(lastMod.get(i))).append("</lastmod></sitemap>");
         }
 
         sb.append("</sitemapindex>");
 
-        write("sitemap.xml", sb.toString(), null);
+        write("sitemap.xml", sb.toString(), null, false);
     }
 
-    void write(String filename, String content, Date date) {
+    void write(String filename, String content, Date date, boolean gzip) {
         if (lastMod != null) {
             // child xml
             lastMod.add(date);
         }
 
+        File tmpFile = null;
+
         try {
-            // TODO: use StaticFileStoreService, or clone for a SitemapFileStoreService, to write to S3 and/or local
-            FileUtils.write(new File(sitemapPath + "/" + filename), content, StandardCharsets.UTF_8);
+            tmpFile = File.createTempFile("sitemap", ".xml" + (gzip ? ".gz" : ""));
+
+            if (gzip) {
+                try (FileOutputStream fos = new FileOutputStream(tmpFile);
+                     GZIPOutputStream gos = new GZIPOutputStream(fos)) {
+                    gos.write(content.getBytes(StandardCharsets.UTF_8));
+                }
+            } else {
+                FileUtils.write(tmpFile, content, StandardCharsets.UTF_8);
+            }
+
+            sitemapFileStoreService.copyToFileStore(tmpFile, filename + (gzip ? ".gz" : ""), true);
         } catch (Exception e) {
-            logService.log(taskType, "Error failed to write sitemap file: " + filename);
-            logger.error("failed to write sitemap file: " + filename);
+            logService.log(taskType, "Error failed to write sitemap file: " + filename + (gzip ? ".gz" : ""));
+            logger.error("failed to write sitemap file: " + filename + (gzip ? ".gz" : ""));
+        } finally {
+            if (tmpFile != null && tmpFile.exists()) {
+                tmpFile.delete();
+            }
         }
     }
 
@@ -109,10 +132,14 @@ public class SitemapService {
         StringBuilder buffer = new StringBuilder();
         buffer.append(URLSET_HEADER);
 
+        String pit = null;
+
         int counter = 0;
         int pageSize = 1000;
         try {
             logService.log(taskType, "Start paging for sitemap");
+
+            pit = elasticService.openPointInTime();
 
             List<FieldValue> searchAfter = null;
 
@@ -125,11 +152,26 @@ public class SitemapService {
                             .map(TaxonomicType::getTerm)
                             .collect(Collectors.toList()));
 
+            String queryString = "idxtype:\"TAXON\" AND (";
+            String taxonomicStatusTerm = "";
+            for(String value : Arrays.stream(TaxonomicType.values())
+                    .filter(TaxonomicType::isAccepted)
+                    .map(TaxonomicType::getTerm)
+                    .collect(Collectors.toList())) {
+                if (!taxonomicStatusTerm.isEmpty()) {
+                    taxonomicStatusTerm += " OR ";
+                }
+                taxonomicStatusTerm += "taxonomicStatus:\"" + value + "\"";
+            }
+            queryString += taxonomicStatusTerm + ")";
+            Op op = QueryParserUtil.parse(queryString, null, elasticService::isValidField);
+            co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
+
             boolean hasMore = true;
             while (hasMore) {
                 SearchResponse<SearchItemIndex> result =
                         elasticService.queryPointInTimeAfter(
-                                null, searchAfter, pageSize, query, null, fieldList, null, false);
+                                pit, searchAfter, pageSize, queryOp, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
                 searchAfter = hits.getLast().sort();
 
@@ -140,9 +182,8 @@ public class SitemapService {
                     if (StringUtils.isEmpty(nameString)) nameString = item.getNameComplete();
                     if (StringUtils.isEmpty(nameString)) nameString = item.getCommonNameSingle();
 
-                    // TODO: double check what URL (name/guid) we are adding to the sitemap
                     if (nameString != null) {
-                        buffer = writeUrl(buffer, "monthly", speciesUrl + URLEncoder.encode(nameString, StandardCharsets.UTF_8), item.modified);
+                        buffer = writeUrl(buffer, "monthly", speciesUrl + URLEncoder.encode(nameString, StandardCharsets.UTF_8), item.modified, true);
                         counter++;
                     }
                 }
@@ -154,13 +195,21 @@ public class SitemapService {
             // is acceptable
             if (!buffer.isEmpty()) {
                 buffer.append(URLSET_FOOTER);
-                write("sitemap" + lastMod.size() + ".xml", buffer.toString(), currentLastMod);
+                write("sitemap" + lastMod.size() + ".xml", buffer.toString(), currentLastMod, true);
             }
 
             logService.log(taskType, "Finished urls: " + counter);
         } catch (Exception ex) {
             logService.log(taskType, "Error failed sitemap: " + ex.getMessage());
             logger.error("failed sitemap: " + ex.getMessage(), ex);
+        } finally {
+            try {
+                if (pit != null) {
+                    elasticService.closePointInTime(pit);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to close point in time", e);
+            }
         }
     }
 
@@ -182,13 +231,13 @@ public class SitemapService {
                 .build();
     }
 
-    StringBuilder writeUrl(StringBuilder sb, String changefreq, String encodedUrl, Date date) {
+    StringBuilder writeUrl(StringBuilder sb, String changefreq, String encodedUrl, Date date, boolean gzip) {
         if (currentLastMod == null || date.compareTo(currentLastMod) > 0) {
             currentLastMod = date;
         }
         if (lastMod.size() >= MAX_URLS || sb.length() >= MAX_SIZE) {
             sb.append(URLSET_FOOTER);
-            write("sitemap" + lastMod.size() + ".xml", sb.toString(), currentLastMod);
+            write("sitemap" + lastMod.size() + ".xml", sb.toString(), currentLastMod, gzip);
             currentLastMod = null;
             sb = new StringBuilder();
             sb.append(URLSET_HEADER);
@@ -207,5 +256,12 @@ public class SitemapService {
                 .append("</url>");
 
         return sb;
+    }
+
+    void removeObsoleteFiles() {
+        boolean hasMore = true;
+        for (int i = lastMod.size() - 1; hasMore; i++) {
+            hasMore = sitemapFileStoreService.deleteFile("sitemap" + i + ".xml");
+        }
     }
 }

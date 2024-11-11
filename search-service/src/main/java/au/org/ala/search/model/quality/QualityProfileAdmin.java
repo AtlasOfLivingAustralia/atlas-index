@@ -1,12 +1,8 @@
 package au.org.ala.search.model.quality;
 
 import au.org.ala.search.serializer.QualityProfileAdminSerializer;
-import au.org.ala.search.serializer.QualityProfileSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.springframework.data.annotation.Id;

@@ -16,17 +16,17 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Service to store files, usually static files, info a file store. e.g. local file system or S3
- *
- * TODO: Test the S3 options.
  */
 @Service
 public class DownloadFileStoreService {
@@ -74,7 +74,14 @@ public class DownloadFileStoreService {
                         .bucket(bucket)
                         .key(path + "/" + itemFileName(queueItem))
                         .build();
-                s3Client.putObject(request, src.toPath());
+                CompletableFuture<PutObjectResponse> result = s3Client.putObject(request, src.toPath());
+                result.join();
+
+                // report error
+                if (result.isCompletedExceptionally()) {
+                    logger.error("Failed to copy file to s3 src: " + src.getAbsolutePath() + ", dstPath" + itemFileName(queueItem));
+                    return false;
+                }
             } else {
                 // local file system
                 FileUtils.copyFile(src, new File(getFilePath(queueItem)));

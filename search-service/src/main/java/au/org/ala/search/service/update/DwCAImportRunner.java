@@ -36,7 +36,6 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-import static au.org.ala.search.names.ALATerm.TaxonVariant;
 import static org.gbif.dwc.terms.DwcTerm.Taxon;
 import static org.gbif.dwc.terms.GbifTerm.Identifier;
 import static org.gbif.dwc.terms.GbifTerm.VernacularName;
@@ -77,6 +76,7 @@ public class DwCAImportRunner {
                 new Term[]{
                         DwcTerm.taxonID,
                         DwcTerm.datasetID,
+                        DwcTerm.acceptedNameUsage,
                         DwcTerm.acceptedNameUsageID,
                         DwcTerm.parentNameUsageID,
                         DwcTerm.scientificName,
@@ -113,7 +113,7 @@ public class DwCAImportRunner {
             DenormalCache cacheOnly) {
         Term term = archive.getRowType();
 
-        logService.log(taskType, "Importing " + term.simpleName());
+        logService.log(taskType, (cacheOnly != null ? "Caching " : "Importing ") + term.simpleName());
 
         List<IndexQuery> buffer = new ArrayList<>();
         int counter = 0;
@@ -166,6 +166,7 @@ public class DwCAImportRunner {
                             cacheOnly.cacheVernacular[pos++] = buildDenormalVernacular(record);
                         } else {
                             searchItemIndex = buildVernacularRecord(record, attributionMap, defaultDatasetName, modified);
+                            dwCADenormaliseImportService.denormalizeVernacularOnly(searchItemIndex);
                         }
                     }
                     case Identifier -> {
@@ -253,7 +254,7 @@ public class DwCAImportRunner {
 
         String source = core.value(DcTerm.source);
         String datasetID = core.value(DwcTerm.datasetID);
-        String temporal = core.value(DcTerm.temporal);
+
         String locationID = core.value(DwcTerm.locationID);
         String locality = core.value(DwcTerm.locality);
         String countryCode = core.value(DwcTerm.countryCode);
@@ -269,7 +270,7 @@ public class DwCAImportRunner {
         String[] taxonRemarksList = StringUtils.isEmpty(taxonRemarks) ? null : taxonRemarks.split("\\|");
         String provenance = core.value(DcTerm.provenance);
         String[] provenanceList = StringUtils.isEmpty(provenance) ? null : provenance.split("\\|");
-        String labels = core.value(ALATerm.labels);
+
         TitleCapitaliser capitaliser =
                 TitleCapitaliser.create(
                         StringUtils.isNotEmpty(language) ? language : commonNameDefaultLanguage);
@@ -294,7 +295,6 @@ public class DwCAImportRunner {
                 .languageName(languageName)
                 .languageUri(languageUri)
                 .source(source)
-                .temporal(temporal)
                 .locationID(locationID)
                 .locality(locality)
                 .countryCode(countryCode)
@@ -304,7 +304,6 @@ public class DwCAImportRunner {
                 .organismPart(organismPart)
                 .taxonRemarks(taxonRemarksList)
                 .provenance(provenanceList)
-                .labels(labels)
                 .datasetName(attribution != null ? attribution.datasetName : defaultDatasetName)
                 .rightsHolder(attribution != null ? attribution.rightsHolder : null)
                 .build();
@@ -350,7 +349,6 @@ public class DwCAImportRunner {
         String identifier = core.value(DcTerm.identifier);
         String title = core.value(DcTerm.title);
         String subject = core.value(DcTerm.subject);
-        String format = core.value(DcTerm.format);
         String source = core.value(DcTerm.source);
         String datasetID = core.value(DwcTerm.datasetID);
         String idStatus = core.value(ALATerm.status);
@@ -380,7 +378,6 @@ public class DwCAImportRunner {
                 .status(status)
                 .priority(priority)
                 .subject(subject)
-                .format(format)
                 .source(source)
                 .provenance(provenanceList)
                 .datasetName(attribution != null ? attribution.datasetName : defaultDatasetName)
@@ -439,11 +436,11 @@ public class DwCAImportRunner {
         String scientificNameAuthorship = core.value(DwcTerm.scientificNameAuthorship);
         String nameComplete = core.value(ALATerm.nameComplete);
         String nameFormatted = core.value(ALATerm.nameFormatted);
-
         Integer taxonRankID = getTaxonRankID(taxonRank);
-
         String taxonID = core.id();
+        String acceptedNameUsage_s = core.value(DwcTerm.acceptedNameUsage);
         String acceptedNameUsageID = core.value(DwcTerm.acceptedNameUsageID);
+        String taxonomicFlags_s = core.value(ALATerm.taxonomicFlags);
 
         boolean synonym =
                 acceptedNameUsageID != null
@@ -482,9 +479,6 @@ public class DwCAImportRunner {
         // fetch the id created when caching
         String id = UUID.randomUUID().toString();
 
-        // dynamic values container
-        Map<String, String> dynamic = new HashMap<>();
-
         SearchItemIndex item = SearchItemIndex.builder()
                 .id(id)
                 .guid(taxonID)
@@ -506,6 +500,8 @@ public class DwCAImportRunner {
                 .taxonRemarks(taxonRemarksList)
                 .provenance(provenanceList)
                 .nameType(nameType)
+                .taxonomicFlags_s(taxonomicFlags_s)
+                .acceptedNameUsage_s(acceptedNameUsage_s)
                 .acceptedConceptID(synonym ? acceptedNameUsageID : null)
                 .parentGuid(parentNameUsageID)
                 .datasetName(attribution != null ? attribution.datasetName : defaultDatasetName)
@@ -517,6 +513,7 @@ public class DwCAImportRunner {
                 .forEach(
                         term -> {
                             if (!TAXON_ALREADY_INDEXED.contains(term)) {
+                                // Only add fields that are in the schema
                                 if (IN_SCHEMA.contains(term)) {
                                     try {
                                         Field field = SearchItemIndex.class.getField(term.simpleName());
@@ -528,15 +525,9 @@ public class DwCAImportRunner {
                                     } catch (NoSuchFieldException | IllegalAccessException ignored) {
                                         logger.error("error setting field: " + term.simpleName());
                                     }
-                                } else {
-                                    //use a dynamic field extension
-                                    dynamic.put(term.simpleName() + "_s", core.value(term));
                                 }
                             }
                         });
-        if (!dynamic.isEmpty()) {
-            item.setData(dynamic);
-        }
 
         return item;
     }

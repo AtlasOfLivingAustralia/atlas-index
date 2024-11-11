@@ -5,7 +5,7 @@ import au.org.ala.search.model.SearchItemIndex;
 import org.apache.commons.lang3.StringUtils;
 
 public class Weight {
-    public static float calcSearchWeight(SearchItemIndex item,
+    public static double calcSearchWeight(SearchItemIndex item,
                                          double weightMin,
                                          double weightMax,
                                          double weightNorm,
@@ -39,7 +39,7 @@ public class Weight {
         return (float) w;
     }
 
-    public static float calcSuggestWeight(SearchItemIndex item,
+    public static double calcSuggestWeight(SearchItemIndex item,
                                           double weightMin,
                                           double weightMax,
                                           double weightNorm,

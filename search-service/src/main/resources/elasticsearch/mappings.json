@@ -16,11 +16,6 @@
         }
       }
     },
-    "prefix": {
-      "type": "text",
-      "analyzer": "autocomplete",
-      "search_analyzer": "standard"
-    },
     "id": {
       "type": "keyword",
       "copy_to": [
@@ -46,20 +41,20 @@
         "all",
         "auto",
         "exact_text",
-        "prefix",
         "nameSort"
       ]
     },
     "description": {
       "type": "text"
     },
+    "distributions": {
+      "type": "text"
+    },
+    "nativeIntroduced": {
+      "type": "text"
+    },
     "linkIdentifier": {
       "type": "keyword"
-    },
-    "data": {
-      "type": "nested",
-      "properties": {
-      }
     },
     "layerId": {
       "type": "keyword"
@@ -158,10 +153,7 @@
     "source": {
       "type": "keyword"
     },
-    "temporal": {
-      "type": "keyword"
-    },
-    "favorite": {
+    "favourite": {
       "type": "keyword"
     },
     "locationID": {
@@ -191,9 +183,6 @@
     "provenance": {
       "type": "keyword"
     },
-    "labels": {
-      "type": "keyword"
-    },
     "datasetName": {
       "type": "keyword"
     },
@@ -201,9 +190,6 @@
       "type": "keyword"
     },
     "subject": {
-      "type": "keyword"
-    },
-    "format": {
       "type": "keyword"
     },
     "parentGuid": {
@@ -217,8 +203,7 @@
       "copy_to": [
         "all",
         "auto",
-        "exact_text",
-        "prefix"
+        "exact_text"
       ]
     },
     "scientificNameAuthorship": {
@@ -228,9 +213,13 @@
       "type": "keyword"
     },
     "nameFormatted": {
-      "type": "keyword"
+      "type": "keyword",
+      "index": false
     },
     "taxonID": {
+      "type": "keyword"
+    },
+    "acceptedNameUsage_s": {
       "type": "keyword"
     },
     "acceptedNameUsageID": {
@@ -240,9 +229,6 @@
       "type": "keyword"
     },
     "acceptedConceptName": {
-      "type": "keyword"
-    },
-    "taxonRank": {
       "type": "keyword"
     },
     "nameType": {
@@ -280,17 +266,10 @@
       },
       "copy_to": [
         "all",
-        "auto",
-        "prefix"
+        "auto"
       ]
     },
     "speciesGroup": {
-      "type": "keyword",
-      "copy_to": [
-        "all"
-      ]
-    },
-    "speciesSubgroup": {
       "type": "keyword",
       "copy_to": [
         "all"
@@ -304,6 +283,9 @@
     },
     "vernacularData": {
       "type": "binary"
+    },
+    "vernacularName": {
+      "type": "keyword"
     },
     "synonymData": {
       "type": "binary"
@@ -332,9 +314,6 @@
     "hiddenImages_s": {
       "type": "keyword"
     },
-    "preferred": {
-      "type": "keyword"
-    },
     "wikiUrl_s": {
       "type": "keyword"
     },
@@ -352,6 +331,13 @@
     },
     "nomenclaturalStatus": {
       "type": "keyword"
+    },
+    "geomIdx": {
+      "type": "keyword"
+    },
+    "rankOrder": {
+      "type": "text",
+      "index": false
     },
     "nameAccordingTo": {
       "type": "keyword"
@@ -377,44 +363,62 @@
     "verbatimTaxonomicStatus": {
       "type": "keyword"
     },
-    "isPreferredName": {
-      "type": "keyword"
-    },
     "nameVariant": {
       "type": "keyword"
+    },
+    "modified": {
+      "type": "long"
+    },
+    "created": {
+      "type": "long"
     }
   },
   "dynamic_templates": [
     {
       "rk_template": {
-        "path_match": "data.rk*",
+        "path_match": "rk_*",
         "mapping": {
           "type": "keyword"
         }
       }
     },
     {
-      "s_template": {
-        "match": "*_s",
+      "rk_template": {
+        "path_match": "rkid_*",
         "mapping": {
           "type": "keyword"
+        }
+      }
+    },
+    {
+      "rk_template": {
+        "path_match": "rkf_*",
+        "mapping": {
+          "type": "text",
+          "index": "false"
         }
       }
     },
     {
       "conservation_template": {
-        "path_match": "data.conservation_*",
+        "path_match": "conservation_*",
         "mapping": {
-          "type": "keyword",
-          "copy_to": [
-            "all"
-          ]
+          "type": "keyword"
         }
       }
     },
     {
-      "distribution_template": {
-        "path_match": "data.distributions",
+      "iucn_template": {
+        "path_match": "iucn_*",
+        "mapping": {
+          "type": "keyword",
+          "index": "false"
+        }
+      }
+    },
+    {
+      "sds_template": {
+        "path_match": "sds_*",
         "mapping": {
           "type": "keyword",
           "index": "false"

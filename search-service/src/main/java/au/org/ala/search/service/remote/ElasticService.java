@@ -49,9 +49,9 @@ import org.springframework.data.elasticsearch.core.query.*;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -61,12 +61,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * TODO: Split into separate services
- * - update services
- * - legacy search services, excluding services used by V2 Controller and updates
- * - new search services, but include legacy services still required for updates and V2 Controller
- */
 @Service
 public class ElasticService {
     final static int BULK_BATCH_SIZE = 100;
@@ -147,82 +141,105 @@ public class ElasticService {
     }
 
     public Map<String, Date> queryItems(String field, String value) {
-        int page = 0;
-        boolean hasMore = true;
+        Map<String, String[]> currentPage = null;
+        if ("*".equals(value)) {
+            currentPage = queryItems(field + ":*", "id", new String[]{"modified"}, -1);
+        } else {
+            currentPage = queryItems(field + ":\"" + value + "\"", "id", new String[]{"modified"}, -1);
+        }
 
         Map<String, Date> result = new HashMap<>();
-
-        while (hasMore) {
-            PageRequest p = PageRequest.of(page, elasticPageSize);
-            page++;
-
-            Query query = NativeQuery.builder()
-                    .withQuery(q -> q.term(t -> t.field(field).value(value)))
-                    .withSourceFilter(new FetchSourceFilter(new String[]{"id", "modified"}, null))
-                    .withPageable(p)
-                    .build();
-
-            Map<String, Date> currentPage = elasticsearchOperations.search(query, SearchItemIndex.class).stream()
-                    .collect(Collectors.toMap(a -> a.getContent().getId(), a -> a.getContent().getModified()));
-
-            hasMore = currentPage.size() == elasticPageSize;
-
-            result.putAll(currentPage);
+        for (Map.Entry<String, String[]> entry : currentPage.entrySet()) {
+            result.put(entry.getKey(), new Date(Long.parseLong(entry.getValue()[0])));
         }
+
         return result;
     }
 
-    public Map<String, String[]> queryItems(String field, String value, String keyField, String[] otherFields, int max) {
-        int page = 0;
-        boolean hasMore = true;
-        int pageSize = max < 0 ? elasticPageSize : max;
+    public Map<String, String[]> queryItems(String queryString, String keyField, String[] otherFields, int max) {
+        Map<String, String[]> currentPage = new HashMap<>();
+        String pit = null;
+        try {
+            pit = openPointInTime();
 
-        Map<String, String[]> result = new HashMap<>();
+            Op op = QueryParserUtil.parse(queryString, null, this::isValidField);
+            co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = opToQuery(op);
 
-        while (hasMore) {
-            PageRequest p = PageRequest.of(page, pageSize);
-            page++;
-
-            NativeQueryBuilder query = NativeQuery.builder()
-                    .withSourceFilter(new FetchSourceFilter(otherFields, null))
-                    .withPageable(p);
-            if ("*".equals(value)) {
-                if (field.startsWith("data.")) {
-                    query.withQuery(q -> q.nested(n -> n.path("data").query(q2 -> q2.exists(t -> t.field(field)))));
-                } else {
-                    query.withQuery(q -> q.exists(t -> t.field(field)));
-                }
-            } else {
-                query.withQuery(q -> q.term(t -> t.field(field).value(value)));
-            }
-
-            Map<String, String[]> currentPage = new HashMap<>();
-            for (SearchHit<Map> item : elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex))) {
-                String[] values = new String[otherFields.length];
-                String key;
-                try {
-                    key = (String) item.getContent().get(keyField);
-                    for (int i = 0; i < otherFields.length; i++) {
-                        if (otherFields[i].startsWith("data.") && !item.getContent().containsKey(otherFields[i])) {
-                            if (item.getContent().get("data") != null) {
-                                values[i] = String.valueOf(((Map) item.getContent().get("data")).get(otherFields[i].substring(5)));
-                            }
+            List<FieldAndFormat> fieldList = null;
+            if (otherFields != null) {
+                fieldList = new ArrayList<>(otherFields.length + 1);
+                fieldList.add(new FieldAndFormat.Builder().field(keyField).build());
+                for (String f : otherFields) {
+                    if (!f.equals(keyField)) {
+                        // Need separate handling for dynamic_templates. This will include all fields in the response
+                        // that match the requested template.
+                        if (f.startsWith("conservation_")) {
+                            fieldList.add(new FieldAndFormat.Builder().field("conservation_*").includeUnmapped(true).build());
+                        } else if (f.startsWith("sds_")) {
+                            fieldList.add(new FieldAndFormat.Builder().field("sds_*").includeUnmapped(true).build());
+                        } else if (f.startsWith("iucn_")) {
+                            fieldList.add(new FieldAndFormat.Builder().field("iucn_*").includeUnmapped(true).build());
+                        } else if (f.endsWith("_s")) {
+                            fieldList.add(new FieldAndFormat.Builder().field("*_s").includeUnmapped(true).build());
                         } else {
-                            values[i] = (String) item.getContent().get(otherFields[i]);
+                            fieldList.add(new FieldAndFormat.Builder().field(f).build());
                         }
                     }
-                } catch (Exception e) {
-                    return null;
                 }
-
-                currentPage.put(key, values);
             }
 
-            hasMore = currentPage.size() == pageSize && pageSize == elasticPageSize;
+            List<FieldValue> searchAfter = null;
+            int pageSize = max == -1 ? elasticPageSize : max;
 
-            result.putAll(currentPage);
+            boolean hasMore = true;
+            while (hasMore) {
+                SearchResponse<SearchItemIndex> result =
+                        queryPointInTimeAfter(
+                                pit, searchAfter, pageSize, queryOp, fieldList, null, false);
+                List<Hit<SearchItemIndex>> hits = result.hits().hits();
+                searchAfter = hits.getLast().sort();
+
+                for (Hit<SearchItemIndex> hit : hits) {
+                    JsonData keyJsonData = hit.fields().get(keyField);
+                    String keyValue = keyJsonData.toJson().asJsonArray().getJsonString(0).getString();
+
+                    String[] values = new String[otherFields.length];
+                    for (int i = 0; i < otherFields.length; i++) {
+                        JsonData jsonData = hit.fields().get(otherFields[i]);
+                        if (jsonData != null) {
+                            values[i] = "";
+                            for (int j = 0; j < jsonData.toJson().asJsonArray().size(); j++) {
+                                if (!values[i].isEmpty()) values[i] += ",";
+                                if (jsonData.toJson().asJsonArray().get(j).getValueType().equals(JsonValue.ValueType.STRING)) {
+                                    values[i] += jsonData.toJson().asJsonArray().getString(j);
+                                } else {
+                                    values[i] += String.valueOf(jsonData.toJson().asJsonArray().get(j));
+                                }
+                            }
+                        } else {
+
+                            values[i] = null;
+                        }
+                    }
+
+                    currentPage.put(keyValue, values);
+                }
+
+                hasMore = hits.size() == pageSize;
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to page through elasticsearch (e.g. query field may not yet exist: " + queryString + ")", e.getMessage());
+        } finally {
+            try {
+                if (pit != null) {
+                    closePointInTime(pit);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to close point in time", e);
+            }
         }
-        return result;
+
+        return currentPage;
     }
 
     public SearchItemIndex getDocument(String id) {
@@ -263,6 +280,23 @@ public class ElasticService {
         Optional<SearchHit<SearchItemIndex>> result = elasticsearchOperations.search(query, SearchItemIndex.class).stream().findFirst();
 
         return result.map(it -> it.getContent().getId()).orElse(null);
+    }
+
+    // This retrieves the document id for the guid. It will be idxtype COMMON and may have up to 2000 results
+    public List<String> queryCommonIds(String guid) {
+        Query query = NativeQuery.builder()
+                .withQuery(wq -> wq.bool(bq -> {
+                    bq.filter(f -> f.term(t -> t.field("taxonGuid").value(guid)));
+                    bq.filter(f -> f.term(t -> t.field("idxtype").value("COMMON")));
+                    return bq;
+                }))
+                .withSourceFilter(new FetchSourceFilter(new String[]{"id"}, null))
+                .withMaxResults(2000)
+                .build();
+
+        Optional<SearchHit<SearchItemIndex>> result = elasticsearchOperations.search(query, SearchItemIndex.class).stream().findFirst();
+
+        return result.map(it -> it.getContent().getId()).stream().toList();
     }
 
     public void addWeights(SearchItemIndex item) {
@@ -375,10 +409,36 @@ public class ElasticService {
     public IndexQuery buildIndexQuery(SearchItemIndex item) {
         addWeights(item);
 
+//        // convert to Map to avoid issues with the dynamic fields
+//        Map itemMap = new HashMap();
+//        for (int i = 0; i < SearchItemIndex.class.getFields().length; i++) {
+//            try {
+//                Field f = SearchItemIndex.class.getFields()[i];
+//                Object obj = f.get(item);
+//                if (obj == null) {
+//                    continue;
+//                }
+//
+//                // use name to detect dynamic fields
+//                if (f.getName().endsWith("Fields")) {
+//                    // convert to map
+//                    Map<String, String> fields = (Map<String, String>) obj;
+//                    if (fields != null) {
+//                        itemMap.putAll(fields);
+//                    }
+//                } else {
+//                    itemMap.put(f.getName(), obj);
+//                }
+//            } catch (Exception e) {
+//                logger.error("Failed to get field value", e);
+//            }
+//        }
+
+//        return new IndexQueryBuilder().withId(item.getId()).withObject(itemMap).build();
         return new IndexQueryBuilder().withId(item.getId()).withObject(item).build();
     }
 
-    String openPointInTime() throws IOException {
+    public String openPointInTime() throws IOException {
         OpenPointInTimeRequest request = new OpenPointInTimeRequest.Builder()
                 .index(elasticIndex)
                 .keepAlive(new Time.Builder().time("60m").build())
@@ -387,12 +447,7 @@ public class ElasticService {
         return elasticsearchClient.openPointInTime(request).id();
     }
 
-    // TODO: Use PIT for queryPointInTimeAfter
-    // 1. openPointInTime
-    // 2. queryPointInTimeAfter
-    // 3. update PIT and searchAfter. repeat (2)
-    // 4. closePointInTime
-    void closePointInTime(String pit) throws IOException {
+    public void closePointInTime(String pit) throws IOException {
         ClosePointInTimeRequest request = new ClosePointInTimeRequest.Builder().id(pit).build();
 
         elasticsearchClient.closePointInTime(request);
@@ -402,7 +457,6 @@ public class ElasticService {
             String pit,
             List<FieldValue> searchAfter,
             Integer pageSize,
-            Map<String, Object> query,
             co.elastic.clients.elasticsearch._types.query_dsl.Query opQuery,
             List<FieldAndFormat> fieldList,
             List<SortOptions> sortOptions,
@@ -412,40 +466,9 @@ public class ElasticService {
         SearchRequest.Builder searchRequest = new SearchRequest.Builder()
                 .size(pageSize)
                 .trackTotalHits(t -> t.enabled(trackTotalHits))
-                .index(elasticIndex) // Is this needed when using elasticsearchClient?
                 .source(sc -> sc.fetch(false));
 
-        if (query != null) {
-            // TODO: migrate to using Op generated query
-            searchRequest.query(q -> q.bool(bq -> {
-                for (Map.Entry<String, Object> item : query.entrySet()) {
-                    if (item.getValue() instanceof List) {
-                        bq.must(
-                                q2 -> q2.bool(bq2 -> {
-                                    for (Object v : (List) item.getValue()) {
-                                        if (item.getKey().startsWith("-")) {
-                                            bq2.mustNot(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
-                                        } else {
-                                            bq2.should(q3 -> q3.term(t -> t.field(fieldMapping(item.getKey())).value((String) v)));
-                                        }
-                                    }
-                                    return bq2;
-                                }));
-                    } else if (item.getKey().startsWith("not exists ")) {
-                        bq.mustNot(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("not exists ".length())))));
-                    } else if (item.getKey().startsWith("exists ")) {
-                        bq.must(q3 -> q3.exists(eq -> eq.field(fieldMapping(item.getKey().substring("exists ".length())))));
-                    } else if (item.getKey().startsWith("-")) {
-                        bq.mustNot(f -> f.term(t -> t.field(fieldMapping(item.getKey().substring(1))).value((String) item.getValue())));
-                    } else {
-                        bq.filter(f -> f.term(t -> t.field(fieldMapping(item.getKey())).value((String) item.getValue())));
-                    }
-                }
-                return bq;
-            }));
-        } else if (opQuery != null) {
-            searchRequest.query(opQuery);
-        }
+        searchRequest.query(opQuery);
 
         if (fieldList != null) {
             searchRequest.fields(fieldList);
@@ -469,15 +492,6 @@ public class ElasticService {
         return elasticsearchClient.search(searchRequest.build(), SearchItemIndex.class);
     }
 
-    private String fieldMapping(String key) {
-        if (key.startsWith("rk") || key.startsWith("conservation_")) {
-            return "data." + key;
-        }
-        // TODO: other data.* fields, if they are in use
-
-        return key;
-    }
-
     public List<IndexedField> indexFields(boolean forceUpdate) {
         if (indexFieldsList == null || forceUpdate) {
             List<IndexedField> result = new ArrayList<>(250);
@@ -485,7 +499,7 @@ public class ElasticService {
             Map<String, Object> properties = (Map<String, Object>) elasticsearchOperations.indexOps(SearchItemIndex.class).getMapping().get("properties");
 
             for (Map.Entry<String, Object> item : properties.entrySet()) {
-                result.addAll(propertyToIndexedFields(item, properties.keySet()));
+                result.addAll(propertyToIndexedFields(item));
             }
 
             indexFieldsList = result;
@@ -503,7 +517,7 @@ public class ElasticService {
         return validFieldNames;
     }
 
-    private Collection<IndexedField> propertyToIndexedFields(Map.Entry<String, Object> item, Set<String> existingKeys) {
+    private Collection<IndexedField> propertyToIndexedFields(Map.Entry<String, Object> item) {
         Map<String, Object> attr = (Map<String, Object>) item.getValue();
 
         String type = (String) attr.get("type");
@@ -516,29 +530,13 @@ public class ElasticService {
             case "float" -> "float";
             case "object" -> "object";
             case "nested" -> "nested";
+            case "binary" -> "binary";
             default -> "other";
         };
 
-        if ("nested".equals(type)) {
-            // recurse
-            Map<String, Object> properties = (Map<String, Object>) attr.get("properties");
-            List<IndexedField> list = new ArrayList<>(properties.size());
-            for (Map.Entry<String, Object> property : properties.entrySet()) {
-                Collection<IndexedField> subList = propertyToIndexedFields(property, existingKeys);
+        boolean indexed = !"text".equals(type) && !"nested".equals(type) && !"binary".equals(type) && !"other".equals(type);
 
-                // check for duplicates when flattening
-                for (IndexedField subItem : subList) {
-                    if (existingKeys.contains(subItem.getName())) {
-                        logger.warn("Found a duplicate when flattening indexFields: " + subItem.getName());
-                    }
-                }
-
-                list.addAll(subList);
-            }
-            return list;
-        } else {
-            return Collections.singleton(new IndexedField(item.getKey(), dataType, !"text".equals(type), true, null));
-        }
+        return Collections.singleton(new IndexedField(item.getKey(), dataType, indexed, true, null));
     }
 
     public List<Classification> getClassification(SearchItemIndex taxon) {
@@ -635,6 +633,7 @@ public class ElasticService {
         return null;
     }
 
+    // TODO: nested "data" is removed
     public Map<String, String> getNestedFields(String id) {
         NativeQueryBuilder query =
                 NativeQuery.builder().withQuery(wq -> wq.term(t -> t.field("id").value(id))).withMaxResults(1);
@@ -688,7 +687,7 @@ public class ElasticService {
                         b.should(s -> s.term(t -> t.field("scientificName").value(cleanQ).caseInsensitive(true).boost(100.0f)));
                         b.should(s -> s.term(t -> t.field("nameComplete").value(cleanQ).caseInsensitive(true).boost(10.0f)));
                         if (searchVernacular) {
-                            b.should(s -> s.matchPhrase(t -> t.field("commonName").query(cleanQ)));
+                            b.should(s -> s.matchPhrase(t -> t.field("commonName").query(cleanQ).slop(0)));
                         }
                         return b;
                     }));
@@ -884,20 +883,17 @@ public class ElasticService {
         SearchItemIndex baseTaxon = getTaxon(cleanId);
         int baseRankID = baseTaxon != null && baseTaxon.rankID != null ? baseTaxon.rankID : -1;
 
-        // TODO: does this query do what I think it does?
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery(wq -> wq.bool(bq -> {
-                    bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
-                    bq.filter(f -> f.term(t -> t.field("parentGuid").value(cleanId)));
+                    bq.must(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                    bq.must(f -> f.term(t -> t.field("parentGuid").value(cleanId)));
                     if (baseRankID > 0 && within > 0) {
-                        // rankID in a range
-                        bq.should(q -> q.range(r ->
-                                r.field("rankID")
-                                        .gte(JsonData.of(unranked ? -1 : baseRankID + 1))
-                                        .lte(JsonData.of(baseRankID + within))));
-                        // OR rankID does not exist
-                        bq.should(q -> q.bool(b -> b.mustNot(m -> m.exists(r -> r.field("rankID")))));
-                        // TODO: original code has an fq parameter that is not documented in openapi, is this used?
+                        // rankID in a range OR rankID does not exist
+                        bq.must(f -> f.bool(b ->
+                                b.should(s -> s.range(r -> r.field("rankID")
+                                                .gte(JsonData.of(unranked ? -1 : baseRankID + 1))
+                                                .lte(JsonData.of(baseRankID + within))))
+                                .should(s -> s.bool(b1 -> b1.mustNot(m -> m.exists(r -> r.field("rankID")))))));
                     }
                     return bq;
                 }))
@@ -917,8 +913,8 @@ public class ElasticService {
             }
         }
 
+        // this is from bie-index
         children.sort((o1, o2) -> {
-            // TODO: copied this from bie-index, it looks odd
             Integer r1 = o1.getRankID();
             Integer r2 = o2.getRankID();
 
@@ -967,8 +963,10 @@ public class ElasticService {
                     if (StringUtils.isNotEmpty(taxonID)) {
                         // AND (guid:fguid OR rk_frank:fguid)
                         bq.must(q -> q.bool(b -> b.should(s -> s.term(t -> t.field("guid").value(fguid)))
-                                // TODO: rk_* searches are problematic because it is not a multivalue field
-                                .should(s -> s.term(t -> t.field("rk_" + frank).value(fguid)))));
+                                // this is a known variation from bie-index. bie-index overwrites rk_* fields and
+                                // atlas-index will add a numeric suffix instead.
+                                .should(s -> s.term(t -> t.field("rkid_" + frank).value(fguid)))
+                        ));
                     }
                     return bq;
                 }))
@@ -977,7 +975,6 @@ public class ElasticService {
         SearchHits<SearchItemIndex> searchResults = elasticsearchOperations.search(query.build(), SearchItemIndex.class);
 
         List<Map<String, Object>> result = new ArrayList<>();
-        // TODO: mapping to SearchItemIndex.class can exclude some data.* fields
         for (SearchHit<SearchItemIndex> hit : searchResults.getSearchHits()) {
             result.add(formatDoc(hit.getContent()));
         }
@@ -998,12 +995,15 @@ public class ElasticService {
             String large = null;
             if (StringUtils.isNotEmpty(item.image)) {
                 String image = item.image.split(",")[0];
-                thumbnail = imageUrl + ImageUrlType.THUMBNAIL.path + image;
-                large = imageUrl + ImageUrlType.LARGE.path + image;
-
+                thumbnail = imageUrl + String.format(ImageUrlType.THUMBNAIL.path, image);
+                large = imageUrl + String.format(ImageUrlType.LARGE.path, image);
             }
             return new ShortProfile(item.guid, item.scientificName, item.scientificNameAuthorship,
-                    item.rank, item.rankID, item.data.get("rk_kingdom"), item.data.get("rk_family"), item.commonNameSingle,
+                    item.scientificNameAuthorship,
+                    item.rank, item.rankID,
+                    item.rkFields != null ? item.rkFields.get("rk_kingdom") : null,
+                    item.rkFields != null ? item.rkFields.get("rk_family") : null,
+                    item.commonNameSingle,
                     thumbnail, large);
         }
 
@@ -1019,9 +1019,9 @@ public class ElasticService {
             String imageMetadata = null;
             if (StringUtils.isNotEmpty(item.image)) {
                 String image = item.image.split(",")[0];
-                imageLarge = imageUrl + ImageUrlType.LARGE.path + image;
-                imageThumbnail = imageUrl + ImageUrlType.THUMBNAIL.path + image;
-                imageSmall = imageUrl + ImageUrlType.SMALL.path + image;
+                imageLarge = imageUrl + String.format(ImageUrlType.LARGE.path, image);
+                imageThumbnail = imageUrl + String.format(ImageUrlType.THUMBNAIL.path, image);
+                imageSmall = imageUrl + String.format(ImageUrlType.SMALL.path, image);
                 imageMetadata = imageUrl + ImageUrlType.METADATA.path + image;
             }
 
@@ -1043,12 +1043,12 @@ public class ElasticService {
                     imageLarge,
                     imageSmall,
                     imageMetadata,
-                    item.data.get("rk_kingdom"),
-                    item.data.get("rk_phylum"),
-                    item.data.get("rk_class"),
-                    item.data.get("rk_order"),
-                    item.data.get("rk_family"),
-                    item.data.get("rk_genus"),
+                    item.rkFields != null ? item.rkFields.get("rk_kingdom") : null,
+                    item.rkFields != null ? item.rkFields.get("rk_phylum") : null,
+                    item.rkFields != null ? item.rkFields.get("rk_class") : null,
+                    item.rkFields != null ? item.rkFields.get("rk_order") : null,
+                    item.rkFields != null ? item.rkFields.get("rk_family") : null,
+                    item.rkFields != null ? item.rkFields.get("rk_genus") : null,
                     item.scientificNameAuthorship,
                     item.linkIdentifier);
         } else {
@@ -1109,23 +1109,24 @@ public class ElasticService {
                 String largeImage = null;
                 if (StringUtils.isNotEmpty(item.image)) {
                     String image = item.image;
-                    thumbnail = imageUrl + ImageUrlType.THUMBNAIL.path + image;
-                    smallImage = imageUrl + ImageUrlType.SMALL.path + image;
-                    largeImage = imageUrl + ImageUrlType.LARGE.path + image;
+                    thumbnail = imageUrl + String.format(ImageUrlType.THUMBNAIL.path, image);
+                    smallImage = imageUrl + String.format(ImageUrlType.SMALL.path, image);
+                    largeImage = imageUrl + String.format(ImageUrlType.LARGE.path, image);
                 }
 
                 output.add(new TaxaBatchItem(
                         item.guid,
                         item.scientificName,
+                        item.scientificName,
                         item.scientificNameAuthorship,
                         StringUtils.isNotEmpty(item.nameComplete) ? item.nameComplete : item.scientificName,
                         item.rank,
-                        item.data.get("rk_kingdom"),
-                        item.data.get("rk_phylum"),
-                        item.data.get("rk_class"),
-                        item.data.get("rk_order"),
-                        item.data.get("rk_family"),
-                        item.data.get("rk_genus"),
+                        item.rkFields != null ? item.rkFields.get("rk_kingdom") : null,
+                        item.rkFields != null ? item.rkFields.get("rk_phylum") : null,
+                        item.rkFields != null ? item.rkFields.get("rk_class") : null,
+                        item.rkFields != null ? item.rkFields.get("rk_order") : null,
+                        item.rkFields != null ? item.rkFields.get("rk_family") : null,
+                        item.rkFields != null ? item.rkFields.get("rk_genus") : null,
                         item.datasetName,
                         item.datasetID,
                         item.wikiUrl_s,
@@ -1144,13 +1145,13 @@ public class ElasticService {
     public Map<String, Object> extractClassification(SearchItemIndex item) {
         Map<String, Object> map = new LinkedHashMap<>();
 
-        String orderString = item.data.get("rankOrder");
+        String orderString = item.rankOrder;
         if (StringUtils.isNotEmpty(orderString)) {
             String[] orderedKeys = orderString.split(",");
             for (int i = orderedKeys.length - 1; i >= 0; i--) {
                 String next = orderedKeys[i];
-                map.put(next, item.data.get("rk_" + next));
-                map.put(next + "Guid", item.data.get("rkid_" + next));
+                map.put(next, item.rkFields != null ? item.rkFields.get("rk_" + next) : null);
+                map.put(next + "Guid", item.rkFields != null ? item.rkFields.get("rkid_" + next) : null);
             }
         }
 
@@ -1206,22 +1207,6 @@ public class ElasticService {
             return m;
         }
 
-        /*
-        TODO: There must be a better way to get nested data.
-
-        Nested "data.*" has issues. For example information "data.conservation_*" is inconsistently returned from
-        Elasticsearch in the _source. These are dynamicly created fields. Sometimes they return in the _source as
-        "data.conservation_*": "value", other times as "data": { "conservation_*": "value" }. I think it has something
-        to do with how elastic search stores the information as the fields are added with an update after the document
-        is created. The updated mapping in the index is correct. It is just that the raw response from Elasticsearch
-        can be wrong.
-
-        The workaround is to avoid the default mapping from the response to SearchItemIndex.
-
-         */
-        Map<String, String> data = getNestedFields(taxon.id);
-        taxon.data = data;
-
         List<SearchHit<SearchItemIndex>> synonyms = getSynonyms(taxon.guid);
         List<SearchHit<SearchItemIndex>> commonNames = new ArrayList<>(getTaxonGuid(taxon.guid, IndexDocType.COMMON));
         Map<String, Object> classification = extractClassification(taxon);
@@ -1238,7 +1223,6 @@ public class ElasticService {
         List<SearchHit<SearchItemIndex>> variants = getTaxonGuid(taxon.guid, IndexDocType.TAXONVARIANT);
 
         //Dataset index
-        // TODO: clarify behaviour because some of these datasetID's are private, e.g. dr2700
         SearchItemIndex dataset = getDataset(taxon.datasetID);
         String taxonDatasetURL = null;
         String taxonDatasetName = null;
@@ -1316,7 +1300,6 @@ public class ElasticService {
             commonNamesMap.put("status", it.getContent().status);
             commonNamesMap.put("priority", it.getContent().priority);
             commonNamesMap.put("language", StringUtils.isNotEmpty(it.getContent().language) ? it.getContent().language : commonNameDefaultLanguage);
-            commonNamesMap.put("temporal", it.getContent().temporal);
             commonNamesMap.put("locationID", it.getContent().locationID);
             commonNamesMap.put("locality", it.getContent().locality);
             commonNamesMap.put("countryCode", it.getContent().countryCode);
@@ -1330,7 +1313,6 @@ public class ElasticService {
                             (StringUtils.isNotEmpty(attributionCommon) ? attributionCommon : attributionDefault)));
             commonNamesMap.put("taxonRemarks", it.getContent().taxonRemarks);
             commonNamesMap.put("provenance", it.getContent().provenance);
-            commonNamesMap.put("labels", it.getContent().labels);
             commonNamesMap.put("infoSourceURL", StringUtils.isNotEmpty(it.getContent().source) ? it.getContent().source : datasetURL);
             commonNamesMap.put("datasetURL", datasetURL);
 
@@ -1338,8 +1320,8 @@ public class ElasticService {
         }).toList());
 
         Map<String, Object> conservationStatuses = new LinkedHashMap<>();
-        for (Map.Entry<String, String> entry : data.entrySet()) {
-            if (entry.getKey().startsWith("conservation_")) {
+        if (taxon.conservationFields != null) {
+            for (Map.Entry<String, String> entry : taxon.conservationFields.entrySet()) {
                 String dr = entry.getKey().substring("conservation_".length());
                 String label = entry.getKey();
                 if (legacyService.conservationMapping.containsKey(entry.getKey())) {
@@ -1374,7 +1356,6 @@ public class ElasticService {
             identifiersMap.put("nameString", it.getContent().name);
             identifiersMap.put("status", it.getContent().status);
             identifiersMap.put("subject", it.getContent().subject);
-            identifiersMap.put("format", it.getContent().format);
             identifiersMap.put("provenance", it.getContent().provenance);
             identifiersMap.put("infoSourceName", StringUtils.isNotEmpty(it.getContent().datasetName) ? it.getContent().datasetName :
                     (StringUtils.isNotEmpty(datasetName) ? datasetName :
@@ -1444,14 +1425,15 @@ public class ElasticService {
                         bq.filter(f -> f.term(t -> t.field("idxtype").value(idxtype)));
                     }
                     if (StringUtils.isNotEmpty(kingdom)) {
-                        // TODO: this is flawed because records can have multiple kingdoms, e.g. rk_kingdom, rk_kingdom1
-                        bq.filter(f -> f.term(t -> t.field("data.rk_kingdom").value(idxtype)));
+                        bq.filter(f -> f.term(t -> t.field("rk_kingdom").value(kingdom).caseInsensitive(true)));
                     }
                     // autocomplete for ES, 3 fields; name, scientificName, commonName
                     bq.must(bqq -> bqq.multiMatch(mm -> mm.query(cleanQ).type(TextQueryType.BoolPrefix)
                             .fields("name", "name._2gram", "name._3gram",
-                                    "scientificName", "scientificName._2gram", "scientificName._3gram",
-                                    "commonName", "commonName._2gram", "commonName._3gram")));
+                                    "scientificName", "scientificName._2gram", "scientificName._3gram")));
+
+                    // I notice that the bie-index does not autocomplete on the common name field, so leaving these out for now
+                    //"commonName", "commonName._2gram", "commonName._3gram")));
                     return bq;
                 })).functions(fs1 -> fs1.fieldValueFactor(fv -> fv.field("suggestWeight"))))) // used by bie-index /suggest
                 .withMaxResults(rows) // this is used by the legacy /guid/{name} field, and it has a max of 10
@@ -1466,65 +1448,6 @@ public class ElasticService {
         return list;
     }
 
-    // TODO: support fqs other than "field:value", e.g. op parser
-    public List<SearchItemIndex> autocomplete(String q, String [] fqs, Integer rows) {
-        final String cleanQ = cleanupId(q);
-
-        List<SearchItemIndex> list = new ArrayList<>();
-
-        Set<String> queryFields = new HashSet<>();
-        queryFields.addAll(Arrays.asList("name", "scientificName", "commonName", "guid", "id", "idxtype", "image", "rank", "taxonomicStatus"));
-
-        NativeQueryBuilder query = NativeQuery.builder()
-                // TODO: get feedback from testing before finalizing this autocomplete
-//                .withQuery(wq -> wq.functionScore(fs -> fs.query(fsq -> fsq.bool(bq -> {
-//                    if (fqs != null) {
-//                        for (String fq : fqs) {
-//                            String[] parts = fq.split(":");
-//                            if (parts.length == 2) {
-//                                queryFields.add(parts[0]);
-//                                bq.filter(f -> f.term(t -> t.field(parts[0]).value(parts[1])));
-//                            }
-//                        }
-//                    }
-//                    // autocomplete for ES, 3 fields; name, scientificName, commonName
-//                    bq.must(bqq -> bqq.multiMatch(mm -> mm.query(cleanQ).type(TextQueryType.BoolPrefix)
-//                            .fields("name", "name._2gram", "name._3gram",
-//                                    "scientificName", "scientificName._2gram", "scientificName._3gram",
-//                                    "commonName", "commonName._2gram", "commonName._3gram")));
-//                    return bq;
-//                })).functions(fs1 -> fs1.fieldValueFactor(fv -> fv.field("suggestWeight"))))) // used by bie-index /suggest and still seems useful
-                .withQuery(wq -> wq.functionScore(fs -> fs.query(fsq -> fsq.bool(bq -> {
-                    if (fqs != null) {
-                        for (String fq : fqs) {
-                            String[] parts = fq.split(":");
-                            if (parts.length == 2) {
-                                queryFields.add(parts[0]);
-                                bq.filter(f -> f.term(t -> t.field(parts[0]).value(parts[1])));
-                            }
-                        }
-                    }
-                    bq.mustNot(bqq -> bqq.terms(t -> t.field("idxtype").terms(ts -> ts.value(Arrays.stream(new String [] {"TAXONVARIANT", "IDENTIFIER"}).map(FieldValue::of).collect(Collectors.toList())))));
-                    bq.must(bqq -> bqq.match(mm -> mm.query(cleanQ).field("prefix").operator(Operator.And)));
-                    return bq;
-                })).functions(fs1 -> fs1.fieldValueFactor(fv -> fv.field("suggestWeight"))))) // used by bie-index /suggest and still seems useful
-                .withMaxResults(rows)
-                .withTrackScores(true)
-                .withSourceFilter(new FetchSourceFilter(queryFields.toArray(new String[0]), null));
-
-        SearchHits<SearchItemIndex> result = elasticsearchOperations.search(query.build(), SearchItemIndex.class);
-        if (result.getTotalHits() > 0) {
-            Set<String> seen = new HashSet<>();
-            for (SearchHit<SearchItemIndex> hit : result.getSearchHits()) {
-                if (!seen.contains(hit.getContent().guid)) {
-                    seen.add(hit.getContent().guid);
-                    list.add(hit.getContent());
-                }
-            }
-        }
-        return list;
-    }
-
     private Map<String, Object> formatDoc(SearchItemIndex item) {
         Map<String, Object> doc = new LinkedHashMap<>();
         if (item.idxtype.equals(IndexDocType.TAXON.name())) {
@@ -1533,7 +1456,7 @@ public class ElasticService {
             doc.put("linkIdentifier", item.linkIdentifier);
             doc.put("idxtype", item.idxtype);
             doc.put("name", item.scientificName);
-            doc.put("kingdom", item.data.get("rk_kingdom")); // TODO: rk_* fields are problematic
+            doc.put("kingdom", item.rkFields != null ? item.rkFields.get("rk_kingdom") : null);
             doc.put("nomenclaturalCode", item.nomenclaturalCode);
             doc.put("scientificName", item.scientificName);
             doc.put("scientificNameAuthorship", item.scientificNameAuthorship);
@@ -1564,10 +1487,10 @@ public class ElasticService {
 
             if (StringUtils.isNotEmpty(item.image)) {
                 doc.put("image", item.image);
-                doc.put("imageUrl", imageUrl + ImageUrlType.SMALL.path + item.image);
-                doc.put("thumbnailUrl", imageUrl + ImageUrlType.THUMBNAIL.path + item.image);
-                doc.put("smallImageUrl", imageUrl + ImageUrlType.SMALL.path + item.image);
-                doc.put("largeImageUrl", imageUrl + ImageUrlType.LARGE.path + item.image);
+                doc.put("imageUrl", imageUrl + String.format(ImageUrlType.SMALL.path, item.image));
+                doc.put("thumbnailUrl", imageUrl + String.format(ImageUrlType.THUMBNAIL.path, item.image));
+                doc.put("smallImageUrl", imageUrl + String.format(ImageUrlType.SMALL.path, item.image));
+                doc.put("largeImageUrl", imageUrl + String.format(ImageUrlType.LARGE.path, item.image));
             }
 
             doc.putAll(extractClassification(item));
@@ -1593,9 +1516,10 @@ public class ElasticService {
         } else if (item.idxtype.equals(IndexDocType.COMMON.name())) {
             doc.put("id", item.id);
             doc.put("guid", item.guid);
+            doc.put("taxonGuid", item.taxonGuid);
             doc.put("linkIdentifier", item.linkIdentifier);
             doc.put("idxtype", item.idxtype);
-            doc.put("name", item.scientificName);
+            doc.put("name", item.name);
             doc.put("language", item.language);
             doc.put("acceptedConceptName", item.acceptedConceptName);
             doc.put("favourite", item.favourite);
@@ -1604,10 +1528,10 @@ public class ElasticService {
 
             if (StringUtils.isNotEmpty(item.image)) {
                 doc.put("image", item.image);
-                doc.put("imageUrl", imageUrl + ImageUrlType.SMALL.path + item.image);
-                doc.put("thumbnailUrl", imageUrl + ImageUrlType.THUMBNAIL.path + item.image);
-                doc.put("smallImageUrl", imageUrl + ImageUrlType.SMALL.path + item.image);
-                doc.put("largeImageUrl", imageUrl + ImageUrlType.LARGE.path + item.image);
+                doc.put("imageUrl", imageUrl + String.format(ImageUrlType.SMALL.path, item.image));
+                doc.put("thumbnailUrl", imageUrl + String.format(ImageUrlType.THUMBNAIL.path, item.image));
+                doc.put("smallImageUrl", imageUrl + String.format(ImageUrlType.SMALL.path, item.image));
+                doc.put("largeImageUrl", imageUrl + String.format(ImageUrlType.LARGE.path, item.image));
             }
         } else {
             doc.put("id", item.id);
@@ -1635,8 +1559,8 @@ public class ElasticService {
             if (StringUtils.isNotEmpty(item.image)) {
                 if (!item.image.startsWith("http")) {
                     doc.put("image", item.image);
-                    doc.put("imageUrl", imageUrl + ImageUrlType.SMALL.path + item.image);
-                    doc.put("thumbnailUrl", imageUrl + ImageUrlType.THUMBNAIL.path + item.image);
+                    doc.put("imageUrl", imageUrl + String.format(ImageUrlType.SMALL.path, item.image));
+                    doc.put("thumbnailUrl", imageUrl + String.format(ImageUrlType.THUMBNAIL.path, item.image));
                 } else {
                     doc.put("image", item.image);
                     doc.put("imageUrl", item.image);
@@ -1683,7 +1607,7 @@ public class ElasticService {
         return doc;
     }
 
-    public File download(String q, String[] fqs, String fields) throws Exception {
+    public File download(String q, String[] fqs, String fields, boolean legacyFormat) throws Exception {
         if (StringUtils.isEmpty(fields)) {
             // default fields
             fields = defaultDownloadFields;
@@ -1707,8 +1631,19 @@ public class ElasticService {
 
         String[] fieldsSplit = fields.split(",");
         List<FieldAndFormat> fieldList = new ArrayList<>(fieldsSplit.length);
-        for (String field : fieldsSplit) {
-            fieldList.add(new FieldAndFormat.Builder().field(fieldMapping(field)).build());
+
+        for (String f : fieldsSplit) {
+            // Need separate handling for dynamic_templates. This will include all fields in the response
+            // that match the requested template.
+            if (f.startsWith("conservation_")) {
+                fieldList.add(new FieldAndFormat.Builder().field("conservation_*").includeUnmapped(true).build());
+            } else if (f.startsWith("sds_")) {
+                fieldList.add(new FieldAndFormat.Builder().field("sds_*").includeUnmapped(true).build());
+            } else if (f.startsWith("iucn_")) {
+                fieldList.add(new FieldAndFormat.Builder().field("iucn_*").includeUnmapped(true).build());
+            } else {
+                fieldList.add(new FieldAndFormat.Builder().field(f).build());
+            }
         }
         int[] columnCount = new int[fieldList.size()];
         Arrays.fill(columnCount, 0);
@@ -1725,10 +1660,22 @@ public class ElasticService {
 
         // generate tmpFile, includes empty columns
         File tmpFile = File.createTempFile("download", "csv");
+        String pit = null;
         try (CSVWriter writer = new CSVWriter(new FileWriter(tmpFile))) {
+            pit = openPointInTime();
+
             writer.writeNext(Arrays.stream(fieldsSplit).map(it -> {
-                String formattedField = it.replaceAll("^rk_", "").replaceAll("^rkid_", "");
-                return messageSource.getMessage(formattedField, null, formattedField, Locale.getDefault());
+                if (!legacyFormat) {
+                    return it;
+                } else {
+                    String formattedField = it;
+                    if (it.startsWith("rk_")) {
+                        formattedField = it.substring(3);
+                    } else if (formattedField.startsWith("rkid_")) {
+                        formattedField = it.substring(5) + "ID";
+                    }
+                    return messageSource.getMessage("download." + formattedField, null, formattedField, Locale.getDefault());
+                }
             }).toArray(String[]::new));
 
             String[] row = new String[fieldsSplit.length];
@@ -1739,7 +1686,7 @@ public class ElasticService {
             boolean hasMore = true;
             while (hasMore && count < downloadMaxRows) {
                 SearchResponse<SearchItemIndex> result = queryPointInTimeAfter(
-                        null, searchAfter, elasticPageSize, null, opToQuery(op), fieldList, null, false);
+                        pit, searchAfter, elasticPageSize, opToQuery(op), fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
 
                 if (hits.isEmpty()) {
@@ -1755,21 +1702,12 @@ public class ElasticService {
                         break;
                     }
 
-                    for (int i = 0; i < fieldList.size(); i++) {
-                        String field = fieldList.get(i).field();
+                    for (int i = 0; i < fieldsSplit.length; i++) {
+                        String field = fieldsSplit[i];
                         if (item.fields().get(field) != null) {
                             String value = item.fields().get(field).toJson().asJsonArray().getJsonString(0).getString();
                             row[i] = value;
                             columnCount[i]++;
-                        } else if (field.startsWith("data.") && item.fields().get("data") != null) {
-                            JsonValue jv = item.fields().get("data").toJson().asJsonArray().getJsonObject(0).get(field.substring(5));
-                            if (jv != null) {
-                                String value = jv.asJsonArray().getJsonString(0).getString();
-                                row[i] = value;
-                                columnCount[i]++;
-                            } else {
-                                row[i] = "";
-                            }
                         } else {
                             row[i] = "";
                         }
@@ -1781,6 +1719,14 @@ public class ElasticService {
             }
 
             writer.flush();
+        } finally {
+            try {
+                if (pit != null) {
+                    closePointInTime(pit);
+                }
+            } catch (Exception e) {
+                logger.error("Error closing point in time", e);
+            }
         }
 
         int totalColumns = 0;
@@ -1816,7 +1762,7 @@ public class ElasticService {
             tmpFile.delete();
         }
 
-        return tmpFile;
+        return tmpFinalFile;
     }
 
     public SearchHits<SearchItemIndex> search(Op op, int page, int pageSize) {
@@ -1830,7 +1776,7 @@ public class ElasticService {
         return elasticsearchOperations.search(query.build(), SearchItemIndex.class);
     }
 
-    private co.elastic.clients.elasticsearch._types.query_dsl.Query opToQuery(Op op) {
+    public co.elastic.clients.elasticsearch._types.query_dsl.Query opToQuery(Op op) {
         if (op.terms.size() == 1) {
             // single term
             return termToQuery(op.terms.get(0), false);
@@ -1881,37 +1827,26 @@ public class ElasticService {
                         })._toQuery()
                 ).tieBreaker(0.0))._toQuery();
             } else if ("*".equals(term.value)) {
-                return nestedWrapper(term.field, ExistsQuery.of(eq -> eq.field(term.field))._toQuery());
+                return ExistsQuery.of(eq -> eq.field(term.field))._toQuery();
             } else {
                 if (isKeywordField(term.field)) {
-                    return nestedWrapper(term.field, TermQuery.of(tq -> tq.field(term.field).value(term.value))._toQuery());
+                    return TermQuery.of(tq -> tq.field(term.field).value(term.value))._toQuery();
                 } else {
-                    return nestedWrapper(term.field, MatchPhraseQuery.of(m -> m.field(term.field).query(term.value))._toQuery());
+                    return MatchPhraseQuery.of(m -> m.field(term.field).query(term.value))._toQuery();
                 }
             }
         }
     }
 
-    private co.elastic.clients.elasticsearch._types.query_dsl.Query nestedWrapper(String field, co.elastic.clients.elasticsearch._types.query_dsl.Query query) {
-        if (field.startsWith("data.")) {
-            return NestedQuery.of(nf -> nf.path("data").query(query))._toQuery();
-        } else {
-            return query;
-        }
-    }
-
+    // TODO: document this somewhere so that when a change is made to mappings.json this is also updated, or maybe it
+    //  loads mappings.json and uses that to determine if it is a keyword field.
     private boolean isKeywordField(String field) {
         boolean textField = "commonName".equals(field) || "description".equals(field);
         if (textField) {
             return false;
         }
 
-        boolean dataField = field.startsWith("data.");
-        if (!dataField) {
-            return true;
-        }
-
-        boolean keywordDataField = field.startsWith("data.conservation_") || field.startsWith("data.rk");
+        boolean keywordDataField = field.startsWith("conservation_") || field.startsWith("rk");
         return !keywordDataField;
     }
 
@@ -1921,7 +1856,17 @@ public class ElasticService {
     public Map<String, Object> searchLegacy(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets) {
         PageRequest pageRequest = PageRequest.of(page, pageSize);
 
-        Op op = QueryParserUtil.parse(q, fqs, this::isValidField);
+        String[] newFqs = fqs;
+        if (fqs != null) {
+            // add idxtype:IDENTIFIER and idxtype:TAXONVARIANT to the fqs
+            newFqs = new String[fqs.length + 2];
+            System.arraycopy(fqs, 0, newFqs, 0, fqs.length);
+            newFqs[fqs.length] = "-idxtype:IDENTIFIER";
+            newFqs[fqs.length + 1] = "-idxtype:TAXONVARIANT";
+        } else {
+            newFqs = new String[]{"-idxtype:IDENTIFIER", "-idxtype:TAXONVARIANT"};
+        }
+        Op op = QueryParserUtil.parse(q, newFqs, this::isValidField);
         if (op == null) {
             return null;
         }
@@ -1946,7 +1891,7 @@ public class ElasticService {
 
         Map<String, Object> mapResult = new HashMap<>();
         List<Object> searchResults = new ArrayList<>();
-        mapResult.put("searchResults", searchResults);
+        mapResult.put("results", searchResults);
         mapResult.put("totalRecords", result.getTotalHits());
         mapResult.put("queryTitle", getQueryTitle(q));
 
@@ -1980,7 +1925,7 @@ public class ElasticService {
         return mapResult;
     }
 
-    public Map<String, Object> search(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets, String [] fl) {
+    public Map<String, Object> search(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets, String[] fl) {
         PageRequest pageRequest = PageRequest.of(page, Math.max(1, pageSize));
 
         Op op = QueryParserUtil.parse(q, fqs, this::isValidField);
@@ -2021,20 +1966,13 @@ public class ElasticService {
                 Map values = new HashMap();
                 try {
                     for (int i = 0; i < fl.length; i++) {
-                        if (fl[i].startsWith("data.") && !item.getContent().containsKey(fl[i])) {
-                            if (item.getContent().get("data") != null) {
-                                values.put(fl[i], ((Map) item.getContent().get("data")).get(fl[i].substring(5)));
-                            }
-                        } else {
-                            values.put(fl[i], item.getContent().get(fl[i]));
-                        }
+                        values.put(fl[i], item.getContent().get(fl[i]));
                     }
                     searchResults.add(values);
                 } catch (Exception e) {
-                    // TODO: ??
+                    logger.error("Error processing search result: " + e.getMessage());
                 }
             } else {
-                // TODO: flatten "data." fields
                 searchResults.add(item.getContent());
             }
         }
@@ -2080,11 +2018,11 @@ public class ElasticService {
                 } else {
                     queryTitle = rankName + " " + guid;
                 }
-            } catch (Exception ignored){
+            } catch (Exception ignored) {
             }
         }
 
-        if(StringUtils.isEmpty(queryTitle)){
+        if (StringUtils.isEmpty(queryTitle)) {
             queryTitle = "all records";
         }
 
@@ -2092,6 +2030,7 @@ public class ElasticService {
     }
 
     public boolean isValidField(String fieldName) {
+        // nested fields appear in validFields without a prefix, so also search with a prefix
         return validFields(false).contains(fieldName);
     }
 }

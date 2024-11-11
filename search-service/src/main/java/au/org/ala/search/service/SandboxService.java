@@ -269,7 +269,7 @@ public class SandboxService {
                     writer.writeNext(nextLine);
                 }
 
-                row ++;
+                row++;
             }
 
             writer.flush();
@@ -369,18 +369,19 @@ public class SandboxService {
     /**
      * Delete a sandbox data resource, from the /upload/ directory and SOLR.
      *
-     * @param id upload UUID (dataResourceUid)
-     * @param userId user ID or null to skip user check
+     * @param id      upload UUID (dataResourceUid)
+     * @param userId  user ID or null to skip user check
+     * @param isAdmin
      * @return
      */
-    public SandboxIngress delete(String id, String userId) {
+    public SandboxIngress delete(String id, String userId, boolean isAdmin) {
         if (!isValidUUID(id)) {
             return null;
         }
 
-        // check that the user owns this data resource. userId == null will skip this check
+        // check that the user owns this data resource, or is admin. userId == null will skip this check
         String drUserId = getUserId(id);
-        if (userId != null && (drUserId == null || !drUserId.equals(userId))) {
+        if (!isAdmin && userId != null && (drUserId == null || !drUserId.equals(userId))) {
             return null;
         }
 

@@ -51,8 +51,8 @@ public class FieldguideConsumerService extends ConsumerService {
     @Value("${collections.url}")
     public String collectionsUrl;
 
-    @Value("${bie.uiUrl}")
-    public String bieUiUrl;
+    @Value("${speciesUrlPrefix}")
+    public String speciesUIPrefix;
 
     @Value("${homeUrl}")
     public String homeUrl;
@@ -150,9 +150,7 @@ public class FieldguideConsumerService extends ConsumerService {
 
                         Map dataResource = elasticService.getDocumentMap(taxon.datasetID);
                         if (dataResource != null) {
-                            itemMap.put("imageDataResourceURL",
-                                    dataResource.containsKey("data.websiteUrl_s") ?
-                                            dataResource.get("data.websiteUrl_s") : ((Map) dataResource.get("data")).get("websiteUrl_s"));
+                            itemMap.put("imageDataResourceURL", dataResource.get("image")); // TODO: get the data resource image URL as this might be wrong
                             itemMap.put("imageDataResourceName", dataResource.get("name"));
                         }
                         itemMap.put("imageDataResourceUid", imgMetadata.get("dataResourceUid"));
@@ -168,7 +166,7 @@ public class FieldguideConsumerService extends ConsumerService {
                 }
 
                 // add to families
-                String family = taxon.data.get("rk_family");
+                String family = taxon.rkFields != null ? taxon.rkFields.get("rk_family") : null;
                 if (family == null) {
                     family = "";
                 }
@@ -191,9 +189,6 @@ public class FieldguideConsumerService extends ConsumerService {
 
         json.put("families", sortedFamilies);
 
-        // Write JSON to a file
-//        FileUtils.writeStringToFile(new File("/data/fieldguide-test-1.json"), om.writeValueAsString(json), "UTF-8");
-
         return json;
     }
 
@@ -211,7 +206,7 @@ public class FieldguideConsumerService extends ConsumerService {
         context.setVariable("dataLink", item.queueRequest.sourceUrl);
         context.setVariable("baseUrl", homeUrl);
         context.setVariable("fieldguideBannerOtherPages", "./images/field-guide-banner-other-pages.png");
-        context.setVariable("fieldguideSpeciesUrl", bieUiUrl + "/species/");
+        context.setVariable("fieldguideSpeciesUrl", speciesUIPrefix);
         context.setVariable("collectoryUrl", collectionsUrl + "/public/show/");
         context.setVariable("formattedDate", sdf.format(new Date()));
         context.setVariable("biocacheMapUrl", biocacheUrl + "/density/map?fq=geospatial_kosher:true&q=lsid:%22");
@@ -242,7 +237,6 @@ public class FieldguideConsumerService extends ConsumerService {
     void sendEmail(QueueItem item) {
         String downloadUrl = baseUrl + "/v1/download/" + item.id;
 
-        // TODO: local timezone
         String content = emailTextSuccess
                 .replace("[url]", downloadUrl)
                 .replace("[date]", new Date().toString())

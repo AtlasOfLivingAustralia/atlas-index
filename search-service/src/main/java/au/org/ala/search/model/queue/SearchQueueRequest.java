@@ -9,5 +9,5 @@ import lombok.Setter;
 @Setter
 public class SearchQueueRequest extends QueueRequest {
     public String[] q;
-    public String[] fields;
+    public String[] fl;
 }

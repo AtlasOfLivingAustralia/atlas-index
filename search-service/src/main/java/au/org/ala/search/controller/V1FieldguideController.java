@@ -167,7 +167,6 @@ public class V1FieldguideController {
         }
     }
 
-
     @Operation(
             method = "GET",
             tags = "fieldguide",

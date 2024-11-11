@@ -4,6 +4,7 @@ import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.ListBackedFields;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.ListService;
 import au.org.ala.search.service.remote.LogService;
@@ -34,6 +35,7 @@ public class ListImportService {
     protected final ElasticService elasticService;
     protected final ListService listService;
     protected final LogService logService;
+    protected final ListCache listCache;
     @Value("${lists.uiUrl}")
     private String listsUiUrl;
     @Value("${lists.conservation.statusField}")
@@ -63,13 +65,14 @@ public class ListImportService {
     @Value("${lists.native-introduced}")
     private String nativeIntroduced;
 
-    // used to surpress duplicate error messages
+    // used to suppress duplicate error messages
     private boolean kvpError;
 
-    public ListImportService(ElasticService elasticService, ListService listService, LogService logService) {
+    public ListImportService(ElasticService elasticService, ListService listService, LogService logService, ListCache listCache) {
         this.elasticService = elasticService;
         this.listService = listService;
         this.logService = logService;
+        this.listCache = listCache;
     }
 
     @PostConstruct
@@ -89,7 +92,9 @@ public class ListImportService {
             }
         }
     }
-    // TODO: longer term, the taxon updates from species lists should be "one update per taxon" rather than the current implementation of "one update per taxon per field". This will most significantly improve the first update for a new names index due to the large number of elasticsearch requests performed to get the document ids. It is much less of an impact for the incremental updates that take place when re-running.
+
+    // Performance: not an immediate concern, but longer term this should update once per taxon instead of once
+    // per list per taxon.
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
         logService.log(taskType, "Starting lists import");
@@ -106,17 +111,17 @@ public class ListImportService {
         long deleted = elasticService.removeDeletedItems(existingLists);
         logService.log(taskType, "delete: " + deleted);
 
-        // TODO: While this function will correctly handle the addition and update of species lists for each field in
-        //  the index, some, if not all, do not remove fields from the index when the associated list is also removed
-        //  or no longer in the category used to populate the index.
-        //  Need to fix this for at least these index fields: iucn_listId, conservation_listId, attributes_listId, sds_listId.
+        // Get a list of all fields. Used to determine what should be removed
+        Set<String> indexFields = elasticService.validFields(false);
 
         logService.log(taskType, "import conservation values (data.conservation_listId)");
+        List<String> conservationFields = new ArrayList(indexFields.stream().filter(str -> str.startsWith("conservation_")).toList());
         int conservationCounter = 0;
         for (String listId : conservationLists) {
+            conservationFields.remove("conservation_" + listId);
             conservationCounter = importKvpList(
                     Collections.singletonList(listId),
-                    "data.conservation_" + listId,
+                    "conservation_" + listId,
                     (it -> {
                         for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
                             if (map.get("key").equals(listsConservationStatusField)) {
@@ -129,16 +134,19 @@ public class ListImportService {
                         }
                         return null;
                     }),
-                    true).size();
+                    true, true).size();
         }
+        deleteFields(conservationFields);
 
         // IUCN status is found in conservation lists, but a different field.
-        logService.log(taskType, "import conservation values (data.iucn_listId)");
+        logService.log(taskType, "import conservation values (iucn_listId)");
+        List<String> iucnFields = new ArrayList(indexFields.stream().filter(str -> str.startsWith("iucn_")).toList());
         int conservationIUCNCounter = 0;
         for (String listId : conservationLists) {
+            iucnFields.remove("iucn_" + listId);
             conservationIUCNCounter = importKvpList(
                     Collections.singletonList(listId),
-                    "data.iucn_" + listId + "_s",
+                    "iucn_" + listId,
                     (it -> {
                         Map conservation = new HashMap();
                         for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
@@ -147,29 +155,14 @@ public class ListImportService {
                             }
                         }
                         if (!kvpError) {
-                            logService.log(taskType, "Conservation list " + listId + " has a null value in field " + listsConservationStatusField);
+                            logService.log(taskType, "Conservation list " + listId + " has a null value in field " + getListsConservationIUCNStatusField);
                             kvpError = true;
                         }
                         return null;
                     }),
-                    true).size();
+                    true, true).size();
         }
-
-        logService.log(taskType, "import attribute values");
-        int attributesCounter = 0;
-        for (String listId : attributeLists) {
-            attributesCounter = importKvpList(
-                    Collections.singletonList(listId),
-                    "data.attributes_" + listId,
-                    (it -> {
-                        try {
-                            return new ObjectMapper().writeValueAsString(it.get("kvpValues"));
-                        } catch (Exception ignored) {
-                            return null;
-                        }
-                    }),
-                    true).size();
-        }
+        deleteFields(iucnFields);
 
         logService.log(taskType, "import lists images");
         int listImageCounter = 0;
@@ -190,7 +183,7 @@ public class ListImportService {
                             }
                             return null;
                         }),
-                        false).size();
+                        false, true).size();
             }
         }
 
@@ -215,7 +208,7 @@ public class ListImportService {
                         }
                         return null;
                     }),
-                    false).size();
+                    false, true).size();
         }
 
         logService.log(taskType, "import hidden images");
@@ -232,13 +225,13 @@ public class ListImportService {
                         }
                         return null;
                     }),
-                    true).size();
+                    true, true).size();
         }
 
-        // 'favourite' field is populated with a configured string when a TAXON is in a species list. To support the
+        // 'favourite' field is populated with a configured string when a TAXON or COMMON is in a species list. To support the
         // ability to remove with, zero downtime during an update, aggregate the lists and apply in a single pass.
         // Keep track of all items updated so that 'weights' can be reapplied.
-        logService.log(taskType, "import favourites images");
+        logService.log(taskType, "import favourites images (TAXON)");
         int favouritesCounter = 0;
         List<String> favouriteLists = new ArrayList<>(2);
         List<String> favouriteType = new ArrayList<>(2);
@@ -250,6 +243,7 @@ public class ListImportService {
             Set<String> ids = listService.items(listIdAndString[0]).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
             stringLookup.put(listIdAndString[1], ids);
         }
+        // for idxtype:TAXON
         if (!favouriteLists.isEmpty()) {
             List<String> updatedIds =
                     importKvpList(
@@ -265,7 +259,7 @@ public class ListImportService {
                                 }
                                 return null;
                             }),
-                            true);
+                            true, true);
             // we want to update weights, however, we may need to wait for the update to complete
             // as a workaround we just re-run this after n-seconds
             if (!updatedIds.isEmpty()) {
@@ -288,6 +282,48 @@ public class ListImportService {
             favouritesCounter = updatedIds.size();
         }
 
+        // for idxtype:COMMON
+        logService.log(taskType, "import favourites images (COMMON)");
+        int favouritesCommonCounter = 0;
+        if (!favouriteLists.isEmpty()) {
+            List<String> updatedIds =
+                    importKvpList(
+                            favouriteLists,
+                            listsFavouriteField,
+                            (it -> {
+                                for (int i = 0; i < favouriteLists.size(); i++) {
+                                    Set<String> ids = stringLookup.get(favouriteType.get(i));
+                                    String lsid = (String) it.get("lsid");
+                                    if (ids.contains(lsid)) {
+                                        return favouriteType.get(i);
+                                    }
+                                }
+                                return null;
+                            }),
+                            true, false);
+            // we want to update weights, however, we may need to wait for the update to complete
+            // as a workaround we just re-run this after n-seconds
+            if (!updatedIds.isEmpty()) {
+                // TODO: this is not ideal. It is better to keep track of the updated 'favourite' value and update using this, instead of waiting 5 minutes with the hope that all updates property flushed.
+                logService.log(taskType, "Updating weights for " + updatedIds.size() + " items, in the background, in 5 minutes.");
+                new Thread() {
+                    public void run() {
+                        try {
+                            // wait 5 minutes
+                            Thread.sleep(5 * 60 * 1000);
+                            updateWeights(updatedIds);
+                            logService.log(taskType, "Finished weights for " + updatedIds.size() + " items.");
+                        } catch (InterruptedException e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }
+                }.start();
+            }
+
+            favouritesCommonCounter = updatedIds.size();
+        }
+
+        // This is only required for the legacy V1SearchController.
         logService.log(taskType, "import wiki");
         int wikiCounter = 0;
         if (StringUtils.isNotEmpty(listsWiki)) {
@@ -302,7 +338,7 @@ public class ListImportService {
                         }
                         return null;
                     }),
-                    true).size();
+                    true, true).size();
         }
 
         // The expect input and output for native/introduced is explained here
@@ -332,32 +368,37 @@ public class ListImportService {
 
                         return result;
                     }),
-                    true).size();
+                    true, true).size();
         }
 
         // Track the SDS list that a taxon if found within
         logService.log(taskType, "import sds");
+        List<String> sdsFields = new ArrayList(indexFields.stream().filter(str -> str.startsWith("sds_")).toList());
         int sdsCounter = 0;
         for (Map<String, Object> list : sdsLists) {
             String listId = list.get("dataResourceUid").toString();
+            sdsFields.remove("sds_" + listId);
             sdsCounter = importKvpList(
                     Collections.singletonList(listId),
-                    "sds_" + listId + "_s",
+                    "sds_" + listId,
                     (it -> {
-                        // TODO: There is no requirement to use the category value, should this even be a useful field.
                         for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
+                            // there is no requirement for the value inthe "category" field, but it seems more useful than "true"
                             if (map.get("key").equals("category")) {
                                 return map.get("value");
                             }
                         }
                         return "true";
                     }),
-                    true).size();
+                    true, true).size();
         }
+        deleteFields(sdsFields);
 
         // This section maintains the field "speciesList" for each taxon that appears in authoritative lists. This field
         // contains a list of listIds that the taxon appears in. The initial purpose is for use with species-pages
         // resource tab where there are buttons that will be visible depending on what lists the taxon appears in.
+        // While the actual auth lists required is small, the decision to add all auth lists was to reduce future
+        // maintenance of config.
         logService.log(taskType, "import speciesList field with lists of auth lists");
         int allListsCounter = 0;
         List<String> allLists = new ArrayList<>(10000);
@@ -384,9 +425,16 @@ public class ListImportService {
         // nested fields may have changed, cache the new list
         elasticService.indexFields(true);
 
+        // update lists cache now
+        listCache.cacheListNames();
+
+        // dynamic fields may have changed, cache the new list
+        elasticService.indexFields(true);
+
         logService.log(taskType, "Finished updates authoritative: " + counter
-                + ", conservation: " + conservationCounter + ", attributes: " + attributesCounter
-                + ", favourites: " + favouritesCounter + ", hiddenImages: " + hiddenImagesCounter
+                + ", conservation: " + conservationCounter /*+ ", attributes: " + attributesCounter*/
+                + ", favouritesTaxon: " + favouritesCounter + ", favouritesCommon: " + favouritesCommonCounter
+                + ", hiddenImages: " + hiddenImagesCounter
                 + ", preferredImages (all): " + preferredImageCounter + ", wiki: " + wikiCounter
                 + ", list images: " + listImageCounter
                 + ", native/introduced: " + nativeIntroducedCounter
@@ -471,10 +519,11 @@ public class ListImportService {
      * @param value          function to convert species list to the value for a field
      * @param trackAndDelete use true when 'field' is updated only by a single call to this function,
      *                       for removal of old values
+     * @param isTaxon        true if idxtype:TAXON, false if idxtype:COMMON
      * @return list of ids that were updated
      */
     private List<String> importKvpList(
-            List<String> listIds, String field, ListToFieldValue value, Boolean trackAndDelete) {
+            List<String> listIds, String field, ListToFieldValue value, Boolean trackAndDelete, boolean isTaxon) {
         List<String> updatedIds = new ArrayList<>();
         List<UpdateQuery> buffer = new ArrayList<>();
         Set<String> seenIds = new HashSet();
@@ -484,9 +533,11 @@ public class ListImportService {
         int counter = 0;
         int duplicateIds = 0;
 
+        String guidField = isTaxon ? "guid" : "taxonGuid";
+
         try {
             Map<String, String[]> existingItems = trackAndDelete
-                    ? elasticService.queryItems(field, "*", "guid", new String[]{"guid", "id", field}, -1)
+                    ? elasticService.queryItems(field + ":*", guidField, new String[]{guidField, "id", field}, -1)
                     : new HashMap<>();
 
             List<Map<String, Object>> items = new ArrayList<>();
@@ -527,15 +578,28 @@ public class ListImportService {
                     updatedIds.add(stored[1]);
                 } else if (stored == null && status != null) {
                     // new value to create
-                    String id = elasticService.queryTaxonId(guid);
-                    if (id != null) {
-                        Document doc = Document.create();
-                        doc.put(field, status);
-                        buffer.add(UpdateQuery.builder(id).withDocument(doc).build());
-                        updatedIds.add(id);
+                    List<String> ids = null;
+                    if (isTaxon) {
+                        String id = elasticService.queryTaxonId(guid);
+                        if (id != null) {
+                            ids = Collections.singletonList(id);
+                        }
                     } else {
-                        logService.log(taskType, "taxonId missing: " + guid);
-                        // TODO: Question the need for conservation lists to trigger COMMON record creation here
+                        ids = elasticService.queryCommonIds(guid);
+                    }
+                    if (ids != null && !ids.isEmpty()) {
+                        // Performance: COMMON records will always be updated, or at best, all but one, change this to speed up the process
+                        for (String id : ids) {
+                            Document doc = Document.create();
+                            doc.put(field, status);
+                            buffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                            updatedIds.add(id);
+                        }
+                    } else {
+                        // Only report missing taxonIds for idxtype:TAXON
+                        if (isTaxon) {
+                            logService.log(taskType, "taxonId missing: " + guid);
+                        }
                     }
                 }
             }
@@ -568,8 +632,8 @@ public class ListImportService {
         List<UpdateQuery> buffer = new ArrayList<>();
         for (String id : ids) {
             SearchItemIndex item = elasticService.getDocument(id);
-            float origSearchWeight = item.searchWeight;
-            float origSuggestWeight = item.suggestWeight;
+            Double origSearchWeight = item.searchWeight;
+            Double origSuggestWeight = item.suggestWeight;
             elasticService.addWeights(item);
 
             Document doc = Document.create();
@@ -598,15 +662,13 @@ public class ListImportService {
             String field, Map<String, List<String>> taxonIdMap) {
         List<String> updatedIds = new ArrayList<>();
         List<UpdateQuery> buffer = new ArrayList<>();
-        Set<String> seenIds = new HashSet();
 
         kvpError = false;
 
         int counter = 0;
-        int duplicateIds = 0;
 
         try {
-            Map<String, String[]> existingItems = elasticService.queryItems(field, "*", "guid", new String[]{"guid", "id", field}, -1);
+            Map<String, String[]> existingItems = elasticService.queryItems(field + ":*", "guid", new String[]{"guid", "id", field}, -1);
 
             for (Map.Entry<String, List<String>> entry : taxonIdMap.entrySet()) {
                 String guid = entry.getKey();
@@ -617,7 +679,7 @@ public class ListImportService {
                 String[] stored = existingItems.remove(guid);
 
                 // alternative null values
-                if (stored != null && "[]".equals(stored[2])) {
+                if (stored != null && ("[]".equals(stored[2]) || StringUtils.isEmpty(stored[2]))) {
                     stored = null;
                 }
 
@@ -665,7 +727,44 @@ public class ListImportService {
         return updatedIds;
     }
 
-    private boolean arraysEqual(String s, List<String> value) {
-        return false;
+    private boolean arraysEqual(String a, List<String> b) {
+        if (StringUtils.isEmpty(a)) {
+            return b.isEmpty();
+        }
+
+        String [] split = a.split(",");
+
+        if (split.length != b.size()) {
+            return false;
+        }
+
+        for (String s : split) {
+            if (!b.contains(s)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // page over documents with a field and zero it out
+    private void deleteFields(List<String> fieldsToDelete) {
+        for (String field : fieldsToDelete) {
+            Map<String, String[]> existingItems = elasticService.queryItems( field + ":*", "id", new String[]{"id"}, -1);
+
+            // buffer all updates for a single field, regardless of size
+            List<UpdateQuery> buffer = new ArrayList<>();
+
+            for (Map.Entry<String, String[]> es : existingItems.entrySet()) {
+                Document doc = Document.create();
+                doc.put(field, null);
+                buffer.add(UpdateQuery.builder(es.getValue()[0]).withDocument(doc).build());
+            }
+
+            elasticService.updateImmediately(buffer);
+
+            logService.log(taskType, "delete field " + field + ", removed:" + existingItems.size());
+
+        }
     }
 }

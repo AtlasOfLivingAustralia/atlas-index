@@ -46,7 +46,7 @@ public class FormatUtil {
         List<Profile> profiles = new ArrayList<>();
         for (SearchItemIndex item : items) {
             profiles.add(new Profile(item.guid, item.scientificName,
-                    // TODO: include other definitions of accepted, e.g. why is the taxonomicStatus test required?
+                    // I do wonder if "accepted" is appropriate here, or if it should be omitted.
                     StringUtils.isNotEmpty(item.acceptedConceptID) ? item.acceptedConceptID : ("accepted".equals(item.taxonomicStatus) ? item.guid : ""),
                     StringUtils.isNotEmpty(item.acceptedConceptName) ? item.acceptedConceptName : ("accepted".equals(item.taxonomicStatus) ? item.scientificName : "")));
         }

@@ -1,5 +1,6 @@
 package au.org.ala.search.controller;
 
+import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.cache.LanguageInfo;
 import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.auth.WebService;
@@ -22,22 +23,22 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.elasticsearch.core.*;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.io.*;
-import java.net.URLEncoder;
+import java.security.Principal;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * bie-index API services, minus some admin services
@@ -48,8 +49,9 @@ public class V2Controller {
     private static final Logger logger = LoggerFactory.getLogger(V2Controller.class);
 
     public static final String SPECIES_ID = "species_v2";
-    public static final String SEARCH_AUTO_ID = "autocomplete_v2";
     public static final String LIST_ID = "list_v2";
+    public static final String DOWNLOAD_ID = "download_v2";
+    public static final String DOWNLOAD_FIELDGUIDE = "fieldguide_v2";
     private final ListCache listCache;
 
     @Value("#{'${openapi.servers}'.split(',')[0]}")
@@ -85,7 +87,7 @@ public class V2Controller {
             description = "For each given guid or name, the following searches will be performed in order,<br/>"
                     + "before returning the accepted identifier:<br/>"
                     + "1. Search for matching TAXON guid or linkIdentifier<br/>"
-                    + "2. Search for the first matching TAXON scientificName or nameComplete or commonName<br/>" // TODO: raising a question about how the commonName match is done. Do we need a 2nd commonName field for exact matches? Do we need to use the subfield that is 'keyword'?
+                    + "2. Search for the first matching TAXON scientificName or nameComplete or commonName<br/>"
                     + "3. Search for matching TAXONVARIANT scientificName or nameComplete<br/>"
                     + "4. Search for matching IDENTIFIER guid (previous identifier)"
     )
@@ -98,41 +100,23 @@ public class V2Controller {
     )
     @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Map>> species(
-            // TODO: add to openapi service to get a real example, see OpenapiService
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of guids or scientificNames to search",
                     content = @Content(
+                            // This example is updated by OpenapiService at runtime
                             examples = @ExampleObject(
                                     value = "[\"urn:lsid:biodiversity.org.au:afd.taxon:1\",\"Koala\"]"
                             )))
             @RequestBody
-            List<String> qs
+            List<String> qs,
+            @Parameter(
+                    description = "Comma delimited list of fields to return. If not provided, all fields are returned.",
+                    example = "id,scientificName,rank,data.rk_kingdom")
+            @RequestParam(name = "fl", required = false) String fl
     ) {
         if (qs == null || qs.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-
-        // TODO: during the build of the new species page UI it is determined that the following is required
-        // 1. The inclusion of all child COMMON, IDENTIFIER, TAXON (synonyms), TAXONVARIANT are required. Currently
-        //  the fields required are; nameFormatted (or nameString, or identifier), infoSourceName (or nameAuthority), infoSourceURL,
-        //  language, languageURL.
-        // 2. (ready to test) Where COMMON language code lookup for the name and URL is required. Use resource language.json
-        // 3. 3 imageIds are required, for the front page. Modify the imageId update service to do this.
-        // 4. EXPERT_DISTRIBUTIONS are required; data resource uid, data resource name, distribution name.
-        // 5. Next level down TAXON children are required; rank, formatted name, guid.
-        // 6. Add an update process that updates static description.json files to be retrieved when a user clicks on
-        //  the 'description' tab. Expect that this will be a combination of Profiles and Wikipedia content. It should
-        //  be updated on a separate time scale as other updates.
-        // 7. Add an update process that adds a short text description to elasticsearch.
-        // 8. Support a 'status' field for containing native/introduced information as a map of guid, place, status, source.
-        // 9. Access a list of conservation status value mappings. Looking for something like; status -> IUCN Equivalent Status.
-        // 10. Conservation status value mappings also require mapping for the name that appears in the species UI.
-        //  I wonder if this is best done with an i18n style mapping of the speciesListID within the UI.
-        // 11. Include datasets info. Not sure where best this goes. Looking for dr/dp/co/in -> name, licence, records.
-        //  (id, name, count) is easily fetched from biocache-service with a facet query. Licence, not so much. Maybe,
-        //  given usage elsewhere (is there other usage?) it can be a static file updated when collectory is updated?
-        //  or maybe a /v2/search is faster because collectory is slow?
-        // 12. Add ES parameter for the presence of a description file.
 
         List<Map> result = new ArrayList<>();
         for (String q : qs) {
@@ -150,24 +134,6 @@ public class V2Controller {
                 taxon = elasticService.getTaxonByPreviousIdentifierMap(id, true);
             }
 
-            // flatten data. in them map
-            if (taxon != null && taxon.containsKey("data")) {
-                // remove "data." prefix
-                List<String> keys = new ArrayList<>(taxon.keySet());
-                for (Object key : keys) {
-                    if (key != null && ((String) key).startsWith("data.")) {
-                        taxon.put(((String) key).substring(5), taxon.get(key));
-                        taxon.remove(key);
-                    }
-                }
-
-                // extract items from "data"
-                Map data = (Map) taxon.get("data");
-                for (Object entry : data.entrySet()) {
-                    taxon.put(((Map.Entry) entry).getKey(), ((Map.Entry) entry).getValue());
-                }
-            }
-
             // Inject an object for synonymData, vernacularData, identifierData, variantData.
             // Replaces JSON string with JSON list.
             try {
@@ -176,7 +142,7 @@ public class V2Controller {
                 updateNamesData(taxon, mapper, "vernacularData");
                 updateNamesData(taxon, mapper, "identifierData");
                 updateNamesData(taxon, mapper, "variantData");
-            } catch(IOException ignored){
+            } catch (IOException ignored) {
             }
 
             // Inject listId->name mapping so that it is available to the UI
@@ -184,7 +150,7 @@ public class V2Controller {
             for (Object obj : taxon.keySet()) {
                 String key = (String) obj;
                 if (key.startsWith("iucn_") || key.startsWith("conservation_") || key.startsWith("sds_")) {
-                    String listId = key.replaceAll("iucn_|conservation_|sds_|_s", "");
+                    String listId = key.replaceAll("iucn_|conservation_|sds_", "");
                     String name = listCache.listNames.get(listId);
                     if (StringUtils.isNotEmpty(name)) {
                         listNamesMap.put(listId, name);
@@ -210,6 +176,18 @@ public class V2Controller {
                 }
             }
 
+            // Remove fields not requested. For better performance incorporate this at the flatten and inject stages.
+            if (fl != null) {
+                List<String> fields = Arrays.asList(fl.split(","));
+                Map filteredTaxon = new HashMap<>();
+                for (String field : fields) {
+                    if (taxon.containsKey(field)) {
+                        filteredTaxon.put(field, taxon.get(field));
+                    }
+                }
+                taxon = filteredTaxon;
+            }
+
             result.add(taxon);
         }
         return ResponseEntity.ok(result);
@@ -218,9 +196,9 @@ public class V2Controller {
     /**
      * Update the base64 + compressed JSON with a JSON list for a taxon Map object
      *
-     * @param taxon taxon Map with the object that is a string of JSON
+     * @param taxon  taxon Map with the object that is a string of JSON
      * @param mapper ObjectMapper so it does not need to be created each time
-     * @param name the name of the object in the taxon Map
+     * @param name   the name of the object in the taxon Map
      * @throws IOException
      */
     private void updateNamesData(Map taxon, ObjectMapper mapper, String name) throws IOException {
@@ -247,39 +225,6 @@ public class V2Controller {
 
     @Tag(name = "Search")
     @Operation(
-            operationId = SEARCH_AUTO_ID,
-            summary = "Autocomplete search",
-            description = "Used to provide a list of scientific and common names that can be used to automatically complete a supplied partial name."
-    )
-    @ApiResponse(description = "Search results", responseCode = "200",
-            headers = {
-                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
-            }
-    )
-    @GetMapping(path = {"/v2/autocomplete"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<SearchItemIndex>> searchAuto(
-            @Parameter(
-                    description = "The value to auto complete e.g. q=Mac",
-                    example = "Mac")
-            @RequestParam(name = "q") String q,
-            @Parameter(
-                    description = "The index type to limit, or other fq. One of TAXON, TAXONVARIANT, COMMON, IDENTIFIER, REGION, COLLECTION, INSTITUTION, DATAPROVIDER, DATASET, LOCALITY, WORDPRESS, LAYER, SPECIESLIST, KNOWLEDGEBASE, BIOCOLLECT.",
-                    example = "idxtype:TAXON")
-            @Nullable @RequestParam(name = "fq", required = false) String [] fqs,
-            @Parameter(
-                    description = "The maximum number of results to return (default = 10)",
-                    example = "10")
-            @Nullable @RequestParam(name = "limit", required = false, defaultValue = "10") Integer limit
-    ) {
-        List<SearchItemIndex> autoCompleteList = elasticService.autocomplete(q, fqs, limit);
-
-        return ResponseEntity.ok(autoCompleteList);
-    }
-
-    @Tag(name = "Search")
-    @Operation(
             operationId = LIST_ID,
             summary = "Search the BIE",
             description = "Search the BIE by solr query  or free text search"
@@ -299,6 +244,7 @@ public class V2Controller {
             )
             @RequestParam(name = "q") String q,
 
+            // TODO: merge q and fq
             @Parameter(
                     description = "Filters to be applied to the original query. These are additional params of the form fq=INDEXEDFIELD:VALUE.",
                     example = "{\"imageAvailable:\\\"true\\\"\"}"
@@ -335,11 +281,11 @@ public class V2Controller {
             )
             @Nullable @RequestParam(name = "facets", required = false) String facets,
 
-        @Parameter(
-                description = "Comma delimited fields to return",
-                example = "guid,name,idxtype"
-        )
-        @Nullable @RequestParam(name = "fl", required = false) String [] fl) {
+            @Parameter(
+                    description = "Comma delimited fields to return",
+                    example = "guid,name,idxtype"
+            )
+            @Nullable @RequestParam(name = "fl", required = false) String[] fl) {
         Map<String, Object> result = elasticService.search(q, fqs, page, pageSize, sort, dir, facets, fl);
         if (result == null) {
             // Most likely it is a badly formed query
@@ -366,11 +312,11 @@ public class V2Controller {
         return elasticService.indexFields(true);
     }
 
-    @Tag(name = "download")
+    @Tag(name = "Download")
     @Operation(
-            operationId = "downloadSearch",
-            // TODO: Use OpenapiService to inject the config value downloadMaxRows into the summary.
-            summary = "Start a job to create a zipped CSV containing all the records of search result"
+            operationId = DOWNLOAD_ID,
+            summary = "Start a job to create a zipped CSV containing all the records of search result."
+            // description is set by the OpenapiService at runtime
     )
     @ApiResponse(description = "Job status", responseCode = "200",
             headers = {
@@ -380,22 +326,30 @@ public class V2Controller {
             }
     )
     @PostMapping(path = "/v2/download/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Status> queueDownload(
+    public ResponseEntity<StatusResponse> queueDownload(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "A download request including a query and filename.",
+                    description = "A download request. The list of query terms (q), the filename, and the list of fields to return (fl) are mandatory.",
                     content = @Content(
                             examples = @ExampleObject(
-                                    value = "{\"query\":\"Koala\", \"filename\":\"koala-20240101\"}"
+                                    value = "{\"q\":[\"Koala\"], \"filename\":\"koala-20240101\", \"fl\":[\"id\",\"scientificName\",\"rank\",\"rk_kingdom\"]}"
                             )))
             @RequestBody
             SearchQueueRequest searchDownloadRequest
     ) {
+        if (StringUtils.isEmpty(searchDownloadRequest.filename) ||
+                searchDownloadRequest.q == null || searchDownloadRequest.q.length == 0 ||
+                searchDownloadRequest.fl == null || searchDownloadRequest.fl.length == 0) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        searchDownloadRequest.taskType = TaskType.SEARCH_DOWNLOAD;
         return addToQueue(searchDownloadRequest);
     }
 
-    @Tag(name = "download")
+    @SecurityRequirement(name = "JWT")
+    @Tag(name = "Download")
     @Operation(
-            operationId = "downloadFieldguide",
+            operationId = DOWNLOAD_FIELDGUIDE,
             summary = "Start a job to create a PDF fieldguide"
     )
     @ApiResponse(description = "Job Status", responseCode = "200",
@@ -406,30 +360,33 @@ public class V2Controller {
             }
     )
     @PostMapping(path = "/v2/download/fieldguide", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Status> queueFieldguide(
+    public ResponseEntity<StatusResponse> queueFieldguide(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The fieldguide download request including a list of id and filename.",
                     content = @Content(
                             examples = @ExampleObject(
-                                    value = "{\"id\": [\"urn:lsid:biodiversity.org.au:afd.taxon:1\"], \"filename\":\"fieldguide-20240101\"}"
+                                    value = "{\"id\": [\"urn:lsid:biodiversity.org.au:afd.taxon:1\"], \"filename\":\"fieldguide-20240101\", \"title\":\"Fieldguide Title\", \"sourceUrl\":\"a source url\"}"
                             )))
             @RequestBody
-            FieldguideQueueRequest fieldguideDownloadRequest
-    ) {
+            FieldguideQueueRequest fieldguideDownloadRequest,
+            @AuthenticationPrincipal Principal principal) {
+        fieldguideDownloadRequest.email = authService.getEmail(principal);
+
+        fieldguideDownloadRequest.taskType = TaskType.FIELDGUIDE;
         return addToQueue(fieldguideDownloadRequest);
     }
 
-    private ResponseEntity<Status> addToQueue(QueueRequest queueRequest) {
+    private ResponseEntity<StatusResponse> addToQueue(QueueRequest queueRequest) {
         Status status = queueService.add(queueRequest);
 
         if (status != null) {
-            return ResponseEntity.ok(status);
+            return ResponseEntity.ok(new StatusResponse(status, baseUrl + "/v2/download"));
         } else {
             return ResponseEntity.badRequest().build();
         }
     }
 
-    @Tag(name = "download")
+    @Tag(name = "Download")
     @Operation(
             operationId = "downloadStatus",
             summary = "Get the status of a job and download the file"
@@ -452,7 +409,7 @@ public class V2Controller {
                     description = "default false. Use true to download the file (directly or via a redirect)",
                     example = "true"
             )
-            @RequestParam(name = "download") Boolean download) {
+            @RequestParam(name = "download", required = false, defaultValue = "false") Boolean download) {
         QueueItem queueItem = queueService.get(id);
         if (queueItem == null) {
             return ResponseEntity.notFound().build();
@@ -475,7 +432,7 @@ public class V2Controller {
                     if (file.getName().endsWith(".pdf")) {
                         headers.setContentType(MediaType.APPLICATION_PDF);
                     } else if (file.getName().endsWith(".zip")) {
-                        headers.setContentType(new MediaType("application/zip"));
+                        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
                     }
 
                     return ResponseEntity.ok().headers(headers).body(inputStreamResource);
@@ -486,50 +443,5 @@ public class V2Controller {
         }
 
         return ResponseEntity.ok(new StatusResponse(queueItem.status, baseUrl + "/v2/download"));
-    }
-
-    // TODO: change these ausTraits proxies for another approach
-    @GetMapping("/trait-count")
-    public ResponseEntity<?> austraitsCount(
-            @RequestParam(name = "taxon", required = true) String taxon,
-            @RequestParam(name = "APNI_ID", required = false) String id
-    ) throws UnsupportedEncodingException {
-        // temporary proxy
-        Map resp = webService.get("http://traitdata.austraits.cloud.edu.au" + "/trait-count?taxon=" + URLEncoder.encode(taxon, "UTF-8") + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.APPLICATION_JSON, false, false, null);
-        if (((Integer) resp.get("statusCode")) != 200) {
-            return ResponseEntity.status((Integer) resp.get("statusCode")).body(resp.get("resp"));
-        }
-        return ResponseEntity.ok(resp.get("resp"));
-    }
-
-    // TODO: change these ausTraits proxies for another approach
-    @GetMapping("/trait-summary")
-    public ResponseEntity<?> austraitsSummary(
-            @RequestParam(name = "taxon", required = true) String taxon,
-            @RequestParam(name = "APNI_ID", required = false) String id
-    ) throws UnsupportedEncodingException {
-        // temporary proxy
-        Map resp = webService.get("http://traitdata.austraits.cloud.edu.au" + "/trait-summary?taxon=" + URLEncoder.encode(taxon, "UTF-8") + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.APPLICATION_JSON, false, false, null);
-        if (((Integer) resp.get("statusCode")) != 200) {
-            return ResponseEntity.status((Integer) resp.get("statusCode")).body(resp.get("resp"));
-        }
-        return ResponseEntity.ok(resp.get("resp"));
-    }
-
-    // TODO: change these ausTraits proxies for another approach
-    @GetMapping(path = "/download-taxon-data", produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<?> austraitsDownload(
-            @RequestParam(name = "taxon", required = true) String taxon,
-            @RequestParam(name = "APNI_ID", required = false) String id
-    ) throws UnsupportedEncodingException {
-        // temporary proxy
-        Map resp = webService.get("http://traitdata.austraits.cloud.edu.au" + "/download-taxon-data?taxon=" + URLEncoder.encode(taxon, "UTF-8") + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.TEXT_PLAIN, false, false, null);
-        if (((Integer) resp.get("statusCode")) != 200) {
-            return ResponseEntity.status((Integer) resp.get("statusCode")).body(resp.get("resp"));
-        }
-        return ResponseEntity.ok()
-                .header("content-type", "text/csv")
-                .header("content-disposition", "attachment;filename=" + taxon.replace(" ", "_") + ".csv")
-                .body(resp.get("resp"));
     }
 }

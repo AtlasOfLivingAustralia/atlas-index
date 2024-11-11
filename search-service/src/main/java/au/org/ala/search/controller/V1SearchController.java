@@ -9,6 +9,7 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.util.FormatUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -163,7 +164,7 @@ public class V1SearchController {
         for (String id : ids) {
             SearchItemIndex item = elasticService.getTaxon(id);
             if (item == null) {
-                item = elasticService.getTaxonByName(id, true);
+                item = elasticService.getTaxonByName(id, false);
                 if (item != null && StringUtils.isNotEmpty(item.getAcceptedConceptID())) {
                     item = elasticService.getTaxon(item.getAcceptedConceptID());
                 }
@@ -175,9 +176,9 @@ public class V1SearchController {
             if (item != null && StringUtils.isNotEmpty(item.getImage())) {
                 String imageId = item.getImage().split(",")[0];
                 result.add(new Image(imageId,
-                        imageUrl + ImageUrlType.THUMBNAIL.path + imageId,
-                        imageUrl + ImageUrlType.SMALL.path + imageId,
-                        imageUrl + ImageUrlType.LARGE.path + imageId,
+                        imageUrl + String.format(ImageUrlType.THUMBNAIL.path, imageId),
+                        imageUrl + String.format(ImageUrlType.SMALL.path, imageId),
+                        imageUrl + String.format(ImageUrlType.LARGE.path, imageId),
                         imageUrl + ImageUrlType.METADATA.path + imageId));
             } else {
                 result.add(null);
@@ -233,6 +234,9 @@ public class V1SearchController {
 
         List<Classification> classification = elasticService.getClassification(elasticService.getTaxon(elasticService.cleanupId(guid), false, true));
 
+        // reverse the order of the classification to match bie-index default ordering
+        Collections.reverse(classification);
+
         if (classification.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -254,19 +258,33 @@ public class V1SearchController {
             }
     )
     @GetMapping(path = "/v1/guid/batch", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, List<Profile>>> guidBatch(
+    public ResponseEntity<?> guidBatch(
             @Parameter(
                     description = "Query string",
                     example = "[\"kangaroo\"]"
             )
-            @RequestParam(name = "q") String[] qs
+            @RequestParam(name = "q") String[] qs,
+            @Parameter(
+                    description = "Name of callback function to wrap JSON output in. Provided for JSONP cross-domain requests",
+                    example = "handleResponse"
+            )
+            @RequestParam(name = "callback", required = false) String callback
     ) {
         Map<String, List<Profile>> results = new HashMap<>();
 
         for (String q : qs) {
-            List<SearchItemIndex> items = elasticService.getTaxonsByName(q, 10, true);
+            List<SearchItemIndex> items = elasticService.getTaxonsByName(q, 10, false);
             if (items != null) {
                 results.put(q, FormatUtil.itemsToProfiles(items));
+            }
+        }
+
+        if (callback != null) {
+            try {
+                String json = new ObjectMapper().writeValueAsString(results);
+                return ResponseEntity.ok().body(callback + "(" + json + ")");
+            } catch (IOException e) {
+                return ResponseEntity.internalServerError().build();
             }
         }
 
@@ -292,7 +310,7 @@ public class V1SearchController {
             HttpServletRequest request
     ) {
         String id = request.getRequestURI().split(request.getContextPath() + "/v1/guid/")[1];
-        List<SearchItemIndex> items = elasticService.getTaxonsByName(id, 10, true);
+        List<SearchItemIndex> items = elasticService.getTaxonsByName(id, 10, false);
         if (items != null && !items.isEmpty()) {
             return ResponseEntity.ok(FormatUtil.itemsToProfiles(items));
         } else {
@@ -427,7 +445,7 @@ public class V1SearchController {
 
     @Operation(
             method = "GET",
-            tags = "admin webservices",
+            tags = "admin",
             operationId = "setImages",
             summary = "Set the preferred and hidden images for a taxon",
             security = {@SecurityRequirement(name = "openIdConnect")},
@@ -471,7 +489,7 @@ public class V1SearchController {
 
     @Operation(
             method = "GET",
-            tags = "admin webservices",
+            tags = "admin",
             operationId = "setWikiUrl",
             summary = "Set the preferred wiki URL for a taxon",
             security = {@SecurityRequirement(name = "openIdConnect")},
@@ -537,7 +555,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping("/v1/search")
+    @GetMapping(path = {"/v1/search", "/v1/search.json"})
     public ResponseEntity<Map<String, Object>> search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",
@@ -587,12 +605,19 @@ public class V1SearchController {
             page = start / rows;
         }
 
+        // map old sort term to new sort term
+        if ("score".equals(sort)) {
+            sort = "_score";
+        }
+
         Map<String, Object> result = elasticService.searchLegacy(q, fqs, page, rows, sort, dir, facets);
         if (result == null) {
             // Most likely it is a badly formed query
             return ResponseEntity.badRequest().build();
         } else {
-            return ResponseEntity.ok(result);
+            Map output = new HashMap();
+            output.put("searchResults", result);
+            return ResponseEntity.ok(output);
         }
     }
 
@@ -644,13 +669,15 @@ public class V1SearchController {
             Set<String> matchedNames = new HashSet<>();
             map.put("matchedNames", matchedNames);
 
-            if (item.commonName != null) {
-                for (String name : item.commonName) {
-                    String str = FormatUtil.getHighlightedName(name, q);
-                    matchedNames.add(str);
-                }
-                map.put("commonNameMatches", new ArrayList<>(matchedNames)); // clone of matchedNames
-            }
+//            if (item.commonName != null) {
+//                for (String name : item.commonName) {
+//                    String str = FormatUtil.getHighlightedName(name, q);
+//                    matchedNames.add(str);
+//                }
+//
+//                map.put("commonNameMatches", new ArrayList<>(matchedNames)); // clone of matchedNames
+//            }
+            map.put("commonNameMatches", Collections.emptyList()); // from bie-index
 
             if (StringUtils.isNotEmpty(item.scientificName)) {
                 String str = FormatUtil.getHighlightedName(item.scientificName, q);
@@ -718,7 +745,7 @@ public class V1SearchController {
         } else {
             File tmpFile = null;
             try {
-                tmpFile = elasticService.download(q, fqs, fields);
+                tmpFile = elasticService.download(q, fqs, fields, true);
                 final File finalFile = tmpFile;
                 return ResponseEntity.ok()
                         .contentType(new MediaType("text", "csv"))
@@ -726,14 +753,17 @@ public class V1SearchController {
                         .body(out -> {
                             try (InputStream in = new FileInputStream(finalFile)) {
                                 IOUtils.copy(in, out);
+                            } finally {
+                                if (finalFile.exists()) {
+                                    finalFile.delete();
+                                }
                             }
                         });
             } catch (Exception e) {
-                return ResponseEntity.badRequest().build();
-            } finally {
-                if (tmpFile != null) {
+                if (tmpFile != null && tmpFile.exists()) {
                     tmpFile.delete();
                 }
+                return ResponseEntity.badRequest().build();
             }
         }
     }

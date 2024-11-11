@@ -73,7 +73,7 @@ public class SearchConsumerService extends ConsumerService {
                 ZipEntry ze = new ZipEntry(csvFilename);
                 zos.putNextEntry(ze);
 
-                tmpFile = elasticService.download(q, fqs, StringUtils.join(request.getFields(), ","));
+                tmpFile = elasticService.download(q, fqs, StringUtils.join(request.getFl(), ","), false);
                 StreamUtils.copy(new FileInputStream(tmpFile), zos);
 
                 zos.closeEntry();
@@ -85,6 +85,10 @@ public class SearchConsumerService extends ConsumerService {
                 if (tmpFile != null) {
                     tmpFile.delete();
                 }
+            }
+
+            if (downloadFileStoreService.isS3()) {
+                downloadFileStoreService.copyToFileStore(file, item, true);
             }
         } catch (Exception e) {
             logger.error("search download: " + item.id, e);

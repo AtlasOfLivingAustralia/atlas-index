@@ -119,9 +119,9 @@ public class V2AdminController {
     }
 
     @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Update data")
+    @Operation(tags = "ADMIN", summary = "Update something")
     @Tag(name = "ADMIN", description = "REST Services for admin")
-    @GetMapping(path = "/v2/admin/update", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v2/admin/update", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(
             @RequestParam(name = "type") TaskType type,
             @AuthenticationPrincipal Principal principal) {

@@ -5,7 +5,6 @@ import au.org.ala.search.model.dto.SandboxIngress;
 import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.SandboxQueueRequest;
 import au.org.ala.search.model.queue.StatusCode;
-import au.org.ala.search.service.SandboxService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.LogService;
 import jakarta.annotation.PostConstruct;
@@ -34,37 +33,9 @@ public class SandboxConsumerService extends ConsumerService {
     public static final String VERBATIM_METRICS = "dwca-metrics.yml";
     public static final String INDEXING_METRICS = "indexing-metrics.yml";
     public static final String SENSITIVE_METRICS = "sensitive-metrics.yml";
-    private final SandboxService sandboxService;
-
-    @Value("${images.url}")
-    public String imagesUrl;
 
     @Value("${sandbox.consumer.threads}")
     public Integer sandboxConsumerThreads;
-
-    @Value("${biocache.url}")
-    public String biocacheUrl;
-
-    @Value("${collections.url}")
-    public String collectionsUrl;
-
-    @Value("${bie.uiUrl}")
-    public String bieUiUrl;
-
-    @Value("${homeUrl}")
-    public String homeUrl;
-
-    @Value("${email.enabled}")
-    public boolean emailEnabled;
-
-    @Value("${email.from}")
-    public String emailFrom;
-
-    @Value("${email.text.success}")
-    public String emailTextSuccess;
-
-    @Value("${email.subject.success}")
-    public String emailSubjectSuccess;
 
     @Value("${sandbox.dir}")
     public String sandboxDir;
@@ -84,9 +55,8 @@ public class SandboxConsumerService extends ConsumerService {
     @Value("${solr.collection}")
     public String solrCollection;
 
-    public SandboxConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService, SandboxService sandboxService) {
+    public SandboxConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService) {
         super(logService, queueService, emailSender, downloadFileStoreService);
-        this.sandboxService = sandboxService;
     }
 
     @PostConstruct

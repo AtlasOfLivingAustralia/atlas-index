@@ -31,8 +31,8 @@ public class SearchItemIndex {
     public String state;
     public String dataProvider;
     public Integer priority;
-    public Float searchWeight;
-    public Float suggestWeight;
+    public Double searchWeight;
+    public Double suggestWeight;
     public Integer occurrenceCount;
     public String taxonomicStatus;
     public String linkIdentifier;
@@ -59,7 +59,6 @@ public class SearchItemIndex {
     public String languageName;
     public String languageUri;
     public String source;
-    public String temporal;
     public String locationID;
     public String locality;
     public String countryCode;
@@ -69,18 +68,19 @@ public class SearchItemIndex {
     public String organismPart;
     public String[] taxonRemarks;
     public String[] provenance;
-    public String labels;
     public String datasetName;
     public String rightsHolder;
     public String subject;
-    public String format;
     public String parentGuid;
     public String rank;
     public Integer rankID;
+    public String rankOrder;
     public String scientificName;
     public String scientificNameAuthorship;
     public String nameComplete;
     public String nameFormatted;
+    public String taxonomicFlags_s;
+    public String acceptedNameUsage_s;
     public String acceptedNameUsageID;
     public String acceptedConceptID;
     public String nameType;
@@ -99,9 +99,7 @@ public class SearchItemIndex {
     public String hiddenImages_s;
     public String favourite;
     public String wikiUrl_s;
-    public Map<String, String> data;
     public String[] speciesGroup;
-    public String[] speciesSubgroup;
     public String taxonID;
     public String nomenclaturalCode;
     public String establishmentMeans;
@@ -116,7 +114,6 @@ public class SearchItemIndex {
     public String verbatimNomenclaturalCode;
     public String verbatimNomenclaturalStatus;
     public String verbatimTaxonomicStatus;
-    public String isPreferredName;
     public String acceptedConceptName;
     public String[] nameVariant;
     public String[] additionalIdentifiers;
@@ -125,4 +122,15 @@ public class SearchItemIndex {
     public String variantData; // JSON object with variant data for species page names tab
     public String identifierData; // JSON object with variant data for species page names tab
     public String vernacularData; // JSON object with vernacular data for species page names tab
+    public String nativeIntroduced;
+    public String distributions;
+    public String geomIdx;
+    public String[] speciesList;
+    public String vernacularName;
+
+    // dynamic field aggregations, for writing only, not sure how to read these back yet
+    public Map<String, String> sdsFields;
+    public Map<String, String> iucnFields;
+    public Map<String, String> conservationFields;
+    public Map<String, String> rkFields;
 }

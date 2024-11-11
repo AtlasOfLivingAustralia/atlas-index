@@ -319,6 +319,15 @@ public class DwCADenormaliseImportService {
         }
     }
 
+    public void denormalizeVernacularOnly(SearchItemIndex item) {
+        DenormalTaxon taxon = findCachedTaxonByGuid(item.taxonGuid);
+        if (taxon == null) {
+            return;
+        }
+
+        item.setAcceptedConceptName(taxon.scientificName);
+    }
+
     // The purpose of this is to denormalize during ingestion making use of cached data.
     // e.g. instead of the old denormalize (parent + recursion for children), this will follow to the parent
     // to get the data.rk* values
@@ -358,10 +367,10 @@ public class DwCADenormaliseImportService {
                 }
             }
 
-            if (item.data == null) {
-                item.data = parentData;
+            if (item.rkFields == null) {
+                item.setRkFields(parentData);
             } else {
-                item.data.putAll(parentData);
+                item.rkFields.putAll(parentData);
             }
         } else {
             List<String> speciesGroups = speciesGroupService.groupsFor(Collections.singletonList(new RankedName(item.scientificName.toLowerCase(), item.rank)));

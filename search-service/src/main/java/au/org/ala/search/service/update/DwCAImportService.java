@@ -77,7 +77,7 @@ public class DwCAImportService {
 
         dwCADenormaliseImportService.deleteCaches();
 
-        // nested fields may have changed, cache the new list
+        // dynamic fields may have changed, cache the new list
         elasticService.indexFields(true);
 
         logService.log(taskType, "Finished");
@@ -241,7 +241,7 @@ public class DwCAImportService {
 
             CompletableFuture.allOf(main, variant, vernacular, identifier).join();
 
-            logService.log(taskType, "Finished importing archive from " + dir
+            logService.log(taskType, "Finished " + (cacheOnly ? "caching" : "importing") + " archive from " + dir
                     + " finished: taxon=" + main.get()
                     + ", variant=" + variant.get()
                     + ", vernacular=" + vernacular.get()

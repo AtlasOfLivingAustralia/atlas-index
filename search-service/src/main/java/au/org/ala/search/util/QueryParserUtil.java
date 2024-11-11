@@ -28,8 +28,8 @@ import java.util.StringTokenizer;
  *   where value is
  *     string
  *     "string"
+ *     [value TO value] // TODO: add support for both parsing and the query build for range queries
  * </pre>
- * TODO: unit tests
  */
 public class QueryParserUtil {
 

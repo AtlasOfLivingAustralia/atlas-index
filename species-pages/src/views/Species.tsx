@@ -30,7 +30,7 @@ const descriptionLabels: string[] = descriptionLabelsConfig as string[];
 function Species({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
-    const [tab, setTab] = useQueryState('tab', { defaultValue: 'map' }); 
+    const [tab, setTab] = useQueryState('tab', { defaultValue: 'map' });
     const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
     const [descriptions, setDescriptions] = useState<TaxonDescription[]>([]);
     const [firstDescription, setFirstDescription] = useState<string>('');
@@ -81,8 +81,8 @@ function Species({setBreadcrumbs}: {
 
                 var invasiveStatusValue = false;
 
-                if (data[0]?.native_introduced_s) {
-                    var nativeIntroduced = JSON.parse(data[0].native_introduced_s);
+                if (data[0]?.nativeIntroduced) {
+                    var nativeIntroduced = JSON.parse(data[0].nativeIntroduced);
                     Object.keys(nativeIntroduced).map(key => {
                         if (nativeIntroduced[key].toLowerCase().includes('invasive')) {
                             invasiveStatusValue = true;

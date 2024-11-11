@@ -72,11 +72,11 @@ public class AreaImportService {
         // delete removed layers
         for (String layerId : existingLayerIds) {
             elasticService.queryDelete("layerId", layerId);
+            logService.log(taskType, "Deleted layer: " + layerId);
         }
 
         loadDistributions();
 
-        // TODO: log layer deletion/addition count. log distribution deletion/addition count.
         logService.log(taskType, "Finished");
         return CompletableFuture.completedFuture(true);
     }
@@ -208,11 +208,11 @@ public class AreaImportService {
     private void loadDistributions() {
         List<IndexQuery> buffer = new ArrayList<>();
 
-        Map<String, String[]> existingItems = elasticService.queryItems("idxtype", IndexDocType.DISTRIBUTION.name(), "id", new String[]{"id", "datasetID", "guid", "datasetName"}, -1);
+        Map<String, String[]> existingItems = elasticService.queryItems("idxtype:" + IndexDocType.DISTRIBUTION.name(), "id", new String[]{"id", "datasetID", "guid", "datasetName"}, -1);
 
         // get dataResourceID -> dataResourceName mapping
         Map<String, String> datasets = new HashMap<>();
-        Map<String, String[]> currentDatasets = elasticService.queryItems("idxtype", IndexDocType.DATARESOURCE.name(), "id", new String[]{"id", "name"}, -1);
+        Map<String, String[]> currentDatasets = elasticService.queryItems("idxtype:" + IndexDocType.DATARESOURCE.name(), "id", new String[]{"id", "name"}, -1);
         if (currentDatasets != null && !currentDatasets.isEmpty()) {
             for (Map.Entry<String, String[]> entry : currentDatasets.entrySet()) {
                 datasets.put(entry.getValue()[0], entry.getValue()[1]);
@@ -223,8 +223,7 @@ public class AreaImportService {
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            // TODO: This is not API Gateway friendly. The response can be too large. Need to paginate, or something.
-            //  Ideally there would be a lastModifiedDate available also.
+            // TODO: Use paging, depends on https://github.com/AtlasOfLivingAustralia/spatial-service/issues/252
             List currentDistributions = objectMapper.readValue(URI.create(spatialUrl + "/distributions").toURL(), List.class);
 
             Set<String> updatedLsids = new HashSet<>();
@@ -257,9 +256,6 @@ public class AreaImportService {
                     areaKmDbl = Double.parseDouble(areaKm);
                 } catch (Exception ignored) {}
 
-                Map<String, String> data = new HashMap<>();
-                data.put("geomIdx", geomIdx);
-
                 // When the item exists and the data resource name is the same, do not update the item.
                 if (existingItems.containsKey("dist-" + spcode)) { // 'id' of DISTRIBUTION is 'dist-{spcode}'
                     String[] existing = existingItems.remove("dist-" + spcode);;
@@ -278,7 +274,7 @@ public class AreaImportService {
                                 .datasetID(drUid)
                                 .areaKm(areaKmDbl)
                                 .image(imageUrl)
-                                .data(data)
+                                .geomIdx(geomIdx)
                                 .build();
 
                 buffer.add(elasticService.buildIndexQuery(searchItemIndex));
@@ -329,33 +325,37 @@ public class AreaImportService {
             }
 
             // update TAXON documents
+            int taxonInfoUpdated = 0;
             List<UpdateQuery> updateBuffer = new ArrayList<>();
             for (Map.Entry<String, List<Map<String, String>>> entry : distributions.entrySet()) {
                 // get document id so we can update the document
                 String id = elasticService.queryTaxonId(entry.getKey());
                 if (id != null) {
                     Document doc = Document.create();
-                    doc.put("data.distributions", new ObjectMapper().writeValueAsString(entry.getValue()));
+                    doc.put("distributions", new ObjectMapper().writeValueAsString(entry.getValue()));
                     updateBuffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                    taxonInfoUpdated++;
                 }
             }
 
             // removed existing distributions from TAXON documents that were not updated (because they are removed)
+            int taxonInfoRemoved = 0;
             for (Map.Entry<String, String[]> entry : existingItems.entrySet()) {
                 String guid = entry.getValue()[2]; // [2] is guid
                 if (updatedLsids.contains(guid)) {
                     String id = elasticService.queryTaxonId(guid);
                     if (id != null) {
                         Document doc = Document.create();
-                        doc.put("data.distributions", null);
+                        doc.put("distributions", null);
                         updateBuffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                        taxonInfoRemoved++;
                     }
                 }
             }
 
             elasticService.update(updateBuffer);
 
-            logService.log(taskType, "Finished distributions updates: " + counter + ", deleted: " + deleted);
+            logService.log(taskType, "Finished distributions updates: " + counter + ", deleted: " + deleted + ", taxonInfoUpdated: " + taxonInfoUpdated + ", taxonInfoRemoved: " + taxonInfoRemoved);
 
         } catch (Exception e) {
             logService.log(taskType, "failed to get distributions " + spatialUrl + "/distributions");

@@ -18,20 +18,20 @@ import java.io.File;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Service to store files, usually static files, info a file store. e.g. local file system or S3
+ * Service to store sitemap files
  */
 @Service
-public class StaticFileStoreService {
+public class SitemapFileStoreService {
 
-    private static final Logger logger = LoggerFactory.getLogger(StaticFileStoreService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SitemapFileStoreService.class);
 
-    @Value("${static.filestore.path}")
+    @Value("${sitemap.filestore.path}")
     private String fileStorePath;
-    @Value("${static.s3.region}")
+    @Value("${sitemap.s3.region}")
     private String s3Region;
-    @Value("${static.s3.accessKey}")
+    @Value("${sitemap.s3.accessKey}")
     private String s3AccessKey;
-    @Value("${static.s3.secretKey}")
+    @Value("${sitemap.s3.secretKey}")
     private String s3SecretKey;
 
     S3AsyncClient s3Client;
@@ -64,11 +64,12 @@ public class StaticFileStoreService {
                         .build();
                 CompletableFuture<PutObjectResponse> result = s3Client.putObject(request, src.toPath());
 
+                // wait for the result
                 result.join();
 
-                // report error
+                // log result
                 if (result.isCompletedExceptionally()) {
-                    logger.error("Failed to copy file to s3 src: " + src.getAbsolutePath() + ", dstPath" + path + "/" + dstPath);
+                    logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + dstPath);
                     return false;
                 }
             } else {
@@ -81,6 +82,50 @@ public class StaticFileStoreService {
             return true;
         } catch (Exception e) {
             logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + dstPath + ", " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Delete a file in the file store.
+     *
+     * @param file
+     * @return true if the file exists and is deleted
+     */
+    public boolean deleteFile(String file) {
+        try {
+            if (fileStorePath.startsWith("s3")) {
+                // s3 storage
+                String bucket = fileStorePath.substring(5, fileStorePath.indexOf("/", 5));
+                String path = fileStorePath.substring(fileStorePath.indexOf("/", 5) + 1);
+
+                // check if the file exists
+                boolean[] exists = {false};
+                s3Client.listObjectsV2Paginator(builder -> builder.bucket(bucket).prefix(path + "/" + file))
+                        .subscribe(response -> {
+                            if (!response.contents().isEmpty()) {
+                                exists[0] = true;
+                            }
+                        });
+
+                if (!exists[0]) {
+                    return false;
+                }
+
+                s3Client.deleteObject(builder -> builder.bucket(bucket).key(path + "/" + file));
+            } else {
+                // local file system
+                File toDelete = new File(fileStorePath + "/" + file);
+
+                if (!toDelete.exists()) {
+                    return false;
+                }
+
+                return toDelete.delete();
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Failed to delete file, " + file + ", " + e.getMessage());
             return false;
         }
     }

@@ -3,6 +3,7 @@ package au.org.ala.search.service.update;
 import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.remote.BiocacheService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
@@ -31,14 +32,16 @@ public class CollectionsImportService {
     protected final ElasticService elasticService;
     protected final LogService logService;
     protected final BiocacheService biocacheService;
+    protected final CollectoryCache collectoryCache;
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${collections.url}")
     private String collectionsUrl;
 
-    public CollectionsImportService(ElasticService elasticService, LogService logService, BiocacheService biocacheService) {
+    public CollectionsImportService(ElasticService elasticService, LogService logService, BiocacheService biocacheService, CollectoryCache collectoryCache) {
         this.elasticService = elasticService;
         this.logService = logService;
         this.biocacheService = biocacheService;
+        this.collectoryCache = collectoryCache;
     }
 
     @Async("processExecutor")
@@ -56,7 +59,12 @@ public class CollectionsImportService {
         counter += importEntity("institution", IndexDocType.INSTITUTION, biocacheService.entityCounts("institutionUid"));
         counter += importEntity("collection", IndexDocType.COLLECTION, biocacheService.entityCounts("collectionUid"));
         logService.log(taskType, "Finished updates: " + counter);
-        return CompletableFuture.completedFuture(true);
+        return CompletableFuture.completedFuture(true).thenApply(
+                a -> {
+                    collectoryCache.cacheDataResourceNames();
+                    return a;
+                }
+        );
     }
 
     private int importEntity(String name, IndexDocType type, Map<String, Integer> entityCounts) {
@@ -111,6 +119,11 @@ public class CollectionsImportService {
                     }
                 }
             }
+
+            if (!batchIds.isEmpty()) {
+                getEntityBatch(updateList, existingLists, entityName, type, batchIds, entityCounts);
+                batchIds.clear();
+            }
         } catch (Exception e) {
             logService.log(taskType, "Error getting entities: " + entityName);
             logger.error(e.getMessage(), e);
@@ -130,8 +143,7 @@ public class CollectionsImportService {
         for (SearchItemIndex item : items) {
             Date stored = existingLists.get(item.getId());
             if (stored == null || stored.compareTo(item.getModified()) < 0
-                    || !entityCounts.getOrDefault(item.getId(), 0).equals(item.getOccurrenceCount())
-            || true /*TODO: remove test code */) {
+                    || !entityCounts.getOrDefault(item.getId(), 0).equals(item.getOccurrenceCount())) {
 
                 item.setOccurrenceCount(entityCounts.getOrDefault(item.getId(), 0));
                 updateList.put(item.getId(), item);
@@ -176,7 +188,6 @@ public class CollectionsImportService {
             String rights = (String) properties.getOrDefault("rights", null);
             String license = (String) properties.getOrDefault("licenseType", null);
             String acronym = (String) properties.getOrDefault("acronym", null);
-            String websiteUrl = (String) properties.getOrDefault("websiteUrl", null);
             String state = (String) properties.getOrDefault("state", null);
 
             Map<String, Object> provider = (Map<String, Object>) properties.getOrDefault("provider", new HashMap<>());
@@ -202,9 +213,6 @@ public class CollectionsImportService {
                 continue;
             }
 
-            Map<String, String> data = new HashMap<>();
-            data.put("websiteUrl_s", websiteUrl);
-
             result.add(SearchItemIndex.builder()
                             .id(id)
                             .guid(guid)
@@ -218,7 +226,6 @@ public class CollectionsImportService {
                             .acronym(acronym)
                             .image(image)
                             .resourceType(resourceType)
-                            .data(data)
                             .created(created)
                             .state(state)
                             .dataProvider(dataProvider)

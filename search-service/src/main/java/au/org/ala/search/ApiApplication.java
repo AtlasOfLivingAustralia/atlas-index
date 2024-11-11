@@ -121,75 +121,9 @@ public class ApiApplication {
         return threadPoolTaskExecutor;
     }
 
-    @Value("${openapi.title}")
-    private String openapiTitle;
-
-    @Value("${openapi.description}")
-    private String openapiDescription;
-
-    @Value("${openapi.terms}")
-    private String openapiTerms;
-
-    @Value("${openapi.contact.name}")
-    private String openapiContactName;
-
-    @Value("${openapi.contact.email}")
-    private String openapiContactEmail;
-
-    @Value("${openapi.license.name}")
-    private String openapiLicenseName;
-
-    @Value("${openapi.license.url}")
-    private String openapiLicenseUrl;
-
-    @Value("${openapi.version}")
-    private String openapiVersion;
-
-    @Value("${openapi.servers}")
-    private String openapiServers;
-
-    // TODO: move this info, server and security openapi customization into openapiExampleService. Also rename to openapiService.
     @Bean
-    public OpenApiCustomizer applyStandardOpenAPIModifications(OpenapiService openapiExampleService) {
-        Info info = new Info()
-                .title(openapiTitle)
-                .description(openapiDescription)
-                .termsOfService(openapiTerms)
-                .contact(new Contact()
-                        .name(openapiContactName)
-                        .email(openapiContactEmail))
-                .license(new License()
-                        .name(openapiLicenseName)
-                        .url(openapiLicenseUrl))
-                .version(openapiVersion);
-
-        return openApi -> {
-            openApi.getComponents().addSecuritySchemes("jwt", new SecurityScheme()
-                    .type(SecurityScheme.Type.HTTP)
-                    .bearerFormat("JWT")
-                    .scheme("bearer"));
-
-            openApi.info(info);
-            openApi.servers(Arrays.stream(openapiServers.split(",")).map(s -> new io.swagger.v3.oas.models.servers.Server().url(s)).toList());
-            List<String> pathsToUpdate = new ArrayList<>();
-            openApi.getPaths().forEach((pathKey, path) -> path.readOperationsMap().forEach((opKey, op) -> {
-                // inject path variables otherwise unsupported
-                if (openapiExampleService.updatePaths(op)) {
-                    pathsToUpdate.add(pathKey);
-                }
-
-                // replace default examples with real examples
-                if (op.getRequestBody() != null && op.getRequestBody().getContent() != null) {
-                    op.getRequestBody().getContent().forEach((cKey, c) -> c.setExample(openapiExampleService.updateExample(op.getOperationId(), c.getExample())));
-                }
-            }));
-
-            // convert /** paths to /{id} for openapi
-            pathsToUpdate.forEach(path -> {
-                PathItem pathItem = openApi.getPaths().remove(path);
-                openApi.getPaths().addPathItem(path.replace("**", "{id}"), pathItem);
-            });
-        };
+    public OpenApiCustomizer applyStandardOpenAPIModifications(OpenapiService openapiService) {
+        return openapiService::updateTags;
     }
 
     @Bean

@@ -8,6 +8,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ShortProfile {
+    String taxonID;
     String scientificName;
     String scientificNameAuthorship;
     String author;
