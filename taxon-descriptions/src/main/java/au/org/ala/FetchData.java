@@ -2,13 +2,10 @@ package au.org.ala;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.xml.sax.SAXException;
 
 import java.io.*;
@@ -36,13 +33,19 @@ public class FetchData {
     static String listsUrl;
     static String mergeDir;
     static String overrideFile;
+    static String antsUrl;
+    static String vicMuseumUrl;
+    static String qldMusuemUrl;
+    static String qldMuseumApiKey;
+    static String vicFloraUrl;
+    static String vicFloraGraphqlUrl;
 
     static Map<String, Map<String, String>> properties = new ConcurrentHashMap<>();
 
     public static void main(final String[] args) throws Exception {
 
-        String configFile = "/data/src/ansible-inventories/atlas-index/local/taxon-descriptions/config.json"; //args[0];
-        String filename = "merge"; //args[1];
+        String configFile = "/data/taxon-descriptions/config.json"; //args[0];
+        String filename = args[1];
 
         Map config = new ObjectMapper().readValue(new File(configFile), Map.class);
 
@@ -56,6 +59,12 @@ public class FetchData {
         wikipediaTitles = config.get("wikipediaTitles").toString();
         wikipediaTmp = config.get("wikipediaTmp").toString();
         wikipediaUserAgent = config.get("wikipediaUserAgent").toString().trim();
+        antsUrl = config.get("antsUrl").toString().trim();
+        vicMuseumUrl = config.get("vicMuseumUrl").toString().trim();
+        qldMusuemUrl = config.get("qldMuseumUrl").toString().trim();
+        qldMuseumApiKey = config.get("qldMuseumApiKey").toString().trim();
+        vicFloraUrl = config.get("vicFloraUrl").toString().trim();
+        vicFloraGraphqlUrl = config.get("vicFloraGraphqlUrl").toString().trim();
 
         listsUrl = config.get("listsUrl").toString();
 
@@ -95,7 +104,6 @@ public class FetchData {
             System.out.println("No source found for " + filename);
             return;
         }
-
         String type = item.get("type").toString();
         List<String> fields = (List<String>) item.get("fields");
         String name = item.get("name").toString();
@@ -117,6 +125,17 @@ public class FetchData {
             downloadWikipedia(fields, name, attribution);
 
             // wikipedia data does not get aggregated into a single .json file
+            return;
+        } else if (type.equalsIgnoreCase("ants")) {
+            output.put("taxa", AntsDownloader.downloadAnts(acceptedCsv, antsUrl));
+        } else if (type.equalsIgnoreCase("qldmuseum")) {
+            output.put("taxa", QldMuseumDownloader.downloadQldMuseum(acceptedCsv, qldMusuemUrl, qldMuseumApiKey));
+        } else if (type.equalsIgnoreCase("vicmuseum")) {
+            output.put("taxa", VicMuseumDownloader.downloadVicMuseum(acceptedCsv, vicMuseumUrl));
+        } else if (type.equalsIgnoreCase("vicflora")) {
+            output.put("taxa", VicFloraDownloader.downloadVicFlora(acceptedCsv, vicFloraGraphqlUrl, vicFloraUrl));
+        } else {
+            System.out.println("Unknown source type: " + type);
             return;
         }
 
