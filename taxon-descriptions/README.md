@@ -32,6 +32,12 @@ Get list of wikipedia titles
  - Delete `/data/wikipedia-tmp/matched.csv` if there is a new `enwiki-latest-all-titles-in-ns0` or `accepted.csv` file.
  - Delete directories `/data/wikipedia-tmp/cache_*` if there is a need to re-download html for existing taxonIds.
 
+Get data from vicflora
+1. Uses configuration `vicFloraGraphqlUrl` to fetch the list of pages to download. 
+2. Uses configuration `vicFloraUrl`, this is the prefix in front of the id returned by the graphql query so it should end with a `/`. This url + id is the page to download.
+3. Remove the `vicflora-tmp.json` file if there is a need to re-download data. It is found in the configured `wikipediaTmp` directory.
+4. If the fetch fails, re-running it will continue on from the progress already made in the `vicflora-tmp.json` file.
+
 Get the accepted names. TODO: use V1 or V2 API service instead of using a SOLR tunnel
 1. download from tunneled SOLR to `/data/accepted.csv`, or as specified in `config.json`
 ```shell

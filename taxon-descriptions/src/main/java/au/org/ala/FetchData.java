@@ -57,8 +57,8 @@ public class FetchData {
 
         wikipediaUrl = config.get("wikipediaUrl").toString();
         wikipediaTitles = config.get("wikipediaTitles").toString();
-        wikipediaTmp = config.get("wikipediaTmp").toString();
-        wikipediaUserAgent = config.get("wikipediaUserAgent").toString().trim();
+        wikipediaTmp = config.get("wikipediaTmp").toString(); // it is evident that this is poorly named as it is used for more than wikipedia now
+        wikipediaUserAgent = config.get("wikipediaUserAgent").toString().trim(); // it is evident that this is poorly named as it is used for more than wikipedia now
         antsUrl = config.get("antsUrl").toString().trim();
         vicMuseumUrl = config.get("vicMuseumUrl").toString().trim();
         qldMusuemUrl = config.get("qldMuseumUrl").toString().trim();
@@ -133,7 +133,7 @@ public class FetchData {
         } else if (type.equalsIgnoreCase("vicmuseum")) {
             output.put("taxa", VicMuseumDownloader.downloadVicMuseum(acceptedCsv, vicMuseumUrl));
         } else if (type.equalsIgnoreCase("vicflora")) {
-            output.put("taxa", VicFloraDownloader.downloadVicFlora(acceptedCsv, vicFloraGraphqlUrl, vicFloraUrl));
+            output.put("taxa", VicFloraDownloader.downloadVicFlora(vicFloraGraphqlUrl, vicFloraUrl, wikipediaUserAgent, wikipediaTmp));
         } else {
             System.out.println("Unknown source type: " + type);
             return;
