@@ -57,6 +57,19 @@
     background-color: #F2F2F2;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
+    padding: 10px;
+}
+
+.tile::after {
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(242, 242, 242, 0.5), #f2f2f2);
+    z-index: 1;
 }
 
 .tileNoImage {
@@ -68,6 +81,9 @@
 
 .tileContent {
     padding: 15px 20px 20px;
+    line-height: 1.5;
+    max-height: 195px;
+    overflow: hidden;
 }
 
 .tileContent p svg {
