@@ -108,7 +108,7 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
                         rowClass = 'dashboardRowLink'
                     }
                     return <tr className={rowClass} key={index} onClick={() => clickRow(row.url)}>
-                        <td>{!italisizeName ? (<FormattedMessage id={row.name}/>) :
+                        <td>{!italisizeName ? (row.name && <FormattedMessage id={row.name}/>) :
                             (
                                 <>
                                     <i>{row.name.split(' - ')[0]}</i>

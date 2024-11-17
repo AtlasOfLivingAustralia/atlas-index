@@ -72,7 +72,7 @@ const TreeRow = ({row, level}: { row: any, level: number }) => {
                             )
                     }
                 </div>
-                <FormattedMessage id={row.label}/> - {formatNumber(row.count)}
+                {row.label && <FormattedMessage id={row.label}/>} - {formatNumber(row.count)}
             </td>
             <td></td>
         </tr>
