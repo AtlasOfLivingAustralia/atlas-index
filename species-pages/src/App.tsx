@@ -8,6 +8,7 @@ import { Anchor, Box, Container, Divider, Space } from '@mantine/core';
 import { Footer, Header, IndigenousAcknowledgement } from "@atlasoflivingaustralia/ala-mantine";
 import Species from './views/Species';
 
+import '@mantine/core/styles.css';
 import classes from './App.module.css';
 import UserContext from './helpers/UserContext';
 import BreadcrumbSection from './components/header/breadcrumbs';

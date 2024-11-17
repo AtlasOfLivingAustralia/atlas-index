@@ -15,7 +15,6 @@ import FontFaceObserver from 'fontfaceobserver'
 import "@fontsource/roboto";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import '@mantine/core/styles.css';
 
 // to make sure the fonts are loaded before rendering
 const robotoRegular = new FontFaceObserver('Roboto', { weight: 400 });
