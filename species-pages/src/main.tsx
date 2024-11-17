@@ -10,10 +10,17 @@ import {AuthProvider} from "react-oidc-context";
 import {WebStorageStateStore} from "oidc-client-ts";
 import { MantineProvider } from '@mantine/core';
 import { theme } from '@atlasoflivingaustralia/ala-mantine';
+import FontFaceObserver from 'fontfaceobserver'
 
-const root = ReactDOM.createRoot(
-    document.getElementById('root') as HTMLElement
-);
+import "@fontsource/roboto";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
+import '@mantine/core/styles.css';
+
+// to make sure the fonts are loaded before rendering
+const robotoRegular = new FontFaceObserver('Roboto', { weight: 400 });
+const roboto500 = new FontFaceObserver('Roboto', { weight: 500 });
+const roboto700 = new FontFaceObserver('Roboto', { weight: 700 });
 
 const oidcConfig = {
     authority: import.meta.env.VITE_OIDC_AUTH_SERVER,
@@ -45,21 +52,26 @@ Object.assign(theme, {
     }
 });
 
-root.render(
-    // TODO: react-leaflet does not handle strict mode
-    <React.StrictMode>
-        <NuqsAdapter>
-            <Router>
-                <AuthProvider {...oidcConfig}>
-                    <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
-                    }}>
-                        {/*<Notifications position="top-center" />*/}
-                        <MantineProvider theme={theme}>
-                            <App/>
-                        </MantineProvider>
-                    </IntlProvider>
-                </AuthProvider>
-            </Router>
-        </NuqsAdapter>
-    </React.StrictMode>
-);
+Promise.all([robotoRegular.load(), roboto500.load(), roboto700.load()]).then(() => {
+    const root = ReactDOM.createRoot(
+        document.getElementById('root') as HTMLElement
+    );
+    root.render(
+        // TODO: react-leaflet does not handle strict mode
+        <React.StrictMode>
+            <NuqsAdapter>
+                <Router>
+                    <AuthProvider {...oidcConfig}>
+                        <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
+                        }}>
+                            {/*<Notifications position="top-center" />*/}
+                            <MantineProvider theme={theme}>
+                                <App/>
+                            </MantineProvider>
+                        </IntlProvider>
+                    </AuthProvider>
+                </Router>
+            </NuqsAdapter>
+        </React.StrictMode>
+    );
+})
