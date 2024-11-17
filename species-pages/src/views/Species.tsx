@@ -1,5 +1,25 @@
 import {useEffect, useState} from "react";
-import { Alert, Anchor, Box, Code, Container, Divider, Flex, Grid, Image, List, Space, Tabs, Text, Title } from "@mantine/core";
+import {
+    Alert,
+    Anchor,
+    Box,
+    Button,
+    Code,
+    Container,
+    Collapse,
+    Divider,
+    Flex,
+    Grid,
+    Group,
+    Image,
+    List,
+    Space,
+    Tabs,
+    Text,
+    Title,
+    useMantineTheme
+} from "@mantine/core";
+import {useDisclosure, useMediaQuery} from '@mantine/hooks';
 import { useDocumentTitle } from "@mantine/hooks";
 import { IconCircleFilled, IconFlagFilled } from "@tabler/icons-react";
 import { useParams } from "react-router-dom";
@@ -24,12 +44,14 @@ import {TaxonDescription} from "../../api/sources/model.ts";
 import descriptionLabelsConfig from "../config/firstDescriptionLabels.json";
 import classes from '../components/species/species.module.css';
 import '../css/nameFormatting.css';
+import SpeciesDetailsAccordion from "../components/common/SpeciesDetailsAccordion.tsx";
 
 const descriptionLabels: string[] = descriptionLabelsConfig as string[];
 
 function Species({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
+
     const [tab, setTab] = useQueryState('tab', { defaultValue: 'map' });
     const [result, setResult] = useState<Record<PropertyKey, string | number | any >>({});
     const [descriptions, setDescriptions] = useState<TaxonDescription[]>([]);
@@ -38,6 +60,13 @@ function Species({setBreadcrumbs}: {
     const [invasiveStatus, setInvasiveStatus] = useState(false);
     let params = useParams();
     const queryPath = params["*"] || '';
+
+    const isMobile = useMediaQuery('(max-width: 768px)')
+    const [activeDetailsPanel, setActiveDetailPanel] = useState(null); // Tracks the currently active panel
+    const toggleDetailPanel = (panel) => {
+        setActiveDetailPanel((prev) => (prev === panel ? null : panel)); // Toggle the same panel or switch
+    };
+
 
     useDocumentTitle(`${result?.name}: ${result?.commonName?.join(', ')}`);
 
@@ -260,63 +289,77 @@ function Species({setBreadcrumbs}: {
                     </Grid>
                 </Container>
             </Box>
-            <Box>
-                <Tabs
-                    id="occurrence-tabs"
-                    value={tab}
-                    onChange={handleTabChange} >
-                    <Container size="lg">
-                        <Tabs.List>
-                            <Tabs.Tab value="map">Occurrence map</Tabs.Tab>
-                            <Tabs.Tab value="classification">Classification</Tabs.Tab>
-                            <Tabs.Tab value="description">Description</Tabs.Tab>
-                            <Tabs.Tab value="media">Images and sounds</Tabs.Tab>
-                            <Tabs.Tab value="names">Names</Tabs.Tab>
-                            <Tabs.Tab value="status">Status</Tabs.Tab>
-                            <Tabs.Tab value="traits">Traits</Tabs.Tab>
-                            <Tabs.Tab value="datasets">Datasets</Tabs.Tab>
-                            <Tabs.Tab value="resources">Resources</Tabs.Tab>
-                        </Tabs.List>
-                    </Container>
-                    <Divider mt={-1} />
-                </Tabs>
-            </Box>
-            <Container size="lg">
-                <Space h="px60" />
-                {tab === 'map' &&
-                    <MapView result={result} tab={tab}/>
-                }
-                {tab === 'classification' &&
-                    <ClassificationView result={result}/>
-                }
-                {tab === 'description' &&
-                    <DescriptionView descriptions={descriptions}/>
-                }
-                {tab === 'media' &&
-                    <ImagesView result={result}/>
-                }
-                {tab === 'names' &&
-                    <NamesView result={result} />
-                }
-                {tab === 'status' &&
-                    <StatusView result={result} />
-                }
-                {tab === 'traits' &&
-                    <TraitsView result={result} />
-                }
-                {tab === 'datasets' &&
-                    <DatasetsView result={result} />
-                }
-                {tab === 'resources' &&
-                    <ResourcesView result={result} />
-                }
-                <Space h="xl" />
-            </Container>
+
+            {isMobile ? (
+                <>
+                 <br/>
+                 <SpeciesDetailsAccordion data={result} descriptions={descriptions}></SpeciesDetailsAccordion>
+                </>
+             )
+            // For desktop
+            : ( <>
+                <Box >
+                    <Tabs orientation="vertical"
+                          id="occurrence-tabs"
+                          value={tab}
+                          onChange={handleTabChange}
+                    >
+                        <Container size="lg">
+                            <Tabs.List sx={{ flexDirection: 'column', width: '100%' }}>
+                                <Tabs.Tab value="map" >Occurrence map test</Tabs.Tab>
+                                <Tabs.Tab value="classification">Classification</Tabs.Tab>
+                                <Tabs.Tab value="description">Description</Tabs.Tab>
+                                <Tabs.Tab value="media">Images and sounds</Tabs.Tab>
+                                <Tabs.Tab value="names">Names</Tabs.Tab>
+                                <Tabs.Tab value="status">Status</Tabs.Tab>
+                                <Tabs.Tab value="traits">Traits</Tabs.Tab>
+                                <Tabs.Tab value="datasets">Datasets</Tabs.Tab>
+                                <Tabs.Tab value="resources">Resources</Tabs.Tab>
+                            </Tabs.List>
+                        </Container>
+                        <Divider mt={-1} />
+                    </Tabs>
+                </Box>
+                <Container size="lg">
+                    <Space h="px60" />
+                    {tab === 'map' &&
+                        <MapView result={result} tab={tab}/>
+                    }
+                    {tab === 'classification' &&
+                        <ClassificationView result={result}/>
+                    }
+                    {tab === 'description' &&
+                        <DescriptionView descriptions={descriptions}/>
+                    }
+                    {tab === 'media' &&
+                        <ImagesView result={result}/>
+                    }
+                    {tab === 'names' &&
+                        <NamesView result={result} />
+                    }
+                    {tab === 'status' &&
+                        <StatusView result={result} />
+                    }
+                    {tab === 'traits' &&
+                        <TraitsView result={result} />
+                    }
+                    {tab === 'datasets' &&
+                        <DatasetsView result={result} />
+                    }
+                    {tab === 'resources' &&
+                        <ResourcesView result={result} />
+                    }
+                    <Space h="xl" />
+                </Container>
+            </> )
+            }
+
             <div className="speciesFooter speciesPage">
                 <div className="speciesFooterLine"></div>
                 <div className="bi bi-arrow-up-circle-fill float-end speciesFooterUp"
                     onClick={() => window.scrollTo(0, 0)}></div>
             </div>
+
             </>
         }
     </>
