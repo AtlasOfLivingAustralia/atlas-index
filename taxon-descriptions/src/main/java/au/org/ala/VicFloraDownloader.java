@@ -51,20 +51,12 @@ public class VicFloraDownloader {
         try (FileReader reader = new FileReader(tmpDir + "/vicflora-tmp.json")) {
             Map cache = new ObjectMapper().readValue(reader, Map.class);
             if (cache != null) {
-                // TODO: this is temporary and for testing, remove it
-                List<String> keys = new ArrayList<>(cache.keySet());
-                for (String key : keys) {
-                    Map taxonData = (Map) cache.get(key);
-                    if (taxonData == null || taxonData.isEmpty() || StringUtils.isEmpty((String) taxonData.get("Treatment"))) {
-                        cache.remove(key);
-                    }
-                }
-
                 System.out.println("Resuming from cache: " + cache.size());
                 data.putAll(cache);
             }
         } catch (IOException e) {
             // ignore
+            e.printStackTrace();
         }
 
         // Adjust the thread pool size as needed. Getting lots of timeouts so lowering expectations and implementing backoff.
@@ -129,20 +121,28 @@ public class VicFloraDownloader {
 
             // check cache
             if (data.containsKey(taxonID)) {
-                withData.incrementAndGet();
-                return;
+                if (((Map) data.get(taxonID)).containsKey("Treatment")
+                        && StringUtils.isNotEmpty((String) ((Map) data.get(taxonID)).get("Treatment"))) {
+                    ((Map) data.get(taxonID)).put("url", taxonUrl + vicFloraID); // temporary, because it is missing in the cache
+                    withData.incrementAndGet();
+                    return;
+                } else {
+                    return; // to data, but do not try to fetch again
+                }
             }
 
             String description = fetchDescriptionFromTaxon(vicFloraID, taxonUrl);
             if (StringUtils.isNotEmpty(description)) {
                 Map<String, String> taxonData = new ConcurrentHashMap<>();
                 taxonData.put("Treatment", description); // "Treatment" is from config
+                taxonData.put("url", taxonUrl + vicFloraID);
                 data.put(taxonID, taxonData);
                 withData.incrementAndGet();
             } else {
                 // only needed for the caching thing, they are removed later
                 Map<String, String> taxonData = new ConcurrentHashMap<>();
                 taxonData.put("Treatment", ""); // "Treatment" is from config
+                taxonData.put("url", taxonUrl + vicFloraID);
                 data.put(taxonID, taxonData);
             }
         } catch (Exception e) {
@@ -157,7 +157,7 @@ public class VicFloraDownloader {
         try {
             Document doc = Jsoup.connect(url).timeout(60000).get(); // 60s timeout
 
-            // TODO: Write to a file for caching, that it takes so long to retrieve the information
+            // Performance: Write to a file for caching, that it takes so long to retrieve the information
             //  and because what we retrieve may change.
             //  Currently getting only the first paragraph of the description div as text, but there
             //  are other elements that may be useful such as "notes",
@@ -285,8 +285,7 @@ public class VicFloraDownloader {
 
     private static void namematchingService(List<Map<String, String>> batch, List<String> batchIds) {
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            // TODO: this really should be in the external config
-            HttpPost request = new HttpPost("https://namematching-ws.ala.org.au/api/searchAllByClassification");
+            HttpPost request = new HttpPost(FetchData.namematchingUrl + "/api/searchAllByClassification");
             request.setHeader("Content-Type", "application/json");
 
             ObjectMapper mapper = new ObjectMapper();

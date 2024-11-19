@@ -133,7 +133,11 @@ public class Merge {
                     mergedItem.put("name", metadata.get("name"));
 
                     String attribution = metadata.get("attribution");
-                    mergedItem.put("attribution", attribution.replace("*URL*", url));
+                    if (url == null) { // no url in the data is not something that should happen
+                        mergedItem.put("attribution", attribution);
+                    } else {
+                        mergedItem.put("attribution", attribution.replace("*URL*", url));
+                    }
 
                     // remove those without content
                     List<String> keys = new ArrayList<>(mergedItem.keySet());
@@ -158,7 +162,7 @@ public class Merge {
 
                                 mergedItem.put(key, body.html());
                             } catch (Exception e) {
-                                System.out.println("Error parsing html for: " + key + ", " + guid + ", " + e.getMessage());
+                                System.out.println("Error parsing html for: " + key + ", " + guid + ", " + metadata.get("name") + ", " + e.getMessage());
                             }
                         }
                     }
@@ -317,12 +321,30 @@ public class Merge {
             String text = doc.text().toLowerCase();
             int found = 0;
             int firstMatch = -1; // Used to adjust the 'found' parameter. For phylum and kingdom the required matches must be smaller.
-            if (StringUtils.isNotEmpty(kingdom) && text.contains(kingdom.toLowerCase())) {found++; firstMatch = 6; }
-            if (StringUtils.isNotEmpty(phylum) && text.contains(phylum.toLowerCase())) {found++; firstMatch = 5; }
-            if (StringUtils.isNotEmpty(clazz) && text.contains(clazz.toLowerCase())) {found++; firstMatch = 4; }
-            if (StringUtils.isNotEmpty(order) && text.contains(order.toLowerCase())) { found++; firstMatch = 3; }
-            if (StringUtils.isNotEmpty(family) && text.contains(family.toLowerCase())) { found++; firstMatch = 2; }
-            if (StringUtils.isNotEmpty(genus) && text.contains(genus.toLowerCase())) { found++; firstMatch = 1; }
+            if (StringUtils.isNotEmpty(kingdom) && text.contains(kingdom.toLowerCase())) {
+                found++;
+                firstMatch = 6;
+            }
+            if (StringUtils.isNotEmpty(phylum) && text.contains(phylum.toLowerCase())) {
+                found++;
+                firstMatch = 5;
+            }
+            if (StringUtils.isNotEmpty(clazz) && text.contains(clazz.toLowerCase())) {
+                found++;
+                firstMatch = 4;
+            }
+            if (StringUtils.isNotEmpty(order) && text.contains(order.toLowerCase())) {
+                found++;
+                firstMatch = 3;
+            }
+            if (StringUtils.isNotEmpty(family) && text.contains(family.toLowerCase())) {
+                found++;
+                firstMatch = 2;
+            }
+            if (StringUtils.isNotEmpty(genus) && text.contains(genus.toLowerCase())) {
+                found++;
+                firstMatch = 1;
+            }
 
             // A minimum of 3 higher taxa matches are required, kingdom taxa will have a single match, phylum will have 2.
             if (found < 3 || (firstMatch == 6 && found < 1) || (firstMatch == 5 && found < 2)) {

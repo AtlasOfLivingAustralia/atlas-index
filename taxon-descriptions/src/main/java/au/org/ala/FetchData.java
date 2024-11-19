@@ -20,6 +20,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.file.Files.readString;
 
+/**
+ * Fetch data from various sources and write to a file. Long running tasks can be restarted to continue where they left off.
+ *
+ * Also merges sources into a directories of json files.
+ *
+ * TODO: update to specifically support changes to the names index without a need to fetch all data again.
+ */
 public class FetchData {
 
     static String alaToken;
@@ -34,11 +41,14 @@ public class FetchData {
     static String mergeDir;
     static String overrideFile;
     static String antsUrl;
+    static String vicMuseumPageUrl;
     static String vicMuseumUrl;
+    static String qldMuseumTopicUrl;
     static String qldMusuemUrl;
     static String qldMuseumApiKey;
     static String vicFloraUrl;
     static String vicFloraGraphqlUrl;
+    static String namematchingUrl;
 
     static Map<String, Map<String, String>> properties = new ConcurrentHashMap<>();
 
@@ -46,6 +56,8 @@ public class FetchData {
 
         String configFile = "/data/taxon-descriptions/config.json"; //args[0];
         String filename = args[1];
+
+        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " starting fetch for " + filename);
 
         Map config = new ObjectMapper().readValue(new File(configFile), Map.class);
 
@@ -60,11 +72,14 @@ public class FetchData {
         wikipediaTmp = config.get("wikipediaTmp").toString(); // it is evident that this is poorly named as it is used for more than wikipedia now
         wikipediaUserAgent = config.get("wikipediaUserAgent").toString().trim(); // it is evident that this is poorly named as it is used for more than wikipedia now
         antsUrl = config.get("antsUrl").toString().trim();
+        vicMuseumPageUrl = config.get("vicMuseumPageUrl").toString().trim();
         vicMuseumUrl = config.get("vicMuseumUrl").toString().trim();
+        qldMuseumTopicUrl = config.get("qldMuseumTopicUrl").toString().trim();
         qldMusuemUrl = config.get("qldMuseumUrl").toString().trim();
         qldMuseumApiKey = config.get("qldMuseumApiKey").toString().trim();
         vicFloraUrl = config.get("vicFloraUrl").toString().trim();
         vicFloraGraphqlUrl = config.get("vicFloraGraphqlUrl").toString().trim();
+        namematchingUrl = config.get("namematchingUrl").toString().trim();
 
         listsUrl = config.get("listsUrl").toString();
 
@@ -129,9 +144,9 @@ public class FetchData {
         } else if (type.equalsIgnoreCase("ants")) {
             output.put("taxa", AntsDownloader.downloadAnts(acceptedCsv, antsUrl));
         } else if (type.equalsIgnoreCase("qldmuseum")) {
-            output.put("taxa", QldMuseumDownloader.downloadQldMuseum(acceptedCsv, qldMusuemUrl, qldMuseumApiKey));
+            output.put("taxa", QldMuseumDownloader.downloadQldMuseum(acceptedCsv, qldMusuemUrl, qldMuseumApiKey, qldMuseumTopicUrl));
         } else if (type.equalsIgnoreCase("vicmuseum")) {
-            output.put("taxa", VicMuseumDownloader.downloadVicMuseum(acceptedCsv, vicMuseumUrl));
+            output.put("taxa", VicMuseumDownloader.downloadVicMuseum(vicMuseumUrl));
         } else if (type.equalsIgnoreCase("vicflora")) {
             output.put("taxa", VicFloraDownloader.downloadVicFlora(vicFloraGraphqlUrl, vicFloraUrl, wikipediaUserAgent, wikipediaTmp));
         } else {
@@ -140,7 +155,7 @@ public class FetchData {
         }
 
         // write the output to a file
-        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Writing output to " + filename + ".json");
+        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Writing output to " + filename + ".json, " + ((Map) output.get("taxa")).size() + " taxa");
         try (FileWriter file = new FileWriter(wikipediaTmp + "/" + filename + ".json")) {
             file.write(new ObjectMapper().writeValueAsString(output));
         }
@@ -420,14 +435,6 @@ public class FetchData {
 
             // this follows redirects
             Document doc = Jsoup.connect(url).userAgent(wikipediaUserAgent).get();
-
-            // TODO: also implement a disk cache for "title.html" in addition to the existing "taxonId.html"
-            //  The purpose of this is that when a taxonId changes, or there is a duplicate name, the html will still
-            //  exist. <1% are duplicate names, before any redirect.
-
-            // TODO: also implement a disk cache for redirects. If a title redirects to another title, the redirect
-            //  will take place, but we have no record of this. Combined with the "title.html" this will reduce the
-            //  pages requested when a taxonId changes. The number of redirects are not known.
 
             // write the file, for later use
             FileWriter writer = new FileWriter(outputFile);
