@@ -17,7 +17,7 @@ export const datasetsDefn: GenericViewProps = {
             order: 1
         },
         "license": {
-            label: "License",
+            label: "Licence Type",
             order: 2
         },
         "dataProvider": {
@@ -54,7 +54,7 @@ export const datasetsDefn: GenericViewProps = {
                 <Text className={classes.listItemName}>{item.name}</Text>
             </div>
             <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} records</Text>
+                <Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} occurrence records</Text>
             </div>
             <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
                 <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
@@ -77,7 +77,7 @@ export const datasetsDefn: GenericViewProps = {
             <div className={classes.tileContent}>
                 <Text className={classes.listItemName}>{item.name}</Text>
                 <Space h="8px"/>
-                <Text fz={14}><FolderIcon color="#637073"/> contains {item.occurrenceCount} records</Text>
+                <Text fz={14}><FolderIcon color="#637073"/> contains {item.occurrenceCount} occurrence records</Text>
                 <Space h="13px"/>
                 <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
             </div>
@@ -86,29 +86,33 @@ export const datasetsDefn: GenericViewProps = {
 
     addCustomFacetsFn: ({url, thisFacetFqs, parentData, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + "&fq=occurrenceCount:0").then(response => response.json()).then(data => {
-            var items = [
-                {
-                    fq: "occurrenceCount:0",
-                    label: "Metadata only",
-                    count: data.totalRecords,
-                    depth: 0,
-                    selected: thisFacetFqs.includes("occurrenceCount:0")
-                },
-                {
+            var items = []
+            if (parentData.totalRecords - data.totalRecords > 0) {
+                items.push({
                     fq: "-occurrenceCount:0 AND occurrenceCount:*", // TODO: support range queries in /v2/search
                     label: "Yes",
                     count: parentData.totalRecords - data.totalRecords,
                     depth: 0,
                     selected: thisFacetFqs.includes("-occurrenceCount:0 AND occurrenceCount:*")
-                },
-
-            ]
+                })
+            }
+            if (data.totalRecords > 0) {
+                items.push({
+                    fq: "occurrenceCount:0",
+                    label: "Metadata only",
+                    count: data.totalRecords,
+                    depth: 0,
+                    selected: thisFacetFqs.includes("occurrenceCount:0")
+                })
+            }
             if (items.length > 0) {
                 setCustomFacetData([{
                     name: "Contains records",
                     items: items,
                     order: 5
                 }])
+            } else {
+                setCustomFacetData([])
             }
         });
     }

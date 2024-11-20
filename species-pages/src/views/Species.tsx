@@ -213,9 +213,12 @@ function Species({setBreadcrumbs}: {
                                     icon={ <IconCircleFilled size={10} color="gray"/> }
                                 >{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</List.Item>
                             </List>
-                            { result.commonName && result.commonName.map((name: string, idx: number) =>
-                                idx < 3 &&
-                                    <Text key={idx} size="lg" mt={{ base: 0, lg: 6}}>{name}</Text>
+                            { /* include first common name if available */}
+                            { result.commonNameSingle && <Text size="lg" mt={{ base: 0, lg: 6}}>{result.commonNameSingle}</Text> }
+                            { /* include first 2 IEK names if available */}
+                            { result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
+                                idx < 2 &&
+                                <Text size="lg" key={idx}>{item.name}</Text>
                             )}
                             <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
                             {/* <Text mt={8}>{combinedResult.nameComplete}</Text> */}

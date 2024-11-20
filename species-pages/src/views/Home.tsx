@@ -130,6 +130,18 @@ function Home({setBreadcrumbs}: {
                                 to="/species/https://biodiversity.org.au/afd/taxa/f557abd1-fc45-4152-869e-b31d4b5d886e"
                             >Common Bearded Dragon – <i>Pogona barbata</i></Anchor>
                         </List.Item>
+                        <List.Item>
+                            <Anchor
+                                component={Link}
+                                to="/species/ALA_DR22913_27"
+                            >Typical Geckos - <i>Gekko gecko</i></Anchor>
+                        </List.Item>
+                        <List.Item>
+                            <Anchor
+                                component={Link}
+                                to="/species/https://id.biodiversity.org.au/taxon/apni/51285812"
+                            >Raspberry Jam - <i>Acacia acuminata</i></Anchor>
+                        </List.Item>
                     </List>
                 </Box>
                 <Divider mt="xl" mb="xl"/>

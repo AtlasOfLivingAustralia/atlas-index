@@ -77,6 +77,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
             </div>
             <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
                 <Text>{item.fieldName}</Text>
+                <Text>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</Text>
             </div>
             <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
                 <Text title={item.description}>{limitDescription(item.description, 230)}</Text>
@@ -90,6 +91,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
                 <Text className={classes.listItemName}>{item.name}</Text>
                 <Space h="8px"/>
                 <Text fz={14}>{item.fieldName}</Text>
+                <Text fz={14}>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</Text>
                 <Space h="13px"/>
                 <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
             </div>

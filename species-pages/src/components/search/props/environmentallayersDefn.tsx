@@ -3,6 +3,7 @@ import {Flex, Image, Space, Text} from "@mantine/core";
 import classes from "../search.module.css";
 import {limitDescription, openUrl} from "../util.tsx";
 import missingImage from '../../../image/missing-image.png';
+import capitalise from "../../../helpers/Capitalise.ts";
 
 export const environmentallayersDefn: GenericViewProps = {
     fq: "idxtype:LAYER",
@@ -10,9 +11,38 @@ export const environmentallayersDefn: GenericViewProps = {
     sortByDate: true,
 
     facetDefinitions: {
+        "type": {
+            label: "Spatial layer type",
+            order: 1,
+            parseFacetFn: (facet: any, facetList: any[]) => {
+                // basic facets, with reverse alpha sorting
+                var items: any[] = []
+                facet.fieldResult.forEach((status: any) => {
+                    var fq = facet.fieldName + ":\"" + status.label + "\"";
+                    items.push({
+                        fq: fq,
+                        label: capitalise(status.label),
+                        count: status.count,
+                        depth: 0
+                    })
+                })
+                if (items.length > 0) {
+                    // reverse sort by label
+                    items.sort((a: any, b: any) => {
+                        return b.label.localeCompare(a.label)
+                    })
+
+                    facetList.push({
+                        name: "Spatial layer type",
+                        items: items,
+                        order: 1
+                    })
+                }
+            }
+        },
         "classification": {
             label: "Classification",
-            order: 1,
+            order: 2,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom label and indentation (depth)
                 var items: any [] = []
@@ -67,10 +97,6 @@ export const environmentallayersDefn: GenericViewProps = {
                     })
                 }
             }
-        },
-        "type": {
-            label: "Spatial layer type",
-            order: 2
         }
     },
 

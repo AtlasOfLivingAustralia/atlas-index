@@ -26,20 +26,24 @@ export const supportDefn: GenericViewProps = {
                 facet.fieldResult.forEach((status: any) => {
                     // only 2 categories, so get the actual count for the category
                     var category1 = status.label.split("|")[0]
-                    var category2 = status.label.includes("|") ? status.label.split("|")[1] : undefined
                     var cat1Count = parentCounts[category1] || 0
                     parentCounts[category1] = cat1Count + status.count
 
-                    // add only secondary categories, primary categories will be added at the end with a different fq
-                    if (category2) {
-                        var fq = facet.fieldName + ":\"" + status.label + "\"";
-                        items.push({
-                            fq: fq,
-                            label: status.label, // keep the aggregated category name for sorting
-                            count: status.count,
-                            depth: 1
-                        })
-                    }
+                    // if we wanted the second level of categories, we would comment this code, I feel bad about deleting
+                    // it now that a change of requirements arrived and I am not sure I would remember how to get it back
+                    // should the decision be reverted.
+
+                    // // add only secondary categories, primary categories will be added at the end with a different fq
+                    // var category2 = status.label.includes("|") ? status.label.split("|")[1] : undefined
+                    // if (category2) {
+                    //     var fq = facet.fieldName + ":\"" + status.label + "\"";
+                    //     items.push({
+                    //         fq: fq,
+                    //         label: status.label, // keep the aggregated category name for sorting
+                    //         count: status.count,
+                    //         depth: 1
+                    //     })
+                    // }
                 })
 
                 // add primary categories for each parentCount

@@ -274,23 +274,41 @@ export const speciesDefn: GenericViewProps = {
 
     addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + "&fq=image:*").then(response => response.json()).then(data => {
-            var items = [
-                {
-                    fq: "image:*",
-                    label: "Image available",
-                    count: data.totalRecords,
-                    depth: 0,
-                    selected: thisFacetFqs.includes("image:*")
+            var items :any[] = [];
 
-                }
-            ]
-            if (items.length > 0) {
-                setCustomFacetData([{
-                    name: "Type",
-                    items: items,
-                    order: 1
-                }])
+            if (data.totalRecords > 0) {
+                items.push(
+                    {
+                        fq: "image:*",
+                        label: "Image available",
+                        count: data.totalRecords,
+                        depth: 0,
+                        selected: thisFacetFqs.includes("image:*")
+                    })
             }
+
+            fetch(url + "&fq=speciesList:" + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST).then(response => response.json()).then(data => {
+                if (data.totalRecords > 0) {
+                    items.push(
+                        {
+                            fq: "speciesList:" + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST,
+                            label: "Iconic species",
+                            count: data.totalRecords,
+                            depth: 0,
+                            selected: thisFacetFqs.includes("speciesList:" + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
+                        })
+                }
+
+                if (items.length > 0) {
+                    setCustomFacetData([{
+                        name: "Type",
+                        items: items,
+                        order: 1
+                    }])
+                } else {
+                    setCustomFacetData([]);
+                }
+            })
         });
     }
 }

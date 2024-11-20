@@ -28,8 +28,8 @@ function StatusView({ result }: MapViewProps) {
     const [conservationStatus, setConservationStatus] = useState<Record<string, ConservationItem>>({});
 
     useEffect(() => {
-        if (result?.native_introduced_s) {
-            setNativeIntroduced(JSON.parse(result.native_introduced_s));
+        if (result?.nativeIntroduced) {
+            setNativeIntroduced(JSON.parse(result.nativeIntroduced));
         }
 
         var listNames = result?.listNames;
