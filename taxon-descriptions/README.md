@@ -189,3 +189,18 @@ Exclude example:
   }
 }
 ```
+
+## Generating Hero Descriptions
+To generate hero descriptions, use the following command:
+```shell
+java -cp target/taxon-descriptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar au.org.ala.DescriptionsExtractor
+```
+The directory containing the merged JSON files and output file location must be specified in the `config.json` file. 
+
+The output file will be a JSON file containing the hero descriptions for each taxon ID. Example:
+```json
+{
+  "https%3A%2F%2Fid.biodiversity.org.au%2Fnode%2Fapni%2F2904786": "<p>Tree to 30 m tall; branchlets ferrugineous-pubescent, glabrescent, with scattered lenticels.",
+  "https%3A%2F%2Fid.biodiversity.org.au%2Fnode%2Fapni%2F2892310": "<p>Spreading to sprawling low shrub 20-30 (-50?) cm tall. Branchlets strongly angular.",
+}
+```
