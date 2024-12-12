@@ -335,7 +335,7 @@ function ImagesView({result}: MediaViewProps) {
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                <Text span c={item.count === 0 ? 'gray' : 'default'}>
+                                <Text span c={(fieldIsFiltered ? item.count === 0 : getFilteredCount(item.label) === 0) ? 'gray' : 'default'}>
                                 { fieldLink[fieldName]
                                     ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor>
                                     : item.label }
