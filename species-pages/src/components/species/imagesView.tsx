@@ -87,6 +87,7 @@ const fieldLink: Record<string, string[]> = {
 function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
+    const [filteredFacetResults, setFilteredFacetResults] = useState<FacetResultSet[]>([]);  // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
     const [mediaType, setMediaType] = useState<MediaTypeValues>('all'); // all, image, video, sound
@@ -189,7 +190,7 @@ function ImagesView({result}: MediaViewProps) {
                     if (page == 0) {
                         setItems(list);
                         setOccurrenceCount(data.totalRecords);
-                        //setFacetResultsFiltered(data.facetResults);
+                        setFilteredFacetResults(data.facetResults);
                     } else {
                         setItems([...items, ...list]);
                     }
@@ -226,10 +227,6 @@ function ImagesView({result}: MediaViewProps) {
         return new Intl.NumberFormat('en').format(num); // TODO: move to helper and add locale detection
     }
 
-    const getFieldResults = useCallback((name: string) : FacetResult[] => {
-        return facetResults.filter(facet => facet.fieldName === name).map(facet => facet.fieldResult)[0];
-    }, [facetResults]);
-
     // Helper to invert a Record<string, string> object to Record<string, string[]>
     // E.g., `{a: 'one', b: 'one, c: 'two'} -> {one: ['a','b'], two: ['c']}`
     function invertObject(obj: Record<string, string>): Record<string, string[]> {
@@ -263,29 +260,6 @@ function ImagesView({result}: MediaViewProps) {
         return (fqTriggeredForField) ? fqTriggeredForField?.includes(facetValue) : false;
     };
 
-    // const filteredCountIsZero = (fieldName: string, label: string): boolean =>
-    //     getMinRecordCount(fieldName, label) > 0;
-
-
-    // Get the minimum record count for a facet value by inspecting both facetResults and facetResultsFiltered
-    // const getMinRecordCount = (fieldName: string, label: string): number =>
-    //     facetResultsFiltered.length === 0
-    //         ? facetResults?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0
-    //         : facetResultsFiltered?.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0]?.filter(it=>it.label===label)?.[0]?.count || 0;
-
-
-    // Check if a facet will show zero results if clicked (should be shown as disabled)
-    // If only one checkbox is active in a group and no other groups, then the checkbox should be enabled (OR logic)
-    // If multiple checkboxes are active in multiple groups, then only non-zero facetResults are active (AND logic)
-    // TODO: Potentially confusing for users, might need to be rethought
-    // const fqValueIsDisabled = (facetName: string, facetValue: string, fqValue: string): boolean => {
-    //     const isChecked = fqValueIsActive(facetName, fqValue);
-    //     const isZero = filteredCountIsZero(facetName, facetValue);
-    //     const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== facetName).every(key => fqUserTrigged[key].length === 0);
-    //     // console.log('fqValueIsDisabled', facetName, facetValue, isChecked, isZero, onlyOneFilterActiveInSameGroup);
-    //     return !isChecked && !isZero && !onlyOneFilterActiveInSameGroup;
-    // };
-
     // Checkbox group reusable component
     const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets, grouped = false }: { fieldName: string, limit?: number, grouped?: boolean }) => {
         // Update the fqUserTrigged state when clicked
@@ -304,42 +278,51 @@ function ImagesView({result}: MediaViewProps) {
                 });
         };
 
-        let fieldsToDisplay: FacetResult[] = getFieldResults(fieldName);
+        // Create 2 lists of facet values - one for the unfiltered results and one for the filtered results.
+        // Unfiltered is for displaying the list of facets & counts, filtered is for displaying the counts, depending on
+        // whether a filter has an active value or not.
+        let fieldsToDisplay: FacetResult[] = facetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
+        let fieldsFilteredCounts: FacetResult[] = filteredFacetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
+        const fieldIsFiltered = (fieldName in fqUserTrigged && fqUserTrigged[fieldName].length > 0); 
 
         if (grouped) {
             // If the field is grouped, then we need to create synthetic entries based on the fieldMapping
             const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
-            const syntheticFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
-                const avilableValues = fieldsToDisplay?.filter(field => values.includes(field.label));
-
-                // If no `facetResults` values are available for the synthetic field,
-                // then we need to create an empty entry with count 0 (disabled)
-                if (!avilableValues || avilableValues.length === 0) {
-                    return { label: key, count: 0, fq: '', i18nCode: '' };
-                }
-
-                const totalCount: number = avilableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
-                const fq: string = fieldsToDisplay
-                    ?.filter(field => values.includes(field.label))
-                    .map(field => field.fq)
-                    .join('+OR+');
-                return { label: key, count: totalCount, fq: fq, i18nCode: '' };
-            });
+            
+            const generateSyntheticFields = (
+                invertedTypeMap: Record<string, string[]>,
+                fields: FacetResult[] | undefined,
+                fieldsToDisplay: FacetResult[] | undefined
+            ): FacetResult[] => {
+                return Object.entries(invertedTypeMap).map(([key, values]: [string, string[]]) => {
+                    const availableValues = fields?.filter(field => values.includes(field.label));
+            
+                    // If no `facetResults` values are available for the synthetic field,
+                    // then we need to create an empty entry with count 0 (disabled)
+                    if (!availableValues || availableValues.length === 0) {
+                        return { label: key, count: 0, fq: '', i18nCode: '' };
+                    }
+            
+                    const totalCount: number = availableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
+                    const fq: string = fieldsToDisplay
+                        ?.filter(field => values.includes(field.label))
+                        .map(field => field.fq)
+                        .join('+OR+') || '';
+                    return { label: key, count: totalCount, fq: fq, i18nCode: '' };
+                });
+            };
+            
+            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay);
+            const syntheticFilteredFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsFilteredCounts, fieldsToDisplay);
 
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
+            fieldsFilteredCounts = syntheticFilteredFields.sort((a, b) => b.count - a.count);
         }
 
-        // Get the display count for a facet value - if a filter is active, then may be 2 values -> total / filtered
-        // Potentially confusing for users, might need to be rethought
-        // Not currently used -> TODO: delete if not needed
-        // const getDisplayCount = (fieldName: string, label: string, count: number): string => {
-        //     const onlyOneFilterActiveInSameGroup = Object.keys(fqUserTrigged).filter(key => key !== fieldName).every(key => fqUserTrigged[key].length === 0);
-        //     // console.log('getDisplayCount', fieldName, label, count, onlyOneFilterActiveInSameGroup, getMinRecordCount(fieldName, label));
-        //     return count == getMinRecordCount(fieldName, label) || onlyOneFilterActiveInSameGroup
-        //         ? count?.toString()
-        //         : `${count} / ${getMinRecordCount(fieldName, label)}`;
-        // }
+        const getFilteredCount = (fieldName: string): number => {
+            return fieldsFilteredCounts.filter(field => field.label === fieldName)[0]?.count || 0;
+        }
 
         return (
             <>
@@ -348,8 +331,7 @@ function ImagesView({result}: MediaViewProps) {
                         <Checkbox
                             size="xs"
                             // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
-                            // disabled={fqValueIsDisabled(fieldName, item.label, item.fq)}
-                            disabled={item.count === 0}
+                            disabled={ fieldIsFiltered ? item.count === 0 : getFilteredCount(item.label) === 0 }
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
@@ -364,8 +346,7 @@ function ImagesView({result}: MediaViewProps) {
                                     ml={8} pt={2} pr={8} pl={8}
                                     radius="lg"
                                 >
-                                    {/* {getDisplayCount(fieldName, item.label, item.count)} */}
-                                    {formatNumber(item.count)}
+                                    {formatNumber(fieldIsFiltered ? item.count : getFilteredCount(item.label))}
                                 </Badge>
                             </>}
                             styles={{ inner: { marginTop: 3} }}
