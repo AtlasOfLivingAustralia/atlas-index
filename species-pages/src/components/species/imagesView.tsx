@@ -226,7 +226,7 @@ function ImagesView({result}: MediaViewProps) {
     const formatNumber = (num: number) => {
         return new Intl.NumberFormat('en').format(num); // TODO: move to helper and add locale detection
     }
-    
+
     // Helper to invert a Record<string, string> object to Record<string, string[]>
     // E.g., `{a: 'one', b: 'one, c: 'two'} -> {one: ['a','b'], two: ['c']}`
     function invertObject(obj: Record<string, string>): Record<string, string[]> {
@@ -290,39 +290,31 @@ function ImagesView({result}: MediaViewProps) {
             const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
             
-            const syntheticFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
-                const avilableValues = fieldsToDisplay?.filter(field => values.includes(field.label));
-
-                // If no `facetResults` values are available for the synthetic field,
-                // then we need to create an empty entry with count 0 (disabled)
-                if (!avilableValues || avilableValues.length === 0) {
-                    return { label: key, count: 0, fq: '', i18nCode: '' };
-                }
-
-                const totalCount: number = avilableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
-                const fq: string = fieldsToDisplay
-                    ?.filter(field => values.includes(field.label))
-                    .map(field => field.fq)
-                    .join('+OR+');
-                return { label: key, count: totalCount, fq: fq, i18nCode: '' };
-            });
-
-            const syntheticFilteredFields: FacetResult[] = Object.entries(invertedTypeMap).map(([key, values]:[string, string[]]) => {
-                const avilableValues = fieldsFilteredCounts?.filter(field => values.includes(field.label));
-
-                // If no `facetResults` values are available for the synthetic field,
-                // then we need to create an empty entry with count 0 (disabled)
-                if (!avilableValues || avilableValues.length === 0) {
-                    return { label: key, count: 0, fq: '', i18nCode: '' };
-                }
-
-                const totalCount: number = avilableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
-                const fq: string = fieldsToDisplay
-                    ?.filter(field => values.includes(field.label))
-                    .map(field => field.fq)
-                    .join('+OR+');
-                return { label: key, count: totalCount, fq: fq, i18nCode: '' };
-            });
+            const generateSyntheticFields = (
+                invertedTypeMap: Record<string, string[]>,
+                fields: FacetResult[] | undefined,
+                fieldsToDisplay: FacetResult[] | undefined
+            ): FacetResult[] => {
+                return Object.entries(invertedTypeMap).map(([key, values]: [string, string[]]) => {
+                    const availableValues = fields?.filter(field => values.includes(field.label));
+            
+                    // If no `facetResults` values are available for the synthetic field,
+                    // then we need to create an empty entry with count 0 (disabled)
+                    if (!availableValues || availableValues.length === 0) {
+                        return { label: key, count: 0, fq: '', i18nCode: '' };
+                    }
+            
+                    const totalCount: number = availableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
+                    const fq: string = fieldsToDisplay
+                        ?.filter(field => values.includes(field.label))
+                        .map(field => field.fq)
+                        .join('+OR+') || '';
+                    return { label: key, count: totalCount, fq: fq, i18nCode: '' };
+                });
+            };
+            
+            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay);
+            const syntheticFilteredFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsFilteredCounts, fieldsToDisplay);
 
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
             fieldsFilteredCounts = syntheticFilteredFields.sort((a, b) => b.count - a.count);
