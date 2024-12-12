@@ -321,7 +321,7 @@ function ImagesView({result}: MediaViewProps) {
         }
 
         const getFilteredCount = (fieldName: string): number => {
-            return fieldsFilteredCounts.filter(field => field.label === fieldName)[0]?.count || 0;
+            return fieldsFilteredCounts?.filter(field => field.label === fieldName)[0]?.count || 0;
         }
 
         return (
