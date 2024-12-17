@@ -30,6 +30,7 @@ public class AllService {
     protected final SitemapService sitemapService;
     protected final LogService logService;
     protected final DashboardService dashboardService;
+    protected final DescriptionsUpdateService descriptionsUpdateService;
     @Value("${task.AREA.enabled}")
     public Boolean taskAreaEnabled;
     @Value("${task.BIOCACHE.enabled}")
@@ -50,13 +51,15 @@ public class AllService {
     public Boolean taskSitemapEnabled;
     @Value("${task.WORDPRESS.enabled}")
     public Boolean taskWordpressEnabled;
+    @Value("${task.TAXON_DESCRIPTION.enabled}")
+    public Boolean taskTaxonDescriptionEnabled;
 
     public AllService(CollectionsImportService collectionsImportService, WordpressImportService wordpressImportService,
                       KnowledgebaseImportService knowledgebaseImportService, LogService logService,
                       ListImportService listImportService, BiocollectImportService biocollectImportService,
                       LayerImportService layerImportService, AreaImportService areaImportService,
                       DwCAImportService dwCAImportService, TaxonUpdateService taxonUpdateService,
-                      SitemapService sitemapService, DashboardService dashboardService) {
+                      SitemapService sitemapService, DashboardService dashboardService, DescriptionsUpdateService descriptionsUpdateService) {
         this.collectionsImportService = collectionsImportService;
         this.wordpressImportService = wordpressImportService;
         this.knowledgebaseImportService = knowledgebaseImportService;
@@ -69,6 +72,7 @@ public class AllService {
         this.taxonUpdateService = taxonUpdateService;
         this.sitemapService = sitemapService;
         this.dashboardService = dashboardService;
+        this.descriptionsUpdateService = descriptionsUpdateService;
     }
 
     @Async("processExecutor")
@@ -104,6 +108,7 @@ public class AllService {
             tasks.add(knowledgebaseImportService.run());
             tasks.add(layerImportService.run());
             tasks.add(wordpressImportService.run());
+            tasks.add(descriptionsUpdateService.run());
 
             // wait for everything to finish
             logService.log(taskType, "Waiting for other updates to finish");
