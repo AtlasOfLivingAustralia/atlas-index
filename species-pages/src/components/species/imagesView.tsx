@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
 import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconMovie, IconVolume, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
@@ -111,6 +111,15 @@ function ImagesView({result}: MediaViewProps) {
         }));
     };
 
+    // Build the `fq` query param (string, with multiple `fq` params for array-style facets)
+    const fqParameterString = useCallback( (): string => {
+        const fqQueryList: String[] = facetFields.map((field) => {
+            const fq = fqUserTrigged[field];
+            return (fq && fq.length > 0) ? `&fq=${fq.join("+OR+")}` : '';
+        });
+        return fqQueryList.join('');
+    }, [fqUserTrigged]); 
+
     const pageSize = 10;
     const facetLimit = 15;
     const maxVisibleFacets = 4;
@@ -131,12 +140,6 @@ function ImagesView({result}: MediaViewProps) {
     function fetchImages() {
         if (!result?.guid) {
             return;
-        }
-
-        // Function to transform fqUserTrigged into a fq param (string)
-        const fqParameterString = (): string => {
-            const fqParts = Object.values(fqUserTrigged).map((values) => `&fq=${values.join("+OR+")}`);
-            return fqParts.length > 0 ? fqParts.join("") : '';
         }
 
         setLoading(true);
@@ -183,10 +186,8 @@ function ImagesView({result}: MediaViewProps) {
                 if (page == 0) {
                     setItems(list);
                     setOccurrenceCount(data.totalRecords);
-                    // setFilteredFacetResults(data.facetResults);
                     setFacetResults(data.facetResults);
                 } else {
-                    console.log("Adding more images to the list", items, list);
                     setItems([...items, ...list]);
                 }
             }).catch(error => {
@@ -277,7 +278,7 @@ function ImagesView({result}: MediaViewProps) {
             const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
             
-            // Generate "synthetic" fields based on the invertedTypeMap
+            // Generate "synthetic" grouped fields based on the invertedTypeMap
             const generateSyntheticFields = (
                 invertedTypeMap: Record<string, string[]>,
                 fields: FacetResult[] | undefined,
@@ -301,7 +302,7 @@ function ImagesView({result}: MediaViewProps) {
                 });
             };
             
-            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay);
+            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay); //.filter(field => field.count > 0);
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
         }
 
@@ -365,18 +366,19 @@ function ImagesView({result}: MediaViewProps) {
                             maw={loading ? 0 : gridWidthTypical}
                             src={getImageThumbnailUrl(imageId)}
                             onMouseOver={(event) => {
+                                // Slight zoom effect on hover
                                 const target = event.target as HTMLImageElement;
                                 target.style.transform = 'scale(1.1)';
                                 target.style.transition = 'transform 0.3s ease';
                             }}
                             onMouseOut={(event) => {
+                                // Reset zoom effect on hover out
                                 const target = event.target as HTMLImageElement;
                                 target.style.transform = 'scale(1.0)';
                                 target.style.transition = 'transform 0.3s ease';
                             }}
                             onLoad={(event) => {
                                 const target = event.target as HTMLImageElement;
-                                
                                 if (target && target.complete) {
                                     setLoading(false);
                                 } 
