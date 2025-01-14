@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
 import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconMovie, IconVolume, IconZoomReset } from "@tabler/icons-react";
 import classes from "./species.module.css";
@@ -77,7 +77,7 @@ const fieldMapping = {
         // 'Not supplied': 'Not supplied',
     }
 };
-const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
+const facetFields = ['basisOfRecord', 'license', 'dataResourceName']; // 'multimedia', TODO: move to config?
 
 // Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
 const fieldLink: Record<string, string[]> = {
@@ -87,7 +87,6 @@ const fieldLink: Record<string, string[]> = {
 function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    const [filteredFacetResults, setFilteredFacetResults] = useState<FacetResultSet[]>([]);  // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
     const [mediaType, setMediaType] = useState<MediaTypeValues>('all'); // all, image, video, sound
@@ -118,45 +117,40 @@ function ImagesView({result}: MediaViewProps) {
     const gridHeight = 210;
     const gridWidthTypical = 240;
     const biocacheBaseUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
-    const mediaFqMap: Record<MediaTypeValues, string> = {
-        all: "&fq=multimedia:*",
-        image: "&fq=multimedia:Image",
-        sound: "&fq=multimedia:Sound",
-        video: "&fq=multimedia:Video",
+    const mediaQueryMap: Record<MediaTypeValues, string> = {
+        all: "+AND+multimedia:*",
+        image: "+AND+multimedia:Image",
+        sound: "+AND+multimedia:Sound",
+        video: "+AND+multimedia:Video",
     };
 
     useEffect(() => {
-        fetchImages(true); // fetch images with user filters
-        fetchImages(false); // fetch facet results for unfiltered query
+        fetchImages(); 
     }, [result, page, sortDir, fqUserTrigged, mediaType]);
 
-    function fetchImages(includeUserFq: boolean = true) {
+    function fetchImages() {
         if (!result?.guid) {
             return;
         }
 
-        // Function to transform fqUserTrigged into a fq string
-        const transformFqUserTrigged = (): string => {
+        // Function to transform fqUserTrigged into a fq param (string)
+        const fqParameterString = (): string => {
             const fqParts = Object.values(fqUserTrigged).map((values) => `&fq=${values.join("+OR+")}`);
             return fqParts.length > 0 ? fqParts.join("") : '';
         }
 
-        const facets = `&facets=${facetFields.join(',')}`;
-        const pageSizeRequest = includeUserFq ? pageSize : 0;
-        const mediaFq = mediaFqMap[mediaType] || '&fq=multimedia:*';
-        const userFq = includeUserFq ? transformFqUserTrigged() : '';
-
         setLoading(true);
         fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
-            facets +
+            (mediaQueryMap[mediaType] || '+AND+multimedia:*') +
+            `&facets=${facetFields.join(',')}` +
             '&start=' + (page * pageSize) +
-            '&pageSize=' + pageSizeRequest +
+            '&pageSize=' + pageSize +
             '&dir=' + sortDir +
             '&sort=eventDate' +
             '&qualityProfile=ALA' +
             '&flimit=' + facetLimit +
-            userFq +
-            mediaFq
+            '&includeUnfilteredFacetValues=true' +
+            fqParameterString() 
         )
             .then(response => response.json())
             .then(data => {
@@ -186,16 +180,14 @@ function ImagesView({result}: MediaViewProps) {
                     }
                 })
 
-                if (includeUserFq) {
-                    if (page == 0) {
-                        setItems(list);
-                        setOccurrenceCount(data.totalRecords);
-                        setFilteredFacetResults(data.facetResults);
-                    } else {
-                        setItems([...items, ...list]);
-                    }
-                } else {
+                if (page == 0) {
+                    setItems(list);
+                    setOccurrenceCount(data.totalRecords);
+                    // setFilteredFacetResults(data.facetResults);
                     setFacetResults(data.facetResults);
+                } else {
+                    console.log("Adding more images to the list", items, list);
+                    setItems([...items, ...list]);
                 }
             }).catch(error => {
                 console.error('Failed to fetch images - ' + error);
@@ -219,7 +211,7 @@ function ImagesView({result}: MediaViewProps) {
 
     // Remove image from list if it fails to load
     const handleImageError = (idx: number, _e: any) => {
-        // console.log('Image error', _e.target?.src, idx);
+        // console.log('Image error', _e.target?.src, idx, items[idx]);
         setItems(prevItems => prevItems.filter((_, index) => index !== idx));
     };
 
@@ -278,18 +270,14 @@ function ImagesView({result}: MediaViewProps) {
                 });
         };
 
-        // Create 2 lists of facet values - one for the unfiltered results and one for the filtered results.
-        // Unfiltered is for displaying the list of facets & counts, filtered is for displaying the counts, depending on
-        // whether a filter has an active value or not.
         let fieldsToDisplay: FacetResult[] = facetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
-        let fieldsFilteredCounts: FacetResult[] = filteredFacetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
-        const fieldIsFiltered = (fieldName in fqUserTrigged && fqUserTrigged[fieldName].length > 0); 
 
         if (grouped) {
             // If the field is grouped, then we need to create synthetic entries based on the fieldMapping
             const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
             
+            // Generate "synthetic" fields based on the invertedTypeMap
             const generateSyntheticFields = (
                 invertedTypeMap: Record<string, string[]>,
                 fields: FacetResult[] | undefined,
@@ -314,14 +302,7 @@ function ImagesView({result}: MediaViewProps) {
             };
             
             const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay);
-            const syntheticFilteredFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsFilteredCounts, fieldsToDisplay);
-
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
-            fieldsFilteredCounts = syntheticFilteredFields.sort((a, b) => b.count - a.count);
-        }
-
-        const getFilteredCount = (fieldName: string): number => {
-            return fieldsFilteredCounts?.filter(field => field.label === fieldName)[0]?.count || 0;
         }
 
         return (
@@ -330,12 +311,11 @@ function ImagesView({result}: MediaViewProps) {
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
                         <Checkbox
                             size="xs"
-                            // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
-                            disabled={ fieldIsFiltered ? item.count === 0 : getFilteredCount(item.label) === 0 }
+                            disabled={item.count === 0}
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                <Text span c={(fieldIsFiltered ? item.count === 0 : getFilteredCount(item.label) === 0) ? 'gray' : 'default'}>
+                                <Text span c={(item.count === 0) ? 'gray' : 'default'}>
                                 { fieldLink[fieldName]
                                     ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor>
                                     : item.label }
@@ -346,7 +326,7 @@ function ImagesView({result}: MediaViewProps) {
                                     ml={8} pt={2} pr={8} pl={8}
                                     radius="lg"
                                 >
-                                    {formatNumber(fieldIsFiltered ? item.count : getFilteredCount(item.label))}
+                                    {formatNumber(item.count)}
                                 </Badge>
                             </>}
                             styles={{ inner: { marginTop: 3} }}
@@ -370,7 +350,7 @@ function ImagesView({result}: MediaViewProps) {
     };
 
     // Thumbnail image component, with its own useState so we can show a skeleton while image is loading
-    const ImageThumbnailModal = ({imageId, type}:{imageId: string, type: MediaTypeValues}) => {
+    const ImageThumbnailModal = ({imageId, type, idx}:{imageId: string, type: MediaTypeValues, idx: number}) => {
         const [loading, setLoading] = useState(true);
 
         return (
@@ -401,7 +381,7 @@ function ImagesView({result}: MediaViewProps) {
                                     setLoading(false);
                                 } 
                             }}
-                            onError={(e) => handleImageError(0, e)}
+                            onError={(e) => handleImageError(idx, e)}
                         />
                         {loading && <Skeleton height={gridHeight} width={gridWidthTypical} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
                     </UnstyledButton>
@@ -467,7 +447,7 @@ function ImagesView({result}: MediaViewProps) {
     return (
         <Box>
             <Flex gap="md" direction={{ base: 'column', sm: 'row' }}>
-            { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
+            { Object.keys(mediaQueryMap).map((key, idx) => // all, image, video, sound
                 <Button
                     key={idx}
                     variant={key === mediaType ? 'filled' : 'outline'}
@@ -500,7 +480,7 @@ function ImagesView({result}: MediaViewProps) {
                                 key={idx}
                                 justify="center"
                             >
-                                <ImageThumbnailModal imageId={item.id} type={item.type as MediaTypeValues} />
+                                <ImageThumbnailModal imageId={item.id} type={item.type as MediaTypeValues} idx={idx}/>
                             </Flex>
                         )}
                         { loading &&
@@ -511,7 +491,7 @@ function ImagesView({result}: MediaViewProps) {
                             )
                         }
                     </Flex>
-                    {items && items.length > 0 &&
+                    {items && items.length > 0 && (occurrenceCount > page * pageSize) &&
                         <Flex justify="center" align="center">
                             <Button
                                 mt="lg"
