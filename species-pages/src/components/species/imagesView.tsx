@@ -77,7 +77,7 @@ const fieldMapping = {
         // 'Not supplied': 'Not supplied',
     }
 };
-const facetFields = ['basisOfRecord', 'license', 'dataResourceName']; // 'multimedia', TODO: move to config?
+const facetFields = ['basisOfRecord', 'multimedia','license', 'dataResourceName']; // TODO: move to config?
 
 // Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
 const fieldLink: Record<string, string[]> = {
@@ -126,11 +126,11 @@ function ImagesView({result}: MediaViewProps) {
     const gridHeight = 210;
     const gridWidthTypical = 240;
     const biocacheBaseUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
-    const mediaQueryMap: Record<MediaTypeValues, string> = {
-        all: "+AND+multimedia:*",
-        image: "+AND+multimedia:Image",
-        sound: "+AND+multimedia:Sound",
-        video: "+AND+multimedia:Video",
+    const mediaFqMap: Record<MediaTypeValues, string> = {
+        all: "&fq=multimedia:*",
+        image: "&fq=multimedia:Image",
+        sound: "&fq=multimedia:Sound",
+        video: "&fq=multimedia:Video",
     };
 
     useEffect(() => {
@@ -144,7 +144,6 @@ function ImagesView({result}: MediaViewProps) {
 
         setLoading(true);
         fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
-            (mediaQueryMap[mediaType] || '+AND+multimedia:*') +
             `&facets=${facetFields.join(',')}` +
             '&start=' + (page * pageSize) +
             '&pageSize=' + pageSize +
@@ -153,7 +152,8 @@ function ImagesView({result}: MediaViewProps) {
             '&qualityProfile=ALA' +
             '&flimit=' + facetLimit +
             '&includeUnfilteredFacetValues=true' +
-            fqParameterString() 
+            fqParameterString() +
+            mediaFqMap[mediaType] || '&fq=multimedia:*'
         )
             .then(response => response.json())
             .then(data => {
@@ -449,7 +449,7 @@ function ImagesView({result}: MediaViewProps) {
     return (
         <Box>
             <Flex gap="md" direction={{ base: 'column', sm: 'row' }}>
-            { Object.keys(mediaQueryMap).map((key, idx) => // all, image, video, sound
+            { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
                 <Button
                     key={idx}
                     variant={key === mediaType ? 'filled' : 'outline'}
