@@ -77,7 +77,7 @@ const fieldMapping = {
         // 'Not supplied': 'Not supplied',
     }
 };
-const facetFields = ['basisOfRecord', 'multimedia','license', 'dataResourceName']; // TODO: move to config?
+const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
 
 // Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
 const fieldLink: Record<string, string[]> = {
