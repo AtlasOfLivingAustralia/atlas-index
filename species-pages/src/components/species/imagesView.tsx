@@ -87,7 +87,6 @@ const fieldLink: Record<string, string[]> = {
 function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
-    const [filteredFacetResults, setFilteredFacetResults] = useState<FacetResultSet[]>([]);  // from `facetResults` in the JSON response (filterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
     const [mediaType, setMediaType] = useState<MediaTypeValues>('all'); // all, image, video, sound
@@ -112,6 +111,15 @@ function ImagesView({result}: MediaViewProps) {
         }));
     };
 
+    // Build the `fq` query param (string, with multiple `fq` params for array-style facets)
+    const fqParameterString = useCallback( (): string => {
+        const fqQueryList: String[] = facetFields.map((field) => {
+            const fq = fqUserTrigged[field];
+            return (fq && fq.length > 0) ? `&fq=${fq.join("+OR+")}` : '';
+        });
+        return fqQueryList.join('');
+    }, [fqUserTrigged]); 
+
     const pageSize = 10;
     const facetLimit = 15;
     const maxVisibleFacets = 4;
@@ -126,37 +134,26 @@ function ImagesView({result}: MediaViewProps) {
     };
 
     useEffect(() => {
-        fetchImages(true); // fetch images with user filters
-        fetchImages(false); // fetch facet results for unfiltered query
+        fetchImages(); 
     }, [result, page, sortDir, fqUserTrigged, mediaType]);
 
-    function fetchImages(includeUserFq: boolean = true) {
+    function fetchImages() {
         if (!result?.guid) {
             return;
         }
 
-        // Function to transform fqUserTrigged into a fq string
-        const transformFqUserTrigged = (): string => {
-            const fqParts = Object.values(fqUserTrigged).map((values) => `&fq=${values.join("+OR+")}`);
-            return fqParts.length > 0 ? fqParts.join("") : '';
-        }
-
-        const facets = `&facets=${facetFields.join(',')}`;
-        const pageSizeRequest = includeUserFq ? pageSize : 0;
-        const mediaFq = mediaFqMap[mediaType] || '&fq=multimedia:*';
-        const userFq = includeUserFq ? transformFqUserTrigged() : '';
-
         setLoading(true);
         fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
-            facets +
+            `&facets=${facetFields.join(',')}` +
             '&start=' + (page * pageSize) +
-            '&pageSize=' + pageSizeRequest +
+            '&pageSize=' + pageSize +
             '&dir=' + sortDir +
             '&sort=eventDate' +
             '&qualityProfile=ALA' +
             '&flimit=' + facetLimit +
-            userFq +
-            mediaFq
+            '&includeUnfilteredFacetValues=true' +
+            fqParameterString() +
+            mediaFqMap[mediaType] || '&fq=multimedia:*'
         )
             .then(response => response.json())
             .then(data => {
@@ -186,16 +183,12 @@ function ImagesView({result}: MediaViewProps) {
                     }
                 })
 
-                if (includeUserFq) {
-                    if (page == 0) {
-                        setItems(list);
-                        setOccurrenceCount(data.totalRecords);
-                        setFilteredFacetResults(data.facetResults);
-                    } else {
-                        setItems([...items, ...list]);
-                    }
-                } else {
+                if (page == 0) {
+                    setItems(list);
+                    setOccurrenceCount(data.totalRecords);
                     setFacetResults(data.facetResults);
+                } else {
+                    setItems([...items, ...list]);
                 }
             }).catch(error => {
                 console.error('Failed to fetch images - ' + error);
@@ -219,7 +212,7 @@ function ImagesView({result}: MediaViewProps) {
 
     // Remove image from list if it fails to load
     const handleImageError = (idx: number, _e: any) => {
-        // console.log('Image error', _e.target?.src, idx);
+        // console.log('Image error', _e.target?.src, idx, items[idx]);
         setItems(prevItems => prevItems.filter((_, index) => index !== idx));
     };
 
@@ -278,18 +271,14 @@ function ImagesView({result}: MediaViewProps) {
                 });
         };
 
-        // Create 2 lists of facet values - one for the unfiltered results and one for the filtered results.
-        // Unfiltered is for displaying the list of facets & counts, filtered is for displaying the counts, depending on
-        // whether a filter has an active value or not.
         let fieldsToDisplay: FacetResult[] = facetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
-        let fieldsFilteredCounts: FacetResult[] = filteredFacetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
-        const fieldIsFiltered = (fieldName in fqUserTrigged && fqUserTrigged[fieldName].length > 0); 
 
         if (grouped) {
             // If the field is grouped, then we need to create synthetic entries based on the fieldMapping
             const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
             const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
             
+            // Generate "synthetic" grouped fields based on the invertedTypeMap
             const generateSyntheticFields = (
                 invertedTypeMap: Record<string, string[]>,
                 fields: FacetResult[] | undefined,
@@ -313,15 +302,8 @@ function ImagesView({result}: MediaViewProps) {
                 });
             };
             
-            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay);
-            const syntheticFilteredFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsFilteredCounts, fieldsToDisplay);
-
+            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay); //.filter(field => field.count > 0);
             fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
-            fieldsFilteredCounts = syntheticFilteredFields.sort((a, b) => b.count - a.count);
-        }
-
-        const getFilteredCount = (fieldName: string): number => {
-            return fieldsFilteredCounts?.filter(field => field.label === fieldName)[0]?.count || 0;
         }
 
         return (
@@ -330,12 +312,11 @@ function ImagesView({result}: MediaViewProps) {
                     <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
                         <Checkbox
                             size="xs"
-                            // turned off for now, as we can't providing accurate counts for each facet value, once filtering is applied
-                            disabled={ fieldIsFiltered ? item.count === 0 : getFilteredCount(item.label) === 0 }
+                            disabled={item.count === 0}
                             checked={fqValueIsActive(fieldName, item.fq)}
                             onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
                             label={<>
-                                <Text span c={(fieldIsFiltered ? item.count === 0 : getFilteredCount(item.label) === 0) ? 'gray' : 'default'}>
+                                <Text span c={(item.count === 0) ? 'gray' : 'default'}>
                                 { fieldLink[fieldName]
                                     ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor>
                                     : item.label }
@@ -346,7 +327,7 @@ function ImagesView({result}: MediaViewProps) {
                                     ml={8} pt={2} pr={8} pl={8}
                                     radius="lg"
                                 >
-                                    {formatNumber(fieldIsFiltered ? item.count : getFilteredCount(item.label))}
+                                    {formatNumber(item.count)}
                                 </Badge>
                             </>}
                             styles={{ inner: { marginTop: 3} }}
@@ -370,7 +351,7 @@ function ImagesView({result}: MediaViewProps) {
     };
 
     // Thumbnail image component, with its own useState so we can show a skeleton while image is loading
-    const ImageThumbnailModal = ({imageId, type}:{imageId: string, type: MediaTypeValues}) => {
+    const ImageThumbnailModal = ({imageId, type, idx}:{imageId: string, type: MediaTypeValues, idx: number}) => {
         const [loading, setLoading] = useState(true);
 
         return (
@@ -385,23 +366,24 @@ function ImagesView({result}: MediaViewProps) {
                             maw={loading ? 0 : gridWidthTypical}
                             src={getImageThumbnailUrl(imageId)}
                             onMouseOver={(event) => {
+                                // Slight zoom effect on hover
                                 const target = event.target as HTMLImageElement;
                                 target.style.transform = 'scale(1.1)';
                                 target.style.transition = 'transform 0.3s ease';
                             }}
                             onMouseOut={(event) => {
+                                // Reset zoom effect on hover out
                                 const target = event.target as HTMLImageElement;
                                 target.style.transform = 'scale(1.0)';
                                 target.style.transition = 'transform 0.3s ease';
                             }}
                             onLoad={(event) => {
                                 const target = event.target as HTMLImageElement;
-                                
                                 if (target && target.complete) {
                                     setLoading(false);
                                 } 
                             }}
-                            onError={(e) => handleImageError(0, e)}
+                            onError={(e) => handleImageError(idx, e)}
                         />
                         {loading && <Skeleton height={gridHeight} width={gridWidthTypical} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
                     </UnstyledButton>
@@ -500,7 +482,7 @@ function ImagesView({result}: MediaViewProps) {
                                 key={idx}
                                 justify="center"
                             >
-                                <ImageThumbnailModal imageId={item.id} type={item.type as MediaTypeValues} />
+                                <ImageThumbnailModal imageId={item.id} type={item.type as MediaTypeValues} idx={idx}/>
                             </Flex>
                         )}
                         { loading &&
@@ -511,7 +493,7 @@ function ImagesView({result}: MediaViewProps) {
                             )
                         }
                     </Flex>
-                    {items && items.length > 0 &&
+                    {items && items.length > 0 && (occurrenceCount > page * pageSize) &&
                         <Flex justify="center" align="center">
                             <Button
                                 mt="lg"
