@@ -218,7 +218,7 @@ function Species({setBreadcrumbs}: {
                             { /* include first 2 IEK names if available */}
                             { result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
                                 idx < 2 &&
-                                <Text size="lg" key={idx}>{item.name}</Text>
+                                <Text size="lg" key={idx}>{item.name} in {item.languageName}</Text>
                             )}
                             <Anchor fz="sm" onClick={() => setTab('names')} underline="always">See names</Anchor>
                             {/* <Text mt={8}>{combinedResult.nameComplete}</Text> */}
