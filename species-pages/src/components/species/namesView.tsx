@@ -61,7 +61,7 @@ function NamesView({ result }: MapViewProps) {
                                             dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
                                         :
                                         <Text inherit
-                                              dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
+                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
                                     }
                                     {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
                                     {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
@@ -95,10 +95,10 @@ function NamesView({ result }: MapViewProps) {
                                 <Table.Td>
                                     {item?.source ?
                                         <Anchor inherit href={item?.source}
-                                                dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
+                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
                                         :
                                         <Text inherit
-                                              dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
+                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
                                     }
                                     {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
                                     {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}

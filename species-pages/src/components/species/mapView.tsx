@@ -130,11 +130,11 @@ function MapView({tab, result}: MapViewProps) {
         },
         {
             name: "Advanced mapping",
-            url: `https://spatial.ala.org.au?q=lsid:${result?.guid}`
+            url: `${import.meta.env.VITE_SPATIAL_URL}?q=lsid:${result?.guid}`
         },
         {
             name: <>How to submit <br/>observations</>,
-            url: "https://www.ala.org.au/home/record-a-sighting/"
+            url: `${import.meta.env.VITE_HOME_URL}/home/record-a-sighting/`
         },
         {
             name: <>Receive alerts for <br/>new records</>,
@@ -243,7 +243,7 @@ function MapView({tab, result}: MapViewProps) {
                         { baseLayers === 'default' &&
                             <TileLayer
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
+                                url={`${import.meta.env.VITE_SPATIAL_URL}/osm/{z}/{x}/{y}.png`}
                                 zIndex={1}
                             />
                         }

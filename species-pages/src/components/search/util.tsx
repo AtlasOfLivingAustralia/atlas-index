@@ -10,8 +10,7 @@ function openUrl(url: string) {
 }
 
 const getImageThumbnailUrl = (id: string) => {
-    // TODO: enable the following later on: return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
-    return `https://images-test.ala.org.au/image/proxyImageThumbnail?imageId=${id}`;
+    return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
 }
 
 export {limitDescription, openUrl, getImageThumbnailUrl};

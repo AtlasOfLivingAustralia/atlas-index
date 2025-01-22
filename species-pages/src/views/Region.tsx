@@ -616,7 +616,6 @@ function Region({setBreadcrumbs, queryString}: {
                         </div>
                         <Title order={4} mt={30}>Occurrence records ({occurrenceCount})</Title>
                         <Title order={4} mt={15}>Number of species ({speciesCount})</Title>
-
                         <Grid gutter={30} mt={20}>
                             <Grid.Col span="content">
                                 <Box w={535}>
@@ -629,7 +628,6 @@ function Region({setBreadcrumbs, queryString}: {
                                                 Explore by taxonomy
                                             </Tabs.Tab>
                                         </Tabs.List>
-
                                         <Tabs.Panel value="species">
                                             <Table mt={10} h={550}>
                                                 <Table.Thead>
@@ -655,8 +653,8 @@ function Region({setBreadcrumbs, queryString}: {
                                                                                         <>
                                                                                             {speciesGroupFacet[child.name] && <>
                                                                                                 <Text ml={20}
-                                                                                                      onClick={() => isFetchingSpeciesList || filter(child)}
-                                                                                                      style={{cursor: (isFetchingSpeciesList ? "wait" : "pointer")}}>{child.name}</Text>
+                                                                                                    onClick={() => isFetchingSpeciesList || filter(child)}
+                                                                                                    style={{cursor: (isFetchingSpeciesList ? "wait" : "pointer")}}>{child.name}</Text>
                                                                                                 {child.children && child.children.map((child2) => {
                                                                                                     return (
                                                                                                         <>
@@ -692,7 +690,7 @@ function Region({setBreadcrumbs, queryString}: {
                                                                     return (
                                                                         <div key={idx}>
                                                                             <div onClick={() => filterSpecies(species)}
-                                                                                 style={{cursor: "pointer"}}>
+                                                                                    style={{cursor: "pointer"}}>
                                                                                 <Text style={{
                                                                                     display: "inline-block",
                                                                                     maxWidth: "300px"
@@ -734,9 +732,7 @@ function Region({setBreadcrumbs, queryString}: {
                                                         leftSection={<IconDownload size={16}/>}
                                                 >Download records</Button>
                                             </Flex>
-
                                         </Tabs.Panel>
-
                                         <Tabs.Panel value="chart">
                                             <Space h={30}/>
                                             <Box h={500}>
@@ -778,12 +774,11 @@ function Region({setBreadcrumbs, queryString}: {
                                         <div>
                                             <IconReload size={18} onClick={playerReset}/>
                                         </div>
-
                                     </Flex>
                                     <Space h={10}/>
                                     <RangeSlider value={yearRange} onChange={setYearRange} min={EARLIEST_YEAR}
-                                                 max={new Date().getFullYear()}
-                                                 onChangeEnd={yearRangeEnd} disabled={isFetchingSpeciesList}/>
+                                            max={new Date().getFullYear()}
+                                            onChangeEnd={yearRangeEnd} disabled={isFetchingSpeciesList}/>
                                     <Flex justify="center">
                                         <Text>{yearRange[0]} - {yearRange[1]}</Text>
                                     </Flex>
@@ -799,7 +794,7 @@ function Region({setBreadcrumbs, queryString}: {
                                     >
                                         <TileLayer
                                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                            url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
+                                            url={`${import.meta.env.VITE_SPATIAL_URL}/osm/{z}/{x}/{y}.png`}
                                             zIndex={1}
                                         />
                                         {object && showOccurrences && occurrenceFq !== undefined &&
@@ -825,14 +820,14 @@ function Region({setBreadcrumbs, queryString}: {
                                     </MapContainer>
                                     <Flex mt={20}>
                                         <Checkbox checked={showOccurrences} size="16"
-                                                  onChange={(event) => setShowOccurrences(event.currentTarget.checked)}
+                                                onChange={(event) => setShowOccurrences(event.currentTarget.checked)}
                                         /><Text ml={10} fz={16}>Occurrences</Text>
                                     </Flex>
                                     <Slider value={occurrenceOpacity} onChangeEnd={setOccurrenceOpacity}
                                             disabled={!showOccurrences}/>
                                     <Flex mt={20}>
                                         <Checkbox checked={showObject} size="16"
-                                                  onChange={(event) => setShowObject(event.currentTarget.checked)}
+                                                onChange={(event) => setShowObject(event.currentTarget.checked)}
                                         /><Text ml={10} fz={16}>Region</Text>
                                     </Flex>
                                     <Slider value={objectOpacity} onChangeEnd={setObjectOpacity} disabled={!showObject}/>

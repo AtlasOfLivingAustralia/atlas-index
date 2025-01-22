@@ -279,7 +279,7 @@ function Regions({setBreadcrumbs}: {
 
                                     <TileLayer
                                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                        url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
+                                        url={`${import.meta.env.VITE_SPATIAL_URL}/osm/{z}/{x}/{y}.png`}
                                         zIndex={1}
                                     />
 
