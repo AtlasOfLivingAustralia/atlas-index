@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 @Configuration
 @EnableWebSecurity
-@ComponentScan(basePackages = {"au.org.ala.ws.security"})
+@ComponentScan(basePackages = {"au.org.ala.ws.security", "au.org.ala.security.common"})
 @EnableMethodSecurity
 @EnableCaching
 @Order(1)
