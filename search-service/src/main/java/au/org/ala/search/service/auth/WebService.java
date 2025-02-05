@@ -1,6 +1,6 @@
 package au.org.ala.search.service.auth;
 
-import au.org.ala.search.util.auth.TokenService;
+import au.org.ala.ws.security.TokenService;
 import au.org.ala.web.UserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
