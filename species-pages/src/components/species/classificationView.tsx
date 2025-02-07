@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Alert, Anchor, Flex, Grid, Skeleton, Space, Text } from "@mantine/core";
+import {useMediaQuery} from '@mantine/hooks';
 import { IconInfoCircleFilled } from "@tabler/icons-react";
 import classes from "./species.module.css";
 import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
@@ -16,6 +17,7 @@ function ClassificationView({result}: ViewProps) {
     const [hierarchy, setHierarchy] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const isMobile = useMediaQuery('(max-width: 48em)')
 
     useEffect(() => {
         if (result?.guid) {
@@ -54,7 +56,7 @@ function ClassificationView({result}: ViewProps) {
 
     return (
         <Grid>
-            <Grid.Col span={9}>
+            <Grid.Col span={isMobile ? 12 : 9}>
                 { /* the choice made here is to display all of the hierarchy at once, rather than parents and children separately */}
                 { loading && <Skeleton height={40} width="90%" radius="md" />}
                 { !loading && hierarchy.length === 0 && <>
@@ -111,7 +113,7 @@ function ClassificationView({result}: ViewProps) {
                     </Alert>
                 }
             </Grid.Col>
-            <Grid.Col span={3}>
+            <Grid.Col span={isMobile ? 12 : 3}>
                 <Flex justify="flex-start" align="center" gap="5px">
                     <IconInfoCircleFilled size={18}/>
                     <Text fw={800} fz={16}>About classification</Text>

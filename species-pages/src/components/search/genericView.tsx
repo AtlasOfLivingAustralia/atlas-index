@@ -23,6 +23,7 @@ import {useNavigate} from "react-router-dom";
 import CheckIcon from "../common/checkIcon.tsx";
 import CheckDisabledIcon from "../common/checkDisabledIcon.tsx";
 import CheckedIcon from "../common/checkedIcon.tsx";
+import MobileGenericView from "./mobile/genericView.tsx";
 
 interface GenericProps {
     queryString: string,
@@ -253,7 +254,36 @@ function GenericView({
             cursor: 'progress'
         }} onClick={(e) => e.preventDefault()}></div>}
 
-        <Grid>
+
+        {!loading && <>
+            <MobileGenericView
+                facets={facets}
+                customFacetData={customFacetData}
+                facetLoading={facetLoading}
+                customFacetLoading={customFacetLoading}
+                toggleItem={toggleItem}
+                loading={loading}
+                maxResults={maxResults}
+                page={page}
+                pageSize={pageSize}
+                queryString={queryString}
+                filter={filter}
+                setFilter={setFilter}
+                sortData={sortData}
+                sortValue={sortValue}
+                setSortValue={setSortValue}
+                getResults={getResults}
+                resultData={resultData}
+                renderListItemFn={props.renderListItemFn}
+                renderTileItemFn={props.renderTileItemFn}
+                navigate={navigate}
+                deepPagingMaxPage={deepPagingMaxPage}
+                updatePage={updatePage}
+            />
+        </>
+        }
+
+        <Grid className={classes.desktop}>
             <Grid.Col span={3}>
                 <Text className={classes.refineTitle}>Refine results</Text>
                 {(facetLoading || customFacetLoading) && <Skeleton mt={15} height="100px"/>}

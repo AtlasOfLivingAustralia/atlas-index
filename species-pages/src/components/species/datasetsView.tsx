@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useState} from "react";
-import { Anchor, Alert, Skeleton, Table, Text } from "@mantine/core";
+import { Flex, Anchor, Alert, Skeleton, Table, Text } from "@mantine/core";
 import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
+import {useMediaQuery} from "@mantine/hooks";
 
 interface MapViewProps {
     result?:  Record<PropertyKey, string | number | any >
@@ -18,6 +19,7 @@ function DatasetsView({result}: MapViewProps) {
     const [datasets, setDatasets] = useState<Dataset[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const isMobile = useMediaQuery('(max-width: 48em)')
 
     useEffect(() => {
         if (!result?.guid) {
@@ -82,18 +84,31 @@ function DatasetsView({result}: MapViewProps) {
     }, [result]);
 
     const populateTableData = useCallback(() => {
-        return {
+        return isMobile ? {
+                head: ['Dataset', 'Licence'],
+                body: datasets.map((item) => [
+                    <><Anchor target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + "/public/show/" + item.dataResourceUid}>
+                        {item.name}
+                    </Anchor><br/>Records:<Anchor target="_blank" href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/search?q=lsid:\"" + result?.guid
+                        + "\"&fq=dataResourceUid:" + item.dataResourceUid}>
+                        {item.records.toLocaleString()}
+                    </Anchor></>,
+                    item.licence
+                ])
+            }
+            :
+            {
             head: ['Dataset', 'Licence', 'Records'],
             body: datasets.map((item) => [
-                <Anchor target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + "/public/show/" + item.dataResourceUid}>
-                    {item.name}
-                </Anchor>,
-                item.licence,
-                <Anchor target="_blank" href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/search?q=lsid:\"" + result?.guid
-                    + "\"&fq=dataResourceUid:" + item.dataResourceUid}>
-                    {item.records.toLocaleString()}
-                </Anchor>
-            ]),
+                    <Anchor target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + "/public/show/" + item.dataResourceUid}>
+                        {item.name}
+                    </Anchor>,
+                    item.licence,
+                    <Anchor target="_blank" href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/search?q=lsid:\"" + result?.guid
+                        + "\"&fq=dataResourceUid:" + item.dataResourceUid}>
+                        {item.records.toLocaleString()}
+                    </Anchor>
+            ])
         };
     }, [datasets]);
 

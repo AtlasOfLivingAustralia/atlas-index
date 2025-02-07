@@ -101,37 +101,52 @@ export const environmentallayersDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())}
-                     style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = missingImage}
-                />
-                }
-                {!item.image &&
-                    <Image
+        return <>
+            <Flex className={classes.mobile} gap="30px" onClick={() => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())}
+                  style={{cursor: "pointer"}}>
+
+                <div style={{flex:1}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                    {item.keywords && (
+                        <Text className={classes.overflowText} title={item.keywords}>Keywords: {item.keywords}</Text>
+                    )}
+                </div>
+                <div style={{flex:1}}>
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Flex>
+            <Flex className={classes.desktop} gap="30px" onClick={() => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())}
+                         style={{cursor: "pointer"}}>
+                <div style={{minWidth: "62px", minHeight: "62px"}}>
+                    {item.image && <Image
                         radius="5px"
                         mah={62}
                         maw={62}
-                        src={missingImage}
+                        src={item.image}
+                        onError={(e) => e.currentTarget.src = missingImage}
                     />
-                }
-            </div>
-            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text className={classes.overflowText} title={item.keywords}>{item.keywords}</Text>
-                <Text title={item.source}>{item.source}</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+                    }
+                    {!item.image &&
+                        <Image
+                            radius="5px"
+                            mah={62}
+                            maw={62}
+                            src={missingImage}
+                        />
+                    }
+                </div>
+                <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                </div>
+                <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+                    <Text className={classes.overflowText} title={item.keywords}>{item.keywords}</Text>
+                    <Text title={item.source}>{item.source}</Text>
+                </div>
+                <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Flex>
+        </>
     },
 
     renderTileItemFn: ({item}: RenderItemParams) => {

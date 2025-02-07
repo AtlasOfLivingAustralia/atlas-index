@@ -1,5 +1,6 @@
 import {Fragment, useEffect, useState} from "react";
 import {Anchor, Button, Divider, Flex, Grid, Space, Text} from "@mantine/core";
+import {useMediaQuery} from '@mantine/hooks';
 import classes from "./search.module.css";
 import {ListIcon, TilesIcon, ArrowRightIcon} from '@atlasoflivingaustralia/ala-mantine';
 import {useNavigate} from "react-router-dom";
@@ -12,9 +13,10 @@ import {regionslocalitiesDefn} from "./props/regionslocalitiesDefn.tsx";
 import {wordpressDefn} from "./props/wordpressDefn.tsx";
 import {supportDefn} from "./props/supportDefn.tsx";
 
+
 interface ViewProps {
     queryString?: string | undefined
-    setTab: (tab: string) => void
+    setTab?: (tab: string) => void
 }
 
 function AllView({queryString, setTab}: ViewProps) {
@@ -29,6 +31,8 @@ function AllView({queryString, setTab}: ViewProps) {
     const [regionLocalityGroups, setRegionLocalityGroups] = useState<any[]>([]);
     const [alaGeneralContentGroups, setAlaGeneralContentGroups] = useState<any[]>([]);
     const [helpArticlesGroups, setHelpArticlesGroups] = useState<any[]>([]);
+    const isMobile = useMediaQuery('(max-width: 48em)')
+    const tileSpan = isMobile ? 12 : 3; // if mobile, show 1 column, otherwise 4
 
     const navigate = useNavigate();
 
@@ -156,6 +160,7 @@ function AllView({queryString, setTab}: ViewProps) {
     }
 
     return (<>
+            <Space h="10px"/>
             <Flex gap="15px">
                 <Text style={{lineHeight: "36px"}}>View as</Text>
                 <Button variant="ala-filter" onClick={() => {
@@ -166,8 +171,7 @@ function AllView({queryString, setTab}: ViewProps) {
                     <ListIcon color="#637073"/>List</Button>
                 <Button onClick={() => updateFilter("tiles")} variant="ala-filter"
                         className={(filter == "tiles") ? classes.activeFilter : classes.disabledFilter}
-                >
-                    <TilesIcon color="#637073"/>Tiles</Button>
+                ><TilesIcon color="#637073"/>Tiles</Button>
             </Flex>
             {total == 0 && <Text mt={60}>No results found</Text>}
             {groups.map((group, index) =>
@@ -175,7 +179,9 @@ function AllView({queryString, setTab}: ViewProps) {
                     {group.count > 0 && <>
                         <Space h="60px"/>
                         <Flex style={{justifyContent: 'space-between'}}
-                            onClick={() => setTab(group.tabName)}>
+                              direction={isMobile ? 'column' : 'row'}
+                              gap={isMobile ? '15px' : '0'}
+                              onClick={() => setTab(group.tabName)}>
                             <Text className={classes.groupName}>{group.label}</Text>
                             <Anchor className={classes.groupCount}
                             >See {group.count} results <ArrowRightIcon/></Anchor>
@@ -242,42 +248,42 @@ function AllView({queryString, setTab}: ViewProps) {
                         {filter == "tiles" &&
                             <Grid gutter="40px">
                                 {group.label == "Species" && taxonGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {speciesDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Datasets" && datasetGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {datasetsDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Species List" && speciesListGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {specieslistDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Data Projects" && dataProjectGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {dataprojectsDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Environmental Layers" && environmentalLayerGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {environmentallayersDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Regions/localities" && regionLocalityGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {regionslocalitiesDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "ALA General Content" && alaGeneralContentGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {wordpressDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}
                                 {group.label == "Help Articles" && helpArticlesGroups.map((item: any, index: number) =>
-                                    <Grid.Col span={3} key={index}>
+                                    <Grid.Col span={tileSpan} key={index}>
                                         {supportDefn.renderTileItemFn({item, navigate, wide: true})}
                                     </Grid.Col>
                                 )}

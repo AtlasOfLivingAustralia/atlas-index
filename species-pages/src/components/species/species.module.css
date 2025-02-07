@@ -155,3 +155,22 @@
 .traitsLeftColumnWidth {
     width: 305px;
 }
+
+/*Note: Don't refer those from App.tsx, as some classes conflict with those in App.tsx'*/
+.mobile {
+    padding: 10px;
+    /* Desktop Sizes */
+    @media (min-width: 48em) {
+        display: none;
+    }
+}
+
+.desktop {
+    /* Mobile Sizes */
+    @media (max-width: calc(48em - 1px)) {
+        display: none;
+    }
+}
+
+
+

@@ -70,19 +70,34 @@ export const regionslocalitiesDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({item, wide, navigate}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openRegionLocality(item, navigate)}
-                     style={{cursor: "pointer"}}>
-            <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text>{item.fieldName}</Text>
-                <Text>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, 230)}</Text>
-            </div>
-        </Flex>
+        return <>
+            <Flex className={classes.desktop} gap="30px" onClick={() => openRegionLocality(item, navigate)}
+                         style={{cursor: "pointer"}}>
+                <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                </div>
+                <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+                    <Text>{item.fieldName}</Text>
+                    <Text>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</Text>
+                </div>
+                <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+                    <Text title={item.description}>{limitDescription(item.description, 230)}</Text>
+                </div>
+            </Flex>
+
+            <Flex className={classes.mobile} direction="column" gap="30px" onClick={() => openRegionLocality(item, navigate)}
+                  style={{cursor: "pointer"}}>
+                <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                </div>
+                <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+                    <Text>{item.fieldName}</Text>
+                </div>
+                <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+                    <Text title={item.description}>{limitDescription(item.description, 230)}</Text>
+                </div>
+            </Flex>
+            </>
     },
 
     renderTileItemFn: ({item, navigate}: RenderItemParams) => {

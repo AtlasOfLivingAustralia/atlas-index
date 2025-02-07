@@ -211,6 +211,13 @@ export const speciesDefn: GenericViewProps = {
         }
     },
 
+    /**
+     * Need to support mobile and desktop views
+     * todo - Shall we separate out the mobile and desktop views
+     * @param item
+     * @param navigate
+     * @param wide
+     */
     renderListItemFn: ({item, navigate, wide}: RenderItemParams) => {
         return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
             <div style={{minWidth: "62px", minHeight: "62px"}}>
@@ -238,13 +245,18 @@ export const speciesDefn: GenericViewProps = {
                 ></Text>}
                 {!item.nameFormatted && <Text>{item.name}</Text>}
                 <Text>{item.commonNameSingle}</Text>
+                <div className={classes.mobile}>
+                    {item.speciesGroup && <Text>{item.speciesGroup.join(', ')}</Text>}
+                    {item?.data?.rk_kingdom && <Text>Kingdom: {item?.data?.rk_kingdom}</Text>}
+                    <Text><FolderIcon color="#637073"/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence records</Text>
+                </div>
             </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+            <div className={classes.desktop} style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
                 {item.speciesGroup && <Text>{item.speciesGroup.join(', ')}</Text>}
                 {item?.data?.rk_kingdom && <Text>Kingdom: {item?.data?.rk_kingdom}</Text>}
                 <Text><FolderIcon color="#637073"/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence records</Text>
             </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+            <div className={classes.desktop} style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
                 {/*TODO: hero description goes here when it is defined*/}
             </div>
         </Flex>

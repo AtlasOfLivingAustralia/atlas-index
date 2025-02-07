@@ -83,7 +83,14 @@ function ResourcesView({ result }: MapViewProps) {
         setLoading(true);
         setErrorMessage('');
         fetch(url)
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    // Handle error: response.ok is false for status codes outside 200-299
+                    throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+                }
+                return response.json(); // Only parse JSON if response is OK
+             }
+            )
             .then((data) => {
                 if (data?.Result) {
                     setBhl(data.Result);

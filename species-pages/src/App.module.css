@@ -57,3 +57,19 @@
     color: var(--mantine-color-flamingo-4) !important;
   }
 }
+
+.mobile {
+  padding: 10px;
+  /* Desktop Sizes */
+  @media (min-width: 48em) {
+    display: none;
+  }
+}
+
+.desktop {
+  /* Mobile Sizes */
+  @media (max-width: calc(48em - 1px)) {
+    display: none;
+  }
+}
+

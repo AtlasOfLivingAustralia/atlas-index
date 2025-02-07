@@ -1,5 +1,5 @@
 import {CustomFacetFn, GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Image, Space, Text} from "@mantine/core";
+import {Box, Flex, Image, Space, Text} from "@mantine/core";
 import classes from "../search.module.css";
 import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
 import {limitDescription, openUrl} from "../util.tsx";
@@ -50,15 +50,25 @@ export const datasetsDefn: GenericViewProps = {
                     />
                 }
             </div>
-            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
+            <Box className={classes.desktop}>
+                <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                </div>
+                <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+                    <Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} occurrence records</Text>
+                </div>
+                <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Box>
+
+            <Box className={classes.mobile}>
                 <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} occurrence records</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
+                <Space h="8px"/>
+                <Text fz={14}><FolderIcon color="#637073"/> contains {item.occurrenceCount} records</Text>
+                <Space h="13px"/>
+                <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
+            </Box>
         </Flex>
     },
 

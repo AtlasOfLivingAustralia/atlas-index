@@ -81,18 +81,31 @@ export const supportDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                {item.classification1 && <Text>{item.classification1}</Text>}
-                {item.classification2 && <Text>{item.classification2}</Text>}
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+        return <>
+            <Flex className={classes.mobile} direction={"column"} gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
+                <div style={{flex:12}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                    {item.classification1 && <Text>{item.classification1}</Text>}
+                    {item.classification2 && <Text>{item.classification2}</Text>}
+                </div>
+                <div style={{flex:12}}>
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Flex>
+
+            <Flex className={classes.desktop} gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
+                <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                </div>
+                <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+                    {item.classification1 && <Text>{item.classification1}</Text>}
+                    {item.classification2 && <Text>{item.classification2}</Text>}
+                </div>
+                <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Flex>
+        </>
     },
 
     renderTileItemFn: ({item}: RenderItemParams) => {

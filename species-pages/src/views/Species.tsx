@@ -44,7 +44,7 @@ import {TaxonDescription} from "../../api/sources/model.ts";
 import descriptionLabelsConfig from "../config/firstDescriptionLabels.json";
 import classes from '../components/species/species.module.css';
 import '../css/nameFormatting.css';
-import SpeciesDetailsAccordion from "../components/common/SpeciesDetailsAccordion.tsx";
+import MobileSpecies from "./mobile/Species.tsx";
 
 const descriptionLabels: string[] = descriptionLabelsConfig as string[];
 
@@ -290,14 +290,11 @@ function Species({setBreadcrumbs}: {
                 </Container>
             </Box>
 
-            {isMobile ? (
-                <>
-                 <br/>
-                 <SpeciesDetailsAccordion data={result} descriptions={descriptions}></SpeciesDetailsAccordion>
-                </>
-             )
-            // For desktop
-            : ( <>
+                <br/>
+            {isMobile &&
+                <MobileSpecies data={result} descriptions={descriptions}></MobileSpecies>
+            }
+             <div className={classes.desktop}>
                 <Box >
                     <Tabs orientation="vertical"
                           id="occurrence-tabs"
@@ -322,37 +319,37 @@ function Species({setBreadcrumbs}: {
                 </Box>
                 <Container size="lg">
                     <Space h="px60" />
-                    {tab === 'map' &&
+                    {tab === 'map' && result &&
                         <MapView result={result} tab={tab}/>
                     }
-                    {tab === 'classification' &&
+                    {tab === 'classification' && result &&
                         <ClassificationView result={result}/>
                     }
-                    {tab === 'description' &&
+                    {tab === 'description' && descriptions &&
                         <DescriptionView descriptions={descriptions}/>
                     }
-                    {tab === 'media' &&
+                    {tab === 'media' && result &&
                         <ImagesView result={result}/>
                     }
-                    {tab === 'names' &&
+                    {tab === 'names' && result &&
                         <NamesView result={result} />
                     }
-                    {tab === 'status' &&
+                    {tab === 'status' && result &&
                         <StatusView result={result} />
                     }
-                    {tab === 'traits' &&
+                    {tab === 'traits' && result &&
                         <TraitsView result={result} />
                     }
-                    {tab === 'datasets' &&
+                    {tab === 'datasets' && result &&
                         <DatasetsView result={result} />
                     }
-                    {tab === 'resources' &&
+                    {tab === 'resources' && result &&
                         <ResourcesView result={result} />
                     }
                     <Space h="xl" />
                 </Container>
-            </> )
-            }
+             </div>
+
 
             <div className="speciesFooter speciesPage">
                 <div className="speciesFooterLine"></div>

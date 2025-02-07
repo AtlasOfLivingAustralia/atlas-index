@@ -1,6 +1,6 @@
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
-import { Box, Button, Center, Container, Flex, Space, Tabs, Text, TextInput} from "@mantine/core";
+import {Accordion, Box, Button, Center, Container, Flex, Space, Tabs, Text, TextInput} from "@mantine/core";
 import classes from "./search.module.css";
 import { CloseIcon, SearchIcon, AllIcon, SpeciesIcon, DatasetsIcon, SpeciesListsIcon, DataProjectsIcon, EnvironmentalLayersIcon, RegionsIcon, ALAGeneralContentIcon, HelpArticlesIcon} from '@atlasoflivingaustralia/ala-mantine';
 import AllView from "../components/search/allView.tsx";
@@ -19,6 +19,7 @@ function Search({setBreadcrumbs}: {
     login?: () => void,
     logout?: () => void
 }) {
+
     // the queryResultValue is the value of the search input box
     const [queryResultValue, setQueryResultValue] = useState<string>('');
 
@@ -26,6 +27,18 @@ function Search({setBreadcrumbs}: {
     const [queryResult, setQueryResult] = useState<string>('');
 
     const [tab, setTab] = useState('all');
+
+    const panels = [
+        { id: 'all', icon: <AllIcon/>, title: 'All', component: <AllView queryString={queryResult}/>},
+        { id: 'species',icon: <SpeciesIcon/>, title: 'Species', component: <GenericView queryString={queryResult} props={speciesDefn}/>  },
+        { id: 'datasets', icon: <DatasetsIcon />, title: 'Datasets', component: <GenericView queryString={queryResult} props={datasetsDefn}/> },
+        { id: 'specieslists', icon: <SpeciesListsIcon />, title: 'Species lists', component: <GenericView queryString={queryResult} props={specieslistDefn} />},
+        { id: 'dataprojects', icon: <DataProjectsIcon />, title: 'Data projects', component: <GenericView queryString={queryResult} props={dataprojectsDefn} /> },
+        { id: 'environmentallayers', icon: <EnvironmentalLayersIcon />, title: 'Environmental layers', component: <GenericView queryString={queryResult} props={environmentallayersDefn} /> },
+        { id: 'regionslocalities', icon: <RegionsIcon />, title: 'Regions/localities', component: <GenericView queryString={queryResult} props={regionslocalitiesDefn} />},
+        { id: 'alageneralcontent', icon: <ALAGeneralContentIcon />, title: 'ALA general content', component: <GenericView queryString={queryResult} props={wordpressDefn} /> },
+        { id: 'helparticles', icon: <HelpArticlesIcon />, title: 'Help articles', component: <GenericView queryString={queryResult} props={supportDefn} /> },
+    ];
 
     useEffect(() => {
         setBreadcrumbs([
@@ -61,16 +74,34 @@ function Search({setBreadcrumbs}: {
                                 }
                                 }}
                         />
-                        <Box style={{marginLeft: "-14px", marginTop: "12px", zIndex: "100", cursor: "pointer"}}>
-                            <CloseIcon style={{marginLeft: "-30px"}} onClick={() => {setQueryResultValue(""); setQueryResult(""); }} />
+                        <Box style={{marginLeft: "-12px", marginTop: "12px", zIndex: "100", cursor: "pointer"}}>
+                            <CloseIcon style={{marginLeft: "-10px"}} onClick={() => {setQueryResultValue(""); setQueryResult(""); }} />
                         </Box>
-                        <Button variant="filled" color="blue" className={classes.searchButton}
+                        <Button style={{marginLeft: "10px"}} variant="filled" color="blue" className={classes.searchButton}
                                 onClick={() => setQueryResult(queryResultValue)} >
                             <SearchIcon style={{marginTop: "-2px"}}/>
                         </Button>
                     </Flex>
                     <Space h="30px"/>
                 </Box>
+
+
+               <Accordion className={classes.mobile}
+                   multiple // Optional: Allow multiple panels to be open at once
+                   chevronPosition="left" // Chevron on the left for better UX
+                   defaultValue={panels[0]?.id}
+               >
+                   {panels.map((panel) => (
+                       <Accordion.Item value={panel.id} key={panel.id}>
+                           <Accordion.Control>
+                               {panel.icon} {panel.title}
+                           </Accordion.Control>
+                           <Accordion.Panel>{panel.component}</Accordion.Panel>
+                       </Accordion.Item>
+                   ))}
+               </Accordion>
+
+              <div className={classes.desktop}>
                 <Flex justify="center" style={{backgroundColor: "#F2F2F2"}}>
                     <Tabs
                         id="occurrence-tabs"
@@ -78,32 +109,19 @@ function Search({setBreadcrumbs}: {
                         onChange={handleTabChange} >
                         <Container size="responsive">
                             <Tabs.List className={classes.tabButtons}>
-                                <Tabs.Tab value="all"><AllIcon/>All</Tabs.Tab>
-                                <Tabs.Tab value="species"><SpeciesIcon />Species</Tabs.Tab>
-                                <Tabs.Tab value="datasets"><DatasetsIcon />Datasets</Tabs.Tab>
-                                <Tabs.Tab value="specieslists"><SpeciesListsIcon />Species lists</Tabs.Tab>
-                                <Tabs.Tab value="dataprojects"><DataProjectsIcon />Data projects</Tabs.Tab>
-                                <Tabs.Tab value="environmentallayers"><EnvironmentalLayersIcon />Environmental layers</Tabs.Tab>
-                                <Tabs.Tab value="regionslocalities"><RegionsIcon />Regions/localities</Tabs.Tab>
-                                <Tabs.Tab value="alageneralcontent"><ALAGeneralContentIcon />ALA general content</Tabs.Tab>
-                                <Tabs.Tab value="helparticles"><HelpArticlesIcon />Help articles</Tabs.Tab>
+                                {panels.map((panel) => (
+                                    <Tabs.Tab value={panel.id}> {panel.icon}{panel.title}</Tabs.Tab>
+                                ))}
                             </Tabs.List>
                         </Container>
                     </Tabs>
                 </Flex>
                 <Container size="1280px">
                     <Space h="px30" />
-                    {tab === 'all' && <AllView queryString={queryResult} setTab={setTab}/>}
-                    {tab === 'species' && <GenericView queryString={queryResult} props={speciesDefn} />}
-                    {tab === 'datasets' && <GenericView queryString={queryResult} props={datasetsDefn} />}
-                    {tab === 'specieslists' && <GenericView queryString={queryResult} props={specieslistDefn} />}
-                    {tab === 'dataprojects' && <GenericView queryString={queryResult} props={dataprojectsDefn} />}
-                    {tab === 'environmentallayers' && <GenericView queryString={queryResult} props={environmentallayersDefn} />}
-                    {tab === 'regionslocalities' && <GenericView queryString={queryResult} props={regionslocalitiesDefn} />}
-                    {tab === 'alageneralcontent' && <GenericView queryString={queryResult} props={wordpressDefn} />}
-                    {tab === 'helparticles' && <GenericView queryString={queryResult} props={supportDefn} />}
+                    {(panels.find(panel=>panel.id === tab)?.component || null)}
                     <Space h="60px" />
                 </Container>
+              </div>
             </Container>
         </>
     );

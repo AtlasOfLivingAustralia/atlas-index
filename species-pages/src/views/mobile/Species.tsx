@@ -1,16 +1,17 @@
 import React from 'react';
-import {Accordion, Container, useMantineTheme} from '@mantine/core';
-import MapView from "../species/mapView.tsx";
-import ClassificationView from "../species/classificationView.tsx";
-import DescriptionView from "../species/descriptionView.tsx";
-import ImagesView from "../species/imagesView.tsx";
-import NamesView from "../species/namesView.tsx";
-import StatusView from "../species/statusView.tsx";
-import TraitsView from "../species/traitsView.tsx";
-import DatasetsView from "../species/datasetsView.tsx";
-import ResourcesView from "../species/resourcesView.tsx";
+import classes from '../search.module.css'
+import {Accordion} from '@mantine/core';
+import MapView from "../../components/species/mapView.tsx";
+import ClassificationView from "../../components/species/classificationView.tsx";
+import DescriptionView from "../../components/species/descriptionView.tsx";
+import ImagesView from "../../components/species/imagesView.tsx";
+import NamesView from "../../components/species/namesView.tsx";
+import StatusView from "../../components/species/statusView.tsx";
+import TraitsView from "../../components/species/traitsView.tsx";
+import DatasetsView from "../../components/species/datasetsView.tsx";
+import ResourcesView from "../../components/species/resourcesView.tsx";
 
-function SpeciesDetailsAccordion({data, descriptions}) {
+function Species({ data, descriptions }: { data: any; descriptions: any }) {
 
     const panels = [
          { id: 'map', title: 'Occurrence Map', component: <MapView result={data} /> },
@@ -21,11 +22,12 @@ function SpeciesDetailsAccordion({data, descriptions}) {
          { id: 'status', title: 'Status', component: <StatusView result={data}/> },
          { id: 'traits', title: 'Traits', component: <TraitsView result={data}/> },
          { id: 'datasets', title: 'Datasets', component: <DatasetsView result={data}/> },
-         // { id: 'resources', title: 'Resources', component: <ResourcesView result={data}/> }
+         { id: 'resources', title: 'Resources', component: <ResourcesView result={data}/> }
     ];
 
     return (
             <Accordion
+                className={classes.mobile}
                 multiple // Optional: Allow multiple panels to be open at once
                 chevronPosition="left" // Chevron on the left for better UX
                 //defaultValue={"map"}
@@ -42,4 +44,4 @@ function SpeciesDetailsAccordion({data, descriptions}) {
     );
 }
 
-export default SpeciesDetailsAccordion;
+export default Species;

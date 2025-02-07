@@ -49,18 +49,31 @@ export const specieslistDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Text>{formatListType(item.type)}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text><FolderIcon color="#637073"/> contains {item.itemCount} taxa</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+        return <>
+            <Flex className={classes.mobile} gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
+                <div style={{ flex: 1 }}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                    <Text>{formatListType(item.type)}</Text>
+                    <Text><FolderIcon color="#637073"/> {item.itemCount} taxa</Text>
+                </div>
+                <div style={{ flex: 1 }} >
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Flex>
+
+            <Flex className={classes.desktop} gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
+                <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
+                    <Text className={classes.listItemName}>{item.name}</Text>
+                    <Text>{formatListType(item.type)}</Text>
+                </div>
+                <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+                    <Text><FolderIcon color="#637073"/> contains {item.itemCount} taxa</Text>
+                </div>
+                <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
+                    <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
+                </div>
+            </Flex>
+        </>
     },
 
     renderTileItemFn: ({item}: RenderItemParams) => {
