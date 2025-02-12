@@ -23,6 +23,7 @@ public class AllService {
     protected final ListImportService listImportService;
     protected final CollectionsImportService collectionsImportService;
     protected final BiocollectImportService biocollectImportService;
+    protected final DigivolImportService digivolImportService;
     protected final LayerImportService layerImportService;
     protected final AreaImportService areaImportService;
     protected final DwCAImportService dwCAImportService;
@@ -36,6 +37,8 @@ public class AllService {
     public Boolean taskBiocacheEnabled;
     @Value("${task.BIOCOLLECT.enabled}")
     public Boolean taskBiocollectEnabled;
+    @Value("${task.DIGIVOL.enabled}")
+    public Boolean taskDigivolEnabled;
     @Value("${task.COLLECTIONS.enabled}")
     public Boolean taskCollectionsEnabled;
     @Value("${task.DWCA.enabled}")
@@ -52,7 +55,7 @@ public class AllService {
     public Boolean taskWordpressEnabled;
 
     public AllService(CollectionsImportService collectionsImportService, WordpressImportService wordpressImportService,
-                      KnowledgebaseImportService knowledgebaseImportService, LogService logService,
+                      KnowledgebaseImportService knowledgebaseImportService, DigivolImportService digivolImportService, LogService logService,
                       ListImportService listImportService, BiocollectImportService biocollectImportService,
                       LayerImportService layerImportService, AreaImportService areaImportService,
                       DwCAImportService dwCAImportService, TaxonUpdateService taxonUpdateService,
@@ -60,6 +63,7 @@ public class AllService {
         this.collectionsImportService = collectionsImportService;
         this.wordpressImportService = wordpressImportService;
         this.knowledgebaseImportService = knowledgebaseImportService;
+        this.digivolImportService = digivolImportService;
         this.logService = logService;
         this.listImportService = listImportService;
         this.biocollectImportService = biocollectImportService;
