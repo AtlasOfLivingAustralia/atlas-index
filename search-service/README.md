@@ -255,7 +255,7 @@ elastic.adminIndex=search-log-20240401
         "COLLECTIONS": {},
         "KNOWLEDGEBASE": {},
         "BIOCACHE": {},
-        "HERODESCRIPTIONS": {},
+        "TAXON_DESCRIPTION": {},
         "RECORD": {},
         "LAYER": {},
         "WORDPRESS": {}

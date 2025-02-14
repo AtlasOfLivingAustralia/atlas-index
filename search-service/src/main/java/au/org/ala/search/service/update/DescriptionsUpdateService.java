@@ -6,6 +6,7 @@ import au.org.ala.search.service.remote.DataFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -20,10 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -76,9 +74,15 @@ public class DescriptionsUpdateService {
             List<FieldValue> searchAfter = null;
             boolean hasMore = true;
 
+            List<FieldAndFormat> fieldList = Arrays.asList(
+                    new FieldAndFormat.Builder().field("id").build(),
+                    new FieldAndFormat.Builder().field("guid").build(),
+                    new FieldAndFormat.Builder().field("heroDescription").build()
+            );
+
             while (hasMore) {
                 SearchResponse<SearchItemIndex> response = elasticService.queryPointInTimeAfter(
-                        pit, searchAfter, pageSize, queryOp, null, null, false
+                        pit, searchAfter, pageSize, queryOp, fieldList, null, false
                 );
 
                 List<Hit<SearchItemIndex>> hits = response.hits().hits();
@@ -105,22 +109,47 @@ public class DescriptionsUpdateService {
 
     private void updateHeroDescriptions(List<Hit<SearchItemIndex>> hits, Map<String, String> heroDescriptions) {
         List<UpdateQuery> updates = new ArrayList<>();
+        Set<String> hitGuids = new HashSet<>();
+        int batchSize = 10000;
 
         for (Hit<SearchItemIndex> hit : hits) {
             SearchItemIndex item = hit.source();
             if (item == null) continue;
 
-            String docId = item.getId();
-            String newDescription = heroDescriptions.getOrDefault(docId, null);
+            String guid = item.getGuid();
+            hitGuids.add(guid);
+            String newDescription = heroDescriptions.getOrDefault(guid, null);
+            String currentDescription = item.getHeroDescription();
 
-            if (!Objects.equals(newDescription, item.getHeroDescription())) {
-                item.setHeroDescription(newDescription);
+            if (!Objects.equals(newDescription, currentDescription)) {
                 Document doc = Document.create();
                 doc.put("heroDescription", newDescription);
-                UpdateQuery updateQuery = UpdateQuery.builder(docId)
+                UpdateQuery updateQuery = UpdateQuery.builder(item.getId())
                         .withDocument(doc)
                         .build();
                 updates.add(updateQuery);
+
+                if (updates.size() >= batchSize) {
+                    elasticService.update(updates);
+                    updates.clear();
+                }
+            }
+        }
+
+        for (Map.Entry<String, String> entry : heroDescriptions.entrySet()) {
+            String guid = entry.getKey();
+            if (!hitGuids.contains(guid)) {
+                Document doc = Document.create();
+                doc.put("heroDescription", entry.getValue());
+                UpdateQuery updateQuery = UpdateQuery.builder(guid)
+                        .withDocument(doc)
+                        .build();
+                updates.add(updateQuery);
+
+                if (updates.size() >= batchSize) {
+                    elasticService.update(updates);
+                    updates.clear();
+                }
             }
         }
 
