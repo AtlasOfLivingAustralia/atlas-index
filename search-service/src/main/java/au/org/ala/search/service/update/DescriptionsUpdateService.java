@@ -9,11 +9,13 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -21,8 +23,11 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class DescriptionsUpdateService {
@@ -48,6 +53,11 @@ public class DescriptionsUpdateService {
             File descriptionsFile = dataFileStoreService.retrieveFile(descriptionsFileName);
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, String> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {});
+            heroDescriptions = heroDescriptions.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            entry -> URLDecoder.decode(entry.getKey(), StandardCharsets.UTF_8),
+                            Map.Entry::getValue
+                    ));
 
             List<Hit<SearchItemIndex>> hits = fetchCurrentDocuments();
             updateHeroDescriptions(hits, heroDescriptions);
@@ -56,7 +66,6 @@ public class DescriptionsUpdateService {
             return CompletableFuture.completedFuture(true);
         } catch (IOException e) {
             logService.log(taskType, "Error updating hero descriptions: " + e.getMessage());
-            logger.error("Error updating hero descriptions", e);
             return CompletableFuture.completedFuture(false);
         }
     }
@@ -109,52 +118,58 @@ public class DescriptionsUpdateService {
 
     private void updateHeroDescriptions(List<Hit<SearchItemIndex>> hits, Map<String, String> heroDescriptions) {
         List<UpdateQuery> updates = new ArrayList<>();
-        Set<String> hitGuids = new HashSet<>();
         int batchSize = 10000;
 
         for (Hit<SearchItemIndex> hit : hits) {
-            SearchItemIndex item = hit.source();
-            if (item == null) continue;
+            String guid = null;
+            String currentDescription = null;
 
-            String guid = item.getGuid();
-            hitGuids.add(guid);
-            String newDescription = heroDescriptions.getOrDefault(guid, null);
-            String currentDescription = item.getHeroDescription();
-
-            if (!Objects.equals(newDescription, currentDescription)) {
-                Document doc = Document.create();
-                doc.put("heroDescription", newDescription);
-                UpdateQuery updateQuery = UpdateQuery.builder(item.getId())
-                        .withDocument(doc)
-                        .build();
-                updates.add(updateQuery);
-
-                if (updates.size() >= batchSize) {
-                    elasticService.update(updates);
-                    updates.clear();
+            if (hit.source() == null) {
+                Map<String, JsonData> fields = hit.fields();
+                if (fields == null || fields.isEmpty() || !fields.containsKey("guid")) {
+                    continue;
                 }
+                guid = fields.get("guid").toJson().asJsonArray().getJsonString(0).getString();
+                currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
+            } else {
+                guid = hit.source().getGuid();
+                currentDescription = hit.source().getHeroDescription();
+            }
+
+            String newDescription = heroDescriptions.remove(guid);
+            if (newDescription != null && !Objects.equals(newDescription, currentDescription)) {
+                buildUpdateQuery(updates, guid, newDescription);
             }
         }
 
         for (Map.Entry<String, String> entry : heroDescriptions.entrySet()) {
             String guid = entry.getKey();
-            if (!hitGuids.contains(guid)) {
-                Document doc = Document.create();
-                doc.put("heroDescription", entry.getValue());
-                UpdateQuery updateQuery = UpdateQuery.builder(guid)
-                        .withDocument(doc)
-                        .build();
-                updates.add(updateQuery);
-
-                if (updates.size() >= batchSize) {
-                    elasticService.update(updates);
-                    updates.clear();
-                }
-            }
+            String newDescription = entry.getValue();
+            buildUpdateQuery(updates, guid, newDescription);
         }
 
         if (!updates.isEmpty()) {
-            elasticService.update(updates);
+            try {
+                for (int i = 0; i < updates.size(); i += batchSize) {
+                    int end = Math.min(i + batchSize, updates.size());
+                    List<UpdateQuery> batch = updates.subList(i, end);
+                    elasticService.update(batch);
+                }
+            } catch (BulkFailureException e) {
+                logger.error("Bulk update failed", e);
+            }
+        }
+    }
+
+    private void buildUpdateQuery(List<UpdateQuery> updates, String guid, String newDescription) {
+        String documentId = elasticService.queryTaxonId(guid);
+        if (documentId != null) {
+            Document doc = Document.create();
+            doc.put("heroDescription", newDescription);
+            UpdateQuery updateQuery = UpdateQuery.builder(documentId)
+                    .withDocument(doc)
+                    .build();
+            updates.add(updateQuery);
         }
     }
 }
