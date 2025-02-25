@@ -124,17 +124,12 @@ public class DescriptionsUpdateService {
             String guid = null;
             String currentDescription = null;
 
-            if (hit.source() == null) {
-                Map<String, JsonData> fields = hit.fields();
-                if (fields == null || fields.isEmpty() || !fields.containsKey("guid")) {
-                    continue;
-                }
-                guid = fields.get("guid").toJson().asJsonArray().getJsonString(0).getString();
-                currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
-            } else {
-                guid = hit.source().getGuid();
-                currentDescription = hit.source().getHeroDescription();
+            Map<String, JsonData> fields = hit.fields();
+            if (fields == null || fields.isEmpty() || !fields.containsKey("guid")) {
+                continue;
             }
+            guid = fields.get("guid").toJson().asJsonArray().getJsonString(0).getString();
+            currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
 
             String newDescription = heroDescriptions.remove(guid);
             if (newDescription != null && !Objects.equals(newDescription, currentDescription)) {
