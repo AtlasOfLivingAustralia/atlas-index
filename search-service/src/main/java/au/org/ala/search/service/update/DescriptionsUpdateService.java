@@ -52,11 +52,11 @@ public class DescriptionsUpdateService {
         try {
             File descriptionsFile = dataFileStoreService.retrieveFile(descriptionsFileName);
             ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, String> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {});
+            Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {});
             heroDescriptions = heroDescriptions.entrySet().stream()
                     .collect(Collectors.toMap(
                             entry -> URLDecoder.decode(entry.getKey(), StandardCharsets.UTF_8),
-                            Map.Entry::getValue
+                            entry -> entry.getValue() == null ? "null" : entry.getValue().toString()
                     ));
 
             List<Hit<SearchItemIndex>> hits = fetchCurrentDocuments();
@@ -116,7 +116,7 @@ public class DescriptionsUpdateService {
         return allHits;
     }
 
-    private void updateHeroDescriptions(List<Hit<SearchItemIndex>> hits, Map<String, String> heroDescriptions) {
+    private void updateHeroDescriptions(List<Hit<SearchItemIndex>> hits, Map<String, Object> heroDescriptions) {
         List<UpdateQuery> updates = new ArrayList<>();
         int batchSize = 10000;
 
@@ -132,15 +132,15 @@ public class DescriptionsUpdateService {
             guid = fields.get("guid").toJson().asJsonArray().getJsonString(0).getString();
             currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
 
-            String newDescription = heroDescriptions.remove(guid);
+            Object newDescription = heroDescriptions.remove(guid);
             if (!Objects.equals(newDescription, currentDescription)) {
                 buildUpdateQuery(updates, documentId, newDescription);
             }
         }
 
-        for (Map.Entry<String, String> entry : heroDescriptions.entrySet()) {
+        for (Map.Entry<String, Object> entry : heroDescriptions.entrySet()) {
             String guid = entry.getKey();
-            String newDescription = entry.getValue();
+            Object newDescription = entry.getValue();
             String documentId = elasticService.queryTaxonId(guid);
             buildUpdateQuery(updates, documentId, newDescription);
         }
@@ -158,10 +158,14 @@ public class DescriptionsUpdateService {
         }
     }
 
-    private void buildUpdateQuery(List<UpdateQuery> updates, String documentId, String newDescription) {
+    private void buildUpdateQuery(List<UpdateQuery> updates, String documentId, Object newDescription) {
         if (documentId != null) {
             Document doc = Document.create();
-            doc.put("heroDescription", newDescription);
+            if (newDescription != null && !newDescription.equals("null")) {
+                doc.put("heroDescription", newDescription);
+            } else {
+                doc.put("heroDescription", null);
+            }
             UpdateQuery updateQuery = UpdateQuery.builder(documentId)
                     .withDocument(doc)
                     .build();
