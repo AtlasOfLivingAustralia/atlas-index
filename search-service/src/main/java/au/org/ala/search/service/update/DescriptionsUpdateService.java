@@ -123,6 +123,7 @@ public class DescriptionsUpdateService {
         for (Hit<SearchItemIndex> hit : hits) {
             String guid = null;
             String currentDescription = null;
+            String documentId = hit.id();
 
             Map<String, JsonData> fields = hit.fields();
             if (fields == null || fields.isEmpty() || !fields.containsKey("guid")) {
@@ -132,15 +133,16 @@ public class DescriptionsUpdateService {
             currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
 
             String newDescription = heroDescriptions.remove(guid);
-            if (newDescription != null && !Objects.equals(newDescription, currentDescription)) {
-                buildUpdateQuery(updates, guid, newDescription);
+            if (!Objects.equals(newDescription, currentDescription)) {
+                buildUpdateQuery(updates, documentId, newDescription);
             }
         }
 
         for (Map.Entry<String, String> entry : heroDescriptions.entrySet()) {
             String guid = entry.getKey();
             String newDescription = entry.getValue();
-            buildUpdateQuery(updates, guid, newDescription);
+            String documentId = elasticService.queryTaxonId(guid);
+            buildUpdateQuery(updates, documentId, newDescription);
         }
 
         if (!updates.isEmpty()) {
@@ -156,8 +158,7 @@ public class DescriptionsUpdateService {
         }
     }
 
-    private void buildUpdateQuery(List<UpdateQuery> updates, String guid, String newDescription) {
-        String documentId = elasticService.queryTaxonId(guid);
+    private void buildUpdateQuery(List<UpdateQuery> updates, String documentId, String newDescription) {
         if (documentId != null) {
             Document doc = Document.create();
             doc.put("heroDescription", newDescription);
