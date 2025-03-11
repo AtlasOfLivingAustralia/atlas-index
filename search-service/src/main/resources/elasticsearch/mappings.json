@@ -53,6 +53,9 @@
     "nativeIntroduced": {
       "type": "text"
     },
+    "heroDescription": {
+      "type": "text"
+    },
     "linkIdentifier": {
       "type": "keyword"
     },

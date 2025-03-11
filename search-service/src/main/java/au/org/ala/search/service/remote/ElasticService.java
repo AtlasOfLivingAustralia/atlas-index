@@ -197,7 +197,7 @@ public class ElasticService {
                         queryPointInTimeAfter(
                                 pit, searchAfter, pageSize, queryOp, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
-                searchAfter = hits.getLast().sort();
+                searchAfter = hits.isEmpty() ? null : hits.getLast().sort();
 
                 for (Hit<SearchItemIndex> hit : hits) {
                     JsonData keyJsonData = hit.fields().get(keyField);
@@ -1694,7 +1694,7 @@ public class ElasticService {
                     continue;
                 }
 
-                searchAfter = hits.getLast().sort();
+                searchAfter = hits.isEmpty() ? null : hits.getLast().sort();
 
                 for (Hit<SearchItemIndex> item : hits) {
                     count++;

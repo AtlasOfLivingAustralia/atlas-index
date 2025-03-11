@@ -127,6 +127,7 @@ public class SearchItemIndex {
     public String geomIdx;
     public String[] speciesList;
     public String vernacularName;
+    public String heroDescription;
 
     // dynamic field aggregations, for writing only, not sure how to read these back yet
     public Map<String, String> sdsFields;
