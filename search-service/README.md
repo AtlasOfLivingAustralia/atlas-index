@@ -253,6 +253,7 @@ elastic.adminIndex=search-log-20240401
         "COLLECTIONS": {},
         "KNOWLEDGEBASE": {},
         "BIOCACHE": {},
+        "TAXON_DESCRIPTION": {},
         "RECORD": {},
         "LAYER": {},
         "WORDPRESS": {}

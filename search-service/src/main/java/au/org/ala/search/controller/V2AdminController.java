@@ -9,6 +9,7 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.queue.FieldguideConsumerService;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.service.queue.SearchConsumerService;
+import au.org.ala.search.service.remote.DataFileStoreService;
 import au.org.ala.search.service.remote.DataQualityService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.update.*;
@@ -18,7 +19,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +62,7 @@ public class V2AdminController {
     protected final QueueService queueService;
     protected final FieldguideConsumerService fieldguideConsumerService;
     protected final SearchConsumerService searchConsumerService;
+    protected final DescriptionsUpdateService descriptionsUpdateService;
     private final DataQualityService dataQualityService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService,
@@ -74,7 +75,9 @@ public class V2AdminController {
                              TaskExecutor elasticSearchUpdate, AuthService authService,
                              TaxonUpdateService taxonUpdateService, SitemapService sitemapService,
                              QueueService queueService, FieldguideConsumerService fieldguideConsumerService,
-                             SearchConsumerService searchConsumerService, DataQualityService dataQualityService) {
+                             SearchConsumerService searchConsumerService,
+                             DescriptionsUpdateService descriptionsUpdateService,
+                             DataQualityService dataQualityService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.blockingExecutor = blockingExecutor;
@@ -96,6 +99,7 @@ public class V2AdminController {
         this.queueService = queueService;
         this.fieldguideConsumerService = fieldguideConsumerService;
         this.searchConsumerService = searchConsumerService;
+        this.descriptionsUpdateService = descriptionsUpdateService;
         this.dataQualityService = dataQualityService;
     }
 
@@ -150,6 +154,7 @@ public class V2AdminController {
             case TaskType.SITEMAP -> sitemapService.run();
             case TaskType.WORDPRESS -> wordpressImportService.run();
             case TaskType.DASHBOARD -> dashboardService.run();
+            case TaskType.TAXON_DESCRIPTION -> descriptionsUpdateService.run();
         }
 
         return ResponseEntity.ok("{\"message\": \"task queued\"}");

@@ -431,6 +431,14 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                 </tr>
                                 <tr>
                                     <td>
+                                        <button className="btn border-black " onClick={() => update('TAXON_DESCRIPTION')}>
+                                            Update TAXON DESCRIPTIONS
+                                        </button>
+                                    </td>
+                                    <td>{description['TAXON_DESCRIPTION']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
                                         <button className="btn border-black " onClick={() => update('AREA')}>
                                             Update AREA
                                         </button>
