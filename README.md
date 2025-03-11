@@ -39,7 +39,7 @@ The approach taken by this project, in no particular order:
    - [ ] Deploy for wider testing.
 2. Replace ala-bie-hub and bie-index admin UI functions related to bie-index.
    - [x] Implement a view in default-ui to run admin tasks.
-   - [x] Implement a view in default-ui to edit species records for; preferred images, hidden images and wiki URL.
+   - [x] Implement a view in default-ui to edit species records for; preferred images, hidden images.
 3. Replace dashboard.
    - [x] Implement a task in search-service to build and update dashboard content.
    - [x] Implement a view in default-ui to replicate the dashboard non-chart content.

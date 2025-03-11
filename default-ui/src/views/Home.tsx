@@ -12,7 +12,7 @@ function Home({setBreadcrumbs}: {
     const [userKey, setUserKey] = useState<string>();
     const [userValue, setUserValue] = useState<string>();
 
-    const [selectedFile, setSelectedFile] = useState();
+    const [selectedFile, setSelectedFile] = useState<File>();
     const [isFilePicked, setIsFilePicked] = useState(false);
 
     const [sandboxResponse, setSandboxResponse] = useState({});
@@ -45,12 +45,17 @@ function Home({setBreadcrumbs}: {
         console.log("another admin test: " + currentUser.isAdmin());
     }
 
-    const changeHandler = (event) => {
+    const changeHandler = (event: any) => {
         setSelectedFile(event.target.files[0]);
         setIsFilePicked(true);
     };
 
     const handleSubmission = () => {
+        if (!selectedFile) {
+            alert('Please choose a file to upload');
+            return;
+        }
+
         const formData = new FormData();
 
         formData.append('file', selectedFile);
@@ -102,7 +107,7 @@ function Home({setBreadcrumbs}: {
             });
     };
 
-    function sandboxStatus(id) {
+    function sandboxStatus(id: string) {
         console.log("sandboxStatus")
         // do ingress
         fetch(
@@ -147,13 +152,13 @@ function Home({setBreadcrumbs}: {
                         <tbody>
                         <tr>
                             <td>
-                                <Link to="/atlas-admin">Atlas Admin</Link>
+                                <Link to="/atlas-admin">Search Index</Link>
                             </td>
                             <td>
                                 <ul>
-                                    <li>Update search index with names-index and other data.</li>
-                                    <li>View Admin Logs</li>
-                                    <li>Edit preferred images, hidden images and wikipedia URL for a TAXON.</li>
+                                    <li>Update search index with names-index and other data sources.</li>
+                                    <li>View search index's admin logs.</li>
+                                    <li>Edit taxon records for preferred images, hidden images and descriptions.</li>
                                 </ul>
                             </td>
                         </tr>
@@ -168,26 +173,7 @@ function Home({setBreadcrumbs}: {
                             </td>
                         </tr>
                         <tr>
-                            <td>
-                                <Link to="/atlas-index">Atlas Index</Link>
-                            </td>
-                            <td>
-                                <ul>
-                                    <li>Search, List, Facet and Show</li>
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <Link to="/dashboard">Dashboard</Link></td>
-                            <td>
-                                <ul>
-                                    <li>View the default dashboard</li>
-                                </ul>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Occurrences testing</td>
+                            <td>Occurrences (mockup)</td>
                             <td>
                                 <ul>
                                     <li><Link to="/occurrence-search">Search Page</Link></li>
@@ -239,12 +225,12 @@ function Home({setBreadcrumbs}: {
                                 <input type="file" name="file" onChange={changeHandler}/>
                                 {isFilePicked ? (
                                     <div>
-                                        <p>Filename: {selectedFile.name}</p>
-                                        <p>Filetype: {selectedFile.type}</p>
-                                        <p>Size in bytes: {selectedFile.size}</p>
+                                        <p>Filename: {selectedFile?.name}</p>
+                                        <p>Filetype: {selectedFile?.type}</p>
+                                        <p>Size in bytes: {selectedFile?.size}</p>
                                         <p>
                                             lastModifiedDate:{' '}
-                                            {selectedFile.lastModifiedDate.toLocaleDateString()}
+                                            {selectedFile ? new Date(selectedFile.lastModified).toLocaleDateString() : ''}
                                         </p>
                                     </div>
                                 ) : (

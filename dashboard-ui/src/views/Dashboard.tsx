@@ -14,12 +14,15 @@ import {
 } from 'chart.js';
 import {Pie, Bar} from 'react-chartjs-2';
 import TreeItem from "../components/dashboard/tree.jsx";
-import {Box, Button, Card, Flex, Grid, Group, LoadingOverlay, Space, Text, rem, Container, Center} from '@mantine/core';
-import {Breadcrumb} from "../api/sources/model.ts";
+import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
+import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
+import { faCode } from '@fortawesome/free-solid-svg-icons/faCode'
 
 ChartJS.register(ArcElement, BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale, LogarithmicScale);
 
-const DASHBOARD_DATA_URL = import.meta.env.VITE_APP_DASHBOARD_DATA_URL;
+const customColors = [
+    '#003A70', '#F26649', '#6BDAD5', '#EB9D07', '#A191B2', '#FFC557', '#D9D9D9'
+];
 
 function formatNumber(number: any) {
     if (isNaN(number / 1.0)) {
@@ -41,21 +44,11 @@ function formatNumber(number: any) {
     return new Intl.NumberFormat('en').format(n) + s
 }
 
-interface DashboardPageProps {
-    setBreadcrumbs: (crumbs: Breadcrumb[]) => void
-}
-
-const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
+const DashboardPage = () => {
     const [dashboardData, setDashboardData] = useState();
     const [messages, setMessages] = useState();
 
     useEffect(() => {
-        setBreadcrumbs([
-            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Species search', href: '/'},
-            {title: 'Dashboard', href: '/dashboard'}
-        ]);
-
         fetch(import.meta.env.VITE_APP_DASHBOARD_I18N_URL)
             .then(response => response.json())
             .then(data => setMessages(data));
@@ -224,6 +217,7 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
                 {
                     data: chartData,
                     borderWidth: 1,
+                    backgroundColor: customColors,
                 },
             ],
         };
@@ -231,7 +225,7 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
         return <div>
             <Pie
                 data={chart}
-                height={350}
+                height={349} // Height is adjusted to best fit the panel without a scroll bar
                 width={400}
                 // @ts-ignore
                 options={options}
@@ -294,11 +288,13 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
                     label: formatMessage(table[0].header[1]),
                     data: chartData1,
                     borderWidth: 1,
+                    backgroundColor: customColors[0],
                 },
                 {
                     label: formatMessage(table[0].header[2]),
                     data: chartData2,
                     borderWidth: 1,
+                    backgroundColor: customColors[1],
                 }
             ],
         };
@@ -308,7 +304,7 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
             <Bar
                 data={chart}
                 width={455}
-                height={350}
+                height={349} // Height is adjusted to best fit the panel without a scroll bar
                 // @ts-ignore
                 options={options}
             />
@@ -321,24 +317,15 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
     }
 
     const GridCard = (props: any) => {
-        let widthMultiplier = props.widthMultiplier ? props.widthMultiplier : 1
         return (
-            <Grid.Col span={{base: 12, xs: 4}} style={{
-                height: rem(440),
-                minWidth: rem(374 * widthMultiplier),
-                maxWidth: rem(374 * widthMultiplier)
-            }}>
-                <Card withBorder shadow="sm" radius="md" style={{height: '100%'}}>
-                    <Card.Section withBorder inheritPadding py="xs" style={{backgroundColor: "#F2F2F2"}}>
-                        <Group justify="space-between">
-                            <Text size="md" fw={500}>{props.headerNum} {props.header}</Text>
-                        </Group>
-                    </Card.Section>
-                    <Card.Section inheritPadding py="xs" style={{minHeight: rem(350), overflow: 'auto'}}>
-                        <Text span size="sm">{props.children}</Text>
-                    </Card.Section>
-                </Card>
-            </Grid.Col>
+            <div className='dashboardPanel card'>
+                <div className={'dashboardPanelHeader card-header'}>
+                    <h1 className="dashboardH1">{props.headerNum} {props.header}</h1>
+                </div>
+                <div className={"dashboardPanelBody card-body"}>
+                    {props.children}
+                </div>
+            </div>
         )
     }
 
@@ -346,26 +333,27 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
         data = data.data.data
 
         return (
-            <Container size="lg" mt={30}>
-                <Flex justify="flex-end" gap="sm">
-                    <Button component="a" target="_blank"
-                            href={DASHBOARD_DATA_URL}>Show raw data</Button>
-                    <Button component="a" target="_blank"
-                            href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}>Download
-                        as CSV</Button>
-                </Flex>
-                <Space h="lg"/>
-                <Grid justify="center" align="stretch">
+            <div>
+                <div className="d-flex">
+                    <a className="btn btn-primary ms-auto" target="_blank"
+                       href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}><FontAwesomeIcon icon={faDownload} className={"me-2"}/>Download
+                        as CSV</a>
+                    <a className="btn  btn-primary ms-2 me-5 " target="_blank"
+                       href={import.meta.env.VITE_APP_DASHBOARD_DATA_URL}><FontAwesomeIcon icon={faCode} className={"me-2"}/>Show raw data</a>
+
+                </div>
+                <div className='d-flex flex-wrap justify-content-center'>
                     {data.occurrenceCount &&
                         <GridCard header={formatMessage('occurrenceRecordHeader')}>
-                            <Center maw={rem(374)} h={rem(300)}>
-                                <Box>
-                                    <a className={'dashboardVeryLargeLink'}
-                                       href={data.occurrenceCount.url}>{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.occurrenceCount.count)}</a>
-                                    <Space h={20}/>
-                                    <Center><Text fz={21}><FormattedMessage id="recordsInTotal"/></Text></Center>
-                                </Box>
-                            </Center>
+                            <div className={"dashboardCenter"}>
+                                <div className="mt-60 p-4"></div>
+                                <a className={'dashboardVeryLargeLink'}
+                                   href={data.occurrenceCount.url}>{new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.occurrenceCount.count)}</a>
+                            </div>
+                            <div className={"dashboardCenter"}>
+                                <div className="mt-25"></div>
+                                <span className={"dashboardLargeText"}><FormattedMessage id="recordsInTotal"/></span>
+                            </div>
                         </GridCard>
                     }
 
@@ -373,23 +361,19 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
                         <GridCard
                             headerNum={new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.datasets.count)}
                             header={formatMessage('dataSetsHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.datasets.tables[0]}/>
-                            <Text size="sm" mt={30}>
+                            <div className={"mt-25"}>
                                 <FormattedMessage id="mostRecentlyAddedDatasetIs"/>
-                            </Text>
-                            <Center>
-                                <Text size="sm" pt="sm">
-                                    <a className={'dashboardLargeLink'}
+                            </div>
+                            <div className={"dashboardCenter"}>
+                                <a className={'dashboardLargeLink'}
                                        href={data.datasets.mostRecent.url}>{data.datasets.mostRecent.name}</a>
-                                </Text>
-                            </Center>
+                            </div>
                         </GridCard>
                     }
 
                     {data.basisOfRecord &&
                         <GridCard header={formatMessage('basisOfRecordHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.basisOfRecord.tables[0]}/>
                         </GridCard>
                     }
@@ -404,14 +388,12 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
 
                     {data.recordsByDate &&
                         <GridCard header={formatMessage('recordsByDateHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.recordsByDate.tables[0]}/>
                         </GridCard>
                     }
 
                     {data.nationalSpeciesLists &&
                         <GridCard header={formatMessage('nationalSpeciesListsHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.nationalSpeciesLists.tables[0]}/>
                         </GridCard>
                     }
@@ -420,7 +402,6 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
                         <GridCard
                             headerNum={new Intl.NumberFormat('en', {maximumSignificantDigits: 3}).format(data.spatialLayers.count)}
                             header={formatMessage('spatialLayersHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.spatialLayers.tables[0]}/>
                         </GridCard>
                     }
@@ -433,21 +414,18 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
 
                     {data.species &&
                         <GridCard header={formatMessage('mostRecordedSpeciesHeader')}>
-                            <Space h={20}/>
                             <DashboardTables tables={data.species.tables} italisize={true} id={"species"}/>
                         </GridCard>
                     }
 
                     {data.specimenTypes &&
                         <GridCard header={formatMessage('specimenTypesHeader')}>
-                            <Space h={20}/>
                             <DashboardTables tables={data.specimenTypes.tables} id={"specimenTypes"}/>
                         </GridCard>
                     }
 
                     {data.bhl &&
                         <GridCard header={formatMessage('bhlHeader')}>
-                            <Space h={20}/>
                             <div className={'dashboardCenter'}>
                                 <a href={data.bhl.url}><img src={data.bhl.imageUrl} className="dashboardLogo"
                                                             alt={"BHL"}/></a>
@@ -458,7 +436,6 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
 
                     {data.digivol &&
                         <GridCard header={formatMessage('digivolHeader')}>
-                            <Space h={20}/>
                             <div className={'dashboardCenter'}>
                                 <a href={data.digivol.url}><img src={data.digivol.imageUrl} className="dashboardLogo"
                                                                 alt={"Digivol"}/></a>
@@ -469,36 +446,31 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
 
                     {data.conservation &&
                         <GridCard header={formatMessage('conservationHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.conservation.tables[0]}/>
                         </GridCard>
                     }
 
                     {data.dataProviderUid &&
                         <GridCard header={formatMessage('dataProviderHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.dataProviderUid.tables[0]} header={['', '']}/>
                         </GridCard>
                     }
 
                     {data.institutionUid &&
                         <GridCard header={formatMessage('institutionHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.institutionUid.tables[0]} header={['', '']}/>
                         </GridCard>
                     }
 
                     {data.kingdoms &&
                         <GridCard header={formatMessage('kingdomsHeader')}>
-                            <Space h={20}/>
                             <DashboardKingdomTree
-                                rows={data.kingdoms.tables[0]}/> {/* TODO: Fix display of tree widget */}
+                                rows={data.kingdoms.tables[0]}/>
                         </GridCard>
                     }
 
                     {data.speciesGroup &&
                         <GridCard header={formatMessage('lifeformHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.speciesGroup.tables[0]} header={['', '']}/>
                         </GridCard>
                     }
@@ -511,45 +483,42 @@ const DashboardPage = ({setBreadcrumbs}: DashboardPageProps) => {
 
                     {data.usageStats &&
                         <GridCard header={formatMessage('usageHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.usageStats.tables[0]}/>
                         </GridCard>
                     }
 
                     {data.reasonDownloads &&
                         <GridCard header={formatMessage('downloadReasonHeader')} widthMultiplier={2}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.reasonDownloads.tables[0]} header={['', 'events', 'records']}/>
                         </GridCard>
                     }
 
                     {data.emailDownloads &&
                         <GridCard header={formatMessage('downloadUserTypeHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.emailDownloads.tables[0]} header={['', 'events', 'records']}/>
                         </GridCard>
                     }
 
                     {data.image &&
                         <GridCard header={formatMessage('imageHeader')}>
-                            <Space h={20}/>
                             <DashboardTable rows={data.image.tables[0]}/>
                         </GridCard>
                     }
-                </Grid>
-            </Container>
+                </div>
+            </div>
         )
     }
 
     return (!dashboardData || !messages) ? (
-        <Box pos="relative">
-            <LoadingOverlay loaderProps={{children: 'Loading...'}}/>
-        </Box>
+        <div className="alert-info">Loading...</div>
     ) : (
-        <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {
-        }}>
-            <Dashboard data={dashboardData}/>
-        </IntlProvider>
+        <main>
+            <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {}}>
+                <div>
+                    <Dashboard data={dashboardData}></Dashboard>
+                </div>
+            </IntlProvider>
+        </main>
     )
 }
 

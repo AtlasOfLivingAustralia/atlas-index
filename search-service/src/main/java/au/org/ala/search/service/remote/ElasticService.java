@@ -1129,7 +1129,6 @@ public class ElasticService {
                         item.rkFields != null ? item.rkFields.get("rk_genus") : null,
                         item.datasetName,
                         item.datasetID,
-                        item.wikiUrl_s,
                         item.hiddenImages_s,
                         thumbnail,
                         smallImage,
@@ -1337,7 +1336,6 @@ public class ElasticService {
         }
 
         model.put("imageIdentifier", taxon.image);
-        model.put("wikiUrl", taxon.wikiUrl_s);
         model.put("hiddenImages", taxon.hiddenImages_s);
         model.put("conservationStatuses", conservationStatuses);
         model.put("extantStatuses", new ArrayList<>());

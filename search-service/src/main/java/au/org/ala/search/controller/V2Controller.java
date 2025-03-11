@@ -2,11 +2,13 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.cache.LanguageInfo;
+import au.org.ala.search.model.userdata.UserData;
+import au.org.ala.search.model.dto.UserDataRequest;
+import au.org.ala.search.model.dto.UserDataResponse;
 import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.QueueService;
-import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.queue.*;
 import au.org.ala.search.model.dto.*;
 import au.org.ala.search.service.AdminService;
@@ -14,6 +16,7 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
+import au.org.ala.search.service.remote.UserDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -66,8 +69,9 @@ public class V2Controller {
     protected final DownloadFileStoreService downloadFileStoreService;
     protected final WebService webService;
     protected final LanguageService languageService;
+    protected final UserDataService userDataService;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -78,6 +82,7 @@ public class V2Controller {
         this.webService = webService;
         this.listCache = listCache;
         this.languageService = languageService;
+        this.userDataService = userDataService;
     }
 
     @Tag(name = "Search")
@@ -132,6 +137,10 @@ public class V2Controller {
             }
             if (taxon == null) {
                 taxon = elasticService.getTaxonByPreviousIdentifierMap(id, true);
+            }
+
+            if (taxon == null) {
+                return ResponseEntity.notFound().build();
             }
 
             // Inject an object for synonymData, vernacularData, identifierData, variantData.
@@ -443,5 +452,63 @@ public class V2Controller {
         }
 
         return ResponseEntity.ok(new StatusResponse(queueItem.status, baseUrl + "/v2/download"));
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(
+            summary = "Create or update a data record",
+            description = "Creates or updates a permitted data record for a user. Updating with null will delete the record.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "The data and optional uuid",
+                    content = @Content(
+                            schema = @Schema(implementation = UserDataRequest.class),
+                            examples = @ExampleObject(
+                                    value = "{\"uuid\": \"example-uuid\", \"data\": \"example payload\" }"
+                            )
+                    )
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Record created or updated successfully", content = @Content(schema = @Schema(implementation = UserDataResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
+    @PostMapping("/data")
+    public ResponseEntity<UserDataResponse> createOrUpdateUserData(
+            @AuthenticationPrincipal Principal principal,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody UserDataRequest userDataRequest) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        UserData userData = userDataService.createOrUpdate(authService.getUserId(principal), userDataRequest.getUuid(), userDataRequest.getData());
+        if (userData == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UserDataResponse response = new UserDataResponse(userData.getUuid());
+        return ResponseEntity.ok(response);
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(
+            summary = "Get data",
+            description = "Get data for a given uuid",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Data returned", content = @Content(schema = @Schema(implementation = UserDataRequest.class))),
+                    @ApiResponse(responseCode = "404", description = "Data not found")
+            }
+    )
+    @GetMapping("/data")
+    public ResponseEntity<UserDataResponse> getUserData(
+            @AuthenticationPrincipal Principal principal,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody UserDataRequest userDataRequest) {
+
+        UserData userData = userDataService.createOrUpdate(authService.getUserId(principal), userDataRequest.getUuid(), userDataRequest.getData());
+        if (userData == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UserDataResponse response = new UserDataResponse(userData.getUuid());
+        return ResponseEntity.ok(response);
     }
 }

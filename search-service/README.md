@@ -84,17 +84,17 @@ External JSON config files are no longer supported.
 | favourite-lists.json:.lists[*].defaultTerm   |                                           | one of "iconic" or "preferred" (static)                   | TODO check if this was in use                                                                 |
 | hidden-images-lists.json:.lists[0].uid       | lists.images.hidden.id                    |                                                           |                                                                                               |
 | hidden-images-lists.json:.lists[0].imageId   | lists.images.hidden.field                 | "image Id" (unchanged)                                    | should be "imageId" but default is "image Id"                                                 |
-| images-lists.json:.preferred                 | TODO                                      |                                                           |                                                                                               |
-| images-lists.json:.ranks                     | deprecated                                |                                                           |                                                                                               |
-| images-lists.json:.imageFields               | deprecated                                |                                                           |                                                                                               |
+| images-lists.json:.preferred                 | deprecated                                |                                                           | moved to biocache-service                                                                     |
+| images-lists.json:.ranks                     | deprecated                                |                                                           | moved to biocache-service                                                                     |
+| images-lists.json:.imageFields               | deprecated                                |                                                           | moved to biocache-service                                                                     |
 | images-lists.json:.lists[*].uid              | lists.images.preferred.id comma separated |                                                           | first list can be modified by the admin UI image preference (unchanged)                       |
 | images-lists.json:.lists[*].imageId          | lists.images.preferred.field              | imageId (unchanged)                                       | can no longer be set for each individual list                                                 |
 | locality-keywords.json                       | deprecated                                |                                                           |                                                                                               |
 | vernacular-lists.json                        | TODO                                      |                                                           |                                                                                               |
 | vernacular-name-status.json                  | TODO                                      |                                                           |                                                                                               |
 | weights.json                                 | deprecated                                |                                                           | moved to au.org.ala.listsapi.util.Weight                                                      |
-| wiki-lists.json:.lists[*].uid                | lists.wiki.id                             |                                                           |                                                                                               |
-| wiki-lists.json:.lists[*].wikiUrl            | lists.wiki.field                          | "url" (unchanged)                                         |                                                                                               |
+| wiki-lists.json:.lists[*].uid                | deprecated                                |                                                           | descriptions are managed with the taxon-descriptions tool and admin UI                        |
+| wiki-lists.json:.lists[*].wikiUrl            | deprecated                                |                                                           | descriptions are managed with the taxon-descriptions tool and admin UI                        |
 | additionalResultFields                       | deprecated                                |                                                           |                                                                                               |
 
 ## Importing data
@@ -194,8 +194,6 @@ elastic.adminIndex=search-log-20240401
     lists.favourite.field=favourite
     lists.iconic.id=
     lists.preferred.id=
-    lists.wiki.id=dr21955
-    lists.wiki.field=url
     lists.conservation.statusField=status
     ```
 

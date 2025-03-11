@@ -144,7 +144,9 @@ public class Config extends ElasticsearchConfiguration {
                         }
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {
-                    logger.error("Failed to set field: " + key.getKey(), e);
+                    // This error can be thrown when a field was added to elasticsearch but was not yet added to the
+                    // model SearchItemIndex.
+                    logger.warn("Failed to set field: " + key.getKey());
                 }
             }
 

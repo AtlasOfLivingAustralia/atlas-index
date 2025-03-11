@@ -1,7 +1,10 @@
-import {ChevronDownIcon, ChevronRightIcon, DotsThreeIcon} from "@atlasoflivingaustralia/ala-mantine";
 import {useState} from "react";
 import {FormattedMessage} from "react-intl";
 import "./dashboard.css";
+import FontAwesomeIcon from '../icon/fontAwesomeIconLite'
+import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown'
+import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
 
 function formatNumber(number: any) {
     if (isNaN(number / 1.0)) {
@@ -51,22 +54,22 @@ const TreeRow = ({row, level}: { row: any, level: number }) => {
             <td className="d-flex">
                 <div style={{marginLeft: (level * 10) + 'px', marginRight: '10px', display: "inline-flex"}}>
                     {loading ?
-                        <DotsThreeIcon />
+                        <div><FontAwesomeIcon icon={faSpinner} /></div>
                         :
                         showList ?
                             (list.length > 0 ?
-                                    <ChevronDownIcon
+                                    <div
                                         onClick={() => {
                                             setShowList(false);
-                                        }}/>
+                                        }}><FontAwesomeIcon icon={faChevronDown} /></div>
                                     :
                                     <div>-</div>
                             )
                             : (level < kingdomTree.length - 1 ?
-                                    <ChevronRightIcon
+                                    <div
                                         onClick={() => {
                                             getTreeDataBranch(row.fq, level + 1)
-                                        }}/>
+                                        }}><FontAwesomeIcon icon={faChevronRight} /></div>
                                     :
                                     <div>-</div>
                             )

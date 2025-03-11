@@ -98,7 +98,6 @@ public class SearchItemIndex {
     public String region;
     public String hiddenImages_s;
     public String favourite;
-    public String wikiUrl_s;
     public String[] speciesGroup;
     public String taxonID;
     public String nomenclaturalCode;

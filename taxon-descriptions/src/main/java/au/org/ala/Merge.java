@@ -265,7 +265,7 @@ public class Merge {
         }
 
         CSVWriter errorWriter = new CSVWriter(new FileWriter(mergeDir + "/errors.csv"));
-        errorWriter.writeNext(new String[]{"error message", "guid", "wikiUrl", "genus", "family", "order", "class", "phylum", "kingdom", "cached html file"});
+        errorWriter.writeNext(new String[]{"error message", "guid", "genus", "family", "order", "class", "phylum", "kingdom", "cached html file"});
         File matchedFile = new File(wikipediaTmp + "/matched.csv");
         CSVReader reader = new CSVReader(new FileReader(matchedFile));
         String[] nextLine;

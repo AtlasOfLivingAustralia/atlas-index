@@ -150,7 +150,7 @@ function Home({setBreadcrumbs}: {
                     <Space h="md" />
                     <Anchor
                         component={Link}
-                        to="/dashboard"
+                        to={import.meta.env.VITE_DASHBOARD_URL}
                     >Dashboard Page</Anchor>
                 </Box>
                 <Divider mt="xl" mb="xl"/>

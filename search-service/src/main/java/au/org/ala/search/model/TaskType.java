@@ -10,7 +10,7 @@ public enum TaskType {
     KNOWLEDGEBASE("update KNOWLEDGEBASE records with data from knowledgebase.url"),
     LAYER("update LAYER records with data from spatial.url"),
     WORDPRESS("update WORDPRESS records with data from wordpress.url"),
-    LISTS("update LIST records and update fields wikiUrl_s, image, hiddenImages_s, preferred, data.conservation_*, data.attributes_* with data from lists.url"),
+    LISTS("update LIST records and update fields image, hiddenImages_s, preferred, data.conservation_*, data.attributes_* with data from lists.url"),
     SITEMAP("generate new sitemap.xml and children and publish to sitemap.path"),
 
     DASHBOARD("update dashboard.json used by the dashboard UI"),

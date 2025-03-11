@@ -56,12 +56,6 @@ public class ListImportService {
     @Value("${lists.images.hidden.field}")
     private String listsImagesHiddenField;
 
-    @Value("${lists.wiki.id}")
-    private String listsWiki;
-
-    @Value("${lists.wiki.field}")
-    private String listsWikiField;
-
     @Value("${lists.native-introduced}")
     private String nativeIntroduced;
 
@@ -323,24 +317,6 @@ public class ListImportService {
             favouritesCommonCounter = updatedIds.size();
         }
 
-        // This is only required for the legacy V1SearchController.
-        logService.log(taskType, "import wiki");
-        int wikiCounter = 0;
-        if (StringUtils.isNotEmpty(listsWiki)) {
-            wikiCounter = importKvpList(
-                    Collections.singletonList(listsWiki),
-                    ListBackedFields.WIKI.field,
-                    (it -> {
-                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                            if (map.get("key").equals(listsWikiField)) {
-                                return map.get("value");
-                            }
-                        }
-                        return null;
-                    }),
-                    true, true).size();
-        }
-
         // The expect input and output for native/introduced is explained here
         // https://github.com/AtlasOfLivingAustralia/atlas-index/issues/11#issuecomment-2395219841
         logService.log(taskType, "import native/introduced");
@@ -435,7 +411,7 @@ public class ListImportService {
                 + ", conservation: " + conservationCounter /*+ ", attributes: " + attributesCounter*/
                 + ", favouritesTaxon: " + favouritesCounter + ", favouritesCommon: " + favouritesCommonCounter
                 + ", hiddenImages: " + hiddenImagesCounter
-                + ", preferredImages (all): " + preferredImageCounter + ", wiki: " + wikiCounter
+                + ", preferredImages (all): " + preferredImageCounter
                 + ", list images: " + listImageCounter
                 + ", native/introduced: " + nativeIntroducedCounter
                 + ", conservationIUCN: " + conservationIUCNCounter

@@ -11,10 +11,13 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -83,5 +86,63 @@ public class StaticFileStoreService {
             logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + dstPath + ", " + e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Close the store file returned by get(srcPath). This will clean up (delete) any temporary local copy of the
+     * remote file.
+     *
+     * Only use this method if you have called get(srcPath) to get the File.
+     *
+     * @param file
+     */
+    public void closeStoreFile(File file) {
+        if (fileStorePath.startsWith("s3")) {
+            file.delete();
+        }
+    }
+
+    /**
+     * Get the file from the file store as a File.
+     *
+     * Always call closeStoreFile when finished with the returned file. This will clean up (delete) any temporary
+     * local copy of the remote file.
+     *
+     * @param srcPath
+     * @return
+     */
+    public File get(String srcPath) {
+        try {
+            if (fileStorePath.startsWith("s3")) {
+                // s3 storage
+                String bucket = fileStorePath.substring(5, fileStorePath.indexOf("/", 5));
+                String path = fileStorePath.substring(fileStorePath.indexOf("/", 5) + 1);
+                GetObjectRequest request = GetObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(path + "/" + srcPath)
+                        .build();
+
+                File tmpFile = File.createTempFile("tmp", ".tmp");
+                CompletableFuture<GetObjectResponse> result = s3Client.getObject(request, Paths.get(tmpFile.getAbsolutePath()));
+
+                result.join();
+
+                // report error
+                if (result.isCompletedExceptionally()) {
+                    logger.error("Failed to get file from s3 srcPath: " + srcPath);
+                } else {
+                    return tmpFile;
+                }
+            } else {
+                // local file system
+                File file = new File(fileStorePath + "/" + srcPath);
+                if (file.exists()) {
+                    return file;
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Failed to get the file for srcPath: " + srcPath + ", " + e.getMessage());
+        }
+        return null;
     }
 }

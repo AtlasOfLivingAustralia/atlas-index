@@ -487,44 +487,6 @@ public class V1SearchController {
         return ResponseEntity.ok("ok");
     }
 
-    @Operation(
-            method = "GET",
-            tags = "admin",
-            operationId = "setWikiUrl",
-            summary = "Set the preferred wiki URL for a taxon",
-            security = {@SecurityRequirement(name = "openIdConnect")},
-            parameters = {
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String.class), required = true)
-            }
-    )
-    @ApiResponse(description = "Search results", responseCode = "200",
-            headers = {
-                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
-            }
-    )
-    @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v1/api/setUrl")
-    public ResponseEntity<String> setWikiUrl(
-            @Parameter(description = "Scientific Name")
-            @RequestParam(name = "name") String name,
-            @Parameter(description = "Taxon ID")
-            @RequestParam(name = "guid") String guid,
-            @Parameter(description = "URL")
-            @RequestParam(name = "url") String url,
-            @AuthenticationPrincipal Principal principal
-
-    ) {
-        if (!authService.isAdmin(principal)) {
-            throw new AccessDeniedException("Not authorised");
-        }
-
-        adminService.setValue(new SetRequest(guid, name, ListBackedFields.WIKI.name(), url));
-
-        return ResponseEntity.ok("ok");
-    }
-
     @Tag(name = "fields")
     @Operation(
             operationId = "fields",
