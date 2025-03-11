@@ -96,7 +96,7 @@ public class TaxonUpdateService {
                     continue;
                 }
 
-                searchAfter = hits.getLast().sort();
+                searchAfter = hits.isEmpty() ? null : hits.getLast().sort();
 
                 futures.add(taxonUpdateRunner.updateForList(hits));
 
@@ -180,7 +180,7 @@ public class TaxonUpdateService {
                     continue;
                 }
 
-                searchAfter = hits.getLast().sort();
+                searchAfter = hits.isEmpty() ? null : hits.getLast().sort();
 
                 for (Hit<SearchItemIndex> item : hits) {
                     String acceptedConceptID = item.fields().get("acceptedConceptID").toJson().asJsonArray().getJsonString(0).getString();

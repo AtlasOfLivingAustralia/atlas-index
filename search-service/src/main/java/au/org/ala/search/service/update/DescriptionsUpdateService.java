@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class DescriptionsUpdateService {
     private static final TaskType taskType = TaskType.TAXON_DESCRIPTION;
     private static final Logger logger = LoggerFactory.getLogger(DescriptionsUpdateService.class);
+    private static final int batchSize = 10000;
 
     @Value("${data.file.descriptions.name}")
     private String descriptionsFileName;
@@ -54,15 +55,18 @@ public class DescriptionsUpdateService {
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {});
             heroDescriptions = heroDescriptions.entrySet().stream()
+                    .filter(entry -> entry.getValue() != null)
                     .collect(Collectors.toMap(
                             entry -> URLDecoder.decode(entry.getKey(), StandardCharsets.UTF_8),
-                            entry -> entry.getValue() == null ? "null" : entry.getValue().toString()
+                            Map.Entry::getValue
                     ));
+            logService.log(taskType, "Total hero descriptions: " + heroDescriptions.size());
 
-            List<Hit<SearchItemIndex>> hits = fetchCurrentDocuments();
-            updateHeroDescriptions(hits, heroDescriptions);
+            updateCurrentDocuments(heroDescriptions);
 
-            logService.log(taskType, "Hero descriptions updated successfully.");
+            addDescriptions(heroDescriptions);
+
+            logService.log(taskType, "Hero descriptions finished.");
             return CompletableFuture.completedFuture(true);
         } catch (IOException e) {
             logService.log(taskType, "Error updating hero descriptions: " + e.getMessage());
@@ -70,10 +74,12 @@ public class DescriptionsUpdateService {
         }
     }
 
-    private List<Hit<SearchItemIndex>> fetchCurrentDocuments() {
-        List<Hit<SearchItemIndex>> allHits = new ArrayList<>();
-        String pit = null;
+    private void updateCurrentDocuments(Map<String, Object> newHeroDescriptions) {
+        List<UpdateQuery> updates = new ArrayList<>();
 
+        String pit = null;
+        int updatedRecords = 0;
+        int deletedRecords = 0;
         try {
             pit = elasticService.openPointInTime();
             co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = co.elastic.clients.elasticsearch._types.query_dsl.Query.of(q -> q
@@ -97,9 +103,30 @@ public class DescriptionsUpdateService {
                 List<Hit<SearchItemIndex>> hits = response.hits().hits();
                 if (!hits.isEmpty()) {
                     searchAfter = hits.get(hits.size() - 1).sort();
-                    allHits.addAll(hits);
+
+                    for (Hit<SearchItemIndex> hit : hits) {
+                        String documentId = hit.id();
+
+                        Map<String, JsonData> fields = hit.fields();
+                        String guid = fields.get("guid").toJson().asJsonArray().getJsonString(0).getString();
+                        String currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
+
+                        Object newDescription = newHeroDescriptions.remove(guid);
+                        if (!Objects.equals(newDescription, currentDescription)) {
+                            if (newDescription != null) {
+                                updatedRecords++;
+                            } else {
+                                deletedRecords++;
+                            }
+                            buildUpdateQuery(updates, documentId, newDescription);
+                        }
+                    }
                 }
                 hasMore = hits.size() == pageSize;
+            }
+
+            if (!updates.isEmpty()) {
+                elasticService.update(updates);
             }
         } catch (Exception e) {
             logger.error("Failed to fetch current documents from Elasticsearch", e);
@@ -113,63 +140,49 @@ public class DescriptionsUpdateService {
             }
         }
 
-        return allHits;
+        logService.log(taskType, "Updated hero descriptions: " + updatedRecords);
+        logService.log(taskType, "Deleted hero descriptions: " + deletedRecords);
     }
 
-    private void updateHeroDescriptions(List<Hit<SearchItemIndex>> hits, Map<String, Object> heroDescriptions) {
+    private void addDescriptions(Map<String, Object> heroDescriptions) {
         List<UpdateQuery> updates = new ArrayList<>();
-        int batchSize = 10000;
 
-        for (Hit<SearchItemIndex> hit : hits) {
-            String guid = null;
-            String currentDescription = null;
-            String documentId = hit.id();
-
-            Map<String, JsonData> fields = hit.fields();
-            if (fields == null || fields.isEmpty() || !fields.containsKey("guid")) {
-                continue;
-            }
-            guid = fields.get("guid").toJson().asJsonArray().getJsonString(0).getString();
-            currentDescription = fields.get("heroDescription").toJson().asJsonArray().getJsonString(0).getString();
-
-            Object newDescription = heroDescriptions.remove(guid);
-            if (!Objects.equals(newDescription, currentDescription)) {
-                buildUpdateQuery(updates, documentId, newDescription);
-            }
-        }
-
+        int guidsNotFound = 0;
         for (Map.Entry<String, Object> entry : heroDescriptions.entrySet()) {
             String guid = entry.getKey();
             Object newDescription = entry.getValue();
             String documentId = elasticService.queryTaxonId(guid);
-            buildUpdateQuery(updates, documentId, newDescription);
+
+            if (documentId != null) {
+                buildUpdateQuery(updates, documentId, newDescription);
+            } else {
+                guidsNotFound++;
+            }
         }
 
         if (!updates.isEmpty()) {
-            try {
-                for (int i = 0; i < updates.size(); i += batchSize) {
-                    int end = Math.min(i + batchSize, updates.size());
-                    List<UpdateQuery> batch = updates.subList(i, end);
-                    elasticService.update(batch);
-                }
-            } catch (BulkFailureException e) {
-                logger.error("Bulk update failed", e);
-            }
+            elasticService.update(updates);
+        }
+
+        logService.log(taskType, "New hero descriptions: " + (heroDescriptions.size() - guidsNotFound));
+
+        if (guidsNotFound > 0) {
+            logService.log(taskType, "Failed to find " + guidsNotFound + " guids in Elasticsearch.");
         }
     }
 
     private void buildUpdateQuery(List<UpdateQuery> updates, String documentId, Object newDescription) {
-        if (documentId != null) {
-            Document doc = Document.create();
-            if (newDescription != null && !newDescription.equals("null")) {
-                doc.put("heroDescription", newDescription);
-            } else {
-                doc.put("heroDescription", null);
-            }
-            UpdateQuery updateQuery = UpdateQuery.builder(documentId)
-                    .withDocument(doc)
-                    .build();
-            updates.add(updateQuery);
+        Document doc = Document.create();
+        doc.put("heroDescription", newDescription);
+        UpdateQuery updateQuery = UpdateQuery.builder(documentId)
+                .withDocument(doc)
+                .build();
+
+        updates.add(updateQuery);
+
+        if (updates.size() == batchSize) {
+            elasticService.update(updates);
+            updates.clear();
         }
     }
 }

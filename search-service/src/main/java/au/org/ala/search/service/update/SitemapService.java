@@ -173,7 +173,7 @@ public class SitemapService {
                         elasticService.queryPointInTimeAfter(
                                 pit, searchAfter, pageSize, queryOp, fieldList, null, false);
                 List<Hit<SearchItemIndex>> hits = result.hits().hits();
-                searchAfter = hits.getLast().sort();
+                searchAfter = hits.isEmpty() ? null : hits.getLast().sort();
 
                 for (Hit<SearchItemIndex> hit : hits) {
                     SearchItemIndex item = hitToItem(hit);

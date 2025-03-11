@@ -14,7 +14,7 @@ public enum TaskType {
     SITEMAP("generate new sitemap.xml and children and publish to sitemap.path"),
 
     DASHBOARD("update dashboard.json used by the dashboard UI"),
-    TAXON_DESCRIPTION("import taxon descriptions into the search index"),
+    TAXON_DESCRIPTION("import taxon hero descriptions into the search index from data.filestore.path/data.file.descriptions.name"),
     // Consumers
     FIELDGUIDE("consumer of fieldguide requests"),
     SEARCH_DOWNLOAD("consumer of search download requests"),
