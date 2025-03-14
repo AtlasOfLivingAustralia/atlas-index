@@ -262,7 +262,7 @@ elastic.adminIndex=search-log-20240401
     ```
 5. Re-run for incremental updates to non-DwCA sources. Can be configured as a scheduled task:
     ```properties
-    task.schedule=0 1 * * *
+    task.all.cron=0 1 * * *
     ```
 
 ## Unresolved Questions

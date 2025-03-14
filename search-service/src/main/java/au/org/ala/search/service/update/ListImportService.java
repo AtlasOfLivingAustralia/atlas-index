@@ -402,7 +402,7 @@ public class ListImportService {
         elasticService.indexFields(true);
 
         // update lists cache now
-        listCache.cacheListNames();
+        listCache.cacheRefresh();
 
         // dynamic fields may have changed, cache the new list
         elasticService.indexFields(true);

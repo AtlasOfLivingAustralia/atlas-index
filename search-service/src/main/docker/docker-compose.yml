@@ -39,6 +39,18 @@ services:
       - "27017:27017"
     volumes:
       - /data/species-lists/mongodb:/data/db
+  rabbitmq:
+    image: rabbitmq:3-management  # Use the RabbitMQ image with the management plugin
+    container_name: rabbitmq_container  # Name of the container
+    ports:
+      - "5672:5672"  # Port for RabbitMQ (AMQP)
+      - "15672:15672"  # Port for RabbitMQ Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: atlas  # Default username
+      RABBITMQ_DEFAULT_PASS: password  # Default password
+      RABBITMQ_ERLANG_COOKIE: mysecretcookie  # Erlang cookie for clustering (optional)
+    volumes:
+      - /data/search-service/rabbitmq:/var/lib/rabbitmq
 volumes:
   elasticsearch-data:
     driver: local

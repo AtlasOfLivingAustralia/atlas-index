@@ -42,7 +42,7 @@ public class ApiApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiApplication.class);
     private final AllService allService;
-    @Value("${task.schedule}")
+    @Value("${task.all.cron}")
     private String taskSchedule;
     @Value("${standalone}")
     private Boolean standalone;

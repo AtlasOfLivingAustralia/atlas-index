@@ -1,0 +1,67 @@
+package au.org.ala.search.service.queue;
+
+import au.org.ala.search.service.cache.CollectoryCache;
+import au.org.ala.search.service.cache.ListCache;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import static au.org.ala.search.service.queue.BroadcastService.BroadcastMessage.CACHE_RESET;
+
+/**
+ * Service to send and consume messages from the broadcast queue for all messages that are to be broadcast to all instances.
+ *
+ * Messages supported:
+ * - Cache reset
+ *
+ */
+@Service
+public class BroadcastService {
+    public static final String BROADCAST_QUEUE = "broadcast";
+
+    public enum BroadcastMessage {
+        CACHE_RESET;
+    }
+
+    private final CollectoryCache collectoryCache;
+    private final ListCache listCache;
+    private final RabbitTemplate rabbitTemplate;
+
+    @Value("${rabbitmq.exchange}")
+    public String exchange;
+
+    public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate) {
+        this.collectoryCache = collectoryCache;
+        this.listCache = listCache;
+        this.rabbitTemplate = rabbitTemplate;
+    }
+
+    /**
+     * Send message to all instances.
+     *
+     * @param message
+     */
+    public void sendMessage(BroadcastMessage message) {
+        if (StringUtils.isNotEmpty(exchange)) {
+            rabbitTemplate.convertAndSend(exchange, "", message.name());
+        } else {
+            receiveMessage(message.name());
+        }
+    }
+
+    @RabbitListener(queues = BROADCAST_QUEUE)
+    public void receiveMessage(String message) {
+        if (message.equals(CACHE_RESET.name())) {
+            resetCache();
+        }
+    }
+
+    public void resetCache() {
+        collectoryCache.cacheRefresh();
+        listCache.cacheRefresh();
+    }
+
+
+}

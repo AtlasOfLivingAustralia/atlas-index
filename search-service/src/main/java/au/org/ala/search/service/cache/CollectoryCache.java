@@ -40,11 +40,11 @@ public class CollectoryCache {
 
     @PostConstruct
     void init() {
-        cacheDataResourceNames();
+        cacheRefresh();
     }
 
-    @Scheduled(cron = "0 0 * * * ?")
-    public void cacheDataResourceNames() {
+    @Scheduled(cron = "${collectory.cache.cron}")
+    public void cacheRefresh() {
         String pit = null;
 
         try {

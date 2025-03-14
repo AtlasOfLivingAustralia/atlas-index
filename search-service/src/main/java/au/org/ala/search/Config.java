@@ -26,14 +26,14 @@ public class Config extends ElasticsearchConfiguration {
     private String elasticHost;
 
     @Value("${elastic.timeout}")
-    private Long elsticTimeout;
+    private Long elasticTimeout;
 
     @NotNull
     @Override
     public ClientConfiguration clientConfiguration() {
         return ClientConfiguration.builder()
                 .connectedTo(elasticHost)
-                .withSocketTimeout(elsticTimeout)
+                .withSocketTimeout(elasticTimeout)
                 .build();
     }
 

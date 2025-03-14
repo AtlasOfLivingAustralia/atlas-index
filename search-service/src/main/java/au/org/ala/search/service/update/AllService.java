@@ -53,6 +53,8 @@ public class AllService {
     public Boolean taskWordpressEnabled;
     @Value("${task.TAXON_DESCRIPTION.enabled}")
     public Boolean taskTaxonDescriptionEnabled;
+    @Value("${task.DASHBOARD.enabled}")
+    public Boolean taskDashboardEnabled;
 
     public AllService(CollectionsImportService collectionsImportService, WordpressImportService wordpressImportService,
                       KnowledgebaseImportService knowledgebaseImportService, LogService logService,
@@ -80,35 +82,37 @@ public class AllService {
         try {
             logService.log(taskType, "Start");
 
-            // Delete existing DwCA records and import again
-            CompletableFuture<Boolean> dwcaImport = dwCAImportService.run();
+            if (taskDwcaEnabled) {
+                // Delete existing DwCA records and import again
+                CompletableFuture<Boolean> dwcaImport = dwCAImportService.run();
 
-            // wait for DwCA import to finish
-            logService.log(taskType, "Waiting for DwCA to finish");
-            CompletableFuture.allOf(dwcaImport).join();
+                // wait for DwCA import to finish
+                logService.log(taskType, "Waiting for DwCA to finish");
+                CompletableFuture.allOf(dwcaImport).join();
 
-            if (!dwcaImport.get()) {
-                logService.log(taskType, "Failed to import DwCA");
-                logger.error("DwCA import failed. Aborting Import everything.");
-                return CompletableFuture.completedFuture(false);
+                if (!dwcaImport.get()) {
+                    logService.log(taskType, "Failed to import DwCA");
+                    logger.error("DwCA import failed. Aborting Import everything.");
+                    return CompletableFuture.completedFuture(false);
+                }
             }
 
             List<CompletableFuture<Boolean>> tasks = new ArrayList<>(10);
 
             // queue import lists and update other TAXON fields, may create COMMON records
-            tasks.add(listImportService.run());
+            if (taskListsEnabled) tasks.add(listImportService.run());
 
             // queue update TAXON fields
-            tasks.add(taxonUpdateService.run());
+            if (taskBiocacheEnabled) tasks.add(taxonUpdateService.run());
 
             // queue everything else
-            tasks.add(areaImportService.run());
-            tasks.add(biocollectImportService.run());
-            tasks.add(collectionsImportService.run());
-            tasks.add(knowledgebaseImportService.run());
-            tasks.add(layerImportService.run());
-            tasks.add(wordpressImportService.run());
-            tasks.add(descriptionsUpdateService.run());
+            if (taskAreaEnabled) tasks.add(areaImportService.run());
+            if (taskBiocollectEnabled) tasks.add(biocollectImportService.run());
+            if (taskCollectionsEnabled) tasks.add(collectionsImportService.run());
+            if (taskKnowledgebaseEnabled) tasks.add(knowledgebaseImportService.run());
+            if (taskLayerEnabled) tasks.add(layerImportService.run());
+            if (taskWordpressEnabled) tasks.add(wordpressImportService.run());
+            if (taskTaxonDescriptionEnabled) tasks.add(descriptionsUpdateService.run());
 
             // wait for everything to finish
             logService.log(taskType, "Waiting for other updates to finish");
@@ -116,7 +120,10 @@ public class AllService {
 
             // generate sitemap (TAXON only) and dashboard
             logService.log(taskType, "Waiting for sitemap and dashboard to finish");
-            CompletableFuture.allOf(new CompletableFuture[]{sitemapService.run(), dashboardService.run()}).join();
+            CompletableFuture.allOf(new CompletableFuture[]{
+                    taskSitemapEnabled ? sitemapService.run() : CompletableFuture.completedFuture(true),
+                    taskDashboardEnabled ? dashboardService.run() : CompletableFuture.completedFuture(true)
+            }).join();
 
             logService.log(taskType, "Finished");
 

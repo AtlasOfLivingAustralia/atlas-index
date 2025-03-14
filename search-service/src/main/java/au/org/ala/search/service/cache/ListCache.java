@@ -37,11 +37,11 @@ public class ListCache {
 
     @PostConstruct
     void init() {
-        cacheListNames();
+        cacheRefresh();
     }
 
-    @Scheduled(cron = "0 0 * * * ?")
-    public void cacheListNames() {
+    @Scheduled(cron = "${list.cache.cron}")
+    public void cacheRefresh() {
         try {
             listService.authoritativeLists().forEach(list -> {
                 String listId = (String) list.get("dataResourceUid");

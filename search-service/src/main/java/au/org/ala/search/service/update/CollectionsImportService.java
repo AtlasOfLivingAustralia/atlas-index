@@ -61,7 +61,7 @@ public class CollectionsImportService {
         logService.log(taskType, "Finished updates: " + counter);
         return CompletableFuture.completedFuture(true).thenApply(
                 a -> {
-                    collectoryCache.cacheDataResourceNames();
+                    collectoryCache.cacheRefresh();
                     return a;
                 }
         );

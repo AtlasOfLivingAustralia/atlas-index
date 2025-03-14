@@ -6,10 +6,10 @@ import au.org.ala.search.model.quality.QualityProfile;
 import au.org.ala.search.model.quality.QualityProfileAdmin;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
+import au.org.ala.search.service.queue.BroadcastService;
 import au.org.ala.search.service.queue.FieldguideConsumerService;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.service.queue.SearchConsumerService;
-import au.org.ala.search.service.remote.DataFileStoreService;
 import au.org.ala.search.service.remote.DataQualityService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.update.*;
@@ -32,6 +32,8 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static au.org.ala.search.service.queue.BroadcastService.BroadcastMessage.CACHE_RESET;
 
 /**
  * Admin API
@@ -63,7 +65,8 @@ public class V2AdminController {
     protected final FieldguideConsumerService fieldguideConsumerService;
     protected final SearchConsumerService searchConsumerService;
     protected final DescriptionsUpdateService descriptionsUpdateService;
-    private final DataQualityService dataQualityService;
+    protected final DataQualityService dataQualityService;
+    protected final BroadcastService broadcastService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
@@ -77,7 +80,7 @@ public class V2AdminController {
                              QueueService queueService, FieldguideConsumerService fieldguideConsumerService,
                              SearchConsumerService searchConsumerService,
                              DescriptionsUpdateService descriptionsUpdateService,
-                             DataQualityService dataQualityService) {
+                             DataQualityService dataQualityService, BroadcastService broadcastService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.blockingExecutor = blockingExecutor;
@@ -101,6 +104,7 @@ public class V2AdminController {
         this.searchConsumerService = searchConsumerService;
         this.descriptionsUpdateService = descriptionsUpdateService;
         this.dataQualityService = dataQualityService;
+        this.broadcastService = broadcastService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -155,6 +159,7 @@ public class V2AdminController {
             case TaskType.WORDPRESS -> wordpressImportService.run();
             case TaskType.DASHBOARD -> dashboardService.run();
             case TaskType.TAXON_DESCRIPTION -> descriptionsUpdateService.run();
+            case TaskType.CACHE_RESET -> broadcastService.sendMessage(CACHE_RESET);
         }
 
         return ResponseEntity.ok("{\"message\": \"task queued\"}");
