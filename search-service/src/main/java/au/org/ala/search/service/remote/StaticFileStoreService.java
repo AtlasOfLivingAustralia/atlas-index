@@ -96,7 +96,7 @@ public class StaticFileStoreService {
      *
      * @param file
      */
-    public void closeStoreFile(File file) {
+    public void cleanupFile(File file) {
         if (fileStorePath.startsWith("s3")) {
             file.delete();
         }

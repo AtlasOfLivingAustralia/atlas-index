@@ -2,11 +2,11 @@ package au.org.ala.search.service;
 
 import au.org.ala.search.model.ListBackedFields;
 import au.org.ala.search.model.dto.SetRequest;
+import au.org.ala.search.service.remote.DataFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.ListService;
 import au.org.ala.search.service.remote.StaticFileStoreService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
@@ -31,6 +31,7 @@ public class AdminService {
     protected final ElasticService elasticService;
     protected final ListService listService;
     protected final StaticFileStoreService staticFileStoreService;
+    protected final DataFileStoreService dataFileStoreService;
 
     @Value("${lists.images.hidden.id}")
     private String hiddenImageListId;
@@ -44,14 +45,16 @@ public class AdminService {
     private String heroDescriptionsListId;
     @Value("${lists.hero.description.field}")
     private String heroDescriptionsListField;
-
+    @Value("${data.path.description.override}")
+    private String descriptionOverridePath;
 
     public AdminService(
-            ElasticsearchOperations elasticsearchOperations, ElasticService elasticService, ListService listService, StaticFileStoreService staticFileStoreService) {
+            ElasticsearchOperations elasticsearchOperations, ElasticService elasticService, ListService listService, StaticFileStoreService staticFileStoreService, DataFileStoreService dataFileStoreService) {
         this.elasticsearchOperations = elasticsearchOperations;
         this.elasticService = elasticService;
         this.listService = listService;
         this.staticFileStoreService = staticFileStoreService;
+        this.dataFileStoreService = dataFileStoreService;
     }
 
     public boolean setValue(SetRequest setRequest) {
@@ -125,12 +128,12 @@ public class AdminService {
         String dir = encodedTaxon.substring(encodedTaxon.length() - 2);
         String filePath = "/taxon-descriptions/" + dir + "/" + encodedTaxon + ".json";
         File descriptionsJsonFile = staticFileStoreService.get(filePath);
-        List currentDescriptions = objectMapper.readValue(descriptionsJsonFile, List.class);
-
         if (descriptionsJsonFile == null) {
             // Nothing to override, return false
             return false;
         }
+        List currentDescriptions = objectMapper.readValue(descriptionsJsonFile, List.class);
+        staticFileStoreService.cleanupFile(descriptionsJsonFile); // clean up required if s3 is used
 
         // 2. determine what source descriptions changed
         List newDescriptions = objectMapper.readValue(setRequest.getValue(), List.class);
@@ -191,13 +194,17 @@ public class AdminService {
         }
 
         if (!changedDescriptions.isEmpty()) {
-            // TODO: use the correct overrideFilePath (see comments 3, 4, 5)
-            // TODO: use the dataFileStoreService from the in-progress PR for the override.json (see comments 3, 4, 5)
-
             // 3. fetch the existing override file
-            String overrideFilePath = "/taxon-descriptions/" + dir + "/" + encodedTaxon + "-override.json";
-            File overrideFile = staticFileStoreService.get(overrideFilePath);
+            String overrideFilePath = descriptionOverridePath + "/" + encodedTaxon + "-override.json";
+            File overrideFile = null;
+            try {
+                overrideFile = dataFileStoreService.retrieveFile(overrideFilePath);
+            } catch (IOException ignored) {
+            }
             List overrideDescriptions = overrideFile != null ? objectMapper.readValue(overrideFile, List.class) : new ArrayList();
+            if (overrideFile != null) {
+                dataFileStoreService.cleanupFile(overrideFile); // clean up required if s3 is used
+            }
 
             // 4. add the changed descriptions to the override file
             for (Object changedDescription : changedDescriptions) {
@@ -219,11 +226,10 @@ public class AdminService {
                 }
             }
 
-
             // 5. write the updated override file
             File tmpFile = File.createTempFile("override", ".json");
             objectMapper.writeValue(tmpFile, overrideDescriptions);
-            staticFileStoreService.copyToFileStore(tmpFile, overrideFilePath, true);
+            dataFileStoreService.copyToFileStore(tmpFile, overrideFilePath, true);
 
             // 6. write the full description JSON file to the S3 bucket (if using s3)
             File newDescriptionsFile = File.createTempFile("descriptions", ".json");
