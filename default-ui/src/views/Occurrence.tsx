@@ -12,7 +12,7 @@ function Occurrence({setBreadcrumbs, queryString}: {
     useEffect(() => {
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Default UI', href: '/'},
+            {title: 'Admin', href: '/'},
             {title: 'Occurrence', href: '/occurrence'},
         ]);
 
