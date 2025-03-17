@@ -3,6 +3,9 @@ package au.org.ala.search.util;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.dto.Profile;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,5 +87,69 @@ public class FormatUtil {
             cleanQuery = cleanQuery.trim();
         }
         return cleanQuery;
+    }
+
+    /**
+     * Convert and sanitize HTML to plain text.
+     *
+     * Includes handing for: <a>, <ol>, <ul>, <br>, <p>
+     *
+     * @param html the HTML to sanitize and convert to plain text
+     * @return the sanitized description as plain text
+     */
+    public static String htmlToText(String html) {
+        if (html == null || html.trim().isEmpty()) {
+            return "";
+        }
+
+        // Parse HTML
+        Document doc = Jsoup.parse(html);
+        doc.select("script, style").remove();
+
+        // Handle unordered lists
+        for (Element ul : doc.select("ul")) {
+            List<Element> numberedList = new ArrayList<>();
+            for (Element li : ul.select("li")) {
+                if (!numberedList.isEmpty()) {
+                    numberedList.add(new Element("br"));
+                }
+                numberedList.add(new Element("span").text("- " + li.text()));
+            }
+            ul.replaceWith(new Element("p").appendChildren(numberedList));
+        }
+
+        // Handle ordered lists
+        for (Element ol : doc.select("ol")) {
+            List<Element> numberedList = new ArrayList<>();
+            int count = 1;
+            for (Element li : ol.select("li")) {
+                if (!numberedList.isEmpty()) {
+                    numberedList.add(new Element("br"));
+                }
+                numberedList.add(new Element("span").text(count + ". " + li.text()));
+                count++;
+            }
+            ol.replaceWith(new Element("p").appendChildren(numberedList));
+        }
+
+        for (Element a : doc.select("a")) {
+            String text = a.text();
+            String href = a.attr("href");
+
+            // If the text of the link looks like a URL, don't include it in the text
+            if (!text.startsWith("http")) {
+                a.replaceWith(new Element("span").text(text + " (" + href + ")"));
+            } else {
+                a.replaceWith(new Element("span").text(text));
+            }
+        }
+
+        return doc.body().html()
+                .replaceAll("&nbsp;", " ")
+                .replaceAll("<br\\s*/?>", "\n")
+                .replaceAll("</p>", "\n\n")
+                .replaceAll("<[^>]+>", "")
+                .replaceAll("(\\n\\s*){3,}", "\n\n")
+                .trim();
     }
 }

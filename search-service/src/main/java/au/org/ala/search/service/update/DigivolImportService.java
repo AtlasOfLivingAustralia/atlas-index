@@ -5,11 +5,9 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.util.FormatUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +19,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Service to import data from the Digivol API.
@@ -49,8 +46,10 @@ public class DigivolImportService {
     public CompletableFuture<Boolean> run() {
         logService.log(taskType, "Starting");
 
+        Map<String, Date> existingItems = elasticService.queryItems("idxtype", IndexDocType.DIGIVOL.name());
+
         List<IndexQuery> buffer = new ArrayList<>();
-        Map<String, SearchItemIndex> items = getList();
+        Map<String, SearchItemIndex> items = getList(existingItems);
 
         int counter = 0;
 
@@ -75,7 +74,7 @@ public class DigivolImportService {
      *
      * @return a map of expeditions to update
      */
-    private Map<String, SearchItemIndex> getList() {
+    private Map<String, SearchItemIndex> getList(Map<String, Date> existingItems) {
         Map<String, SearchItemIndex> updateList = new HashMap<>();
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -85,16 +84,29 @@ public class DigivolImportService {
 
             List<Map<String, Object>> expeditions = objectMapper.readValue(apiUrl, new TypeReference<>() {});
 
+            int conversionErrors = 0;
+
             for (Map<String, Object> expedition : expeditions) {
                 SearchItemIndex newItem = convertExpeditionToItemIndex(expedition);
 
-                if (newItem == null) continue;
+                if (newItem == null) {
+                    conversionErrors++;
+                    continue;
+                }
 
                 SearchItemIndex existingItem = elasticService.getDocument(newItem.getId());
                 if (hasChanges(newItem, existingItem)) {
                     updateList.put(newItem.getId(), newItem);
                 }
+
+                // exclude from deletion list
+                existingItems.remove(newItem.getId());
             }
+
+            // delete removed items
+            elasticService.removeDeletedItems(existingItems);
+
+            logService.log(taskType, "total: " + expeditions.size() + ", conversion errors: " + conversionErrors + ", deleted " + existingItems.size());
         } catch (Exception e) {
             logService.log(taskType, "Error getting expedition");
             logger.error("Error fetching expedition data", e);
@@ -115,7 +127,7 @@ public class DigivolImportService {
 
             String description = (String) expedition.get("description");
             if (description != null) {
-                description = sanitizeDescription(description);
+                description = FormatUtil.htmlToText(description);
             }
 
             Date created = new Date();
@@ -134,55 +146,6 @@ public class DigivolImportService {
             logger.error("Error parsing expedition data", e);
             return null;
         }
-    }
-
-    /**
-     * Sanitize the description HTML.
-     *
-     * @param html the HTML to sanitize
-     * @return the sanitized description
-     */
-    private String sanitizeDescription(String html) {
-        if (html == null || html.trim().isEmpty()) {
-            return "";
-        }
-
-        // Parse HTML
-        Document doc = Jsoup.parse(html);
-        doc.select("script, style").remove();
-
-        // Handle unordered lists
-        for (Element ul : doc.select("ul")) {
-            String listText = ul.select("li").stream()
-                    .map(li -> "- " + li.text())
-                    .collect(Collectors.joining("\n"));
-            ul.replaceWith(new Element("p").text(listText));
-        }
-
-        // Handle ordered lists
-        for (Element ol : doc.select("ol")) {
-            StringBuilder numberedList = new StringBuilder();
-            int count = 1;
-            for (Element li : ol.select("li")) {
-                numberedList.append(count).append(". ").append(li.text()).append("\n");
-                count++;
-            }
-            ol.replaceWith(new Element("p").text(numberedList.toString().trim()));
-        }
-
-        for (Element a : doc.select("a")) {
-            String text = a.text();
-            String href = a.attr("href");
-            a.replaceWith(new Element("span").text(text + " (" + href + ")"));
-        }
-
-        return doc.body().html()
-                .replaceAll("&nbsp;", " ")
-                .replaceAll("<br\\s*/?>", "\n")
-                .replaceAll("</p>", "\n\n")
-                .replaceAll("<[^>]+>", "")
-                .replaceAll("\n{3,}", "\n\n")
-                .trim();
     }
 
     /**
