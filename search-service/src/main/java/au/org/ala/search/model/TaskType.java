@@ -4,6 +4,7 @@ public enum TaskType {
     ALL("update search index from all data sources"),
     DWCA("replace all TAXON, COMMON, IDENTIFIER, TAXONVARIANT records with contents of dwca.dir"),
     BIOCACHE("update accepted TAXON records with count and image values from biocache.wsUrl"),
+    DIGIVOL("update DIGIVOL records with data from digivol.url"),
     AREA("update LOCALITY, REGION and DISTRIBUTION records with data from spatial.url"),
     BIOCOLLECT("update BIOCOLLECT records with data from biocollect.url"),
     COLLECTIONS("update COLLECTION, INSTITUTION, DATAPROVIDER, DATARESOURCE records with data from collections.url"),

@@ -467,6 +467,14 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                     </td>
                                     <td>{description['SITEMAP']}</td>
                                 </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('DIGIVOL')}>
+                                            Update DIGIVOL
+                                        </button>
+                                    </td>
+                                    <td>{description['DIGIVOL']}</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </Tab>
@@ -474,7 +482,7 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                             <div className="d-flex w-100 align-items-center alert alert-secondary">
                                 <select className="custom-select w-25" id="filter"
                                         onChange={e => filterLog(e.target.value)}>
-                                    {taskTypes.map((type, index) => <option key={index}>{type}</option>)};
+                                {taskTypes.map((type, index) => <option key={index}>{type}</option>)};
                                 </select>
                                 <label htmlFor="logSize" className="ms-5 me-1">log size</label>
                                 <input id="logSize" value={logSize} onChange={e => {

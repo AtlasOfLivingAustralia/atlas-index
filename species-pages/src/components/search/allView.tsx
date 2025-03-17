@@ -47,6 +47,7 @@ function AllView({queryString, setTab}: ViewProps) {
         "KNOWLEDGEBASE": "Help Articles",
         "COMMON": "Species",
         "BIOCOLLECT": "Data Projects",
+        "DIGIVOL": "Volunteer Projects",
         "DISTRIBUTION": undefined
     };
 
@@ -58,7 +59,7 @@ function AllView({queryString, setTab}: ViewProps) {
         "Species List": "idxtype:SPECIESLIST",
         "ALA General Content": "idxtype:WORDPRESS",
         "Help Articles": "idxtype:KNOWLEDGEBASE",
-        "Data Projects": "idxtype:BIOCOLLECT"
+        "Data Projects": "idxtype:BIOCOLLECT OR idxtype:DIGIVOL"
     };
 
     useEffect(() => {

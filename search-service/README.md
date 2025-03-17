@@ -177,6 +177,11 @@ elastic.adminIndex=search-log-20240401
     lists.addPath=/ws/createItem
     lists.removePath=/ws/deleteItem
     ```
+- volunteer; idxtype DIGIVOL
+    ```properties
+    digivol.url=https://volunteer.ala.org.au
+    digivol.expeditionUrl=/ws/expeditionInfo
+    ```
 
 4. Supplementary data
 

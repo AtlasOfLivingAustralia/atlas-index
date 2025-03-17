@@ -46,6 +46,7 @@ public class V2AdminController {
     protected final ListImportService listImportService;
     protected final CollectionsImportService collectionsImportService;
     protected final BiocollectImportService biocollectImportService;
+    protected final DigivolImportService digivolImportService;
     protected final LayerImportService layerImportService;
     protected final AreaImportService areaImportService;
     protected final DwCAImportService dwCAImportService;
@@ -65,7 +66,7 @@ public class V2AdminController {
     protected final DescriptionsUpdateService descriptionsUpdateService;
     private final DataQualityService dataQualityService;
 
-    public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService,
+    public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
                              ListImportService listImportService, AdminService adminService, AllService allService,
                              CollectionsImportService collectionsImportService,
@@ -80,6 +81,7 @@ public class V2AdminController {
                              DataQualityService dataQualityService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
+        this.digivolImportService = digivolImportService;
         this.blockingExecutor = blockingExecutor;
         this.knowledgebaseImportService = knowledgebaseImportService;
         this.listImportService = listImportService;
@@ -145,6 +147,7 @@ public class V2AdminController {
             case TaskType.ALL -> allService.run();
             case TaskType.AREA -> areaImportService.run();
             case TaskType.BIOCACHE -> taxonUpdateService.run();
+            case TaskType.DIGIVOL -> digivolImportService.run();
             case TaskType.BIOCOLLECT -> biocollectImportService.run();
             case TaskType.COLLECTIONS -> collectionsImportService.run();
             case TaskType.DWCA -> dwCAImportService.run();

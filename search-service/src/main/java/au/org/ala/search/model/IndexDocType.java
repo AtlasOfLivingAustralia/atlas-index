@@ -16,5 +16,6 @@ public enum IndexDocType {
     IDENTIFIER,
     TAXONVARIANT,
     BIOCOLLECT,
-    DISTRIBUTION
+    DISTRIBUTION,
+    DIGIVOL
 }
