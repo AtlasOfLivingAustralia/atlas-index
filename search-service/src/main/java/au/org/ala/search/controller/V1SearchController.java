@@ -603,7 +603,7 @@ public class V1SearchController {
                     example = "Mac")
             @RequestParam(name = "q") String q,
             @Parameter(
-                    description = "The index type to limit. One of TAXON, TAXONVARIANT, COMMON, IDENTIFIER, REGION, COLLECTION, INSTITUTION, DATAPROVIDER, DATASET, LOCALITY, WORDPRESS, LAYER, SPECIESLIST, KNOWLEDGEBASE, BIOCOLLECT.",
+                    description = "The index type to limit. One of TAXON, TAXONVARIANT, COMMON, IDENTIFIER, REGION, COLLECTION, INSTITUTION, DATAPROVIDER, DATASET, LOCALITY, WORDPRESS, LAYER, SPECIESLIST, KNOWLEDGEBASE, BIOCOLLECT, DIGIVOL.",
                     example = "TAXON")
             @Nullable @RequestParam(name = "idxType", required = false) String idxType,
             @Parameter(

@@ -5,7 +5,7 @@ import {limitDescription, openUrl} from "../util.tsx";
 import missingImage from '../../../image/missing-image.png';
 
 export const dataprojectsDefn: GenericViewProps = {
-    fq: "idxtype:BIOCOLLECT",
+    fq: "idxtype:BIOCOLLECT OR idxtype:DIGIVOL",
 
     sortByDate: true,
 

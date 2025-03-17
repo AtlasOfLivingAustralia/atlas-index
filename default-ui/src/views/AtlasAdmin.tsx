@@ -566,6 +566,14 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                     <td>{lastRun['DASHBOARD']}</td>
                                     <td>{description['DASHBOARD']}</td>
                                 </tr>
+                                <tr>
+                                    <td>
+                                        <button className="btn border-black " onClick={() => update('DIGIVOL')}>
+                                            Update DIGIVOL
+                                        </button>
+                                    </td>
+                                    <td>{description['DIGIVOL']}</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </Tab>
