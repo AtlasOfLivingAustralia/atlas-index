@@ -117,6 +117,7 @@ public class AllService {
             if (taskLayerEnabled) tasks.add(layerImportService.run());
             if (taskWordpressEnabled) tasks.add(wordpressImportService.run());
             if (taskTaxonDescriptionEnabled) tasks.add(descriptionsUpdateService.run());
+            if (taskDigivolEnabled) tasks.add(digivolImportService.run());
 
             // wait for everything to finish
             logService.log(taskType, "Waiting for other updates to finish");
