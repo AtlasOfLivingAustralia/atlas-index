@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+// TODO: align with spatial-service's SandboxService
 @Service
 public class SandboxService {
     private static final Logger logger = LoggerFactory.getLogger(SandboxService.class);
@@ -36,7 +37,6 @@ public class SandboxService {
     @Value("${sandbox.dir}")
     public String sandboxDir;
 
-    // TODO: This is for the delete request only. It is not suitable for the V2 biocache API
     @Value("${solr.url}")
     public String solrUrl;
 
@@ -70,7 +70,6 @@ public class SandboxService {
         } else if (file.getOriginalFilename().toLowerCase().endsWith(".zip")) {
             importZip(file, sandboxIngress);
         } else {
-            // TODO: throw error message
             return null;
         }
 
@@ -109,7 +108,6 @@ public class SandboxService {
                     ZipEntry entry = entries.nextElement();
                     File entryFile = new File(thisDir, entry.getName());
 
-                    // TODO: flatten the unzipped files by discarding the directory structure
                     if (!entry.isDirectory()) {
                         InputStream in = zip.getInputStream(entry);
                         OutputStream out = new FileOutputStream(entryFile);
@@ -138,17 +136,14 @@ public class SandboxService {
                     sandboxIngress.setHeaders(interpretHeader(header));
                 } else {
                     sandboxIngress = null;
-                    // TODO: throw exception because the header interpretation failed
                     logger.error("Error interpreting header: " + thisDir.getAbsolutePath());
                 }
             }
         } catch (IOException e) {
             sandboxIngress = null;
             logger.error("Error importing ZIP file: " + thisDir.getAbsolutePath(), e);
-            // TODO: throw the error
         }
 
-        // TODO: delete the uploaded file when there is an error
         if (sandboxIngress == null) {
             try {
                 FileUtils.deleteDirectory(thisDir);
@@ -206,7 +201,7 @@ public class SandboxService {
                         newHeader[header.length] = occurrenceIDQualified;
                         header = newHeader;
                     } else {
-                        // TODO: replace duplicate headers with an appended idx value
+
                     }
 
                     // Append userID to the header, if absent
@@ -218,7 +213,7 @@ public class SandboxService {
                         newHeader[header.length] = userIDQualified;
                         header = newHeader;
                     } else {
-                        // TODO: replace duplicate headers with an appended idx value
+
                     }
 
                     // Append datasetName to the header, if absent
@@ -230,7 +225,7 @@ public class SandboxService {
                         newHeader[header.length] = datasetNameQualified;
                         header = newHeader;
                     } else {
-                        // TODO: replace duplicate headers with an appended idx value
+
                     }
                 } else {
                     // Append row number as the unique occurrenceID
@@ -322,8 +317,6 @@ public class SandboxService {
             writer.close();
         }
 
-        // TODO: throw error if header is null
-
         return header;
     }
 
@@ -393,8 +386,6 @@ public class SandboxService {
             logger.error("Error deleting directory: " + thisDir.getAbsolutePath(), e);
         }
 
-        // TODO: delete the temporary data resource uid from the collectory
-
         // delete from SOLR
         webService.get(solrUrl + "/update?commit=true&stream.body=<delete><query>dataResourceUid%3A" + id + "</query></delete>", null, null, false, false, null);
 
@@ -405,7 +396,6 @@ public class SandboxService {
     }
 
     public Status ingress(SandboxIngress sandboxIngress) {
-        // TODO: prevent duplicate requests
 
         SandboxQueueRequest request = new SandboxQueueRequest();
         request.taskType = TaskType.SANDBOX;

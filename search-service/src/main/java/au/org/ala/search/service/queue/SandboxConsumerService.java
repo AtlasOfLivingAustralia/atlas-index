@@ -99,15 +99,7 @@ public class SandboxConsumerService extends ConsumerService {
     }
 
     /**
-     * Load a DwCA into the pipelines
-     * - ALADwcaToVerbatimPipeline (DwCA to /verbatim avro)
-     * - ALAVerbatimToInterpretedPipeline (/verbatim avro to /occurrence avro)
-     * - ALAUUIDMintingPipeline (only for validation, TODO: manually create the reporting metrics file and skip this step)
-     * - ALAInterpretedToSensitivePipeline (TODO: manually create the reporting metrics file OR update pipelines so this can be skipped)
-     * - IndexRecordPipeline (/occurrence avro to /all-datasets avro)
-     * - SamplingPipeline (exports lat lngs, TODO: make optional)
-     * - LayerCrawler (do the sampling, TODO: make optional)
-     * - IndexRecordToSolrPipeline (index into SOLR, TODO: make joins optional - joins: sampling, species lists)
+     *  TODO: align with spatial-service
      *
      * @param queueItem
      * @param item
@@ -185,7 +177,6 @@ public class SandboxConsumerService extends ConsumerService {
         pipelinesExecute(interpretedToSensitiveOpts);
 
         // index record generation
-        // TODO: speed up the download of all authorised species lists
         String[] indexingOpts = new String[]{
                 "au.org.ala.pipelines.java.IndexRecordPipeline",
                 "--datasetId=" + datasetID,

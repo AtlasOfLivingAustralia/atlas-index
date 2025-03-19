@@ -409,32 +409,6 @@ public class ElasticService {
     public IndexQuery buildIndexQuery(SearchItemIndex item) {
         addWeights(item);
 
-//        // convert to Map to avoid issues with the dynamic fields
-//        Map itemMap = new HashMap();
-//        for (int i = 0; i < SearchItemIndex.class.getFields().length; i++) {
-//            try {
-//                Field f = SearchItemIndex.class.getFields()[i];
-//                Object obj = f.get(item);
-//                if (obj == null) {
-//                    continue;
-//                }
-//
-//                // use name to detect dynamic fields
-//                if (f.getName().endsWith("Fields")) {
-//                    // convert to map
-//                    Map<String, String> fields = (Map<String, String>) obj;
-//                    if (fields != null) {
-//                        itemMap.putAll(fields);
-//                    }
-//                } else {
-//                    itemMap.put(f.getName(), obj);
-//                }
-//            } catch (Exception e) {
-//                logger.error("Failed to get field value", e);
-//            }
-//        }
-
-//        return new IndexQueryBuilder().withId(item.getId()).withObject(itemMap).build();
         return new IndexQueryBuilder().withId(item.getId()).withObject(item).build();
     }
 
@@ -629,30 +603,6 @@ public class ElasticService {
             } else {
                 return item;
             }
-        }
-        return null;
-    }
-
-    // TODO: nested "data" is removed
-    public Map<String, String> getNestedFields(String id) {
-        NativeQueryBuilder query =
-                NativeQuery.builder().withQuery(wq -> wq.term(t -> t.field("id").value(id))).withMaxResults(1);
-
-        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
-        if (result.getTotalHits() > 0) {
-            // return with nested data only
-            Map<String, Object> item = (Map<String, Object>) result.getSearchHits().getFirst().getContent();
-            Map<String, String> data = (Map<String, String>) item.get("data");
-            if (data == null) {
-                data = new HashMap<>();
-            }
-            for (Map.Entry<String, Object> entry : item.entrySet()) {
-                if (entry.getKey().startsWith("data.")) {
-                    data.put(entry.getKey().substring(5), (String) entry.getValue());
-                }
-            }
-
-            return data;
         }
         return null;
     }

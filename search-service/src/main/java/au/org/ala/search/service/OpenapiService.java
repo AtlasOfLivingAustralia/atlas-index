@@ -61,8 +61,6 @@ public class OpenapiService {
     @Value("${downloadMaxRows}")
     private Integer downloadMaxRows;
 
-    // TODO: trigger an update to the dynamic content after index change.
-
     public OpenapiService(ElasticService elasticService) {
         this.elasticService = elasticService;
     }

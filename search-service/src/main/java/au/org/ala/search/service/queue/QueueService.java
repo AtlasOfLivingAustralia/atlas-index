@@ -32,11 +32,6 @@ public class QueueService {
         this.elasticService = elasticService;
     }
 
-    @PostConstruct
-    void init() {
-        // TODO: add items to queue that might be here because of a restart interruption
-    }
-
     public Status add(QueueRequest queueRequest) {
         String requestType = queueRequest.taskType.name();
         logger.info("Adding download request to queue: " + requestType);

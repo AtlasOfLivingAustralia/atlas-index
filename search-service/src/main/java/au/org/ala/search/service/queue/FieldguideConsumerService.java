@@ -150,7 +150,7 @@ public class FieldguideConsumerService extends ConsumerService {
 
                         Map dataResource = elasticService.getDocumentMap(taxon.datasetID);
                         if (dataResource != null) {
-                            itemMap.put("imageDataResourceURL", dataResource.get("image")); // TODO: get the data resource image URL as this might be wrong
+                            itemMap.put("imageDataResourceURL", dataResource.get("image"));
                             itemMap.put("imageDataResourceName", dataResource.get("name"));
                         }
                         itemMap.put("imageDataResourceUid", imgMetadata.get("dataResourceUid"));

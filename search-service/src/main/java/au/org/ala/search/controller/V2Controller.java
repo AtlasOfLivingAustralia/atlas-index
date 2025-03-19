@@ -252,8 +252,6 @@ public class V2Controller {
                     example = "gum"
             )
             @RequestParam(name = "q") String q,
-
-            // TODO: merge q and fq
             @Parameter(
                     description = "Filters to be applied to the original query. These are additional params of the form fq=INDEXEDFIELD:VALUE.",
                     example = "{\"imageAvailable:\\\"true\\\"\"}"
