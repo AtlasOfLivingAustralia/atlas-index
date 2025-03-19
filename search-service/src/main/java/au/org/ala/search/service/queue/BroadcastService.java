@@ -1,7 +1,10 @@
 package au.org.ala.search.service.queue;
 
+import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
+import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.util.InstanceUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -19,6 +22,7 @@ import static au.org.ala.search.service.queue.BroadcastService.BroadcastMessage.
  */
 @Service
 public class BroadcastService {
+    private static final TaskType taskType = TaskType.ALL;
     public static final String BROADCAST_QUEUE = "broadcast";
 
     public enum BroadcastMessage {
@@ -28,18 +32,20 @@ public class BroadcastService {
     private final CollectoryCache collectoryCache;
     private final ListCache listCache;
     private final RabbitTemplate rabbitTemplate;
+    protected final LogService logService;
 
     @Value("${rabbitmq.exchange}")
     public String exchange;
 
-    public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate) {
+    public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService) {
         this.collectoryCache = collectoryCache;
         this.listCache = listCache;
         this.rabbitTemplate = rabbitTemplate;
+        this.logService = logService;
     }
 
     /**
-     * Send message to all instances.
+     * Send a message to all instances.
      *
      * @param message
      */
@@ -59,6 +65,7 @@ public class BroadcastService {
     }
 
     public void resetCache() {
+        logService.log(taskType, "reset cache called, instance: " + InstanceUtil.getInstanceId());
         collectoryCache.cacheRefresh();
         listCache.cacheRefresh();
     }
