@@ -32,6 +32,10 @@
             <id>ALA-snapshots</id>
             <url>https://nexus.ala.org.au/content/repositories/snapshots</url>
         </repository>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
         <!--        <repository>-->
         <!--            <id>mvnrepository</id>-->
         <!--            <url>http://repo1.maven.org/maven2</url>-->
@@ -209,6 +213,17 @@
             <groupId>com.rabbitmq</groupId>
             <artifactId>stream-client</artifactId>
             <version>0.22.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
+            <version>3.1.2</version>
         </dependency>
 
         <dependency>
