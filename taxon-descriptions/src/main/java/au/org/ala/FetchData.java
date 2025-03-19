@@ -52,7 +52,7 @@ public class FetchData {
 
     static Map<String, Map<String, String>> properties = new ConcurrentHashMap<>();
 
-    public static void main(final String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         String configFile = "/data/taxon-descriptions/config.json"; //args[0];
         String filename = args[1];
@@ -142,7 +142,7 @@ public class FetchData {
             // wikipedia data does not get aggregated into a single .json file
             return;
         } else if (type.equalsIgnoreCase("ants")) {
-            output.put("taxa", AntsDownloader.downloadAnts(acceptedCsv, antsUrl));
+            output.put("taxa", AntsDownloader.downloadAnts(antsUrl, wikipediaTmp + "/ants-tmp/"));
         } else if (type.equalsIgnoreCase("qldmuseum")) {
             output.put("taxa", QldMuseumDownloader.downloadQldMuseum(acceptedCsv, qldMusuemUrl, qldMuseumApiKey, qldMuseumTopicUrl));
         } else if (type.equalsIgnoreCase("vicmuseum")) {

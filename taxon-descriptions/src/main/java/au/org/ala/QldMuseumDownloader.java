@@ -197,7 +197,7 @@ public class QldMuseumDownloader {
                     }
                 }
 
-                String guid = lookupGuidForScientificName(scientificName);
+                String guid = NamematchingUtil.lookupGuidForScientificName(scientificName, null);
 
                 if (StringUtils.isNotEmpty(guid)) {
                     Map<String, String> taxonData = new ConcurrentHashMap<>();
@@ -228,35 +228,5 @@ public class QldMuseumDownloader {
             System.out.println("Failed to fetch details for opacTopicId: " + opacTopicId);
             e.printStackTrace();
         }
-    }
-
-    static public String lookupGuidForScientificName(String scientificName) {
-        if (StringUtils.isEmpty(scientificName)) {
-            return null;
-        }
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(FetchData.namematchingUrl + "/api/searchByClassification?scientificName=" + URLEncoder.encode(scientificName, StandardCharsets.UTF_8));
-
-            HttpResponse response = httpClient.execute(request);
-            String responseBody = EntityUtils.toString(response.getEntity());
-
-            ObjectMapper responseMapper = new ObjectMapper();
-            JsonNode rootNode = responseMapper.readTree(responseBody);
-
-            if (!rootNode.isEmpty()) {
-                String success = rootNode.path("success").asText();
-                if ("true".equals(success)) {
-                    return rootNode.path("taxonConceptID").asText();
-                }
-            } else {
-                System.out.println("namematching failed: " + scientificName);
-            }
-        } catch (Exception e) {
-            System.out.println("failed to get call namematching service");
-            e.printStackTrace();
-        }
-
-        return null;
     }
 }

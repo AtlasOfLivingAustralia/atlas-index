@@ -259,14 +259,14 @@ public class VicFloraDownloader {
                         batchIds.add(id);
 
                         if (batch.size() == batchSize) {
-                            namematchingService(batch, batchIds);
+                            NamematchingUtil.namematchingService(batch, batchIds, vicFloraData, found, notFound);
                             batch.clear();
                             batchIds.clear();
                         }
                     }
 
                     if (!batch.isEmpty()) {
-                        namematchingService(batch, batchIds);
+                        NamematchingUtil.namematchingService(batch, batchIds, vicFloraData, found, notFound);
                         batch.clear();
                         batchIds.clear();
                     }
@@ -279,46 +279,6 @@ public class VicFloraDownloader {
             }
         } catch (IOException e) {
             System.out.println("ERROR ailed to get call namematching service");
-            e.printStackTrace();
-        }
-    }
-
-    private static void namematchingService(List<Map<String, String>> batch, List<String> batchIds) {
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpPost request = new HttpPost(FetchData.namematchingUrl + "/api/searchAllByClassification");
-            request.setHeader("Content-Type", "application/json");
-
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(batch);
-            request.setEntity(new StringEntity(json, "UTF-8"));
-
-            HttpResponse response = httpClient.execute(request);
-            String responseBody = EntityUtils.toString(response.getEntity());
-
-            ObjectMapper responseMapper = new ObjectMapper();
-            JsonNode rootNode = responseMapper.readTree(responseBody);
-
-            if (rootNode.isArray() && !rootNode.isEmpty()) {
-                for (int i = 0; i < rootNode.size(); i++) {
-                    JsonNode node = rootNode.get(i);
-                    String success = node.path("success").asText();
-                    if ("true".equals(success)) {
-                        String taxonConceptID = node.path("taxonConceptID").asText();
-                        if (StringUtils.isNotEmpty(taxonConceptID)) {
-                            vicFloraData.put(batchIds.get(i), taxonConceptID);
-                            found.incrementAndGet();
-                        } else {
-                            notFound.incrementAndGet();
-                        }
-                    } else {
-                        notFound.incrementAndGet();
-                    }
-                }
-            } else {
-                System.out.println("namematching failed: " + json);
-            }
-        } catch (Exception e) {
-            System.out.println("failed to get call namematching service");
             e.printStackTrace();
         }
     }
