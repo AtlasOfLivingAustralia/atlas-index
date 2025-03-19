@@ -1,6 +1,7 @@
 package au.org.ala.search;
 
  import au.org.ala.search.service.queue.BroadcastService;
+ import lombok.extern.slf4j.Slf4j;
  import org.springframework.amqp.core.*;
  import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
  import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -10,6 +11,7 @@ package au.org.ala.search;
  import org.springframework.context.annotation.Bean;
  import org.springframework.context.annotation.Configuration;
 
+ @Slf4j
  @Configuration
  public class MessageQueueConfig {
 
@@ -17,7 +19,7 @@ package au.org.ala.search;
      private String host;
 
      @Value("${rabbitmq.port}")
-     private int port;
+     private String port;
 
      @Value("${rabbitmq.username}")
      private String username;
@@ -48,7 +50,15 @@ package au.org.ala.search;
      public ConnectionFactory connectionFactory() {
          CachingConnectionFactory factory = new CachingConnectionFactory();
          factory.setHost(host);
-         factory.setPort(port);
+
+         // The port is being set incorrectly somewhere
+         try {
+             factory.setPort(Integer.parseInt(port));
+         } catch (NumberFormatException e) {
+             // This is a workaround for an exception that was seen when running in a container
+             log.warn("Rabbitmq port invalid: " + port + ", using default 5672");
+             factory.setPort(5672);
+         }
          factory.setUsername(username);
          factory.setPassword(password);
          factory.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
