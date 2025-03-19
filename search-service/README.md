@@ -27,11 +27,10 @@ TODO: cleanup Docker files (tidy commented out sections, document local paths)
 
 ### Elasticsearch
 
-To run the elasticsearch containers needed for the search-service
-to run, use the following command:
+To run the elasticsearch, mongodb and rabbitmq needed for the search-service use the following command:
 
 ```bash
-docker-compose -f src/main/docker/docker-compose.yml up
+docker-compose -f ./docker/docker-compose.yml up
 ```
 
 ### Running the application locally
@@ -49,6 +48,12 @@ The docker images for search-service are available
 on TODO [docker hub](https://hub.docker.com/r/atlasoflivingaustralia/search-service).
 Commits to this `develop` branch will result in a new image being built and pushed to the `latest` tag on docker hub.
 
+### Build a local docker image
+
+```shell
+docker build -t search-service ./docker/Dockerfile .
+```
+
 ## Helm charts
 
 The helm charts for list-service are available in the
@@ -60,50 +65,51 @@ TODO [helm-charts](https://github.com/AtlasOfLivingAustralia/helm-charts) reposi
 
 - OIDC only. No CAS support.
 - Using Elasticsearch instead of SOLR.
-- Using a single index instead of swapping between online and offline.
-- An initial index build is significantly faster. The trade-off is a higher memory requirement (4.5GB) that will scale
+- Using a single, configurable, index instead of swapping between online and offline.
+- An initial index build is significantly faster. The trade-off is a higher memory requirement (<5GB) that will scale
   with the size of the DwCA names indexes imported.
-- Removed JSON config files (TODO what about the mapping file required for conservation-lists.json backwards
-  compatibility?)
-- Suitable as standalone or Kubernetes.
+- Removed JSON config files.
+- Suitable as standalone or in Kubernetes cluster.
 
 ### Replacing JSON config files (most of them)
 
 External JSON config files are no longer supported.
 
-| old                                          | new                                       | default                                                   | notes                                                                                         |
-|----------------------------------------------|-------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| conservation-lists.json:.defaultSourceField  | lists.conservation.statusField            | "status" (unchanged)                                      |                                                                                               |
-| conservation-lists.json:.defaultKingdomField | deprecated                                |                                                           |                                                                                               |
-| conservation-lists.json:.lists[*].uid        | lists.url                                 | lists that are isAuthoritative:true and isThreatened:true |                                                                                               |
-| conservation-lists.json:.lists[*].field      | deprecated                                | "data.conservation_" + listId                             | TODO a mapping file                                                                           |
-| conservation-lists.json:.lists[*].term       | deprecated                                |                                                           | TODO a mapping file                                                                           |
-| conservation-lists.json:.lists[*].label      | deprecated                                |                                                           | TODO a mapping file                                                                           |
-| favourite-lists.json:.defaultTerm            | deprecated                                |                                                           | static value 'favourite' (unchanged)                                                          |
-| favourite-lists.json:.lists[*].uid           | lists.favourite.id                        | none                                                      | ';' separated items of listId,string. In order of priority. e.g. dr4778,interest;dr781,iconic |
-| favourite-lists.json:.lists[*].defaultTerm   |                                           | one of "iconic" or "preferred" (static)                   | TODO check if this was in use                                                                 |
-| hidden-images-lists.json:.lists[0].uid       | lists.images.hidden.id                    |                                                           |                                                                                               |
-| hidden-images-lists.json:.lists[0].imageId   | lists.images.hidden.field                 | "image Id" (unchanged)                                    | should be "imageId" but default is "image Id"                                                 |
-| images-lists.json:.preferred                 | deprecated                                |                                                           | moved to biocache-service                                                                     |
-| images-lists.json:.ranks                     | deprecated                                |                                                           | moved to biocache-service                                                                     |
-| images-lists.json:.imageFields               | deprecated                                |                                                           | moved to biocache-service                                                                     |
-| images-lists.json:.lists[*].uid              | lists.images.preferred.id comma separated |                                                           | first list can be modified by the admin UI image preference (unchanged)                       |
-| images-lists.json:.lists[*].imageId          | lists.images.preferred.field              | imageId (unchanged)                                       | can no longer be set for each individual list                                                 |
-| locality-keywords.json                       | deprecated                                |                                                           |                                                                                               |
-| vernacular-lists.json                        | TODO                                      |                                                           |                                                                                               |
-| vernacular-name-status.json                  | TODO                                      |                                                           |                                                                                               |
-| weights.json                                 | deprecated                                |                                                           | moved to au.org.ala.listsapi.util.Weight                                                      |
-| wiki-lists.json:.lists[*].uid                | deprecated                                |                                                           | descriptions are managed with the taxon-descriptions tool and admin UI                        |
-| wiki-lists.json:.lists[*].wikiUrl            | deprecated                                |                                                           | descriptions are managed with the taxon-descriptions tool and admin UI                        |
-| additionalResultFields                       | deprecated                                |                                                           |                                                                                               |
+| old                                          | new                                         | default                                                                  | notes                                                                                                            |
+|----------------------------------------------|---------------------------------------------|--------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| conservation-lists.json:.defaultSourceField  | lists.conservation.statusField              | "status" (unchanged)                                                     |                                                                                                                  |
+| conservation-lists.json:.defaultKingdomField | deprecated                                  |                                                                          |                                                                                                                  |
+| conservation-lists.json:.lists[*].uid        | makes use of lists.url                      | Changed to use lists that are isAuthoritative:true and isThreatened:true |                                                                                                                  |
+| conservation-lists.json:.lists[*].field      | value is "data.conservation_" + listId      | The field now has a fixed name: "data.conservation_" + listId            |                                                                                                                  |
+| conservation-lists.json:.lists[*].term       | global value lists.conservation.statusField | "status"                                                                 |                                                                                                                  |
+| conservation-lists.json:.lists[*].label      | the list name                               | List name                                                                |                                                                                                                  |
+| favourite-lists.json:.defaultTerm            | deprecated                                  |                                                                          |                                                                                                                  |
+| favourite-lists.json:.lists[*].uid           | lists.favourite.config                      |                                                                          | ';' separated items of listId,string. In order of priority. e.g. dr4778,interest;dr781,iconic                    |
+| favourite-lists.json:.lists[*].defaultTerm   | integrated into lists.favourite.config      |                                                                          |                                                                                                                  |
+| hidden-images-lists.json:.lists[0].uid       | lists.images.hidden.id                      |                                                                          |                                                                                                                  |
+| hidden-images-lists.json:.lists[0].imageId   | lists.images.hidden.field                   | "image Id" (unchanged)                                                   | should be "imageId" but default is "image Id"                                                                    |
+| images-lists.json:.preferred                 | deprecated                                  |                                                                          | moved to biocache-service                                                                                        |
+| images-lists.json:.ranks                     | deprecated                                  |                                                                          | moved to biocache-service                                                                                        |
+| images-lists.json:.imageFields               | deprecated                                  |                                                                          | moved to biocache-service                                                                                        |
+| images-lists.json:.lists[*].uid              | lists.images.preferred.id comma separated   |                                                                          | first list can be modified by the admin UI image preference (unchanged)                                          |
+| images-lists.json:.lists[*].imageId          | lists.images.preferred.field                | imageId (unchanged)                                                      | can no longer be set for each individual list                                                                    |
+| locality-keywords.json                       | deprecated                                  |                                                                          |                                                                                                                  |
+| vernacular-lists.json                        | deprecated                                  |                                                                          |                                                                                                                  |
+| vernacular-name-status.json                  | deprecated                                  |                                                                          |                                                                                                                  |
+| weights.json                                 | deprecated                                  |                                                                          | moved to au.org.ala.listsapi.util.Weight                                                                         |
+| wiki-lists.json:.lists[*].uid                | deprecated                                  |                                                                          | descriptions are managed with the taxon-descriptions tool and admin UI and no longer available as an index field |
+| wiki-lists.json:.lists[*].wikiUrl            | deprecated                                  |                                                                          | descriptions are managed with the taxon-descriptions tool and admin UI and no longer available as an index field |
+| additionalResultFields                       | deprecated                                  |                                                                          |                                                                                                                  |
 
 ## Importing data
 
-You have the option to
+Some of the options to build a new elasticsearch index are:
 
 - Build it in the environment it will be used.
 - Build the Elasticsearch index locally, snapshot, and deploy the snapshot where it is required.
 - Tunnel from a local environment to a remote Elasticsearch instance and build it.
+
+These options enable the import of a new names index without affecting the existing index.
 
 ### Prerequisites
 
@@ -196,16 +202,11 @@ elastic.adminIndex=search-log-20240401
     lists.images.hidden.field=image Id
     lists.images.preferred.id=dr4778
     lists.images.preferred.field=imageId
-    lists.favourite.field=favourite
-    lists.iconic.id=
-    lists.preferred.id=
+    lists.favourite.config=dr781,iconic;dr4778,interest
     lists.conservation.statusField=status
     ```
 
-### configure local directories
-
-
-### Start import or update
+### How to start import or update, API only
 
 1. Start application
 2. Create JWT with admin role
@@ -224,7 +225,7 @@ elastic.adminIndex=search-log-20240401
     ```shell
     curl -X POST "http://localhost:8081/admin/info" -H "Authorization: Bearer {JWT}"
     ```
-   Subset of the response
+   Subset of the expected response
     ```json
     {
       "queues": {
@@ -267,21 +268,18 @@ elastic.adminIndex=search-log-20240401
     ```
 5. Re-run for incremental updates to non-DwCA sources. Can be configured as a scheduled task:
     ```properties
-    task.all.cron=0 1 * * *
+    task.all.cron=0 0 9 * * *
     ```
 
-## Unresolved Questions
+## Other changes
 
-Some questions were identified during the migration process. These are not blockers but may require further
-investigation.
-
-1. There are different filters applied for "taxonomicStatus" and I wonder if they should be consistent.
+1. There are different filters applied for "taxonomicStatus" in the current BIE.
     - taxonomicStatus == "accepted"
     - taxonomicStatus is one of "accepted", "inferredAccepted", "incertaeSedis", "speciesInquirenda"
-    - acceptedConceptID is not defined
-2. TODO: search through the code, I think they all have a comment labeled `TODO`.
+    - acceptedConceptID is not defined. Now using only this definition for consistency.
+2. TODO: a link to the spreadsheet with the API V1 comparison with bie-index.
 
-## API comparison with bie-index
+## API comparison with bie-index (TODO: move this into the linked spreadsheet)
 
 All services in use were tested using a subset of GET requests extracted from nginx logs.
 
@@ -366,22 +364,17 @@ COMMON records have no image?
 
 # Additional names data
 
-Language `name` and `uri` information missing from the DwCA names index is done using the default resource `languages.json` and can be overwritten using the config `languages.path`.
+Language `name` and `uri` information missing from the DwCA names index is done using the default resource
+`languages.json` and can be overwritten using the config `languages.path`.
 
 This is done during ingestion.
 
-The default `languages.json` is constructed from [AIATSIS language code](https://data.gov.au/data/dataset/70132e6f-259c-4e0f-9f95-4aed1101c053) (2019-06-17) and [ISO-639 language codes](http://www.sil.org/iso639-3/) (2016-06-01).
+The default `languages.json` is constructed
+from [AIATSIS language code](https://data.gov.au/data/dataset/70132e6f-259c-4e0f-9f95-4aed1101c053) (2019-06-17)
+and [ISO-639 language codes](http://www.sil.org/iso639-3/) (2016-06-01).
+
 ```shell
 {
   languageCode: { name: "languageName", uri: "languageUri" }
 }
 ```
-
-# More TODOs
-
-1. Species pages require names data and this can be quite large. This is currently compressed and stored in binary 
-elasticsearch fields but this may not be the best place for it. It may be better to either store it in the same
-way as the taxon-descriptions (on a file server), or in the database (mongodb). File server is probably the best
-because the information is only updated when the names index is updated. This raises the question that the 
-taxon-descriptions might be best extended to taxon-data. This would then be suitable for all infrequently updated 
-information that is not indexed.
