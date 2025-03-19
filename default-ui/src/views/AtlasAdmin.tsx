@@ -544,6 +544,18 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                 </tr>
                                 <tr>
                                     <td>
+                                        <button className="btn border-black task-button" onClick={() => update('DIGIVOL')}>
+                                            Update DIGIVOL
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <a className="d-flex justify-content-center" onClick={() => openLog('DIGIVOL')}>log</a>
+                                    </td>
+                                    <td>{lastRun['DIGIVOL']}</td>
+                                    <td>{description['DIGIVOL']}</td>
+                                </tr>
+                                <tr>
+                                    <td>
                                         <button className="btn border-black task-button" onClick={() => update('SITEMAP')}>
                                             Update SITEMAP
                                         </button>
@@ -568,11 +580,15 @@ function AtlasAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                 </tr>
                                 <tr>
                                     <td>
-                                        <button className="btn border-black " onClick={() => update('DIGIVOL')}>
-                                            Update DIGIVOL
+                                        <button className="btn border-black task-button" onClick={() => update('CACHE_RESET')}>
+                                            Reset caches
                                         </button>
                                     </td>
-                                    <td>{description['DIGIVOL']}</td>
+                                    <td>
+                                        <a className="d-flex justify-content-center" onClick={() => openLog('CACHE_RESET')}>log</a>
+                                    </td>
+                                    <td>{lastRun['CACHE_RESET']}</td>
+                                    <td>{description['CACHE_RESET']}</td>
                                 </tr>
                                 </tbody>
                             </table>
