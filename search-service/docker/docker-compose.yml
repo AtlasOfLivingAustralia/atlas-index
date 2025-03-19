@@ -31,6 +31,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - search-network
   mongodb:
     image: mongo:6.0
     container_name: search-service-mongo
@@ -39,6 +41,8 @@ services:
       - "27017:27017"
     volumes:
       - /data/species-lists/mongodb:/data/db
+    networks:
+     - search-network
   rabbitmq:
     image: rabbitmq:3-management  # Use the RabbitMQ image with the management plugin
     container_name: rabbitmq_container  # Name of the container
@@ -51,6 +55,27 @@ services:
       RABBITMQ_ERLANG_COOKIE: mysecretcookie  # Erlang cookie for clustering (optional)
     volumes:
       - /data/search-service/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - search-network
+# This block is commented out as it is used for local testing only
+#  search-service:
+#    image: search-service:latest
+#    container_name: search-service
+#    depends_on:
+#      - elasticsearch
+#      - mongodb
+#      - rabbitmq
+#    volumes:
+#      - /data/search-service/config/search-service-config.properties:/data/search-service/config/search-service-config.properties
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - search-network
+
 volumes:
   elasticsearch-data:
     driver: local
+
+networks:
+  search-network:
+    driver: bridge
