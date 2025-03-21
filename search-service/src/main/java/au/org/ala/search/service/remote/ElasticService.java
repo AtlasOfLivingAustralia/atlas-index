@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.AdminIndex;
@@ -51,7 +57,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -843,7 +848,7 @@ public class ElasticService {
                                 b.should(s -> s.range(r -> r.field("rankID")
                                                 .gte(JsonData.of(unranked ? -1 : baseRankID + 1))
                                                 .lte(JsonData.of(baseRankID + within))))
-                                .should(s -> s.bool(b1 -> b1.mustNot(m -> m.exists(r -> r.field("rankID")))))));
+                                        .should(s -> s.bool(b1 -> b1.mustNot(m -> m.exists(r -> r.field("rankID")))))));
                     }
                     return bq;
                 }))

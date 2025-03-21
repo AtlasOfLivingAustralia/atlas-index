@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.SearchItemIndex;
@@ -68,12 +74,10 @@ public class FieldguideConsumerService extends ConsumerService {
 
     @Value("${email.subject.success}")
     public String emailSubjectSuccess;
-
-    @Value("#{'${openapi.servers}'.split(',')[0]}")
-    private String baseUrl;
-
     int maxTaxonHeight = 300;
     int maxTaxonWidth = 260;
+    @Value("#{'${openapi.servers}'.split(',')[0]}")
+    private String baseUrl;
 
     public FieldguideConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService, ElasticService elasticService) {
         super(logService, queueService, emailSender, downloadFileStoreService);

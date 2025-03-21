@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.model.dashboard.bie;
 
 import lombok.Getter;
@@ -40,7 +46,7 @@ public class TaxonConcept {
     String namePublishedIn;
     String namePublishedInYear;
     String namePublishedInID;
-    String [] taxonRemarks;
+    String[] taxonRemarks;
     String provenance;
     String favourite;
     String infoSourceURL;

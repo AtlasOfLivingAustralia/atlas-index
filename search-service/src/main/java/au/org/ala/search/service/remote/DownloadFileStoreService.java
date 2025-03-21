@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.queue.FieldguideQueueRequest;
@@ -32,7 +38,7 @@ import java.util.concurrent.CompletableFuture;
 public class DownloadFileStoreService {
 
     private static final Logger logger = LoggerFactory.getLogger(DownloadFileStoreService.class);
-
+    S3AsyncClient s3Client;
     @Value("${download.filestore.path}")
     private String fileStorePath;
     @Value("${download.s3.region}")
@@ -46,8 +52,6 @@ public class DownloadFileStoreService {
     @Value("${download.s3.directPath}")
     private String directS3Path;
 
-    S3AsyncClient s3Client;
-
     @PostConstruct
     void init() {
         if (StringUtils.isNotEmpty(s3Region)) {
@@ -59,7 +63,7 @@ public class DownloadFileStoreService {
             }
 
             s3Client = builder.build();
-        } else if (fileStorePath.startsWith("s3")){
+        } else if (fileStorePath.startsWith("s3")) {
             throw new RuntimeException("s3.region is not provided. file store path is s3: " + fileStorePath);
         }
     }

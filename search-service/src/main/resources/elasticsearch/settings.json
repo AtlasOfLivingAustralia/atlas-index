@@ -55,7 +55,9 @@
     "normalizer": {
       "keyword_lowercase": {
         "type": "custom",
-        "filter": ["lowercase"]
+        "filter": [
+          "lowercase"
+        ]
       }
     }
   }

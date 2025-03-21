@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import jakarta.annotation.PostConstruct;
@@ -24,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 public class SitemapFileStoreService {
 
     private static final Logger logger = LoggerFactory.getLogger(SitemapFileStoreService.class);
-
+    S3AsyncClient s3Client;
     @Value("${sitemap.filestore.path}")
     private String fileStorePath;
     @Value("${sitemap.s3.region}")
@@ -33,8 +39,6 @@ public class SitemapFileStoreService {
     private String s3AccessKey;
     @Value("${sitemap.s3.secretKey}")
     private String s3SecretKey;
-
-    S3AsyncClient s3Client;
 
     @PostConstruct
     void init() {
@@ -47,7 +51,7 @@ public class SitemapFileStoreService {
             }
 
             s3Client = builder.build();
-        } else if (fileStorePath.startsWith("s3")){
+        } else if (fileStorePath.startsWith("s3")) {
             throw new RuntimeException("s3.region is not provided. file store path is s3: " + fileStorePath);
         }
     }

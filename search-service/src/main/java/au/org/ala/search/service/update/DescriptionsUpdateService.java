@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.AdminIndex;
@@ -34,13 +40,11 @@ public class DescriptionsUpdateService {
     private static final TaskType taskType = TaskType.TAXON_DESCRIPTION;
     private static final Logger logger = LoggerFactory.getLogger(DescriptionsUpdateService.class);
     private static final int batchSize = 10000;
-
-    @Value("${data.file.descriptions.name}")
-    private String descriptionsFileName;
-
     private final ElasticService elasticService;
     private final LogService logService;
     private final DataFileStoreService dataFileStoreService;
+    @Value("${data.file.descriptions.name}")
+    private String descriptionsFileName;
 
     public DescriptionsUpdateService(ElasticService elasticService, LogService logService, DataFileStoreService dataFileStoreService) {
         this.elasticService = elasticService;
@@ -70,7 +74,8 @@ public class DescriptionsUpdateService {
             File descriptionsFile = dataFileStoreService.retrieveFile(descriptionsFileName);
 
             ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {});
+            Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {
+            });
             dataFileStoreService.cleanupFile(descriptionsFile); // removes temporary file from s3 after use
             heroDescriptions = heroDescriptions.entrySet().stream()
                     .filter(entry -> entry.getValue() != null)

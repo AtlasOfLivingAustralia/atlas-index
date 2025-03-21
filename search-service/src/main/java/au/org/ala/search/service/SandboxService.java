@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service;
 
 import au.org.ala.search.model.TaskType;
@@ -8,7 +14,9 @@ import au.org.ala.search.model.sandbox.SandboxUpload;
 import au.org.ala.search.repo.SandboxMongoRepository;
 import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.queue.QueueService;
-import com.opencsv.*;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriterBuilder;
+import com.opencsv.ICSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -343,10 +351,8 @@ public class SandboxService {
         // get userId from SOLR
         Map resp = webService.get(solrUrl + "/select?q=dataResourceUid%3A" + id + "&fl=userId&rows=1", null, null, false, false, null);
 
-        if (resp != null && resp.containsKey("response") && resp.get("response") instanceof Map) {
-            Map response = (Map) resp.get("response");
-            if (response.containsKey("docs") && response.get("docs") instanceof List) {
-                List docs = (List) response.get("docs");
+        if (resp != null && resp.containsKey("response") && resp.get("response") instanceof Map response) {
+            if (response.containsKey("docs") && response.get("docs") instanceof List docs) {
                 if (docs.size() > 0) {
                     Map doc = (Map) docs.get(0);
                     if (doc.containsKey("userId")) {

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
@@ -5,39 +11,35 @@ import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.LogService;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Consumes the fieldguide queue to produce PDF files.
- *
+ * <p>
  * Extending ConsumerService requires implementation of processItem and sendEmail methods, and a call to super.init()
- *
+ * <p>
  * Example:
- *   @PostConstruct
- *   void init() {
- *     taskType = TaskType.SEARCH_DOWNLOAD;
- *     super.init(numberOfThreads);
- *   }
+ *
+ * @PostConstruct void init() {
+ * taskType = TaskType.SEARCH_DOWNLOAD;
+ * super.init(numberOfThreads);
+ * }
  */
 @Service
 public abstract class ConsumerService {
     private static final Logger logger = LoggerFactory.getLogger(ConsumerService.class);
-    public TaskType taskType;
-
     protected final QueueService queueService;
     protected final LogService logService;
     protected final JavaMailSender emailSender;
     protected final DownloadFileStoreService downloadFileStoreService;
-
+    public TaskType taskType;
     @Value("${sandbox.dir}")
     public String sandboxDir;
 
@@ -64,7 +66,7 @@ public abstract class ConsumerService {
 
     /**
      * Process the item from the queue.
-     *
+     * <p>
      * This requires
      * - casting the item.downloadRequest to the appropriate type
      * - removing any temporary files created, during processing, that may exist due to an earlier a shutdown.
@@ -74,9 +76,9 @@ public abstract class ConsumerService {
      * - detecting if the task is cancelled. e.g. if (item.status.statusCode == StatusCode.CANCELLED) { return; }
      * - writing the output file to the file store. e.g. downloadFileStoreService.copyToFileStore(srcFile, queueItem, true);
      * - or, writing directly to the local file store. e.g. if (!downloadFileStoreService.isS3(queueItem)) FileUtils.write(downloadFileStoreService.getFilePath(queueItem), "content", "UTF-8");
-     *
+     * <p>
      * StatusCode.FINISHED is automatically set when the method completes.
-     *
+     * <p>
      * If an exception is thrown, StatusCode.ERROR is automatically set.
      *
      * @param queueItem item to process. Includes the downloadRequest and status.

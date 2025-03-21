@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.cache;
 
 import au.org.ala.search.service.remote.ElasticService;
@@ -13,11 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This service provides a cache for species list information that is injected into some API responses.
- *
+ * <p>
  * Use the {@link #listNames} ConcurrentHashMap to get the list id for a given list name.
- *
+ * <p>
  * This list is refreshed when ListImportService is finished.
- *
  */
 @Service
 public class ListCache {

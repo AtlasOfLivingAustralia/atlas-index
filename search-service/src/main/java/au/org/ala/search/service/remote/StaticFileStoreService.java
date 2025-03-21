@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import jakarta.annotation.PostConstruct;
@@ -27,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 public class StaticFileStoreService {
 
     private static final Logger logger = LoggerFactory.getLogger(StaticFileStoreService.class);
-
+    S3AsyncClient s3Client;
     @Value("${static.filestore.path}")
     private String fileStorePath;
     @Value("${static.s3.region}")
@@ -36,8 +42,6 @@ public class StaticFileStoreService {
     private String s3AccessKey;
     @Value("${static.s3.secretKey}")
     private String s3SecretKey;
-
-    S3AsyncClient s3Client;
 
     @PostConstruct
     void init() {
@@ -50,7 +54,7 @@ public class StaticFileStoreService {
             }
 
             s3Client = builder.build();
-        } else if (fileStorePath.startsWith("s3")){
+        } else if (fileStorePath.startsWith("s3")) {
             throw new RuntimeException("s3.region is not provided. file store path is s3: " + fileStorePath);
         }
     }
@@ -91,7 +95,7 @@ public class StaticFileStoreService {
     /**
      * Close the store file returned by get(srcPath). This will clean up (delete) any temporary local copy of the
      * remote file.
-     *
+     * <p>
      * Only use this method if you have called get(srcPath) to get the File.
      *
      * @param file
@@ -104,7 +108,7 @@ public class StaticFileStoreService {
 
     /**
      * Get the file from the file store as a File.
-     *
+     * <p>
      * Always call closeStoreFile when finished with the returned file. This will clean up (delete) any temporary
      * local copy of the remote file.
      *

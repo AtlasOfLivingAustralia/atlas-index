@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -82,7 +88,8 @@ public class DigivolImportService {
             String url = digivolUrl + digivolExpeditionUrl;
             URL apiUrl = URI.create(url).toURL();
 
-            List<Map<String, Object>> expeditions = objectMapper.readValue(apiUrl, new TypeReference<>() {});
+            List<Map<String, Object>> expeditions = objectMapper.readValue(apiUrl, new TypeReference<>() {
+            });
 
             int conversionErrors = 0;
 
@@ -151,7 +158,7 @@ public class DigivolImportService {
     /**
      * Check if two search item indexes are equal.
      *
-     * @param newItem the new item
+     * @param newItem      the new item
      * @param existingItem the existing item
      * @return true if the items are equal
      */

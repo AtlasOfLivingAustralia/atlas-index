@@ -1,11 +1,16 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.queue.*;
 import au.org.ala.search.repo.QueueMongoRepository;
-import au.org.ala.search.util.QueryParserUtil;
 import au.org.ala.search.service.remote.ElasticService;
-import jakarta.annotation.PostConstruct;
+import au.org.ala.search.util.QueryParserUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +123,7 @@ public class QueueService {
             }
 
             return null;
-        } else if(queueRequest instanceof FieldguideQueueRequest fieldguideDownloadRequest) {
+        } else if (queueRequest instanceof FieldguideQueueRequest fieldguideDownloadRequest) {
             if (StringUtils.isEmpty(fieldguideDownloadRequest.title)) {
                 return "no title";
             }

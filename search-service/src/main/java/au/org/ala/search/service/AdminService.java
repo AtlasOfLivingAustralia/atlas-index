@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service;
 
 import au.org.ala.search.model.ListBackedFields;
@@ -21,7 +27,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdminService {
@@ -99,21 +108,21 @@ public class AdminService {
     /**
      * The descriptions JSON file can be partially updated, and an override record produced for use by the
      * offline taxon-descriptions tool.
-     *
+     * <p>
      * The descriptions JSON data is an ordered list of data sources. The structure is as follows:
      * [
-     *   {
-     *     name: "Source name",
-     *     attribution: "Attribution HTML",
-     *     url: "URL to the original source",
-     *     section1Title: "content of section 1 as HTML",
-     *     section2Title: "content of section 2 as HTML",
-     *     sectionNTitle: "content of section N as HTML",
-     *   }
+     * {
+     * name: "Source name",
+     * attribution: "Attribution HTML",
+     * url: "URL to the original source",
+     * section1Title: "content of section 1 as HTML",
+     * section2Title: "content of section 2 as HTML",
+     * sectionNTitle: "content of section N as HTML",
+     * }
      * ]
-     *
+     * <p>
      * Where sectionNTitle is both the key and the text to be used as the title of the section.
-     *
+     * <p>
      * Only the HTML content of each section can be updated.
      *
      * @param setRequest
@@ -143,7 +152,7 @@ public class AdminService {
         }
 
         List changedDescriptions = new ArrayList();
-        for (int i=0;i<newDescriptions.size();i++) {
+        for (int i = 0; i < newDescriptions.size(); i++) {
             Map<String, Object> newDescriptionMap = (Map) newDescriptions.get(i);
             Map<String, Object> currentDescriptionMap = (Map) currentDescriptions.get(i);
 

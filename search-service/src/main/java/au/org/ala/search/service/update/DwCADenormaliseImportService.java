@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
@@ -5,10 +11,8 @@ import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.cache.*;
 import au.org.ala.search.model.dto.DatasetInfo;
 import au.org.ala.search.model.dto.RankedName;
-import au.org.ala.search.model.dto.SubGroup;
 import au.org.ala.search.service.SpeciesGroupService;
 import au.org.ala.search.service.remote.LogService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.utils.file.csv.CSVReader;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
@@ -403,13 +408,15 @@ public class DwCADenormaliseImportService {
             // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into synonymData
             for (DenormalVariant variant : variants) {
                 Map<String, String> variantItem = new HashMap<>();
-                if (variant.scientificName != null) variantItem.put("nameFormatted", StringUtils.isNotEmpty(variant.nameFormatted) ? variant.nameFormatted : variant.scientificName);
+                if (variant.scientificName != null)
+                    variantItem.put("nameFormatted", StringUtils.isNotEmpty(variant.nameFormatted) ? variant.nameFormatted : variant.scientificName);
                 if (variant.nameAccordingTo != null) variantItem.put("nameAccordingTo", variant.nameAccordingTo);
                 if (variant.namePublishedIn != null) variantItem.put("namePublishedIn", variant.namePublishedIn);
                 if (variant.source != null) variantItem.put("source", variant.source);
 
                 DatasetInfo attribution = cache.attributionMap.getOrDefault(variant.datasetID, null);
-                if (attribution != null && attribution.datasetName != null) variantItem.put("datasetName", attribution.datasetName);
+                if (attribution != null && attribution.datasetName != null)
+                    variantItem.put("datasetName", attribution.datasetName);
                 variantData.add(variantItem);
             }
 
@@ -437,7 +444,8 @@ public class DwCADenormaliseImportService {
                 if (commonName.language != null) vern.put("language", commonName.language);
 
                 DatasetInfo attribution = cache.attributionMap.getOrDefault(commonName.datasetID, null);
-                if (attribution != null && attribution.datasetName != null) vern.put("datasetName", attribution.datasetName);
+                if (attribution != null && attribution.datasetName != null)
+                    vern.put("datasetName", attribution.datasetName);
 
                 vernacularData.add(vern);
             }
@@ -457,12 +465,15 @@ public class DwCADenormaliseImportService {
             for (DenormalIdentifier identifier : identifiers) {
                 Map<String, String> identifierItem = new HashMap<>();
                 identifierItem.put("guid", identifier.guid);
-                if (identifier.nameAccordingTo != null) identifierItem.put("nameAccordingTo", identifier.nameAccordingTo);
-                if (identifier.namePublishedIn != null) identifierItem.put("namePublishedIn", identifier.namePublishedIn);
+                if (identifier.nameAccordingTo != null)
+                    identifierItem.put("nameAccordingTo", identifier.nameAccordingTo);
+                if (identifier.namePublishedIn != null)
+                    identifierItem.put("namePublishedIn", identifier.namePublishedIn);
                 if (identifier.source != null) identifierItem.put("source", identifier.source);
 
                 DatasetInfo attribution = cache.attributionMap.getOrDefault(identifier.datasetID, null);
-                if (attribution != null && attribution.datasetName != null) identifierItem.put("datasetName", attribution.datasetName);
+                if (attribution != null && attribution.datasetName != null)
+                    identifierItem.put("datasetName", attribution.datasetName);
 
                 identifierData.add(identifierItem);
             }
@@ -499,7 +510,8 @@ public class DwCADenormaliseImportService {
                     if (synonym.source != null) syn.put("source", synonym.source);
 
                     DatasetInfo attribution = cache.attributionMap.getOrDefault(synonym.datasetID, null);
-                    if (attribution != null && attribution.datasetName != null) syn.put("datasetName", attribution.datasetName);
+                    if (attribution != null && attribution.datasetName != null)
+                        syn.put("datasetName", attribution.datasetName);
 
                     synonymData.add(syn);
                 }
@@ -525,7 +537,7 @@ public class DwCADenormaliseImportService {
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(byteArrayOutputStream)) {
-            gzipOutputStream.write(input.getBytes("UTF-8"));
+            gzipOutputStream.write(input.getBytes(StandardCharsets.UTF_8));
         }
 
         byte[] compressedBytes = byteArrayOutputStream.toByteArray();

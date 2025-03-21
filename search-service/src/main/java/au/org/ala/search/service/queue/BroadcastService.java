@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
@@ -15,25 +21,18 @@ import static au.org.ala.search.service.queue.BroadcastService.BroadcastMessage.
 
 /**
  * Service to send and consume messages from the broadcast queue for all messages that are to be broadcast to all instances.
- *
+ * <p>
  * Messages supported:
  * - Cache reset
- *
  */
 @Service
 public class BroadcastService {
-    private static final TaskType taskType = TaskType.ALL;
     public static final String BROADCAST_QUEUE = "broadcast";
-
-    public enum BroadcastMessage {
-        CACHE_RESET;
-    }
-
+    private static final TaskType taskType = TaskType.ALL;
+    protected final LogService logService;
     private final CollectoryCache collectoryCache;
     private final ListCache listCache;
     private final RabbitTemplate rabbitTemplate;
-    protected final LogService logService;
-
     @Value("${rabbitmq.exchange}")
     public String exchange;
 
@@ -68,6 +67,10 @@ public class BroadcastService {
         logService.log(taskType, "reset cache called, instance: " + InstanceUtil.getInstanceId());
         collectoryCache.cacheRefresh();
         listCache.cacheRefresh();
+    }
+
+    public enum BroadcastMessage {
+        CACHE_RESET
     }
 
 

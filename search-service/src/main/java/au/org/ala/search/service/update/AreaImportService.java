@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -129,7 +135,7 @@ public class AreaImportService {
                                         ? IndexDocType.LOCALITY.name()
                                         : IndexDocType.REGION.name();
 
-                        String [] coords = centroid.replaceAll("[^0-9.\\- ]", "").split(" ");
+                        String[] coords = centroid.replaceAll("[^0-9.\\- ]", "").split(" ");
 
                         String guid = "POINT".equals(featureType) ?
                                 exploreYourAreaUrl.replaceAll("\\$latitude", coords[1]).replaceAll("\\$longitude", coords[0]) :
@@ -254,11 +260,12 @@ public class AreaImportService {
                 Double areaKmDbl = null;
                 try {
                     areaKmDbl = Double.parseDouble(areaKm);
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
 
                 // When the item exists and the data resource name is the same, do not update the item.
                 if (existingItems.containsKey("dist-" + spcode)) { // 'id' of DISTRIBUTION is 'dist-{spcode}'
-                    String[] existing = existingItems.remove("dist-" + spcode);;
+                    String[] existing = existingItems.remove("dist-" + spcode);
                     if (existing[3] != null && existing[3].equals(datasets.get(drUid))) { // [3] is datasetName
                         continue;
                     }

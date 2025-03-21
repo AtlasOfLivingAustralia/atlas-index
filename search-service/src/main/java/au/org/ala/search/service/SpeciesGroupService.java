@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service;
 
 import au.org.ala.search.model.dto.RankedName;
@@ -21,10 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Service for species groups files in the format of namematching service.
- *
+ * <p>
  * The concept of "subGroup" no longer applies.
- *
- * */
+ */
 @Service
 public class SpeciesGroupService {
     private static final Logger logger = LoggerFactory.getLogger(SpeciesGroupService.class);
@@ -32,6 +37,8 @@ public class SpeciesGroupService {
     public Map<RankedName, SubGroup> invertedSpeciesGroups;
 
     Map<String, List<SpeciesGroup>> groupByRank = new ConcurrentHashMap<>();
+    @Value("${speciesGroup.path}")
+    private String speciesGroupPath;
 
     public SpeciesGroupService() {
         invertedSpeciesGroups = new HashMap<>();
@@ -47,6 +54,10 @@ public class SpeciesGroupService {
         List<RankedName> rankedNames = new ArrayList<>();
         rankedNames.add(new RankedName("Chytridiomycota".toLowerCase(), "phylum"));
         System.out.println(speciesGroupService.groupsFor(rankedNames));
+    }
+
+    static String normaliseRank(String rank) {
+        return rank != null ? rank.toLowerCase().replaceAll("[^a-z]", "_") : null;
     }
 
     public List<String> groupsFor(List<RankedName> rankedNames) {
@@ -87,13 +98,6 @@ public class SpeciesGroupService {
         return speciesGroups;
     }
 
-    @Value("${speciesGroup.path}")
-    private String speciesGroupPath;
-
-    static String normaliseRank(String rank) {
-        return rank != null ? rank.toLowerCase().replaceAll("[^a-z]", "_") : null;
-    }
-
     @PostConstruct
     void init() throws IOException {
         List<SpeciesGroup> speciesGroups = loadSpeciesGroups();
@@ -102,7 +106,7 @@ public class SpeciesGroupService {
                 // substitute rank "class" for input spec "classs" and "subclass" for "subclasss"
                 if (speciesGroup.rank.equals("classs")) {
                     speciesGroup.rank = "class";
-                } else if(speciesGroup.rank.equals("subclasss")) {
+                } else if (speciesGroup.rank.equals("subclasss")) {
                     speciesGroup.rank = "subclass";
                 }
 
@@ -144,7 +148,8 @@ public class SpeciesGroupService {
             }
 
             ObjectMapper om = new ObjectMapper();
-            return om.readValue(is, new TypeReference<List<SpeciesGroup>>() {});
+            return om.readValue(is, new TypeReference<List<SpeciesGroup>>() {
+            });
         } catch (IOException e) {
             logger.error("failed to load speciesGroups " + speciesGroupPath, e);
         } finally {

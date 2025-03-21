@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.service.auth.WebService;
@@ -50,9 +56,9 @@ public class BiocacheService {
 
         ResponseEntity<Map> response = restTemplate.exchange(
                 biocacheWsUrl + "/occurrences/taxaCount",
-                    HttpMethod.POST,
-                    new HttpEntity<>(map, new HttpHeaders()),
-                    Map.class);
+                HttpMethod.POST,
+                new HttpEntity<>(map, new HttpHeaders()),
+                Map.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
             return (Map<String, Integer>) response.getBody();
@@ -77,7 +83,7 @@ public class BiocacheService {
 
         Map<String, Integer> result = new HashMap();
         List facetResults = (List) ((Map) resp.get("resp")).get("facetResults");
-        for (Object item : (List) ((Map)(facetResults.get(0))).get("fieldResult")) {
+        for (Object item : (List) ((Map) (facetResults.get(0))).get("fieldResult")) {
             Map<String, Object> map = (Map<String, Object>) item;
 
             // Normally "label" is will have the value required for the facet, however entities like dataResourceUid

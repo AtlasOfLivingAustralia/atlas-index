@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
@@ -29,11 +35,9 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class SearchConsumerService extends ConsumerService {
     private static final Logger logger = LoggerFactory.getLogger(SearchConsumerService.class);
-
+    final ElasticService elasticService;
     @Value("${search.consumer.threads}")
     public Integer searchConsumerThreads;
-
-    final ElasticService elasticService;
 
     public SearchConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService, ElasticService elasticService) {
         super(logService, queueService, emailSender, downloadFileStoreService);
@@ -50,7 +54,7 @@ public class SearchConsumerService extends ConsumerService {
         SearchQueueRequest request = (SearchQueueRequest) item.queueRequest;
 
         String q = request.q[0];
-        String [] fqs = request.q.length > 1 ? Arrays.copyOfRange(request.q, 1, request.q.length) : null;
+        String[] fqs = request.q.length > 1 ? Arrays.copyOfRange(request.q, 1, request.q.length) : null;
 
         try {
             String csvFilename = item.queueRequest.getFilename();

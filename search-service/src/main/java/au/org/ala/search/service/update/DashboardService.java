@@ -1,9 +1,15 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
-import au.org.ala.search.model.dashboard.Record;
 import au.org.ala.search.model.dashboard.*;
+import au.org.ala.search.model.dashboard.Record;
 import au.org.ala.search.model.dashboard.biocache.BiocacheSearch;
 import au.org.ala.search.model.dashboard.biocache.FieldResult;
 import au.org.ala.search.model.dashboard.collectory.CollectionsSearch;
@@ -16,8 +22,8 @@ import au.org.ala.search.model.dashboard.logger.LoggerSearch;
 import au.org.ala.search.model.dashboard.spatial.SpatialField;
 import au.org.ala.search.model.query.Op;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.StaticFileStoreService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.service.remote.StaticFileStoreService;
 import au.org.ala.search.util.QueryParserUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;

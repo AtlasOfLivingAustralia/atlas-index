@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -36,11 +42,11 @@ public class ListImportService {
     protected final ListService listService;
     protected final LogService logService;
     protected final ListCache listCache;
+    private final String getListsConservationIUCNStatusField = "IUCN_equivalent_status";
     @Value("${lists.uiUrl}")
     private String listsUiUrl;
     @Value("${lists.conservation.statusField}")
     private String listsConservationStatusField;
-    private String getListsConservationIUCNStatusField = "IUCN_equivalent_status";
     @Value("${lists.favourite.config}")
     private String favouriteConfig;
     @Value("${lists.images.ids}")
@@ -339,7 +345,8 @@ public class ListImportService {
                         if (!nativeIntroduced.isEmpty()) {
                             try {
                                 result = new ObjectMapper().writeValueAsString(nativeIntroduced);
-                            } catch (Exception ignored) {}
+                            } catch (Exception ignored) {
+                            }
                         }
 
                         return result;
@@ -542,7 +549,7 @@ public class ListImportService {
                 if (stored != null && "[]".equals(stored[2])) {
                     stored = null;
                 }
-                if (status != null && "[]".equals(status)) {
+                if ("[]".equals(status)) {
                     status = null;
                 }
 
@@ -630,8 +637,8 @@ public class ListImportService {
     /**
      * Utility function that updates a taxon field using a map of taxonIds and values
      *
-     * @param field          field to update
-     * @param taxonIdMap     map of taxonId and list of values for the field
+     * @param field      field to update
+     * @param taxonIdMap map of taxonId and list of values for the field
      * @return list of ids that were updated
      */
     private List<String> setFieldValues(
@@ -708,7 +715,7 @@ public class ListImportService {
             return b.isEmpty();
         }
 
-        String [] split = a.split(",");
+        String[] split = a.split(",");
 
         if (split.length != b.size()) {
             return false;
@@ -726,7 +733,7 @@ public class ListImportService {
     // page over documents with a field and zero it out
     private void deleteFields(List<String> fieldsToDelete) {
         for (String field : fieldsToDelete) {
-            Map<String, String[]> existingItems = elasticService.queryItems( field + ":*", "id", new String[]{"id"}, -1);
+            Map<String, String[]> existingItems = elasticService.queryItems(field + ":*", "id", new String[]{"id"}, -1);
 
             // buffer all updates for a single field, regardless of size
             List<UpdateQuery> buffer = new ArrayList<>();
