@@ -1,18 +1,24 @@
-import React, {useState, useEffect} from 'react';
-import {IntlProvider, FormattedMessage} from "react-intl";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import React, {useEffect, useState} from 'react';
+import {FormattedMessage, IntlProvider} from "react-intl";
 import "../components/dashboard/dashboard.css";
 import {
-    Chart as ChartJS,
     ArcElement,
     BarElement,
-    Tooltip,
-    Legend,
-    Colors,
     CategoryScale,
+    Chart as ChartJS,
+    Colors,
+    Legend,
     LinearScale,
-    LogarithmicScale
+    LogarithmicScale,
+    Tooltip
 } from 'chart.js';
-import {Pie, Bar} from 'react-chartjs-2';
+import {Bar, Pie} from 'react-chartjs-2';
 import TreeItem from "../components/dashboard/tree.jsx";
 import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
 import {faDownload} from '@fortawesome/free-solid-svg-icons/faDownload'
@@ -515,7 +521,7 @@ const DashboardPage = () => {
 
     return (!dashboardData || !messages) ? (
         <div className="d-flex justify-content-center align-items-center mt-60">
-            <FontAwesomeIcon icon={faSpinner} />
+            <FontAwesomeIcon icon={faSpinner}/>
         </div>
     ) : (
         <main>

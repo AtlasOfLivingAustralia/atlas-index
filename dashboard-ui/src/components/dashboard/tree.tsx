@@ -1,10 +1,16 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {useState} from "react";
 import {FormattedMessage} from "react-intl";
 import "./dashboard.css";
 import FontAwesomeIcon from '../icon/fontAwesomeIconLite'
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight'
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons/faChevronDown'
-import { faSpinner } from '@fortawesome/free-solid-svg-icons/faSpinner'
+import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
+import {faChevronDown} from '@fortawesome/free-solid-svg-icons/faChevronDown'
+import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner'
 
 function formatNumber(number: any) {
     if (isNaN(number / 1.0)) {
@@ -54,14 +60,14 @@ const TreeRow = ({row, level}: { row: any, level: number }) => {
             <td className="d-flex">
                 <div style={{marginLeft: (level * 10) + 'px', marginRight: '10px', display: "inline-flex"}}>
                     {loading ?
-                        <div><FontAwesomeIcon icon={faSpinner} /></div>
+                        <div><FontAwesomeIcon icon={faSpinner}/></div>
                         :
                         showList ?
                             (list.length > 0 ?
                                     <div
                                         onClick={() => {
                                             setShowList(false);
-                                        }}><FontAwesomeIcon icon={faChevronDown} /></div>
+                                        }}><FontAwesomeIcon icon={faChevronDown}/></div>
                                     :
                                     <div>-</div>
                             )
@@ -69,7 +75,7 @@ const TreeRow = ({row, level}: { row: any, level: number }) => {
                                     <div
                                         onClick={() => {
                                             getTreeDataBranch(row.fq, level + 1)
-                                        }}><FontAwesomeIcon icon={faChevronRight} /></div>
+                                        }}><FontAwesomeIcon icon={faChevronRight}/></div>
                                     :
                                     <div>-</div>
                             )

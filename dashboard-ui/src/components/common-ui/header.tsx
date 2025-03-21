@@ -1,6 +1,18 @@
-import {useState, useEffect, useRef} from 'react';
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {useEffect, useRef, useState} from 'react';
 import {AutocompleteItem} from "../../api/sources/model.ts";
-import {setClickEventByClassName, setClickEventById, showLoginLogoutButtons, setElementDisplayById, setElementDisplayByClassName} from './utils.tsx';
+import {
+    setClickEventByClassName,
+    setClickEventById,
+    setElementDisplayByClassName,
+    setElementDisplayById,
+    showLoginLogoutButtons
+} from './utils.tsx';
 
 interface HeaderProps {
     isLoggedIn?: boolean,
@@ -336,8 +348,8 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
 
     // apply the changed mobile only menu visibility to the elements with the collapse-menu-true/false classes
     useEffect(() => {
-        setElementDisplayByClassName("collapse-menu-false",  menuVisible ? "none" : "block");
-        setElementDisplayByClassName("collapse-menu-true",  !menuVisible ? "none" : "inline-block");
+        setElementDisplayByClassName("collapse-menu-false", menuVisible ? "none" : "block");
+        setElementDisplayByClassName("collapse-menu-true", !menuVisible ? "none" : "inline-block");
         setElementDisplayById("navbarOuterWrapper", menuVisible ? "block" : "none");
     }, [menuVisible]);
 

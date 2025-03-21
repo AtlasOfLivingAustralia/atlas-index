@@ -1,15 +1,15 @@
 .dashboardPanel {
-    float:left;
+    float: left;
     height: 455px !important;
     width: 475px;
     margin: 20px;
     font-family: Roboto, sans-serif;
     font-size: 14px;
     line-height: 20px;
-    color: rgb(33,33,33);
+    color: rgb(33, 33, 33);
     background-color: white;
-    border-bottom-color: rgb(221,221,221);
-    box-shadow: rgba(0,0,0,0.5) 0px 1px 1px 0px;
+    border-bottom-color: rgb(221, 221, 221);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 1px 1px 0px;
     border-radius: 4px;
     overflow: hidden;
 }
@@ -174,7 +174,7 @@
     border-color: #943a27 !important;;
 }
 
-.btn-primary:active, .gform_button:active, .btn-primary.active, .active.gform_button, .open>.btn-primary.dropdown-toggle, .open>.dropdown-toggle.gform_button {
+.btn-primary:active, .gform_button:active, .btn-primary.active, .active.gform_button, .open > .btn-primary.dropdown-toggle, .open > .dropdown-toggle.gform_button {
     color: #fff;
     background-color: #9c3d29 !important;;
     background-image: none;

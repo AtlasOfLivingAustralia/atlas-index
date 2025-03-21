@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 // Will set the elements with classes signedIn and signedOut to display: inline-block or display: none depending
 // on the isLoggedIn value. e.g. signedIn elements are visible when isLoggedIn is true.
 export function showLoginLogoutButtons(isLoggedIn: boolean | undefined) {
