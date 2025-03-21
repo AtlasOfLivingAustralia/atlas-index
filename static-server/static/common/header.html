@@ -1,0 +1,290 @@
+<header>
+
+    <input type="hidden" id="mobileMaxWidth" value="1075">
+
+    <div id="wrapper-navbar" itemType="http://schema.org/WebSite">
+        <nav class="navbar navbar-inverse navbar-expand-md">
+            <div class="container-fluid header-logo-menu">
+                <div class="navbar-header">
+                    <div><a href="http://ala.org.au" class="custom-logo-link navbar-brand" itemProp="url"> <img
+                            width="1005" height="150" src="https://www.ala.org.au/app/uploads/2019/01/logo.png"
+                            class="custom-logo" alt="Atlas of Living Australia" itemProp="image"/> </a></div>
+                </div>
+                <div class="navbar-narrow">
+                    <button class="display-flex search-trigger hidden-md hidden-lg collapsed collapse-trigger-button header-search-button"
+                            title="Open search dialog" data-toggle="collapse"
+                            data-target="#autocompleteSearchALA">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="18" viewBox="0 0 22 22"
+                             class="search-visible-false">
+                            <path class="search-icon"
+                                  d="M1524.33,60v1.151a7.183,7.183,0,1,1-2.69.523,7.213,7.213,0,0,1,2.69-.523V60m0,0a8.333,8.333,0,1,0,7.72,5.217A8.323,8.323,0,0,0,1524.33,60h0Zm6.25,13.772-0.82.813,7.25,7.254a0.583,0.583,0,0,0,.82,0,0.583,0.583,0,0,0,0-.812l-7.25-7.254h0Zm-0.69-7.684,0.01,0c0-.006-0.01-0.012-0.01-0.018s-0.01-.015-0.01-0.024a6,6,0,0,0-7.75-3.3l-0.03.009-0.02.006v0a0.6,0.6,0,0,0-.29.293,0.585,0.585,0,0,0,.31.756,0.566,0.566,0,0,0,.41.01V63.83a4.858,4.858,0,0,1,6.32,2.688l0.01,0a0.559,0.559,0,0,0,.29.29,0.57,0.57,0,0,0,.75-0.305A0.534,0.534,0,0,0,1529.89,66.089Z"
+                                  transform="translate(-1516 -60)"></path>
+                        </svg>
+                        <span aria-hidden="true" title="Close" class="collapseMenu search-visible-true">×</span>
+                    </button>
+                    <div class="signedIn">
+                        <a href="https://userdetails.test.ala.org.au/myprofile" role="button"
+                           id="header-profile-button-1"
+                           class="account-mobile" title="Profile">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="18" viewBox="0 0 37 41">
+                                <path id="Account" class="account-icon"
+                                      d="M614.5,107.1a11.549,11.549,0,1,0-11.459-11.549A11.516,11.516,0,0,0,614.5,107.1Zm0-21.288a9.739,9.739,0,1,1-9.664,9.739A9.711,9.711,0,0,1,614.5,85.81Zm9.621,23.452H604.874a8.927,8.927,0,0,0-8.881,8.949V125h37v-6.785A8.925,8.925,0,0,0,624.118,109.262Zm7.084,13.924H597.789v-4.975a7.12,7.12,0,0,1,7.085-7.139h19.244a7.119,7.119,0,0,1,7.084,7.139v4.975Z"
+                                      transform="translate(-596 -84)"></path>
+                            </svg>
+                        </a>
+                        <a role="button"
+                           class="account-mobile hidden-md hidden-lg mobile-logout-btn header-logout-button"
+                           title="Logout">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="25" height="18">
+                                <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                                <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 192 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 32C43 32 0 75 0 128L0 384c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"
+                                      fill="currentColor"/>
+                                }
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="signedOut">
+                        <a role="button" class="account-mobile mobile-login-btn header-login-button"
+                           title="Login button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="25" height="18">
+                                <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                                <path d="M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0c53 0 96-43 96-96l0-256c0-53-43-96-96-96l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32zm-9.4 182.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L242.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z"
+                                      fill="currentColor"/>
+                            </svg>
+                        </a>
+                    </div>
+                    <button class="navbar-toggle collapsed collapse-trigger-button header-menu-button" type="button"
+                            aria-controls="navbarOuterWrapper" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <div class="horizontal-line collapse-menu-false"></div>
+                        <div class="horizontal-line collapse-menu-false"></div>
+                        <div class="horizontal-line collapse-menu-false"></div>
+                        <div class="horizontal-line collapse-menu-false"></div>
+                        <span class="collapseMenu collapse-menu-true" aria-hidden="true">×</span></button>
+                </div>
+                <div id="navbarOuterWrapper" class="outer-nav-wrapper">
+                    <div class="top-bar hidden-xs hidden-sm navbar-wide"><a href="https://www.ala.org.au/contact-us/"
+                                                                            class="btn btn-link btn-sm">Contact us</a>
+                        <div class="account signedIn"><a href="https://userdetails.test.ala.org.au/myprofile"
+                                                         class="btn btn-outline-white btn-sm myProfileBtn mr-loginbtns"
+                                                         role="button" id="header-profile-button-2">Profile</a> <a
+                                class="btn btn-outline-white btn-sm logoutBtn header-logout-button"
+                                role="button">Logout</a></div>
+                        <div class="account signedOut"><a
+                                href="https://userdetails.test.ala.org.au/registration/createAccount"
+                                class="btn btn-outline-white btn-sm mr-loginbtns" role="button"
+                                id="header-sign-up-button">Sign up</a> <a
+                                class="btn btn-primary btn-sm btnLogin header-login-button">Login</a>
+                        </div>
+                    </div>
+                    <div class="main-nav-wrapper">
+                        <div id="navbarNavDropdown">
+                            <ul id="main-menu" class="nav navbar-nav" role="menubar">
+                                <li itemType="https://www.schema.org/SiteNavigationElement"
+                                    class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown nav-item">
+                                    <a aria-haspopup="true" aria-expanded="true" id="header-open-menu-1"
+                                       class="dropdown-toggle nav-link">Search &amp; analyse <span class="caret"></span></a>
+                                    <ul class="dropdown-menu" id="header-open-menu-item-1"
+                                        aria-labelledby="header-open-menu-1" role="menu">
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41958"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41958 nav-item">
+                                            <a href="https://bie.ala.org.au/" class="dropdown-item">Search species</a>
+                                        </li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-23"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-23 nav-item">
+                                            <a href="https://biocache.ala.org.au/search#tab_simpleSearch"
+                                               class="dropdown-item">Search &amp; download records</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-28"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-28 nav-item">
+                                            <a href="https://collections.ala.org.au/datasets" class="dropdown-item">Search
+                                                datasets</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41967"
+                                            role="separator" class="divider"></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-24"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-24 nav-item">
+                                            <a href="https://spatial.ala.org.au/" class="dropdown-item">Spatial analysis
+                                                (Spatial Portal)</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-26"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-26 nav-item">
+                                            <a href="https://biocache.ala.org.au/explore/your-area"
+                                               class="dropdown-item">Explore your area</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-31"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-31 nav-item">
+                                            <a href="https://collections.ala.org.au/" class="dropdown-item">Explore
+                                                natural history collections</a></li>
+                                    </ul>
+                                </li>
+                                <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-32"
+                                    class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown menu-item-32 nav-item">
+                                    <a aria-haspopup="true" aria-expanded="false" class="dropdown-toggle nav-link"
+                                       id="header-open-menu-2">Contribute&nbsp;<span class="caret"></span></a>
+                                    <ul class="dropdown-menu" id="header-open-menu-item-2"
+                                        aria-labelledby="header-open-menu-2" role="menu">
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-40773"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-40773 nav-item">
+                                            <a href="https://support.ala.org.au/support/solutions/articles/6000261427-sharing-a-dataset-with-the-ala"
+                                               class="dropdown-item">Share your dataset</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-40728"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-40728 nav-item">
+                                            <a href="https://lists.ala.org.au/public/speciesLists"
+                                               class="dropdown-item">Upload species list</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41968"
+                                            role="separator" class="divider"></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-33"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-33 nav-item">
+                                            <a href="https://www.ala.org.au/home/record-a-sighting/"
+                                               class="dropdown-item">Record a sighting</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-35"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-35 nav-item">
+                                            <a href="https://volunteer.ala.org.au/" class="dropdown-item">Transcribe
+                                                &amp; digitise (DigiVol)</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-37"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-37 nav-item">
+                                            <a href="https://biocollect.ala.org.au/acsa" class="dropdown-item">Discover
+                                                citizen science projects</a></li>
+                                    </ul>
+                                </li>
+                                <li itemType="https://www.schema.org/SiteNavigationElement"
+                                    class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children dropdown nav-item">
+                                    <a aria-haspopup="true" id="header-open-menu-3" aria-expanded="false"
+                                       class="dropdown-toggle nav-link">Resources&nbsp;<span class="caret"></span></a>
+                                    <ul class="dropdown-menu" id="header-open-menu-item-3"
+                                        aria-labelledby="header-open-menu-3" role="menu">
+                                        <li itemType="https://www.schema.org/SiteNavigationElement"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page nav-item"><a
+                                                href="https://www.ala.org.au/publications/" class="dropdown-item">Brochures
+                                            and reports</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page nav-item"><a
+                                                href="https://www.ala.org.au/ala-logo-and-identity/"
+                                                class="dropdown-item">ALA logo and identity</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page nav-item"><a
+                                                href="https://www.ala.org.au/ala-cited-publications/"
+                                                class="dropdown-item">ALA-cited publications</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page nav-item"><a
+                                                href="https://www.ala.org.au/abdmp/" class="dropdown-item">Data
+                                            Mobilisation Program</a></li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page nav-item"><a
+                                                href="https://labs.ala.org.au/" class="dropdown-item">ALA Labs</a></li>
+                                    </ul>
+                                </li>
+                                <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-178"
+                                    class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children dropdown menu-item-178 nav-item">
+                                    <a aria-haspopup="true" aria-expanded="false" class="dropdown-toggle nav-link"
+                                       id="header-open-menu-4">About&nbsp;<span class="caret"></span></a>
+                                    <ul class="dropdown-menu" id="header-open-menu-item-4"
+                                        aria-labelledby="header-open-menu-4" role="menu">
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-179"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page menu-item-179 nav-item">
+                                            <a href="https://www.ala.org.au/about-ala/" class="dropdown-item">About
+                                                us</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-40734"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-40734 nav-item">
+                                            <a href="https://www.ala.org.au/governance"
+                                               class="dropdown-item">Governance</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-40735"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-40734 nav-item">
+                                            <a href="https://www.ala.org.au/blog/" class="dropdown-item">News &amp;
+                                                media</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-40736"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-40734 nav-item">
+                                            <a href="https://www.ala.org.au/careers/" class="dropdown-item">Careers</a>
+                                        </li>
+                                        <li class="menu-item menu-item-type-post_type menu-item-object-page current_page_parent nav-item">
+                                            <a href="https://www.ala.org.au/internships/" class="dropdown-item">Internships</a>
+                                        </li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-175"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page menu-item-175 nav-item">
+                                            <a href="https://www.ala.org.au/contact-us/" class="dropdown-item">Contact
+                                                us</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41969"
+                                            role="separator" class="divider"></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page nav-item"><a
+                                                href="https://www.ala.org.au/current-projects/" class="dropdown-item">Current
+                                            projects</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-40799"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-40731 nav-item">
+                                            <a href="https://living-atlases.gbif.org/" class="dropdown-item">International
+                                                Living Atlases</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-177"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page menu-item-177 nav-item">
+                                            <a href="https://www.ala.org.au/indigenous-ecological-knowledge/"
+                                               class="dropdown-item">Indigenous ecological knowledge</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41970"
+                                            role="separator" class="divider"></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41796"
+                                            class="menu-item menu-item-type-post_type menu-item-object-page menu-item-41796 nav-item">
+                                            <a href="https://www.ala.org.au/sites-and-services/" class="dropdown-item">All
+                                                sites, services &amp; tools</a></li>
+                                    </ul>
+                                </li>
+                                <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41391"
+                                    class="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children dropdown menu-item-41391 nav-item">
+                                    <a aria-haspopup="true" aria-expanded="false" class="dropdown-toggle nav-link"
+                                       id="header-open-menu-5">Help&nbsp;<span class="caret"></span></a>
+                                    <ul class="dropdown-menu" id="header-open-menu-item-5"
+                                        aria-labelledby="header-open-menu-5" role="menu">
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41959"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41959 nav-item">
+                                            <a href="https://support.ala.org.au/support/home" class="dropdown-item">Browse
+                                                all articles (FAQs)</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41960"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41960 nav-item">
+                                            <a href="https://support.ala.org.au/support/solutions/6000137994"
+                                               class="dropdown-item">ALA Data help</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41961"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41961 nav-item">
+                                            <a href="https://support.ala.org.au/support/solutions/6000138053"
+                                               class="dropdown-item">ALA Tools &amp; Apps help</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41962"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41962 nav-item">
+                                            <a href="https://support.ala.org.au/support/solutions/6000138349"
+                                               class="dropdown-item">ALA Spatial Portal help</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom nav-item"><a
+                                                href="https://support.ala.org.au/support/solutions/articles/6000261662-citing-the-ala"
+                                                class="dropdown-item">How to cite the ALA</a></li>
+                                        <li itemType="https://www.schema.org/SiteNavigationElement" id="menu-item-41963"
+                                            class="menu-item menu-item-type-custom menu-item-object-custom menu-item-41963 nav-item">
+                                            <a href="https://www.ala.org.au/contact-us/" class="dropdown-item">Contact
+                                                us</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <button class="search-trigger hidden-xs hidden-sm collapsed collapse-trigger-button header-search-button"
+                                data-toggle="collapse" data-target="#autocompleteSearchALA"
+                                title="Open search control">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 22 22"
+                                 class="search-visible-false">
+                                <path class="search-icon"
+                                      d="M1524.33,60v1.151a7.183,7.183,0,1,1-2.69.523,7.213,7.213,0,0,1,2.69-.523V60m0,0a8.333,8.333,0,1,0,7.72,5.217A8.323,8.323,0,0,0,1524.33,60h0Zm6.25,13.772-0.82.813,7.25,7.254a0.583,0.583,0,0,0,.82,0,0.583,0.583,0,0,0,0-.812l-7.25-7.254h0Zm-0.69-7.684,0.01,0c0-.006-0.01-0.012-0.01-0.018s-0.01-.015-0.01-0.024a6,6,0,0,0-7.75-3.3l-0.03.009-0.02.006v0a0.6,0.6,0,0,0-.29.293,0.585,0.585,0,0,0,.31.756,0.566,0.566,0,0,0,.41.01V63.83a4.858,4.858,0,0,1,6.32,2.688l0.01,0a0.559,0.559,0,0,0,.29.29,0.57,0.57,0,0,0,.75-0.305A0.534,0.534,0,0,0,1529.89,66.089Z"
+                                      transform="translate(-1516 -60)"></path>
+                            </svg>
+                            <span aria-hidden="true" title="Close" class="visible-on-show search-visible-true"
+                            >×</span></button>
+                    </div>
+                </div>
+            </div>
+            <div class="container-fluid search-visible-true">
+                <div id="autocompleteSearchALA">
+                    <div class="space-between"><input id="autocompleteHeader" type="text" name="q"
+                                                      placeholder="Search species, datasets, and more..."
+                                                      class="search-input ui-autocomplete-input" autoComplete="off"/>
+                        <button class="search-submit autocomplete-search-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25"
+                                 height="25" class="autocomplete-button" viewBox="0 0 22 22">
+                                <path class="search-icon"
+                                      d="M1524.33,60v1.151a7.183,7.183,0,1,1-2.69.523,7.213,7.213,0,0,1,2.69-.523V60m0,0a8.333,8.333,0,1,0,7.72,5.217A8.323,8.323,0,0,0,1524.33,60h0Zm6.25,13.772-0.82.813,7.25,7.254a0.583,0.583,0,0,0,.82,0,0.583,0.583,0,0,0,0-.812l-7.25-7.254h0Zm-0.69-7.684,0.01,0c0-.006-0.01-0.012-0.01-0.018s-0.01-.015-0.01-0.024a6,6,0,0,0-7.75-3.3l-0.03.009-0.02.006v0a0.6,0.6,0,0,0-.29.293,0.585,0.585,0,0,0,.31.756,0.566,0.566,0,0,0,.41.01V63.83a4.858,4.858,0,0,1,6.32,2.688l0.01,0a0.559,0.559,0,0,0,.29.29,0.57,0.57,0,0,0,.75-0.305A0.534,0.534,0,0,0,1529.89,66.089Z"
+                                      transform="translate(-1516 -60)"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>

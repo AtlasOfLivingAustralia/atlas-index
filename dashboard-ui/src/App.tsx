@@ -9,64 +9,80 @@ import "@fontsource/roboto/700.css";
 import Header from "./components/common-ui/header.tsx";
 import Footer from "./components/common-ui/footer.tsx";
 import FontAwesomeIcon from './components/icon/fontAwesomeIconLite'
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight'
+import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {useEffect, useState} from "react";
 import './index.css';
 
+const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
+
 export default function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
 
     useEffect(() => {
-        handleLogin();
-
-        checkForAuthCookie();
+        // load the common CSS used by both the header and footer
+        fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {
+            if (response.ok) {
+                response.text().then((text) => {
+                    const style = document.createElement('style');
+                    style.innerHTML = text;
+                    document.head.appendChild(style);
+                });
+            }
+        });
     }, []);
 
     // when receiving a login URL, handle the login by setting the auth cookie only
     function handleLogin() {
-        // set the auth cookie to "loggedIn" when the login URL is received
-        const url = new URL(window.location.href);
-        const login = url.searchParams.get("login");
-        if (login === "true") {
-            document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
-            window.location.href = import.meta.env.VITE_DASHBOARD_URL;
+        if (import.meta.env.MODE === 'production') {
+            // do login that is suitable for an application that no authentication requirement
+            window.location.href = import.meta.env.VITE_LOGIN_URL;
+        } else {
+            // simulate login by setting the cookie and state
+            document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; expires=Thu, 01 Jul 2025 00:00:00 UTC; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
+            setIsLoggedIn(true);
         }
     }
 
-    // only basic check is required for dashboard as it has no features for a logged in user
-    function checkForAuthCookie() {
-        const cookies = document.cookie.split(';');
-        const authCookie = cookies.find(cookie => cookie.trim().startsWith(import.meta.env.VITE_AUTH_COOKIE));
-        setIsLoggedIn(!!authCookie);
+    function handleLogout() {
+        // remove cookie
+        document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
+
+        setIsLoggedIn(false);
     }
 
     return (
-            <main>
-                <Header isLoggedIn={isLoggedIn}/>
+        <main>
+            {import.meta.env.VITE_COMMON_HEADER_HTML &&
+                <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
+            }
 
-                <section id="breadcrumb">
-                    <div className="container-fluid">
-                        <div className="row">
-                            <nav aria-label="Breadcrumb" role="navigation">
-                                <ol className="breadcrumb-list breadcrumb">
-                                    <li className="breadcrumb-item">
-                                        <a href={import.meta.env.VITE_HOME_URL}>Home</a>
-                                    </li>
-                                    <li className="breadcrumb-item"><FontAwesomeIcon icon={faChevronRight} className={"breadcrumb-icon"}/>Dashboard</li>
-                                </ol>
-                            </nav>
-                        </div>
+            <section id="breadcrumb">
+                <div className="container-fluid">
+                    <div className="row">
+                        <nav aria-label="Breadcrumb" role="navigation">
+                            <ol className="breadcrumb-list breadcrumb">
+                                <li className="breadcrumb-item">
+                                    <a href={import.meta.env.VITE_HOME_URL}>Home</a>
+                                </li>
+                                <li className="breadcrumb-item"><FontAwesomeIcon icon={faChevronRight}
+                                                                                 className={"breadcrumb-icon"}/>Dashboard
+                                </li>
+                            </ol>
+                        </nav>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <div className="mt-4"/>
+            <div className="mt-4"/>
 
-                <Dashboard />
+            <Dashboard/>
 
-                <div className="mt-4"/>
+            <div className="mt-4"/>
 
-                <Footer isLoggedIn={isLoggedIn}/>
-            </main>
+            {import.meta.env.VITE_COMMON_FOOTER_HTML &&
+                <Footer isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
+            }
+        </main>
     );
 }
 

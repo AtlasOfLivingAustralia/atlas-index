@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
 import messages_en from "./translations/en.json";
 import {IntlProvider} from "react-intl";
@@ -14,7 +13,6 @@ const root = ReactDOM.createRoot(
 root.render(
     <React.StrictMode>
         <Router>
-
             <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
             }}>
                 <App/>
