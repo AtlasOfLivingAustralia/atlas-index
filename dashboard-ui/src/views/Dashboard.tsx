@@ -15,8 +15,9 @@ import {
 import {Pie, Bar} from 'react-chartjs-2';
 import TreeItem from "../components/dashboard/tree.jsx";
 import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
-import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
-import { faCode } from '@fortawesome/free-solid-svg-icons/faCode'
+import {faDownload} from '@fortawesome/free-solid-svg-icons/faDownload'
+import {faCode} from '@fortawesome/free-solid-svg-icons/faCode'
+import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
 
 ChartJS.register(ArcElement, BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale, LogarithmicScale);
 
@@ -336,10 +337,13 @@ const DashboardPage = () => {
             <div>
                 <div className="d-flex">
                     <a className="btn btn-primary ms-auto" target="_blank"
-                       href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}><FontAwesomeIcon icon={faDownload} className={"me-2"}/>Download
+                       href={import.meta.env.VITE_APP_DASHBOARD_ZIP_URL}><FontAwesomeIcon icon={faDownload}
+                                                                                          className={"me-2"}/>Download
                         as CSV</a>
                     <a className="btn  btn-primary ms-2 me-5 " target="_blank"
-                       href={import.meta.env.VITE_APP_DASHBOARD_DATA_URL}><FontAwesomeIcon icon={faCode} className={"me-2"}/>Show raw data</a>
+                       href={import.meta.env.VITE_APP_DASHBOARD_DATA_URL}><FontAwesomeIcon icon={faCode}
+                                                                                           className={"me-2"}/>Show raw
+                        data</a>
 
                 </div>
                 <div className='d-flex flex-wrap justify-content-center'>
@@ -367,7 +371,7 @@ const DashboardPage = () => {
                             </div>
                             <div className={"dashboardCenter"}>
                                 <a className={'dashboardLargeLink'}
-                                       href={data.datasets.mostRecent.url}>{data.datasets.mostRecent.name}</a>
+                                   href={data.datasets.mostRecent.url}>{data.datasets.mostRecent.name}</a>
                             </div>
                         </GridCard>
                     }
@@ -510,10 +514,13 @@ const DashboardPage = () => {
     }
 
     return (!dashboardData || !messages) ? (
-        <div className="alert-info">Loading...</div>
+        <div className="d-flex justify-content-center align-items-center mt-60">
+            <FontAwesomeIcon icon={faSpinner} />
+        </div>
     ) : (
         <main>
-            <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {}}>
+            <IntlProvider messages={messages} locale="en" defaultLocale="en" onError={() => {
+            }}>
                 <div>
                     <Dashboard data={dashboardData}></Dashboard>
                 </div>
