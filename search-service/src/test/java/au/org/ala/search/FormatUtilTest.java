@@ -1,4 +1,4 @@
-package au.org.ala.search.service;
+package au.org.ala.search;
 
 import au.org.ala.search.util.FormatUtil;
 import org.junit.jupiter.api.Test;

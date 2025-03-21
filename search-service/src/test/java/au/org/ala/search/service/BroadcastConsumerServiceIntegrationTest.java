@@ -1,4 +1,4 @@
-package au.org.ala.search;
+package au.org.ala.search.service;
 
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
