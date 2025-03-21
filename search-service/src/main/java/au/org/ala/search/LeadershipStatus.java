@@ -32,7 +32,7 @@ public class LeadershipStatus {
             setupAsLeader();
         }
 
-        log.error("Leadership status: " + isLeader.get());
+        log.info("Leadership status: {}", isLeader.get());
     }
 
     @EventListener
@@ -43,13 +43,13 @@ public class LeadershipStatus {
             setupAsLeader();
         }
 
-        log.error("Leadership granted: " + event.getRole());
+        log.info("Leadership granted: {}", event.getRole());
     }
 
     @EventListener
     public void handleOnRevokedEvent(OnRevokedEvent event) {
         isLeader.set(false);
-        log.error("Leadership revoked: " + event.getRole());
+        log.info("Leadership revoked: {}", event.getRole());
     }
 
     public boolean isLeader() {

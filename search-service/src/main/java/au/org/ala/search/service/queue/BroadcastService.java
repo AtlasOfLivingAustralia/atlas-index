@@ -11,8 +11,8 @@ import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.InstanceUtil;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,18 +29,24 @@ import static au.org.ala.search.service.queue.BroadcastService.BroadcastMessage.
 public class BroadcastService {
     public static final String BROADCAST_QUEUE = "broadcast";
     private static final TaskType taskType = TaskType.ALL;
+    @Getter
+    private static BroadcastService instance;
     protected final LogService logService;
     private final CollectoryCache collectoryCache;
     private final ListCache listCache;
     private final RabbitTemplate rabbitTemplate;
     @Value("${rabbitmq.exchange}")
-    public String exchange;
+    private String exchange;
+    @Value("${rabbitmq.host:}")
+    private String host;
 
     public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService) {
         this.collectoryCache = collectoryCache;
         this.listCache = listCache;
         this.rabbitTemplate = rabbitTemplate;
         this.logService = logService;
+
+        instance = this;
     }
 
     /**
@@ -49,14 +55,18 @@ public class BroadcastService {
      * @param message
      */
     public void sendMessage(BroadcastMessage message) {
-        if (StringUtils.isNotEmpty(exchange)) {
+        if (StringUtils.isNotEmpty(host)) {
             rabbitTemplate.convertAndSend(exchange, "", message.name());
         } else {
             receiveMessage(message.name());
         }
     }
 
-    @RabbitListener(queues = BROADCAST_QUEUE)
+    /**
+     * Receive a message from the broadcast queue, or directly if no exchange is configured.
+     *
+     * @param message
+     */
     public void receiveMessage(String message) {
         if (message.equals(CACHE_RESET.name())) {
             resetCache();
@@ -72,6 +82,4 @@ public class BroadcastService {
     public enum BroadcastMessage {
         CACHE_RESET
     }
-
-
 }

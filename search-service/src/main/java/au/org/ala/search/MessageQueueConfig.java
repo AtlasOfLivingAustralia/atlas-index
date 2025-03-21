@@ -9,6 +9,7 @@ package au.org.ala.search;
 import au.org.ala.search.service.queue.BroadcastService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Slf4j
+@ConditionalOnProperty(name = "rabbitmq.host")
 @Configuration
 public class MessageQueueConfig {
 
@@ -48,7 +50,6 @@ public class MessageQueueConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "rabbitmq.host")
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory factory = new CachingConnectionFactory();
         factory.setHost(host);
@@ -58,7 +59,7 @@ public class MessageQueueConfig {
             factory.setPort(Integer.parseInt(port));
         } catch (NumberFormatException e) {
             // This is a workaround for an exception that was seen when running in a container
-            log.warn("Rabbitmq port invalid: " + port + ", using default 5672");
+            log.warn("Rabbitmq port invalid: {}, using default 5672", port);
             factory.setPort(5672);
         }
         factory.setUsername(username);
@@ -67,11 +68,24 @@ public class MessageQueueConfig {
         return factory;
     }
 
+    /**
+     * This is required for when overriding the default RabbitTemplate bean is required.
+     *
+     * @param connectionFactory
+     * @return
+     */
     @Bean
-    @ConditionalOnProperty(name = "rabbitmq.host")
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+        log.info("RabbitTemplate for: {}:{}", host, port);
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         return rabbitTemplate;
     }
 
+    @RabbitListener(queues = BroadcastService.BROADCAST_QUEUE)
+    public void receiveMessage(String message) {
+        // it is fine to ignore a broadcast message if BroadcastService is not initialized.
+        if (BroadcastService.getInstance() != null) {
+            BroadcastService.getInstance().receiveMessage(message);
+        }
+    }
 }
