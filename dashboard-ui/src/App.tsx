@@ -23,24 +23,36 @@ const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COO
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
+    const [cssLoaded, setCssLoaded] = useState<boolean>(false);
 
     useEffect(() => {
-        // load the common CSS used by both the header and footer
-        fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {
-            if (response.ok) {
-                response.text().then((text) => {
-                    const style = document.createElement('style');
-                    style.innerHTML = text;
-                    document.head.appendChild(style);
-                });
-            }
-        });
+        if (import.meta.env.VITE_COMMON_CSS) {
+            // load the common CSS used by both the header and footer
+            fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {
+                if (response.ok) {
+                    response.text().then((text) => {
+                        const style = document.createElement('style');
+                        style.innerHTML = text;
+                        document.head.appendChild(style);
+                        setCssLoaded(true);
+                    });
+                }
+            });
+        }
+
+        if (import.meta.env.VITE_COMMON_JS) {
+            // load the common js
+            const script = document.createElement('script');
+            script.src = import.meta.env.VITE_COMMON_JS;
+            script.async = true;
+            document.body.appendChild(script);
+        }
     }, []);
 
     // when receiving a login URL, handle the login by setting the auth cookie only
     function handleLogin() {
         if (import.meta.env.MODE === 'production') {
-            // do login that is suitable for an application that no authentication requirement
+            // do login that is suitable for an application that has no authentication requirement (redirect another app)
             window.location.href = import.meta.env.VITE_LOGIN_URL;
         } else {
             // simulate login by setting the cookie and state
@@ -62,22 +74,24 @@ export default function App() {
                 <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
             }
 
-            <section id="breadcrumb">
-                <div className="container-fluid">
-                    <div className="row">
-                        <nav aria-label="Breadcrumb" role="navigation">
-                            <ol className="breadcrumb-list breadcrumb">
-                                <li className="breadcrumb-item">
-                                    <a href={import.meta.env.VITE_HOME_URL}>Home</a>
-                                </li>
-                                <li className="breadcrumb-item"><FontAwesomeIcon icon={faChevronRight}
-                                                                                 className={"breadcrumb-icon"}/>Dashboard
-                                </li>
-                            </ol>
-                        </nav>
+            {cssLoaded &&
+                <section id="breadcrumb">
+                    <div className="container-fluid">
+                        <div className="row">
+                            <nav aria-label="Breadcrumb" role="navigation">
+                                <ol className="breadcrumb-list breadcrumb">
+                                    <li className="breadcrumb-item">
+                                        <a href={import.meta.env.VITE_HOME_URL}>Home</a>
+                                    </li>
+                                    <li className="breadcrumb-item"><FontAwesomeIcon icon={faChevronRight}
+                                                                                     className={"breadcrumb-icon"}/>Dashboard
+                                    </li>
+                                </ol>
+                            </nav>
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            }
 
             <div className="mt-4"/>
 

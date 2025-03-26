@@ -24,32 +24,13 @@ import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
 import {faDownload} from '@fortawesome/free-solid-svg-icons/faDownload'
 import {faCode} from '@fortawesome/free-solid-svg-icons/faCode'
 import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
+import {formatNumber} from "../components/util/FormatNumber.tsx";
 
 ChartJS.register(ArcElement, BarElement, Tooltip, Legend, Colors, CategoryScale, LinearScale, LogarithmicScale);
 
 const customColors = [
     '#003A70', '#F26649', '#6BDAD5', '#EB9D07', '#A191B2', '#FFC557', '#D9D9D9'
 ];
-
-function formatNumber(number: any) {
-    if (isNaN(number / 1.0)) {
-        return number
-    }
-    var n = number
-    var s = ''
-    if (number > 1000000000) {
-        n = number / 1000000000.0
-        s = 'B'
-    } else if (number > 1000000) {
-        n = number / 1000000.0
-        s = 'M'
-    }
-
-    // format n to 2 decimal places
-    n = Math.round(n * 100) / 100
-
-    return new Intl.NumberFormat('en').format(n) + s
-}
 
 const DashboardPage = () => {
     const [dashboardData, setDashboardData] = useState();

@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>au.org.ala</groupId>
-    <artifactId>default-ui</artifactId>
+    <artifactId>dashboard-ui</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <!-- When changing the version value, also change the version number in /server/run-local.sh -->
