@@ -9,6 +9,7 @@
         <module>dashboard-ui</module>
         <module>default-ui</module>
         <module>names-extract</module>
+        <module>regions-ui</module>
         <module>search-service</module>
         <module>species-pages</module>
         <module>search-test</module>

@@ -115,21 +115,6 @@ Rules are applied such that
 - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Mammals", "Reptiles"], the rule returns TRUE
 - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Reptiles", "Amphibians"], the rule returns FALSE
 
-### ./public/regions.json
-This file is used to determine the regions that appear on the `/regions` page. It is a list of objects with either:
-- `label`: label of the contextual layer
-- `fid`: layer's field id
-or
-- `label`: the name of the aggregation of regions
-- `fields`: list of objects with the following properties:
-  - `label`: label of the contextual layer
-  - `fid`: layer's field id
-  
-Update `buildRegionsConfig.js` so that it is using the correct spatial URL, as this is needed to fetch the required
-information for the `regionsList.json` file. Build this file using `node buildRegions.js`. Put the `regionsList.json` 
-file in the location such that it is found in the location defined by the VITE_REGIONS_CONFIG_URL environment variable. 
-It must be accessible by `{VITE_REGIONS_CONFIG_URL}/regionsList.json`.
-
 ### ./public/speciesGroups.json
 This file is consistent with the namematching service file. It must align with search-service. It will produce the 
 file `./src/config/speciesGroupsMap.json`. The names-extract tool has information on testing this file.

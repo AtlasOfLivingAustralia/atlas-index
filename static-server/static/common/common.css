@@ -1097,7 +1097,7 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 }
 
 .btnLogin {
-    color: black;
+    color: black !important;
     background-color: #f26649 !important;
 }
 
@@ -1219,4 +1219,63 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 #header-profile-button-1 {
     float: left;
+}
+
+.btn-default {
+    color: #000;
+    background-color: #fff;
+    border-color: #999;
+}
+
+.btn-default:hover {
+    color: #000;
+    background-color: #e6e6e6;
+    border-color: #7a7a7a;
+}
+
+.btn-default:active, .btn-default.active {
+    color: #000;
+    background-color: #e6e6e6;
+    background-image: none;
+    border-color: #7a7a7a;
+}
+
+/*.btn-primary, .gform_button {*/
+/*    color: #fff;*/
+/*    background-color: #c44d34;*/
+/*    border-color: #c44d34;*/
+/*}*/
+
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #c44d34;
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #9c3d29;
+    --bs-btn-hover-border-color: #943a27;
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #9c3d29;
+    --bs-btn-active-border-color: #943a27;
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #e6e6e6;
+    --bs-btn-disabled-border-color: #7a7a7a;
+}
+
+:root {
+    --bs-link-color: #c44d34;
+    --bs-link-hover-color: #883524;
+}
+
+.nav-tabs .nav-link:hover {
+    background-color: #f2f2f2;
+}
+
+.nav-tabs {
+    --bs-nav-tabs-border-radius: 4px;
+}
+
+.nav-tabs .nav-link.active:hover {
+    background-color: transparent;
 }

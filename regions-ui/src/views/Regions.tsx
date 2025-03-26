@@ -1,34 +1,23 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
-import {Breadcrumb} from "../api/sources/model.ts";
-import {
-    Accordion, Anchor,
-    Box,
-    Button,
-    Checkbox,
-    Container,
-    Flex,
-    Grid,
-    Slider,
-    Space,
-    Text,
-    Title
-} from "@mantine/core";
 import {MapContainer, TileLayer, useMap, useMapEvents, WMSTileLayer, Popup} from 'react-leaflet';
-import {
-    DotsOneIcon
-} from '@atlasoflivingaustralia/ala-mantine';
-import {IconInfoCircleFilled, IconReload, IconZoomIn} from "@tabler/icons-react";
 
+import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
+import {faCircle, faInfoCircle, faSearchPlus} from '@fortawesome/free-solid-svg-icons';
+import {faRedo} from '@fortawesome/free-solid-svg-icons';
+import './regions.css'
 import 'leaflet/dist/leaflet.css';
 import {LatLng} from "leaflet";
 import {useNavigate} from "react-router-dom";
+import {Accordion, Col, Container, Row} from "react-bootstrap";
+import {Breadcrumb} from "../api/sources/model.ts";
+import DualRangeSlider from "../components/common-ui/dualRangeSlider.tsx";
 
-// TODO: move to .env file
-const REGION_AGGREGATE = "aggregate";
-const center = new LatLng(-28, 133);
+
+const REGION_AGGREGATE = "OTHER_REGIONS";
+const center = new LatLng(Number(import.meta.env.VITE_MAP_CENTRE_LAT), Number(import.meta.env.VITE_MAP_CENTRE_LNG));
 const OBJECT_OPACITY = 100;
 const LAYER_OPACITY = 60;
-const defaultZoom = 4;
+const defaultZoom = import.meta.env.VITE_MAP_DEFAULT_ZOOM;
 
 interface SelectedLayer {
     layerName: string;
@@ -66,7 +55,7 @@ function MapStateUtil({setMapStateChanged}: { setMapStateChanged: (state: boolea
 
     // Listen to events on the map
     const handlers = useMemo(() => ({mouseup: onChange}), [])
-    useMapEvents(handlers) // register listener (can only be called in a child of MapContainer)
+    useMapEvents(handlers)
 
     return <></>
 }
@@ -81,12 +70,11 @@ function MapClickHandler({onClick}: { onClick: (latlng: LatLng) => void }) {
     return null;
 }
 
-function Regions({setBreadcrumbs}: {
-    setBreadcrumbs: (crumbs: Breadcrumb[]) => void,
-    queryString?: string,
-    login?: () => void,
-    logout?: () => void
-}) {
+interface RegionsProps {
+    setBreadcrumbs: (crumbs: Breadcrumb[]) => void
+}
+
+function Regions({setBreadcrumbs}: RegionsProps) {
 
     const [mapStateChanged, setMapStateChanged] = useState(false);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -102,13 +90,12 @@ function Regions({setBreadcrumbs}: {
 
     useEffect(() => {
         setBreadcrumbs([
-            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Species search', href: '/'},
-            {title: 'Regions', href: '/regions'}
-        ]);
+            {title: "Home", href: import.meta.env.VITE_HOME_URL},
+            {title: "Explore", href: import.meta.env.VITE_EXPLORE_URL},
+            {title: "Regions", href: ""}
+        ])
 
-        // TODO: use a fetch to get this from /static
-        const url = `${import.meta.env.VITE_REGIONS_CONFIG_URL}/regionsList.json`;
+        const url = `${import.meta.env.VITE_REGIONS_CONFIG_URL}`;
         const regionsConfig = fetch(url).then((response) => response.json());
 
         regionsConfig.then((json) => {
@@ -116,7 +103,6 @@ function Regions({setBreadcrumbs}: {
 
             const list = [];
             for (const region of json) {
-                console.log(region);
                 list.push({
                     label: region.name,
                     layerName: region.layerName,
@@ -137,8 +123,6 @@ function Regions({setBreadcrumbs}: {
     }
 
     const handleMapClick = async (latlng: LatLng) => {
-        console.log('Map clicked at:', latlng);
-
         if (mapRef.current && selectedLayer) {
             const url = `${import.meta.env.VITE_SPATIAL_URL}/ws/intersect/${selectedLayer.fid}/${latlng.lat}/${latlng.lng}`;
 
@@ -153,17 +137,15 @@ function Regions({setBreadcrumbs}: {
                 const url2 = `${import.meta.env.VITE_SPATIAL_URL}/ws/object/${pid}`;
                 const response2 = await fetch(url2);
                 const data2 = await response2.json();
-                console.log("bbox", data2);
                 setMapObject(selectedLayer, {pid: pid, name: label, bbox: data2.bbox, description: data2.description});
             }
-            console.log(data);
         }
     };
 
     function setMapObject(layer: SelectedLayer, obj: SelectedObject | undefined = undefined) {
         setMapStateChanged(true);
 
-        // TODO: this is an ugly hack to force the map to update the selected layer or object, fix it
+        // using a reset-to-null + timeout, not the best way to do this
         if (selectedLayer && selectedLayer.layerName != layer.layerName) {
             setSelectedLayer(null);
 
@@ -174,6 +156,8 @@ function Regions({setBreadcrumbs}: {
             setSelectedObject(null);
         } else if (!obj && selectedObject) {
             setSelectedObject(null);
+        } else if (obj && selectedObject && selectedObject.pid == obj.pid) {
+            openObject(); // opens the item if clicked twice in a row
         }
         setTimeout(() => {
             setSelectedLayer({layerName: layer.layerName, fid: layer.fid});
@@ -203,77 +187,87 @@ function Regions({setBreadcrumbs}: {
         mapRef.current?.fitBounds([[parseFloat(points[0].split(" ")[1]), parseFloat(points[0].split(" ")[0])], [parseFloat(points[2].split(" ")[1]), parseFloat(points[2].split(" ")[0])]]);
     }
 
+    function updateLayer(layerId: any) {
+        // find the menuItem with fid == layerId
+        const menuItem = menuItems.find((item) => item.fid == layerId);
+        if (menuItem) {
+            setMapObject(menuItem as SelectedLayer);
+        }
+    }
+
     return (
         <>
-            <Container size="lg" mt="60px">
-                <Title order={3}>Select a region to explore</Title>
-                <Text mt={10}>Select the type of region on the left. Click a name or click on the map to select a
+            <Container className="mt-5">
+                <h2>Select a region to explore</h2>
+                <p>Select the type of region on the left. Click a name or click on the map to select a
                     region. Use map controls or shift-drag with your mouse to zoom the map.
                     Click the region button to explore occurrence records, images and documents associated with the
-                    region.</Text>
-                <Grid gutter={30} mt={20}>
-                    <Grid.Col span="content">
-                        <Box w={355}>
-                            <Flex justify="flex-start" align="center" gap="5px">
-                                <IconInfoCircleFilled size={16}/>
-                                <Text fz={14}>Click on a region name to select an area</Text>
-                            </Flex>
-                            <Accordion defaultValue="" mt={20}>
+                    region.</p>
+                <Row className="mt-4">
+                    <Col className="col-md-4">
+                        <div style={{width: '355px'}}>
+                            <div className="d-flex align-items-center gap-2">
+                                <FontAwesomeIcon icon={faInfoCircle} size="lg"/>
+                                <p className="mb-0">Click on a region name to select an area</p>
+                            </div>
+                            <Accordion defaultActiveKey="" className="mt-4"
+                                       onSelect={(layerId) => updateLayer(layerId)}>
                                 {menuItems.map((item) => (
-                                    <Accordion.Item key={item.label} value={item.fid || REGION_AGGREGATE}>
-                                        <Accordion.Control>{item.label}</Accordion.Control>
-                                        <Accordion.Panel>
-                                            <Space h={10}/>
-                                            <Box style={{overflowY: "scroll", maxHeight: "300px"}}>
+                                    <Accordion.Item key={item.label} eventKey={item.fid || REGION_AGGREGATE}>
+                                        <Accordion.Header>
+                                            {item.label}</Accordion.Header>
+                                        <Accordion.Body>
+                                            <div style={{overflowY: 'scroll', maxHeight: '300px'}}>
                                                 {item.fields && item.fields.map((field, idx) => (
-                                                    <Flex onClick={() => setMapObject(field)} 
-                                                            key={idx} style={{cursor: "pointer"}}>
-                                                        <DotsOneIcon size={16}/>
-                                                        <Text fz={14}>{field.name}</Text>
-                                                    </Flex>
+                                                    <div onClick={() => setMapObject(field)}
+                                                         key={idx} style={{cursor: 'pointer'}}
+                                                         className="d-flex align-items-center">
+                                                        <FontAwesomeIcon icon={faCircle} className="smallIcon"/>
+                                                        <p className="mb-1 ms-2">{field.name}</p>
+                                                    </div>
                                                 ))}
                                                 {item.objects && item.objects.map((obj, idx) => (
-                                                    <Flex onClick={() => setMapObject(item as SelectedLayer, obj)}
-                                                            key={idx} style={{cursor: "pointer"}}>
-                                                        <DotsOneIcon size={16}/>
-                                                        <Text fz={14} title={obj.description}>{obj.name}</Text>
-                                                    </Flex>
+                                                    <div onClick={() => setMapObject(item as SelectedLayer, obj)}
+                                                         key={idx} style={{cursor: 'pointer'}}
+                                                         className="d-flex align-items-center">
+                                                        <FontAwesomeIcon icon={faCircle} className="smallIcon"/>
+                                                        <p className="mb-1 ms-2" title={obj.description}>{obj.name}</p>
+                                                    </div>
                                                 ))}
-                                            </Box>
-                                            <Space h={10}/>
-                                        </Accordion.Panel>
-                                    </Accordion.Item>)
-                                )}
+                                            </div>
+                                        </Accordion.Body>
+                                    </Accordion.Item>
+                                ))}
                             </Accordion>
-                        </Box>
-                    </Grid.Col>
-                    <Grid.Col span="content">
-                        <Box w={600}>
-                            <Flex justify="flex-start" align="center" gap="5px" mb={10}>
+                        </div>
+                    </Col>
+                    <Col className="col-md-8">
+                        <div style={{width: '600px'}}>
+                            <div className="d-flex align-items-center gap-2 mb-2">
                                 {!selectedObject && <>
-                                    <IconInfoCircleFilled size={16}/>
-                                    <Text fz={14}>Click on the map to select an area.</Text>
+                                    <FontAwesomeIcon icon={faInfoCircle}/>
+                                    <p className="mb-0">Click on the map to select an area.</p>
                                 </>}
                                 {selectedObject && <>
-                                    <Button variant="default" onClick={openObject}>{selectedObject.name}</Button>
-                                    <Button variant="default" ml={30} onClick={zoomToObject}
-                                            leftSection={<IconZoomIn/>}>Zoom to region</Button>
-                                </>
-                                }
-                                <Button ml={30} variant="default"
-                                        leftSection={<IconReload/>}
-                                        onClick={resetMap}
-                                        disabled={!mapStateChanged}>Reset map</Button>
-                            </Flex>
+                                    <button className="btn btn-default" onClick={openObject}>{selectedObject.name}</button>
+                                    <button className="btn btn-default ms-3" onClick={zoomToObject}>
+                                        <FontAwesomeIcon icon={faSearchPlus}/> Zoom to region
+                                    </button>
+                                </>}
+                                <button className="btn btn-default ms-3" onClick={resetMap}
+                                        disabled={!mapStateChanged}>
+                                    <FontAwesomeIcon icon={faRedo}/> Reset map
+                                </button>
+                            </div>
 
-                            <Box style={{cursor: "pointer !important"}}>
+                            <div style={{cursor: 'pointer !important'}}>
                                 <MapContainer
                                     ref={mapRef}
                                     center={center}
                                     zoom={defaultZoom}
                                     scrollWheelZoom={false}
                                     worldCopyJump={true}
-                                    style={{height: "530px", borderRadius: "10px"}}
+                                    style={{height: '530px', borderRadius: '10px'}}
                                 >
                                     <MapStateUtil setMapStateChanged={setMapStateChanged}/>
 
@@ -307,27 +301,49 @@ function Regions({setBreadcrumbs}: {
                                     }
                                     {selectedObject &&
                                         <Popup position={selectedObject.latlng}>
-                                            <Anchor onClick={openObject}>{selectedObject.name}</Anchor>
+                                            <a onClick={openObject}>{selectedObject.name}</a>
                                         </Popup>
                                     }
                                     <MapClickHandler onClick={handleMapClick}/>
                                 </MapContainer>
-                            </Box>
-                            <Flex mt={20}>
-                                <Checkbox checked={showLayer} size="16"
+                            </div>
+                            <div className="mt-3">
+                                <div className="d-flex mb-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={showLayer}
                                         onChange={(event) => setShowLayer(event.currentTarget.checked)}
-                                        disabled={!selectedLayer}/><Text ml={10} fz={16}>All regions</Text>
-                            </Flex>
-                            <Slider value={layerOpacity} onChangeEnd={setLayerOpacity} disabled={!selectedLayer}/>
-                            <Flex mt={20}>
-                                <Checkbox checked={showObject} size="16"
+                                        disabled={!selectedLayer}
+                                    />
+                                    <div className="ms-2">All regions</div>
+                                </div>
+                                <DualRangeSlider min={0} max={100} minValue={layerOpacity} maxValue={100} stepSize={1}
+                                                 onChange={(minVal) => {
+                                                     setLayerOpacity(Math.floor(minVal));
+                                                 }}
+                                                 isDisabled={!showLayer || !selectedLayer}
+                                                 singleValue={true}/>
+                            </div>
+                            <div className="mt-3">
+                                <div className="d-flex mb-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={showObject}
                                         onChange={(event) => setShowObject(event.currentTarget.checked)}
-                                        disabled={!selectedObject}/><Text ml={10} fz={16}>Selected region</Text>
-                            </Flex>
-                            <Slider value={objectOpacity} onChangeEnd={setObjectOpacity} disabled={!selectedObject}/>
-                        </Box>
-                    </Grid.Col>
-                </Grid>
+                                        disabled={!selectedObject}
+                                    />
+                                    <div className="ms-2">Selected region</div>
+                                </div>
+                                <DualRangeSlider min={0} max={100} minValue={objectOpacity} maxValue={100} stepSize={1}
+                                                 onChange={(minVal) => {
+                                                     setObjectOpacity(Math.floor(minVal));
+                                                 }}
+                                                 isDisabled={!showObject || !selectedObject}
+                                                 singleValue={true}/>
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
             </Container>
         </>
     );

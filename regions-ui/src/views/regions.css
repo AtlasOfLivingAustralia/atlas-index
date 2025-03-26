@@ -1,0 +1,18 @@
+.smallIcon {
+    width: 5px;
+    height: 5px;
+}
+
+.accordion-button:not(.collapsed) {
+    color: black;
+    background-color: white;
+}
+
+.accordion-button {
+    padding: 10px 10px;
+}
+
+
+.breadcrumb-item + .breadcrumb-item::before {
+    padding-right: 0px;
+}

@@ -1,0 +1,959 @@
+[
+  {
+    "name": "Animals",
+    "rank": "kingdom",
+    "included": [
+      "ANIMALIA"
+    ],
+    "excluded": []
+  },
+  {
+    "name": "Vertebrates",
+    "rank": "subphylum",
+    "included": [
+      "VERTEBRATA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Frogs",
+    "rank": "classs",
+    "included": [
+      "AMPHIBIA"
+    ],
+    "excluded": [],
+    "parent": "Vertebrates"
+  },
+  {
+    "name": "Birds",
+    "rank": "classs",
+    "included": [
+      "AVES"
+    ],
+    "excluded": [],
+    "parent": "Vertebrates"
+  },
+  {
+    "name": "Snakes and Lizards",
+    "rank": "classs",
+    "included": [
+      "REPTILIA"
+    ],
+    "excluded": [],
+    "parent": "Vertebrates"
+  },
+  {
+    "name": "Mammals",
+    "rank": "classs",
+    "included": [
+      "MAMMALIA"
+    ],
+    "excluded": [],
+    "parent": "Vertebrates"
+  },
+  {
+    "name": "Fish and Sharks",
+    "rank": "classs",
+    "included": [
+      "AGNATHA",
+      "ACTINOPTERYGII",
+      "CHONDRICHTHYES",
+      "SARCOPTERYGII"
+    ],
+    "excluded": [],
+    "parent": "Vertebrates"
+  },
+  {
+    "name": "Insects",
+    "rank": "classs",
+    "included": [
+      "INSECTA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Butterflies, Moths",
+    "rank": "order",
+    "included": [
+      "LEPIDOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Mantids, Mantises, Praying Mantids",
+    "rank": "order",
+    "included": [
+      "MANTODEA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Beetles, Weevils",
+    "rank": "order",
+    "included": [
+      "COLEOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Ants, Bees, Sawflies, Wasps",
+    "rank": "order",
+    "included": [
+      "HYMENOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Flies and mosquitos",
+    "rank": "order",
+    "included": [
+      "DIPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Damselflies, Dragonflies",
+    "rank": "order",
+    "included": [
+      "ODONATA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Grasshoppers, crickets, locusts",
+    "rank": "order",
+    "included": [
+      "ORTHOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Aphids, Bugs, Cicadas, Leafhoppers, Scale Insects",
+    "rank": "order",
+    "included": [
+      "HEMIPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Stick Insects",
+    "rank": "order",
+    "included": [
+      "PHASMIDA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Cockroaches and Termites",
+    "rank": "order",
+    "included": [
+      "BLATTODEA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Stoneflies",
+    "rank": "order",
+    "included": [
+      "PLECOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Mayflies",
+    "rank": "order",
+    "included": [
+      "EPHEMEROPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Caddisflies",
+    "rank": "order",
+    "included": [
+      "TRICHOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Thrips",
+    "rank": "order",
+    "included": [
+      "THYSANOPTERA"
+    ],
+    "excluded": [],
+    "parent": "Insects"
+  },
+  {
+    "name": "Centipedes, Millipedes",
+    "rank": "subphylum",
+    "included": [
+      "MYRIAPODA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Mites, Spiders, Ticks, Scorpions",
+    "rank": "subphylum",
+    "included": [
+      "CHELICERATA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Spiders",
+    "rank": "classs",
+    "included": [
+      "ARACHNIDA"
+    ],
+    "excluded": [
+      "PALPIGRADI",
+      "PSEUDOSCORPIONES",
+      "Acari",
+      "SCORPIONES"
+    ],
+    "parent": "Mites, Spiders, Ticks, Scorpions"
+  },
+  {
+    "name": "Sea Spiders",
+    "rank": "classs",
+    "included": [
+      "PYCNOGONIDA"
+    ],
+    "excluded": [],
+    "parent": "Mites, Spiders, Ticks, Scorpions"
+  },
+  {
+    "name": "Scorpions, Pseudoscorpions and Whip Scorpions",
+    "rank": "",
+    "included": [
+      "PALPIGRADI",
+      "PSEUDOSCORPIONES",
+      "SCORPIONES"
+    ],
+    "excluded": [],
+    "parent": "Mites, Spiders, Ticks, Scorpions"
+  },
+  {
+    "name": "Mites",
+    "rank": "order",
+    "included": [
+      "MESOSTIGMATA",
+      "HOLOTHYRIDA",
+      "OPILIOACARIDA",
+      "SARCOPTIFORMES",
+      "TROMBIDIFORMES"
+    ],
+    "excluded": [
+      "IXODIDA"
+    ],
+    "parent": "Mites, Spiders, Ticks, Scorpions"
+  },
+  {
+    "name": "Ticks",
+    "rank": "order",
+    "included": [
+      "IXODIDA"
+    ],
+    "excluded": [],
+    "parent": "Mites, Spiders, Ticks, Scorpions"
+  },
+  {
+    "name": "Shellfish",
+    "rank": "subphylum",
+    "included": [
+      "CRUSTACEA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Crabs",
+    "rank": "infraorder",
+    "included": [
+      "BRACHYURA",
+      "ANOMURA"
+    ],
+    "excluded": [],
+    "parent": "Shellfish"
+  },
+  {
+    "name": "Prawns, Shrimp",
+    "rank": "suborder",
+    "included": [
+      "DENDROBRANCHIATA",
+      "CARIDEA",
+      "AXIIDEA",
+      "STENOPODIDEA"
+    ],
+    "excluded": [],
+    "parent": "Shellfish"
+  },
+  {
+    "name": "Lobsters and crayfish",
+    "rank": "infraorder",
+    "included": [
+      "ACHELATA",
+      "Astacidae",
+      "Cambaridae",
+      "ASTACIDEA",
+      "GEBIIDEA",
+      "GLYPHEIDEA",
+      "POLYCHELIDA"
+    ],
+    "excluded": [],
+    "parent": "Shellfish"
+  },
+  {
+    "name": "Echinoderms",
+    "rank": "phylum",
+    "included": [
+      "ECHINODERMATA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Sea Cucumbers",
+    "rank": "classs",
+    "included": [
+      "HOLOTHUROIDEA"
+    ],
+    "excluded": [],
+    "parent": "Echinoderms"
+  },
+  {
+    "name": "Brittle stars, biscuit stars",
+    "rank": "classs",
+    "included": [
+      "OPHIUROIDEA"
+    ],
+    "excluded": [],
+    "parent": "Echinoderms"
+  },
+  {
+    "name": "Sea stars, starfish",
+    "rank": "classs",
+    "included": [
+      "ASTEROIDEA"
+    ],
+    "excluded": [],
+    "parent": "Echinoderms"
+  },
+  {
+    "name": "Feather Stars",
+    "rank": "classs",
+    "included": [
+      "CRINOIDEA"
+    ],
+    "excluded": [],
+    "parent": "Echinoderms"
+  },
+  {
+    "name": "Sea urchins",
+    "rank": "classs",
+    "included": [
+      "ECHINOIDEA"
+    ],
+    "excluded": [],
+    "parent": "Echinoderms"
+  },
+  {
+    "name": "Molluscs",
+    "rank": "phylum",
+    "included": [
+      "MOLLUSCA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Bivalves, Mussels, Oysters, Clams, Cockles",
+    "rank": "classs",
+    "included": [
+      "BIVALVIA"
+    ],
+    "excluded": [],
+    "parent": "Molluscs"
+  },
+  {
+    "name": "Octopus, Squid, Cuttlefish,Nautilius",
+    "rank": "classs",
+    "included": [
+      "CEPHALOPODA"
+    ],
+    "excluded": [],
+    "parent": "Molluscs"
+  },
+  {
+    "name": "Slugs, Snails",
+    "rank": "classs",
+    "included": [
+      "GASTROPODA"
+    ],
+    "excluded": [],
+    "parent": "Molluscs"
+  },
+  {
+    "name": "Sea Slugs",
+    "rank": "cohort",
+    "included": [
+      "RINGIPLEURA"
+    ],
+    "excluded": [],
+    "parent": "Molluscs"
+  },
+  {
+    "name": "Corals, Jellyfish, Sea Anemones",
+    "rank": "phylum",
+    "included": [
+      "CNIDARIA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Sponges",
+    "rank": "phylum",
+    "included": [
+      "PORIFERA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Worms",
+    "rank": "phylum",
+    "included": [
+      "ACANTHOCEPHALA",
+      "PHORONIDA",
+      "SIPUNCULA",
+      "PRIAPULIDA",
+      "ANNELIDA",
+      "NEMATODA",
+      "PLATYHELMINTHES",
+      "NEMATOMORPHA",
+      "NEMERTEA",
+      "CHAETOGNATHA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Segmented Worms",
+    "rank": "phylum",
+    "included": [
+      "ANNELIDA"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Roundworms, Nematodes",
+    "rank": "phylum",
+    "included": [
+      "NEMATODA"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Flatworms",
+    "rank": "phylum",
+    "included": [
+      "PLATYHELMINTHES"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Gordian Worms, Horse-Hair Worms",
+    "rank": "phylum",
+    "included": [
+      "NEMATOMORPHA"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Ribbon Worms",
+    "rank": "phylum",
+    "included": [
+      "NEMERTEA"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Bristle-Jaws, Arrow Worms",
+    "rank": "phylum",
+    "included": [
+      "CHAETOGNATHA"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Other Worms",
+    "rank": "phylum",
+    "included": [
+      "ACANTHOCEPHALA",
+      "PHORONIDA",
+      "SIPUNCULA",
+      "PRIAPULIDA"
+    ],
+    "excluded": [],
+    "parent": "Worms"
+  },
+  {
+    "name": "Other invertebrates",
+    "rank": "phylum",
+    "included": [
+      "BRACHIOPODA",
+      "ONYCHOPHORA",
+      "BRYOZOA",
+      "CTENOPHORA",
+      "DICYEMIDA",
+      "GASTROTRICHA",
+      "GNATHOSTOMULIDA",
+      "HEMICHORDATA",
+      "KINORHYNCHA",
+      "ROTIFERA",
+      "TARDIGRADA",
+      "ECHIURA",
+      "KAMPTOZOA",
+      "LORICIFERA",
+      "XENACOELOMORPHA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Brachiopods",
+    "rank": "phylum",
+    "included": [
+      "BRACHIOPODA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Velvet Worms",
+    "rank": "phylum",
+    "included": [
+      "ONYCHOPHORA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Moss Animals, Bryozoans",
+    "rank": "phylum",
+    "included": [
+      "BRYOZOA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Comb Jellies",
+    "rank": "phylum",
+    "included": [
+      "CTENOPHORA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Mesozoans",
+    "rank": "phylum",
+    "included": [
+      "DICYEMIDA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Gastrotrichs, Hairybellies, Hairybacks",
+    "rank": "phylum",
+    "included": [
+      "GASTROTRICHA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Jaw Worms, Gnathostomulida",
+    "rank": "phylum",
+    "included": [
+      "GNATHOSTOMULIDA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Acorn Worms, Pterobranchs",
+    "rank": "phylum",
+    "included": [
+      "HEMICHORDATA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Mud Dragons",
+    "rank": "phylum",
+    "included": [
+      "KINORHYNCHA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Rotifers, Wheel Animals",
+    "rank": "phylum",
+    "included": [
+      "ROTIFERA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Water Bears",
+    "rank": "phylum",
+    "included": [
+      "TARDIGRADA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Spoon Worms",
+    "rank": "phylum",
+    "included": [
+      "ECHIURA"
+    ],
+    "excluded": [],
+    "parent": "Other invertebrates"
+  },
+  {
+    "name": "Other Chordates",
+    "rank": "",
+    "included": [
+      "CEPHALOCHORDATA",
+      "TUNICATA"
+    ],
+    "excluded": [],
+    "parent": "Animals"
+  },
+  {
+    "name": "Lancelets",
+    "rank": "subphylum",
+    "included": [
+      "CEPHALOCHORDATA"
+    ],
+    "excluded": [],
+    "parent": "Other Chordates"
+  },
+  {
+    "name": "Sea Squirts",
+    "rank": "subphylum",
+    "included": [
+      "TUNICATA"
+    ],
+    "excluded": [],
+    "parent": "Other Chordates"
+  },
+  {
+    "name": "Plants",
+    "rank": "kingdom",
+    "included": [
+      "Plantae"
+    ],
+    "excluded": []
+  },
+  {
+    "name": "Mosses, Hornworts, Liverworts (Non-Vascular Plants)",
+    "rank": "phylum",
+    "included": [
+      "Bryophyta",
+      "Anthocerotophyta",
+      "Marchantiophyta"
+    ],
+    "excluded": [],
+    "parent": "Plants"
+  },
+  {
+    "name": "Vascular Plants",
+    "rank": "classs",
+    "included": [
+      "Equisetopsida",
+      "Tracheophyta"
+    ],
+    "excluded": [],
+    "parent": "Plants"
+  },
+  {
+    "name": "Cycads",
+    "rank": "subclasss",
+    "included": [
+      "Cycadidae",
+      "Cycadatae",
+      "Cycadopsida"
+    ],
+    "excluded": [],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Horsetails",
+    "rank": "subclasss",
+    "included": [
+      "Equisetidae"
+    ],
+    "excluded": [],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Club-mosses",
+    "rank": "subclasss",
+    "included": [
+      "Lycopodiidae",
+      "Lycopodiopsida"
+    ],
+    "excluded": [],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Flowering Plants",
+    "rank": "subclasss",
+    "included": [
+      "Magnoliidae",
+      "Magnoliopsida",
+      "Magnoliophyta"
+    ],
+    "excluded": [],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Monocots",
+    "rank": "superorder",
+    "included": [
+      "Lilianae",
+      "Bromaceae",
+      "Cypripediaceae",
+      "Melanthiaceae"
+    ],
+    "excluded": [],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Dicots",
+    "rank": "subclasss",
+    "included": [
+      "Magnoliidae",
+      "Desfontainiaceae",
+      "Bruniaceae",
+      "Buxaceae",
+      "Chloranthaceae",
+      "Staphyleaceae",
+      "Strasburgeriaceae",
+      "Dipentodontaceae",
+      "Tapisciaceae",
+      "Picramniaceae",
+      "Canellaceae",
+      "Chloanthaceae",
+      "Cornaceae",
+      "Cynomoriaceae",
+      "Cyrillaceae",
+      "Garryaceae",
+      "Magnoliaceae",
+      "Nesogenaceae",
+      "Saururaceae",
+      "Styracaceae",
+      "Trapaceae"
+    ],
+    "excluded": [
+      "Ceratophyllanae",
+      "Lilianae"
+    ],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Conifers, Pines, Kauri, Cedar",
+    "rank": "subclasss",
+    "included": [
+      "Pinidae",
+      "Pinophyta",
+      "Spermatophytina",
+      "Ephedraceae Dumort."
+    ],
+    "excluded": [
+      "Cycadatae",
+      "Magnoliopsida",
+      "Cycadopsida"
+    ],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Ferns",
+    "rank": "subclasss",
+    "included": [
+      "Polypodiidae",
+      "Marattiaceae",
+      "Ophioglossaceae",
+      "Psilotaceae",
+      "Polypodiopsida",
+      "Hymenophyllaceae",
+      "Psilotaceae",
+      "Pteridaceae",
+      "Salviniaceae",
+      "Pteridophyta"
+    ],
+    "excluded": [
+      "Cyatheales",
+      "Hydropteridales"
+    ],
+    "parent": "Vascular Plants"
+  },
+  {
+    "name": "Algae",
+    "rank": "phylum",
+    "included": [
+      "Rhodophyta",
+      "Chlorophyta",
+      "Rhodophyta",
+      "Charophyta",
+      "Glaucophyta",
+      "Mychodeaceae",
+      "Rhodophyta",
+      "Rhodophyta",
+      "Haptophyta",
+      "Dinophyta",
+      "Heterokontophyta",
+      "Bacillariophyta"
+    ],
+    "excluded": [
+      "Equisetopsida"
+    ],
+    "parent": "Plants"
+  },
+  {
+    "name": "Fungi",
+    "rank": "classs",
+    "included": [
+      "Fungi"
+    ],
+    "excluded": []
+  },
+  {
+    "name": "Sac Fungi",
+    "rank": "phylum",
+    "included": [
+      "Ascomycota"
+    ],
+    "excluded": [],
+    "parent": "Fungi"
+  },
+  {
+    "name": "Mushrooms",
+    "rank": "classs",
+    "included": [
+      "Agaricomycetes"
+    ],
+    "excluded": [
+      "Dacrymycetes",
+      "Tremellomycetes"
+    ],
+    "parent": "Fungi"
+  },
+  {
+    "name": "Jelly Fungi",
+    "rank": "classs",
+    "included": [
+      "Tremellomycetes",
+      "Dacrymycetes"
+    ],
+    "excluded": [],
+    "parent": "Fungi"
+  },
+  {
+    "name": "Chytrids",
+    "rank": "phlyum",
+    "included": [
+      "Chytridiomycota"
+    ],
+    "excluded": [],
+    "parent": "Fungi"
+  },
+  {
+    "name": "Mycorrhizal Fungi, decomposers",
+    "rank": "phylum",
+    "included": [
+      "Glomeromycota",
+      "Mucoromycota"
+    ],
+    "excluded": [],
+    "parent": "Fungi"
+  },
+  {
+    "name": "Slime Moulds",
+    "rank": "phylum",
+    "included": [
+      "AMOEBOZOA"
+    ],
+    "excluded": [],
+    "parent": "Fungi"
+  },
+  {
+    "name": "Protista and Chromista",
+    "rank": "kingdom",
+    "included": [
+      "PROTISTA",
+      "Chromista"
+    ],
+    "excluded": [
+      "Haptophyta",
+      "Dinophyta",
+      "Heterokontophyta",
+      "Bacillariophyta"
+    ]
+  },
+  {
+    "name": "Viruses",
+    "rank": "kingdom",
+    "included": [
+      "Virus",
+      "Viroid",
+      "Helvetiavirae",
+      "Orthornavirae",
+      "Bamfordvirae",
+      "Shotokuvirae"
+    ],
+    "excluded": []
+  },
+  {
+    "name": "Bacteria",
+    "rank": "kingdom",
+    "included": [
+      "Bacteria"
+    ],
+    "excluded": []
+  }
+]
