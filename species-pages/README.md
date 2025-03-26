@@ -87,7 +87,6 @@ VITE_ALA_NATIVE_INTRODUCED_INFO_URL=https://lists.ala.org.au/speciesListItem/lis
 
 VITE_APP_ALERTS_URL=https://alerts.ala.org.au
 VITE_APP_ALERT_RESOURCE_NAME=Atlas of Living Australia
-VITE_REGIONS_CONFIG_URL=https://ala-index.dev.ala.org.au/static/regions
 ```
 
 ## Other configuration
@@ -122,7 +121,3 @@ file `./src/config/speciesGroupsMap.json`. The names-extract tool has informatio
 ### ./src/config/speciesGroupsMap.json
 This file is constructed by the `generateBuildInfo.js` script and using `./public/speciesGroups.json`. This is done 
 during the dev and build scripts. It is used by the UI to be able to display the species group hierarchy.
-
-### ./src/config/speciesGroupsMapLegacyRegions.json
-This file is used to determine the species groups that appear on the `/regions` page. It is temporarily required
-because regions needs to have the same speciesGroupMap as biocache, and the search-service currently uses the future groups.
