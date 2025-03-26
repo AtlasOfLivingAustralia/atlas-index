@@ -5,7 +5,7 @@ For local testing purposes, the following instructions will help you deploy the 
 ### Requirements
 1. Kubernetes cluster
 2. Authentication service
-3. A config file for search-service (see below)
+3. A config map for search-service (see below)
 
 ### Update the cluster
 ```shell
