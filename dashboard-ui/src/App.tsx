@@ -18,6 +18,7 @@ import FontAwesomeIcon from './components/icon/fontAwesomeIconLite'
 import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {useEffect, useState} from "react";
 import './index.css';
+import buildInfo from './buildInfo.json';
 
 const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
 
@@ -26,6 +27,12 @@ export default function App() {
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
 
     useEffect(() => {
+        // Add build info to head meta tags
+        const meta = document.createElement('meta');
+        meta.name = 'buildInfo';
+        meta.content = JSON.stringify(buildInfo);
+        document.head.appendChild(meta);
+
         if (import.meta.env.VITE_COMMON_CSS) {
             // load the common CSS used by both the header and footer
             fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {
