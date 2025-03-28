@@ -3,227 +3,31 @@
     "name": "Animals",
     "children": [
       {
-        "name": "Vertebrates",
+        "name": "Mammals"
+      },
+      {
+        "name": "Birds"
+      },
+      {
+        "name": "Reptiles"
+      },
+      {
+        "name": "Amphibians"
+      },
+      {
+        "name": "Fishes"
+      },
+      {
+        "name": "Molluscs"
+      },
+      {
+        "name": "Arthropods",
         "children": [
           {
-            "name": "Frogs"
+            "name": "Crustaceans"
           },
           {
-            "name": "Birds"
-          },
-          {
-            "name": "Snakes and Lizards"
-          },
-          {
-            "name": "Mammals"
-          },
-          {
-            "name": "Fish and Sharks"
-          }
-        ]
-      },
-      {
-        "name": "Insects",
-        "children": [
-          {
-            "name": "Butterflies, Moths"
-          },
-          {
-            "name": "Mantids, Mantises, Praying Mantids"
-          },
-          {
-            "name": "Beetles, Weevils"
-          },
-          {
-            "name": "Ants, Bees, Sawflies, Wasps"
-          },
-          {
-            "name": "Flies and mosquitos"
-          },
-          {
-            "name": "Damselflies, Dragonflies"
-          },
-          {
-            "name": "Grasshoppers, crickets, locusts"
-          },
-          {
-            "name": "Aphids, Bugs, Cicadas, Leafhoppers, Scale Insects"
-          },
-          {
-            "name": "Stick Insects"
-          },
-          {
-            "name": "Cockroaches and Termites"
-          },
-          {
-            "name": "Stoneflies"
-          },
-          {
-            "name": "Mayflies"
-          },
-          {
-            "name": "Caddisflies"
-          },
-          {
-            "name": "Thrips"
-          }
-        ]
-      },
-      {
-        "name": "Centipedes, Millipedes"
-      },
-      {
-        "name": "Mites, Spiders, Ticks, Scorpions",
-        "children": [
-          {
-            "name": "Spiders"
-          },
-          {
-            "name": "Sea Spiders"
-          },
-          {
-            "name": "Scorpions, Pseudoscorpions and Whip Scorpions"
-          },
-          {
-            "name": "Mites"
-          },
-          {
-            "name": "Ticks"
-          }
-        ]
-      },
-      {
-        "name": "Shellfish",
-        "children": [
-          {
-            "name": "Crabs"
-          },
-          {
-            "name": "Prawns, Shrimp"
-          },
-          {
-            "name": "Lobsters and crayfish"
-          }
-        ]
-      },
-      {
-        "name": "Echinoderms",
-        "children": [
-          {
-            "name": "Sea Cucumbers"
-          },
-          {
-            "name": "Brittle stars, biscuit stars"
-          },
-          {
-            "name": "Sea stars, starfish"
-          },
-          {
-            "name": "Feather Stars"
-          },
-          {
-            "name": "Sea urchins"
-          }
-        ]
-      },
-      {
-        "name": "Molluscs",
-        "children": [
-          {
-            "name": "Bivalves, Mussels, Oysters, Clams, Cockles"
-          },
-          {
-            "name": "Octopus, Squid, Cuttlefish,Nautilius"
-          },
-          {
-            "name": "Slugs, Snails"
-          },
-          {
-            "name": "Sea Slugs"
-          }
-        ]
-      },
-      {
-        "name": "Corals, Jellyfish, Sea Anemones"
-      },
-      {
-        "name": "Sponges"
-      },
-      {
-        "name": "Worms",
-        "children": [
-          {
-            "name": "Segmented Worms"
-          },
-          {
-            "name": "Roundworms, Nematodes"
-          },
-          {
-            "name": "Flatworms"
-          },
-          {
-            "name": "Gordian Worms, Horse-Hair Worms"
-          },
-          {
-            "name": "Ribbon Worms"
-          },
-          {
-            "name": "Bristle-Jaws, Arrow Worms"
-          },
-          {
-            "name": "Other Worms"
-          }
-        ]
-      },
-      {
-        "name": "Other invertebrates",
-        "children": [
-          {
-            "name": "Brachiopods"
-          },
-          {
-            "name": "Velvet Worms"
-          },
-          {
-            "name": "Moss Animals, Bryozoans"
-          },
-          {
-            "name": "Comb Jellies"
-          },
-          {
-            "name": "Mesozoans"
-          },
-          {
-            "name": "Gastrotrichs, Hairybellies, Hairybacks"
-          },
-          {
-            "name": "Jaw Worms, Gnathostomulida"
-          },
-          {
-            "name": "Acorn Worms, Pterobranchs"
-          },
-          {
-            "name": "Mud Dragons"
-          },
-          {
-            "name": "Rotifers, Wheel Animals"
-          },
-          {
-            "name": "Water Bears"
-          },
-          {
-            "name": "Spoon Worms"
-          }
-        ]
-      },
-      {
-        "name": "Other Chordates",
-        "children": [
-          {
-            "name": "Lancelets"
-          },
-          {
-            "name": "Sea Squirts"
+            "name": "Insects"
           }
         ]
       }
@@ -233,72 +37,32 @@
     "name": "Plants",
     "children": [
       {
-        "name": "Mosses, Hornworts, Liverworts (Non-Vascular Plants)"
+        "name": "Bryophytes"
       },
       {
-        "name": "Vascular Plants",
-        "children": [
-          {
-            "name": "Cycads"
-          },
-          {
-            "name": "Horsetails"
-          },
-          {
-            "name": "Club-mosses"
-          },
-          {
-            "name": "Flowering Plants"
-          },
-          {
-            "name": "Monocots"
-          },
-          {
-            "name": "Dicots"
-          },
-          {
-            "name": "Conifers, Pines, Kauri, Cedar"
-          },
-          {
-            "name": "Ferns"
-          }
-        ]
+        "name": "Conifers, Cycads"
       },
       {
-        "name": "Algae"
+        "name": "Ferns and allies"
+      },
+      {
+        "name": "Flowering plants"
       }
     ]
   },
   "Fungi": {
-    "name": "Fungi",
-    "children": [
-      {
-        "name": "Sac Fungi"
-      },
-      {
-        "name": "Mushrooms"
-      },
-      {
-        "name": "Jelly Fungi"
-      },
-      {
-        "name": "Chytrids"
-      },
-      {
-        "name": "Mycorrhizal Fungi, decomposers"
-      },
-      {
-        "name": "Slime Moulds"
-      }
-    ]
+    "name": "Fungi"
   },
-  "Protista and Chromista": {
-    "name": "Protista and Chromista"
+  "Chromista": {
+    "name": "Chromista"
   },
-  "Viruses": {
-    "name": "Viruses"
+  "Protozoa": {
+    "name": "Protozoa"
   },
   "Bacteria": {
     "name": "Bacteria"
+  },
+  "Algae": {
+    "name": "Algae"
   }
 }

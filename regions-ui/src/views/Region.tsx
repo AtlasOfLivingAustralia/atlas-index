@@ -1,39 +1,44 @@
 import {useEffect, useRef, useState} from "react";
-
 import {Breadcrumb} from "../api/sources/model.ts";
-
-import {MapContainer, TileLayer, WMSTileLayer} from 'react-leaflet';
+import {LayersControl, MapContainer, TileLayer, WMSTileLayer} from 'react-leaflet';
 import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
-
 import 'leaflet/dist/leaflet.css';
 import {LatLng} from "leaflet";
 import {formatNumber} from "../components/util/FormatNumber.tsx"
 import "./region.css"
-
-import speciesGroupMapImport from "../config/speciesGroupsMapLegacyRegions.json";
-
+import speciesGroupMapImport from "../config/speciesGroupsMap.json";
 import {Container, OverlayTrigger, Tab, Tabs, Tooltip} from "react-bootstrap";
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner'
 import {faInfoCircle} from '@fortawesome/free-solid-svg-icons/faInfoCircle';
-
-
 import {Pie} from "react-chartjs-2";
 import {Chart, ArcElement, BarElement, Legend} from 'chart.js'
 import DualRangeSlider from "../components/common-ui/dualRangeSlider.tsx";
+import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
+import useHashState from "../components/util/useHashState.tsx";
 
 Chart.register(ArcElement, BarElement, Legend);
 
+// defaults
+const center = new LatLng(Number(import.meta.env.VITE_MAP_CENTRE_LAT), Number(import.meta.env.VITE_MAP_CENTRE_LNG));
+const OBJECT_OPACITY = 50; // 0 to 100
+const OCCURRENCE_OPACITY = 100; // 0 to 100
+const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
+const globalFq = import.meta.env.VITE_GLOBAL_FQ;
+const EARLIEST_YEAR = Number(import.meta.env.VITE_EARLIEST_YEAR);
+const INTERVAL_MILLISECONDS = Number(import.meta.env.VITE_PLAYER_INTERVAL_MILLISECONDS);
+const ranks = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'];
 const customColors = [
     '#003A70', '#F26649', '#6BDAD5', '#EB9D07', '#A191B2', '#FFC557', '#D9D9D9'
 ];
 
+// default species group import, should this be moved to the buildSpeciesGroupConfig.js?
+const ALL_SPECIES = "All Species";
 const speciesGroups: SpeciesGroupItem[] = [
     {
-        name: "All Species",
+        name: ALL_SPECIES,
         indent: 0
     }
 ];
-
 const insertFlatSpeciesGroups = (group: SpeciesGroup[], indent: number = 0): void => {
     group.forEach(thisGroup => {
         speciesGroups.push({
@@ -45,17 +50,9 @@ const insertFlatSpeciesGroups = (group: SpeciesGroup[], indent: number = 0): voi
         }
     });
 };
-
 insertFlatSpeciesGroups(Object.values(speciesGroupMapImport), 1);
 
-const center = new LatLng(Number(import.meta.env.VITE_MAP_CENTRE_LAT), Number(import.meta.env.VITE_MAP_CENTRE_LNG));
-const OBJECT_OPACITY = 50; // 0 to 100
-const OCCURRENCE_OPACITY = 100; // 0 to 100
-const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
-const globalFq = import.meta.env.VITE_GLOBAL_FQ;
-const EARLIEST_YEAR = Number(import.meta.env.VITE_EARLIEST_YEAR);
-const INTERVAL_MILLISECONDS = Number(import.meta.env.VITE_PLAYER_INTERVAL_MILLISECONDS);
-
+// information about the spatial object that defines the region used on the page
 interface SpatialObject {
     pid: string,
     fid: string,
@@ -65,21 +62,25 @@ interface SpatialObject {
     centroid: [number, number]
 }
 
+// used by the species group import
 interface SpeciesGroup {
     name: string,
     children?: SpeciesGroup[]
 }
 
+// used for the left hand side section for the listing of species groups
 interface SpeciesGroupItem {
     name: string,
     indent: number
 }
 
+// used for the right hand side section for the listing of species
 interface SpeciesListItem {
     label: string,
     count: number
 }
 
+// used for the chart data
 interface ChartData {
     labels: string[];
     datasets?: {
@@ -88,14 +89,29 @@ interface ChartData {
     }[];
 }
 
+/**
+ * Region page. Shows a single region and allows exploration of species and taxonomy.
+ * Based on the existing regions app.
+ *
+ * Query parameters:
+ * - id: the region id
+ *
+ * The hash in the URL is used for:
+ * - species: selected species
+ * - group: selected species group
+ * - tab: selected tab
+ * - from: year range start
+ * - to: year range end
+ *
+ * @param setBreadcrumbs
+ * @constructor
+ */
 function Region({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
-
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
     const [speciesCount, setSpeciesCount] = useState(-1);
     const [showOccurrences, setShowOccurrences] = useState(true);
-    const mapRef = useRef<L.Map | null>(null);
     const [showObject, setShowObject] = useState(true);
     const [objectOpacity, setObjectOpacity] = useState(OBJECT_OPACITY);
     const [occurrenceOpacity, setOccurrenceOpacity] = useState(OCCURRENCE_OPACITY);
@@ -103,31 +119,34 @@ function Region({setBreadcrumbs}: {
     const [occurrenceFq, setOccurrenceFq] = useState('');
     const [speciesGroupFacet, setSpeciesGroupFacet] = useState<{ [key: string]: number }>({});
     const [speciesList, setSpeciesList] = useState<SpeciesListItem[] | undefined>(undefined);
-    const [playerState, setPlayerState] = useState<string>('stopped'); // 'stopped', 'playing', 'paused'paused'
+    const [playerState, setPlayerState] = useState<string>('stopped'); // 'stopped', 'playing', 'paused'
     const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
     const [isFetchingSpeciesList, setIsFetchingSpeciesList] = useState(false);
-    const [selectedSpecies, setSelectedSpecies] = useState<string | null>(null);
-    const [group, setGroup] = useState<string | null>(null);
+    const [selectedSpecies, setSelectedSpecies] = useHashState<string | null>('species', null);
+    const [group, setGroup] = useHashState<string>('group', ALL_SPECIES);
     const [chartData, setChartData] = useState<ChartData | undefined>(undefined);
-    const ranks = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'];
     const [rankFqs, setRankFqs] = useState<string[]>([]);
     const [selectedRanks, setSelectedRanks] = useState<string[]>([]);
     const [currentRank, setCurrentRank] = useState<number>(0);
-    const [yearMin, setYearMin] = useState(EARLIEST_YEAR);
-    const [yearMax, setYearMax] = useState(new Date().getFullYear());
+    const [yearMin, setYearMin] = useHashState<number>('from', EARLIEST_YEAR);
+    const [yearMax, setYearMax] = useHashState<number>('to', new Date().getFullYear());
+    // @ts-ignore
+    const [tab, setTab] = useHashState<string>('tab', 'species');
 
     // needed for the player to work
     const playerStateRef = useRef(playerState);
     const controllerSpeciesListRef = useRef<AbortController>(new AbortController());
+    const mapRef = useRef<L.Map | null>(null);
 
+    // I don't remember why playerState needs a wrapper playerStateRef
     useEffect(() => {
         playerStateRef.current = playerState;
     }, [playerState]);
 
+    // init
     useEffect(() => {
-        // get the id from the query hash, specifically the id parameter
-        const hash = window.location.hash;
-        const queryString = hash.split('?')[1];
+        // get the id from the query string and fetch the spatial object's information
+        const queryString = location.search;
         const searchParams = new URLSearchParams(queryString);
         const id = searchParams.get('id');
         if (id) {
@@ -135,6 +154,7 @@ function Region({setBreadcrumbs}: {
         }
     }, []);
 
+    // return the dateFq string using the current year range
     function dateFq(newYearRange?: [number, number]) {
         let currentYearRange = newYearRange || [yearMin, yearMax];
         let startYear = currentYearRange ? currentYearRange[0] : EARLIEST_YEAR;
@@ -143,6 +163,7 @@ function Region({setBreadcrumbs}: {
         return "&fq=" + encodeURIComponent(value);
     }
 
+    // pie chart component
     const PieChart = (data: any) => {
         const options = {
             plugins: {
@@ -179,7 +200,7 @@ function Region({setBreadcrumbs}: {
                     const selected = chartData.labels[elements[0].index];
                     const fq: string = `&fq=${ranks[currentRank]}:\"${encodeURIComponent(selected)}\"`;
 
-                    // drill down, with debounce
+                    // drill down into the chart for the given rank and taxon name
                     if (!rankFqs.includes(fq)) {
                         let newRankFqs = [...rankFqs, fq];
                         setRankFqs(newRankFqs);
@@ -212,6 +233,7 @@ function Region({setBreadcrumbs}: {
                     options={options}/>;
     }
 
+    // get the spatial object and initialize the list of species groups to only those that have records
     const fetchObject = async (id: string) => {
         const url = `${import.meta.env.VITE_SPATIAL_URL}/ws/object/${id}`;
         const response = await fetch(url);
@@ -234,6 +256,7 @@ function Region({setBreadcrumbs}: {
                 centroid: centroid
             });
 
+            // set the breadcrumbs now that we have the region name
             setBreadcrumbs([
                 {title: 'Home', href: import.meta.env.VITE_HOME_URL},
                 {title: "Explore", href: import.meta.env.VITE_EXPLORE_URL},
@@ -241,8 +264,8 @@ function Region({setBreadcrumbs}: {
                 {title: data.name, href: ''}
             ]);
 
-            // get speciesGroup facet
-            const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=${data.fid}:\"${encodeURIComponent(data.name)}\"&facets=speciesGroup&pageSize=0&flimit=-1${globalFq}${dateFq()}`;
+            // initialize the species groups with only those with data
+            const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=${data.fid}:\"${encodeURIComponent(data.name)}\"&facets=speciesGroup&pageSize=0&flimit=-1${globalFq}`;
             const response2 = await fetch(url2);
             const data2 = await response2.json();
             if (data2.facetResults && data2.facetResults[0]) {
@@ -253,26 +276,34 @@ function Region({setBreadcrumbs}: {
                 setSpeciesGroupFacet(counts);
                 setOccurrenceCount(data2.totalRecords);
 
-                fetchSpeciesList(data.fid, data.name, '');
+                // set initial fq
+                const newOccurrenceFq = group !== ALL_SPECIES ? `&fq=${encodeURIComponent(`speciesGroup:\"${group}\"`)}` : '';
+                setOccurrenceFq(newOccurrenceFq);
+
+                // get the initial list of species and chart data
+                fetchSpeciesList(data.fid, data.name, newOccurrenceFq);
                 fetchChartData(data.fid, data.name);
             } else {
+                // indicate that loading is finished and no data is available (replace nulls with empty values)
                 setSpeciesGroupFacet({});
                 setOccurrenceCount(0);
             }
         }
     }
 
+    // get the list of species for the current state
     function fetchSpeciesList(fid: string, name: string, fq: string, currentYearRange?: [number, number]) {
-        setIsFetchingSpeciesList(true);
-        setSpeciesList(undefined);
+        setIsFetchingSpeciesList(true); // show spinner
+        setSpeciesList(undefined); // show empty list
 
-        // Reset the AbortController
+        // Reset the AbortController if it exists
         if (controllerSpeciesListRef.current) {
             controllerSpeciesListRef.current.abort();
         }
         controllerSpeciesListRef.current = new AbortController();
         const signalSpeciesList = controllerSpeciesListRef.current.signal;
 
+        // query biocache-service
         const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=${fid}:\"${encodeURIComponent(name)}\"${fq}&pageSize=0&flimit=-1&facets=species${globalFq}${dateFq(currentYearRange)}`;
         fetch(url, {signal: signalSpeciesList})
             .then(response => response.json())
@@ -282,16 +313,20 @@ function Region({setBreadcrumbs}: {
                     setSpeciesCount(data.facetResults[0].fieldResult.length);
                     setSpeciesList(data.facetResults[0].fieldResult);
                 } else {
+                    // indicate no data is available (replace nulls with empty values)
                     setOccurrenceCount(0);
                     setSpeciesCount(0);
                     setSpeciesList([]);
                 }
+                // indicate that loading is finished
                 setIsFetchingSpeciesList(false);
 
+                // if the player is running, continue playing (does not wait for WMS to load)
                 if (playerStateRef.current === 'playing') {
                     playLoop(currentYearRange || [yearMin, yearMax]);
                 }
             }).catch((error) => {
+            // cleanly handle error
             if (error.name !== 'AbortError') {
                 setOccurrenceCount(0);
                 setSpeciesCount(0);
@@ -301,13 +336,15 @@ function Region({setBreadcrumbs}: {
                     playerStop();
                 }
             }
-
             setIsFetchingSpeciesList(false);
         });
     }
 
+    // get the chart data for the current state
     function fetchChartData(fid: string, name: string, newRank?: number, newOccurrenceFq?: string, currentYearRange?: [number, number]) {
-        setChartData(undefined);
+        setChartData(undefined); // clear the chart
+
+        // build the biocache-service query
         const rank = newRank !== undefined ? newRank : currentRank;
         const fq = newOccurrenceFq !== undefined ? newOccurrenceFq : occurrenceFq;
         const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=${fid}:\"${encodeURIComponent(name)}\"${fq}${globalFq}${dateFq(currentYearRange)}&pageSize=0&flimit=-1&facets=${ranks[rank]}`;
@@ -334,6 +371,7 @@ function Region({setBreadcrumbs}: {
 
                     setChartData(chart);
                 } else {
+                    // indicate no data is available (replace nulls with empty values)
                     setChartData({labels: []});
                 }
             });
@@ -341,6 +379,7 @@ function Region({setBreadcrumbs}: {
         return "chart data";
     }
 
+    // build the WMS URL for the current state
     function getAlaWmsUrl() {
         if (!object) {
             return '';
@@ -349,6 +388,7 @@ function Region({setBreadcrumbs}: {
         return `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=${object.fid}:\"${encodeURIComponent(object.name)}\"&ENV=color%3AC44D34%3Bname%3Acircle%3Bsize%3A3%3Bopacity%3A0.7&OUTLINE=false${occurrenceFq}${globalFq}${dateFq()}`;
     }
 
+    // update current state when a new species group is selected
     function filter(newGroup: any) {
         if (!object) {
             return;
@@ -358,31 +398,31 @@ function Region({setBreadcrumbs}: {
             return;
         }
 
-        setGroup(newGroup.name);
+        setGroup(newGroup.name); // select the new group
+        setSelectedSpecies(null); // unselect any selected species
 
-        const newFq = newGroup.name !== "All Species" ? `&fq=${encodeURIComponent(`speciesGroup:\"${newGroup.name}\"`)}` : '';
+        // construct the new fq
+        const newFq = newGroup.name !== ALL_SPECIES ? `&fq=${encodeURIComponent(`speciesGroup:\"${newGroup.name}\"`)}` : '';
 
+        // set and use the new fq
         setOccurrenceFq(newFq);
-
         fetchSpeciesList(object.fid, object.name, newFq);
-
         redrawMap();
-
-        setSelectedSpecies(null);
     }
 
+    // update current state when a new species is selected
     function filterSpecies(species: any) {
-        if (group) {
+        if (group && group !== ALL_SPECIES) {
             setOccurrenceFq(`&fq=${encodeURIComponent(`speciesGroup:\"${group}\"`)}&fq=${encodeURIComponent(`species:\"${species.label}\"`)}`);
         } else {
             setOccurrenceFq(`&fq=${encodeURIComponent(`species:\"${species.label}\"`)}`);
         }
 
         redrawMap();
-
         setSelectedSpecies(species.label);
     }
 
+    // zoom to the extents of the region
     function zoomToExtents(extents: [[number, number], [number, number]]) {
         if (!mapRef.current) {
             setTimeout(() => {
@@ -394,11 +434,13 @@ function Region({setBreadcrumbs}: {
         mapRef.current.fitBounds(extents);
     }
 
+    // open the download link for the current state
     function openDownloadLink() {
         if (!object) {
             return;
         }
 
+        // build the biocache-hub URL that opens the biocache-hub's download page
         const q = `${object.fid}:"${object.name}"`
         const params = `?q=${encodeURIComponent(q)}${occurrenceFq}${globalFq}${dateFq()}`;
         const searchParams = encodeURIComponent(params); // encode the whole query
@@ -406,15 +448,18 @@ function Region({setBreadcrumbs}: {
         window.open(url, '_blank');
     }
 
-    function openViewLink() {
+    // open the biocache-hub search results page for the current species (or null), including the current state (date range filter, global fq)
+    function openBiocacheForSpecies(species: any) {
         if (!object) {
             return;
         }
 
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"${occurrenceFq}`;
+        const speciesFq = species ? `&fq=species:\"${encodeURIComponent(species.label)}\"` : '';
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"${speciesFq}${occurrenceFq}${globalFq}${dateFq()}`;
         window.open(url, '_blank');
     }
 
+    // update the current state of the map, chart and/or species list when the year range change is finalised
     function yearRangeEnd() {
         if (!object) {
             return;
@@ -423,14 +468,12 @@ function Region({setBreadcrumbs}: {
         const newYearRange: [number, number] = [yearMin, yearMax];
 
         fetchSpeciesList(object.fid, object.name, occurrenceFq, newYearRange);
-
         fetchChartData(object.fid, object.name, currentRank, occurrenceFq, newYearRange);
-
         redrawMap();
 
         // species selection is cleared when the year range changes, so set it to null and reset the occurrenceFq
         if (selectedSpecies) {
-            if (group) {
+            if (group && group !== ALL_SPECIES) {
                 setOccurrenceFq(`&fq=speciesGroup:\"${encodeURIComponent(group)}\"`);
             }
             setSelectedSpecies(null);
@@ -445,6 +488,7 @@ function Region({setBreadcrumbs}: {
         }, 5);
     }
 
+    // start playing the year range player
     function playerPlay() {
         if (!object) {
             return;
@@ -453,10 +497,8 @@ function Region({setBreadcrumbs}: {
         setPlayerState('playing');
         let currentYearRange: [number, number] = [yearMin, yearMax];
         if (playerStateRef.current == 'stopped') {
-            console.log('playerPlay: stopped');
             // reset the year range
             currentYearRange = [EARLIEST_YEAR, Math.min(EARLIEST_YEAR + 10, new Date().getFullYear())];
-            console.log('playerPlay: currentYearRange', EARLIEST_YEAR, currentYearRange, Math.min(EARLIEST_YEAR + 10, new Date().getFullYear()));
             setYearMin(currentYearRange[0]);
             setYearMax(currentYearRange[1]);
             redrawMap();
@@ -467,6 +509,7 @@ function Region({setBreadcrumbs}: {
         playLoop(currentYearRange);
     }
 
+    // do the next year range of year range player
     function playLoop(currentYearRange: [number, number]) {
         if (!object) {
             return;
@@ -489,6 +532,7 @@ function Region({setBreadcrumbs}: {
         setTimeoutId(id);
     }
 
+    // pause the year range player1
     function playerPause() {
         if (controllerSpeciesListRef.current) {
             controllerSpeciesListRef.current.abort();
@@ -500,6 +544,7 @@ function Region({setBreadcrumbs}: {
         setPlayerState('paused');
     }
 
+    // stop the year range player1
     function playerStop() {
         if (controllerSpeciesListRef.current) {
             controllerSpeciesListRef.current.abort();
@@ -511,6 +556,7 @@ function Region({setBreadcrumbs}: {
         setPlayerState('stopped');
     }
 
+    // reset the year range and stop the player
     function playerReset() {
         if (!object) {
             return;
@@ -528,12 +574,13 @@ function Region({setBreadcrumbs}: {
         }, 100);
     }
 
+    // open the species page for the selected species
     function openSpeciesPage(species: any) {
         if (!object) {
             return;
         }
 
-        // need the taxonId first, do a biocache query to get it
+        // need the taxonId first, do a biocache query to get it. Namematching service could also be used
         const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"&fq=species:\"${encodeURIComponent(species.label)}\"${occurrenceFq}${globalFq}${dateFq()}&pageSize=1`;
         fetch(url)
             .then(response => response.json())
@@ -546,22 +593,20 @@ function Region({setBreadcrumbs}: {
             });
     }
 
-    function openBiocacheForSpecies(species: any) {
+    // do the reset required after a tab change
+    function tabChanged(key: string | null) {
+        if (!key) {
+            return;
+        }
+
         if (!object) {
             return;
         }
 
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"&fq=species:\"${encodeURIComponent(species.label)}\"${occurrenceFq}${globalFq}${dateFq()}`;
-        window.open(url, '_blank');
-    }
-
-    function tabChanged() {
-        if (!object) {
-            return;
-        }
+        setTab(key);
 
         // reset stuff
-        setGroup(null);
+        setGroup(ALL_SPECIES);
         setSelectedSpecies(null);
         setOccurrenceFq('');
         setSpeciesList(undefined);
@@ -570,12 +615,13 @@ function Region({setBreadcrumbs}: {
         setRankFqs([]);
         setSelectedRanks([]);
 
+        // updates required by value resets
         fetchSpeciesList(object.fid, object.name, '');
         fetchChartData(object.fid, object.name, 0, '');
-
         redrawMap();
     }
 
+    // drill up the chart, when a button is clicked
     function drillUpChart() {
         if (!object) {
             return;
@@ -599,20 +645,13 @@ function Region({setBreadcrumbs}: {
         }
     }
 
-    function openBiocacheForChart() {
-        if (!object) {
-            return;
-        }
-
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"${occurrenceFq}${globalFq}${dateFq()}`;
-        window.open(url, '_blank');
-    }
-
+    // create an alert for the region and global fq (differs from elsewhere that use the current state)
     function createAlert() {
         if (!object) {
             return;
         }
 
+        // while this produces an alert identical to biocache-hubs, alerts app may need work
         const query = `/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"${globalFq}`;
         const url = `${import.meta.env.VITE_APP_ALERTS_URL}/webservice/createBiocacheNewRecordsAlert?webserviceQuery=${query}&uiQuery=${query}&queryDisplayName=${object.name}&baseUrlForWS=${import.meta.env.VITE_APP_BIOCACHE_URL}/ws&baseUrlForUI=${import.meta.env.VITE_APP_BIOCACHE_UI_URL}&resourceName=${import.meta.env.VITE_APP_ALERT_RESOURCE_NAME}`;
         window.open(url, '_blank');
@@ -630,7 +669,9 @@ function Region({setBreadcrumbs}: {
                         <Container className="mt-5">
                             <div className="d-flex justify-content-between">
                                 <h2>{object.name}</h2>
-                                <button className="btn btn-primary" onClick={createAlert}>Alerts</button>
+                                <div>
+                                    <button className="btn btn-sm btn-primary" onClick={createAlert}>Alerts</button>
+                                </div>
                             </div>
                             <h3 className="mt-4">Occurrence records ({formatNumber(occurrenceCount)})</h3>
                             <h3 className="mt-3">Number of species ({formatNumber(speciesCount)})</h3>
@@ -647,12 +688,12 @@ function Region({setBreadcrumbs}: {
 
                                                 <div className="d-flex">
                                                     <div className="regionPanel regionLeft">
-                                                        {speciesGroupFacet && speciesGroups.filter(group => speciesGroupFacet[group.name] || group.name === "All Species").map((group, idx) =>
+                                                        {speciesGroupFacet && speciesGroups.filter(item => speciesGroupFacet[item.name] || item.name === "All Species").map((itemFiltered, idx) =>
                                                             <div key={idx}
-                                                                 onClick={() => isFetchingSpeciesList || filter(group)}
-                                                                 className={"speciesItemParent speciesItem" + (group.indent > 0 ? " ms-" + group.indent * 2 : "")}
+                                                                 onClick={() => isFetchingSpeciesList || filter(itemFiltered)}
+                                                                 className={"speciesItemParent speciesItem" + (itemFiltered.indent > 0 ? " ms-" + itemFiltered.indent * 2 : "") + (itemFiltered.name === group ? " speciesItemSelected" : "")}
                                                                  style={{cursor: isFetchingSpeciesList ? 'wait' : 'pointer'}}>
-                                                                {group.name}
+                                                                {itemFiltered.name}
                                                             </div>
                                                         )}
                                                     </div>
@@ -695,10 +736,12 @@ function Region({setBreadcrumbs}: {
                                             </div>
 
                                             <div className="d-flex mt-3">
-                                                <button className="btn btn-default" onClick={openViewLink}>
+                                                <button className="btn btn-sm btn-default"
+                                                        onClick={() => openBiocacheForSpecies(null)}>
                                                     View records
                                                 </button>
-                                                <button className="btn btn-default ms-3" onClick={openDownloadLink}>
+                                                <button className="btn btn-sm btn-default ms-3"
+                                                        onClick={openDownloadLink}>
                                                     Download records
                                                 </button>
                                             </div>
@@ -716,11 +759,11 @@ function Region({setBreadcrumbs}: {
                                             </div>
                                             {currentRank > 0 && (
                                                 <div className="d-flex mt-3">
-                                                    <button className="btn btn-default" onClick={drillUpChart}>
+                                                    <button className="btn btn-sm btn-default" onClick={drillUpChart}>
                                                         Previous rank
                                                     </button>
-                                                    <button className="btn btn-default ms-3"
-                                                            onClick={openBiocacheForChart}>
+                                                    <button className="btn btn-sm btn-default ms-3"
+                                                            onClick={() => openBiocacheForSpecies(null)}>
                                                         View records
                                                         for {ranks[currentRank - 1]} {selectedRanks[currentRank - 1]}
                                                     </button>
@@ -754,7 +797,8 @@ function Region({setBreadcrumbs}: {
                                                 <OverlayTrigger
                                                     placement="top"
                                                     overlay={<Tooltip id="tooltip-top">
-                                                        How to use time controls: drag handles to restrict date or play by
+                                                        How to use time controls: drag handles to restrict date or play
+                                                        by
                                                         decade.</Tooltip>}>
                                                     <p className="fw-bold ms-3"><FontAwesomeIcon
                                                         icon={faInfoCircle}/></p>
@@ -788,11 +832,35 @@ function Region({setBreadcrumbs}: {
                                                     worldCopyJump={true}
                                                     style={{height: '530px', borderRadius: '10px'}}
                                                 >
-                                                    <TileLayer
-                                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                                        url="https://spatial.ala.org.au/osm/{z}/{x}/{y}.png"
-                                                        zIndex={1}
-                                                    />
+                                                    <LayersControl position="topright">
+                                                        <LayersControl.BaseLayer checked name="Minimal">
+                                                            <TileLayer
+                                                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                                url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+                                                                zIndex={1}
+                                                            />
+                                                        </LayersControl.BaseLayer>
+                                                        {import.meta.env.VITE_GOOGLE_MAP_API_KEY &&
+                                                            <>
+                                                                <LayersControl.BaseLayer name="Road">
+                                                                    <ReactLeafletGoogleLayer
+                                                                        apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+                                                                        type={'roadmap'}/>
+                                                                </LayersControl.BaseLayer>
+                                                                <LayersControl.BaseLayer name="Terrain">
+                                                                    <ReactLeafletGoogleLayer
+                                                                        apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+                                                                        type={'terrain'}/>
+                                                                </LayersControl.BaseLayer>
+                                                                <LayersControl.BaseLayer name="Satellite">
+                                                                    <ReactLeafletGoogleLayer
+                                                                        apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+                                                                        type={'satellite'}/>
+                                                                </LayersControl.BaseLayer>
+                                                            </>
+                                                        }
+                                                    </LayersControl>
+
                                                     {object && showOccurrences && occurrenceFq !== undefined && (
                                                         <WMSTileLayer
                                                             url={getAlaWmsUrl()}
@@ -821,7 +889,8 @@ function Region({setBreadcrumbs}: {
                                                            onChange={(e) => setShowOccurrences(e.target.checked)}/>
                                                     <div className="ms-2">Occurrences</div>
                                                 </div>
-                                                <DualRangeSlider min={0} max={100} minValue={occurrenceOpacity} maxValue={100} stepSize={1}
+                                                <DualRangeSlider min={0} max={100} minValue={occurrenceOpacity}
+                                                                 maxValue={100} stepSize={1}
                                                                  onChange={(minVal) => {
                                                                      setOccurrenceOpacity(Math.floor(minVal));
                                                                  }}
@@ -832,7 +901,8 @@ function Region({setBreadcrumbs}: {
                                                            onChange={(e) => setShowObject(e.target.checked)}/>
                                                     <div className="ms-2">Region</div>
                                                 </div>
-                                                <DualRangeSlider min={0} max={100} minValue={objectOpacity} maxValue={100} stepSize={1}
+                                                <DualRangeSlider min={0} max={100} minValue={objectOpacity}
+                                                                 maxValue={100} stepSize={1}
                                                                  onChange={(minVal) => {
                                                                      setObjectOpacity(Math.floor(minVal));
                                                                  }}

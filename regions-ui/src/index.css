@@ -5,3 +5,8 @@
     overflow: visible;
     vertical-align: -0.125em;
 }
+
+/* for leaflet */
+.leaflet-attribution-flag {
+    display: none !important;
+}

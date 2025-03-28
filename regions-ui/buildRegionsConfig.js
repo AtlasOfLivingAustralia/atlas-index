@@ -2,7 +2,7 @@ import { writeFileSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
 
 // base url for spatial service, TODO: add this as a parameter
-const baseSpatialUrl = "https://spatial-test.ala.org.au/ws";
+const baseSpatialUrl = process.argv[2] || "https://spatial.ala.org.au/ws";
 
 // convert the regions.json into a file suitable for the regions page
 const regions = JSON.parse(readFileSync('./public/regions.json', 'utf8'));
@@ -31,7 +31,8 @@ function buildRegionsList() {
 
     // write speciesGroupsMap to ./public/speciesGroupsMap.json
     writeFileSync('./regionsList.json', JSON.stringify(regionsList, null, 2));
-    console.log('./regionsList.json can now be copied to the public folder /static/regions/regionsList.json (e.g. S3)');
+    console.log('./regionsList.json can now be copied to the public folder, e.g. static/regions/regionsList.json, regions, etc.');
+    console.log('Confirm that the updated file is the same as the VITE_REGIONS_CONFIG_URL value in the .env file.');
 }
 
 function getLayerName(fid) {
