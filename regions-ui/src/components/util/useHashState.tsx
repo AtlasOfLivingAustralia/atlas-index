@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import {useState, useEffect, useCallback} from 'react';
 
 /**
  * Hook to manage a state value in the URL hash. e.g. #tab=first&group=myGroup

@@ -15,5 +15,5 @@ export function formatNumber(number: any) {
     // format n to 2 decimal places
     n = Math.round(n * 100) / 100
 
-    return new Intl.NumberFormat('en').format(n) + s
+    return new Intl.NumberFormat(navigator.language).format(n) + s
 }

@@ -653,7 +653,7 @@ function Region({setBreadcrumbs}: {
 
         // while this produces an alert identical to biocache-hubs, alerts app may need work
         const query = `/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"${globalFq}`;
-        const url = `${import.meta.env.VITE_APP_ALERTS_URL}/webservice/createBiocacheNewRecordsAlert?webserviceQuery=${query}&uiQuery=${query}&queryDisplayName=${object.name}&baseUrlForWS=${import.meta.env.VITE_APP_BIOCACHE_URL}/ws&baseUrlForUI=${import.meta.env.VITE_APP_BIOCACHE_UI_URL}&resourceName=${import.meta.env.VITE_APP_ALERT_RESOURCE_NAME}`;
+        const url = `${import.meta.env.VITE_APP_ALERTS_URL}/webservice/createBiocacheNewRecordsAlert?webserviceQuery=${query}&uiQuery=${query}&queryDisplayName=${object.name}&baseUrlForWS=${import.meta.env.VITE_APP_BIOCACHE_URL}&baseUrlForUI=${import.meta.env.VITE_APP_BIOCACHE_UI_URL}&resourceName=${import.meta.env.VITE_APP_ALERT_RESOURCE_NAME}`;
         window.open(url, '_blank');
     }
 
