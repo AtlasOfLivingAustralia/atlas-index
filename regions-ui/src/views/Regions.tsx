@@ -7,7 +7,7 @@ import styles from './Regions.module.css';
 import 'leaflet/dist/leaflet.css';
 import {LatLng} from "leaflet";
 import {useNavigate} from "react-router-dom";
-import {Accordion, Col, Container, Row} from "react-bootstrap";
+import {Accordion, Container} from "react-bootstrap";
 import {Breadcrumb} from "../api/sources/model.ts";
 import DualRangeSlider from "../components/common-ui/dualRangeSlider.tsx";
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
@@ -300,55 +300,53 @@ function Regions({setBreadcrumbs}: RegionsProps) {
     return (
         <>
             <Container className="mt-5">
-                <Row>
+                <div >
                     <h2>Select a region to explore</h2>
                     <p>Select the type of region on the left. Click a name or click on the map to select a
                         region. Use map controls or shift-drag with your mouse to zoom the map.
                         Click the region button to explore occurrence records, images and documents associated with the
                         region.</p>
-                </Row>
-                <Row className="mt-4">
-                    <Col className="col-md-4">
-                        <div className={styles.leftPanel}>
-                            <div className="d-flex align-items-center gap-2">
-                                <FontAwesomeIcon icon={faInfoCircle} size="lg"/>
-                                <p className="mb-0">Click on a region name to select an area</p>
-                            </div>
-                            {defaultLayer && menuItems &&
-                                <Accordion defaultActiveKey={defaultLayer} className="mt-4"
-                                           onSelect={(layerId) => updateLayer(layerId)}>
-                                    {menuItems.map((item) => (
-                                        <Accordion.Item key={item.label} eventKey={item.fid || REGION_AGGREGATE}>
-                                            <Accordion.Header>
-                                                {item.label}</Accordion.Header>
-                                            <Accordion.Body>
-                                                <div style={{overflowY: 'scroll', maxHeight: '300px'}}>
-                                                    {item.fields && item.fields.map((field, idx) => (
-                                                        <div onClick={() => setMapObject(field)}
-                                                             key={idx} style={{cursor: 'pointer'}}
-                                                             className="d-flex align-items-center">
-                                                            <FontAwesomeIcon icon={faCircle} className={styles.smallIcon}/>
-                                                            <p className="mb-1 ms-2">{field.name}</p>
-                                                        </div>
-                                                    ))}
-                                                    {item.objects && item.objects.map((obj, idx) => (
-                                                        <div onClick={() => setMapObject(item as SelectedLayer, obj)}
-                                                             key={idx} style={{cursor: 'pointer'}}
-                                                             className="d-flex align-items-center">
-                                                            <FontAwesomeIcon icon={faCircle} className={styles.smallIcon}/>
-                                                            <p className="mb-1 ms-2"
-                                                               title={obj.description}>{obj.name}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </Accordion.Body>
-                                        </Accordion.Item>
-                                    ))}
-                                </Accordion>
-                            }
+                </div>
+                <div className={styles.panels}>
+                    <div className={styles.layersPanel}>
+                        <div className="d-flex align-items-center gap-2">
+                            <FontAwesomeIcon icon={faInfoCircle} size="lg"/>
+                            <p className="mb-0">Click on a region name to select an area</p>
                         </div>
-                    </Col>
-                    <Col className="col-md-8">
+                        {defaultLayer && menuItems &&
+                            <Accordion defaultActiveKey={defaultLayer} className="mt-4"
+                                       onSelect={(layerId) => updateLayer(layerId)}>
+                                {menuItems.map((item) => (
+                                    <Accordion.Item key={item.label} eventKey={item.fid || REGION_AGGREGATE}>
+                                        <Accordion.Header>
+                                            {item.label}</Accordion.Header>
+                                        <Accordion.Body>
+                                            <div style={{overflowY: 'scroll', maxHeight: '300px'}}>
+                                                {item.fields && item.fields.map((field, idx) => (
+                                                    <div onClick={() => setMapObject(field)}
+                                                         key={idx} style={{cursor: 'pointer'}}
+                                                         className="d-flex align-items-center">
+                                                        <FontAwesomeIcon icon={faCircle} className={styles.smallIcon}/>
+                                                        <p className="mb-1 ms-2">{field.name}</p>
+                                                    </div>
+                                                ))}
+                                                {item.objects && item.objects.map((obj, idx) => (
+                                                    <div onClick={() => setMapObject(item as SelectedLayer, obj)}
+                                                         key={idx} style={{cursor: 'pointer'}}
+                                                         className="d-flex align-items-center">
+                                                        <FontAwesomeIcon icon={faCircle} className={styles.smallIcon}/>
+                                                        <p className="mb-1 ms-2"
+                                                           title={obj.description}>{obj.name}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </Accordion.Body>
+                                    </Accordion.Item>
+                                ))}
+                            </Accordion>
+                        }
+                    </div>
+                    <div className={styles.mapPanel}>
                         <div className={styles.rightPanel}>
                             <div className="d-flex align-items-center gap-2 mb-2">
                                 {!selectedObject && <>
@@ -473,8 +471,8 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                                  singleValue={true}/>
                             </div>
                         </div>
-                    </Col>
-                </Row>
+                    </div>
+                </div>
             </Container>
         </>
     );
