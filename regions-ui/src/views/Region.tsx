@@ -37,7 +37,7 @@ const customColors = [
     '#003A70', '#F26649', '#6BDAD5', '#EB9D07', '#A191B2', '#FFC557', '#D9D9D9'
 ];
 
-// default species group import, should this be moved to the buildSpeciesGroupConfig.js?
+// default species group import. I think this should be moved to the buildSpeciesGroupConfig.js
 const ALL_SPECIES = "All Species";
 const speciesGroups: SpeciesGroupItem[] = [
     {
@@ -293,6 +293,9 @@ function Region({setBreadcrumbs}: {
                 // indicate that loading is finished and no data is available (replace nulls with empty values)
                 setSpeciesGroupFacet({});
                 setOccurrenceCount(0);
+                setSpeciesCount(0);
+                setSpeciesList([]);
+                setChartData({labels: []});
             }
         }
     }
@@ -760,12 +763,12 @@ function Region({setBreadcrumbs}: {
                                         </Tab>
                                         <Tab eventKey="chart" title="Explore by taxonomy">
                                             <div className={"mt-4 " + styles.pieChart}>
-                                                {chartData && chartData.labels.length > 0 && PieChart(chartData)}
+                                                {chartData && chartData.labels && chartData.labels.length > 0 && PieChart(chartData)}
                                                 {chartData === undefined &&
                                                     <div className="d-flex justify-content-center">
                                                         <FontAwesomeIcon icon={faSpinner}/>
                                                     </div>}
-                                                {chartData !== undefined && Object.keys(chartData).length === 0 &&
+                                                {chartData !== undefined && Object.keys(chartData).length === 1 &&
                                                     <div className="d-flex justify-content-center">
                                                         <p>No data</p></div>}
                                             </div>

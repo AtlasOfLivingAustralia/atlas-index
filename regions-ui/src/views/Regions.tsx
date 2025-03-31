@@ -269,6 +269,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
         }
         navigate(`/region?id=${selectedObject.pid}`);
         window.location.hash = ''; // clear the hash as part of the navigation change, not strictly necessary
+        window.scrollTo(0, 0); // scroll to the top of the new page
     }
 
     // zoom to the selectedObject

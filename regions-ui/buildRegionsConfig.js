@@ -1,7 +1,7 @@
 import { writeFileSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
 
-// base url for spatial service, TODO: add this as a parameter
+// base url for spatial service
 const baseSpatialUrl = process.argv[2] || "https://spatial.ala.org.au/ws";
 
 // convert the regions.json into a file suitable for the regions page
