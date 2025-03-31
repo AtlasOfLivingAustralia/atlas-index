@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {useEffect, useRef, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import {LayersControl, MapContainer, TileLayer, WMSTileLayer} from 'react-leaflet';
@@ -460,12 +466,16 @@ function Region({setBreadcrumbs}: {
     }
 
     // update the current state of the map, chart and/or species list when the year range change is finalised
-    function yearRangeEnd() {
+    function yearRangeEnd(minVal: number, maxVal: number) {
         if (!object) {
             return;
         }
 
-        const newYearRange: [number, number] = [yearMin, yearMax];
+        // convert new values to years
+        const thisMinVal = Math.floor(minVal);
+        const thisMaxVal = Math.floor(maxVal);
+
+        const newYearRange: [number, number] = [thisMinVal, thisMaxVal];
 
         fetchSpeciesList(object.fid, object.name, occurrenceFq, newYearRange);
         fetchChartData(object.fid, object.name, currentRank, occurrenceFq, newYearRange);
@@ -682,7 +692,9 @@ function Region({setBreadcrumbs}: {
                                         <Tab eventKey="species" title="Explore by species">
                                             <div className={styles.regionPanelGroup}>
                                                 <div className={"d-flex " + styles.regionHeader}>
-                                                    <div className={styles.regionPanel + " " +  styles.regionLeft}>Group</div>
+                                                    <div
+                                                        className={styles.regionPanel + " " + styles.regionLeft}>Group
+                                                    </div>
                                                     <div className={styles.regionPanel}>Species</div>
                                                 </div>
 

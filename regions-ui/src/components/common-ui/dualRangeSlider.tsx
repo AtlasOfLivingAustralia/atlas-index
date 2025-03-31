@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React, {useEffect, useState, useRef} from 'react';
 import styles from './dualRangeSlider.module.css';
 
@@ -8,7 +14,7 @@ interface DoubleRangeSliderProps {
     maxValue: number;
     stepSize?: number; // for arrow keys
     onChange: (minVal: number, maxVal: number) => void;
-    onChangeEnd?: () => void;
+    onChangeEnd?: (minVal: number, maxVal: number) => void;
     isDisabled?: boolean;
     singleValue?: boolean;
 }
@@ -51,9 +57,13 @@ function DoubleRangeSlider({
     const sliderMin = useRef<HTMLButtonElement>(null);
     const sliderMax = useRef<HTMLButtonElement>(null);
     const rangeSelection = useRef<HTMLDivElement>(null);
+    const minValueRef = useRef<number>(null);
+    const maxValueRef = useRef<number>(null);
 
     useEffect(() => {
         setPositions();
+        maxValueRef.current = maxValue;
+        minValueRef.current = minValue;
     }, [minValue, maxValue]);
 
     const handleMouseUp = () => {
@@ -61,7 +71,7 @@ function DoubleRangeSlider({
 
         setDragging(DraggedBtn.none);
         if (onChangeEnd) {
-            onChangeEnd();
+            onChangeEnd(minValueRef.current, maxValueRef.current);
         }
     };
 
@@ -69,11 +79,13 @@ function DoubleRangeSlider({
         if (draggingRef.current != DraggedBtn.none && rangeRef.current) {
             const rect = rangeRef.current.getBoundingClientRect();
             const newValue = Number(min) + ((e.clientX - rect.left) / rect.width) * (max - min);
+            const thisMinValue = minValueRef.current ? minValueRef.current : minValue;
+            const thisMaxValue = maxValueRef.current ? maxValueRef.current : maxValue;
 
             if (draggingRef.current === DraggedBtn.minBtn) {
-                onChange(Math.min(Math.max(newValue, min), singleValue ? max : maxValue), maxValue);
+                onChange(Math.min(Math.max(newValue, min), singleValue ? max : thisMaxValue), thisMaxValue);
             } else {
-                onChange(minValue, Math.max(Math.min(newValue, max), minValue));
+                onChange(thisMinValue, Math.max(Math.min(newValue, max), thisMinValue));
             }
         }
     };
@@ -154,7 +166,7 @@ function DoubleRangeSlider({
         }
 
         if (onChangeEnd) {
-            onChangeEnd();
+            onChangeEnd(minValueRef.current, maxValueRef.current);
         }
 
         e.preventDefault();
