@@ -59,7 +59,6 @@ describe('useHashState', () => {
         act(() => {
             result.current[1]({key: 'newValue'});
         });
-        console.log(window.location.hash);
         expect(window.location.hash).toBe('#test=' + encodeURIComponent('{"key":"newValue"}'));
     });
 

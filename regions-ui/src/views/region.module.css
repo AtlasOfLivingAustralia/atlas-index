@@ -33,14 +33,14 @@
 }
 
 .regionPanel {
-    height: 500px;
+    height: 530px;
     width: 350px;
     overflow-y: auto;
     padding-right: 20px;
 }
 
 .regionLeft {
-    width: 120px;
+    width: 150px;
     margin-right: 30px
 }
 

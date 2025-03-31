@@ -1,9 +1,9 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {MapContainer, TileLayer, useMap, useMapEvents, WMSTileLayer, Popup, LayersControl} from 'react-leaflet';
-import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
+import FontAwesomeIcon from '../components/common-ui/fontAwesomeIconLite.tsx'
 import {faCircle, faInfoCircle, faSearchPlus} from '@fortawesome/free-solid-svg-icons';
 import {faRedo} from '@fortawesome/free-solid-svg-icons';
-import './regions.css'
+import styles from './Regions.module.css';
 import 'leaflet/dist/leaflet.css';
 import {LatLng} from "leaflet";
 import {useNavigate} from "react-router-dom";
@@ -287,27 +287,29 @@ function Regions({setBreadcrumbs}: RegionsProps) {
         }
 
         const menuItem = menuItems.find((item) => item.fid == layerId);
-        if (menuItem) {
-            setMapObject(menuItem as SelectedLayer);
-        } else if (layerId == REGION_AGGREGATE) {
+        if (layerId == REGION_AGGREGATE || layerId == null) {
             // update the URL, without reloading
             setSelectedObject(null);
             setObjectName(null);
             setLayerName(REGION_AGGREGATE);
+        } else if (menuItem) {
+            setMapObject(menuItem as SelectedLayer);
         }
     }
 
     return (
         <>
             <Container className="mt-5">
-                <h2>Select a region to explore</h2>
-                <p>Select the type of region on the left. Click a name or click on the map to select a
-                    region. Use map controls or shift-drag with your mouse to zoom the map.
-                    Click the region button to explore occurrence records, images and documents associated with the
-                    region.</p>
+                <Row>
+                    <h2>Select a region to explore</h2>
+                    <p>Select the type of region on the left. Click a name or click on the map to select a
+                        region. Use map controls or shift-drag with your mouse to zoom the map.
+                        Click the region button to explore occurrence records, images and documents associated with the
+                        region.</p>
+                </Row>
                 <Row className="mt-4">
                     <Col className="col-md-4">
-                        <div style={{width: '355px'}}>
+                        <div className={styles.leftPanel}>
                             <div className="d-flex align-items-center gap-2">
                                 <FontAwesomeIcon icon={faInfoCircle} size="lg"/>
                                 <p className="mb-0">Click on a region name to select an area</p>
@@ -325,7 +327,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                                         <div onClick={() => setMapObject(field)}
                                                              key={idx} style={{cursor: 'pointer'}}
                                                              className="d-flex align-items-center">
-                                                            <FontAwesomeIcon icon={faCircle} className="smallIcon"/>
+                                                            <FontAwesomeIcon icon={faCircle} className={styles.smallIcon}/>
                                                             <p className="mb-1 ms-2">{field.name}</p>
                                                         </div>
                                                     ))}
@@ -333,7 +335,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                                         <div onClick={() => setMapObject(item as SelectedLayer, obj)}
                                                              key={idx} style={{cursor: 'pointer'}}
                                                              className="d-flex align-items-center">
-                                                            <FontAwesomeIcon icon={faCircle} className="smallIcon"/>
+                                                            <FontAwesomeIcon icon={faCircle} className={styles.smallIcon}/>
                                                             <p className="mb-1 ms-2"
                                                                title={obj.description}>{obj.name}</p>
                                                         </div>
@@ -347,7 +349,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                         </div>
                     </Col>
                     <Col className="col-md-8">
-                        <div style={{width: '600px'}}>
+                        <div className={styles.rightPanel}>
                             <div className="d-flex align-items-center gap-2 mb-2">
                                 {!selectedObject && <>
                                     <FontAwesomeIcon icon={faInfoCircle}/>
@@ -373,7 +375,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                     zoom={defaultZoom}
                                     scrollWheelZoom={false}
                                     worldCopyJump={true}
-                                    style={{height: '530px', borderRadius: '10px'}}
+                                    className={styles.map}
                                 >
                                     <MapStateUtil setMapStateChanged={setMapStateChanged}/>
 
@@ -430,7 +432,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                     }
                                     {selectedObject &&
                                         <Popup position={selectedObject.latlng}>
-                                            <a onClick={openObject} className="selectedObject">{selectedObject.name}</a>
+                                            <a onClick={openObject} className={styles.selectedObject}>{selectedObject.name}</a>
                                         </Popup>
                                     }
                                     <MapClickHandler onClick={handleMapClick}/>

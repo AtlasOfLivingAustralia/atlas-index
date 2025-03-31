@@ -1,0 +1,21 @@
+.smallIcon {
+    width: 5px;
+    height: 5px;
+}
+
+.selectedObject {
+    cursor: pointer;
+}
+
+.leftPanel {
+    width: 355px;
+}
+
+.rightPanel {
+    width: 750px;
+}
+
+.map {
+    height: 530px;
+    border-radius: 10px;
+}

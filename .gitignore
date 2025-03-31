@@ -7,6 +7,7 @@ node/
 */.yalc/
 buildInfo.json
 env.*
+tsconfig.tsbuildinfo
 
 ### STS ###
 .apt_generated

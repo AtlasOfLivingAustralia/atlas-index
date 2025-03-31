@@ -9,7 +9,7 @@ export function formatNumber(number: any) {
         s = 'B'
     } else if (number > 1000000) {
         n = number / 1000000.0
-        s = ' million'
+        s = 'M'
     }
 
     // format n to 2 decimal places

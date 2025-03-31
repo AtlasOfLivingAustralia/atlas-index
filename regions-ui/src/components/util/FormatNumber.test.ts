@@ -13,7 +13,7 @@ describe('formatNumber', () => {
     });
 
     test('should format numbers greater than 1,000,000 as millions', () => {
-        expect(formatNumber(2500000)).toBe('2.5 million');
+        expect(formatNumber(2500000)).toBe('2.5M');
     });
 
     test('should format numbers greater than 1,000,000,000 as billions', () => {
@@ -21,7 +21,7 @@ describe('formatNumber', () => {
     });
 
     test('should format numbers with two decimal places', () => {
-        expect(formatNumber(1234567)).toBe('1.23 million');
+        expect(formatNumber(1234567)).toBe('1.23M');
     });
 
     test('should format small numbers correctly', () => {

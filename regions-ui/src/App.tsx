@@ -15,7 +15,7 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import Header from "./components/common-ui/header.tsx";
 import Footer from "./components/common-ui/footer.tsx";
-import FontAwesomeIcon from './components/icon/fontAwesomeIconLite'
+import FontAwesomeIcon from './components/common-ui/fontAwesomeIconLite.tsx'
 import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {useEffect, useState} from "react";
 import './index.css';

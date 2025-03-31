@@ -1,11 +1,11 @@
 import {useEffect, useRef, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import {LayersControl, MapContainer, TileLayer, WMSTileLayer} from 'react-leaflet';
-import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
+import FontAwesomeIcon from '../components/common-ui/fontAwesomeIconLite.tsx'
 import 'leaflet/dist/leaflet.css';
 import {LatLng} from "leaflet";
 import {formatNumber} from "../components/util/FormatNumber.tsx"
-import "./region.css"
+import styles from './region.module.css';
 import speciesGroupMapImport from "../config/speciesGroupsMap.json";
 import {Container, OverlayTrigger, Tab, Tabs, Tooltip} from "react-bootstrap";
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner'
@@ -660,7 +660,7 @@ function Region({setBreadcrumbs}: {
     return (
         <>
             {(occurrenceCount < 0 || speciesCount < 0) &&
-                <div className="d-flex justify-content-center align-items-center pageLoading">
+                <div className={"d-flex justify-content-center align-items-center " + styles.pageLoading}>
                     <FontAwesomeIcon icon={faSpinner}/>
                 </div>}
             {occurrenceCount >= 0 && speciesCount >= 0 &&
@@ -676,29 +676,29 @@ function Region({setBreadcrumbs}: {
                             <h3 className="mt-4">Occurrence records ({formatNumber(occurrenceCount)})</h3>
                             <h3 className="mt-3">Number of species ({formatNumber(speciesCount)})</h3>
 
-                            <div className="regionSections">
-                                <div className="tabPanel">
+                            <div className={styles.regionSections}>
+                                <div className={styles.tabPanel}>
                                     <Tabs defaultActiveKey="species" onSelect={tabChanged}>
                                         <Tab eventKey="species" title="Explore by species">
-                                            <div className="regionPanelGroup">
-                                                <div className="d-flex regionHeader">
-                                                    <div className="regionPanel regionLeft">Group</div>
-                                                    <div className="regionPanel">Species</div>
+                                            <div className={styles.regionPanelGroup}>
+                                                <div className={"d-flex " + styles.regionHeader}>
+                                                    <div className={styles.regionPanel + " " +  styles.regionLeft}>Group</div>
+                                                    <div className={styles.regionPanel}>Species</div>
                                                 </div>
 
                                                 <div className="d-flex">
-                                                    <div className="regionPanel regionLeft">
+                                                    <div className={styles.regionPanel + " " + styles.regionLeft}>
                                                         {speciesGroupFacet && speciesGroups.filter(item => speciesGroupFacet[item.name] || item.name === "All Species").map((itemFiltered, idx) =>
                                                             <div key={idx}
                                                                  onClick={() => isFetchingSpeciesList || filter(itemFiltered)}
-                                                                 className={"speciesItemParent speciesItem" + (itemFiltered.indent > 0 ? " ms-" + itemFiltered.indent * 2 : "") + (itemFiltered.name === group ? " speciesItemSelected" : "")}
+                                                                 className={styles.speciesItemParent + " speciesItem" + (itemFiltered.indent > 0 ? " ms-" + itemFiltered.indent * 2 : "") + (itemFiltered.name === group ? " " + styles.speciesItemSelected : "")}
                                                                  style={{cursor: isFetchingSpeciesList ? 'wait' : 'pointer'}}>
                                                                 {itemFiltered.name}
                                                             </div>
                                                         )}
                                                     </div>
 
-                                                    <div className="regionPanel">
+                                                    <div className={styles.regionPanel}>
                                                         {!speciesList &&
                                                             <div className="d-flex justify-content-center mt-2">
                                                                 <FontAwesomeIcon icon={faSpinner}/>
@@ -707,11 +707,11 @@ function Region({setBreadcrumbs}: {
                                                             <p>No species found</p>}
                                                         {speciesList && speciesList.map((species, idx) => (
                                                             <div key={idx}
-                                                                 className={"speciesItemParent" + (species.label === selectedSpecies ? " speciesItemSelected" : "")}>
+                                                                 className={styles.speciesItemParent + " " + (species.label === selectedSpecies ? " " + styles.speciesItemSelected : "")}>
                                                                 <div onClick={() => filterSpecies(species)}
-                                                                     className="d-flex justify-content-between speciesItem">
+                                                                     className={"d-flex justify-content-between " + styles.speciesItem}>
                                                                     <div
-                                                                        className="speciesName">{species.label}</div>
+                                                                        className={styles.speciesName}>{species.label}</div>
                                                                     <div
                                                                         style={{float: 'right'}}>{species.count}</div>
                                                                 </div>
@@ -747,7 +747,7 @@ function Region({setBreadcrumbs}: {
                                             </div>
                                         </Tab>
                                         <Tab eventKey="chart" title="Explore by taxonomy">
-                                            <div className="mt-4 pieChart">
+                                            <div className={"mt-4 " + styles.pieChart}>
                                                 {chartData && chartData.labels.length > 0 && PieChart(chartData)}
                                                 {chartData === undefined &&
                                                     <div className="d-flex justify-content-center">
@@ -772,10 +772,10 @@ function Region({setBreadcrumbs}: {
                                         </Tab>
                                     </Tabs>
                                 </div>
-                                <div className="mapPanel">
+                                <div className={styles.mapPanel}>
                                     <Tabs defaultActiveKey="map">
                                         <Tab eventKey="map" title="Time controls and Map">
-                                            <div className="d-flex justify-content-center playerBtns">
+                                            <div className={"d-flex justify-content-center " + styles.playerBtns}>
                                                 <div>
                                                     {playerState === 'playing' && <i className="bi bi-play-fill"></i>}
                                                     {playerState !== 'playing' &&

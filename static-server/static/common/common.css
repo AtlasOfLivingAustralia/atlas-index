@@ -1279,3 +1279,16 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 .nav-tabs .nav-link.active:hover {
     background-color: transparent;
 }
+
+.accordion-button:not(.collapsed) {
+    color: black;
+    background-color: white;
+}
+
+.accordion-button {
+    padding: 10px 10px;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    padding-right: 0px;
+}
