@@ -70,8 +70,8 @@ function DoubleRangeSlider({
         if (draggingRef.current === DraggedBtn.none) return;
 
         setDragging(DraggedBtn.none);
-        if (onChangeEnd) {
-            onChangeEnd(minValueRef.current, maxValueRef.current);
+        if (onChangeEnd && minValueRef.current) {
+            onChangeEnd(minValueRef.current, maxValueRef.current ? maxValueRef.current : minValueRef.current);
         }
     };
 
@@ -165,8 +165,8 @@ function DoubleRangeSlider({
             onChange(minValue, Math.max(Math.min(newValue, max), minValue));
         }
 
-        if (onChangeEnd) {
-            onChangeEnd(minValueRef.current, maxValueRef.current);
+        if (onChangeEnd && minValueRef.current) {
+            onChangeEnd(minValueRef.current, maxValueRef.current ? maxValueRef.current : minValueRef.current);
         }
 
         e.preventDefault();
