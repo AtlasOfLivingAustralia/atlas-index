@@ -17,12 +17,12 @@ import {Container, OverlayTrigger, Tab, Tabs, Tooltip} from "react-bootstrap";
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner'
 import {faInfoCircle} from '@fortawesome/free-solid-svg-icons/faInfoCircle';
 import {Pie} from "react-chartjs-2";
-import {Chart, ArcElement, BarElement, Legend} from 'chart.js'
+import {Chart, ArcElement, BarElement, Legend, Tooltip as ChartTooltip} from 'chart.js'
 import DualRangeSlider from "../components/common-ui/dualRangeSlider.tsx";
 import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
 import useHashState from "../components/util/useHashState.tsx";
 
-Chart.register(ArcElement, BarElement, Legend);
+Chart.register(ArcElement, BarElement, Legend, ChartTooltip);
 
 // defaults
 const center = new LatLng(Number(import.meta.env.VITE_MAP_CENTRE_LAT), Number(import.meta.env.VITE_MAP_CENTRE_LNG));
@@ -136,7 +136,6 @@ function Region({setBreadcrumbs}: {
     const [currentRank, setCurrentRank] = useState<number>(0);
     const [yearMin, setYearMin] = useHashState<number>('from', EARLIEST_YEAR);
     const [yearMax, setYearMax] = useHashState<number>('to', new Date().getFullYear());
-    // @ts-ignore
     const [tab, setTab] = useHashState<string>('tab', 'species');
 
     // needed for the player to work
@@ -691,7 +690,7 @@ function Region({setBreadcrumbs}: {
 
                             <div className={styles.regionSections}>
                                 <div className={styles.tabPanel}>
-                                    <Tabs defaultActiveKey="species" onSelect={tabChanged}>
+                                    <Tabs defaultActiveKey={tab} onSelect={tabChanged}>
                                         <Tab eventKey="species" title="Explore by species">
                                             <div className={styles.regionPanelGroup}>
                                                 <div className={"d-flex " + styles.regionHeader}>
