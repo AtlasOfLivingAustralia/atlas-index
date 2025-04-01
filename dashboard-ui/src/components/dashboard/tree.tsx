@@ -7,7 +7,7 @@
 import {useState} from "react";
 import {FormattedMessage} from "react-intl";
 import "./dashboard.css";
-import FontAwesomeIcon from '../icon/fontAwesomeIconLite'
+import FontAwesomeIcon from '../common-ui/fontAwesomeIconLite'
 import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {faChevronDown} from '@fortawesome/free-solid-svg-icons/faChevronDown'
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner'

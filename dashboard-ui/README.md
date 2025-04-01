@@ -21,12 +21,13 @@ yarn run dev
 ## Production build
 
 ```bash
+yarn test
 yarn run build
 ```
 
 ## Preparing data
 
-Use search-service to gernate the 
+Use search-service to generate the data found at VITE_APP_DASHBOARD_DATA_URL, VITE_APP_DASHBOARD_ZIP_URL and VITE_APP_DASHBOARD_I18N_URL.
 
 ## Environment variables
 
@@ -39,7 +40,7 @@ VITE_OIDC_AUTH_PROFILE=https://userdetails.test.ala.org.au/myprofile
 VITE_LOGIN_URL=https://userdetails.test.ala.org.au
 VITE_LOGO_URL=https://www.ala.org.au/app/uploads/2019/01/logo.png
 VITE_AUTH_COOKIE=ALA-Auth-Test=
-VITE_AUTH_COOKIE_DOMAIN=.ala.org.au
+VITE_AUTH_COOKIE_DOMAIN=
 
 # other services
 VITE_APP_BIOCACHE_URL=https://biocache-ws-test.ala.org.au/ws
@@ -54,4 +55,10 @@ VITE_APP_DASHBOARD_I18N_URL=https://ala-index.dev.ala.org.au/static/dashboard/da
 # minimal header and footer urls
 VITE_CONTACT_URL=https://www.ala.org.au/contact-us/
 VITE_CREATE_ACCOUNT_URL=https://userdetails.test.ala.org.au/registration/createAccount
+
+# common header, footer, css, js
+VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/header.html
+VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.html
+VITE_COMMON_CSS=http://localhost:8082/static/common/common.css
+VITE_COMMON_JS=http://localhost:8082/static/common/common.js
 ```

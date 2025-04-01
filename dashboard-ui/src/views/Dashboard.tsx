@@ -20,7 +20,7 @@ import {
 } from 'chart.js';
 import {Bar, Pie} from 'react-chartjs-2';
 import TreeItem from "../components/dashboard/tree.jsx";
-import FontAwesomeIcon from '../components/icon/fontAwesomeIconLite'
+import FontAwesomeIcon from '../components/common-ui/fontAwesomeIconLite.tsx'
 import {faDownload} from '@fortawesome/free-solid-svg-icons/faDownload'
 import {faCode} from '@fortawesome/free-solid-svg-icons/faCode'
 import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
