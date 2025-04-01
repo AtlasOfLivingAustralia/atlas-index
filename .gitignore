@@ -12,6 +12,7 @@ regionList-*.json
 buildInfo.json
 env.*
 tsconfig.tsbuildinfo
+yarn-error.log
 
 ### STS ###
 .apt_generated
