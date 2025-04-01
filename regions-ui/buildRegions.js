@@ -1,5 +1,18 @@
 import { writeFileSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
+import { createHash } from 'crypto';
+
+// delete the current meta file
+const metaFile = './regionsList.meta.json'
+try {
+    // check if the file exists
+    if (readFileSync(metaFile)) {
+        console.log('Deleting meta file:', metaFile);
+        writeFileSync(metaFile, JSON.stringify({}));
+    }
+} catch (e) {
+    console.error('Debug: failed to delete meta file ./regionsList.meta.json');
+}
 
 // base url for spatial service
 const baseSpatialUrl = process.argv[2] || "https://spatial.ala.org.au/ws";
@@ -29,10 +42,16 @@ function buildRegionsList() {
         }
     })
 
-    // write speciesGroupsMap to ./public/speciesGroupsMap.json
+    // write to temporary file
     writeFileSync('./regionsList.json', JSON.stringify(regionsList, null, 2));
-    console.log('./regionsList.json can now be copied to the public folder, e.g. static/regions/regionsList.json, regions, etc.');
-    console.log('Confirm that the updated file is the same as the VITE_REGIONS_CONFIG_URL value in the .env file.');
+
+    // write the regions to regionsList-{hash}.json
+    const regionsListContent = readFileSync('./regionsList.json', 'utf8');
+    const hash = createHash('sha256').update(regionsListContent).digest('hex').slice(0, 8);
+    const file = `regionsList-${hash}.json`;
+    writeFileSync('./' + file, regionsListContent);
+    writeFileSync('./regionsList.meta.json', JSON.stringify({modified: new Date(), file: file, baseSpatialUrl: baseSpatialUrl}));
+    console.log(`${file} built successfully. It will be used by the next 'yarn run build'.`);
 }
 
 function getLayerName(fid) {

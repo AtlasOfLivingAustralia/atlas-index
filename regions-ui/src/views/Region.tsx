@@ -240,7 +240,7 @@ function Region({setBreadcrumbs}: {
 
     // get the spatial object and initialize the list of species groups to only those that have records
     const fetchObject = async (id: string) => {
-        const url = `${import.meta.env.VITE_SPATIAL_URL}/ws/object/${id}`;
+        const url = `${import.meta.env.VITE_SPATIAL_WS_URL}/object/${id}`;
         const response = await fetch(url);
         const data = await response.json();
         if (data && data.bbox) {
@@ -888,7 +888,7 @@ function Region({setBreadcrumbs}: {
                                                     )}
                                                     {object && showObject && (
                                                         <WMSTileLayer
-                                                            url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s%3A${object.pid}`}
+                                                            url={`${import.meta.env.VITE_SPATIAL_GEOSERVER_URL}/wms?styles=polygon&viewparams=s%3A${object.pid}`}
                                                             layers={`ALA:Objects`}
                                                             format="image/png"
                                                             styles="polygon"

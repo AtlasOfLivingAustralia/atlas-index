@@ -207,7 +207,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
     // identify the region that was clicked on the map, select and highlight it (as a new map layer)
     const handleMapClick = async (latlng: LatLng) => {
         if (mapRef.current && selectedLayer) {
-            const url = `${import.meta.env.VITE_SPATIAL_URL}/ws/intersect/${selectedLayer.fid}/${latlng.lat}/${latlng.lng}`;
+            const url = `${import.meta.env.VITE_SPATIAL_WS_URL}/intersect/${selectedLayer.fid}/${latlng.lat}/${latlng.lng}`;
 
             const response = await fetch(url);
             const data = await response.json();
@@ -217,7 +217,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                 const label = data[0].value;
 
                 // also need the bbox
-                const url2 = `${import.meta.env.VITE_SPATIAL_URL}/ws/object/${pid}`;
+                const url2 = `${import.meta.env.VITE_SPATIAL_WS_URL}/object/${pid}`;
                 const response2 = await fetch(url2);
                 const data2 = await response2.json();
                 setMapObject(selectedLayer, {pid: pid, name: label, bbox: data2.bbox, description: data2.description});
@@ -415,7 +415,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
 
                                     {selectedLayer && showLayer && layerName != REGION_AGGREGATE &&
                                         <WMSTileLayer
-                                            url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon`}
+                                            url={`${import.meta.env.VITE_SPATIAL_GEOSERVER_URL}/wms?styles=polygon`}
                                             layers={`ALA:${selectedLayer.layerName}`}
                                             format="image/png"
                                             styles="polygon"
@@ -426,7 +426,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                     }
                                     {selectedObject && showObject &&
                                         <WMSTileLayer
-                                            url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s%3A${selectedObject.pid}`}
+                                            url={`${import.meta.env.VITE_SPATIAL_GEOSERVER_URL}/wms?styles=polygon&viewparams=s%3A${selectedObject.pid}`}
                                             layers={`ALA:Objects`}
                                             format="image/png"
                                             styles="polygon"

@@ -1,22 +1,23 @@
 {
-  "name": "dashboard-ui-vite",
+  "name": "regions-ui-vite",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "node generateBuildInfo.js && vite",
-    "build": "node generateBuildInfo.js && tsc && vite build",
+    "build": "node generateBuildInfo.js && tsc && node prepareRegions.js && vite build && node useRegions.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "jest"
   },
   "dependencies": {
-    "@fontsource/roboto": "^5.0.13",
+    "@fontsource/roboto": "^5.2.5",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "chart.js": "^4.4.8",
@@ -25,10 +26,10 @@
     "react-bootstrap-typeahead": "^6.4.1",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.3.1",
-    "react-intl": "^7.1.7",
+    "react-intl": "^7.1.10",
     "react-leaflet": "^4.2.1",
     "react-leaflet-google-layer": "^4.0.0",
-    "react-router-dom": "^7.4.0"
+    "react-router-dom": "^7.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
@@ -38,13 +39,13 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
-    "@types/babel__core": "^7",
-    "@types/babel__preset-env": "^7",
-    "@types/bootstrap": "^5",
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__preset-env": "^7.10.0",
+    "@types/bootstrap": "^5.2.10",
     "@types/jest": "^29.5.14",
-    "@types/leaflet": "^1",
+    "@types/leaflet": "^1.9.17",
     "@types/node": "^22.13.14",
-    "@types/react": "^19.0.1",
+    "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "babel-jest": "^29.7.0",
@@ -52,9 +53,10 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jest-transform-css": "^6.0.2",
-    "ts-jest": "^29.3.0",
+    "postcss": "^8.5.3",
+    "ts-jest": "^29.3.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.3"
+    "typescript": "^5.8.2",
+    "vite": "^6.2.4"
   }
 }
