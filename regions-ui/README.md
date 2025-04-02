@@ -85,6 +85,8 @@ VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/header.html
 VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.html
 VITE_COMMON_CSS=http://localhost:8082/static/common/common.css
 VITE_COMMON_JS=http://localhost:8082/static/common/common.js
+VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
+VITE_BANNER_SCOPE=regions
 # regions specific config
 VITE_REGIONS_CONFIG_URL=http://localhost:8082/static/regions/regionsList.json
 VITE_APP_ALERTS_URL=https://alerts.ala.org.au

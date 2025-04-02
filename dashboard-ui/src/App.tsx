@@ -19,6 +19,7 @@ import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {useEffect, useState} from "react";
 import './index.css';
 import buildInfo from './buildInfo.json';
+import Banner from "./components/common-ui/banner.tsx";
 
 const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
 
@@ -41,10 +42,14 @@ export default function App() {
                         const style = document.createElement('style');
                         style.innerHTML = text;
                         document.head.appendChild(style);
-                        setCssLoaded(true);
                     });
                 }
+            }).finally(() => {
+                // set css loaded to true even if the fetch fails
+                setCssLoaded(true);
             });
+        } else {
+            setCssLoaded(true);
         }
 
         if (import.meta.env.VITE_COMMON_JS) {
@@ -75,30 +80,34 @@ export default function App() {
         setIsLoggedIn(false);
     }
 
+    if (!cssLoaded) {
+        return <></>
+    }
+
     return (
         <main>
             {import.meta.env.VITE_COMMON_HEADER_HTML &&
                 <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
             }
 
-            {cssLoaded &&
-                <section id="breadcrumb">
-                    <div className="container-fluid">
-                        <div className="row">
-                            <nav aria-label="Breadcrumb" role="navigation">
-                                <ol className="breadcrumb-list breadcrumb">
-                                    <li className="breadcrumb-item">
-                                        <a href={import.meta.env.VITE_HOME_URL}>Home</a>
-                                    </li>
-                                    <li className="breadcrumb-item"><FontAwesomeIcon icon={faChevronRight}
-                                                                                     className={"breadcrumb-icon"}/>Dashboard
-                                    </li>
-                                </ol>
-                            </nav>
-                        </div>
+            <section id="breadcrumb">
+                <div className="container-fluid">
+                    <div className="row">
+                        <nav aria-label="Breadcrumb" role="navigation">
+                            <ol className="breadcrumb-list breadcrumb">
+                                <li className="breadcrumb-item">
+                                    <a href={import.meta.env.VITE_HOME_URL}>Home</a>
+                                </li>
+                                <li className="breadcrumb-item"><FontAwesomeIcon icon={faChevronRight}
+                                                                                 className={"breadcrumb-icon"}/>Dashboard
+                                </li>
+                            </ol>
+                        </nav>
                     </div>
-                </section>
-            }
+                </div>
+            </section>
+
+            <Banner />
 
             <div className="mt-4"/>
 

@@ -22,13 +22,17 @@ import './index.css';
 import {Link, Route, Routes} from "react-router-dom";
 import {Breadcrumb} from "./api/sources/model.ts";
 import buildInfo from './buildInfo.json';
+import Banner from "./components/common-ui/banner.tsx";
 
 const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
-    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([{title: "Home", href: import.meta.env.VITE_HOME_URL}]);
+    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([{
+        title: "Home",
+        href: import.meta.env.VITE_HOME_URL
+    }]);
 
     useEffect(() => {
         // Add build info to head meta tags
@@ -45,10 +49,14 @@ export default function App() {
                         const style = document.createElement('style');
                         style.innerHTML = text;
                         document.head.appendChild(style);
-                        setCssLoaded(true);
                     });
                 }
+            }).finally(() => {
+                // set css loaded to true even if the fetch fails
+                setCssLoaded(true);
             });
+        } else {
+            setCssLoaded(true);
         }
 
         if (import.meta.env.VITE_COMMON_JS) {
@@ -94,25 +102,29 @@ export default function App() {
             </li>);
     });
 
+    if (!cssLoaded) {
+        return <></>
+    }
+
     return (
         <main>
             {import.meta.env.VITE_COMMON_HEADER_HTML &&
                 <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
             }
 
-            {cssLoaded &&
-                <section id="breadcrumb">
-                    <div className="container-fluid">
-                        <div className="row">
-                            <nav aria-label="Breadcrumb" role="navigation">
-                                <ol className="breadcrumb-list breadcrumb">
-                                    {breadcrumbItems}
-                                </ol>
-                            </nav>
-                        </div>
+            <section id="breadcrumb">
+                <div className="container-fluid">
+                    <div className="row">
+                        <nav aria-label="Breadcrumb" role="navigation">
+                            <ol className="breadcrumb-list breadcrumb">
+                                {breadcrumbItems}
+                            </ol>
+                        </nav>
                     </div>
-                </section>
-            }
+                </div>
+            </section>
+
+            <Banner/>
 
             <div className="mt-4"/>
 

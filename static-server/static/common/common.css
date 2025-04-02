@@ -1266,6 +1266,15 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 :root {
     --bs-link-color: #c44d34;
     --bs-link-hover-color: #883524;
+    --bs-info-bg-subtle: #d9edf7;
+    --bs-info-border-subtle: #bce8f1;
+    --bs-info-text-emphasis: #31708f;
+    --bs-danger-bg-subtle: #f2dede;
+    --bs-danger-border-subtle: #ebccd1;
+    --bs-danger-text-emphasis: #a94442;
+    --bs-warning-bg-subtle: #fcf8e3;
+    --bs-warning-border-subtle: #faebcc;
+    --bs-warning-text-emphasis: #8a6d3b;
 }
 
 .nav-tabs .nav-link:hover {
