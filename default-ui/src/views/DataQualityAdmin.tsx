@@ -128,27 +128,64 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     }
 
     const onDragEnd = (result: any) => {
-        // dropped outside the list
         if (!result.destination) {
             return;
         }
 
+        const originalProfiles = [...profiles];
+
         const items = reorder(
-            profiles,
+            originalProfiles, // Use the copy
             result.source.index,
             result.destination.index
         );
 
-        // Update the displayOrder for each profile in the reordered list
-        const updatedProfiles = items.map((profile, index) => ({ ...profile, displayOrder: index }));
+        const updatedProfilesWithOrder = items.map((profile, index) => ({
+            ...profile,
+            displayOrder: index
+        }));
 
-        setProfiles(updatedProfiles);
-        for (let i = 0; i < profiles.length; i++) {
-            if (profiles[i].displayOrder !== updatedProfiles[i].displayOrder) {
-                save(updatedProfiles[i]);
-            }
+        setProfiles(updatedProfilesWithOrder);
+
+        const profilesToSave = updatedProfilesWithOrder.filter((updatedProfile) => {
+            const originalProfile = originalProfiles.find(p => p.id === updatedProfile.id);
+            return originalProfile && originalProfile.displayOrder !== updatedProfile.displayOrder;
+        });
+
+        if (profilesToSave.length > 0) {
+            console.log("Profiles to save:", profilesToSave);
+            setSaving(true);
+
+            const savePromises = profilesToSave.map(profileToSave =>
+                fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + currentUser.user()?.access_token,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(profileToSave)
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(`Failed to save profile ${profileToSave.id}`);
+                        }
+                        return response;
+                    })
+            );
+
+            Promise.all(savePromises)
+                .then(() => {
+                    console.log("All changed profiles saved.");
+                    fetchProfiles();
+                })
+                .catch(error => {
+                    console.error("Error during batch save:", error);
+                    fetchProfiles();
+                });
+
+        } else {
+            console.log("No displayOrder changes to save.");
         }
-
     };
 
     return (
