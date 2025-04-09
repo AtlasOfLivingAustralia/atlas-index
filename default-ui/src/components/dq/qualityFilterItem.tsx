@@ -79,17 +79,17 @@ function QualityFilterItem(props: {
             </TableTd>
             <TableTd>
                 <Textarea value={filterItem.filter}
-                      cols={50}
+                      cols={22}
                        onChange={e => setFilter(e.target.value)}/>
             </TableTd>
             <TableTd>
                 <Textarea value={filterItem.inverseFilter}
-                          cols={50}
+                          cols={22}
                        onChange={e => setInverseFilter(e.target.value)}/>
             </TableTd>
             <TableTd>
                 <Textarea value={filterItem.description}
-                          cols={50}
+                          cols={22}
                        onChange={e => setDescription(e.target.value)}/>
             </TableTd>
         </TableTr>
