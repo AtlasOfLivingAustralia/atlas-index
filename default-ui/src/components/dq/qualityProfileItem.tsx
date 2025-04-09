@@ -1,6 +1,8 @@
 import {QualityCategory, QualityProfile} from "../../api/sources/model.ts";
 import {useEffect, useState} from "react";
 import QualityCategoryItem from "./qualityCategoryItem.tsx";
+import {Table, TableTd, TableTr, TableTbody, Button, Textarea} from "@mantine/core";
+
 
 function QualityProfileItem(props: {
     profile: QualityProfile,
@@ -95,52 +97,51 @@ function QualityProfileItem(props: {
         setProfileDirty(true);
     }
 
-    return <table className="table table-sm">
-        <tbody>
-        <tr>
-            <td>Name ({profile.id})</td>
-            <td><input type="text" value={profile.name}
-                       className="w-50"
-                       onChange={e => updateName(e.target.value)}/></td>
-        </tr>
-        <tr>
-            <td>Short Name</td>
-            <td><input type="text" value={profile.shortName}
-                       className="w-50"
-                       onChange={e => updateShortName(e.target.value)}/></td>
-        </tr>
-        <tr>
-            <td>Description</td>
-            <td>
-        <textarea value={profile.description}
+    return <Table className="table table-sm">
+        <TableTbody>
+        <TableTr>
+            <TableTd>Name ({profile.id})</TableTd>
+            <TableTd><Textarea value={profile.name}
+                               cols={50}
+                       onChange={e => updateName(e.target.value)}/></TableTd>
+        </TableTr>
+        <TableTr>
+            <TableTd>Short Name</TableTd>
+            <TableTd><Textarea value={profile.shortName}
+                               cols={50}
+                       onChange={e => updateShortName(e.target.value)}/></TableTd>
+        </TableTr>
+        <TableTr>
+            <TableTd>Description</TableTd>
+            <TableTd>
+        <Textarea value={profile.description}
                   rows={3}
                   cols={50}
-                  onChange={e => updateDescription(e.target.value)}></textarea>
-            </td>
-        </tr>
-        <tr>
-            <td>Contact Name</td>
-            <td><input type="text" value={profile.contactName}
-                       className="w-50"
-                       onChange={e => updateContactName(e.target.value)}/></td>
-        </tr>
-        <tr>
-            <td>Contact Email</td>
-            <td><input type="text" value={profile.contactEmail}
-                       className="w-50"
-                       onChange={e => updateContactEmail(e.target.value)}/></td>
-        </tr>
-        <tr>
-            <td colSpan={2}>
+                  onChange={e => updateDescription(e.target.value)}></Textarea>
+            </TableTd>
+        </TableTr>
+        <TableTr>
+            <TableTd>Contact Name</TableTd>
+            <TableTd><Textarea value={profile.contactName}
+                               cols={50}
+                       onChange={e => updateContactName(e.target.value)}/></TableTd>
+        </TableTr>
+        <TableTr>
+            <TableTd>Contact Email</TableTd>
+            <TableTd><Textarea value={profile.contactEmail}
+                               cols={50}
+                       onChange={e => updateContactEmail(e.target.value)}/></TableTd>
+        </TableTr>
+        <TableTr>
+            <TableTd colSpan={2}>
                 <div className="d-flex">
-                    <button className="btn border-black btn-primary"
+                    <Button className="btn border-black btn-primary"
                         onClick={() => props.save(profile)}
-                            disabled={!profileDirty}>
-                        Save
-                    </button>
-                    <button className="btn border-black ms-1"
+                            disabled={!profileDirty}>Save
+                    </Button>
+                    <Button className="btn border-black ms-1"
                             onClick={() => addCategory()}>Add category
-                    </button>
+                    </Button>
                 </div>
                 <br/>
                 <br/>
@@ -152,10 +153,10 @@ function QualityProfileItem(props: {
                                              deleteCategory={deleteCategory}/>
                     ))}
                 </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+            </TableTd>
+        </TableTr>
+        </TableTbody>
+    </Table>
 }
 
 export default QualityProfileItem;

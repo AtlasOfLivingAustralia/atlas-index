@@ -1,6 +1,7 @@
 import {QualityCategory, QualityFilter} from "../../api/sources/model.ts";
 import {useEffect, useState} from "react";
 import QualityFilterItem from "./qualityFilterItem.tsx";
+import {Table, TableTd, TableTr, TableTbody, Button, Textarea} from "@mantine/core";
 
 function QualityCategoryItem(props: {
     category: QualityCategory,
@@ -96,59 +97,61 @@ function QualityCategoryItem(props: {
     }
 
     return <>
-        <table className="table table-sm table-bordered">
-            <tbody>
-            <tr>
-                <td colSpan={2}>
+        <Table className="table table-sm table-bordered">
+            <TableTbody>
+            <TableTr>
+                <TableTd colSpan={2}>
                     <input type="checkbox" checked={category.enabled}
                            onChange={() => setEnabled(!category.enabled)}></input> ({category.id})
-                    <input type="text" value={category.name}
-                           className="w-50 ms-3"
-                           onChange={e => setName(e.target.value)}/>
-                    <button className="btn border-black ms-1" onClick={() => {props.deleteCategory(category)}}>Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>Description</td>
-                <td>
-                    <textarea value={category.description}
+                    <Textarea value={category.name}
                               rows={3}
                               cols={50}
-                              onChange={e => setDescription(e.target.value)}></textarea>
-                </td>
-            </tr>
-            <tr>
-                <td>Inverse filter</td>
-                <td>
-                    <input type="text" value={category.inverseFilter}
-                           className="w-100"
-                           onChange={e => setInverseFilter(e.target.value)}/>
-                </td>
-            </tr>
-            <tr>
-                <td colSpan={2}>
-                    <button className="btn border-black ms-1"
+                              onChange={e => setName(e.target.value)}/>
+                    <Button className="btn border-black ms-1" onClick={() => {props.deleteCategory(category)}}>Delete</Button>
+                </TableTd>
+            </TableTr>
+            <TableTr>
+                <TableTd>Description</TableTd>
+                <TableTd>
+                    <Textarea value={category.description}
+                              rows={3}
+                              cols={50}
+                              onChange={e => setDescription(e.target.value)}></Textarea>
+                </TableTd>
+            </TableTr>
+            <TableTr>
+                <TableTd>Inverse filter</TableTd>
+                <TableTd>
+                    <Textarea value={category.inverseFilter}
+                              rows={3}
+                              cols={50}
+                              onChange={e => setInverseFilter(e.target.value)}/>
+                </TableTd>
+            </TableTr>
+            <TableTr>
+                <TableTd colSpan={2}>
+                    <Button className="btn border-black ms-1"
                             onClick={() => addFilter(category)}>Add
                         filter
-                    </button>
-                </td>
-            </tr>
-            <tr>
-                <td colSpan={2}>
-                    <table className="table table-sm table-bordered">
-                        <tbody>
+                    </Button>
+                </TableTd>
+            </TableTr>
+            <TableTr>
+                <TableTd colSpan={2}>
+                    <Table className="table table-sm table-bordered">
+                        <TableTbody>
                         {category.qualityFilters.map((filter, idx) =>
                                 <QualityFilterItem key={idx} filter={filter}
                                                           parentFilter={props.parentCategory ? props.parentCategory.qualityFilters.find(it => it.displayOrder == filter.displayOrder) : undefined}
                                                           setProfileDirty={props.setProfileDirty}
                                                           resetInverseFilter={resetInverseFilter}/>
                         )}
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                        </TableTbody>
+                    </Table>
+                </TableTd>
+            </TableTr>
+            </TableTbody>
+        </Table>
     </>
 }
 

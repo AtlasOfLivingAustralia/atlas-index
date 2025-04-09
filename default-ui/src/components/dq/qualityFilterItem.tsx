@@ -1,5 +1,6 @@
 import {QualityFilter} from "../../api/sources/model.ts";
 import {useEffect, useState} from "react";
+import {TableTd, TableTr, Textarea} from "@mantine/core";
 
 function QualityFilterItem(props: {
     filter: QualityFilter,
@@ -71,27 +72,27 @@ function QualityFilterItem(props: {
     }
 
     return <>
-        <tr>
-            <td>
+        <TableTr>
+            <TableTd>
                 <input type="checkbox" checked={filterItem.enabled}
                        onChange={() => setEnabled(!filterItem.enabled)}></input>({filterItem.id})
-            </td>
-            <td>
-                <input type="text" value={filterItem.filter}
-                       className="w-50"
+            </TableTd>
+            <TableTd>
+                <Textarea value={filterItem.filter}
+                      cols={50}
                        onChange={e => setFilter(e.target.value)}/>
-            </td>
-            <td>
-                <input type="text" value={filterItem.inverseFilter}
-                       className="w-50"
+            </TableTd>
+            <TableTd>
+                <Textarea value={filterItem.inverseFilter}
+                          cols={50}
                        onChange={e => setInverseFilter(e.target.value)}/>
-            </td>
-            <td>
-                <input type="text" value={filterItem.description}
-                       className="w-50"
+            </TableTd>
+            <TableTd>
+                <Textarea value={filterItem.description}
+                          cols={50}
                        onChange={e => setDescription(e.target.value)}/>
-            </td>
-        </tr>
+            </TableTd>
+        </TableTr>
     </>
 }
 

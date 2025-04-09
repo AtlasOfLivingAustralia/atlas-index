@@ -1,16 +1,16 @@
 import UserContext from "../helpers/UserContext.ts";
 import {useContext, useEffect, useRef, useState} from "react";
 import {Breadcrumb, ListsUser, QualityProfile} from "../api/sources/model.ts";
-import {Tab, Tabs} from "react-bootstrap";
 import QualityProfileItem from "../components/dq/qualityProfileItem.tsx";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import {Modal} from "react-bootstrap";
+import {Table, TableTh, TableTd, TableTr, TableTbody, Button, Title, Container, Grid} from "@mantine/core";
 
 function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
     const currentUser = useContext(UserContext) as ListsUser;
     const [profiles, setProfiles] = useState<QualityProfile[]>([]);
     const [profile, setProfile] = useState<QualityProfile>();
-    const [tab, setTab] = useState('profiles');
     const [saving, setSaving] = useState(false);
 
     const uploadFile = useRef(null)
@@ -79,9 +79,6 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             // reload all profiles
             fetchProfiles();
 
-            // reset to list view
-            setTab('profiles');
-
             // clear the profile
             setProfile(undefined);
         });
@@ -115,7 +112,6 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             categories: [],
             displayOrder: profiles.length
         })
-        setTab('profile')
     }
 
     function redrawProfileJson() {
@@ -146,9 +142,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         // Update the displayOrder for each profile in the reordered list
         const updatedProfiles = items.map((profile, index) => ({ ...profile, displayOrder: index }));
 
-        // Optimistically update the UI
         setProfiles(updatedProfiles);
-        //compare profiles with updatedProfiles and save the changes individually for the changed profiles
         for (let i = 0; i < profiles.length; i++) {
             if (profiles[i].displayOrder !== updatedProfiles[i].displayOrder) {
                 save(updatedProfiles[i]);
@@ -158,80 +152,66 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     };
 
     return (
-        <div className="container-fluid">
-            <h2>Data Quality Admin {saving && "... saving ..."}</h2>
-            {!currentUser?.isAdmin() &&
-                <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
-            }
-            {currentUser?.isAdmin() &&
-                <>
-                    <Tabs
-                        id="data-quality-tabs"
-                        activeKey={tab}
-                        onSelect={(k) => setTab("" + k)}
-                        className=""
-                    >
-                        <Tab eventKey="profiles" title="List">
+        <Container>
+            <Grid mt={{ base: 'xs', lg: 'md'}} mb="lg" gutter={0}>
+                <Title>Data Quality Admin {saving && "... saving ..."}</Title>
+                {!currentUser?.isAdmin() &&
+                    <p>User {currentUser?.user()?.profile?.name} is not authorised to access these tools.</p>
+                }
+                {currentUser?.isAdmin() &&
+                    <>
 
-                            <input type="file" ref={uploadFile} style={{display: 'none'}}
-                                   onChange={e => readFile(e)}/>
-                            <button className="btn border-black" onClick={() => addProfile()}>
-                                Add a profile
-                            </button>
-                            <button className="btn border-black ms-1" onClick={() => clickUpload()}>
-                                Import a profile
-                            </button>
-                            <br/>
-                            <br/>
+                        <input type="file" ref={uploadFile} style={{display: 'none'}}
+                               onChange={e => readFile(e)}/>
+                        <Button className="btn border-black" onClick={() => addProfile()}>
+                            Add a profile
+                        </Button>
+                        <Button className="btn border-black ms-1" onClick={() => clickUpload()}>
+                            Import a profile
+                        </Button>
+                        <br/>
+                        <br/>
 
-                            <DragDropContext onDragEnd={onDragEnd}>
-                                <Droppable droppableId="profiles-list">
-                                    {(provided) => (
-                                        <table className="table table-bordered" {...provided.droppableProps} ref={provided.innerRef}>
-                                            <thead>
-                                            <tr>
-                                                <th></th> {/* Drag Handle */}
-                                                <th>Id</th>
-                                                <th>Name</th>
-                                                <th>short-name</th>
-                                                <th>enabled</th>
-                                                <th></th>
-                                            </tr>
-                                            </thead>
-                                            <tbody {...provided.placeholder}>
-                                            {profiles && profiles.slice()
-                                                .sort((a, b) => a.displayOrder - b.displayOrder)
-                                                .map((profileItem, index) => (
+                        <DragDropContext onDragEnd={onDragEnd}>
+                            <Droppable droppableId="profiles-list">
+                                {(provided) => (
+                                    <Table className="table table-bordered" {...provided.droppableProps} ref={provided.innerRef}>
+                                        <>
+                                        <TableTr>
+                                            <TableTh></TableTh>
+                                            <TableTh>Id</TableTh>
+                                            <TableTh>Name</TableTh>
+                                            <TableTh>short-name</TableTh>
+                                            <TableTh>enabled</TableTh>
+                                            <TableTh></TableTh>
+                                        </TableTr>
+                                        </>
+                                        <TableTbody>
+                                        {profiles && profiles.slice()
+                                            .sort((a, b) => a.displayOrder - b.displayOrder)
+                                            .map((profileItem, index) => (
                                                 <Draggable key={profileItem.id} draggableId={`profile-${profileItem.id}`} index={index}>
                                                     {(provided) => (
-                                                        <tr
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                        >
-                                                            <td style={{ cursor: 'grab' }}>☰</td> {/* Drag Handle */}
-                                                            <td>{profileItem.id}</td>
-                                                            <td>
-                                                                <div onClick={() => {
-                                                                    setProfile(profileItem);
-                                                                    setTab('profile');
-                                                                }} className="text-reset">{profileItem.name}</div>
-                                                            </td>
-                                                            <td>{profileItem.shortName}</td>
-                                                            <td><input type="checkbox" defaultChecked={profileItem.enabled}
-                                                                       disabled={profileItem.isDefault}
-                                                                       onChange={() => {
-                                                                           profileItem.enabled = !profileItem.enabled;
-                                                                           save(profileItem)
-                                                                       }}/></td>
-                                                            <td>
+                                                        <TableTr ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
+                                                            <TableTd style={{ cursor: 'grab' }}>☰</TableTd>
+                                                            <TableTd>{profileItem.id}</TableTd>
+                                                            <TableTd>
+                                                                <div onClick={() => setProfile(profileItem)} className="text-reset" style={{ cursor: 'pointer' }}>{profileItem.name}</div>
+                                                            </TableTd>
+                                                            <TableTd>{profileItem.shortName}</TableTd>
+                                                            <TableTd>
+                                                                <input type="checkbox" defaultChecked={profileItem.enabled} disabled={profileItem.isDefault} onChange={() => {
+                                                                    profileItem.enabled = !profileItem.enabled;
+                                                                    save(profileItem);
+                                                                }} />
+                                                            </TableTd>
+                                                            <TableTd>
                                                                 <div className="d-flex">
-                                                                    <button className="btn border-black ms-1" onClick={() => {
+                                                                    <Button className="btn border-black ms-1" onClick={() => {
                                                                         profileItem.isDefault = true;
                                                                         save(profileItem);
-                                                                    }} disabled={profileItem.isDefault || !profileItem.enabled}>Default
-                                                                    </button>
-                                                                    <button className="btn border-black ms-1" onClick={() => {
+                                                                    }} disabled={profileItem.isDefault || !profileItem.enabled}>Default</Button>
+                                                                    <Button className="btn border-black ms-1" onClick={() => {
                                                                         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq?id=' + profileItem.id, {
                                                                             method: 'DELETE',
                                                                             headers: {
@@ -242,39 +222,35 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                                                 fetchProfiles();
                                                                             }
                                                                         });
-                                                                    }} disabled={profileItem.isDefault}>Delete
-                                                                    </button>
-                                                                    <button className="btn border-black ms-1"
-                                                                            onClick={() => downloadProfile(profileItem)}>
-                                                                        Download
-                                                                    </button>
+                                                                    }} disabled={profileItem.isDefault}>Delete</Button>
+                                                                    <Button className="btn border-black ms-1" onClick={() => downloadProfile(profileItem)}>Download</Button>
                                                                 </div>
-                                                                <br/>
-                                                            </td>
-                                                        </tr>
+                                                                <br />
+                                                            </TableTd>
+                                                        </TableTr>
                                                     )}
                                                 </Draggable>
                                             ))}
-                                            </tbody>
-                                        </table>
-                                    )}
-                                </Droppable>
-                            </DragDropContext>
-                        </Tab>
-                        <Tab eventKey="profile" title="Edit Profile">
-                            {profile &&
-                                <QualityProfileItem profile={profile} updateProfile={updateProfile} save={save}/>}
-                            <br/>
-                            <button className="btn border-black" onClick={() => redrawProfileJson()}>Refresh JSON
-                            </button>
-                            <pre>
-                                {profile && JSON.stringify(profile, null, 2)}
-                            </pre>
-                        </Tab>
-                    </Tabs>
-                </>
-            }
-        </div>
+                                        {provided.placeholder}
+                                        </TableTbody>
+                                    </Table>
+                                )}
+                            </Droppable>
+                        </DragDropContext>
+                        {profile && (
+                            <Modal show={true} onHide={() => setProfile(undefined)} size="lg">
+                                <Modal.Header closeButton>
+                                    <Modal.Title>{profile.id === 0 ? "New Profile" : "Edit Profile"}</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <QualityProfileItem profile={profile} updateProfile={updateProfile} save={save} />
+                                </Modal.Body>
+                            </Modal>
+                        )}
+                    </>
+                }
+            </Grid>
+        </Container>
     );
 }
 
