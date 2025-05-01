@@ -41,6 +41,12 @@ export default function App() {
         meta.content = JSON.stringify(buildInfo);
         document.head.appendChild(meta);
 
+        // Add env value to head meta tags
+        const envMeta = document.createElement('meta');
+        envMeta.name = 'env';
+        envMeta.content = JSON.stringify({ env: import.meta.env.VITE_ENV });
+        document.head.appendChild(envMeta);
+
         if (import.meta.env.VITE_COMMON_CSS) {
             // load the common CSS used by both the header and footer
             fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {

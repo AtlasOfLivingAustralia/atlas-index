@@ -1,0 +1,197 @@
+{
+  "pageSize": 0,
+  "startIndex": 0,
+  "totalRecords": 4341731,
+  "sort": "score",
+  "dir": "asc",
+  "status": "OK",
+  "occurrences": [],
+  "facetResults": [
+    {
+      "fieldName": "speciesGroup",
+      "fieldResult": [
+        {
+          "label": "Algae",
+          "i18nCode": "speciesGroup.Algae",
+          "count": 60,
+          "fq": "speciesGroup:\"Algae\""
+        },
+        {
+          "label": "Amphibians",
+          "i18nCode": "speciesGroup.Amphibians",
+          "count": 18619,
+          "fq": "speciesGroup:\"Amphibians\""
+        },
+        {
+          "label": "Animals",
+          "i18nCode": "speciesGroup.Animals",
+          "count": 4143917,
+          "fq": "speciesGroup:\"Animals\""
+        },
+        {
+          "label": "Arthropods",
+          "i18nCode": "speciesGroup.Arthropods",
+          "count": 113441,
+          "fq": "speciesGroup:\"Arthropods\""
+        },
+        {
+          "label": "Bacteria",
+          "i18nCode": "speciesGroup.Bacteria",
+          "count": 52,
+          "fq": "speciesGroup:\"Bacteria\""
+        },
+        {
+          "label": "Birds",
+          "i18nCode": "speciesGroup.Birds",
+          "count": 3977227,
+          "fq": "speciesGroup:\"Birds\""
+        },
+        {
+          "label": "Bryophytes",
+          "i18nCode": "speciesGroup.Bryophytes",
+          "count": 4563,
+          "fq": "speciesGroup:\"Bryophytes\""
+        },
+        {
+          "label": "Chromista",
+          "i18nCode": "speciesGroup.Chromista",
+          "count": 43,
+          "fq": "speciesGroup:\"Chromista\""
+        },
+        {
+          "label": "Conifers, Cycads",
+          "i18nCode": "speciesGroup.Conifers, Cycads",
+          "count": 744,
+          "fq": "speciesGroup:\"Conifers, Cycads\""
+        },
+        {
+          "label": "Crustaceans",
+          "i18nCode": "speciesGroup.Crustaceans",
+          "count": 299,
+          "fq": "speciesGroup:\"Crustaceans\""
+        },
+        {
+          "label": "Dicots",
+          "i18nCode": "speciesGroup.Dicots",
+          "count": 123615,
+          "fq": "speciesGroup:\"Dicots\""
+        },
+        {
+          "label": "Ferns and allies",
+          "i18nCode": "speciesGroup.Ferns and allies",
+          "count": 3063,
+          "fq": "speciesGroup:\"Ferns and allies\""
+        },
+        {
+          "label": "Fishes",
+          "i18nCode": "speciesGroup.Fishes",
+          "count": 1230,
+          "fq": "speciesGroup:\"Fishes\""
+        },
+        {
+          "label": "Flowering plants",
+          "i18nCode": "speciesGroup.Flowering plants",
+          "count": 158538,
+          "fq": "speciesGroup:\"Flowering plants\""
+        },
+        {
+          "label": "Fungi",
+          "i18nCode": "speciesGroup.Fungi",
+          "count": 30469,
+          "fq": "speciesGroup:\"Fungi\""
+        },
+        {
+          "label": "Insects",
+          "i18nCode": "speciesGroup.Insects",
+          "count": 105089,
+          "fq": "speciesGroup:\"Insects\""
+        },
+        {
+          "label": "Mammals",
+          "i18nCode": "speciesGroup.Mammals",
+          "count": 18032,
+          "fq": "speciesGroup:\"Mammals\""
+        },
+        {
+          "label": "Molluscs",
+          "i18nCode": "speciesGroup.Molluscs",
+          "count": 793,
+          "fq": "speciesGroup:\"Molluscs\""
+        },
+        {
+          "label": "Monocots",
+          "i18nCode": "speciesGroup.Monocots",
+          "count": 34923,
+          "fq": "speciesGroup:\"Monocots\""
+        },
+        {
+          "label": "Plants",
+          "i18nCode": "speciesGroup.Plants",
+          "count": 166971,
+          "fq": "speciesGroup:\"Plants\""
+        },
+        {
+          "label": "Protozoa",
+          "i18nCode": "speciesGroup.Protozoa",
+          "count": 198,
+          "fq": "speciesGroup:\"Protozoa\""
+        },
+        {
+          "label": "Reptiles",
+          "i18nCode": "speciesGroup.Reptiles",
+          "count": 14132,
+          "fq": "speciesGroup:\"Reptiles\""
+        },
+        {
+          "label": "Not supplied",
+          "i18nCode": "speciesGroup.novalue",
+          "count": 81,
+          "fq": "-speciesGroup:*"
+        }
+      ]
+    }
+  ],
+  "query": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue",
+  "urlParameters": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue",
+  "queryTitle": "PSMA States (2016):\"AUSTRALIAN CAPITAL TERRITORY\"",
+  "activeFacetMap": {
+    "species": {
+      "name": "species",
+      "displayName": "Species:*",
+      "value": "*"
+    },
+    "-occurrenceStatus": {
+      "name": "-occurrenceStatus",
+      "displayName": "-Presence/Absence:ABSENT",
+      "value": "absent"
+    },
+    "spatiallyValid": {
+      "name": "spatiallyValid",
+      "displayName": "Spatial validity:Spatially valid",
+      "value": "true"
+    }
+  },
+  "activeFacetObj": {
+    "species": [
+      {
+        "name": "species",
+        "displayName": "Species:*",
+        "value": "species:*"
+      }
+    ],
+    "-occurrenceStatus": [
+      {
+        "name": "-occurrenceStatus",
+        "displayName": "-Presence/Absence:ABSENT",
+        "value": "-occurrenceStatus:absent"
+      }
+    ],
+    "spatiallyValid": [
+      {
+        "name": "spatiallyValid",
+        "displayName": "Spatial validity:Spatially valid",
+        "value": "spatiallyValid:true"
+      }
+    ]
+  }
+}

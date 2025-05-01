@@ -1,0 +1,113 @@
+{
+  "pageSize": 0,
+  "startIndex": 0,
+  "totalRecords": 4312479,
+  "sort": "score",
+  "dir": "asc",
+  "status": "OK",
+  "occurrences": [],
+  "facetResults": [
+    {
+      "fieldName": "kingdom",
+      "fieldResult": [
+        {
+          "label": "Animalia",
+          "i18nCode": "kingdom.Animalia",
+          "count": 4120851,
+          "fq": "kingdom:\"Animalia\""
+        },
+        {
+          "label": "Bacteria",
+          "i18nCode": "kingdom.Bacteria",
+          "count": 29,
+          "fq": "kingdom:\"Bacteria\""
+        },
+        {
+          "label": "Chromista",
+          "i18nCode": "kingdom.Chromista",
+          "count": 18,
+          "fq": "kingdom:\"Chromista\""
+        },
+        {
+          "label": "Fungi",
+          "i18nCode": "kingdom.Fungi",
+          "count": 29841,
+          "fq": "kingdom:\"Fungi\""
+        },
+        {
+          "label": "Plantae",
+          "i18nCode": "kingdom.Plantae",
+          "count": 161464,
+          "fq": "kingdom:\"Plantae\""
+        },
+        {
+          "label": "Protista",
+          "i18nCode": "kingdom.Protista",
+          "count": 195,
+          "fq": "kingdom:\"Protista\""
+        },
+        {
+          "label": "Not supplied",
+          "i18nCode": "kingdom.novalue",
+          "count": 81,
+          "fq": "-kingdom:*"
+        }
+      ]
+    }
+  ],
+  "query": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
+  "urlParameters": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
+  "queryTitle": "PSMA States (2016):\"AUSTRALIAN CAPITAL TERRITORY\"",
+  "activeFacetMap": {
+    "species": {
+      "name": "species",
+      "displayName": "Species:*",
+      "value": "*"
+    },
+    "occurrenceYear": {
+      "name": "occurrenceYear",
+      "displayName": "Date (by year):[1850-2025]",
+      "value": "[1850-01-01T00:00:00Z TO 2025-12-31T23:59:59Z]"
+    },
+    "-occurrenceStatus": {
+      "name": "-occurrenceStatus",
+      "displayName": "-Presence/Absence:ABSENT",
+      "value": "absent"
+    },
+    "spatiallyValid": {
+      "name": "spatiallyValid",
+      "displayName": "Spatial validity:Spatially valid",
+      "value": "true"
+    }
+  },
+  "activeFacetObj": {
+    "species": [
+      {
+        "name": "species",
+        "displayName": "Species:*",
+        "value": "species:*"
+      }
+    ],
+    "occurrenceYear": [
+      {
+        "name": "occurrenceYear",
+        "displayName": "Date (by year):[1850-2025]",
+        "value": "occurrenceYear:[1850-01-01T00:00:00Z TO 2025-12-31T23:59:59Z]"
+      }
+    ],
+    "-occurrenceStatus": [
+      {
+        "name": "-occurrenceStatus",
+        "displayName": "-Presence/Absence:ABSENT",
+        "value": "-occurrenceStatus:absent"
+      }
+    ],
+    "spatiallyValid": [
+      {
+        "name": "spatiallyValid",
+        "displayName": "Spatial validity:Spatially valid",
+        "value": "spatiallyValid:true"
+      }
+    ]
+  }
+}

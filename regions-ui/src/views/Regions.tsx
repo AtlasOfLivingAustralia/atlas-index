@@ -450,6 +450,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                         checked={showLayer}
                                         onChange={(event) => setShowLayer(event.currentTarget.checked)}
                                         disabled={!selectedLayer}
+                                        className="all-regions-cb"
                                     />
                                     <div className="ms-2">All regions</div>
                                 </div>
@@ -467,6 +468,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                         checked={showObject}
                                         onChange={(event) => setShowObject(event.currentTarget.checked)}
                                         disabled={!selectedObject}
+                                        className="selected-regions-cb"
                                     />
                                     <div className="ms-2">Selected region</div>
                                 </div>
