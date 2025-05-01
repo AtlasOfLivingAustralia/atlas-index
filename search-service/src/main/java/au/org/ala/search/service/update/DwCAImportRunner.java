@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -213,7 +219,7 @@ public class DwCAImportRunner {
         counter += buffer.size();
         elasticService.flush(buffer);
 
-        logService.log(taskType, term.simpleName() + (cacheOnly != null ? " cached "  + pos: " indexing finished: " + counter));
+        logService.log(taskType, term.simpleName() + (cacheOnly != null ? " cached " + pos : " indexing finished: " + counter));
 
         return CompletableFuture.completedFuture(counter);
     }

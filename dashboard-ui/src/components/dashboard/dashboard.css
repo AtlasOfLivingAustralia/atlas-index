@@ -1,0 +1,212 @@
+.dashboardPanel {
+    float: left;
+    height: 455px !important;
+    width: 475px;
+    margin: 20px;
+    font-family: Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    color: rgb(33, 33, 33);
+    background-color: white;
+    border-bottom-color: rgb(221, 221, 221);
+    box-shadow: rgba(0, 0, 0, 0.5) 0px 1px 1px 0px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.spinner-border {
+    width: 14px;
+    height: 14px;
+}
+
+.dashboardPanel2 {
+    width: 900px;
+}
+
+.dashboardLogo {
+    max-height: 100px;
+    max-width: 200px;
+    margin-bottom: 20px;
+}
+
+.dashboardTree {
+    font-size: 14px;
+    border-spacing: 0;
+    text-wrap: nowrap;
+}
+
+.treeBtn {
+    font-size: 14px;
+    padding: 0px;
+    margin: 0px;
+    height: 20px;
+    width: 20px;
+}
+
+.dashboardPanelBody > table {
+    padding: 20px;
+    width: 100%;
+    border: 0;
+}
+
+.dashboardPanelBody {
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+    padding: 30px;
+}
+
+.dashboardTable {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.dashboardTable > tbody > tr {
+    border-top: 1px solid grey;
+}
+
+.dashboardTable > tbody > tr:hover {
+    background-color: #f9f9f9;
+}
+
+.dashboardTable > tbody > tr > td:last-child {
+    text-align: right;
+}
+
+.dashboardTable > tbody > tr > td:nth-child(even) {
+    text-align: right;
+}
+
+.dashboardTable > tbody > tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+.dashboardTable > tbody > tr > td {
+    padding: 5px;
+    border-top: 1px solid #999;
+}
+
+.dashboardH1 {
+    font-size: 16px;
+    line-height: 23px;
+    font-weight: 600;
+    background-color: #f5f5f5;
+    margin: 0px;
+    font-family: Roboto, sans-serif;
+}
+
+.dashboardPanelSubdiv {
+    padding: 10px;
+}
+
+.dashboardLargeLink {
+    font-size: 16px;
+    color: #c44d34;
+}
+
+.dashboardVeryLargeLink {
+    font-size: 3em;
+    color: #c44d34;
+    font-weight: bold;
+}
+
+.dashboardLargeText {
+    font-size: 22px;
+}
+
+.dashboardCenter {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.dashboardOccurrenceRecord > div {
+    padding-bottom: 20px;
+}
+
+.dashboardSelectWrapper {
+    padding-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 5px;
+    float: right;
+}
+
+.dashboardRowLink {
+    cursor: pointer;
+}
+
+.mt-60 {
+    margin-top: 60px;
+}
+
+.mt-25 {
+    margin-top: 25px;
+}
+
+.dashboardPanelHeader {
+    padding: 10px 15px 10px 15px !important;
+}
+
+/*.card-header {*/
+/*    padding: 10px 15px;*/
+/*    margin: -15px -15px 15px;*/
+/*    font-size: 17.5px;*/
+/*    font-weight: 500;*/
+/*    background-color: #f5f5f5;*/
+/*    border-bottom: 1px solid #dddddd;*/
+/*    border-top-right-radius: 3px;*/
+/*    border-top-left-radius: 3px;*/
+/*    cursor: move;*/
+/*}*/
+
+
+/* commonui-bs5-2019/css/ala-styles.css overrides */
+.btn-primary {
+    color: #fff;
+    background-color: #c44d34 !important;
+    border-color: #c44d34 !important;;
+    font-size: 14px;
+}
+
+.btn-primary:hover, .gform_button:hover {
+    color: #fff;
+    background-color: #9c3d29 !important;;
+    border-color: #943a27 !important;;
+}
+
+.btn-primary:active, .gform_button:active, .btn-primary.active, .active.gform_button, .open > .btn-primary.dropdown-toggle, .open > .dropdown-toggle.gform_button {
+    color: #fff;
+    background-color: #9c3d29 !important;;
+    background-image: none;
+    border-color: #943a27 !important;;
+}
+
+.btn-primary:focus, .gform_button:focus, .btn-primary.focus, .focus.gform_button {
+    color: #fff;
+    background-color: #9c3d29 !important;;
+    border-color: #5f2519 !important;;
+}
+
+.btn, .gform_button {
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.428571429;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+
+

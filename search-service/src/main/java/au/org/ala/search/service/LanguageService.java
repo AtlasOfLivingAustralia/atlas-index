@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service;
 
 import au.org.ala.search.model.cache.LanguageInfo;
@@ -11,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service

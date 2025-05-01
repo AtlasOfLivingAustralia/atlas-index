@@ -1,0 +1,1697 @@
+{
+  "pageSize": 0,
+  "startIndex": 0,
+  "totalRecords": 4312479,
+  "sort": "score",
+  "dir": "asc",
+  "status": "OK",
+  "occurrences": [],
+  "facetResults": [
+    {
+      "fieldName": "species",
+      "fieldResult": [
+        {
+          "label": "Aaaaba fossicollis",
+          "i18nCode": "species.Aaaaba fossicollis",
+          "count": 16,
+          "fq": "species:\"Aaaaba fossicollis\""
+        },
+        {
+          "label": "Aaaaba nodosus",
+          "i18nCode": "species.Aaaaba nodosus",
+          "count": 1,
+          "fq": "species:\"Aaaaba nodosus\""
+        },
+        {
+          "label": "Aades cultratus",
+          "i18nCode": "species.Aades cultratus",
+          "count": 14,
+          "fq": "species:\"Aades cultratus\""
+        },
+        {
+          "label": "Aaroniella rawlingsi",
+          "i18nCode": "species.Aaroniella rawlingsi",
+          "count": 1,
+          "fq": "species:\"Aaroniella rawlingsi\""
+        },
+        {
+          "label": "Abantiades atripalpis",
+          "i18nCode": "species.Abantiades atripalpis",
+          "count": 28,
+          "fq": "species:\"Abantiades atripalpis\""
+        },
+        {
+          "label": "Abantiades hyalinatus",
+          "i18nCode": "species.Abantiades hyalinatus",
+          "count": 8,
+          "fq": "species:\"Abantiades hyalinatus\""
+        },
+        {
+          "label": "Abantiades labyrinthicus",
+          "i18nCode": "species.Abantiades labyrinthicus",
+          "count": 16,
+          "fq": "species:\"Abantiades labyrinthicus\""
+        },
+        {
+          "label": "Abantiades latipennis",
+          "i18nCode": "species.Abantiades latipennis",
+          "count": 13,
+          "fq": "species:\"Abantiades latipennis\""
+        },
+        {
+          "label": "Abantiades magnificus",
+          "i18nCode": "species.Abantiades magnificus",
+          "count": 8,
+          "fq": "species:\"Abantiades magnificus\""
+        },
+        {
+          "label": "Abcharis dimorpha",
+          "i18nCode": "species.Abcharis dimorpha",
+          "count": 1,
+          "fq": "species:\"Abcharis dimorpha\""
+        },
+        {
+          "label": "Abelia grandiflora",
+          "i18nCode": "species.Abelia grandiflora",
+          "count": 3,
+          "fq": "species:\"Abelia grandiflora\""
+        },
+        {
+          "label": "Abelmoschus ficulneus",
+          "i18nCode": "species.Abelmoschus ficulneus",
+          "count": 1,
+          "fq": "species:\"Abelmoschus ficulneus\""
+        },
+        {
+          "label": "Abelmoschus moschatus",
+          "i18nCode": "species.Abelmoschus moschatus",
+          "count": 2,
+          "fq": "species:\"Abelmoschus moschatus\""
+        },
+        {
+          "label": "Abispa ephippium",
+          "i18nCode": "species.Abispa ephippium",
+          "count": 1,
+          "fq": "species:\"Abispa ephippium\""
+        },
+        {
+          "label": "Abortiporus biennis",
+          "i18nCode": "species.Abortiporus biennis",
+          "count": 2,
+          "fq": "species:\"Abortiporus biennis\""
+        },
+        {
+          "label": "Absidia cylindrospora",
+          "i18nCode": "species.Absidia cylindrospora",
+          "count": 7,
+          "fq": "species:\"Absidia cylindrospora\""
+        },
+        {
+          "label": "Absidia spinosa",
+          "i18nCode": "species.Absidia spinosa",
+          "count": 1,
+          "fq": "species:\"Absidia spinosa\""
+        },
+        {
+          "label": "Abutilon megapotamicum",
+          "i18nCode": "species.Abutilon megapotamicum",
+          "count": 2,
+          "fq": "species:\"Abutilon megapotamicum\""
+        },
+        {
+          "label": "Abutilon theophrasti",
+          "i18nCode": "species.Abutilon theophrasti",
+          "count": 1,
+          "fq": "species:\"Abutilon theophrasti\""
+        },
+        {
+          "label": "Acacia acinacea",
+          "i18nCode": "species.Acacia acinacea",
+          "count": 8,
+          "fq": "species:\"Acacia acinacea\""
+        },
+        {
+          "label": "Acacia aculeatissima",
+          "i18nCode": "species.Acacia aculeatissima",
+          "count": 1,
+          "fq": "species:\"Acacia aculeatissima\""
+        },
+        {
+          "label": "Acacia acuminata",
+          "i18nCode": "species.Acacia acuminata",
+          "count": 3,
+          "fq": "species:\"Acacia acuminata\""
+        },
+        {
+          "label": "Acacia adsurgens",
+          "i18nCode": "species.Acacia adsurgens",
+          "count": 1,
+          "fq": "species:\"Acacia adsurgens\""
+        },
+        {
+          "label": "Acacia adunca",
+          "i18nCode": "species.Acacia adunca",
+          "count": 10,
+          "fq": "species:\"Acacia adunca\""
+        },
+        {
+          "label": "Acacia aestivalis",
+          "i18nCode": "species.Acacia aestivalis",
+          "count": 1,
+          "fq": "species:\"Acacia aestivalis\""
+        },
+        {
+          "label": "Acacia alata",
+          "i18nCode": "species.Acacia alata",
+          "count": 2,
+          "fq": "species:\"Acacia alata\""
+        },
+        {
+          "label": "Acacia alcockii",
+          "i18nCode": "species.Acacia alcockii",
+          "count": 1,
+          "fq": "species:\"Acacia alcockii\""
+        },
+        {
+          "label": "Acacia alpina",
+          "i18nCode": "species.Acacia alpina",
+          "count": 42,
+          "fq": "species:\"Acacia alpina\""
+        },
+        {
+          "label": "Acacia amblyophylla",
+          "i18nCode": "species.Acacia amblyophylla",
+          "count": 1,
+          "fq": "species:\"Acacia amblyophylla\""
+        },
+        {
+          "label": "Acacia amoena",
+          "i18nCode": "species.Acacia amoena",
+          "count": 2,
+          "fq": "species:\"Acacia amoena\""
+        },
+        {
+          "label": "Acacia ampliceps",
+          "i18nCode": "species.Acacia ampliceps",
+          "count": 1,
+          "fq": "species:\"Acacia ampliceps\""
+        },
+        {
+          "label": "Acacia anceps",
+          "i18nCode": "species.Acacia anceps",
+          "count": 1,
+          "fq": "species:\"Acacia anceps\""
+        },
+        {
+          "label": "Acacia andrewsii",
+          "i18nCode": "species.Acacia andrewsii",
+          "count": 1,
+          "fq": "species:\"Acacia andrewsii\""
+        },
+        {
+          "label": "Acacia aneura",
+          "i18nCode": "species.Acacia aneura",
+          "count": 1,
+          "fq": "species:\"Acacia aneura\""
+        },
+        {
+          "label": "Acacia anthochaera",
+          "i18nCode": "species.Acacia anthochaera",
+          "count": 1,
+          "fq": "species:\"Acacia anthochaera\""
+        },
+        {
+          "label": "Acacia aphylla",
+          "i18nCode": "species.Acacia aphylla",
+          "count": 1,
+          "fq": "species:\"Acacia aphylla\""
+        },
+        {
+          "label": "Acacia argyrophylla",
+          "i18nCode": "species.Acacia argyrophylla",
+          "count": 2,
+          "fq": "species:\"Acacia argyrophylla\""
+        },
+        {
+          "label": "Acacia ashbyae",
+          "i18nCode": "species.Acacia ashbyae",
+          "count": 1,
+          "fq": "species:\"Acacia ashbyae\""
+        },
+        {
+          "label": "Acacia aspera",
+          "i18nCode": "species.Acacia aspera",
+          "count": 5,
+          "fq": "species:\"Acacia aspera\""
+        },
+        {
+          "label": "Acacia assimilis",
+          "i18nCode": "species.Acacia assimilis",
+          "count": 1,
+          "fq": "species:\"Acacia assimilis\""
+        },
+        {
+          "label": "Acacia auriculiformis",
+          "i18nCode": "species.Acacia auriculiformis",
+          "count": 1,
+          "fq": "species:\"Acacia auriculiformis\""
+        },
+        {
+          "label": "Acacia ausfeldii",
+          "i18nCode": "species.Acacia ausfeldii",
+          "count": 3,
+          "fq": "species:\"Acacia ausfeldii\""
+        },
+        {
+          "label": "Acacia ayersiana",
+          "i18nCode": "species.Acacia ayersiana",
+          "count": 1,
+          "fq": "species:\"Acacia ayersiana\""
+        },
+        {
+          "label": "Acacia baileyana",
+          "i18nCode": "species.Acacia baileyana",
+          "count": 576,
+          "fq": "species:\"Acacia baileyana\""
+        },
+        {
+          "label": "Acacia baileyana x Acacia dealbata",
+          "i18nCode": "species.Acacia baileyana x Acacia dealbata",
+          "count": 49,
+          "fq": "species:\"Acacia baileyana x Acacia dealbata\""
+        },
+        {
+          "label": "Acacia baileyana x Acacia decurrens",
+          "i18nCode": "species.Acacia baileyana x Acacia decurrens",
+          "count": 23,
+          "fq": "species:\"Acacia baileyana x Acacia decurrens\""
+        },
+        {
+          "label": "Acacia bancroftiorum",
+          "i18nCode": "species.Acacia bancroftiorum",
+          "count": 1,
+          "fq": "species:\"Acacia bancroftiorum\""
+        },
+        {
+          "label": "Acacia barattensis",
+          "i18nCode": "species.Acacia barattensis",
+          "count": 2,
+          "fq": "species:\"Acacia barattensis\""
+        },
+        {
+          "label": "Acacia barringtonensis",
+          "i18nCode": "species.Acacia barringtonensis",
+          "count": 1,
+          "fq": "species:\"Acacia barringtonensis\""
+        },
+        {
+          "label": "Acacia beckleri",
+          "i18nCode": "species.Acacia beckleri",
+          "count": 4,
+          "fq": "species:\"Acacia beckleri\""
+        },
+        {
+          "label": "Acacia betchei",
+          "i18nCode": "species.Acacia betchei",
+          "count": 1,
+          "fq": "species:\"Acacia betchei\""
+        },
+        {
+          "label": "Acacia binata",
+          "i18nCode": "species.Acacia binata",
+          "count": 1,
+          "fq": "species:\"Acacia binata\""
+        },
+        {
+          "label": "Acacia binervata",
+          "i18nCode": "species.Acacia binervata",
+          "count": 6,
+          "fq": "species:\"Acacia binervata\""
+        },
+        {
+          "label": "Acacia binervia",
+          "i18nCode": "species.Acacia binervia",
+          "count": 1,
+          "fq": "species:\"Acacia binervia\""
+        },
+        {
+          "label": "Acacia bivenosa",
+          "i18nCode": "species.Acacia bivenosa",
+          "count": 1,
+          "fq": "species:\"Acacia bivenosa\""
+        },
+        {
+          "label": "Acacia blakei",
+          "i18nCode": "species.Acacia blakei",
+          "count": 1,
+          "fq": "species:\"Acacia blakei\""
+        },
+        {
+          "label": "Acacia blayana",
+          "i18nCode": "species.Acacia blayana",
+          "count": 5,
+          "fq": "species:\"Acacia blayana\""
+        },
+        {
+          "label": "Acacia boormanii",
+          "i18nCode": "species.Acacia boormanii",
+          "count": 204,
+          "fq": "species:\"Acacia boormanii\""
+        },
+        {
+          "label": "Acacia brachybotrya",
+          "i18nCode": "species.Acacia brachybotrya",
+          "count": 9,
+          "fq": "species:\"Acacia brachybotrya\""
+        },
+        {
+          "label": "Acacia brachystachya",
+          "i18nCode": "species.Acacia brachystachya",
+          "count": 1,
+          "fq": "species:\"Acacia brachystachya\""
+        },
+        {
+          "label": "Acacia bracteolata",
+          "i18nCode": "species.Acacia bracteolata",
+          "count": 1,
+          "fq": "species:\"Acacia bracteolata\""
+        },
+        {
+          "label": "Acacia brownii",
+          "i18nCode": "species.Acacia brownii",
+          "count": 1,
+          "fq": "species:\"Acacia brownii\""
+        },
+        {
+          "label": "Acacia burkittii",
+          "i18nCode": "species.Acacia burkittii",
+          "count": 2,
+          "fq": "species:\"Acacia burkittii\""
+        },
+        {
+          "label": "Acacia burrowii",
+          "i18nCode": "species.Acacia burrowii",
+          "count": 1,
+          "fq": "species:\"Acacia burrowii\""
+        },
+        {
+          "label": "Acacia buxifolia",
+          "i18nCode": "species.Acacia buxifolia",
+          "count": 355,
+          "fq": "species:\"Acacia buxifolia\""
+        },
+        {
+          "label": "Acacia caerulescens",
+          "i18nCode": "species.Acacia caerulescens",
+          "count": 2,
+          "fq": "species:\"Acacia caerulescens\""
+        },
+        {
+          "label": "Acacia calamifolia",
+          "i18nCode": "species.Acacia calamifolia",
+          "count": 5,
+          "fq": "species:\"Acacia calamifolia\""
+        },
+        {
+          "label": "Acacia calcicola",
+          "i18nCode": "species.Acacia calcicola",
+          "count": 1,
+          "fq": "species:\"Acacia calcicola\""
+        },
+        {
+          "label": "Acacia cambagei",
+          "i18nCode": "species.Acacia cambagei",
+          "count": 2,
+          "fq": "species:\"Acacia cambagei\""
+        },
+        {
+          "label": "Acacia camptoclada",
+          "i18nCode": "species.Acacia camptoclada",
+          "count": 1,
+          "fq": "species:\"Acacia camptoclada\""
+        },
+        {
+          "label": "Acacia cangaiensis",
+          "i18nCode": "species.Acacia cangaiensis",
+          "count": 2,
+          "fq": "species:\"Acacia cangaiensis\""
+        },
+        {
+          "label": "Acacia cardiophylla",
+          "i18nCode": "species.Acacia cardiophylla",
+          "count": 44,
+          "fq": "species:\"Acacia cardiophylla\""
+        },
+        {
+          "label": "Acacia caroleae",
+          "i18nCode": "species.Acacia caroleae",
+          "count": 1,
+          "fq": "species:\"Acacia caroleae\""
+        },
+        {
+          "label": "Acacia catenulata",
+          "i18nCode": "species.Acacia catenulata",
+          "count": 1,
+          "fq": "species:\"Acacia catenulata\""
+        },
+        {
+          "label": "Acacia celastrifolia",
+          "i18nCode": "species.Acacia celastrifolia",
+          "count": 1,
+          "fq": "species:\"Acacia celastrifolia\""
+        },
+        {
+          "label": "Acacia chamaeleon",
+          "i18nCode": "species.Acacia chamaeleon",
+          "count": 1,
+          "fq": "species:\"Acacia chamaeleon\""
+        },
+        {
+          "label": "Acacia cheelii",
+          "i18nCode": "species.Acacia cheelii",
+          "count": 6,
+          "fq": "species:\"Acacia cheelii\""
+        },
+        {
+          "label": "Acacia chinchillensis",
+          "i18nCode": "species.Acacia chinchillensis",
+          "count": 1,
+          "fq": "species:\"Acacia chinchillensis\""
+        },
+        {
+          "label": "Acacia chrysella",
+          "i18nCode": "species.Acacia chrysella",
+          "count": 1,
+          "fq": "species:\"Acacia chrysella\""
+        },
+        {
+          "label": "Acacia chrysocephala",
+          "i18nCode": "species.Acacia chrysocephala",
+          "count": 1,
+          "fq": "species:\"Acacia chrysocephala\""
+        },
+        {
+          "label": "Acacia cincinnata",
+          "i18nCode": "species.Acacia cincinnata",
+          "count": 1,
+          "fq": "species:\"Acacia cincinnata\""
+        },
+        {
+          "label": "Acacia citrinoviridis",
+          "i18nCode": "species.Acacia citrinoviridis",
+          "count": 1,
+          "fq": "species:\"Acacia citrinoviridis\""
+        },
+        {
+          "label": "Acacia cochlearis",
+          "i18nCode": "species.Acacia cochlearis",
+          "count": 1,
+          "fq": "species:\"Acacia cochlearis\""
+        },
+        {
+          "label": "Acacia cognata",
+          "i18nCode": "species.Acacia cognata",
+          "count": 7,
+          "fq": "species:\"Acacia cognata\""
+        },
+        {
+          "label": "Acacia colletioides",
+          "i18nCode": "species.Acacia colletioides",
+          "count": 1,
+          "fq": "species:\"Acacia colletioides\""
+        },
+        {
+          "label": "Acacia complanata",
+          "i18nCode": "species.Acacia complanata",
+          "count": 1,
+          "fq": "species:\"Acacia complanata\""
+        },
+        {
+          "label": "Acacia concurrens",
+          "i18nCode": "species.Acacia concurrens",
+          "count": 1,
+          "fq": "species:\"Acacia concurrens\""
+        },
+        {
+          "label": "Acacia conferta",
+          "i18nCode": "species.Acacia conferta",
+          "count": 4,
+          "fq": "species:\"Acacia conferta\""
+        },
+        {
+          "label": "Acacia consobrina",
+          "i18nCode": "species.Acacia consobrina",
+          "count": 3,
+          "fq": "species:\"Acacia consobrina\""
+        },
+        {
+          "label": "Acacia constablei",
+          "i18nCode": "species.Acacia constablei",
+          "count": 6,
+          "fq": "species:\"Acacia constablei\""
+        },
+        {
+          "label": "Acacia continua",
+          "i18nCode": "species.Acacia continua",
+          "count": 2,
+          "fq": "species:\"Acacia continua\""
+        },
+        {
+          "label": "Acacia coolgardiensis",
+          "i18nCode": "species.Acacia coolgardiensis",
+          "count": 3,
+          "fq": "species:\"Acacia coolgardiensis\""
+        },
+        {
+          "label": "Acacia coriacea",
+          "i18nCode": "species.Acacia coriacea",
+          "count": 3,
+          "fq": "species:\"Acacia coriacea\""
+        },
+        {
+          "label": "Acacia costiniana",
+          "i18nCode": "species.Acacia costiniana",
+          "count": 4,
+          "fq": "species:\"Acacia costiniana\""
+        },
+        {
+          "label": "Acacia covenyi",
+          "i18nCode": "species.Acacia covenyi",
+          "count": 19,
+          "fq": "species:\"Acacia covenyi\""
+        },
+        {
+          "label": "Acacia crassa",
+          "i18nCode": "species.Acacia crassa",
+          "count": 1,
+          "fq": "species:\"Acacia crassa\""
+        },
+        {
+          "label": "Acacia cretata",
+          "i18nCode": "species.Acacia cretata",
+          "count": 1,
+          "fq": "species:\"Acacia cretata\""
+        },
+        {
+          "label": "Acacia cultriformis",
+          "i18nCode": "species.Acacia cultriformis",
+          "count": 156,
+          "fq": "species:\"Acacia cultriformis\""
+        },
+        {
+          "label": "Acacia cupularis",
+          "i18nCode": "species.Acacia cupularis",
+          "count": 1,
+          "fq": "species:\"Acacia cupularis\""
+        },
+        {
+          "label": "Acacia cuthbertsonii",
+          "i18nCode": "species.Acacia cuthbertsonii",
+          "count": 1,
+          "fq": "species:\"Acacia cuthbertsonii\""
+        },
+        {
+          "label": "Acacia cyclops",
+          "i18nCode": "species.Acacia cyclops",
+          "count": 1,
+          "fq": "species:\"Acacia cyclops\""
+        },
+        {
+          "label": "Acacia cyperophylla",
+          "i18nCode": "species.Acacia cyperophylla",
+          "count": 1,
+          "fq": "species:\"Acacia cyperophylla\""
+        },
+        {
+          "label": "Acacia dallachiana",
+          "i18nCode": "species.Acacia dallachiana",
+          "count": 1,
+          "fq": "species:\"Acacia dallachiana\""
+        },
+        {
+          "label": "Acacia dangarensis",
+          "i18nCode": "species.Acacia dangarensis",
+          "count": 1,
+          "fq": "species:\"Acacia dangarensis\""
+        },
+        {
+          "label": "Acacia dawsonii",
+          "i18nCode": "species.Acacia dawsonii",
+          "count": 53,
+          "fq": "species:\"Acacia dawsonii\""
+        },
+        {
+          "label": "Acacia dealbata",
+          "i18nCode": "species.Acacia dealbata",
+          "count": 763,
+          "fq": "species:\"Acacia dealbata\""
+        },
+        {
+          "label": "Acacia deanei",
+          "i18nCode": "species.Acacia deanei",
+          "count": 18,
+          "fq": "species:\"Acacia deanei\""
+        },
+        {
+          "label": "Acacia declinata",
+          "i18nCode": "species.Acacia declinata",
+          "count": 1,
+          "fq": "species:\"Acacia declinata\""
+        },
+        {
+          "label": "Acacia decora",
+          "i18nCode": "species.Acacia decora",
+          "count": 12,
+          "fq": "species:\"Acacia decora\""
+        },
+        {
+          "label": "Acacia decurrens",
+          "i18nCode": "species.Acacia decurrens",
+          "count": 300,
+          "fq": "species:\"Acacia decurrens\""
+        },
+        {
+          "label": "Acacia deficiens",
+          "i18nCode": "species.Acacia deficiens",
+          "count": 1,
+          "fq": "species:\"Acacia deficiens\""
+        },
+        {
+          "label": "Acacia delphina",
+          "i18nCode": "species.Acacia delphina",
+          "count": 1,
+          "fq": "species:\"Acacia delphina\""
+        },
+        {
+          "label": "Acacia demissa",
+          "i18nCode": "species.Acacia demissa",
+          "count": 1,
+          "fq": "species:\"Acacia demissa\""
+        },
+        {
+          "label": "Acacia dempsteri",
+          "i18nCode": "species.Acacia dempsteri",
+          "count": 3,
+          "fq": "species:\"Acacia dempsteri\""
+        },
+        {
+          "label": "Acacia denticulosa",
+          "i18nCode": "species.Acacia denticulosa",
+          "count": 1,
+          "fq": "species:\"Acacia denticulosa\""
+        },
+        {
+          "label": "Acacia dentifera",
+          "i18nCode": "species.Acacia dentifera",
+          "count": 1,
+          "fq": "species:\"Acacia dentifera\""
+        },
+        {
+          "label": "Acacia dictyoneura",
+          "i18nCode": "species.Acacia dictyoneura",
+          "count": 1,
+          "fq": "species:\"Acacia dictyoneura\""
+        },
+        {
+          "label": "Acacia difformis",
+          "i18nCode": "species.Acacia difformis",
+          "count": 1,
+          "fq": "species:\"Acacia difformis\""
+        },
+        {
+          "label": "Acacia distans",
+          "i18nCode": "species.Acacia distans",
+          "count": 1,
+          "fq": "species:\"Acacia distans\""
+        },
+        {
+          "label": "Acacia divergens",
+          "i18nCode": "species.Acacia divergens",
+          "count": 2,
+          "fq": "species:\"Acacia divergens\""
+        },
+        {
+          "label": "Acacia dodonaeifolia",
+          "i18nCode": "species.Acacia dodonaeifolia",
+          "count": 1,
+          "fq": "species:\"Acacia dodonaeifolia\""
+        },
+        {
+          "label": "Acacia donaldsonii",
+          "i18nCode": "species.Acacia donaldsonii",
+          "count": 1,
+          "fq": "species:\"Acacia donaldsonii\""
+        },
+        {
+          "label": "Acacia doratoxylon",
+          "i18nCode": "species.Acacia doratoxylon",
+          "count": 58,
+          "fq": "species:\"Acacia doratoxylon\""
+        },
+        {
+          "label": "Acacia drepanophylla",
+          "i18nCode": "species.Acacia drepanophylla",
+          "count": 1,
+          "fq": "species:\"Acacia drepanophylla\""
+        },
+        {
+          "label": "Acacia drummondii",
+          "i18nCode": "species.Acacia drummondii",
+          "count": 2,
+          "fq": "species:\"Acacia drummondii\""
+        },
+        {
+          "label": "Acacia elata",
+          "i18nCode": "species.Acacia elata",
+          "count": 16,
+          "fq": "species:\"Acacia elata\""
+        },
+        {
+          "label": "Acacia elongata",
+          "i18nCode": "species.Acacia elongata",
+          "count": 15,
+          "fq": "species:\"Acacia elongata\""
+        },
+        {
+          "label": "Acacia empelioclada",
+          "i18nCode": "species.Acacia empelioclada",
+          "count": 1,
+          "fq": "species:\"Acacia empelioclada\""
+        },
+        {
+          "label": "Acacia enervia",
+          "i18nCode": "species.Acacia enervia",
+          "count": 1,
+          "fq": "species:\"Acacia enervia\""
+        },
+        {
+          "label": "Acacia enterocarpa",
+          "i18nCode": "species.Acacia enterocarpa",
+          "count": 1,
+          "fq": "species:\"Acacia enterocarpa\""
+        },
+        {
+          "label": "Acacia eremaea",
+          "i18nCode": "species.Acacia eremaea",
+          "count": 1,
+          "fq": "species:\"Acacia eremaea\""
+        },
+        {
+          "label": "Acacia estrophiolata",
+          "i18nCode": "species.Acacia estrophiolata",
+          "count": 1,
+          "fq": "species:\"Acacia estrophiolata\""
+        },
+        {
+          "label": "Acacia euthycarpa",
+          "i18nCode": "species.Acacia euthycarpa",
+          "count": 2,
+          "fq": "species:\"Acacia euthycarpa\""
+        },
+        {
+          "label": "Acacia everistii",
+          "i18nCode": "species.Acacia everistii",
+          "count": 1,
+          "fq": "species:\"Acacia everistii\""
+        },
+        {
+          "label": "Acacia excelsa",
+          "i18nCode": "species.Acacia excelsa",
+          "count": 1,
+          "fq": "species:\"Acacia excelsa\""
+        },
+        {
+          "label": "Acacia exigua",
+          "i18nCode": "species.Acacia exigua",
+          "count": 1,
+          "fq": "species:\"Acacia exigua\""
+        },
+        {
+          "label": "Acacia exocarpoides",
+          "i18nCode": "species.Acacia exocarpoides",
+          "count": 1,
+          "fq": "species:\"Acacia exocarpoides\""
+        },
+        {
+          "label": "Acacia extensa",
+          "i18nCode": "species.Acacia extensa",
+          "count": 5,
+          "fq": "species:\"Acacia extensa\""
+        },
+        {
+          "label": "Acacia falcata",
+          "i18nCode": "species.Acacia falcata",
+          "count": 6,
+          "fq": "species:\"Acacia falcata\""
+        },
+        {
+          "label": "Acacia falciformis",
+          "i18nCode": "species.Acacia falciformis",
+          "count": 124,
+          "fq": "species:\"Acacia falciformis\""
+        },
+        {
+          "label": "Acacia farinosa",
+          "i18nCode": "species.Acacia farinosa",
+          "count": 1,
+          "fq": "species:\"Acacia farinosa\""
+        },
+        {
+          "label": "Acacia fasciculifera",
+          "i18nCode": "species.Acacia fasciculifera",
+          "count": 1,
+          "fq": "species:\"Acacia fasciculifera\""
+        },
+        {
+          "label": "Acacia fauntleroyi",
+          "i18nCode": "species.Acacia fauntleroyi",
+          "count": 11,
+          "fq": "species:\"Acacia fauntleroyi\""
+        },
+        {
+          "label": "Acacia filicifolia",
+          "i18nCode": "species.Acacia filicifolia",
+          "count": 2,
+          "fq": "species:\"Acacia filicifolia\""
+        },
+        {
+          "label": "Acacia fimbriata",
+          "i18nCode": "species.Acacia fimbriata",
+          "count": 25,
+          "fq": "species:\"Acacia fimbriata\""
+        },
+        {
+          "label": "Acacia flagelliformis",
+          "i18nCode": "species.Acacia flagelliformis",
+          "count": 1,
+          "fq": "species:\"Acacia flagelliformis\""
+        },
+        {
+          "label": "Acacia fleckeri",
+          "i18nCode": "species.Acacia fleckeri",
+          "count": 1,
+          "fq": "species:\"Acacia fleckeri\""
+        },
+        {
+          "label": "Acacia flexifolia",
+          "i18nCode": "species.Acacia flexifolia",
+          "count": 4,
+          "fq": "species:\"Acacia flexifolia\""
+        },
+        {
+          "label": "Acacia floribunda",
+          "i18nCode": "species.Acacia floribunda",
+          "count": 89,
+          "fq": "species:\"Acacia floribunda\""
+        },
+        {
+          "label": "Acacia frigescens",
+          "i18nCode": "species.Acacia frigescens",
+          "count": 1,
+          "fq": "species:\"Acacia frigescens\""
+        },
+        {
+          "label": "Acacia fulva",
+          "i18nCode": "species.Acacia fulva",
+          "count": 1,
+          "fq": "species:\"Acacia fulva\""
+        },
+        {
+          "label": "Acacia genistifolia",
+          "i18nCode": "species.Acacia genistifolia",
+          "count": 413,
+          "fq": "species:\"Acacia genistifolia\""
+        },
+        {
+          "label": "Acacia georgensis",
+          "i18nCode": "species.Acacia georgensis",
+          "count": 1,
+          "fq": "species:\"Acacia georgensis\""
+        },
+        {
+          "label": "Acacia gilbertii",
+          "i18nCode": "species.Acacia gilbertii",
+          "count": 2,
+          "fq": "species:\"Acacia gilbertii\""
+        },
+        {
+          "label": "Acacia gillii",
+          "i18nCode": "species.Acacia gillii",
+          "count": 1,
+          "fq": "species:\"Acacia gillii\""
+        },
+        {
+          "label": "Acacia gladiiformis",
+          "i18nCode": "species.Acacia gladiiformis",
+          "count": 1,
+          "fq": "species:\"Acacia gladiiformis\""
+        },
+        {
+          "label": "Acacia glaucissima",
+          "i18nCode": "species.Acacia glaucissima",
+          "count": 1,
+          "fq": "species:\"Acacia glaucissima\""
+        },
+        {
+          "label": "Acacia glaucocarpa",
+          "i18nCode": "species.Acacia glaucocarpa",
+          "count": 1,
+          "fq": "species:\"Acacia glaucocarpa\""
+        },
+        {
+          "label": "Acacia gnidium",
+          "i18nCode": "species.Acacia gnidium",
+          "count": 1,
+          "fq": "species:\"Acacia gnidium\""
+        },
+        {
+          "label": "Acacia gonophylla",
+          "i18nCode": "species.Acacia gonophylla",
+          "count": 1,
+          "fq": "species:\"Acacia gonophylla\""
+        },
+        {
+          "label": "Acacia gordonii",
+          "i18nCode": "species.Acacia gordonii",
+          "count": 12,
+          "fq": "species:\"Acacia gordonii\""
+        },
+        {
+          "label": "Acacia gracilifolia",
+          "i18nCode": "species.Acacia gracilifolia",
+          "count": 1,
+          "fq": "species:\"Acacia gracilifolia\""
+        },
+        {
+          "label": "Acacia grandifolia",
+          "i18nCode": "species.Acacia grandifolia",
+          "count": 1,
+          "fq": "species:\"Acacia grandifolia\""
+        },
+        {
+          "label": "Acacia grasbyi",
+          "i18nCode": "species.Acacia grasbyi",
+          "count": 1,
+          "fq": "species:\"Acacia grasbyi\""
+        },
+        {
+          "label": "Acacia guinetii",
+          "i18nCode": "species.Acacia guinetii",
+          "count": 2,
+          "fq": "species:\"Acacia guinetii\""
+        },
+        {
+          "label": "Acacia gunnii",
+          "i18nCode": "species.Acacia gunnii",
+          "count": 356,
+          "fq": "species:\"Acacia gunnii\""
+        },
+        {
+          "label": "Acacia hakeoides",
+          "i18nCode": "species.Acacia hakeoides",
+          "count": 3,
+          "fq": "species:\"Acacia hakeoides\""
+        },
+        {
+          "label": "Acacia halliana",
+          "i18nCode": "species.Acacia halliana",
+          "count": 1,
+          "fq": "species:\"Acacia halliana\""
+        },
+        {
+          "label": "Acacia hamersleyensis",
+          "i18nCode": "species.Acacia hamersleyensis",
+          "count": 1,
+          "fq": "species:\"Acacia hamersleyensis\""
+        },
+        {
+          "label": "Acacia harveyi",
+          "i18nCode": "species.Acacia harveyi",
+          "count": 1,
+          "fq": "species:\"Acacia harveyi\""
+        },
+        {
+          "label": "Acacia havilandiorum",
+          "i18nCode": "species.Acacia havilandiorum",
+          "count": 2,
+          "fq": "species:\"Acacia havilandiorum\""
+        },
+        {
+          "label": "Acacia hemignosta",
+          "i18nCode": "species.Acacia hemignosta",
+          "count": 1,
+          "fq": "species:\"Acacia hemignosta\""
+        },
+        {
+          "label": "Acacia hemiteles",
+          "i18nCode": "species.Acacia hemiteles",
+          "count": 2,
+          "fq": "species:\"Acacia hemiteles\""
+        },
+        {
+          "label": "Acacia heteroclita",
+          "i18nCode": "species.Acacia heteroclita",
+          "count": 1,
+          "fq": "species:\"Acacia heteroclita\""
+        },
+        {
+          "label": "Acacia homalophylla",
+          "i18nCode": "species.Acacia homalophylla",
+          "count": 1,
+          "fq": "species:\"Acacia homalophylla\""
+        },
+        {
+          "label": "Acacia horridula",
+          "i18nCode": "species.Acacia horridula",
+          "count": 1,
+          "fq": "species:\"Acacia horridula\""
+        },
+        {
+          "label": "Acacia howittii",
+          "i18nCode": "species.Acacia howittii",
+          "count": 19,
+          "fq": "species:\"Acacia howittii\""
+        },
+        {
+          "label": "Acacia hylonoma",
+          "i18nCode": "species.Acacia hylonoma",
+          "count": 1,
+          "fq": "species:\"Acacia hylonoma\""
+        },
+        {
+          "label": "Acacia idiomorpha",
+          "i18nCode": "species.Acacia idiomorpha",
+          "count": 1,
+          "fq": "species:\"Acacia idiomorpha\""
+        },
+        {
+          "label": "Acacia implexa",
+          "i18nCode": "species.Acacia implexa",
+          "count": 291,
+          "fq": "species:\"Acacia implexa\""
+        },
+        {
+          "label": "Acacia inaequiloba",
+          "i18nCode": "species.Acacia inaequiloba",
+          "count": 1,
+          "fq": "species:\"Acacia inaequiloba\""
+        },
+        {
+          "label": "Acacia incurva",
+          "i18nCode": "species.Acacia incurva",
+          "count": 1,
+          "fq": "species:\"Acacia incurva\""
+        },
+        {
+          "label": "Acacia incurvaneura",
+          "i18nCode": "species.Acacia incurvaneura",
+          "count": 2,
+          "fq": "species:\"Acacia incurvaneura\""
+        },
+        {
+          "label": "Acacia inophloia",
+          "i18nCode": "species.Acacia inophloia",
+          "count": 1,
+          "fq": "species:\"Acacia inophloia\""
+        },
+        {
+          "label": "Acacia islana",
+          "i18nCode": "species.Acacia islana",
+          "count": 1,
+          "fq": "species:\"Acacia islana\""
+        },
+        {
+          "label": "Acacia iteaphylla",
+          "i18nCode": "species.Acacia iteaphylla",
+          "count": 12,
+          "fq": "species:\"Acacia iteaphylla\""
+        },
+        {
+          "label": "Acacia ixiophylla",
+          "i18nCode": "species.Acacia ixiophylla",
+          "count": 1,
+          "fq": "species:\"Acacia ixiophylla\""
+        },
+        {
+          "label": "Acacia ixodes",
+          "i18nCode": "species.Acacia ixodes",
+          "count": 1,
+          "fq": "species:\"Acacia ixodes\""
+        },
+        {
+          "label": "Acacia jennerae",
+          "i18nCode": "species.Acacia jennerae",
+          "count": 1,
+          "fq": "species:\"Acacia jennerae\""
+        },
+        {
+          "label": "Acacia jibberdingensis",
+          "i18nCode": "species.Acacia jibberdingensis",
+          "count": 10,
+          "fq": "species:\"Acacia jibberdingensis\""
+        },
+        {
+          "label": "Acacia johnsonii",
+          "i18nCode": "species.Acacia johnsonii",
+          "count": 2,
+          "fq": "species:\"Acacia johnsonii\""
+        },
+        {
+          "label": "Acacia jonesii",
+          "i18nCode": "species.Acacia jonesii",
+          "count": 1,
+          "fq": "species:\"Acacia jonesii\""
+        },
+        {
+          "label": "Acacia jucunda",
+          "i18nCode": "species.Acacia jucunda",
+          "count": 1,
+          "fq": "species:\"Acacia jucunda\""
+        },
+        {
+          "label": "Acacia julifera",
+          "i18nCode": "species.Acacia julifera",
+          "count": 1,
+          "fq": "species:\"Acacia julifera\""
+        },
+        {
+          "label": "Acacia kempeana",
+          "i18nCode": "species.Acacia kempeana",
+          "count": 3,
+          "fq": "species:\"Acacia kempeana\""
+        },
+        {
+          "label": "Acacia kettlewelliae",
+          "i18nCode": "species.Acacia kettlewelliae",
+          "count": 4,
+          "fq": "species:\"Acacia kettlewelliae\""
+        },
+        {
+          "label": "Acacia kybeanensis",
+          "i18nCode": "species.Acacia kybeanensis",
+          "count": 2,
+          "fq": "species:\"Acacia kybeanensis\""
+        },
+        {
+          "label": "Acacia lanigera",
+          "i18nCode": "species.Acacia lanigera",
+          "count": 107,
+          "fq": "species:\"Acacia lanigera\""
+        },
+        {
+          "label": "Acacia lasiocarpa",
+          "i18nCode": "species.Acacia lasiocarpa",
+          "count": 4,
+          "fq": "species:\"Acacia lasiocarpa\""
+        },
+        {
+          "label": "Acacia lateriticola",
+          "i18nCode": "species.Acacia lateriticola",
+          "count": 1,
+          "fq": "species:\"Acacia lateriticola\""
+        },
+        {
+          "label": "Acacia latisepala",
+          "i18nCode": "species.Acacia latisepala",
+          "count": 1,
+          "fq": "species:\"Acacia latisepala\""
+        },
+        {
+          "label": "Acacia lauta",
+          "i18nCode": "species.Acacia lauta",
+          "count": 1,
+          "fq": "species:\"Acacia lauta\""
+        },
+        {
+          "label": "Acacia leiocalyx",
+          "i18nCode": "species.Acacia leiocalyx",
+          "count": 1,
+          "fq": "species:\"Acacia leiocalyx\""
+        },
+        {
+          "label": "Acacia leioderma",
+          "i18nCode": "species.Acacia leioderma",
+          "count": 1,
+          "fq": "species:\"Acacia leioderma\""
+        },
+        {
+          "label": "Acacia leiophylla",
+          "i18nCode": "species.Acacia leiophylla",
+          "count": 1,
+          "fq": "species:\"Acacia leiophylla\""
+        },
+        {
+          "label": "Acacia leptalea",
+          "i18nCode": "species.Acacia leptalea",
+          "count": 1,
+          "fq": "species:\"Acacia leptalea\""
+        },
+        {
+          "label": "Acacia leucoclada",
+          "i18nCode": "species.Acacia leucoclada",
+          "count": 3,
+          "fq": "species:\"Acacia leucoclada\""
+        },
+        {
+          "label": "Acacia leucolobia",
+          "i18nCode": "species.Acacia leucolobia",
+          "count": 2,
+          "fq": "species:\"Acacia leucolobia\""
+        },
+        {
+          "label": "Acacia ligulata",
+          "i18nCode": "species.Acacia ligulata",
+          "count": 2,
+          "fq": "species:\"Acacia ligulata\""
+        },
+        {
+          "label": "Acacia ligustrina",
+          "i18nCode": "species.Acacia ligustrina",
+          "count": 1,
+          "fq": "species:\"Acacia ligustrina\""
+        },
+        {
+          "label": "Acacia linearifolia",
+          "i18nCode": "species.Acacia linearifolia",
+          "count": 6,
+          "fq": "species:\"Acacia linearifolia\""
+        },
+        {
+          "label": "Acacia lineata",
+          "i18nCode": "species.Acacia lineata",
+          "count": 3,
+          "fq": "species:\"Acacia lineata\""
+        },
+        {
+          "label": "Acacia linifolia",
+          "i18nCode": "species.Acacia linifolia",
+          "count": 4,
+          "fq": "species:\"Acacia linifolia\""
+        },
+        {
+          "label": "Acacia littorea",
+          "i18nCode": "species.Acacia littorea",
+          "count": 3,
+          "fq": "species:\"Acacia littorea\""
+        },
+        {
+          "label": "Acacia loderi",
+          "i18nCode": "species.Acacia loderi",
+          "count": 1,
+          "fq": "species:\"Acacia loderi\""
+        },
+        {
+          "label": "Acacia longifolia",
+          "i18nCode": "species.Acacia longifolia",
+          "count": 72,
+          "fq": "species:\"Acacia longifolia\""
+        },
+        {
+          "label": "Acacia longiphyllodinea",
+          "i18nCode": "species.Acacia longiphyllodinea",
+          "count": 1,
+          "fq": "species:\"Acacia longiphyllodinea\""
+        },
+        {
+          "label": "Acacia longispicata",
+          "i18nCode": "species.Acacia longispicata",
+          "count": 1,
+          "fq": "species:\"Acacia longispicata\""
+        },
+        {
+          "label": "Acacia longissima",
+          "i18nCode": "species.Acacia longissima",
+          "count": 2,
+          "fq": "species:\"Acacia longissima\""
+        },
+        {
+          "label": "Acacia lunata",
+          "i18nCode": "species.Acacia lunata",
+          "count": 10,
+          "fq": "species:\"Acacia lunata\""
+        },
+        {
+          "label": "Acacia mabellae",
+          "i18nCode": "species.Acacia mabellae",
+          "count": 1,
+          "fq": "species:\"Acacia mabellae\""
+        },
+        {
+          "label": "Acacia macradenia",
+          "i18nCode": "species.Acacia macradenia",
+          "count": 1,
+          "fq": "species:\"Acacia macradenia\""
+        },
+        {
+          "label": "Acacia maidenii",
+          "i18nCode": "species.Acacia maidenii",
+          "count": 1,
+          "fq": "species:\"Acacia maidenii\""
+        },
+        {
+          "label": "Acacia mariae",
+          "i18nCode": "species.Acacia mariae",
+          "count": 2,
+          "fq": "species:\"Acacia mariae\""
+        },
+        {
+          "label": "Acacia masliniana",
+          "i18nCode": "species.Acacia masliniana",
+          "count": 1,
+          "fq": "species:\"Acacia masliniana\""
+        },
+        {
+          "label": "Acacia mearnsii",
+          "i18nCode": "species.Acacia mearnsii",
+          "count": 290,
+          "fq": "species:\"Acacia mearnsii\""
+        },
+        {
+          "label": "Acacia meisneri",
+          "i18nCode": "species.Acacia meisneri",
+          "count": 1,
+          "fq": "species:\"Acacia meisneri\""
+        },
+        {
+          "label": "Acacia melanoxylon",
+          "i18nCode": "species.Acacia melanoxylon",
+          "count": 377,
+          "fq": "species:\"Acacia melanoxylon\""
+        },
+        {
+          "label": "Acacia menzelii",
+          "i18nCode": "species.Acacia menzelii",
+          "count": 6,
+          "fq": "species:\"Acacia menzelii\""
+        },
+        {
+          "label": "Acacia merrallii",
+          "i18nCode": "species.Acacia merrallii",
+          "count": 1,
+          "fq": "species:\"Acacia merrallii\""
+        },
+        {
+          "label": "Acacia merrickiae",
+          "i18nCode": "species.Acacia merrickiae",
+          "count": 1,
+          "fq": "species:\"Acacia merrickiae\""
+        },
+        {
+          "label": "Acacia microbotrya",
+          "i18nCode": "species.Acacia microbotrya",
+          "count": 2,
+          "fq": "species:\"Acacia microbotrya\""
+        },
+        {
+          "label": "Acacia microcarpa",
+          "i18nCode": "species.Acacia microcarpa",
+          "count": 1,
+          "fq": "species:\"Acacia microcarpa\""
+        },
+        {
+          "label": "Acacia mollifolia",
+          "i18nCode": "species.Acacia mollifolia",
+          "count": 7,
+          "fq": "species:\"Acacia mollifolia\""
+        },
+        {
+          "label": "Acacia montana",
+          "i18nCode": "species.Acacia montana",
+          "count": 1,
+          "fq": "species:\"Acacia montana\""
+        },
+        {
+          "label": "Acacia mucronata",
+          "i18nCode": "species.Acacia mucronata",
+          "count": 1,
+          "fq": "species:\"Acacia mucronata\""
+        },
+        {
+          "label": "Acacia muelleriana",
+          "i18nCode": "species.Acacia muelleriana",
+          "count": 4,
+          "fq": "species:\"Acacia muelleriana\""
+        },
+        {
+          "label": "Acacia murrayana",
+          "i18nCode": "species.Acacia murrayana",
+          "count": 1,
+          "fq": "species:\"Acacia murrayana\""
+        },
+        {
+          "label": "Acacia myrtifolia",
+          "i18nCode": "species.Acacia myrtifolia",
+          "count": 3,
+          "fq": "species:\"Acacia myrtifolia\""
+        },
+        {
+          "label": "Acacia nanodealbata",
+          "i18nCode": "species.Acacia nanodealbata",
+          "count": 3,
+          "fq": "species:\"Acacia nanodealbata\""
+        },
+        {
+          "label": "Acacia nematophylla",
+          "i18nCode": "species.Acacia nematophylla",
+          "count": 5,
+          "fq": "species:\"Acacia nematophylla\""
+        },
+        {
+          "label": "Acacia neriifolia",
+          "i18nCode": "species.Acacia neriifolia",
+          "count": 3,
+          "fq": "species:\"Acacia neriifolia\""
+        },
+        {
+          "label": "Acacia nervosa",
+          "i18nCode": "species.Acacia nervosa",
+          "count": 1,
+          "fq": "species:\"Acacia nervosa\""
+        },
+        {
+          "label": "Acacia neurophylla",
+          "i18nCode": "species.Acacia neurophylla",
+          "count": 2,
+          "fq": "species:\"Acacia neurophylla\""
+        },
+        {
+          "label": "Acacia nigricans",
+          "i18nCode": "species.Acacia nigricans",
+          "count": 1,
+          "fq": "species:\"Acacia nigricans\""
+        },
+        {
+          "label": "Acacia obliquinervia",
+          "i18nCode": "species.Acacia obliquinervia",
+          "count": 112,
+          "fq": "species:\"Acacia obliquinervia\""
+        },
+        {
+          "label": "Acacia obtecta",
+          "i18nCode": "species.Acacia obtecta",
+          "count": 1,
+          "fq": "species:\"Acacia obtecta\""
+        },
+        {
+          "label": "Acacia olgana",
+          "i18nCode": "species.Acacia olgana",
+          "count": 1,
+          "fq": "species:\"Acacia olgana\""
+        },
+        {
+          "label": "Acacia olsenii",
+          "i18nCode": "species.Acacia olsenii",
+          "count": 1,
+          "fq": "species:\"Acacia olsenii\""
+        },
+        {
+          "label": "Acacia oshanesii",
+          "i18nCode": "species.Acacia oshanesii",
+          "count": 6,
+          "fq": "species:\"Acacia oshanesii\""
+        },
+        {
+          "label": "Acacia oswaldii",
+          "i18nCode": "species.Acacia oswaldii",
+          "count": 2,
+          "fq": "species:\"Acacia oswaldii\""
+        },
+        {
+          "label": "Acacia oxycedrus",
+          "i18nCode": "species.Acacia oxycedrus",
+          "count": 1,
+          "fq": "species:\"Acacia oxycedrus\""
+        },
+        {
+          "label": "Acacia pachyacra",
+          "i18nCode": "species.Acacia pachyacra",
+          "count": 1,
+          "fq": "species:\"Acacia pachyacra\""
+        },
+        {
+          "label": "Acacia papyrocarpa",
+          "i18nCode": "species.Acacia papyrocarpa",
+          "count": 1,
+          "fq": "species:\"Acacia papyrocarpa\""
+        },
+        {
+          "label": "Acacia paradoxa",
+          "i18nCode": "species.Acacia paradoxa",
+          "count": 133,
+          "fq": "species:\"Acacia paradoxa\""
+        },
+        {
+          "label": "Acacia parramattensis",
+          "i18nCode": "species.Acacia parramattensis",
+          "count": 139,
+          "fq": "species:\"Acacia parramattensis\""
+        },
+        {
+          "label": "Acacia pellita",
+          "i18nCode": "species.Acacia pellita",
+          "count": 1,
+          "fq": "species:\"Acacia pellita\""
+        },
+        {
+          "label": "Acacia pendula",
+          "i18nCode": "species.Acacia pendula",
+          "count": 1,
+          "fq": "species:\"Acacia pendula\""
+        },
+        {
+          "label": "Acacia penninervis",
+          "i18nCode": "species.Acacia penninervis",
+          "count": 126,
+          "fq": "species:\"Acacia penninervis\""
+        },
+        {
+          "label": "Acacia peuce",
+          "i18nCode": "species.Acacia peuce",
+          "count": 1,
+          "fq": "species:\"Acacia peuce\""
+        },
+        {
+          "label": "Acacia phasmoides",
+          "i18nCode": "species.Acacia phasmoides",
+          "count": 1,
+          "fq": "species:\"Acacia phasmoides\""
+        },
+        {
+          "label": "Acacia phlebopetala",
+          "i18nCode": "species.Acacia phlebopetala",
+          "count": 1,
+          "fq": "species:\"Acacia phlebopetala\""
+        },
+        {
+          "label": "Acacia phlebophylla",
+          "i18nCode": "species.Acacia phlebophylla",
+          "count": 2,
+          "fq": "species:\"Acacia phlebophylla\""
+        },
+        {
+          "label": "Acacia pilligaensis",
+          "i18nCode": "species.Acacia pilligaensis",
+          "count": 1,
+          "fq": "species:\"Acacia pilligaensis\""
+        },
+        {
+          "label": "Acacia pinguifolia",
+          "i18nCode": "species.Acacia pinguifolia",
+          "count": 1,
+          "fq": "species:\"Acacia pinguifolia\""
+        },
+        {
+          "label": "Acacia plectocarpa",
+          "i18nCode": "species.Acacia plectocarpa",
+          "count": 2,
+          "fq": "species:\"Acacia plectocarpa\""
+        },
+        {
+          "label": "Acacia podalyriifolia",
+          "i18nCode": "species.Acacia podalyriifolia",
+          "count": 30,
+          "fq": "species:\"Acacia podalyriifolia\""
+        },
+        {
+          "label": "Acacia polybotrya",
+          "i18nCode": "species.Acacia polybotrya",
+          "count": 1,
+          "fq": "species:\"Acacia polybotrya\""
+        },
+        {
+          "label": "Acacia prainii",
+          "i18nCode": "species.Acacia prainii",
+          "count": 1,
+          "fq": "species:\"Acacia prainii\""
+        },
+        {
+          "label": "Acacia pravifolia",
+          "i18nCode": "species.Acacia pravifolia",
+          "count": 4,
+          "fq": "species:\"Acacia pravifolia\""
+        },
+        {
+          "label": "Acacia pravissima",
+          "i18nCode": "species.Acacia pravissima",
+          "count": 254,
+          "fq": "species:\"Acacia pravissima\""
+        }
+      ]
+    }
+  ],
+  "query": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
+  "urlParameters": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
+  "queryTitle": "PSMA States (2016):\"AUSTRALIAN CAPITAL TERRITORY\"",
+  "activeFacetMap": {
+    "species": {
+      "name": "species",
+      "displayName": "Species:*",
+      "value": "*"
+    },
+    "occurrenceYear": {
+      "name": "occurrenceYear",
+      "displayName": "Date (by year):[1850-2025]",
+      "value": "[1850-01-01T00:00:00Z TO 2025-12-31T23:59:59Z]"
+    },
+    "-occurrenceStatus": {
+      "name": "-occurrenceStatus",
+      "displayName": "-Presence/Absence:ABSENT",
+      "value": "absent"
+    },
+    "spatiallyValid": {
+      "name": "spatiallyValid",
+      "displayName": "Spatial validity:Spatially valid",
+      "value": "true"
+    }
+  },
+  "activeFacetObj": {
+    "species": [
+      {
+        "name": "species",
+        "displayName": "Species:*",
+        "value": "species:*"
+      }
+    ],
+    "occurrenceYear": [
+      {
+        "name": "occurrenceYear",
+        "displayName": "Date (by year):[1850-2025]",
+        "value": "occurrenceYear:[1850-01-01T00:00:00Z TO 2025-12-31T23:59:59Z]"
+      }
+    ],
+    "-occurrenceStatus": [
+      {
+        "name": "-occurrenceStatus",
+        "displayName": "-Presence/Absence:ABSENT",
+        "value": "-occurrenceStatus:absent"
+      }
+    ],
+    "spatiallyValid": [
+      {
+        "name": "spatiallyValid",
+        "displayName": "Spatial validity:Spatially valid",
+        "value": "spatiallyValid:true"
+      }
+    ]
+  }
+}

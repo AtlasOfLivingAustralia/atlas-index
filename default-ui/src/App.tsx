@@ -5,9 +5,7 @@ import UserContext from "./helpers/UserContext.ts";
 import {useAuth} from "react-oidc-context";
 import 'bootstrap/dist/css/bootstrap.css';
 import Home from "./views/Home.tsx"
-import Dashboard from "./views/Dashboard.tsx"
 import AtlasAdmin from "./views/AtlasAdmin.tsx"
-import AtlasIndex from "./views/AtlasIndex.tsx";
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -63,7 +61,7 @@ export default function App() {
 
         window.addEventListener('popstate', handlePopState);
 
-        const handleHashChange = (event: any) => {
+        const handleHashChange = () => {
             let search = window.location.search + window.location.hash || ''
             let pos = search.indexOf('?');
             if (search.length > pos) {
@@ -91,12 +89,14 @@ export default function App() {
                 var noScriptText = headerFooterProcessing(import.meta.env.VITE_HTML_EXTERNAL_FOOTER_URL, text);
                 setExternalFooterHtml(noScriptText);
 
-                // TODO: move remainderText into config as it is specific to the external header, or maybe inline
-                // TODO: do something about the header css required, bootstrap.min, autocomplete.min, autocomplete-extra.min
-                var remainderText = "<script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/jquery.min.js\"></script>\n" +
-                    "    <script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/bootstrap.min.js\"></script>\n" +
-                    "    <script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/autocomplete.min.js\"></script>\n" +
-                    "    <script src=\"https://www-test.ala.org.au/commonui-bs5-2024/js/application.js\"></script>"
+                var remainderText = '';
+                var extraJs = import.meta.env.VITE_HEADER_JS;
+                if (extraJs) {
+                    // split extraJs by comma and load each script
+                    for (const js of extraJs.split(',')) {
+                        remainderText += '<script src=\"' + js + '\"></script>';
+                    }
+                }
 
                 headerFooterProcessing(import.meta.env.VITE_HTML_EXTERNAL_HEADER_URL, remainderText);
             });
@@ -169,6 +169,7 @@ export default function App() {
         // do substitutions of the template
         text = text.replace(/::loginURL::/g, "\" disabled=\"disabled");
         text = text.replace(/::logoutURL::/g, "\" disabled=\"disabled");
+        text = text.replace(/::searchServer::/g, import.meta.env.VITE_SEARCH_SERVER_URL);
 
         // This might do nothing because currentUser is likely undefined at this point
         if (currentUser?.isAdmin()) {
@@ -350,27 +351,28 @@ export default function App() {
                     </div>
                 </section>
 
-                <Routes>
-                    <Route path="/"
-                           element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/dashboard"
-                           element={<Dashboard setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-admin"
-                           element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/data-quality-admin" element={<DataQualityAdmin
-                        setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/atlas-index"
-                           element={<AtlasIndex setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/occurrence-search"
-                           element={<OccurrenceSearch
-                               setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                    <Route path="/occurrence-list"
-                           element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                    queryString={queryString} setQueryString={setQueryString}/>}/>
-                    <Route path="/occurrence"
-                           element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                queryString={queryString}/>}/>
-                </Routes>
+                {currentUser && currentUser.isAdmin() &&
+                    <Routes>
+                        <Route path="/"
+                               element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/atlas-admin"
+                               element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/data-quality-admin" element={<DataQualityAdmin
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/occurrence-search"
+                               element={<OccurrenceSearch
+                                   setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/occurrence-list"
+                               element={<OccurrenceList setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                        queryString={queryString} setQueryString={setQueryString}/>}/>
+                        <Route path="/occurrence"
+                               element={<Occurrence setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                    queryString={queryString}/>}/>
+                    </Routes>
+                }
+                {(!currentUser || !currentUser.isAdmin()) &&
+                    <div className="d-flex justify-content-center py-5">Admin login required</div>
+                }
 
                 {externalFooterHtml &&
                     <div onClick={clickHandler}

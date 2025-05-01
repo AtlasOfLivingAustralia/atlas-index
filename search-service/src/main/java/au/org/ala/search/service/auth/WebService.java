@@ -1,7 +1,13 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.auth;
 
-import au.org.ala.ws.security.TokenService;
 import au.org.ala.web.UserDetails;
+import au.org.ala.ws.security.TokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.nimbusds.oauth2.sdk.token.AccessToken;

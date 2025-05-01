@@ -1,0 +1,4 @@
+/* for leaflet */
+.leaflet-attribution-flag {
+    display: none !important;
+}

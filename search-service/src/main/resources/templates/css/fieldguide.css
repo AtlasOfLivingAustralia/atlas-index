@@ -12,9 +12,7 @@
     margin-right: 0px;
     /*margin-bottom: 0px;*/
     /*padding-bottom: 40px;*/
-
     /*background-color: yellow;*/
-
     @top-center {
         content: element(header);
     }
@@ -23,10 +21,14 @@
 }
 
 @page {
-    @bottom-center { content: element(footer) }
+    @bottom-center {
+        content: element(footer)
+    }
 }
 
-div.content {page-break-after: always;}
+div.content {
+    page-break-after: always;
+}
 
 .footer {
     font-size: 11px;
@@ -67,13 +69,13 @@ body > a {
 div > h2 {
     font-size: 16px;
     margin-bottom: 5px;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
 
 div > h3 {
     font-size: 13px;
     font-weight: normal;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
 
 div > h4 {
@@ -81,14 +83,14 @@ div > h4 {
     font-weight: normal;
     font-style: italic;
     margin-bottom: 10px;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
 
 body > h1 {
     font-size: 18px;
     margin-bottom: 10px;
     margin-left: 30px;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
 
 
@@ -96,7 +98,7 @@ div > h5 {
     font-size: 11px;
     font-weight: normal;
     margin-top: 4px;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
 
 
@@ -107,104 +109,119 @@ h5 > a {
     font-weight: normal;
     font-style: normal;
     margin-left: 0px;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
 
 /*.mainHeader{*/
 /*    margin-top: 0px;*/
 /*    margin-left: 0px;*/
 /*}*/
-.headerText{
+.headerText {
     font-style: italic;
     font-weight: bold;
-    margin-left:80px;
+    margin-left: 80px;
     margin-top: 40px;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
-.headerLink{
-    color:black;
-    font-family: Roboto,Dialog;
+
+.headerLink {
+    color: black;
+    font-family: Roboto, Dialog;
 }
-.secondHeader{
-    float:left;
-    margin-bottom:30px;
+
+.secondHeader {
+    float: left;
+    margin-bottom: 30px;
 }
-.familyNormal{
+
+.familyNormal {
     font-weight: normal;
     page-break-inside: avoid;
 }
-.h2Species{
-    margin-top:0px;
-    margin-left:20px;
+
+.h2Species {
+    margin-top: 0px;
+    margin-left: 20px;
     font-weight: normal;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
-.h2ScientificName{
-    margin-left:20px;
-    margin-bottom:0px;
+
+.h2ScientificName {
+    margin-left: 20px;
+    margin-bottom: 0px;
     font-weight: normal;
-    font-family: Roboto,Dialog;
+    font-family: Roboto, Dialog;
 }
-.imgThumbnail{
+
+.imgThumbnail {
     margin-top: 30px;
     margin-bottom: 10px;
     margin-left: 20px;
     vertical-align: text-top;
 }
-.densityMap{
+
+.densityMap {
     margin-top: 30px;
     margin-left: 10px;
     vertical-align: text-top;
 }
-.densityLegend{
+
+.densityLegend {
     margin-top: 30px;
-    width:100px;
+    width: 100px;
     margin-left: 0px;
     vertical-align: text-top;
 }
-.attHeader{
-    float:left;
-    margin-bottom:20px;
-    width:100%;
+
+.attHeader {
+    float: left;
+    margin-bottom: 20px;
+    width: 100%;
 }
-.attDiv{
-    margin-left:10px;
+
+.attDiv {
+    margin-left: 10px;
     margin-bottom: 150px;
     margin-top: 200px;
 }
-.h1Attr{
-    margin-left:50px;
+
+.h1Attr {
+    margin-left: 50px;
     page-break-before: always;
     margin-top: 10px;
 }
-.attrAttributeDiv{
+
+.attrAttributeDiv {
     margin-top: 25px;
     margin-left: 60px;
     margin-bottom: 20px;
     page-break-inside: avoid;
 }
-.taxonDiv{
-    margin-top:10px;
-    width:90%;
-    margin-left:50px;
-    margin-bottom:50px;
+
+.taxonDiv {
+    margin-top: 10px;
+    width: 90%;
+    margin-left: 50px;
+    margin-bottom: 50px;
     page-break-inside: avoid;
 }
 
-.alaSite{
-    float:left;
-    margin-left:20px;
+.alaSite {
+    float: left;
+    margin-left: 20px;
 }
 
-.classBlack{
+.classBlack {
     color: black;
 }
-.upper{
+
+.upper {
     text-transform: uppercase;
 }
-.hrClass{
-    color:gray;
-    border-width:0.5px;
+
+.hrClass {
+    color: gray;
+    border-width: 0.5px;
 }
 
 /*@page :first {*/
@@ -237,13 +254,11 @@ h5 > a {
     /*    bottom: 0px;*/
     /*    width: 100%;*/
     /*}*/
-
     /*#header {*/
     /*    position: fixed;*/
     /*    top: 0;*/
     /*    width: 100%;*/
     /*}*/
-
     /*.page-header {*/
     /*    position: fixed;*/
     /*    top: 0;*/
@@ -290,7 +305,6 @@ h5 > a {
 /*!*}*!*/
 
 
-
 /*!*.header {*!*/
 /*!*    font-size: 11px;*!*/
 /*!*    !*position: relative;;*!*!*/
@@ -314,12 +328,12 @@ h5 > a {
     content: counter(pages);
 }
 
-.alaSite{
-    float:left;
-    margin-left:20px;
+.alaSite {
+    float: left;
+    margin-left: 20px;
 }
 
-.pageNum{
-    float:right;
-    margin-right:10px;
+.pageNum {
+    float: right;
+    margin-right: 10px;
 }

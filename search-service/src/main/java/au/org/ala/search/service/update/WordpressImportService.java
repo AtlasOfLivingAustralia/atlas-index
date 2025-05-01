@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -118,7 +124,7 @@ public class WordpressImportService {
                     try {
                         Date current = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssX").parse(lastmod);
                         Date stored = existingPages.get(pageUrl);
-                        if (true || stored == null || stored.compareTo(current) < 0) {
+                        if (true) {
                             locations.put(pageUrl, current);
                         }
 

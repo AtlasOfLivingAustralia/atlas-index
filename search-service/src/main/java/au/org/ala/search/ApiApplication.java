@@ -1,18 +1,16 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search;
 
 import au.org.ala.search.service.OpenapiService;
 import au.org.ala.search.service.update.AllService;
 import au.org.ala.search.util.RejectedExecutionHandlerImpl;
-import io.swagger.v3.oas.models.PathItem;
-import io.swagger.v3.oas.models.info.Contact;
-import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.info.License;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.customizers.OpenApiCustomizer;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -20,56 +18,37 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.apache.tomcat.util.buf.EncodedSolidusHandling.DECODE;
 
+@Slf4j
 @SpringBootApplication
 @EnableAsync
 @EnableCaching
 @EnableScheduling
 public class ApiApplication {
-
-    private static final Logger logger = LoggerFactory.getLogger(ApiApplication.class);
     private final AllService allService;
-    @Value("${task.schedule}")
-    private String taskSchedule;
-    @Value("${standalone}")
-    private Boolean standalone;
+    private final LeadershipStatus leadershipStatus;
 
-    public ApiApplication(AllService allService) {
+    public ApiApplication(AllService allService, LeadershipStatus leadershipStatus) {
         this.allService = allService;
+        this.leadershipStatus = leadershipStatus;
     }
 
     public static void main(String[] args) {
         SpringApplication.run(ApiApplication.class, args);
     }
 
-    @Bean
-    public TaskScheduler taskScheduler() {
-        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.initialize();
-
-        if (StringUtils.isNotEmpty(taskSchedule)) {
-            taskScheduler.schedule(() -> {
-                // TODO: k8 leader or this.standalone detection
-                if (standalone) {
-                    allService.run();
-                }
-            }, new CronTrigger(taskSchedule));
+    @Scheduled(cron = "${task.all.cron}")
+    public void runAllTasks() {
+        if (leadershipStatus.isLeader()) {
+            allService.run();
         }
-
-        return taskScheduler;
     }
 
     // modify firewall for path variables that need to be supported by legacy services
@@ -89,7 +68,7 @@ public class ApiApplication {
         threadPoolTaskExecutor.setMaxPoolSize(5);
         threadPoolTaskExecutor.setQueueCapacity(100);
         threadPoolTaskExecutor.afterPropertiesSet();
-        logger.info("ThreadPoolTaskExecutor processExecutor set");
+        log.info("ThreadPoolTaskExecutor processExecutor set");
         return threadPoolTaskExecutor;
     }
 
@@ -103,7 +82,7 @@ public class ApiApplication {
         threadPoolTaskExecutor.afterPropertiesSet();
         threadPoolTaskExecutor.setRejectedExecutionHandler(
                 new RejectedExecutionHandlerImpl()); // enable blocking
-        logger.info("ThreadPoolTaskExecutor blockingExecutor set");
+        log.info("ThreadPoolTaskExecutor blockingExecutor set");
         return threadPoolTaskExecutor;
     }
 
@@ -117,7 +96,7 @@ public class ApiApplication {
         threadPoolTaskExecutor.afterPropertiesSet();
         threadPoolTaskExecutor.setRejectedExecutionHandler(
                 new RejectedExecutionHandlerImpl()); // enable blocking
-        logger.info("ThreadPoolTaskExecutor elasticSearchUpdate set");
+        log.info("ThreadPoolTaskExecutor elasticSearchUpdate set");
         return threadPoolTaskExecutor;
     }
 

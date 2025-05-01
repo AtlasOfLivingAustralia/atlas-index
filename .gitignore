@@ -4,9 +4,15 @@ node_modules/
 dist/
 node/
 .env.local
+.env.production
+regionList.json
+regionList.meta.json
+regionList-*.json
 */.yalc/
 buildInfo.json
 env.*
+tsconfig.tsbuildinfo
+yarn-error.log
 
 ### STS ###
 .apt_generated
@@ -42,3 +48,4 @@ build/
 /mvnw.cmd
 /nginx.conf
 .history
+*/.yarn

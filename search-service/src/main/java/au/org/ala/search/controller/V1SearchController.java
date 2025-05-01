@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.controller;
 
 import au.org.ala.search.model.ImageUrlType;
@@ -36,7 +42,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.Principal;
 import java.util.*;
 
@@ -48,8 +57,6 @@ import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V1SearchController {
-    private static final Logger logger = LoggerFactory.getLogger(V1SearchController.class);
-
     public static final String SPECIES_LOOKUP_BULK_ID = "speciesLookupBulk";
     public static final String SPECIES_GUIDS_BULKLOOKUP_ID = "speciesGuidsBulklookup";
     public static final String SPECIES_IMAGE_BULK_ID = "speciesImageBulk";
@@ -63,7 +70,7 @@ public class V1SearchController {
     public static final String SEARCH_AUTO_ID = "searchAuto";
     public static final String SEARCH_ID = "search";
     public static final String DOWNLOAD_ID = "download";
-
+    private static final Logger logger = LoggerFactory.getLogger(V1SearchController.class);
     protected final ElasticService elasticService;
     protected final LegacyService legacyService;
     protected final AdminService adminService;
@@ -483,44 +490,6 @@ public class V1SearchController {
         if (!preferSuccessful || !hideSuccessful) {
             return ResponseEntity.internalServerError().build();
         }
-
-        return ResponseEntity.ok("ok");
-    }
-
-    @Operation(
-            method = "GET",
-            tags = "admin",
-            operationId = "setWikiUrl",
-            summary = "Set the preferred wiki URL for a taxon",
-            security = {@SecurityRequirement(name = "openIdConnect")},
-            parameters = {
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String.class), required = true)
-            }
-    )
-    @ApiResponse(description = "Search results", responseCode = "200",
-            headers = {
-                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
-            }
-    )
-    @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v1/api/setUrl")
-    public ResponseEntity<String> setWikiUrl(
-            @Parameter(description = "Scientific Name")
-            @RequestParam(name = "name") String name,
-            @Parameter(description = "Taxon ID")
-            @RequestParam(name = "guid") String guid,
-            @Parameter(description = "URL")
-            @RequestParam(name = "url") String url,
-            @AuthenticationPrincipal Principal principal
-
-    ) {
-        if (!authService.isAdmin(principal)) {
-            throw new AccessDeniedException("Not authorised");
-        }
-
-        adminService.setValue(new SetRequest(guid, name, ListBackedFields.WIKI.name(), url));
 
         return ResponseEntity.ok("ok");
     }

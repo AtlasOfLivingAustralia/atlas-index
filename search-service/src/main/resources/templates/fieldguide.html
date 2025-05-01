@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Field guide produced by ALA using aggregated sources</title>
-    <link rel="stylesheet" href="./css/fieldguide.css" type="text/css"></link>
+    <link href="./css/fieldguide.css" rel="stylesheet" type="text/css"></link>
 </head>
 <body>
 
 <!-- First page header. headerImg width is in px because % is not working. -->
 <div class="header">
-    <img th:src="${fieldguideHeaderPg1}" class="headerImg"/>
+    <img class="headerImg" th:src="${fieldguideHeaderPg1}"/>
 </div>
 
 <!-- Footer for all pages. -->
@@ -20,7 +20,7 @@
 
 <!-- Header for all other pages. headerImg width is in px because % is not working.  -->
 <div class="header" style="margin-top:-10px">
-    <img th:src="${fieldguideBannerOtherPages}" class="headerImg"/>
+    <img class="headerImg" th:src="${fieldguideBannerOtherPages}"/>
 </div>
 
 <!-- Text only on the first page. The <br/> is required otherwise the margin-top for headerText does not work. -->
@@ -36,14 +36,16 @@
             <!-- due to alignment issues, the use of border:1px solid white is used. I did do a later change to
             table formatting so it may no longer be required. -->
             <div th:if="${itr.index == 0}">
-                <h2 class="familyNormal" style="width:100%;border:1px solid white;">Family: <b class="upper" th:text="${family.key}"></b></h2>
+                <h2 class="familyNormal" style="width:100%;border:1px solid white;">Family: <b class="upper"
+                                                                                               th:text="${family.key}"></b>
+                </h2>
                 <hr class="hrClass"/>
             </div>
-            <h2 class="h2ScientificName" style="width:100%;border:1px solid white;" >Scientific name:
+            <h2 class="h2ScientificName" style="width:100%;border:1px solid white;">Scientific name:
                 <a class="classBlack" th:href="${fieldguideSpeciesUrl + taxon.guid}"><b>
                     <i th:text="${taxon.scientificName}"></i></b></a></h2>
             <div style="width:100%;border:1px solid white;">
-                <h2 th:if="${not #strings.isEmpty(taxon.commonName)}" class="h2Species"><b
+                <h2 class="h2Species" th:if="${not #strings.isEmpty(taxon.commonName)}"><b
                         th:text="${taxon.commonName}"></b>
                 </h2>
             </div>
@@ -51,16 +53,18 @@
             <table style="border: 1px solid white">
                 <tr>
                     <td style="width:300px;vertical-align: top;">
-                        <img th:if="${not #strings.isEmpty(taxon.imageUrl)}" th:src="${taxon.imageUrl}"
-                             style="border:1px solid white"
-                             th:width='${taxon.imgWidth + "px"}' th:height='${taxon.imgHeight + "px"}'
-                             class="imgThumbnail"/>
+                        <img class="imgThumbnail" style="border:1px solid white"
+                             th:height='${taxon.imgHeight + "px"}'
+                             th:if="${not #strings.isEmpty(taxon.imageUrl)}" th:src="${taxon.imageUrl}"
+                             th:width='${taxon.imgWidth + "px"}'/>
                     </td>
                     <td style="vertical-align: top;">
-                        <img th:src='${biocacheMapUrl + taxon.guid + "%22"}' width="220px" class="densityMap" style="border:1px solid white;" />
+                        <img class="densityMap" style="border:1px solid white;" th:src='${biocacheMapUrl + taxon.guid + "%22"}'
+                             width="220px"/>
                     </td>
                     <td style="vertical-align: top;">
-                        <img th:src='${biocacheLegendUrl + taxon.guid + "%22"}' class="densityLegend" style="border:1px solid white;"/>
+                        <img class="densityLegend" style="border:1px solid white;"
+                             th:src='${biocacheLegendUrl + taxon.guid + "%22"}'/>
                     </td>
                 </tr>
             </table>

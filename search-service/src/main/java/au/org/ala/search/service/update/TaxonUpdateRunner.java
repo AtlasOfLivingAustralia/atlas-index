@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
@@ -32,13 +38,11 @@ public class TaxonUpdateRunner {
     protected final LogService logService;
 
     @Getter
-    private Map<String, String> imageCache = new ConcurrentHashMap<>();
-
-    @Getter
-    private Map speciesImages;
-
+    private final Map<String, String> imageCache = new ConcurrentHashMap<>();
     @Value("${dwca.extract.leftRightCsvPath}")
     String leftRightCsvPath;
+    @Getter
+    private Map speciesImages;
 
     public TaxonUpdateRunner(ElasticService elasticService, BiocacheService biocacheService, LogService logService) {
         this.elasticService = elasticService;

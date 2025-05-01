@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -36,11 +42,11 @@ public class ListImportService {
     protected final ListService listService;
     protected final LogService logService;
     protected final ListCache listCache;
+    private final String getListsConservationIUCNStatusField = "IUCN_equivalent_status";
     @Value("${lists.uiUrl}")
     private String listsUiUrl;
     @Value("${lists.conservation.statusField}")
     private String listsConservationStatusField;
-    private String getListsConservationIUCNStatusField = "IUCN_equivalent_status";
     @Value("${lists.favourite.config}")
     private String favouriteConfig;
     @Value("${lists.images.ids}")
@@ -55,12 +61,6 @@ public class ListImportService {
     private String listsImagesHidden;
     @Value("${lists.images.hidden.field}")
     private String listsImagesHiddenField;
-
-    @Value("${lists.wiki.id}")
-    private String listsWiki;
-
-    @Value("${lists.wiki.field}")
-    private String listsWikiField;
 
     @Value("${lists.native-introduced}")
     private String nativeIntroduced;
@@ -323,24 +323,6 @@ public class ListImportService {
             favouritesCommonCounter = updatedIds.size();
         }
 
-        // This is only required for the legacy V1SearchController.
-        logService.log(taskType, "import wiki");
-        int wikiCounter = 0;
-        if (StringUtils.isNotEmpty(listsWiki)) {
-            wikiCounter = importKvpList(
-                    Collections.singletonList(listsWiki),
-                    ListBackedFields.WIKI.field,
-                    (it -> {
-                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                            if (map.get("key").equals(listsWikiField)) {
-                                return map.get("value");
-                            }
-                        }
-                        return null;
-                    }),
-                    true, true).size();
-        }
-
         // The expect input and output for native/introduced is explained here
         // https://github.com/AtlasOfLivingAustralia/atlas-index/issues/11#issuecomment-2395219841
         logService.log(taskType, "import native/introduced");
@@ -363,7 +345,8 @@ public class ListImportService {
                         if (!nativeIntroduced.isEmpty()) {
                             try {
                                 result = new ObjectMapper().writeValueAsString(nativeIntroduced);
-                            } catch (Exception ignored) {}
+                            } catch (Exception ignored) {
+                            }
                         }
 
                         return result;
@@ -426,7 +409,7 @@ public class ListImportService {
         elasticService.indexFields(true);
 
         // update lists cache now
-        listCache.cacheListNames();
+        listCache.cacheRefresh();
 
         // dynamic fields may have changed, cache the new list
         elasticService.indexFields(true);
@@ -435,7 +418,7 @@ public class ListImportService {
                 + ", conservation: " + conservationCounter /*+ ", attributes: " + attributesCounter*/
                 + ", favouritesTaxon: " + favouritesCounter + ", favouritesCommon: " + favouritesCommonCounter
                 + ", hiddenImages: " + hiddenImagesCounter
-                + ", preferredImages (all): " + preferredImageCounter + ", wiki: " + wikiCounter
+                + ", preferredImages (all): " + preferredImageCounter
                 + ", list images: " + listImageCounter
                 + ", native/introduced: " + nativeIntroducedCounter
                 + ", conservationIUCN: " + conservationIUCNCounter
@@ -566,7 +549,7 @@ public class ListImportService {
                 if (stored != null && "[]".equals(stored[2])) {
                     stored = null;
                 }
-                if (status != null && "[]".equals(status)) {
+                if ("[]".equals(status)) {
                     status = null;
                 }
 
@@ -654,8 +637,8 @@ public class ListImportService {
     /**
      * Utility function that updates a taxon field using a map of taxonIds and values
      *
-     * @param field          field to update
-     * @param taxonIdMap     map of taxonId and list of values for the field
+     * @param field      field to update
+     * @param taxonIdMap map of taxonId and list of values for the field
      * @return list of ids that were updated
      */
     private List<String> setFieldValues(
@@ -732,7 +715,7 @@ public class ListImportService {
             return b.isEmpty();
         }
 
-        String [] split = a.split(",");
+        String[] split = a.split(",");
 
         if (split.length != b.size()) {
             return false;
@@ -750,7 +733,7 @@ public class ListImportService {
     // page over documents with a field and zero it out
     private void deleteFields(List<String> fieldsToDelete) {
         for (String field : fieldsToDelete) {
-            Map<String, String[]> existingItems = elasticService.queryItems( field + ":*", "id", new String[]{"id"}, -1);
+            Map<String, String[]> existingItems = elasticService.queryItems(field + ":*", "id", new String[]{"id"}, -1);
 
             // buffer all updates for a single field, regardless of size
             List<UpdateQuery> buffer = new ArrayList<>();

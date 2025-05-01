@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search;
 
 import au.org.ala.search.model.SearchItemIndex;
@@ -26,14 +32,14 @@ public class Config extends ElasticsearchConfiguration {
     private String elasticHost;
 
     @Value("${elastic.timeout}")
-    private Long elsticTimeout;
+    private Long elasticTimeout;
 
     @NotNull
     @Override
     public ClientConfiguration clientConfiguration() {
         return ClientConfiguration.builder()
                 .connectedTo(elasticHost)
-                .withSocketTimeout(elsticTimeout)
+                .withSocketTimeout(elasticTimeout)
                 .build();
     }
 
@@ -144,7 +150,9 @@ public class Config extends ElasticsearchConfiguration {
                         }
                     }
                 } catch (NoSuchFieldException | IllegalAccessException e) {
-                    logger.error("Failed to set field: " + key.getKey(), e);
+                    // This error can be thrown when a field was added to elasticsearch but was not yet added to the
+                    // model SearchItemIndex.
+                    logger.warn("Failed to set field: " + key.getKey());
                 }
             }
 

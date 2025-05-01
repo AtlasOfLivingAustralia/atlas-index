@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.IndexDocType;
@@ -126,7 +132,7 @@ public class LayerImportService {
                             || !stringEquals(stored.getDomain(), domain)
                             || !stringEquals(stored.getType(), type)
                             || !stringEquals(stored.getSource(), source)
-                        ) {
+                    ) {
                         updateList.put(
                                 url,
                                 SearchItemIndex.builder()

@@ -1,8 +1,17 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.controller;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.FieldguideRequest;
-import au.org.ala.search.model.queue.*;
+import au.org.ala.search.model.queue.FieldguideQueueRequest;
+import au.org.ala.search.model.queue.QueueItem;
+import au.org.ala.search.model.queue.Status;
+import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.queue.QueueService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
@@ -19,7 +28,9 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +42,8 @@ import java.net.URI;
 import java.net.URL;
 import java.security.Principal;
 
-import static io.swagger.v3.oas.annotations.enums.ParameterIn.*;
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH;
+import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
 
 /**
  * bie-index API services, minus some admin services
@@ -149,24 +161,6 @@ public class V1FieldguideController {
         }
     }
 
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @Getter
-    public class FieldguideResponse {
-        String status;
-        URL statusUrl;
-        URL downloadUrl;
-
-        FieldguideResponse(Status status) throws MalformedURLException {
-            this.status = status.statusCode.name().toLowerCase();
-            if (status.id != null) {
-                this.statusUrl = URI.create(baseUrl + "/v1/status/" + status.id).toURL();
-                if (status.statusCode == StatusCode.FINISHED) {
-                    this.downloadUrl = URI.create(baseUrl + "/v1/download/" + status.id).toURL();
-                }
-            }
-        }
-    }
-
     @Operation(
             method = "GET",
             tags = "fieldguide",
@@ -271,5 +265,23 @@ public class V1FieldguideController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @Getter
+    public class FieldguideResponse {
+        String status;
+        URL statusUrl;
+        URL downloadUrl;
+
+        FieldguideResponse(Status status) throws MalformedURLException {
+            this.status = status.statusCode.name().toLowerCase();
+            if (status.id != null) {
+                this.statusUrl = URI.create(baseUrl + "/v1/status/" + status.id).toURL();
+                if (status.statusCode == StatusCode.FINISHED) {
+                    this.downloadUrl = URI.create(baseUrl + "/v1/download/" + status.id).toURL();
+                }
+            }
+        }
     }
 }

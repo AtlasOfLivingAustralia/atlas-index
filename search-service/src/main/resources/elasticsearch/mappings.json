@@ -317,9 +317,6 @@
     "hiddenImages_s": {
       "type": "keyword"
     },
-    "wikiUrl_s": {
-      "type": "keyword"
-    },
     "nomenclaturalCode": {
       "type": "keyword"
     },

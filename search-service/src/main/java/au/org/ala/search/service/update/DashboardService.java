@@ -1,9 +1,15 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
-import au.org.ala.search.model.dashboard.Record;
 import au.org.ala.search.model.dashboard.*;
+import au.org.ala.search.model.dashboard.Record;
 import au.org.ala.search.model.dashboard.biocache.BiocacheSearch;
 import au.org.ala.search.model.dashboard.biocache.FieldResult;
 import au.org.ala.search.model.dashboard.collectory.CollectionsSearch;
@@ -16,9 +22,10 @@ import au.org.ala.search.model.dashboard.logger.LoggerSearch;
 import au.org.ala.search.model.dashboard.spatial.SpatialField;
 import au.org.ala.search.model.query.Op;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.StaticFileStoreService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.service.remote.StaticFileStoreService;
 import au.org.ala.search.util.QueryParserUtil;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
@@ -93,6 +100,8 @@ public class DashboardService {
         this.logService = logService;
         this.staticFileStoreService = staticFileStoreService;
         this.elasticService = elasticService;
+
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     @Async("processExecutor")
@@ -842,7 +851,8 @@ public class DashboardService {
                     scientificName = item.getSearchHits().get(0).getContent().name;
                 }
 
-                table.rows.add(new TableRow(scientificName + " - " + commonName,
+                String rowName = scientificName + (commonName != null ? " - " + commonName : "");
+                table.rows.add(new TableRow(rowName,
                         speciesUIPrefix + field.label,
                         new Integer[]{field.count}));
             }

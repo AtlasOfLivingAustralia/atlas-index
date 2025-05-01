@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
@@ -19,21 +25,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Consumes the fieldguide queue to produce PDF files.
  */
 @Service
 public class SandboxConsumerService extends ConsumerService {
-    private static final Logger logger = LoggerFactory.getLogger(SandboxConsumerService.class);
-
     public static final String UUID_METRICS = "uuid-metrics.yml";
     public static final String INTERPRETATION_METRICS = "interpretation-metrics.yml";
     public static final String VERBATIM_METRICS = "dwca-metrics.yml";
     public static final String INDEXING_METRICS = "indexing-metrics.yml";
     public static final String SENSITIVE_METRICS = "sensitive-metrics.yml";
-
+    private static final Logger logger = LoggerFactory.getLogger(SandboxConsumerService.class);
     @Value("${sandbox.consumer.threads}")
     public Integer sandboxConsumerThreads;
 
@@ -99,15 +104,7 @@ public class SandboxConsumerService extends ConsumerService {
     }
 
     /**
-     * Load a DwCA into the pipelines
-     * - ALADwcaToVerbatimPipeline (DwCA to /verbatim avro)
-     * - ALAVerbatimToInterpretedPipeline (/verbatim avro to /occurrence avro)
-     * - ALAUUIDMintingPipeline (only for validation, TODO: manually create the reporting metrics file and skip this step)
-     * - ALAInterpretedToSensitivePipeline (TODO: manually create the reporting metrics file OR update pipelines so this can be skipped)
-     * - IndexRecordPipeline (/occurrence avro to /all-datasets avro)
-     * - SamplingPipeline (exports lat lngs, TODO: make optional)
-     * - LayerCrawler (do the sampling, TODO: make optional)
-     * - IndexRecordToSolrPipeline (index into SOLR, TODO: make joins optional - joins: sampling, species lists)
+     * TODO: align with spatial-service
      *
      * @param queueItem
      * @param item
@@ -185,7 +182,6 @@ public class SandboxConsumerService extends ConsumerService {
         pipelinesExecute(interpretedToSensitiveOpts);
 
         // index record generation
-        // TODO: speed up the download of all authorised species lists
         String[] indexingOpts = new String[]{
                 "au.org.ala.pipelines.java.IndexRecordPipeline",
                 "--datasetId=" + datasetID,
@@ -201,7 +197,7 @@ public class SandboxConsumerService extends ConsumerService {
         queueService.updateStatus(queueItem, StatusCode.RUNNING, "index-record processing");
         pipelinesExecute(indexingOpts);
 
-        File processedDir = new File( sandboxDir + "/processed/" + datasetID + "/all-datasets/index-record/" + datasetID);
+        File processedDir = new File(sandboxDir + "/processed/" + datasetID + "/all-datasets/index-record/" + datasetID);
         if (!processedDir.exists() || processedDir.listFiles() == null || processedDir.listFiles().length == 0) {
             logger.error("Index Record Pipeline failed");
             queueService.updateStatus(queueItem, StatusCode.ERROR, "index-record failed");
@@ -299,8 +295,8 @@ public class SandboxConsumerService extends ConsumerService {
     }
 
     void pipelinesExecute(String[] opts) {
-        String [] prefix = pipelineCmd.split(" ");
-        String [] cmd = new String[prefix.length + opts.length + 1];
+        String[] prefix = pipelineCmd.split(" ");
+        String[] cmd = new String[prefix.length + opts.length + 1];
         System.arraycopy(prefix, 0, cmd, 0, prefix.length);
         System.arraycopy(opts, 0, cmd, prefix.length, opts.length);
         cmd[cmd.length - 1] = pipelinesConfig;

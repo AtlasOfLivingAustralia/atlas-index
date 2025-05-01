@@ -1,19 +1,28 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.controller;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.cache.LanguageInfo;
+import au.org.ala.search.model.dto.IndexedField;
+import au.org.ala.search.model.dto.UserDataRequest;
+import au.org.ala.search.model.dto.UserDataResponse;
+import au.org.ala.search.model.queue.*;
+import au.org.ala.search.model.userdata.UserData;
+import au.org.ala.search.service.AdminService;
+import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LanguageService;
+import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.QueueService;
-import au.org.ala.search.model.SearchItemIndex;
-import au.org.ala.search.model.queue.*;
-import au.org.ala.search.model.dto.*;
-import au.org.ala.search.service.AdminService;
-import au.org.ala.search.service.AuthService;
-import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
+import au.org.ala.search.service.remote.UserDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,13 +38,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.data.elasticsearch.core.*;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Nullable;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
@@ -46,17 +56,11 @@ import java.util.zip.GZIPInputStream;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V2Controller {
-    private static final Logger logger = LoggerFactory.getLogger(V2Controller.class);
-
     public static final String SPECIES_ID = "species_v2";
     public static final String LIST_ID = "list_v2";
     public static final String DOWNLOAD_ID = "download_v2";
     public static final String DOWNLOAD_FIELDGUIDE = "fieldguide_v2";
-    private final ListCache listCache;
-
-    @Value("#{'${openapi.servers}'.split(',')[0]}")
-    public String baseUrl;
-
+    private static final Logger logger = LoggerFactory.getLogger(V2Controller.class);
     protected final ElasticService elasticService;
     protected final LegacyService legacyService;
     protected final AdminService adminService;
@@ -66,8 +70,12 @@ public class V2Controller {
     protected final DownloadFileStoreService downloadFileStoreService;
     protected final WebService webService;
     protected final LanguageService languageService;
+    protected final UserDataService userDataService;
+    private final ListCache listCache;
+    @Value("#{'${openapi.servers}'.split(',')[0]}")
+    public String baseUrl;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -78,6 +86,7 @@ public class V2Controller {
         this.webService = webService;
         this.listCache = listCache;
         this.languageService = languageService;
+        this.userDataService = userDataService;
     }
 
     @Tag(name = "Search")
@@ -134,6 +143,10 @@ public class V2Controller {
                 taxon = elasticService.getTaxonByPreviousIdentifierMap(id, true);
             }
 
+            if (taxon == null) {
+                return ResponseEntity.notFound().build();
+            }
+
             // Inject an object for synonymData, vernacularData, identifierData, variantData.
             // Replaces JSON string with JSON list.
             try {
@@ -178,7 +191,7 @@ public class V2Controller {
 
             // Remove fields not requested. For better performance incorporate this at the flatten and inject stages.
             if (fl != null) {
-                List<String> fields = Arrays.asList(fl.split(","));
+                String[] fields = fl.split(",");
                 Map filteredTaxon = new HashMap<>();
                 for (String field : fields) {
                     if (taxon.containsKey(field)) {
@@ -217,7 +230,7 @@ public class V2Controller {
                     }
                 }
 
-                List data = mapper.readValue(byteArrayOutputStream.toString("UTF-8"), List.class);
+                List data = mapper.readValue(byteArrayOutputStream.toString(StandardCharsets.UTF_8), List.class);
                 taxon.put(name, data);
             }
         }
@@ -243,8 +256,6 @@ public class V2Controller {
                     example = "gum"
             )
             @RequestParam(name = "q") String q,
-
-            // TODO: merge q and fq
             @Parameter(
                     description = "Filters to be applied to the original query. These are additional params of the form fq=INDEXEDFIELD:VALUE.",
                     example = "{\"imageAvailable:\\\"true\\\"\"}"
@@ -443,5 +454,63 @@ public class V2Controller {
         }
 
         return ResponseEntity.ok(new StatusResponse(queueItem.status, baseUrl + "/v2/download"));
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(
+            summary = "Create or update a data record",
+            description = "Creates or updates a permitted data record for a user. Updating with null will delete the record.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "The data and optional uuid",
+                    content = @Content(
+                            schema = @Schema(implementation = UserDataRequest.class),
+                            examples = @ExampleObject(
+                                    value = "{\"uuid\": \"example-uuid\", \"data\": \"example payload\" }"
+                            )
+                    )
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Record created or updated successfully", content = @Content(schema = @Schema(implementation = UserDataResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized")
+            }
+    )
+    @PostMapping("/data")
+    public ResponseEntity<UserDataResponse> createOrUpdateUserData(
+            @AuthenticationPrincipal Principal principal,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody UserDataRequest userDataRequest) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        UserData userData = userDataService.createOrUpdate(authService.getUserId(principal), userDataRequest.getUuid(), userDataRequest.getData());
+        if (userData == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UserDataResponse response = new UserDataResponse(userData.getUuid());
+        return ResponseEntity.ok(response);
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(
+            summary = "Get data",
+            description = "Get data for a given uuid",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Data returned", content = @Content(schema = @Schema(implementation = UserDataRequest.class))),
+                    @ApiResponse(responseCode = "404", description = "Data not found")
+            }
+    )
+    @GetMapping("/data")
+    public ResponseEntity<UserDataResponse> getUserData(
+            @AuthenticationPrincipal Principal principal,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody UserDataRequest userDataRequest) {
+
+        UserData userData = userDataService.createOrUpdate(authService.getUserId(principal), userDataRequest.getUuid(), userDataRequest.getData());
+        if (userData == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        UserDataResponse response = new UserDataResponse(userData.getUuid());
+        return ResponseEntity.ok(response);
     }
 }

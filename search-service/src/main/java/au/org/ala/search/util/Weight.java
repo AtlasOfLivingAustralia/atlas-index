@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.util;
 
 import au.org.ala.search.model.IndexDocType;
@@ -6,10 +12,10 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Weight {
     public static double calcSearchWeight(SearchItemIndex item,
-                                         double weightMin,
-                                         double weightMax,
-                                         double weightNorm,
-                                         double commonStatusPriority) {
+                                          double weightMin,
+                                          double weightMax,
+                                          double weightNorm,
+                                          double commonStatusPriority) {
         return calcSearchWeight(item.idxtype, item.priority, item.taxonomicStatus, item.rankID, item.nameType, item.favourite, weightMin, weightMax, weightNorm, commonStatusPriority);
     }
 
@@ -40,10 +46,10 @@ public class Weight {
     }
 
     public static double calcSuggestWeight(SearchItemIndex item,
-                                          double weightMin,
-                                          double weightMax,
-                                          double weightNorm,
-                                          double commonStatusPriority) {
+                                           double weightMin,
+                                           double weightMax,
+                                           double weightNorm,
+                                           double commonStatusPriority) {
         return calcSuggestWeight(item.idxtype, item.priority, item.taxonomicStatus, item.rankID, item.nameType, item.scientificName, weightMin, weightMax, weightNorm, commonStatusPriority);
     }
 

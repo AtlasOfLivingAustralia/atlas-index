@@ -58,7 +58,7 @@ function OccurrenceList({setBreadcrumbs, queryString, setQueryString}: {
 
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Default UI', href: '/'},
+            {title: 'Admin', href: '/'},
             {title: 'Occurrence List', href: '/occurrence-list'},
         ]);
     }, []);

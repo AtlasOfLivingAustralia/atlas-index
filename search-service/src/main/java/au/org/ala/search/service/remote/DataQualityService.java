@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.quality.QualityCategory;
@@ -31,11 +37,10 @@ public class DataQualityService {
     protected final DataQualityMongoRepository dataQualityMongoRepository;
     protected final CacheManager cacheManager;
     protected final StaticFileStoreService staticFileStoreService;
-
+    final Object editLock = new Object();
+    final private AtomicLong uniqueId = new AtomicLong(1);
     @Getter
     List<QualityProfile> profiles;
-
-    final Object editLock = new Object();
 
     public DataQualityService(DataQualityMongoRepository dataQualityMongoRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
         this.dataQualityMongoRepository = dataQualityMongoRepository;
@@ -43,7 +48,6 @@ public class DataQualityService {
         this.staticFileStoreService = staticFileStoreService;
     }
 
-    final private AtomicLong uniqueId = new AtomicLong(1);
     private Long nextId() {
         return uniqueId.getAndAdd(1);
     }
@@ -312,7 +316,7 @@ public class DataQualityService {
             });
         }
 
-        return  result;
+        return result;
     }
 
     public boolean delete(Long profileId) {

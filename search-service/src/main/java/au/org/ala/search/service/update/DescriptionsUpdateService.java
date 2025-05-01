@@ -1,5 +1,12 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
+import au.org.ala.search.model.AdminIndex;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.DataFileStoreService;
@@ -15,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.elasticsearch.BulkFailureException;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -34,13 +40,11 @@ public class DescriptionsUpdateService {
     private static final TaskType taskType = TaskType.TAXON_DESCRIPTION;
     private static final Logger logger = LoggerFactory.getLogger(DescriptionsUpdateService.class);
     private static final int batchSize = 10000;
-
-    @Value("${data.file.descriptions.name}")
-    private String descriptionsFileName;
-
     private final ElasticService elasticService;
     private final LogService logService;
     private final DataFileStoreService dataFileStoreService;
+    @Value("${data.file.descriptions.name}")
+    private String descriptionsFileName;
 
     public DescriptionsUpdateService(ElasticService elasticService, LogService logService, DataFileStoreService dataFileStoreService) {
         this.elasticService = elasticService;
@@ -51,9 +55,28 @@ public class DescriptionsUpdateService {
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
         try {
+            String startMsg = "Hero descriptions started";
+            logService.log(taskType, startMsg);
+
+            // do not update if the file has not been modified since the last update
+            List<AdminIndex> taskLog = logService.getStatus(TaskType.TAXON_DESCRIPTION, 6);
+            // find all logs that are the start message, and get the max lastModified
+            Optional<Date> lastRunTime = taskLog.stream()
+                    .filter(log -> log.getMessage().equals(startMsg))
+                    .map(AdminIndex::getModified)
+                    .max(Date::compareTo);
+            long fileLastModified = dataFileStoreService.retrieveFileLastModified(descriptionsFileName);
+            if (lastRunTime.isPresent() && lastRunTime.get().getTime() >= fileLastModified) {
+                logService.log(taskType, "Hero descriptions finished. Skipped, source file was not modified.");
+                return CompletableFuture.completedFuture(true);
+            }
+
             File descriptionsFile = dataFileStoreService.retrieveFile(descriptionsFileName);
+
             ObjectMapper objectMapper = new ObjectMapper();
-            Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {});
+            Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {
+            });
+            dataFileStoreService.cleanupFile(descriptionsFile); // removes temporary file from s3 after use
             heroDescriptions = heroDescriptions.entrySet().stream()
                     .filter(entry -> entry.getValue() != null)
                     .collect(Collectors.toMap(

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service;
 
 import au.org.ala.search.controller.V1SearchController;
@@ -60,8 +66,6 @@ public class OpenapiService {
 
     @Value("${downloadMaxRows}")
     private Integer downloadMaxRows;
-
-    // TODO: trigger an update to the dynamic content after index change.
 
     public OpenapiService(ElasticService elasticService) {
         this.elasticService = elasticService;

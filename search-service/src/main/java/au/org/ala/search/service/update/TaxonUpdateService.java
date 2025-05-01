@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
@@ -34,7 +40,7 @@ public class TaxonUpdateService {
     protected final LogService logService;
     Map<String, String> acceptedConceptName;
 
-    public TaxonUpdateService(ElasticService elasticService,TaxonUpdateRunner taxonUpdateRunner, LogService logService) {
+    public TaxonUpdateService(ElasticService elasticService, TaxonUpdateRunner taxonUpdateRunner, LogService logService) {
         this.elasticService = elasticService;
         this.taxonUpdateRunner = taxonUpdateRunner;
         this.logService = logService;
@@ -57,7 +63,7 @@ public class TaxonUpdateService {
         taxonUpdateRunner.buildImageCache();
 
         if (taxonUpdateRunner.getSpeciesImages() == null || taxonUpdateRunner.getSpeciesImages().isEmpty() ||
-            taxonUpdateRunner.getImageCache() == null || taxonUpdateRunner.getImageCache().isEmpty()) {
+                taxonUpdateRunner.getImageCache() == null || taxonUpdateRunner.getImageCache().isEmpty()) {
             logService.log(taskType, "Failed occurrences counts. Image cache failed");
             return false;
         }

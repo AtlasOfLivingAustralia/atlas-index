@@ -1,11 +1,21 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.model;
 
+/**
+ * Enum for list-backed (and other repository) fields.
+ */
 public enum ListBackedFields {
-    WIKI("wikiUrl_s"),
     HIDDEN("hiddenImages_s"),
     IMAGE("image"),
     NOT_FOUND(""),
-    NATIVE_INTRODUCED("nativeIntroduced"); // JSON map of " Place: Status" pairs
+    NATIVE_INTRODUCED("nativeIntroduced"), // JSON map of " Place: Status" pairs
+    HERO_DESCRIPTION("heroDescription"), // HTML content that is the hero description
+    DESCRIPTIONS("descriptions"); // JSON description content for the local or S3 file and the taxon description override file
 
     final public String field;
 

@@ -1,0 +1,36 @@
+.smallIcon {
+    width: 5px;
+    height: 5px;
+}
+
+.selectedObject {
+    cursor: pointer;
+}
+
+.map {
+    height: 530px;
+    border-radius: 10px;
+}
+
+.panels {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.layersPanel {
+    padding: 15px;
+    width: 400px;
+    min-width: 400px;
+}
+
+.mapPanel {
+    padding: 15px;
+    max-width: 750px;
+    flex-grow: 1;
+    min-width: 450px;
+}
+
+.panels {
+
+}

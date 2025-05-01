@@ -1,0 +1,68 @@
+{
+  "Animals": {
+    "name": "Animals",
+    "children": [
+      {
+        "name": "Mammals"
+      },
+      {
+        "name": "Birds"
+      },
+      {
+        "name": "Reptiles"
+      },
+      {
+        "name": "Amphibians"
+      },
+      {
+        "name": "Fishes"
+      },
+      {
+        "name": "Molluscs"
+      },
+      {
+        "name": "Arthropods",
+        "children": [
+          {
+            "name": "Crustaceans"
+          },
+          {
+            "name": "Insects"
+          }
+        ]
+      }
+    ]
+  },
+  "Plants": {
+    "name": "Plants",
+    "children": [
+      {
+        "name": "Bryophytes"
+      },
+      {
+        "name": "Conifers, Cycads"
+      },
+      {
+        "name": "Ferns and allies"
+      },
+      {
+        "name": "Flowering plants"
+      }
+    ]
+  },
+  "Fungi": {
+    "name": "Fungi"
+  },
+  "Chromista": {
+    "name": "Chromista"
+  },
+  "Protozoa": {
+    "name": "Protozoa"
+  },
+  "Bacteria": {
+    "name": "Bacteria"
+  },
+  "Algae": {
+    "name": "Algae"
+  }
+}

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.AdminIndex;
@@ -51,7 +57,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -409,32 +414,6 @@ public class ElasticService {
     public IndexQuery buildIndexQuery(SearchItemIndex item) {
         addWeights(item);
 
-//        // convert to Map to avoid issues with the dynamic fields
-//        Map itemMap = new HashMap();
-//        for (int i = 0; i < SearchItemIndex.class.getFields().length; i++) {
-//            try {
-//                Field f = SearchItemIndex.class.getFields()[i];
-//                Object obj = f.get(item);
-//                if (obj == null) {
-//                    continue;
-//                }
-//
-//                // use name to detect dynamic fields
-//                if (f.getName().endsWith("Fields")) {
-//                    // convert to map
-//                    Map<String, String> fields = (Map<String, String>) obj;
-//                    if (fields != null) {
-//                        itemMap.putAll(fields);
-//                    }
-//                } else {
-//                    itemMap.put(f.getName(), obj);
-//                }
-//            } catch (Exception e) {
-//                logger.error("Failed to get field value", e);
-//            }
-//        }
-
-//        return new IndexQueryBuilder().withId(item.getId()).withObject(itemMap).build();
         return new IndexQueryBuilder().withId(item.getId()).withObject(item).build();
     }
 
@@ -629,30 +608,6 @@ public class ElasticService {
             } else {
                 return item;
             }
-        }
-        return null;
-    }
-
-    // TODO: nested "data" is removed
-    public Map<String, String> getNestedFields(String id) {
-        NativeQueryBuilder query =
-                NativeQuery.builder().withQuery(wq -> wq.term(t -> t.field("id").value(id))).withMaxResults(1);
-
-        SearchHits<Map> result = elasticsearchOperations.search(query.build(), Map.class, IndexCoordinates.of(elasticIndex));
-        if (result.getTotalHits() > 0) {
-            // return with nested data only
-            Map<String, Object> item = (Map<String, Object>) result.getSearchHits().getFirst().getContent();
-            Map<String, String> data = (Map<String, String>) item.get("data");
-            if (data == null) {
-                data = new HashMap<>();
-            }
-            for (Map.Entry<String, Object> entry : item.entrySet()) {
-                if (entry.getKey().startsWith("data.")) {
-                    data.put(entry.getKey().substring(5), (String) entry.getValue());
-                }
-            }
-
-            return data;
         }
         return null;
     }
@@ -893,7 +848,7 @@ public class ElasticService {
                                 b.should(s -> s.range(r -> r.field("rankID")
                                                 .gte(JsonData.of(unranked ? -1 : baseRankID + 1))
                                                 .lte(JsonData.of(baseRankID + within))))
-                                .should(s -> s.bool(b1 -> b1.mustNot(m -> m.exists(r -> r.field("rankID")))))));
+                                        .should(s -> s.bool(b1 -> b1.mustNot(m -> m.exists(r -> r.field("rankID")))))));
                     }
                     return bq;
                 }))
@@ -1129,7 +1084,6 @@ public class ElasticService {
                         item.rkFields != null ? item.rkFields.get("rk_genus") : null,
                         item.datasetName,
                         item.datasetID,
-                        item.wikiUrl_s,
                         item.hiddenImages_s,
                         thumbnail,
                         smallImage,
@@ -1337,7 +1291,6 @@ public class ElasticService {
         }
 
         model.put("imageIdentifier", taxon.image);
-        model.put("wikiUrl", taxon.wikiUrl_s);
         model.put("hiddenImages", taxon.hiddenImages_s);
         model.put("conservationStatuses", conservationStatuses);
         model.put("extantStatuses", new ArrayList<>());
