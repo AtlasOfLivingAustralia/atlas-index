@@ -29,10 +29,14 @@ with either:
 
 #### Production
 
-`yarn run build` makes use of `.env.production:VITE_SPATIAL_WS_URL` and `./public/regions.json` to add a hashed 
+`yarn run build` makes use of `.env.production:VITE_SPATIAL_WS_URL` and `./resources/regions.json` to add a hashed 
 `regionsList.json` file into `/dist/assets/`.
 
 Delete the `regionsList*.json` files in the project directory to trigger a rebuild.
+
+#### ALA environment
+
+Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) configuration and deployment information. 
 
 #### Local development
 
