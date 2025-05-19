@@ -18,7 +18,7 @@ try {
 const baseSpatialUrl = process.argv[2] || "https://spatial.ala.org.au/ws";
 
 // convert the regions.json into a file suitable for the regions page
-const regions = JSON.parse(readFileSync('./public/regions.json', 'utf8'));
+const regions = JSON.parse(readFileSync('./resources/regions.json', 'utf8'));
 const regionsList = [];
 
 function buildRegionsList() {

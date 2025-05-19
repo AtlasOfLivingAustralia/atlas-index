@@ -136,14 +136,21 @@ function Region({setBreadcrumbs}: {
     const [currentRank, setCurrentRank] = useState<number>(0);
     const [yearMin, setYearMin] = useHashState<number>('from', EARLIEST_YEAR);
     const [yearMax, setYearMax] = useHashState<number>('to', new Date().getFullYear());
+    const [yearRange, setYearRange] = useState<[number, number]>([yearMin, yearMax]);
     const [tab, setTab] = useHashState<string>('tab', 'species');
 
     // needed for the player to work
     const playerStateRef = useRef(playerState);
     const controllerSpeciesListRef = useRef<AbortController>(new AbortController());
     const mapRef = useRef<L.Map | null>(null);
+    const occurrenceFqRef = useRef(occurrenceFq);
 
-    // I don't remember why playerState needs a wrapper playerStateRef
+    // update ref, for use by timeout that otherwise uses the old scope
+    useEffect(() => {
+        occurrenceFqRef.current = occurrenceFq;
+    }, [occurrenceFq]);
+
+    // update ref, for use by timeout that otherwise uses the old scope
     useEffect(() => {
         playerStateRef.current = playerState;
     }, [playerState]);
@@ -479,17 +486,12 @@ function Region({setBreadcrumbs}: {
 
         const newYearRange: [number, number] = [thisMinVal, thisMaxVal];
 
-        fetchSpeciesList(object.fid, object.name, occurrenceFq, newYearRange);
-        fetchChartData(object.fid, object.name, currentRank, occurrenceFq, newYearRange);
-        redrawMap();
-
         // species selection is cleared when the year range changes, so set it to null and reset the occurrenceFq
-        if (selectedSpecies) {
-            if (group && group !== ALL_SPECIES) {
-                setOccurrenceFq(`&fq=speciesGroup:\"${encodeURIComponent(group)}\"`);
-            }
-            setSelectedSpecies(null);
-        }
+        var currentOccurrenceFq = resetSpeciesAndGetOccurrenceFq();
+
+        fetchSpeciesList(object.fid, object.name, currentOccurrenceFq, newYearRange);
+        fetchChartData(object.fid, object.name, currentRank, currentOccurrenceFq, newYearRange);
+        redrawMap();
     }
 
     function redrawMap() {
@@ -500,11 +502,30 @@ function Region({setBreadcrumbs}: {
         }, 5);
     }
 
+    // reset any species selection and return the occurrenceFq that may contain a species group filter
+    // - selectedSpecies is only applicable to the species tab, not the chart tab
+    // - does not impact the charts tab
+    function resetSpeciesAndGetOccurrenceFq() {
+        let currentOccurrenceFq = occurrenceFq;
+        if (selectedSpecies) {
+            if (group && group !== ALL_SPECIES) {
+                currentOccurrenceFq = `&fq=speciesGroup:\"${encodeURIComponent(group)}\"`;
+            } else {
+                currentOccurrenceFq = "";
+            }
+            setOccurrenceFq(currentOccurrenceFq);
+            setSelectedSpecies(null);
+        }
+        return currentOccurrenceFq;
+    }
+
     // start playing the year range player
     function playerPlay() {
         if (!object) {
             return;
         }
+
+        var fq = resetSpeciesAndGetOccurrenceFq(); // remove any species selection
 
         setPlayerState('playing');
         let currentYearRange: [number, number] = [yearMin, yearMax];
@@ -513,9 +534,10 @@ function Region({setBreadcrumbs}: {
             currentYearRange = [EARLIEST_YEAR, Math.min(EARLIEST_YEAR + 10, new Date().getFullYear())];
             setYearMin(currentYearRange[0]);
             setYearMax(currentYearRange[1]);
+            setYearRange([currentYearRange[0], currentYearRange[1]]);
             redrawMap();
 
-            fetchSpeciesList(object.fid, object.name, occurrenceFq, currentYearRange);
+            fetchSpeciesList(object.fid, object.name, fq, currentYearRange);
         }
 
         playLoop(currentYearRange);
@@ -535,8 +557,9 @@ function Region({setBreadcrumbs}: {
             } else {
                 setYearMin(nextYearRange[0])
                 setYearMax(nextYearRange[1])
-                fetchSpeciesList(object.fid, object.name, occurrenceFq, nextYearRange);
-                fetchChartData(object.fid, object.name, currentRank, occurrenceFq, nextYearRange);
+                setYearRange([nextYearRange[0], nextYearRange[1]]);
+                fetchSpeciesList(object.fid, object.name, occurrenceFqRef.current, nextYearRange);
+                fetchChartData(object.fid, object.name, currentRank, occurrenceFqRef.current, nextYearRange);
 
                 redrawMap();
             }
@@ -580,6 +603,7 @@ function Region({setBreadcrumbs}: {
         setTimeout(() => {
             setYearMin(EARLIEST_YEAR);
             setYearMax(new Date().getFullYear());
+            setYearRange([EARLIEST_YEAR, new Date().getFullYear()]);
             fetchSpeciesList(object.fid, object.name, occurrenceFq, [EARLIEST_YEAR, new Date().getFullYear()]);
             fetchChartData(object.fid, object.name, currentRank, occurrenceFq, [EARLIEST_YEAR, new Date().getFullYear()]);
             redrawMap();
@@ -822,19 +846,19 @@ function Region({setBreadcrumbs}: {
                                                 <DualRangeSlider
                                                     min={EARLIEST_YEAR}
                                                     max={new Date().getFullYear()}
-                                                    minValue={yearMin}
-                                                    maxValue={yearMax}
+                                                    yearRange={yearRange}
                                                     stepSize={1}
                                                     onChange={(minVal, maxVal) => {
                                                         setYearMin(Math.floor(minVal));
                                                         setYearMax(Math.floor(maxVal));
+                                                        setYearRange([Math.floor(minVal), Math.floor(maxVal)]);
                                                     }}
                                                     onChangeEnd={yearRangeEnd}
                                                     isDisabled={isFetchingSpeciesList}
                                                 ></DualRangeSlider>
 
                                                 <div className="d-flex justify-content-center">
-                                                    <p>{yearMin} - {yearMax}</p>
+                                                    <p>{yearRange[0]} - {yearRange[1]}</p>
                                                 </div>
                                             </div>
                                             <div className="mt-3">
@@ -903,8 +927,8 @@ function Region({setBreadcrumbs}: {
                                                            onChange={(e) => setShowOccurrences(e.target.checked)}/>
                                                     <div className="ms-2">Occurrences</div>
                                                 </div>
-                                                <DualRangeSlider min={0} max={100} minValue={occurrenceOpacity}
-                                                                 maxValue={100} stepSize={1}
+                                                <DualRangeSlider min={0} max={100} yearRange={[occurrenceOpacity]}
+                                                                 stepSize={1}
                                                                  onChange={(minVal) => {
                                                                      setOccurrenceOpacity(Math.floor(minVal));
                                                                  }}
@@ -915,8 +939,8 @@ function Region({setBreadcrumbs}: {
                                                            onChange={(e) => setShowObject(e.target.checked)}/>
                                                     <div className="ms-2">Region</div>
                                                 </div>
-                                                <DualRangeSlider min={0} max={100} minValue={objectOpacity}
-                                                                 maxValue={100} stepSize={1}
+                                                <DualRangeSlider min={0} max={100} yearRange={[objectOpacity]}
+                                                                 stepSize={1}
                                                                  onChange={(minVal) => {
                                                                      setObjectOpacity(Math.floor(minVal));
                                                                  }}

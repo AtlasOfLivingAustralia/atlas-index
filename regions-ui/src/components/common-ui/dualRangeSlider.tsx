@@ -10,8 +10,7 @@ import styles from './dualRangeSlider.module.css';
 interface DoubleRangeSliderProps {
     min: number;
     max: number;
-    minValue: number;
-    maxValue: number;
+    yearRange: number[];
     stepSize?: number; // for arrow keys
     onChange: (minVal: number, maxVal: number) => void;
     onChangeEnd?: (minVal: number, maxVal: number) => void;
@@ -30,8 +29,7 @@ enum DraggedBtn {
  *
  * @param min minimum value of the range
  * @param max maximum value of the range
- * @param minValue variable minimum value (or single value)
- * @param maxValue variable maximum value (when singleValue is false)
+ * @param yearRange variable range value. Only one value is used when singleValue is true, otherwise 2 values are used.
  * @param onChange callback function when either value changes
  * @param stepSize step size for arrow keys (default is 1)
  * @param onChangeEnd callback function when the drag ends (optional)
@@ -42,8 +40,7 @@ enum DraggedBtn {
 function DoubleRangeSlider({
                                min,
                                max,
-                               minValue,
-                               maxValue,
+                               yearRange,
                                onChange,
                                stepSize = 1,
                                onChangeEnd,
@@ -61,10 +58,14 @@ function DoubleRangeSlider({
     const maxValueRef = useRef<number>(null);
 
     useEffect(() => {
+        if (!yearRange) {
+            return;
+        }
+
         setPositions();
-        maxValueRef.current = maxValue;
-        minValueRef.current = minValue;
-    }, [minValue, maxValue]);
+        minValueRef.current = yearRange[0];
+        maxValueRef.current = yearRange[1];
+    }, [yearRange]);
 
     const handleMouseUp = () => {
         if (draggingRef.current === DraggedBtn.none) return;
@@ -79,8 +80,8 @@ function DoubleRangeSlider({
         if (draggingRef.current != DraggedBtn.none && rangeRef.current) {
             const rect = rangeRef.current.getBoundingClientRect();
             const newValue = Number(min) + ((e.clientX - rect.left) / rect.width) * (max - min);
-            const thisMinValue = minValueRef.current ? minValueRef.current : minValue;
-            const thisMaxValue = maxValueRef.current ? maxValueRef.current : maxValue;
+            const thisMinValue = minValueRef.current ? minValueRef.current : yearRange[0];
+            const thisMaxValue = maxValueRef.current ? maxValueRef.current : yearRange[1];
 
             if (draggingRef.current === DraggedBtn.minBtn) {
                 onChange(Math.min(Math.max(newValue, min), singleValue ? max : thisMaxValue), thisMaxValue);
@@ -110,8 +111,8 @@ function DoubleRangeSlider({
     function setPositions() {
         if (!rangeRef.current || !sliderMin.current) return;
 
-        const minPos = ((minValue - min) / (max - min)) * 100;
-        const maxPos = ((maxValue - min) / (max - min)) * 100;
+        const minPos = ((yearRange[0] - min) / (max - min)) * 100;
+        const maxPos = ((yearRange[1] - min) / (max - min)) * 100;
         if (rangeSelection.current) { // does not exist in single value mode
             rangeSelection.current.style.left = minPos + '%';
             rangeSelection.current.style.right = (100 - maxPos) + '%';
@@ -127,9 +128,9 @@ function DoubleRangeSlider({
     const handleMouseDown = (e: any) => {
         // When the buttons have the same value, use the minBtn when the minValue > 50% of the range and
         // the maxBtn when the maxValue < 50% of the range.
-        if (singleValue || maxValue !== minValue) {
+        if (singleValue || yearRange[0] !== yearRange[1]) {
             setDragging(e.target == sliderMin.current ? DraggedBtn.minBtn : DraggedBtn.maxBtn);
-        } else if (minValue > (max - min) / 2.0 + min) {
+        } else if (yearRange[0] > (max - min) / 2.0 + min) {
             setDragging(DraggedBtn.minBtn);
         } else {
             setDragging(DraggedBtn.maxBtn);
@@ -158,11 +159,11 @@ function DoubleRangeSlider({
 
         const target = e.target as HTMLElement;
         if (target == sliderMin.current) {
-            const newValue = minValue + direction * stepSize;
-            onChange(Math.min(Math.max(newValue, min), singleValue ? max : maxValue), maxValue);
+            const newValue = yearRange[0] + direction * stepSize;
+            onChange(Math.min(Math.max(newValue, min), singleValue ? max : yearRange[1]), yearRange[1]);
         } else {
-            const newValue = maxValue + direction * stepSize;
-            onChange(minValue, Math.max(Math.min(newValue, max), minValue));
+            const newValue = yearRange[1] + direction * stepSize;
+            onChange(yearRange[0], Math.max(Math.min(newValue, max), yearRange[0]));
         }
 
         if (onChangeEnd && minValueRef.current) {
@@ -177,13 +178,13 @@ function DoubleRangeSlider({
             <div className={styles.rangeBar}></div>
             {!singleValue &&
                 <div ref={rangeSelection} data-testid="rangeSelection" className={styles.rangeSelection}></div>}
-            <button ref={sliderMin} role="slider" aria-label="minimum" aria-valuenow={minValue} aria-valuemin={min}
+            <button ref={sliderMin} role="slider" aria-label="minimum" aria-valuenow={yearRange[0]} aria-valuemin={min}
                     aria-valuemax={max}
                     className={styles.sliderMin + " " + styles.sliderBtn} disabled={isDisabled}
                     onMouseDown={handleMouseDown}
                     onKeyDown={handleKeyDown}></button>
             {!singleValue &&
-                <button ref={sliderMax} role="slider" aria-label="maximum" aria-valuenow={maxValue} aria-valuemin={min}
+                <button ref={sliderMax} role="slider" aria-label="maximum" aria-valuenow={yearRange[1]} aria-valuemin={min}
                         aria-valuemax={max} className={styles.sliderMax + " " + styles.sliderBtn} disabled={isDisabled}
                         onMouseDown={handleMouseDown} onKeyDown={handleKeyDown}></button>}
         </div>

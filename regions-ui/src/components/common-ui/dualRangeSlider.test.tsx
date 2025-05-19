@@ -15,8 +15,7 @@ describe('DualRangeSlider', () => {
     const props = {
         min: 0,
         max: 100,
-        minValue: 20,
-        maxValue: 80,
+        yearRange: [20, 80],
         onChange: mockOnChange,
         onChangeEnd: mockOnChangeEnd,
         stepSize: 1,
@@ -89,7 +88,7 @@ describe('DualRangeSlider', () => {
         fireEvent.mouseMove(window, {clientX: 110});
         fireEvent.mouseUp(window);
         const [minValue4] = mockOnChange.mock.calls[3]; // 4th call
-        expect(minValue4).toBe(props.maxValue); // width is 100, so clientX == value
+        expect(minValue4).toBe(props.yearRange[1]); // width is 100, so clientX == value
     });
 
     it('check min slider mouse drag when singleValue mode', () => {
@@ -164,7 +163,7 @@ describe('DualRangeSlider', () => {
         fireEvent.mouseMove(window, {clientX: -10});
         fireEvent.mouseUp(window);
         const changedValues3 = mockOnChange.mock.calls[2]; // 3rd call
-        expect(changedValues3[1]).toBe(props.minValue); // width is 100, so clientX == value
+        expect(changedValues3[1]).toBe(props.yearRange[0]); // width is 100, so clientX == value
 
         // move to above max (starting position is 20)
         fireEvent.mouseDown(maxSlider[0]);
@@ -190,42 +189,42 @@ describe('DualRangeSlider', () => {
         expect(changedValues1[1]).toBe(81);
 
         // move to the left (starting position is 81)
-        var thisProps = {...props, maxValue: 81};
+        var thisProps = {...props, yearRange: [props.yearRange[0], 81]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(maxSlider[0], {key: 'ArrowLeft'});
         const changedValues2 = mockOnChange.mock.calls[1]; // 2nd call
         expect(changedValues2[1]).toBe(80);
 
         // move to by page to the right (starting position is 80)
-        thisProps = {...props, maxValue: 80};
+        thisProps = {...props, yearRange: [props.yearRange[0], 80]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(maxSlider[0], {key: 'PageUp'});
         const changedValues3 = mockOnChange.mock.calls[2]; // 3rd call
         expect(changedValues3[1]).toBe(90);
 
         // move by page to the left (starting position is 90)
-        thisProps = {...props, maxValue: 90};
+        thisProps = {...props, yearRange: [props.yearRange[0], 90]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(maxSlider[0], {key: 'PageDown'});
         const changedValues4 = mockOnChange.mock.calls[3]; // 4th call
         expect(changedValues4[1]).toBe(80);
 
         // move to end (starting position is 80)
-        thisProps = {...props, maxValue: 80};
+        thisProps = {...props, yearRange: [props.yearRange[0], 80]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(maxSlider[0], {key: 'End'});
         const changedValues5 = mockOnChange.mock.calls[4]; // 5th call
         expect(changedValues5[1]).toBe(props.max);
 
         // move to home, below starting position (starting position is 100)
-        thisProps = {...props, maxValue: 100};
+        thisProps = {...props, yearRange: [props.yearRange[0], 100]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(maxSlider[0], {key: 'Home'});
         const changedValues6 = mockOnChange.mock.calls[5]; // 6th call
-        expect(changedValues6[1]).toBe(props.minValue);
+        expect(changedValues6[1]).toBe(props.yearRange[0]);
 
         // move to above max (starting position is 100)
-        thisProps = {...props, maxValue: 100};
+        thisProps = {...props, yearRange: [props.yearRange[0], 100]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(maxSlider[0], {key: 'ArrowRight'});
         const changedValues7 = mockOnChange.mock.calls[6]; // 7th call
@@ -248,42 +247,42 @@ describe('DualRangeSlider', () => {
         expect(changedValues1[0]).toBe(21);
 
         // move to the left (starting position is 21)
-        var thisProps = {...props, minValue: 21};
+        var thisProps = {...props, yearRange: [21, props.yearRange[1]]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(minSlider[0], {key: 'ArrowLeft'});
         const changedValues2 = mockOnChange.mock.calls[1]; // 2nd call
         expect(changedValues2[0]).toBe(20);
 
         // move to by page to the right (starting position is 20)
-        thisProps = {...props, minValue: 20};
+        thisProps = {...props, yearRange: [20, props.yearRange[1]]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(minSlider[0], {key: 'PageUp'});
         const changedValues3 = mockOnChange.mock.calls[2]; // 3rd call
         expect(changedValues3[0]).toBe(30);
 
         // move by page to the left (starting position is 30)
-        thisProps = {...props, minValue: 30};
+        thisProps = {...props, yearRange: [30, props.yearRange[1]]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(minSlider[0], {key: 'PageDown'});
         const changedValues4 = mockOnChange.mock.calls[3]; // 4th call
         expect(changedValues4[0]).toBe(20);
 
         // move to end, above maxValue (starting position is 20)
-        thisProps = {...props, minValue: 20};
+        thisProps = {...props, yearRange: [20, props.yearRange[1]]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(minSlider[0], {key: 'End'});
         const changedValues5 = mockOnChange.mock.calls[4]; // 5th call
-        expect(changedValues5[0]).toBe(props.maxValue);
+        expect(changedValues5[0]).toBe(props.yearRange[1]);
 
         // move to home (starting position is 50)
-        thisProps = {...props, minValue: 50};
+        thisProps = {...props, yearRange: [50, props.yearRange[1]]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(minSlider[0], {key: 'Home'});
         const changedValues6 = mockOnChange.mock.calls[5]; // 6th call
         expect(changedValues6[0]).toBe(props.min);
 
         // move to below min (starting position is 0)
-        thisProps = {...props, minValue: 0};
+        thisProps = {...props, yearRange: [0, props.yearRange[1]]};
         rerender(<DualRangeSlider {...thisProps} />);
         fireEvent.keyDown(minSlider[0], {key: 'ArrowLeft'});
         const changedValues7 = mockOnChange.mock.calls[6]; // 7th call

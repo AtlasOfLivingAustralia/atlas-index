@@ -1,7 +1,7 @@
 import { writeFileSync, readFileSync } from 'fs';
 
 // convert the namematching service's speciesGroups.json to a more suitable format for the speciesView refine section
-const speciesGroups = JSON.parse(readFileSync('./public/speciesGroups.json', 'utf8'));
+const speciesGroups = JSON.parse(readFileSync('./resources/speciesGroups.json', 'utf8'));
 const speciesGroupsMap = {};
 
 function convertSpeciesGroups() {

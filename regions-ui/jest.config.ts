@@ -8,6 +8,7 @@ const config: Config = {
         '^.+\\.(ts|tsx)$': 'babel-jest',
     },
     setupFiles: ['./jest.setup.ts'],
+    testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
 };
 
 export default config;

@@ -454,7 +454,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                     />
                                     <div className="ms-2">All regions</div>
                                 </div>
-                                <DualRangeSlider min={0} max={100} minValue={layerOpacity} maxValue={100} stepSize={1}
+                                <DualRangeSlider min={0} max={100} yearRange={[layerOpacity]} stepSize={1}
                                                  onChange={(minVal) => {
                                                      setLayerOpacity(Math.floor(minVal));
                                                  }}
@@ -472,7 +472,7 @@ function Regions({setBreadcrumbs}: RegionsProps) {
                                     />
                                     <div className="ms-2">Selected region</div>
                                 </div>
-                                <DualRangeSlider min={0} max={100} minValue={objectOpacity} maxValue={100} stepSize={1}
+                                <DualRangeSlider min={0} max={100} yearRange={[objectOpacity]} stepSize={1}
                                                  onChange={(minVal) => {
                                                      setObjectOpacity(Math.floor(minVal));
                                                  }}
