@@ -64,6 +64,7 @@ yarn run dev
 
 ```bash
 yarn install
+yarn playwright install --with-deps
 yarn test
 ./run-playwright-test.sh
 yarn run build
