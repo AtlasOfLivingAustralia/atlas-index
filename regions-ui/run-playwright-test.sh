@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set default thread count if not provided as an argument
+thread_count=${1:-10}
+
 # Function to check if a process is running on a specific port
 check_port() {
   if lsof -i :$1 > /dev/null; then
@@ -15,7 +18,6 @@ check_port 5173
 # Exit on error
 set -e
 
-# TODO: Build the project using the .env.playwright file
 echo "Building the project..."
 yarn run build:playwright
 
@@ -32,11 +34,13 @@ STATIC_SERVER_PID=$!
 # Wait for servers to start
 sleep 5
 
-# Run Playwright tests
-# - --workers=1: To avoid concurrency issue
-echo "Running Playwright tests..."
-yarn playwright test --workers=10 --reporter=dot
+cleanup() {
+  # Teardown servers
+  echo "Stopping servers..."
+  kill $APP_SERVER_PID $STATIC_SERVER_PID
+}
+trap cleanup EXIT
 
-# Teardown servers
-echo "Stopping servers..."
-kill $APP_SERVER_PID $STATIC_SERVER_PID
+# Run Playwright tests
+echo "Running Playwright tests with $thread_count workers..."
+yarn playwright test --workers=$thread_count --reporter=dot
