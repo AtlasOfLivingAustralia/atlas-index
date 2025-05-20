@@ -9,7 +9,7 @@ import {MapContainer, TileLayer, useMap, useMapEvents, WMSTileLayer, Popup, Laye
 import FontAwesomeIcon from '../components/common-ui/fontAwesomeIconLite.tsx'
 import {faCircle, faInfoCircle, faSearchPlus} from '@fortawesome/free-solid-svg-icons';
 import {faRedo} from '@fortawesome/free-solid-svg-icons';
-import styles from './Regions.module.css';
+import styles from './regions.module.css';
 import 'leaflet/dist/leaflet.css';
 import {LatLng} from "leaflet";
 import {useNavigate} from "react-router-dom";

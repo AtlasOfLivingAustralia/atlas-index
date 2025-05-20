@@ -36,7 +36,7 @@ Delete the `regionsList*.json` files in the project directory to trigger a rebui
 
 #### ALA environment
 
-Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) configuration and deployment information. 
+Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) configuration and deployment information.
 
 #### Local development
 
@@ -46,7 +46,12 @@ Run `buildRegions.js` to produce a `regionsList.json` file.
 node buildRegions.js {spatial-ws-url}
 ``` 
 
-Update `.env.local` with the URL to this `regionsList.json` file in `.env.local:VITE_REGIONS_CONFIG_URL`
+Update `.env.local` with the URL to this `regionsList.json` file in `.env.local:VITE_REGIONS_CONFIG_URL`. 
+
+Example:
+- copy the `regionsList.json` file to the `static-server/static/regions/` directory.
+- start the static server, see [static-server](../static-server/README.md).
+- use `.env.local:VITE_REGIONS_CONFIG_URL=http://localhost:8082/static/regions/regionsList.json`
 
 ### Install dependencies and run the development server
 
