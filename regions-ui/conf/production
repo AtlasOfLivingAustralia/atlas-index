@@ -36,7 +36,6 @@ VITE_PLAYER_INTERVAL_MILLISECONDS=1000
 VITE_EXPLORE_URL=https://www.ala.org.au/explore-by-location/
 VITE_SPECIES_PAGE_URL=https://bie-test.ala.org.au/species/
 VITE_DOWNLOAD_URL=https://biocache-test.ala.org.au/download/options1?targetUri=%2Foccurrence%2Fsearch&searchParams=
-VITE_GOOGLE_MAP_API_KEY=xxx
 VITE_OPENSTREETMAP_ZXY_URL=https://spatial.ala.org.au/osm/{z}/{x}/{y}.png
 
 # set by the build script, do not change
