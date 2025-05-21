@@ -10,7 +10,7 @@
     "build:testing": "node generateBuildInfo.js && tsc && node prepareRegions.js && vite build --mode testing && node useRegions.js",
     "build:staging": "node generateBuildInfo.js && tsc && node prepareRegions.js && vite build --mode staging && node useRegions.js",
     "build:production": "node generateBuildInfo.js && tsc && node prepareRegions.js && vite build --mode production && node useRegions.js",
-    "build:playwright": "node generateBuildInfo.js && tsc && node prepareRegions.js && PLAYWRIGHT_ENV=true vite build && node useRegions.js",
+    "build:playwright": "node generateBuildInfo.js && tsc && node prepareRegions.js && vite build --mode playwright && node useRegions.js",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "jest"
