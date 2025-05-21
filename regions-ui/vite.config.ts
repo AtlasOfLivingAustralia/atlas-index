@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import dotenv from 'dotenv'
-import path from "node:path";
+//import dotenv from 'dotenv'
+//import path from "node:path";
 
 //if (process.env.PLAYWRIGHT_ENV === "true") {
 //    const envFile = `.env.playwright`;
