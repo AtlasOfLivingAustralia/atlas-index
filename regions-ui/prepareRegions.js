@@ -5,6 +5,8 @@
 import {readFileSync, writeFileSync} from 'fs';
 import { execSync } from 'child_process';
 
+console.log(process.env.ENVIRONMENT);
+
 // read ./regionsList.meta.json to an object
 let regionsMeta;
 try {
