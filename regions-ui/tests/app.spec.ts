@@ -431,9 +431,8 @@ test('regions map controls', async ({page}, testInfo) => {
         test.skip(true, 'Skipping this assertion for Firefox due to page.route not firing as expected for previously seen URLs');
     }
 
-    // skip the test if running in codepipeline, it fails due to aggressive caching in headless chrome
     if (process.env.CODEBUILD_BUILD_NUMBER) {
-        test.skip(true, 'Skipping because $CODEBUILD_BUILD_NUMBER is not set');
+        test.skip(true, 'Skipping because this test fails in codepipeline due to aggressive caching in headless chrome');
     }
 
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
