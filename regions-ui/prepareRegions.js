@@ -17,8 +17,9 @@ try {
 // read .env.production
 let env;
 let envObj;
+const envDir = './config'; // match vite.config.ts
 try {
-    env = readFileSync('.env.production', 'utf8');
+    env = readFileSync('${envDir}/.env.production', 'utf8');
     const envLines = env.split('\n');
     envObj = {};
     envLines.forEach((line) => {
@@ -28,13 +29,13 @@ try {
         }
     });
 } catch (e) {
-    console.error('Error: Failed to read "./.env.production". Cannot build without this file. \n\nFor local development (yarn run dev): \n 1. manually run "node buildRegions.js {spatialBaseUrl}"\n 2. update .env.local\'s VITE_REGIONS_CONFIG_URL to refer to the produced regionsList-{hash}.json\n\n');
+    console.error('Error: Failed to read "${envDir}/.env.production". Cannot build without this file. \n\nFor local development (yarn run dev): \n 1. manually run "node buildRegions.js {spatialBaseUrl}"\n 2. update .env.local\'s VITE_REGIONS_CONFIG_URL to refer to the produced regionsList-{hash}.json\n\n');
     process.exit(1);
 }
 // get the VITE_SPATIAL_URL from the .env.production
 const baseSpatialUrl = envObj['VITE_SPATIAL_WS_URL'];
 if (!baseSpatialUrl) {
-    console.error('VITE_SPATIAL_WS_URL not found in .env.production');
+    console.error('VITE_SPATIAL_WS_URL not found in ${envDir}/.env.production');
     process.exit(1);
 }
 
@@ -60,9 +61,9 @@ try {
 
 // success, write updated .env.production
 const newEnv = env.replace(/VITE_REGIONS_CONFIG_URL=.*/, `VITE_REGIONS_CONFIG_URL=./assets/${regionsListFile}`);
-writeFileSync('.env.production', newEnv, 'utf8');
+writeFileSync('${envDir}/.env.production', newEnv, 'utf8');
 
-console.log(`Updated .env.production with new VITE_REGIONS_CONFIG_URL: ./assets/${regionsListFile} modified: ${regionsMeta.modified}`);
+console.log(`Updated ${envDir}/.env.production with new VITE_REGIONS_CONFIG_URL: ./assets/${regionsListFile} modified: ${regionsMeta.modified}`);
 
 
 
