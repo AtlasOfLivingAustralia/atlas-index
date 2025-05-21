@@ -15,6 +15,7 @@ export default defineConfig({
     'process.env': process.env,
   },
   plugins: [react()],
+  envDir: './config',
   build: {
     rollupOptions: {
       output: {
