@@ -1,6 +1,6 @@
 /**
- * This will generate a regionsList.json file, if missing. It will use the
- * VITE_SPATIAL_URL from the current environment config e.g config/.env.${process.env.ENVIRONMENT}
+ * This will generate a regionsList.json file, if missing. It will use the VITE_SPATIAL_URL
+ * from the current environment config e.g config/.env.${process.env.ENVIRONMENT}
  */
 
 import {readFileSync, writeFileSync} from 'fs';
