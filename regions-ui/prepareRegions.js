@@ -1,11 +1,10 @@
 /**
- * This will generate a regionsList.json file, if missing. It will use the VITE_SPATIAL_URL from the .env.production.
+ * This will generate a regionsList.json file, if missing. It will use the
+ * VITE_SPATIAL_URL from the current environment config e.g config/.env.${process.env.ENVIRONMENT}
  */
 
 import {readFileSync, writeFileSync} from 'fs';
 import { execSync } from 'child_process';
-
-console.log(process.env.ENVIRONMENT);
 
 // read ./regionsList.meta.json to an object
 let regionsMeta;
@@ -16,12 +15,12 @@ try {
     regionsMeta = {};
 }
 
-// read .env.production
+// read .env.${process.env.ENVIRONMENT}
 let env;
 let envObj;
 const envDir = './config'; // match vite.config.ts
 try {
-    env = readFileSync(`${envDir}/.env.production`, 'utf8');
+    env = readFileSync(`${envDir}/.env.${process.env.ENVIRONMENT}`, 'utf8');
     const envLines = env.split('\n');
     envObj = {};
     envLines.forEach((line) => {
@@ -31,13 +30,13 @@ try {
         }
     });
 } catch (e) {
-    console.error(`Error: Failed to read "${envDir}/.env.production". Cannot build without this file. \n\nFor local development (yarn run dev): \n 1. manually run "node buildRegions.js {spatialBaseUrl}"\n 2. update .env.local\'s VITE_REGIONS_CONFIG_URL to refer to the produced regionsList-{hash}.json\n\n`);
+    console.error(`Error: Failed to read "${envDir}/.env.${process.env.ENVIRONMENT}". Cannot build without this file. \n\nFor local development (yarn run dev): \n 1. manually run "node buildRegions.js {spatialBaseUrl}"\n 2. update .env.local\'s VITE_REGIONS_CONFIG_URL to refer to the produced regionsList-{hash}.json\n\n`);
     process.exit(1);
 }
-// get the VITE_SPATIAL_URL from the .env.production
+// get the VITE_SPATIAL_URL from the .env.${process.env.ENVIRONMENT}
 const baseSpatialUrl = envObj['VITE_SPATIAL_WS_URL'];
 if (!baseSpatialUrl) {
-    console.error(`VITE_SPATIAL_WS_URL not found in ${envDir}/.env.production`);
+    console.error(`VITE_SPATIAL_WS_URL not found in ${envDir}/.env.${process.env.ENVIRONMENT}`);
     process.exit(1);
 }
 
@@ -61,11 +60,11 @@ try {
     process.exit(1);
 }
 
-// success, write updated .env.production
+// success, write updated .env.${process.env.ENVIRONMENT}
 const newEnv = env.replace(/VITE_REGIONS_CONFIG_URL=.*/, `VITE_REGIONS_CONFIG_URL=./assets/${regionsListFile}`);
-writeFileSync(`${envDir}/.env.production`, newEnv, 'utf8');
+writeFileSync(`${envDir}/.env.${process.env.ENVIRONMENT}`, newEnv, 'utf8');
 
-console.log(`Updated ${envDir}/.env.production with new VITE_REGIONS_CONFIG_URL: ./assets/${regionsListFile} modified: ${regionsMeta.modified}`);
+console.log(`Updated ${envDir}/.env.${process.env.ENVIRONMENT} with new VITE_REGIONS_CONFIG_URL: ./assets/${regionsListFile} modified: ${regionsMeta.modified}`);
 
 
 
