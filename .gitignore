@@ -4,7 +4,6 @@ node_modules/
 dist/
 node/
 .env.local
-.env.production
 regionList.json
 regionList.meta.json
 regionList-*.json
