@@ -12,8 +12,9 @@ import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {faChevronDown} from '@fortawesome/free-solid-svg-icons/faChevronDown'
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner'
 import {formatNumber} from "../util/FormatNumber.tsx";
+import {TreeItemObj} from "../../api/sources/model.ts";
 
-const TreeRow = ({row, level}: { row: any, level: number }) => {
+const TreeRow = ({row, level}: { row: TreeItemObj, level: number }) => {
     const [showList, setShowList] = useState(false);
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -75,7 +76,7 @@ const TreeRow = ({row, level}: { row: any, level: number }) => {
     </>
 }
 
-const Tree = ({level, list}: { level: number, list: any }) => {
+const Tree = ({level, list}: { level: number, list: TreeItemObj[] }) => {
     return <table className="dashboardTree">
         <tbody>{list.map((row: any, index: number) => <TreeRow key={index} row={row} level={level}/>)}</tbody>
     </table>

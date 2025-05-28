@@ -58,7 +58,6 @@ VITE_SPECIES_URL_PREFIX=https://bie.ala.org.au/species/
 # dashboard data sources (see examples in ../static-server/static/dashboard)
 VITE_APP_DASHBOARD_DATA_URL=http://localhost:8082/static/dashboard/dashboard.json
 VITE_APP_DASHBOARD_ZIP_URL=http://localhost:8082/static/dashboard/dashboard.zip
-VITE_APP_DASHBOARD_I18N_URL=http://localhost:8082/static/dashboard/dashboardI18n.json
 
 # minimal header and footer urls
 VITE_CONTACT_URL=https://www.ala.org.au/contact-us/

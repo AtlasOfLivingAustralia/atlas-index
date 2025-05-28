@@ -492,25 +492,30 @@ public class DashboardService {
             table.rows.add(new TableRow("latestRecord", null, new String[]{lastEventDate != null ? sdf.format(lastEventDate) : ""}));
             table.rows.add(new TableRow("lastImageAdded", null, new String[]{lastImageEventDate != null ? sdf.format(lastImageEventDate) : ""}));
 
+            String dateFq = URLEncoder.encode("occurrence_year:[1600-01-01T00:00:00Z TO 1699-12-31T23:59:59Z]", "UTF-8");
             table.rows.add(new TableRow("1600s",
-                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1600-01-01T00:00:00Z+TO+1699-12-31T23:59:59Z]",
-                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1600-01-01T00:00:00Z+TO+1699-12-31T23:59:59Z]&pageSize=0").totalRecords}));
+                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=" + dateFq,
+                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=" + dateFq + "&pageSize=0").totalRecords}));
 
+            dateFq = URLEncoder.encode("occurrence_year:[1700-01-01T00:00:00Z TO 1799-12-31T23:59:59Z]", "UTF-8");
             table.rows.add(new TableRow("1700s",
-                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1700-01-01T00:00:00Z+TO+1799-12-31T23:59:59Z]",
-                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1700-01-01T00:00:00Z+TO+1799-12-31T23:59:59Z]&pageSize=0").totalRecords}));
+                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=" + dateFq,
+                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=" + dateFq + "&pageSize=0").totalRecords}));
 
+            dateFq = URLEncoder.encode("occurrence_year:[1800-01-01T00:00:00Z TO 1899-12-31T23:59:59Z]", "UTF-8");
             table.rows.add(new TableRow("1800s",
-                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1800-01-01T00:00:00Z+TO+1899-12-31T23:59:59Z]",
-                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1800-01-01T00:00:00Z+TO+1899-12-31T23:59:59Z]&pageSize=0").totalRecords}));
+                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=" + dateFq,
+                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=" + dateFq + "&pageSize=0").totalRecords}));
 
+            dateFq = URLEncoder.encode("occurrence_year:[1900-01-01T00:00:00Z TO 1999-12-31T23:59:59Z]", "UTF-8");
             table.rows.add(new TableRow("1900s",
-                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1900-01-01T00:00:00Z+TO+1999-12-31T23:59:59Z]",
-                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[1900-01-01T00:00:00Z+TO+1999-12-31T23:59:59Z]&pageSize=0").totalRecords}));
+                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=" + dateFq,
+                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=" + dateFq + "&pageSize=0").totalRecords}));
 
+            dateFq = URLEncoder.encode("occurrence_year:[2000-01-01T00:00:00Z TO 2099-12-31T23:59:59Z]", "UTF-8");
             table.rows.add(new TableRow("2000s",
-                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[2000-01-01T00:00:00Z+TO+2099-12-31T23:59:59Z]",
-                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=occurrence_year:[2000-01-01T00:00:00Z+TO+2099-12-31T23:59:59Z]&pageSize=0").totalRecords}));
+                    biocacheUiUrl + "/occurrences/search?q=*:*&fq=" + dateFq,
+                    new Integer[]{getBiocache(biocacheWsUrl + "/occurrences/search?q=*:*&fq=" + dateFq + "&pageSize=0").totalRecords}));
 
             dashboardData.data.put("recordsByDate", record);
             return 0;
@@ -740,7 +745,7 @@ public class DashboardService {
             record.tables.add(table);
 
             // decade has an aggregated group < 1850
-            String fq = "decade".equals(facet) ? "&fq=decade:[1850%20TO%20*]" : "";
+            String fq = "decade".equals(facet) ? "&fq=" + URLEncoder.encode("decade:[1850 TO *]", "UTF-8") : "";
             if ("decade".equals(facet)) {
                 String fqBefore1850 = URLEncoder.encode("decade:[* TO 1840]", StandardCharsets.UTF_8);
                 BiocacheSearch result = getBiocache(biocacheWsUrl + "/occurrences/search?q=" + fqBefore1850 + "&pageSize=0&");

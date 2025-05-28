@@ -1,8 +1,8 @@
 {
   "data": {
     "spatialLayers": {
-      "date": 1741654991601,
-      "count": 218,
+      "date": 1748328809574,
+      "count": 188,
       "tables": [
         {
           "header": [
@@ -13,79 +13,85 @@
             {
               "name": "contextualLayers",
               "values": [
-                150
+                139
               ]
             },
             {
               "name": "rasterLayers",
               "values": [
-                68
+                49
               ]
             },
             {
               "name": "terrestrialLayers",
               "values": [
-                209
+                179
               ]
             },
             {
               "name": "marineLayers",
               "values": [
-                14
-              ]
-            },
-            {
-              "name": "",
-              "values": [
-                7
+                17
               ]
             },
             {
               "name": "Area Management",
               "values": [
-                47
+                44
+              ]
+            },
+            {
+              "name": "Area management",
+              "values": [
+                1
               ]
             },
             {
               "name": "Biodiversity",
               "values": [
-                6
+                9
               ]
             },
             {
               "name": "Climate",
               "values": [
-                43
+                42
+              ]
+            },
+            {
+              "name": "Fire",
+              "values": [
+                1
               ]
             },
             {
               "name": "Hydrology",
               "values": [
-                4
+                3
               ]
             },
             {
               "name": "Indigenous",
               "values": [
-                11
+                6
               ]
             },
             {
               "name": "Land Management",
               "values": [
-                2
+                1
               ]
             },
             {
               "name": "Marine",
               "values": [
-                7
+                4
               ]
             },
             {
               "name": "Political",
               "values": [
-                28
+                37
               ]
             },
             {
@@ -97,25 +103,25 @@
             {
               "name": "Social",
               "values": [
-                20
+                14
               ]
             },
             {
               "name": "Substrate",
               "values": [
-                12
+                2
               ]
             },
             {
               "name": "Topography",
               "values": [
-                10
+                3
               ]
             },
             {
               "name": "Vegetation",
               "values": [
-                8
+                9
               ]
             }
           ]
@@ -123,7 +129,7 @@
       ]
     },
     "image": {
-      "date": 1741654993185,
+      "date": 1748328810301,
       "tables": [
         {
           "header": [
@@ -134,37 +140,37 @@
             {
               "name": "imagesTotal",
               "values": [
-                359024
+                23237643
               ]
             },
             {
               "name": "taxaWithImages",
               "values": [
-                17530
+                100744
               ]
             },
             {
               "name": "speciesWithImages",
               "values": [
-                12115
+                78089
               ]
             },
             {
               "name": "subspeciesWithImages",
               "values": [
-                253
+                4460
               ]
             },
             {
               "name": "digivolTaxaWithImages",
               "values": [
-                0
+                616
               ]
             },
             {
               "name": "czTaxaWithImages",
               "values": [
-                15330
+                36135
               ]
             }
           ]
@@ -172,7 +178,7 @@
       ]
     },
     "decade": {
-      "date": 1741654905616,
+      "date": 1748328758903,
       "tables": [
         {
           "header": [
@@ -183,154 +189,154 @@
           "rows": [
             {
               "name": "before 1850",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade%3A%5B*+TO+1840%5D",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade%3A%5B*+TO+1840%5D",
               "values": [
-                107813,
-                9587
+                139367,
+                11993
               ]
             },
             {
               "name": "1850",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1850\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1850\"",
               "values": [
-                25271,
-                5902
+                30187,
+                6955
               ]
             },
             {
               "name": "1860",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1860\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1860\"",
               "values": [
-                35403,
-                7998
+                39316,
+                9096
               ]
             },
             {
               "name": "1870",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1870\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1870\"",
               "values": [
-                56423,
-                12965
+                61354,
+                14955
               ]
             },
             {
               "name": "1880",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1880\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1880\"",
               "values": [
-                134362,
-                17624
+                135982,
+                18638
               ]
             },
             {
               "name": "1890",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1890\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1890\"",
               "values": [
-                192992,
-                21771
+                191077,
+                22939
               ]
             },
             {
               "name": "1900",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1900\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1900\"",
               "values": [
-                257535,
-                27392
+                273514,
+                29272
               ]
             },
             {
               "name": "1910",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1910\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1910\"",
               "values": [
-                282521,
-                29020
+                280515,
+                31403
               ]
             },
             {
               "name": "1920",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1920\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1920\"",
               "values": [
-                299255,
-                30710
+                312222,
+                34033
               ]
             },
             {
               "name": "1930",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1930\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1930\"",
               "values": [
-                418502,
-                31349
+                446854,
+                34237
               ]
             },
             {
               "name": "1940",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1940\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1940\"",
               "values": [
-                463438,
-                31889
+                473988,
+                34099
               ]
             },
             {
               "name": "1950",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1950\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1950\"",
               "values": [
-                949114,
-                40825
+                942223,
+                44256
               ]
             },
             {
               "name": "1960",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1960\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1960\"",
               "values": [
-                1936708,
-                53486
+                1932475,
+                57742
               ]
             },
             {
               "name": "1970",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1970\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1970\"",
               "values": [
-                4799071,
-                65704
+                4807068,
+                70395
               ]
             },
             {
               "name": "1980",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1980\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1980\"",
               "values": [
-                8076045,
-                71969
+                8362658,
+                77835
               ]
             },
             {
               "name": "1990",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"1990\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"1990\"",
               "values": [
-                15269877,
-                68658
+                14038363,
+                74410
               ]
             },
             {
               "name": "2000",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"2000\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"2000\"",
               "values": [
-                24146258,
-                68624
+                23141524,
+                73049
               ]
             },
             {
               "name": "2010",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"2010\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"2010\"",
               "values": [
-                48058634,
-                68742
+                45593228,
+                73166
               ]
             },
             {
               "name": "2020",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=decade:\"2020\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=decade:\"2020\"",
               "values": [
-                42997699,
-                54128
+                42324531,
+                57762
               ]
             }
           ]
@@ -338,7 +344,7 @@
       ]
     },
     "bhl": {
-      "date": 1741654825185,
+      "date": 1748328738096,
       "url": "https://www.biodiversitylibrary.org/collection/bhlau",
       "imageUrl": "http://localhost:8082/static/images/bhl-logo-main.png",
       "tables": [
@@ -351,19 +357,19 @@
             {
               "name": "pages",
               "values": [
-                62643148
+                63162069
               ]
             },
             {
               "name": "volumes",
               "values": [
-                314776
+                318151
               ]
             },
             {
               "name": "titles",
               "values": [
-                196852
+                197510
               ]
             }
           ]
@@ -371,13 +377,13 @@
       ]
     },
     "occurrenceCount": {
-      "date": 1741654803509,
-      "count": 155284956,
-      "url": "https://biocache-test.ala.org.au"
+      "date": 1748328720599,
+      "count": 150749276,
+      "url": "https://biocache.ala.org.au"
     },
     "datasets": {
-      "date": 1741654803569,
-      "count": 4298,
+      "date": 1748328722455,
+      "count": 11132,
       "tables": [
         {
           "header": [
@@ -388,53 +394,53 @@
             {
               "name": "institutions",
               "values": [
-                910
+                1001
               ]
             },
             {
               "name": "collections",
-              "url": "https://collections-test.ala.org.au/collections",
+              "url": "https://collections.ala.org.au/collections",
               "values": [
-                214
+                205
               ]
             },
             {
               "name": "dataResources",
-              "url": "https://collections-test.ala.org.au/datasets#filters=resourceType%3Arecords",
+              "url": "https://collections.ala.org.au/datasets#filters=resourceType%3Arecords",
               "values": [
-                3693
+                1567
               ]
             },
             {
               "name": "descriptionOnly",
               "values": [
-                2576
+                165
               ]
             },
             {
               "name": "speciesLists",
-              "url": "https://collections-test.ala.org.au/datasets#filters=resourceType%3Aspecies-list",
+              "url": "https://collections.ala.org.au/datasets#filters=resourceType%3Aspecies-list",
               "values": [
-                507
+                9472
               ]
             },
             {
               "name": "documents",
-              "url": "https://collections-test.ala.org.au/datasets#filters=resourceType%3Adocument",
+              "url": "https://collections.ala.org.au/datasets#filters=resourceType%3Adocument",
               "values": [
-                2
+                4
               ]
             }
           ]
         }
       ],
       "mostRecent": {
-        "name": "[C4OC] Urban and Coastal Protection",
-        "url": "https://collections-test.ala.org.au/ws/dataResource/dr6802"
+        "name": "Zosteria fulvipubescens",
+        "url": "https://collections.ala.org.au/ws/dataResource/dr27881"
       }
     },
     "states": {
-      "date": 1741654924751,
+      "date": 1748328770061,
       "tables": [
         {
           "header": [
@@ -444,64 +450,64 @@
           "rows": [
             {
               "name": "New South Wales",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"New South Wales\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"New South Wales\"",
               "values": [
-                38859953
+                37404748
               ]
             },
             {
               "name": "Victoria",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"Victoria\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"Victoria\"",
               "values": [
-                34276535
+                31758801
               ]
             },
             {
               "name": "Queensland",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"Queensland\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"Queensland\"",
               "values": [
-                29009544
-              ]
-            },
-            {
-              "name": "South Australia",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"South Australia\"",
-              "values": [
-                11205628
+                28606487
               ]
             },
             {
               "name": "Western Australia",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"Western Australia\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"Western Australia\"",
               "values": [
-                11198121
+                10827294
+              ]
+            },
+            {
+              "name": "South Australia",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"South Australia\"",
+              "values": [
+                10479258
               ]
             },
             {
               "name": "Tasmania",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"Tasmania\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"Tasmania\"",
               "values": [
-                7166228
+                6810280
               ]
             },
             {
               "name": "Northern Territory",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"Northern Territory\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"Northern Territory\"",
               "values": [
-                6612268
+                6617451
               ]
             },
             {
               "name": "Australian Capital Territory",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateProvince:\"Australian Capital Territory\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateProvince:\"Australian Capital Territory\"",
               "values": [
-                4868498
+                5405550
               ]
             },
             {
               "name": "otherStates",
               "values": [
-                1256276
+                927205
               ]
             }
           ]
@@ -509,7 +515,7 @@
       ]
     },
     "conservation": {
-      "date": 1741654900904,
+      "date": 1748328757540,
       "tables": [
         {
           "header": [
@@ -519,338 +525,107 @@
           "rows": [
             {
               "name": "Vulnerable",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Vulnerable\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Vulnerable\"",
               "values": [
-                2237
+                1755
               ]
             },
             {
               "name": "Endangered",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Endangered\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Endangered\"",
               "values": [
-                2424
+                2375
               ]
             },
             {
               "name": "Critically Endangered",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Critically Endangered\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Critically Endangered\"",
               "values": [
-                1053
-              ]
-            },
-            {
-              "name": "Rare",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Rare\"",
-              "values": [
-                1149
-              ]
-            },
-            {
-              "name": "Extinct",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Extinct\"",
-              "values": [
-                156
+                1073
               ]
             },
             {
               "name": "Migratory",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Migratory\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Migratory\"",
               "values": [
-                88
+                91
+              ]
+            },
+            {
+              "name": "Rare",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Rare\"",
+              "values": [
+                578
+              ]
+            },
+            {
+              "name": "Extinct",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Extinct\"",
+              "values": [
+                164
               ]
             },
             {
               "name": "Near Threatened",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Near Threatened\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Near Threatened\"",
               "values": [
-                863
-              ]
-            },
-            {
-              "name": "MI",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"MI\"",
-              "values": [
-                83
-              ]
-            },
-            {
-              "name": "VU",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"VU\"",
-              "values": [
-                256
-              ]
-            },
-            {
-              "name": "Near threatened",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Near threatened\"",
-              "values": [
-                63
-              ]
-            },
-            {
-              "name": "NT",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"NT\"",
-              "values": [
-                463
-              ]
-            },
-            {
-              "name": "DD",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"DD\"",
-              "values": [
-                814
-              ]
-            },
-            {
-              "name": "EN",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"EN\"",
-              "values": [
-                186
-              ]
-            },
-            {
-              "name": "CR",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"CR\"",
-              "values": [
-                178
+                580
               ]
             },
             {
               "name": "Priority 4: Rare, Near Threatened",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Priority 4: Rare, Near Threatened\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Priority 4: Rare, Near Threatened\"",
               "values": [
-                388
-              ]
-            },
-            {
-              "name": "e",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"e\"",
-              "values": [
-                97
-              ]
-            },
-            {
-              "name": "Priority 1: Poorly-known species",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Priority 1: Poorly-known species\"",
-              "values": [
-                760
-              ]
-            },
-            {
-              "name": "P4",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"P4\"",
-              "values": [
-                290
+                411
               ]
             },
             {
               "name": "Priority 3: Poorly-known species",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Priority 3: Poorly-known species\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Priority 3: Poorly-known species\"",
               "values": [
-                931
+                1041
               ]
             },
             {
-              "name": "v",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"v\"",
+              "name": "Priority 1: Poorly-known species",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Priority 1: Poorly-known species\"",
               "values": [
-                80
+                1146
               ]
             },
             {
               "name": "Priority 2: Poorly-known species",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Priority 2: Poorly-known species\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Priority 2: Poorly-known species\"",
               "values": [
-                787
-              ]
-            },
-            {
-              "name": "MI & P4",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"MI & P4\"",
-              "values": [
-                6
-              ]
-            },
-            {
-              "name": "Critically endangered",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Critically endangered\"",
-              "values": [
-                42
-              ]
-            },
-            {
-              "name": "CD & MI",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"CD & MI\"",
-              "values": [
-                1
-              ]
-            },
-            {
-              "name": "OS",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"OS\"",
-              "values": [
-                4
-              ]
-            },
-            {
-              "name": "Data Deficient",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Data Deficient\"",
-              "values": [
-                363
-              ]
-            },
-            {
-              "name": "Other Specially Protected",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Other Specially Protected\"",
-              "values": [
-                4
-              ]
-            },
-            {
-              "name": "P1",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"P1\"",
-              "values": [
-                400
-              ]
-            },
-            {
-              "name": "P3",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"P3\"",
-              "values": [
-                605
-              ]
-            },
-            {
-              "name": "Data deficient",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Data deficient\"",
-              "values": [
-                36
-              ]
-            },
-            {
-              "name": "P2",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"P2\"",
-              "values": [
-                422
-              ]
-            },
-            {
-              "name": "Poorly known",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Poorly known\"",
-              "values": [
-                119
-              ]
-            },
-            {
-              "name": "r",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"r\"",
-              "values": [
-                154
-              ]
-            },
-            {
-              "name": "Threatened",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Threatened\"",
-              "values": [
-                4
+                955
               ]
             },
             {
               "name": "Conservation Dependent",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Conservation Dependent\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Conservation Dependent\"",
               "values": [
-                8
+                10
+              ]
+            },
+            {
+              "name": "Other Specially Protected",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Other Specially Protected\"",
+              "values": [
+                4
               ]
             },
             {
               "name": "Extinct in the Wild",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Extinct in the Wild\"",
-              "values": [
-                14
-              ]
-            },
-            {
-              "name": "Extinct in the wild",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Extinct in the wild\"",
-              "values": [
-                15
-              ]
-            },
-            {
-              "name": "EX",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"EX\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Extinct in the Wild\"",
               "values": [
                 17
               ]
             },
             {
-              "name": "Regionally extinct",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Regionally extinct\"",
-              "values": [
-                17
-              ]
-            },
-            {
-              "name": "Presumed extinct",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"Presumed extinct\"",
-              "values": [
-                22
-              ]
-            },
-            {
-              "name": "VU-EXNT",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"VU-EXNT\"",
-              "values": [
-                4
-              ]
-            },
-            {
-              "name": "MI & P1",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"MI & P1\"",
-              "values": [
-                1
-              ]
-            },
-            {
-              "name": "All infraspecific taxa included in Advisory List",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"All infraspecific taxa included in Advisory List\"",
-              "values": [
-                30
-              ]
-            },
-            {
-              "name": "MI & P3",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"MI & P3\"",
-              "values": [
-                1
-              ]
-            },
-            {
-              "name": "EN-EWNT",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"EN-EWNT\"",
-              "values": [
-                1
-              ]
-            },
-            {
-              "name": "x",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"x\"",
-              "values": [
-                4
-              ]
-            },
-            {
-              "name": "CD",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"CD\"",
+              "name": "Threatened",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=stateConservation:\"Threatened\"",
               "values": [
                 3
-              ]
-            },
-            {
-              "name": "EN-EXNT",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=stateConservation:\"EN-EXNT\"",
-              "values": [
-                2
               ]
             }
           ]
@@ -858,7 +633,7 @@
       ]
     },
     "dataProviderUid": {
-      "date": 1741654930739,
+      "date": 1748328773313,
       "tables": [
         {
           "header": [
@@ -869,79 +644,79 @@
           "rows": [
             {
               "name": "BirdLife Australia",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp28\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp28\"",
               "values": [
-                21310459,
-                764
+                15128293,
+                735
               ]
             },
             {
               "name": "Department of Planning, Industry and Environment representing the State of New South Wales",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp34\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp34\"",
               "values": [
-                14607585,
-                12446
+                14246271,
+                11984
               ]
             },
             {
               "name": "Ocean Biodiversity Information System",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5183\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5183\"",
               "values": [
-                9474926,
-                9545
-              ]
-            },
-            {
-              "name": "Online Zoological Collections of Australian Museums",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp20\"",
-              "values": [
-                5794534,
-                81635
+                10266343,
+                9593
               ]
             },
             {
               "name": "Australia's Virtual Herbarium",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp36\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp36\"",
               "values": [
-                5379696,
-                43270
+                6284760,
+                45237
+              ]
+            },
+            {
+              "name": "OZCAM (Online Zoological Collections of Australian Museums) Provider",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp20\"",
+              "values": [
+                5722285,
+                81348
               ]
             },
             {
               "name": "South Australia, Department for Environment and Water",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp32\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp32\"",
               "values": [
-                3996879,
-                6923
+                4119080,
+                6995
               ]
             },
             {
               "name": "NSW Bird Atlasers",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2063\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2063\"",
               "values": [
                 3381819,
                 496
               ]
             },
             {
+              "name": "Global Biodiversity Information Facility",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp42\"",
+              "values": [
+                3001816,
+                68130
+              ]
+            },
+            {
               "name": "Northern Territory Department of Environment and Natural Resources",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp30\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp30\"",
               "values": [
                 2238933,
                 5479
               ]
             },
             {
-              "name": "Reef Life Survey",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5182\"",
-              "values": [
-                1230026,
-                1594
-              ]
-            },
-            {
               "name": "Australian Antarctic Data Centre",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp15\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp15\"",
               "values": [
                 1161501,
                 2087
@@ -949,31 +724,47 @@
             },
             {
               "name": "Questagame",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp52\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp52\"",
               "values": [
-                446036,
-                14113
+                470632,
+                14456
+              ]
+            },
+            {
+              "name": "Reef Life Survey",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5182\"",
+              "values": [
+                366171,
+                1537
+              ]
+            },
+            {
+              "name": "NatureMapr",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3301\"",
+              "values": [
+                328312,
+                10010
               ]
             },
             {
               "name": "NatureMap",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp46\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp46\"",
               "values": [
                 324652,
                 5898
               ]
             },
             {
-              "name": "NatureMapr",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3301\"",
+              "name": "BioCollect",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3903\"",
               "values": [
-                314638,
-                8373
+                246626,
+                3415
               ]
             },
             {
               "name": "Australian National Insect Collection, CSIRO",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp17\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp17\"",
               "values": [
                 218871,
                 5840
@@ -981,39 +772,23 @@
             },
             {
               "name": "Fungimap",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5003\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5003\"",
               "values": [
-                180616,
-                1535
-              ]
-            },
-            {
-              "name": "BioCollect",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3903\"",
-              "values": [
-                171437,
-                2286
-              ]
-            },
-            {
-              "name": "Citizen Science - ALA Website",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp31\"",
-              "values": [
-                130555,
-                15330
+                148560,
+                1538
               ]
             },
             {
               "name": "FeralScan",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5210\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5210\"",
               "values": [
-                122994,
+                135964,
                 18
               ]
             },
             {
               "name": "Australian Seedbank Partnership",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp47\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp47\"",
               "values": [
                 121971,
                 11454
@@ -1021,7 +796,7 @@
             },
             {
               "name": "European Molecular Biology Laboratory Australia",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp38\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp38\"",
               "values": [
                 118898,
                 784
@@ -1029,23 +804,15 @@
             },
             {
               "name": "FieldData / Biological Data Recording System",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3227\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3227\"",
               "values": [
                 97702,
                 673
               ]
             },
             {
-              "name": "Terrestrial Ecosystem Research Network",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5211\"",
-              "values": [
-                93667,
-                5721
-              ]
-            },
-            {
               "name": "ClimateWatch",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2048\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2048\"",
               "values": [
                 93603,
                 175
@@ -1053,7 +820,7 @@
             },
             {
               "name": "DigiVol",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp77\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp77\"",
               "values": [
                 92571,
                 312
@@ -1061,7 +828,7 @@
             },
             {
               "name": "Flickr",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp29\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp29\"",
               "values": [
                 61027,
                 6159
@@ -1069,7 +836,7 @@
             },
             {
               "name": "University of Adelaide",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp33\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp33\"",
               "values": [
                 56490,
                 1814
@@ -1077,15 +844,15 @@
             },
             {
               "name": "CSIRO National Fish Collection",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp22\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp22\"",
               "values": [
-                54984,
-                4636
+                55336,
+                4640
               ]
             },
             {
               "name": "Barcode of Life",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp35\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp35\"",
               "values": [
                 35694,
                 815
@@ -1093,31 +860,23 @@
             },
             {
               "name": "Wolli Creek Preservation Society",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp39\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp39\"",
               "values": [
                 33415,
                 178
               ]
             },
             {
-              "name": "Animal Movement data via ZoaTrack",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4720\"",
-              "values": [
-                31774,
-                8
-              ]
-            },
-            {
               "name": "ReefWatch - Great Victorian Fish Count",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3777\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3777\"",
               "values": [
-                14497,
-                117
+                16493,
+                119
               ]
             },
             {
               "name": "Coral Reef Research",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp40\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp40\"",
               "values": [
                 13867,
                 377
@@ -1125,31 +884,23 @@
             },
             {
               "name": "Gang-gang cockatoo survey",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp53\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp53\"",
               "values": [
                 13441,
                 1
               ]
             },
             {
-              "name": "ECOCEAN",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp21\"",
-              "values": [
-                12699,
-                1
-              ]
-            },
-            {
               "name": "Index of Biodiversity Surveys for Assessments",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5190\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5190\"",
               "values": [
                 5287,
                 88
               ]
             },
             {
-              "name": "Australian Ecological Knowledge and Observation System Data Portal",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp76\"",
+              "name": "TERN - Australian Ecological Knowledge and Observation System",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp76\"",
               "values": [
                 3200,
                 1
@@ -1157,15 +908,15 @@
             },
             {
               "name": "Superb Parrot Monitoring project",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3534\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3534\"",
               "values": [
-                2885,
+                2931,
                 1
               ]
             },
             {
               "name": "Healthy Waterways Waterwatch Program",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2053\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2053\"",
               "values": [
                 2431,
                 6
@@ -1173,7 +924,7 @@
             },
             {
               "name": "Chevron Australia",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp25\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp25\"",
               "values": [
                 2048,
                 51
@@ -1181,15 +932,23 @@
             },
             {
               "name": "Koala Action Group",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp429\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp429\"",
               "values": [
-                1833,
+                1924,
+                1
+              ]
+            },
+            {
+              "name": "Tweed Koala Sightings",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp1825\"",
+              "values": [
+                1582,
                 1
               ]
             },
             {
               "name": "Great Koala Count 2",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4731\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4731\"",
               "values": [
                 1508,
                 1
@@ -1197,23 +956,15 @@
             },
             {
               "name": "Kangawalla Pastoral Co Pty Ltd",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp26\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp26\"",
               "values": [
                 1429,
                 109
               ]
             },
             {
-              "name": "Tweed Koala Sightings",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp1825\"",
-              "values": [
-                1277,
-                1
-              ]
-            },
-            {
               "name": "Greendale Creek and Curl Curl Lagoon Bird Survey 2017 to 2019",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5004\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5004\"",
               "values": [
                 908,
                 56
@@ -1221,7 +972,7 @@
             },
             {
               "name": "Tracking Australia - arid wildlife track-based monitoring ",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3863\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3863\"",
               "values": [
                 509,
                 11
@@ -1229,7 +980,7 @@
             },
             {
               "name": "Littlewood",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp27\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp27\"",
               "values": [
                 467,
                 76
@@ -1237,7 +988,7 @@
             },
             {
               "name": "Shire of Kalamunda Biodiversity Inventory",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5142\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5142\"",
               "values": [
                 233,
                 94
@@ -1245,7 +996,7 @@
             },
             {
               "name": "Plants Of The Green Line - Woolsthorpe Section",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5002\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp5002\"",
               "values": [
                 102,
                 100
@@ -1253,7 +1004,7 @@
             },
             {
               "name": "Working Wonders on Weeds  -  Community of Denmark W.A.",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2077\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp2077\"",
               "values": [
                 38,
                 3
@@ -1261,7 +1012,7 @@
             },
             {
               "name": "Ecosystems of the sandstone region incl. sand-belt (SE of Melb.)",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3764\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3764\"",
               "values": [
                 31,
                 30
@@ -1269,7 +1020,7 @@
             },
             {
               "name": "Biodiversity monitoring in Brunswick Valley Heritage Park Mullumbimby",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4858\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4858\"",
               "values": [
                 20,
                 10
@@ -1277,15 +1028,23 @@
             },
             {
               "name": "Mystaya",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3681\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp3681\"",
               "values": [
                 10,
                 8
               ]
             },
             {
+              "name": "Animal Movement data via ZoaTrack",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4720\"",
+              "values": [
+                5,
+                1
+              ]
+            },
+            {
               "name": "Searching for the yellow-bellied sea snake",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4142\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=dataProviderUid:\"dp4142\"",
               "values": [
                 4,
                 3
@@ -1296,7 +1055,7 @@
       ]
     },
     "kingdoms": {
-      "date": 1741654801758,
+      "date": 1748328719276,
       "tables": [
         {
           "header": [
@@ -1308,98 +1067,119 @@
               "name": "Animalia",
               "url": "kingdom:\"Animalia\"",
               "values": [
-                122428864
+                115509244
               ]
             },
             {
               "name": "Plantae",
               "url": "kingdom:\"Plantae\"",
               "values": [
-                27523436
+                29175247
               ]
             },
             {
               "name": "Fungi",
               "url": "kingdom:\"Fungi\"",
               "values": [
-                2455403
+                2785113
               ]
             },
             {
               "name": "Chromista",
               "url": "kingdom:\"Chromista\"",
               "values": [
-                1073030
-              ]
-            },
-            {
-              "name": "Protista",
-              "url": "kingdom:\"Protista\"",
-              "values": [
-                370595
+                1104578
               ]
             },
             {
               "name": "Bacteria",
               "url": "kingdom:\"Bacteria\"",
               "values": [
-                363127
+                463652
+              ]
+            },
+            {
+              "name": "Protista",
+              "url": "kingdom:\"Protista\"",
+              "values": [
+                391497
               ]
             },
             {
               "name": "Archaea",
               "url": "kingdom:\"Archaea\"",
               "values": [
-                39830
-              ]
-            },
-            {
-              "name": "Virus",
-              "url": "kingdom:\"Virus\"",
-              "values": [
-                2252
-              ]
-            },
-            {
-              "name": "Eukaryota",
-              "url": "kingdom:\"Eukaryota\"",
-              "values": [
-                728
-              ]
-            },
-            {
-              "name": "Protozoa",
-              "url": "kingdom:\"Protozoa\"",
-              "values": [
-                270
-              ]
-            },
-            {
-              "name": "Bamfordvirae",
-              "url": "kingdom:\"Bamfordvirae\"",
-              "values": [
-                206
+                14989
               ]
             },
             {
               "name": "Orthornavirae",
               "url": "kingdom:\"Orthornavirae\"",
               "values": [
-                134
+                6678
               ]
             },
             {
-              "name": "Viroid",
-              "url": "kingdom:\"Viroid\"",
+              "name": "Virus",
+              "url": "kingdom:\"Virus\"",
               "values": [
-                104
+                4277
               ]
             },
             {
               "name": "Shotokuvirae",
               "url": "kingdom:\"Shotokuvirae\"",
               "values": [
-                41
+                1113
+              ]
+            },
+            {
+              "name": "Bamfordvirae",
+              "url": "kingdom:\"Bamfordvirae\"",
+              "values": [
+                520
+              ]
+            },
+            {
+              "name": "Heunggongvirae",
+              "url": "kingdom:\"Heunggongvirae\"",
+              "values": [
+                509
+              ]
+            },
+            {
+              "name": "Pararnavirae",
+              "url": "kingdom:\"Pararnavirae\"",
+              "values": [
+                308
+              ]
+            },
+            {
+              "name": "Viroid",
+              "url": "kingdom:\"Viroid\"",
+              "values": [
+                143
+              ]
+            },
+            {
+              "name": "Loebvirae",
+              "url": "kingdom:\"Loebvirae\"",
+              "values": [
+                3
+              ]
+            },
+            {
+              "name": "Trapavirae",
+              "url": "kingdom:\"Trapavirae\"",
+              "values": [
+                3
+              ]
+            },
+            {
+              "name": "Helvetiavirae",
+              "url": "kingdom:\"Helvetiavirae\"",
+              "values": [
+                1
               ]
             }
           ]
@@ -1407,8 +1187,8 @@
       ]
     },
     "basisOfRecord": {
-      "date": 1741654817240,
-      "count": 154986287,
+      "date": 1748328733280,
+      "count": 150401524,
       "tables": [
         {
           "header": [
@@ -1418,58 +1198,65 @@
           "rows": [
             {
               "name": "basisOfRecord.HUMAN_OBSERVATION",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"HUMAN_OBSERVATION\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"HUMAN_OBSERVATION\"",
               "values": [
-                127965454
+                121437935
               ]
             },
             {
               "name": "basisOfRecord.PRESERVED_SPECIMEN",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"PRESERVED_SPECIMEN\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"PRESERVED_SPECIMEN\"",
               "values": [
-                14385025
-              ]
-            },
-            {
-              "name": "basisOfRecord.OCCURRENCE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"OCCURRENCE\"",
-              "values": [
-                4907675
+                17074773
               ]
             },
             {
               "name": "basisOfRecord.MACHINE_OBSERVATION",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"MACHINE_OBSERVATION\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"MACHINE_OBSERVATION\"",
               "values": [
-                3649185
+                3838657
+              ]
+            },
+            {
+              "name": "basisOfRecord.OCCURRENCE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"OCCURRENCE\"",
+              "values": [
+                3348564
               ]
             },
             {
               "name": "basisOfRecord.MATERIAL_SAMPLE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"MATERIAL_SAMPLE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"MATERIAL_SAMPLE\"",
               "values": [
-                2101743
+                2721653
               ]
             },
             {
               "name": "basisOfRecord.OBSERVATION",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"OBSERVATION\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"OBSERVATION\"",
               "values": [
-                1844522
+                1774662
               ]
             },
             {
               "name": "basisOfRecord.LIVING_SPECIMEN",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"LIVING_SPECIMEN\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"LIVING_SPECIMEN\"",
               "values": [
-                127324
+                131157
+              ]
+            },
+            {
+              "name": "basisOfRecord.MATERIAL_CITATION",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"MATERIAL_CITATION\"",
+              "values": [
+                44199
               ]
             },
             {
               "name": "basisOfRecord.FOSSIL_SPECIMEN",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=basisOfRecord:\"FOSSIL_SPECIMEN\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=basisOfRecord:\"FOSSIL_SPECIMEN\"",
               "values": [
-                5359
+                29924
               ]
             }
           ]
@@ -1477,7 +1264,7 @@
       ]
     },
     "digivol": {
-      "date": 1741654825195,
+      "date": 1748328738122,
       "url": "https://volunteer.ala.org.au/",
       "imageUrl": "http://localhost:8082/static/images/logoDigivolInvertedRed.png",
       "tables": [
@@ -1486,31 +1273,31 @@
             {
               "name": "volunteers",
               "values": [
-                16099
+                16403
               ]
             },
             {
               "name": "expeditionTasksTotal",
               "values": [
-                7698744
+                7793922
               ]
             },
             {
               "name": "expeditionTasksCompleted",
               "values": [
-                7363421
+                7479645
               ]
             },
             {
               "name": "specimenLabelsTranscribed",
               "values": [
-                1415844
+                1436420
               ]
             },
             {
               "name": "fieldnotesTranscribed",
               "values": [
-                278211
+                288544
               ]
             },
             {
@@ -1522,7 +1309,7 @@
             {
               "name": "cameraTrapsTranscribed",
               "values": [
-                5667616
+                5752931
               ]
             }
           ]
@@ -1530,7 +1317,7 @@
       ]
     },
     "institutionUid": {
-      "date": 1741654940217,
+      "date": 1748328780177,
       "tables": [
         {
           "header": [
@@ -1541,151 +1328,167 @@
           "rows": [
             {
               "name": "Australian Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in4\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in4\"",
               "values": [
-                1672485,
-                41745
+                1560970,
+                40241
               ]
             },
             {
-              "name": "Museums Victoria",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in16\"",
+              "name": "Royal Botanic Gardens Victoria",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in21\"",
               "values": [
-                1182002,
-                33431
+                1092569,
+                33063
               ]
             },
             {
               "name": "Centre for Australian National Biodiversity Research",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in5\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in5\"",
               "values": [
-                1024876,
-                31278
+                1061568,
+                31576
+              ]
+            },
+            {
+              "name": "Museums Victoria",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in16\"",
+              "values": [
+                1038438,
+                33832
               ]
             },
             {
               "name": "Queensland Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in15\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in15\"",
               "values": [
-                902661,
-                33114
+                905237,
+                33200
               ]
             },
             {
-              "name": "Landcare Research NZ Ltd",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in92\"",
+              "name": "Western Australia, Department of Biodiversity, Conservation and Attractions",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in33\"",
               "values": [
-                800841,
-                23238
+                868015,
+                21934
               ]
             },
             {
               "name": "The Royal Botanic Gardens & Domain Trust",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in50\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in50\"",
               "values": [
-                796972,
-                25379
+                808544,
+                25715
               ]
             },
             {
-              "name": "Queensland Department of Environment and Science",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in42\"",
+              "name": "Department for Environment and Water",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in41\"",
               "values": [
-                785155,
-                24224
-              ]
-            },
-            {
-              "name": "Department of Environment, Water and Natural Resources",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in41\"",
-              "values": [
-                754788,
+                759294,
                 19521
               ]
             },
             {
-              "name": "Western Australian Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in34\"",
+              "name": "Queensland Department of Environment and Science",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in42\"",
               "values": [
-                675989,
-                16441
+                730562,
+                23231
+              ]
+            },
+            {
+              "name": "Western Australian Museum",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in34\"",
+              "values": [
+                660052,
+                16099
               ]
             },
             {
               "name": "South Australian Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in22\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in22\"",
               "values": [
-                666472,
-                18093
+                573941,
+                17948
               ]
             },
             {
               "name": "Tasmanian Museum and Art Gallery",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in25\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in25\"",
               "values": [
-                526288,
-                25299
+                529891,
+                25317
+              ]
+            },
+            {
+              "name": "Landcare Research NZ Ltd",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in92\"",
+              "values": [
+                470917,
+                23559
               ]
             },
             {
               "name": "Commonwealth Scientific and Industrial Research Organisation",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in6\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in6\"",
               "values": [
-                452147,
+                452154,
                 7589
               ]
             },
             {
               "name": "NSW Department of Primary Industries",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in12\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in12\"",
               "values": [
-                359335,
-                13618
+                359312,
+                13446
               ]
             },
             {
               "name": "Auckland War Memorial Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in113\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in113\"",
               "values": [
-                309831,
-                12916
+                318743,
+                14046
               ]
             },
             {
               "name": "Department of Environment and Natural Resources",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in87\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in87\"",
               "values": [
-                287160,
-                11646
+                289493,
+                11704
               ]
             },
             {
               "name": "Museum of New Zealand Te Papa Tongarewa",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in82\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in82\"",
               "values": [
-                251745,
-                8951
+                255349,
+                9017
               ]
             },
             {
               "name": "Museum and Art Gallery of the Northern Territory",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in17\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in17\"",
               "values": [
-                251163,
+                250375,
                 11281
               ]
             },
             {
               "name": "Australian Tropical Herbarium",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in67\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in67\"",
               "values": [
-                194906,
-                9231
+                196219,
+                9286
               ]
             },
             {
               "name": "FieldData / Biological Data Recording System",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in191\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in191\"",
               "values": [
                 134197,
                 727
@@ -1693,55 +1496,55 @@
             },
             {
               "name": "Queen Victoria Museum and Art Gallery",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in13\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in13\"",
               "values": [
-                125517,
-                4481
+                126365,
+                5542
               ]
             },
             {
               "name": "University of New England",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in65\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in65\"",
               "values": [
-                91845,
-                10641
+                100253,
+                11020
               ]
             },
             {
               "name": "Canterbury Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in686\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in686\"",
               "values": [
                 48992,
                 0
               ]
             },
             {
-              "name": "University of Canterbury",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in114\"",
+              "name": "Massey University",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in118\"",
               "values": [
-                35198,
-                1254
+                41064,
+                3664
               ]
             },
             {
               "name": "The University of Melbourne",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in26\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in26\"",
               "values": [
-                34078,
-                6171
+                37589,
+                6538
               ]
             },
             {
-              "name": "Massey University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in118\"",
+              "name": "Scion",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in119\"",
               "values": [
-                32748,
-                1788
+                34016,
+                4843
               ]
             },
             {
               "name": "WA Botanic Gardens and Parks Authority",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in58\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in58\"",
               "values": [
                 29740,
                 5844
@@ -1749,103 +1552,95 @@
             },
             {
               "name": "Australian National Botanic Gardens",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in81\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in81\"",
               "values": [
                 29245,
                 3389
               ]
             },
             {
-              "name": "James Cook University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in40\"",
+              "name": "University of New South Wales",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in63\"",
               "values": [
-                26565,
-                4696
+                26812,
+                6085
+              ]
+            },
+            {
+              "name": "James Cook University",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in40\"",
+              "values": [
+                26710,
+                4742
               ]
             },
             {
               "name": "Queensland Department of Agriculture and Fisheries",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in43\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in43\"",
               "values": [
-                25226,
-                249
-              ]
-            },
-            {
-              "name": "University of New South Wales",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in63\"",
-              "values": [
-                24509,
-                5689
-              ]
-            },
-            {
-              "name": "Lincoln University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in115\"",
-              "values": [
-                18590,
-                2173
+                24638,
+                165
               ]
             },
             {
               "name": "Australian Antarctic Division",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in75\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in75\"",
               "values": [
                 18473,
                 850
               ]
             },
             {
-              "name": "Unitec Institute of Technology",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in97\"",
+              "name": "University of Canterbury",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in114\"",
               "values": [
-                13504,
-                1482
+                17599,
+                1254
               ]
             },
             {
               "name": "University of Wollongong",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in47\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in47\"",
               "values": [
                 11802,
                 2300
               ]
             },
             {
-              "name": "Macquarie University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in68\"",
+              "name": "Lincoln University",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in115\"",
               "values": [
-                9472,
-                3348
+                9295,
+                2173
               ]
             },
             {
               "name": "La Trobe University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in70\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in70\"",
               "values": [
-                7809,
-                2325
+                8167,
+                2395
               ]
             },
             {
               "name": "Eurobodalla Regional Botanic Garden",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in544\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in544\"",
               "values": [
                 7600,
                 1708
               ]
             },
             {
-              "name": "Western Australia, Department of Biodiversity, Conservation and Attractions",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in33\"",
+              "name": "Unitec Institute of Technology",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in97\"",
               "values": [
-                4558,
-                1637
+                6752,
+                1482
               ]
             },
             {
               "name": "The Australian Wine Research Institute",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in72\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in72\"",
               "values": [
                 2261,
                 79
@@ -1853,7 +1648,7 @@
             },
             {
               "name": "Royal North Shore Hospital",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in89\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in89\"",
               "values": [
                 1691,
                 315
@@ -1861,7 +1656,7 @@
             },
             {
               "name": "OWAD Environment",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in444\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in444\"",
               "values": [
                 1374,
                 1
@@ -1869,138 +1664,18 @@
             },
             {
               "name": "Botanic Gardens of Adelaide",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in85\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in85\"",
               "values": [
                 1322,
                 973
               ]
             },
             {
-              "name": "Edith Cowan University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in71\"",
-              "values": [
-                1316,
-                682
-              ]
-            },
-            {
-              "name": "Royal Botanic Gardens Victoria",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in21\"",
-              "values": [
-                1100,
-                832
-              ]
-            },
-            {
-              "name": "University of California Museum of Palaeontology",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in110\"",
-              "values": [
-                476,
-                22
-              ]
-            },
-            {
-              "name": "American Museum of Natural History",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in105\"",
-              "values": [
-                187,
-                1
-              ]
-            },
-            {
-              "name": "Department of Natural Resources and Environment Tasmania",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in24\"",
-              "values": [
-                162,
-                1
-              ]
-            },
-            {
-              "name": "Department of State Development",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in116\"",
-              "values": [
-                119,
-                2
-              ]
-            },
-            {
-              "name": "Geological Survey of NSW",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in102\"",
-              "values": [
-                63,
-                0
-              ]
-            },
-            {
               "name": "The University of Queensland",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in27\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=institutionUid:\"in27\"",
               "values": [
                 47,
                 5
-              ]
-            },
-            {
-              "name": "Natural History Museum UK",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in101\"",
-              "values": [
-                40,
-                0
-              ]
-            },
-            {
-              "name": "Field Museum of Natural History",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in107\"",
-              "values": [
-                16,
-                7
-              ]
-            },
-            {
-              "name": "The University of Sydney",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in14\"",
-              "values": [
-                5,
-                1
-              ]
-            },
-            {
-              "name": "University of Tasmania",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in29\"",
-              "values": [
-                5,
-                0
-              ]
-            },
-            {
-              "name": "Hunterian Museum",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in108\"",
-              "values": [
-                4,
-                0
-              ]
-            },
-            {
-              "name": "Geological Survey of Queensland",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in111\"",
-              "values": [
-                2,
-                0
-              ]
-            },
-            {
-              "name": "Geological Survey of South Australia",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in103\"",
-              "values": [
-                1,
-                0
-              ]
-            },
-            {
-              "name": "The Australian National University",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=institutionUid:\"in56\"",
-              "values": [
-                1,
-                0
               ]
             }
           ]
@@ -2008,7 +1683,7 @@
       ]
     },
     "species": {
-      "date": 1741654972982,
+      "date": 1748328799622,
       "tables": [
         {
           "name": "AllLifeforms",
@@ -2019,44 +1694,44 @@
           "rows": [
             {
               "name": "Gymnorhina tibicen - Australian Magpie",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5",
               "values": [
-                2380579
+                2219972
               ]
             },
             {
               "name": "Grallina cyanoleuca - Magpie-lark",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ce17b284-d607-496a-992f-f3129bfd3997",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ce17b284-d607-496a-992f-f3129bfd3997",
               "values": [
-                1755530
+                1646340
               ]
             },
             {
               "name": "Rhipidura (Sauloprocta) leucophrys - Willie Wagtail",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/1c4dce12-16f6-49ab-b578-0673551214fd",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/1c4dce12-16f6-49ab-b578-0673551214fd",
               "values": [
-                1522375
+                1395129
               ]
             },
             {
               "name": "Hirundo (Hirundo) neoxena - Welcome Swallow",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/4e118c73-06a7-4131-bd67-5da5d2d61fd7",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/4e118c73-06a7-4131-bd67-5da5d2d61fd7",
               "values": [
-                1423566
+                1313336
               ]
             },
             {
               "name": "Malurus (Malurus) cyaneus - Superb Fairy-wren",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ae56080e-4e73-457d-93a1-0be6a1d50f34",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ae56080e-4e73-457d-93a1-0be6a1d50f34",
               "values": [
-                1297804
+                1204482
               ]
             },
             {
               "name": "Eolophus roseicapilla - Galah",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/9b4ad548-8bb3-486a-ab0a-905506c463ea",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/9b4ad548-8bb3-486a-ab0a-905506c463ea",
               "values": [
-                1252973
+                1178941
               ]
             }
           ]
@@ -2070,44 +1745,44 @@
           "rows": [
             {
               "name": "Lycium ferocissimum - African Boxthorn",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/taxon/apni/51447682",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/taxon/apni/51447682",
               "values": [
-                142611
-              ]
-            },
-            {
-              "name": "Halophila ovalis - Halophila",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/node/apni/2903998",
-              "values": [
-                123656
+                146916
               ]
             },
             {
               "name": "Halodule uninervis - Halodule",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/node/apni/5381276",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/node/apni/5381276",
               "values": [
-                122515
+                144314
+              ]
+            },
+            {
+              "name": "Halophila ovalis - Halophila",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/node/apni/2903998",
+              "values": [
+                142183
               ]
             },
             {
               "name": "Halophila spinulosa - Halophila",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/node/apni/2886052",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/node/apni/2886052",
               "values": [
-                120462
-              ]
-            },
-            {
-              "name": "Syringodium isoetifolium - Syringodium",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/node/apni/2886044",
-              "values": [
-                119014
+                138782
               ]
             },
             {
               "name": "Thalassia hemprichii - Thalassia",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/node/apni/2889084",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/node/apni/2889084",
               "values": [
-                119006
+                137549
+              ]
+            },
+            {
+              "name": "Syringodium isoetifolium - Syringodium",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/node/apni/2886044",
+              "values": [
+                137528
               ]
             }
           ]
@@ -2121,44 +1796,44 @@
           "rows": [
             {
               "name": "Gymnorhina tibicen - Australian Magpie",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5",
               "values": [
-                2380579
+                2219972
               ]
             },
             {
               "name": "Grallina cyanoleuca - Magpie-lark",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ce17b284-d607-496a-992f-f3129bfd3997",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ce17b284-d607-496a-992f-f3129bfd3997",
               "values": [
-                1755530
+                1646340
               ]
             },
             {
               "name": "Rhipidura (Sauloprocta) leucophrys - Willie Wagtail",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/1c4dce12-16f6-49ab-b578-0673551214fd",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/1c4dce12-16f6-49ab-b578-0673551214fd",
               "values": [
-                1522375
+                1395129
               ]
             },
             {
               "name": "Hirundo (Hirundo) neoxena - Welcome Swallow",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/4e118c73-06a7-4131-bd67-5da5d2d61fd7",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/4e118c73-06a7-4131-bd67-5da5d2d61fd7",
               "values": [
-                1423566
+                1313336
               ]
             },
             {
               "name": "Malurus (Malurus) cyaneus - Superb Fairy-wren",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ae56080e-4e73-457d-93a1-0be6a1d50f34",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ae56080e-4e73-457d-93a1-0be6a1d50f34",
               "values": [
-                1297804
+                1204482
               ]
             },
             {
               "name": "Eolophus roseicapilla - Galah",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/9b4ad548-8bb3-486a-ab0a-905506c463ea",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/9b4ad548-8bb3-486a-ab0a-905506c463ea",
               "values": [
-                1252973
+                1178941
               ]
             }
           ]
@@ -2172,44 +1847,44 @@
           "rows": [
             {
               "name": "Gymnorhina tibicen - Australian Magpie",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/5291343e-fdeb-4a65-8ba5-928f5b96acf5",
               "values": [
-                2380579
+                2219972
               ]
             },
             {
               "name": "Grallina cyanoleuca - Magpie-lark",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ce17b284-d607-496a-992f-f3129bfd3997",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ce17b284-d607-496a-992f-f3129bfd3997",
               "values": [
-                1755530
+                1646340
               ]
             },
             {
               "name": "Rhipidura (Sauloprocta) leucophrys - Willie Wagtail",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/1c4dce12-16f6-49ab-b578-0673551214fd",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/1c4dce12-16f6-49ab-b578-0673551214fd",
               "values": [
-                1522375
+                1395129
               ]
             },
             {
               "name": "Hirundo (Hirundo) neoxena - Welcome Swallow",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/4e118c73-06a7-4131-bd67-5da5d2d61fd7",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/4e118c73-06a7-4131-bd67-5da5d2d61fd7",
               "values": [
-                1423566
+                1313336
               ]
             },
             {
               "name": "Malurus (Malurus) cyaneus - Superb Fairy-wren",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ae56080e-4e73-457d-93a1-0be6a1d50f34",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ae56080e-4e73-457d-93a1-0be6a1d50f34",
               "values": [
-                1297804
+                1204482
               ]
             },
             {
               "name": "Eolophus roseicapilla - Galah",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/9b4ad548-8bb3-486a-ab0a-905506c463ea",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/9b4ad548-8bb3-486a-ab0a-905506c463ea",
               "values": [
-                1252973
+                1178941
               ]
             }
           ]
@@ -2222,45 +1897,45 @@
           ],
           "rows": [
             {
-              "name": "Crocodylus porosus - Saltwater Crocodile",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/989a7126-df02-4f1f-a21f-feca59662947",
+              "name": "Chelonia mydas - Green Turtle",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/2d605472-979b-49b4-aed3-03a384e9f706",
               "values": [
-                122324
+                134484
               ]
             },
             {
-              "name": "Chelonia mydas - Green Turtle",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/2d605472-979b-49b4-aed3-03a384e9f706",
+              "name": "Crocodylus porosus - Saltwater Crocodile",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/989a7126-df02-4f1f-a21f-feca59662947",
               "values": [
-                115387
+                95729
               ]
             },
             {
               "name": "Tiliqua scincoides - Eastern Blue-tongue",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/f02242e8-534c-4cba-aac7-aeb32130d59a",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/f02242e8-534c-4cba-aac7-aeb32130d59a",
               "values": [
-                46746
-              ]
-            },
-            {
-              "name": "Heteronotia binoei - Bynoe's Gecko",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/5221b51b-4366-449c-8520-5ddc42009150",
-              "values": [
-                32614
+                51253
               ]
             },
             {
               "name": "Chelodina (Chelodina) longicollis - Snake-necked Turtle",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/68eba403-5689-4a10-8c58-e3e6e4151cb4",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/68eba403-5689-4a10-8c58-e3e6e4151cb4",
               "values": [
-                31096
+                34210
+              ]
+            },
+            {
+              "name": "Heteronotia binoei - Bynoe's Gecko",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/5221b51b-4366-449c-8520-5ddc42009150",
+              "values": [
+                34058
               ]
             },
             {
               "name": "Pseudechis porphyriacus - Red-bellied Black Snake",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/52d564ba-1ed4-4173-bc98-4fabefbbcf72",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/52d564ba-1ed4-4173-bc98-4fabefbbcf72",
               "values": [
-                30780
+                33339
               ]
             }
           ]
@@ -2274,44 +1949,44 @@
           "rows": [
             {
               "name": "LEPIDOPTERA - Butterflies",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/7cb6c81c-a7c4-4dd5-8578-fcfd2de847d6",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/7cb6c81c-a7c4-4dd5-8578-fcfd2de847d6",
               "values": [
-                115638
+                124128
+              ]
+            },
+            {
+              "name": "CHIRONOMIDAE",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/a7c9f8d5-2809-4631-a220-8574f8db1751",
+              "values": [
+                73939
               ]
             },
             {
               "name": "CALANOIDA",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/5caf2832-58a8-4e1a-a4d0-f6905bd7a34b",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/5caf2832-58a8-4e1a-a4d0-f6905bd7a34b",
               "values": [
-                75919
+                73249
               ]
             },
             {
               "name": "Clausocalanus",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/f637d3dc-c37e-4d3a-a101-ea4cfa00d1ca",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/f637d3dc-c37e-4d3a-a101-ea4cfa00d1ca",
               "values": [
-                65592
-              ]
-            },
-            {
-              "name": "DIPTERA - Flies",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/6bb27cbe-1bc6-4a7b-b348-e3b5677f239f",
-              "values": [
-                57498
-              ]
-            },
-            {
-              "name": "ARANEAE - Spiders",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/42633b65-6892-4bd6-8b10-89f0bfc825d3",
-              "values": [
-                53860
+                65595
               ]
             },
             {
               "name": "Oithona similis",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ba8561a2-412f-4778-9efe-80b86f50200a",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ba8561a2-412f-4778-9efe-80b86f50200a",
               "values": [
                 53278
+              ]
+            },
+            {
+              "name": "LEPTOPHLEBIIDAE",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/53d569bb-15f0-4ed6-9235-8e6fecf0ad37",
+              "values": [
+                49654
               ]
             }
           ]
@@ -2325,44 +2000,44 @@
           "rows": [
             {
               "name": "Wallabia bicolor - Swamp Wallaby",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/c28d755d-229c-47d7-a6ea-7920f636f531",
               "values": [
-                471891
+                492589
               ]
             },
             {
               "name": "Phascolarctos cinereus - Koala",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/e9d6fbbd-1505-4073-990a-dc66c930dad6",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/e9d6fbbd-1505-4073-990a-dc66c930dad6",
               "values": [
-                250358
+                266320
               ]
             },
             {
               "name": "Trichosurus vulpecula - Common Brushtail Possum",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/ee2cb6a9-e17c-4ca7-8aef-76d69eb969ed",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/ee2cb6a9-e17c-4ca7-8aef-76d69eb969ed",
               "values": [
-                219331
+                247123
               ]
             },
             {
               "name": "Macropus giganteus - Eastern Grey Kangaroo",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/f2f43ef9-89fd-4f89-8b06-0842e86cfe06",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/f2f43ef9-89fd-4f89-8b06-0842e86cfe06",
               "values": [
-                184230
+                205772
               ]
             },
             {
               "name": "Vulpes vulpes - Fox",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/2869ce8a-8212-46c2-8327-dfb7fabb8296",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/2869ce8a-8212-46c2-8327-dfb7fabb8296",
               "values": [
-                136672
+                148199
               ]
             },
             {
-              "name": "Oryctolagus cuniculus - Rabbit",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/692effa3-b719-495f-a86f-ce89e2981652",
+              "name": "Pseudocheirus peregrinus - Common Ringtail Possum",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/003decd6-ec3d-468e-909d-da396a6dd1f6",
               "values": [
-                120503
+                131921
               ]
             }
           ]
@@ -2375,45 +2050,45 @@
           ],
           "rows": [
             {
-              "name": "Chrysophrys auratus - Snapper",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/c88d6c8a-4ba1-48e7-b789-aa7c64008021",
-              "values": [
-                704192
-              ]
-            },
-            {
               "name": "Carcharhinus melanopterus - Blacktip Reef Shark",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/d7850ed9-bf25-4a4e-98a2-5903684b71e1",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/d7850ed9-bf25-4a4e-98a2-5903684b71e1",
               "values": [
-                223002
+                223026
               ]
             },
             {
               "name": "Carcharhinus amblyrhynchos - Grey Reef Shark",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/48b61b50-7536-4074-967f-0d1b81843dea",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/48b61b50-7536-4074-967f-0d1b81843dea",
               "values": [
-                215564
+                214984
               ]
             },
             {
-              "name": "Notolabrus tetricus - Bluethroat Wrasse",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/c4ad0b25-e5d4-42b9-a9c0-81b6f5170e50",
+              "name": "NEMIPTERIDAE - Threadfin Bream",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/46b98376-c14d-4728-a8d2-21d55234aad1",
               "values": [
-                113597
+                143603
               ]
             },
             {
               "name": "Carcharhinus leucas - Bull Shark",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/33780c17-6ce3-4315-8ccf-850a40ed0be6",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/33780c17-6ce3-4315-8ccf-850a40ed0be6",
               "values": [
-                93016
+                93029
               ]
             },
             {
-              "name": "Achoerodus viridis - Eastern Blue Groper",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/19bc7ef0-4d52-4e63-841c-24a92ff47a7e",
+              "name": "Parupeneus",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/11ceb9ec-c8f0-488f-86d2-00a286f4f555",
               "values": [
-                61456
+                72255
+              ]
+            },
+            {
+              "name": "LETHRINIDAE - Emperors",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/d945e260-4f28-4a21-99d9-fcc9e4a78222",
+              "values": [
+                69351
               ]
             }
           ]
@@ -2427,44 +2102,44 @@
           "rows": [
             {
               "name": "LEPIDOPTERA - Butterflies",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/7cb6c81c-a7c4-4dd5-8578-fcfd2de847d6",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/7cb6c81c-a7c4-4dd5-8578-fcfd2de847d6",
               "values": [
-                115638
-              ]
-            },
-            {
-              "name": "DIPTERA - Flies",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/6bb27cbe-1bc6-4a7b-b348-e3b5677f239f",
-              "values": [
-                57498
+                124128
               ]
             },
             {
               "name": "CHIRONOMIDAE",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/a7c9f8d5-2809-4631-a220-8574f8db1751",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/a7c9f8d5-2809-4631-a220-8574f8db1751",
               "values": [
-                50386
+                73939
               ]
             },
             {
               "name": "LEPTOPHLEBIIDAE",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/53d569bb-15f0-4ed6-9235-8e6fecf0ad37",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/53d569bb-15f0-4ed6-9235-8e6fecf0ad37",
               "values": [
-                49481
-              ]
-            },
-            {
-              "name": "TRICHOPTERA - Caddisflies",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/58f708eb-0ad7-4366-bb89-e24690cbf61a",
-              "values": [
-                42748
+                49654
               ]
             },
             {
               "name": "Proteuxoa",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/d2bd3f98-0bf0-4aee-b899-e5fd60a90801",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/d2bd3f98-0bf0-4aee-b899-e5fd60a90801",
               "values": [
-                35173
+                41241
+              ]
+            },
+            {
+              "name": "TRICHOPTERA - Caddisflies",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/58f708eb-0ad7-4366-bb89-e24690cbf61a",
+              "values": [
+                38955
+              ]
+            },
+            {
+              "name": "HYMENOPTERA - Wasps",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/7d8f6786-6ee2-4df1-9d34-1293bb2647aa",
+              "values": [
+                33985
               ]
             }
           ]
@@ -2478,44 +2153,44 @@
           "rows": [
             {
               "name": "Crinia signifera - Common Froglet",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/dd1217b7-1867-427d-9e0d-4a70e95e8b8b",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/dd1217b7-1867-427d-9e0d-4a70e95e8b8b",
               "values": [
-                241683
+                237289
               ]
             },
             {
               "name": "Limnodynastes peronii - Striped Marsh Frog",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/e2ffacfb-5c9c-41fb-94a0-49b1d51f4132",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/e2ffacfb-5c9c-41fb-94a0-49b1d51f4132",
               "values": [
-                122105
+                122764
               ]
             },
             {
               "name": "Limnodynastes tasmaniensis - Spotted Marsh Frog",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/44ef0224-1fea-4735-aff5-5045004740c2",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/44ef0224-1fea-4735-aff5-5045004740c2",
               "values": [
-                101098
+                97667
               ]
             },
             {
               "name": "Litoria peronii - Peron's Tree Frog",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/f85f8549-58b1-4a9a-87da-19e9e499b8a2",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/f85f8549-58b1-4a9a-87da-19e9e499b8a2",
               "values": [
-                86921
+                86419
               ]
             },
             {
               "name": "Litoria fallax - Eastern Dwarf Tree Frog",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/9c147082-aa62-4654-9c20-20a4a4495832",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/9c147082-aa62-4654-9c20-20a4a4495832",
               "values": [
-                83589
+                84891
               ]
             },
             {
-              "name": "Limnodynastes dumerilii - Eastern Banjo Frog",
-              "url": "https://bie-test.ala.org.au/species/https://biodiversity.org.au/afd/taxa/127e0064-a097-44ce-82a4-8bc30f5770b8",
+              "name": "Litoria ewingii - Brown Tree Frog",
+              "url": "http://localhost:5173/#species/https://biodiversity.org.au/afd/taxa/1c89eedb-42b6-4675-b688-2e0b59ea689e",
               "values": [
-                57828
+                56567
               ]
             }
           ]
@@ -2528,45 +2203,45 @@
           ],
           "rows": [
             {
-              "name": "Alphaproteobacteria",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-30607",
-              "values": [
-                105039
-              ]
-            },
-            {
-              "name": "Cyanobacteria - blue-green algae",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-113866",
-              "values": [
-                43614
-              ]
-            },
-            {
               "name": "Bacteria - bacteria",
-              "url": "https://bie-test.ala.org.au/species/https://www.catalogueoflife.org/data/taxon/B",
+              "url": "http://localhost:5173/#species/https://www.catalogueoflife.org/data/taxon/B",
               "values": [
-                25059
+                24466
               ]
             },
             {
-              "name": "Pseudomonadales",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-135894",
+              "name": "Alphaproteobacteria",
+              "url": "http://localhost:5173/#species/NZOR-6-30607",
               "values": [
-                21549
+                21863
+              ]
+            },
+            {
+              "name": "Gammaproteobacteria",
+              "url": "http://localhost:5173/#species/NZOR-6-65098",
+              "values": [
+                16218
               ]
             },
             {
               "name": "Flavobacteriaceae",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-14484",
+              "url": "http://localhost:5173/#species/NZOR-6-14484",
               "values": [
-                18789
+                11787
               ]
             },
             {
-              "name": "Rickettsiales",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-46413",
+              "name": "Cyanophyceae",
+              "url": "http://localhost:5173/#species/NZOR-6-83849",
               "values": [
-                13326
+                11504
+              ]
+            },
+            {
+              "name": "Cyanobacteria - blue-green algae",
+              "url": "http://localhost:5173/#species/NZOR-6-113866",
+              "values": [
+                9406
               ]
             }
           ]
@@ -2580,44 +2255,44 @@
           "rows": [
             {
               "name": "Agaricales",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-126869",
+              "url": "http://localhost:5173/#species/NZOR-6-126869",
               "values": [
-                46922
+                51955
               ]
             },
             {
               "name": "Fungi",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/taxon/fungi/60119249",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/taxon/fungi/60119249",
               "values": [
-                33490
+                37964
               ]
             },
             {
-              "name": "Agaricomycetes",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-74021",
+              "name": "Russula",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/taxon/fungi/60115608",
               "values": [
-                17970
+                26997
               ]
             },
             {
               "name": "Cortinarius",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/taxon/fungi/60118760",
+              "url": "http://localhost:5173/#species/https://id.biodiversity.org.au/taxon/fungi/60118760",
               "values": [
-                17557
+                22604
               ]
             },
             {
-              "name": "Mycena",
-              "url": "https://bie-test.ala.org.au/species/https://id.biodiversity.org.au/node/fungi/60094439",
+              "name": "Agaricomycetes",
+              "url": "http://localhost:5173/#species/NZOR-6-74021",
               "values": [
-                16254
+                21723
               ]
             },
             {
               "name": "Helotiales",
-              "url": "https://bie-test.ala.org.au/species/NZOR-6-78047",
+              "url": "http://localhost:5173/#species/NZOR-6-78047",
               "values": [
-                15604
+                20356
               ]
             }
           ]
@@ -2625,8 +2300,8 @@
       ]
     },
     "collections": {
-      "date": 1741654993820,
-      "count": 194,
+      "date": 1748328814764,
+      "count": 190,
       "tables": [
         {
           "header": [
@@ -2636,35 +2311,35 @@
           "rows": [
             {
               "name": "fauna",
-              "url": "https://collections-test.ala.org.au?start=fauna",
+              "url": "https://collections.ala.org.au?start=fauna",
               "values": [
-                189
+                187
               ]
             },
             {
               "name": "insects",
-              "url": "https://collections-test.ala.org.au?start=insects",
+              "url": "https://collections.ala.org.au?start=insects",
               "values": [
-                175
+                173
               ]
             },
             {
               "name": "microbes",
-              "url": "https://collections-test.ala.org.au?start=microbes",
+              "url": "https://collections.ala.org.au?start=microbes",
               "values": [
-                173
+                171
               ]
             },
             {
               "name": "plants",
-              "url": "https://collections-test.ala.org.au?start=plants",
+              "url": "https://collections.ala.org.au?start=plants",
               "values": [
-                173
+                171
               ]
             },
             {
               "name": "fungi",
-              "url": "https://collections-test.ala.org.au?start=fungi",
+              "url": "https://collections.ala.org.au?start=fungi",
               "values": [
                 20
               ]
@@ -2674,7 +2349,7 @@
       ]
     },
     "reasonDownloads": {
-      "date": 1741654894411,
+      "date": 1748328757057,
       "tables": [
         {
           "header": [
@@ -2686,92 +2361,92 @@
             {
               "name": "totals",
               "values": [
-                2389984,
-                53742134802
+                2423880,
+                56260234145
               ]
             },
             {
               "name": "biosecurity management/planning",
               "values": [
-                11723,
-                921114880
+                11785,
+                932559391
               ]
             },
             {
               "name": "citizen science",
               "values": [
-                22006,
-                1940562435
+                22370,
+                2051587675
               ]
             },
             {
               "name": "collection management",
               "values": [
-                35183,
-                768018920
+                35263,
+                801791361
               ]
             },
             {
               "name": "conservation management/planning",
               "values": [
-                13156,
-                2432031001
+                13587,
+                2706450791
               ]
             },
             {
               "name": "ecological research",
               "values": [
-                444329,
-                7184252313
+                445065,
+                7398203341
               ]
             },
             {
               "name": "education",
               "values": [
-                54104,
-                5312245691
+                56409,
+                5591684400
               ]
             },
             {
               "name": "environmental assessment",
               "values": [
-                33400,
-                3427534687
+                34159,
+                3761550525
               ]
             },
             {
               "name": "restoration/remediation",
               "values": [
-                2268,
-                157077816
+                2320,
+                160393075
               ]
             },
             {
               "name": "scientific research",
               "values": [
-                571018,
-                21248111149
+                599283,
+                22332323114
               ]
             },
             {
               "name": "systematic research/taxonomy",
               "values": [
-                8978,
-                296471734
+                9122,
+                300097031
               ]
             },
             {
               "name": "species modelling",
               "values": [
-                8424,
-                1644100511
+                8848,
+                1670153328
               ]
             },
             {
               "name": "other",
               "values": [
-                13149,
-                1514774503
+                13336,
+                1572488620
               ]
             },
             {
@@ -2784,8 +2459,8 @@
             {
               "name": "unclassified",
               "values": [
-                59362,
-                3655057766
+                59449,
+                3740170097
               ]
             }
           ]
@@ -2793,7 +2468,7 @@
       ]
     },
     "nationalSpeciesLists": {
-      "date": 1741654864541,
+      "date": 1748328745807,
       "tables": [
         {
           "header": [
@@ -2822,7 +2497,7 @@
             {
               "name": "speciesWithRecords",
               "values": [
-                147342
+                147594
               ]
             }
           ]
@@ -2830,7 +2505,7 @@
       ]
     },
     "recordsByDate": {
-      "date": 1741654855164,
+      "date": 1748328738719,
       "tables": [
         {
           "header": [
@@ -2841,48 +2516,48 @@
             {
               "name": "latestRecord",
               "values": [
-                "2025-02-28 10:00"
+                "2025-05-26 10:00"
               ]
             },
             {
               "name": "lastImageAdded",
               "values": [
-                "2025-01-27 10:00"
+                "2025-05-26 01:56"
               ]
             },
             {
               "name": "1600s",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year:[1600-01-01T00:00:00Z+TO+1699-12-31T23:59:59Z]",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year%3A%5B1600-01-01T00%3A00%3A00Z+TO+1699-12-31T23%3A59%3A59Z%5D",
               "values": [
-                35
+                36
               ]
             },
             {
               "name": "1700s",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year:[1700-01-01T00:00:00Z+TO+1799-12-31T23:59:59Z]",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year%3A%5B1700-01-01T00%3A00%3A00Z+TO+1799-12-31T23%3A59%3A59Z%5D",
               "values": [
-                13825
+                14107
               ]
             },
             {
               "name": "1800s",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year:[1800-01-01T00:00:00Z+TO+1899-12-31T23:59:59Z]",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year%3A%5B1800-01-01T00%3A00%3A00Z+TO+1899-12-31T23%3A59%3A59Z%5D",
               "values": [
-                491213
+                535949
               ]
             },
             {
               "name": "1900s",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year:[1900-01-01T00:00:00Z+TO+1999-12-31T23:59:59Z]",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year%3A%5B1900-01-01T00%3A00%3A00Z+TO+1999-12-31T23%3A59%3A59Z%5D",
               "values": [
-                32752066
+                31869880
               ]
             },
             {
               "name": "2000s",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year:[2000-01-01T00:00:00Z+TO+2099-12-31T23:59:59Z]",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=*:*&fq=occurrence_year%3A%5B2000-01-01T00%3A00%3A00Z+TO+2099-12-31T23%3A59%3A59Z%5D",
               "values": [
-                115202591
+                111059283
               ]
             }
           ]
@@ -2890,7 +2565,7 @@
       ]
     },
     "specimenTypes": {
-      "date": 1741654900661,
+      "date": 1748328757199,
       "tables": [
         {
           "name": "AllSpecimenOccurrences",
@@ -2901,156 +2576,226 @@
           "rows": [
             {
               "name": "ALLOLECTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ALLOLECTOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ALLOLECTOTYPE\"",
               "values": [
                 1
               ]
             },
             {
               "name": "ALLOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ALLOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ALLOTYPE\"",
               "values": [
-                2626
+                2225
               ]
             },
             {
               "name": "COTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"COTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"COTYPE\"",
               "values": [
-                1130
+                1661
               ]
             },
             {
               "name": "EPITYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"EPITYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"EPITYPE\"",
               "values": [
-                39
+                55
               ]
             },
             {
-              "name": "HAPANTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"HAPANTOTYPE\"",
-              "values": [
-                139
-              ]
-            },
-            {
-              "name": "HOLOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"HOLOTYPE\"",
-              "values": [
-                59136
-              ]
-            },
-            {
-              "name": "HYPOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"HYPOTYPE\"",
-              "values": [
-                21
-              ]
-            },
-            {
-              "name": "ISOLECTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ISOLECTOTYPE\"",
-              "values": [
-                5017
-              ]
-            },
-            {
-              "name": "ISONEOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ISONEOTYPE\"",
-              "values": [
-                233
-              ]
-            },
-            {
-              "name": "ISOPARATYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ISOPARATYPE\"",
-              "values": [
-                88
-              ]
-            },
-            {
-              "name": "ISOSYNTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ISOSYNTYPE\"",
-              "values": [
-                1511
-              ]
-            },
-            {
-              "name": "ISOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ISOTYPE\"",
-              "values": [
-                35614
-              ]
-            },
-            {
-              "name": "LECTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"LECTOTYPE\"",
-              "values": [
-                5025
-              ]
-            },
-            {
-              "name": "NEOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"NEOTYPE\"",
-              "values": [
-                476
-              ]
-            },
-            {
-              "name": "NOTATYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"NOTATYPE\"",
+              "name": "EXEPITYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"EXEPITYPE\"",
               "values": [
                 1
               ]
             },
             {
-              "name": "PARALECTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PARALECTOTYPE\"",
+              "name": "EXHOLOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"EXHOLOTYPE\"",
               "values": [
-                4518
+                3
+              ]
+            },
+            {
+              "name": "EXPARATYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"EXPARATYPE\"",
+              "values": [
+                1
+              ]
+            },
+            {
+              "name": "EXTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"EXTYPE\"",
+              "values": [
+                4
+              ]
+            },
+            {
+              "name": "HAPANTOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"HAPANTOTYPE\"",
+              "values": [
+                144
+              ]
+            },
+            {
+              "name": "HOLOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"HOLOTYPE\"",
+              "values": [
+                56591
+              ]
+            },
+            {
+              "name": "HYPOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"HYPOTYPE\"",
+              "values": [
+                29
+              ]
+            },
+            {
+              "name": "ICONOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ICONOTYPE\"",
+              "values": [
+                1
+              ]
+            },
+            {
+              "name": "ISOLECTOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOLECTOTYPE\"",
+              "values": [
+                7409
+              ]
+            },
+            {
+              "name": "ISONEOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISONEOTYPE\"",
+              "values": [
+                298
+              ]
+            },
+            {
+              "name": "ISOPARATYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOPARATYPE\"",
+              "values": [
+                94
+              ]
+            },
+            {
+              "name": "ISOSYNTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOSYNTYPE\"",
+              "values": [
+                2719
+              ]
+            },
+            {
+              "name": "ISOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOTYPE\"",
+              "values": [
+                51853
+              ]
+            },
+            {
+              "name": "LECTOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"LECTOTYPE\"",
+              "values": [
+                6773
+              ]
+            },
+            {
+              "name": "NEOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"NEOTYPE\"",
+              "values": [
+                480
+              ]
+            },
+            {
+              "name": "NOTATYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"NOTATYPE\"",
+              "values": [
+                506
+              ]
+            },
+            {
+              "name": "ORIGINALMATERIAL",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ORIGINALMATERIAL\"",
+              "values": [
+                284
+              ]
+            },
+            {
+              "name": "PARALECTOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PARALECTOTYPE\"",
+              "values": [
+                4213
               ]
             },
             {
               "name": "PARANEOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PARANEOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PARANEOTYPE\"",
               "values": [
                 25
               ]
             },
             {
               "name": "PARATYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PARATYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PARATYPE\"",
               "values": [
-                172065
+                146819
+              ]
+            },
+            {
+              "name": "PLASTOHOLOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PLASTOHOLOTYPE\"",
+              "values": [
+                7
+              ]
+            },
+            {
+              "name": "PLASTOPARATYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PLASTOPARATYPE\"",
+              "values": [
+                5
+              ]
+            },
+            {
+              "name": "PLASTOSYNTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PLASTOSYNTYPE\"",
+              "values": [
+                4
+              ]
+            },
+            {
+              "name": "PLASTOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PLASTOTYPE\"",
+              "values": [
+                4
               ]
             },
             {
               "name": "PLESIOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PLESIOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PLESIOTYPE\"",
               "values": [
                 102
               ]
             },
             {
               "name": "SYNTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"SYNTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"SYNTYPE\"",
               "values": [
-                22994
+                28831
               ]
             },
             {
               "name": "TOPOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"TOPOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"TOPOTYPE\"",
               "values": [
-                186
+                360
               ]
             },
             {
               "name": "TYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"TYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"TYPE\"",
               "values": [
-                11704
+                33247
               ]
             }
           ]
@@ -3064,79 +2809,128 @@
           "rows": [
             {
               "name": "ALLOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"ALLOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ALLOTYPE\"",
               "values": [
-                1
+                97
               ]
             },
             {
               "name": "COTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"COTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"COTYPE\"",
               "values": [
-                3
+                11
+              ]
+            },
+            {
+              "name": "EPITYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"EPITYPE\"",
+              "values": [
+                15
               ]
             },
             {
               "name": "HAPANTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"HAPANTOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"HAPANTOTYPE\"",
               "values": [
                 21
               ]
             },
             {
               "name": "HOLOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"HOLOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"HOLOTYPE\"",
               "values": [
-                959
+                9951
+              ]
+            },
+            {
+              "name": "ISOLECTOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOLECTOTYPE\"",
+              "values": [
+                3518
+              ]
+            },
+            {
+              "name": "ISONEOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISONEOTYPE\"",
+              "values": [
+                93
+              ]
+            },
+            {
+              "name": "ISOPARATYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOPARATYPE\"",
+              "values": [
+                8
+              ]
+            },
+            {
+              "name": "ISOSYNTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOSYNTYPE\"",
+              "values": [
+                1006
+              ]
+            },
+            {
+              "name": "ISOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"ISOTYPE\"",
+              "values": [
+                15209
               ]
             },
             {
               "name": "LECTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"LECTOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"LECTOTYPE\"",
               "values": [
-                35
+                2369
               ]
             },
             {
               "name": "NEOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"NEOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"NEOTYPE\"",
               "values": [
-                23
+                109
               ]
             },
             {
               "name": "PARALECTOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PARALECTOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PARALECTOTYPE\"",
               "values": [
-                2
+                1590
               ]
             },
             {
               "name": "PARANEOTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PARANEOTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PARANEOTYPE\"",
               "values": [
                 2
               ]
             },
             {
               "name": "PARATYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"PARATYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"PARATYPE\"",
               "values": [
-                93
+                797
               ]
             },
             {
               "name": "SYNTYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"SYNTYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"SYNTYPE\"",
               "values": [
-                263
+                9853
+              ]
+            },
+            {
+              "name": "TOPOTYPE",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"TOPOTYPE\"",
+              "values": [
+                28
               ]
             },
             {
               "name": "TYPE",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=typeStatus:\"TYPE\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=typeStatus:\"TYPE\"",
               "values": [
-                23
+                4072
               ]
             }
           ]
@@ -3144,7 +2938,7 @@
       ]
     },
     "speciesGroup": {
-      "date": 1741654944254,
+      "date": 1748328784059,
       "tables": [
         {
           "header": [
@@ -3155,201 +2949,177 @@
           "rows": [
             {
               "name": "Algae",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Algae\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Algae\"",
               "values": [
-                1508002,
-                1725
+                1547013,
+                1852
               ]
             },
             {
               "name": "Amphibians",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Amphibians\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Amphibians\"",
               "values": [
-                1631499,
+                1643348,
                 252
               ]
             },
             {
-              "name": "Angiosperms",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Angiosperms\"",
-              "values": [
-                120,
-                54
-              ]
-            },
-            {
               "name": "Animals",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Animals\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Animals\"",
               "values": [
-                122428864,
-                91627
+                115509244,
+                95770
               ]
             },
             {
               "name": "Arthropods",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Arthropods\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Arthropods\"",
               "values": [
-                9128941,
-                62869
+                10291496,
+                66735
               ]
             },
             {
               "name": "Bacteria",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Bacteria\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Bacteria\"",
               "values": [
-                363127,
-                764
+                463652,
+                1594
               ]
             },
             {
               "name": "Birds",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Birds\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Birds\"",
               "values": [
-                93837656,
+                87170588,
                 840
               ]
             },
             {
               "name": "Bryophytes",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Bryophytes\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Bryophytes\"",
               "values": [
-                684372,
-                2492
+                649953,
+                2517
               ]
             },
             {
               "name": "Chromista",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Chromista\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Chromista\"",
               "values": [
-                1073030,
-                1170
+                1104578,
+                1378
               ]
             },
             {
               "name": "Conifers, Cycads",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Conifers, Cycads\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Conifers, Cycads\"",
               "values": [
-                171128,
-                422
+                171038,
+                436
               ]
             },
             {
               "name": "Crustaceans",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Crustaceans\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Crustaceans\"",
               "values": [
-                1495834,
-                7898
+                1480290,
+                8051
               ]
             },
             {
               "name": "Dicots",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Dicots\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Dicots\"",
               "values": [
-                17496476,
-                24283
+                18648578,
+                24717
               ]
             },
             {
               "name": "Ferns and allies",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Ferns and allies\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Ferns and allies\"",
               "values": [
-                872752,
-                758
-              ]
-            },
-            {
-              "name": "FernsAndAllies",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"FernsAndAllies\"",
-              "values": [
-                1,
-                1
+                827042,
+                767
               ]
             },
             {
               "name": "Fishes",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Fishes\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Fishes\"",
               "values": [
-                8164348,
-                5271
+                5930272,
+                5273
               ]
             },
             {
               "name": "Flowering plants",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Flowering plants\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Flowering plants\"",
               "values": [
-                25210587,
-                30753
+                26898578,
+                31281
               ]
             },
             {
               "name": "Fungi",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Fungi\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Fungi\"",
               "values": [
-                2455403,
-                19381
-              ]
-            },
-            {
-              "name": "Gymnosperms",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Gymnosperms\"",
-              "values": [
-                1,
-                1
+                2785113,
+                21201
               ]
             },
             {
               "name": "Insects",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Insects\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Insects\"",
               "values": [
-                6650111,
-                46952
+                7726503,
+                50178
               ]
             },
             {
               "name": "Mammals",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Mammals\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Mammals\"",
               "values": [
-                4649609,
-                410
+                5009585,
+                409
               ]
             },
             {
               "name": "Molluscs",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Molluscs\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Molluscs\"",
               "values": [
-                1484043,
-                9166
+                1721269,
+                9364
               ]
             },
             {
               "name": "Monocots",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Monocots\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Monocots\"",
               "values": [
-                7714231,
-                6543
+                8250000,
+                6655
               ]
             },
             {
               "name": "Plants",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Plants\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Plants\"",
               "values": [
-                27523436,
-                35232
+                29175247,
+                35870
               ]
             },
             {
               "name": "Protozoa",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Protozoa\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Protozoa\"",
               "values": [
-                366305,
-                1316
+                391497,
+                2587
               ]
             },
             {
               "name": "Reptiles",
-              "url": "https://biocache-test.ala.org.au/occurrences/search?q=speciesGroup:\"Reptiles\"",
+              "url": "https://biocache.ala.org.au/occurrences/search?q=speciesGroup:\"Reptiles\"",
               "values": [
-                1871983,
+                1953721,
                 1153
               ]
             }
@@ -3358,7 +3128,7 @@
       ]
     },
     "emailDownloads": {
-      "date": 1741654882033,
+      "date": 1748328756960,
       "tables": [
         {
           "header": [
@@ -3370,29 +3140,29 @@
             {
               "name": "edu",
               "values": [
-                136972,
-                9552776485
+                150070,
+                10464466116
               ]
             },
             {
               "name": "gov",
               "values": [
-                37173,
-                3715486245
+                37862,
+                4027688971
               ]
             },
             {
               "name": "other",
               "values": [
-                450004,
-                27277752071
+                472012,
+                28940683079
               ]
             },
             {
               "name": "unspecified",
               "values": [
-                91671,
-                889686472
+                91673,
+                889686488
               ]
             }
           ]
@@ -3400,7 +3170,7 @@
       ]
     },
     "usageStats": {
-      "date": 1741654867955,
+      "date": 1748328745890,
       "tables": [
         {
           "header": [
@@ -3411,13 +3181,13 @@
             {
               "name": "recordsDownloaded",
               "values": [
-                53742134802
+                56260234145
               ]
             },
             {
               "name": "numberOfDownloads",
               "values": [
-                2389983
+                2423880
               ]
             },
             {

@@ -100,8 +100,9 @@
 }
 
 .dashboardLargeLink {
-    font-size: 16px;
+    font-size: 18px;
     color: #c44d34;
+    font-style: italic;
 }
 
 .dashboardVeryLargeLink {
