@@ -7,6 +7,17 @@
 import {readFileSync, writeFileSync} from 'fs';
 import { execSync } from 'child_process';
 
+// get the first argument from the command line
+const mode = process.argv[2] || 'build';
+
+// playwright mode uses a fixed regionsList.json file. Copy it then exit.
+if (mode === 'playwright') {
+    console.log('Running in playwright mode, using fixed regionsList.json');
+    writeFileSync('./dist/assets/regionsList.json', readFileSync('./tests/resources/regionsList.json', 'utf8'));
+    console.log('Copied regionsList.json to dist/assets/ from test/resources/regionsList.json');
+    process.exit(0);
+}
+
 // read ./regionsList.meta.json to an object
 let regionsMeta;
 try {

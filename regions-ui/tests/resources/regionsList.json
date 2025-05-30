@@ -1,0 +1,176 @@
+[
+  {
+    "name": "States and territories",
+    "layerName": "psma_state_2016",
+    "fid": "cl10925",
+    "objects": [
+      {
+        "name": "AUSTRALIAN CAPITAL TERRITORY",
+        "description": "AUSTRALIAN CAPITAL TERRITORY",
+        "pid": "8832857",
+        "bbox": "POLYGON((148.762675104 -35.9207620485,148.762675104 -35.124517035,149.399284512 -35.124517035,149.399284512 -35.9207620485,148.762675104 -35.9207620485))"
+      },
+      {
+        "name": "NEW SOUTH WALES",
+        "description": "NEW SOUTH WALES",
+        "pid": "8832858",
+        "bbox": "POLYGON((140.999279200001 -37.5052802079999,140.999279200001 -28.1570199879999,159.105444163417 -28.1570199879999,159.105444163417 -37.5052802079999,140.999279200001 -37.5052802079999))"
+      },
+      {
+        "name": "NORTHERN TERRITORY",
+        "description": "NORTHERN TERRITORY",
+        "pid": "8832859",
+        "bbox": "POLYGON((129.000476128 -25.9986182725,129.000476128 -10.965914006,138.001199712 -10.965914006,138.001199712 -25.9986182725,129.000476128 -25.9986182725))"
+      },
+      {
+        "name": "OTHER TERRITORIES",
+        "description": "OTHER TERRITORIES",
+        "pid": "8832865",
+        "bbox": "POLYGON((96.816765984 -35.2008719925,96.816765984 -10.412356007,167.995551758461 -10.412356007,167.995551758461 -35.2008719925,96.816765984 -35.2008719925))"
+      },
+      {
+        "name": "QUEENSLAND",
+        "description": "QUEENSLAND",
+        "pid": "8832860",
+        "bbox": "POLYGON((137.99595728 -29.1778976995,137.99595728 -9.219936324,153.552171456 -9.219936324,153.552171456 -29.1778976995,137.99595728 -29.1778976995))"
+      },
+      {
+        "name": "SOUTH AUSTRALIA",
+        "description": "SOUTH AUSTRALIA",
+        "pid": "8832863",
+        "bbox": "POLYGON((129.00134 -38.062603008,129.00134 -25.9963765534999,141.002955616 -25.9963765534999,141.002955616 -38.062603008,129.00134 -38.062603008))"
+      },
+      {
+        "name": "TASMANIA",
+        "description": "TASMANIA",
+        "pid": "8832861",
+        "bbox": "POLYGON((143.818570784 -43.7429816285,143.818570784 -39.191990305,148.503133376 -39.191990305,148.503133376 -43.7429816285,143.818570784 -43.7429816285))"
+      },
+      {
+        "name": "VICTORIA",
+        "description": "VICTORIA",
+        "pid": "8832864",
+        "bbox": "POLYGON((140.961858875 -39.15919275,140.961858875 -33.980649833,149.976498983 -33.980649833,149.976498983 -39.15919275,140.961858875 -39.15919275))"
+      },
+      {
+        "name": "WESTERN AUSTRALIA",
+        "description": "WESTERN AUSTRALIA",
+        "pid": "8832862",
+        "bbox": "POLYGON((112.921113984 -35.134845992,112.921113984 -13.689491998,129.001853632 -13.689491998,129.001853632 -35.134845992,112.921113984 -35.134845992))"
+      }
+    ]
+  },
+  {
+    "name": "Local government",
+    "layerName": "psma_lga_2018",
+    "fid": "cl10923",
+    "objects": [
+      {
+        "name": "ADELAIDE CITY COUNCIL",
+        "description": "ADELAIDE CITY COUNCIL",
+        "pid": "8817046",
+        "bbox": "POLYGON((138.577219329 -34.941979,138.577219329 -34.89877752,138.624216654 -34.89877752,138.624216654 -34.941979,138.577219329 -34.941979))"
+      },
+      {
+        "name": "ADELAIDE HILLS COUNCIL",
+        "description": "ADELAIDE HILLS COUNCIL",
+        "pid": "8817048",
+        "bbox": "POLYGON((138.665176007 -35.12158427,138.665176007 -34.680459702,139.044006924 -34.680459702,139.044006924 -35.12158427,138.665176007 -35.12158427))"
+      },
+      {
+        "name": "ADELAIDE PLAINS COUNCIL",
+        "description": "ADELAIDE PLAINS COUNCIL",
+        "pid": "8817034",
+        "bbox": "POLYGON((138.193219332 -34.680827004,138.193219332 -34.343552809,138.63018721 -34.343552809,138.63018721 -34.680827004,138.193219332 -34.680827004))"
+      },
+      {
+        "name": "ALBURY CITY COUNCIL",
+        "description": "ALBURY CITY COUNCIL",
+        "pid": "8816861",
+        "bbox": "POLYGON((146.81289356802 -36.11596819874,146.81289356802 -35.9140492025,147.0999665536 -35.9140492025,147.0999665536 -36.11596819874,146.81289356802 -36.11596819874))"
+      },
+      {
+        "name": "ALEXANDRINA COUNCIL",
+        "description": "ALEXANDRINA COUNCIL",
+        "pid": "8817030",
+        "bbox": "POLYGON((138.515791973 -35.562441274,138.515791973 -35.112820901,139.158427106 -35.112820901,139.158427106 -35.562441274,138.515791973 -35.562441274))"
+      },
+      {
+        "name": "ALICE SPRINGS MUNICIPALITY",
+        "description": "ALICE SPRINGS MUNICIPALITY",
+        "pid": "8816904",
+        "bbox": "POLYGON((133.72597613237 -23.83149978372,133.72597613237 -23.63050591105,133.94045836048 -23.63050591105,133.94045836048 -23.83149978372,133.72597613237 -23.83149978372))"
+      },
+      {
+        "name": "ALPINE SHIRE",
+        "description": "ALPINE SHIRE",
+        "pid": "8817128",
+        "bbox": "POLYGON((146.56645281 -37.27554555,146.56645281 -36.39269458,147.39225583 -36.39269458,147.39225583 -37.27554555,146.56645281 -37.27554555))"
+      },
+      {
+        "name": "ANANGU PITJANTJATJARA YANKUNYTJATJARA",
+        "description": "ANANGU PITJANTJATJARA YANKUNYTJATJARA",
+        "pid": "8816956",
+        "bbox": "POLYGON((129.001838119 -28.117355962,129.001838119 -25.998568439,133.744936987 -25.998568439,133.744936987 -28.117355962,129.001838119 -28.117355962))"
+      }
+    ]
+  },
+  {
+    "name": "Commonwealth government",
+    "layerName": "psma_comm_electoral_2018",
+    "fid": "cl10921",
+    "objects": [
+      {
+        "name": "ADELAIDE",
+        "description": "",
+        "pid": "8815727",
+        "bbox": "POLYGON((138.546715 -34.967237,138.546715 -34.846848,138.638165 -34.846848,138.638165 -34.967237,138.546715 -34.967237))"
+      }
+    ]
+  },
+  {
+    "name": "Other regions",
+    "fields": [
+      {
+        "name": "Great Eastern Ranges Initiative",
+        "layerName": "ger_initiative",
+        "fid": "cl2049"
+      },
+      {
+        "name": "RAMSAR wetland regions",
+        "layerName": "ramsar",
+        "fid": "cl935"
+      },
+      {
+        "name": "Directory of Important Wetlands",
+        "layerName": "diwa_type_criteria",
+        "fid": "cl901"
+      },
+      {
+        "name": "Australian Coral Ecoregions",
+        "layerName": "australian_coral_ecoregions",
+        "fid": "cl917"
+      },
+      {
+        "name": "Collaborative Australian Protected Areas Database",
+        "layerName": "capad_2016_terrestrial",
+        "fid": "cl10944"
+      },
+      {
+        "name": "Exclusive Economic Zone",
+        "layerName": "eez_poly",
+        "fid": "cl929"
+      },
+      {
+        "name": "Atlas of Life in the Coastal Wilderness",
+        "layerName": "alwc4",
+        "fid": "cl990"
+      },
+      {
+        "name": "National Indicative Aggregated Fire Extent Dataset 2019-2020",
+        "layerName": "niafed_20190701_20200323_v20200324_2",
+        "fid": "cl10955"
+      }
+    ]
+  }
+]

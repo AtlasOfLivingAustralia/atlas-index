@@ -241,7 +241,7 @@ test.beforeEach(async ({page}, testInfo) => {
                 "field": "cl10925",
                 "description": "AUSTRALIAN CAPITAL TERRITORY",
                 "layername": "PSMA States (2016)",
-                "pid": "21654846",
+                "pid": "8832857",
                 "value": "AUSTRALIAN CAPITAL TERRITORY"
             }
         ]
@@ -258,15 +258,15 @@ test.beforeEach(async ({page}, testInfo) => {
 
         // always return the same response, a successful intersection
         const response = {
-            pid: "21654846",
+            pid: "8832857",
             name: "AUSTRALIAN CAPITAL TERRITORY",
-            wmsurl: "https://spatial.ala.org.au/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ALA:Objects&format=image/png&viewparams=s:21654846",
+            wmsurl: "https://spatial.ala.org.au/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ALA:Objects&format=image/png&viewparams=s:8832857",
             fid: "cl10925",
             fieldname: "PSMA States (2016)",
             bbox: "POLYGON((148.762675104 -35.9207620485,148.762675104 -35.124517035,149.399284512 -35.124517035,149.399284512 -35.9207620485,148.762675104 -35.9207620485))",
             description: "AUSTRALIAN CAPITAL TERRITORY",
             area_km: 2363.2136863251985,
-            id: "21654846"
+            id: "8832857"
         }
         await route.fulfill({
             status: 200,
@@ -488,7 +488,7 @@ test('regions checkboxes', async ({page}, testInfo) => {
     const leafletLayers = page.locator('div.leaflet-layer');
     expect(await leafletLayers.count()).toEqual(3); // base layer, this layer, and this region are visible
 
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:21654846');
+    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:8832857');
     expect(hasExpectedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // look for popup
@@ -550,7 +550,7 @@ test('map click region selection', async ({page}, testInfo) => {
     // Verify that 3 layers are now visible
     const leafletLayers = page.locator('div.leaflet-layer');
     expect(await leafletLayers.count()).toEqual(3); // base layer, this layer, and this region are visible
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:21654846');
+    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:8832857');
     expect(hasExpectedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // look for popup
@@ -560,13 +560,13 @@ test('map click region selection', async ({page}, testInfo) => {
 
     expect(popupText).toContain('AUSTRALIAN CAPITAL TERRITORY'); // check the popup has the expected text
 
-    // confirm the popup has a link clicking it navigates to '/region?id=21654846'
+    // confirm the popup has a link clicking it navigates to '/region?id=8832857'
     const popupLink = page.locator('a', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
     expect(await popupLink.count()).toEqual(1); // check the link is visible
     await popupLink.click(); // click the link
     await page.waitForTimeout(1000); // wait for the page to load
     const url = page.url();
-    expect(url).toContain('/region?id=21654846'); // check the url is correct
+    expect(url).toContain('/region?id=8832857'); // check the url is correct
 });
 
 /**
@@ -591,7 +591,7 @@ test('zoom to region', async ({page}, testInfo) => {
     await zoomToRegionButton.click(); // click the button
 
     await page.waitForTimeout(1000); // wait for the map to load
-    const zoomedUrl = 'https://spatial.ala.org.au/geoserver/wms?styles=polygon&viewparams=s%3A21654846&service=WMS&request=GetMap&layers=ALA%3AObjects&styles=polygon&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=16437018.562444305,-4383204.9499851465,16515290.079408325,-4304933.433021128'
+    const zoomedUrl = 'https://spatial.ala.org.au/geoserver/wms?styles=polygon&viewparams=s%3A8832857&service=WMS&request=GetMap&layers=ALA%3AObjects&styles=polygon&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=16437018.562444305,-4383204.9499851465,16515290.079408325,-4304933.433021128'
     const hasZoomedLayer = Array.from(seenUrls).some(url => url.href === zoomedUrl);
     expect(hasZoomedLayer).toBeTruthy(); // WMS requests include the expected layer
 
@@ -623,7 +623,7 @@ test('open region page from button above the map', async ({page}, testInfo) => {
     // Verify the page opened
     await page.waitForTimeout(1000); // wait for the page to load
     const url = page.url();
-    expect(url).toContain('/region?id=21654846'); // check the url is correct
+    expect(url).toContain('/region?id=8832857'); // check the url is correct
 });
 
 /**
@@ -640,7 +640,7 @@ test('hash test - layer & region', async ({page}, testInfo) => {
     // Verify that 3 layers are now visible
     const leafletLayers = page.locator('div.leaflet-layer');
     expect(await leafletLayers.count()).toEqual(3); // base layer, this layer, and this region are visible
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:21654846');
+    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:8832857');
     expect(hasExpectedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // Verify the zoom to region button
@@ -652,7 +652,7 @@ test('hash test - layer & region', async ({page}, testInfo) => {
     // Verify the page opened
     await page.waitForTimeout(1000); // wait for the page to load
     const url = page.url();
-    expect(url).toContain('/region?id=21654846'); // check the url is correct
+    expect(url).toContain('/region?id=8832857'); // check the url is correct
 });
 
 /**
@@ -703,7 +703,7 @@ test('hash test - other regions & layer', async ({page}, testInfo) => {
 test('region page default info', async ({page}, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
-    await page.goto('http://localhost:5173/region?id=21654846');
+    await page.goto('http://localhost:5173/region?id=8832857');
 
     // Wait for images to load
     await page.waitForLoadState('networkidle');
