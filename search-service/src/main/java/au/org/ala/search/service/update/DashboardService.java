@@ -20,6 +20,7 @@ import au.org.ala.search.model.dashboard.images.ImageStatistics;
 import au.org.ala.search.model.dashboard.logger.Breakdown;
 import au.org.ala.search.model.dashboard.logger.LoggerSearch;
 import au.org.ala.search.model.dashboard.spatial.SpatialField;
+import au.org.ala.search.model.dashboard.userdetails.UserStats;
 import au.org.ala.search.model.query.Op;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
@@ -93,8 +94,14 @@ public class DashboardService {
     @Value("${images.url}")
     private String imagesUrl;
 
+    @Value("${userdetails.url}")
+    private String userdetailsUrl;
+
     @Value("${dashboard.states}")
     private String dashboardStates;
+
+    @Value("${dashboard.summarySpeciesCountQuery}")
+    private String summarySpeciesCountQuery;
 
     public DashboardService(LogService logService, StaticFileStoreService staticFileStoreService, ElasticService elasticService) {
         this.logService = logService;
@@ -146,6 +153,62 @@ public class DashboardService {
         // save data.json
         FileUtils.writeStringToFile(new File(dataDir + "/dashboard.json"), objectMapper.writeValueAsString(data), "UTF-8");
 
+        // save summary.json
+        try {
+            logService.log(taskType, "updating summary");
+
+            Map<String, Object> recordCounts = new HashMap<>();
+            recordCounts.put("count", data.data.get("occurrenceCount") != null ? data.data.get("occurrenceCount").getCount() : 0);
+            recordCounts.put("count1YA", null);
+            recordCounts.put("events", null);
+
+            Map<String, Object> datasetCounts = new HashMap<>();
+            datasetCounts.put("count", getDatasetCount());
+            datasetCounts.put("count1YA", getDatasetCount1YA());
+            datasetCounts.put("events", null);
+
+            Map<String, Object> userCounts = new HashMap<>();
+            UserStats userStats = getUserCounts(userdetailsUrl + "/ws/getUserStats");
+            userCounts.put("count", userStats.getTotalUsers());
+            userCounts.put("count1YA", userStats.getTotalUsersOneYearAgo());
+            userCounts.put("events", null);
+
+            Map<String, Object> speciesCounts = new HashMap<>();
+            speciesCounts.put("count", getSpeciesCount());
+            speciesCounts.put("count1YA", null);
+            speciesCounts.put("events", null);
+
+            Map<String, Object> downloadCounts = new HashMap<>();
+            Long downloadCount = 0L;
+            Long eventCount = 0L;
+            if (data.data.get("usageStats") != null) {
+                for (TableRow row : data.data.get("usageStats").tables.get(0).getRows()) {
+                    if ("recordsDownloaded".equals(row.getName())) {
+                        downloadCount = (Long) row.getValues()[0];
+                    } else if ("numberOfDownloads".equals(row.getName())) {
+                        eventCount = (Long) row.getValues()[0];
+                    }
+                }
+            }
+            downloadCounts.put("count", downloadCount);
+            downloadCounts.put("count1YA", null);
+            downloadCounts.put("events", eventCount);
+
+            Map<String, Map<String, Object>> summary = new HashMap<>();
+            summary.put("userCounts", userCounts);
+            summary.put("speciesCounts", speciesCounts);
+            summary.put("recordCounts", recordCounts);
+            summary.put("datasetCounts", datasetCounts);
+            summary.put("downloadCounts", downloadCounts);
+            FileUtils.writeStringToFile(new File(dataDir + "/summary.json"), objectMapper.writeValueAsString(summary), "UTF-8");
+
+            // do not halt when this fails, just log the error
+            staticFileStoreService.copyToFileStore(new File(dataDir + "/summary.json"), "dashboard/summary.json", false);
+        } catch (Exception e) {
+            logService.log(taskType, "Failed to save summary.json: " + e.getMessage());
+            logger.error("Failed to save summary.json: " + e.getMessage(), e);
+        }
+
         // save csv files
         List<File> csvFiles = new ArrayList<>();
         for (Map.Entry<String, Record> entry : data.data.entrySet()) {
@@ -186,6 +249,34 @@ public class DashboardService {
         // write to fileStore
         return staticFileStoreService.copyToFileStore(new File(dataDir + "/dashboard.zip"), "dashboard/dashboard.zip", false)
                 && staticFileStoreService.copyToFileStore(new File(dataDir + "/dashboard.json"), "dashboard/dashboard.json", false);
+    }
+
+    private Integer getSpeciesCount() throws IOException {
+        List result = objectMapper.readValue(IOUtils.toString(URI.create(biocacheWsUrl + summarySpeciesCountQuery), StandardCharsets.UTF_8), List.class);
+
+        return (Integer) ((Map)result.get(0)).get("count");
+    }
+
+    private Integer getDatasetCount() throws IOException {
+        Map result = objectMapper.readValue(IOUtils.toString(URI.create(collectoryUrl + "/ws/dataResource/count/resourceType?public=true"), StandardCharsets.UTF_8), Map.class);
+        return (Integer) result.get("total");
+    }
+
+    String getIsoDate1YA() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.YEAR, -1); // minus 1 year
+        Date oneYearAgoDate = cal.getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+        return df.format(oneYearAgoDate);
+    }
+
+    private Integer getDatasetCount1YA() throws IOException {
+        Map result = objectMapper.readValue(IOUtils.toString(URI.create(collectoryUrl + "/ws/dataResource/count/resourceType?public=true&createdBefore=" + getIsoDate1YA()), StandardCharsets.UTF_8), Map.class);
+        return (Integer) result.get("total");
+    }
+
+    private UserStats getUserCounts(String url) throws IOException {
+        return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), UserStats.class);
     }
 
     private int update(DashboardData dashboardData) {
@@ -346,7 +437,7 @@ public class DashboardService {
                     new Integer[]{getCollection(collectoryUrl + "/ws/institution/count").total}));
 
             table.rows.add(new TableRow("collections",
-                    collectoryUrl + "/collections",
+                    null,
                     new Integer[]{getCollection(collectoryUrl + "/ws/collection/count").total}));
 
             table.rows.add(new TableRow("dataResources",
