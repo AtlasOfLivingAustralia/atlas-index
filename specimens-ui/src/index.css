@@ -1,0 +1,150 @@
+/* for leaflet */
+.leaflet-attribution-flag {
+    display: none !important;
+}
+
+.panel-text { margin-top : 15px; font-size: 15px; line-height: 1.5em;}
+.panel h2 { line-height: 1.2em; }
+.panel h3 { line-height: 1.2em; }
+
+.space-after {
+    margin-bottom: 10px;
+}
+
+.space-before {
+    margin-top: 10px;
+}
+
+.large-space-after {
+    margin-bottom: 20px;
+}
+
+.large-space-before {
+    margin-top: 20px;
+}
+
+.center {text-align: center}
+
+.clickable {
+    cursor: pointer;
+    /*text-decoration: underline;*/
+    color: #007fb6;
+}
+
+ul {
+    list-style: none;
+}
+
+.clickable:hover,
+.clickable:focus {
+    color: #00638d;
+    text-decoration: underline;
+}
+
+#imagesList {
+    margin:0;
+    padding-right: 60px;
+}
+
+.imgCon {
+    display: inline-block;
+    /*margin-right: 8px;*/
+    text-align: center;
+    line-height: 1.3em;
+    background-color: #DDD;
+    color: #DDD;
+    /*padding: 5px;*/
+    /*margin-bottom: 8px;*/
+    margin: 2px;
+    position: relative;
+    max-height: 200px;
+}
+
+.imgCon .meta {
+    opacity: 0.7;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    text-align: left;
+    padding: 4px 6px 2px 8px;
+}
+
+.imgCon .full {
+    color: white;
+    background-color: black;
+    display: none;
+}
+
+.imgCon .brief {
+    color: black;
+    background-color: white;
+}
+
+.imgCon .hover-target {
+    display: none;
+}
+
+.imgCon:hover .full {
+    display: inline-block;
+}
+
+.imgCon:hover .brief {
+    display: none;
+}
+
+#taxonomyFacet .level0 {
+    margin-left: 0;
+}
+
+#taxonomyFacet .level1 {
+    margin-left: 4px;
+}
+
+#taxonomyFacet .level2 {
+    margin-left: 8px;
+}
+
+#taxonomyFacet .level3 {
+    margin-left: 12px;
+}
+
+#taxonomyFacet .level4 {
+    margin-left: 16px;
+}
+
+#taxonomyFacet .level5 {
+    margin-left: 20px;
+}
+
+#taxonomyFacet .level6 {
+    margin-left: 24px;
+}
+
+#taxonomyFacet .level7 {
+    margin-left: 28px;
+}
+
+#taxonomyFacet .level8 {
+    margin-left: 32px;
+}
+
+#imageViewer {
+    height: 600px;
+}
+
+.imgCon img {
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    display: block;
+    max-width: 100%;
+    object-fit: contain;
+    min-width: 20px;
+    min-height: 40px;
+}
+
+.pull-right a {
+    margin: 2px;
+}

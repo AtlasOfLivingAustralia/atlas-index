@@ -1,0 +1,189 @@
+[
+  {
+    "uid": "co56",
+    "name": "South Australian Museum Terrestrial Invertebrate Collection",
+    "institution": {
+      "name": "South Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=20d0e1b7-0b4f-4c15-824e-c5ee1d18c1c7",
+    "pubDescription": "The collection has Australia-wide and Indo-Pacific representation, plus some world specimens for comparative purposes."
+  },
+  {
+    "uid": "co13",
+    "name": "Australian National Insect Collection",
+    "institution": {
+      "name": "Commonwealth Scientific and Industrial Research Organisation"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=0388792e-92d5-45f1-aaf2-2fe78650d2ad",
+    "pubDescription": "The Australian National Insect Collection is recognized both nationally and internationally as a major research collection. It is the world's largest collection of Australian insects and related groups such as mites, spiders, nematodes and centipedes housing over 12 million specimens."
+  },
+  {
+    "uid": "co120",
+    "name": "Museums Victoria Ornithology Collection",
+    "institution": {
+      "name": "Museums Victoria"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=bc2268a6-f206-4ae3-93d3-d3034e4cb972",
+    "pubDescription": "The Ornithology Collection contains more than 70 000 specimens of mounted birds, skins, skeletons, eggs and specimens preserved in alcohol.\r\nOne of the largest Australian avian collections, primarily of Australian species and with a strong Victorian emphasis, it includes material from a broad spectrum of the world’s avifauna and represents in excess of 4000 species. Many are of great historical significance, especially those purchased from John Gould in the mid-19th century.\r\nOne of the largest collections in Australia, it includes material from early explorative trips through central and northern Australia. There are also representatives of many birds now long extinct. The collection contains valuable type specimens."
+  },
+  {
+    "uid": "co9",
+    "name": "Australian Museum Entomology Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=417431ae-7cf8-4d8f-92f3-30586e206391",
+    "pubDescription": "In the insect (s.l.) collection, there is an emphasis is on the New South Wales fauna, although there are significant holdings from other states and regions.  The collection has internationally significant holdings of acalyptrate Diptera, Psocoptera, and Chrysomelidae as well as major Australian collections of Neuroptera, Megaloptera, Lepidoptera, and Coleoptera.\r\n\r\n"
+  },
+  {
+    "uid": "co39",
+    "name": "Museums Victoria Entomology and Arachnology Collection",
+    "institution": {
+      "name": "Museums Victoria"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=47adaac7-4caa-43e2-8afb-dfecf185eed2",
+    "pubDescription": "Primarily focused on the fauna of Victoria and south-eastern Australia, the insect and arachnid collections also contain material from around Australia and the rest of the world. It is estimated to contain between 2.5 and 3 million individual specimens, including more than 4,500 holotypes and 19,000 paratypes. The arachnological component is estimated at around 70,000 specimen lots, including over 1600 types.\r\n\r\nSignificant historical additions have been made from large expeditions such as the 1894 Horn scientific expedition to Central Australia (an area resurveyed by the museum in 1994–2000) as well as several Antarctic and subantarctic expeditions."
+  },
+  {
+    "uid": "co113",
+    "name": "Australian Museum Marine Invertebrate Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=cc6c7029-a5f4-4215-abb7-dcdef47352ec",
+    "pubDescription": "The Marine Invertebrate collections contain registered specimens, microscope slides, Scanning Electron Microscope (SEM) preparations and photographic images. They include various marine invertebrates, and all other invertebrates except molluscs, insects and spiders, including freshwater and terrestrial representatives. The specimens contained in the collections are predominantly from New South Wales, Australia and the Indo-Pacific.\r\nCombined with the Australian Museum Research Library the section also houses one of the largest collections of books and journal reprints in Australia providing taxonomic information on many invertebrate groups. This resource is available for use by scientists, students and the public by appointment. The reprint collection is currently being entered onto a computerised bibliographic database."
+  },
+  {
+    "uid": "co114",
+    "name": "Australian Museum Malacology Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=fffc0e57-2b75-41fa-82cd-f224c7086557",
+    "pubDescription": "Malacology is the study of the group of animals called molluscs. Molluscs include chitons, clams, mussels, snails, nudibranchs (sea slugs), tusk shells, octopus and squid.\r\nThe Australian Museum Malacology collection is one of the world's largest of its kind, covering all groups of recent (up to 1.6 million year old) and tertiary (65-1.6 million year old) molluscs. Many of the specimens are dry shells, but there is also a large collection of preserved molluscs. The collections date from the 1860s and include marine, terrestrial and freshwater molluscs. They are predominantly from Australia and the south-west Pacific, but also include specimens from other parts of the world."
+  },
+  {
+    "uid": "co119",
+    "name": "Museums Victoria Marine Invertebrates Collection",
+    "institution": {
+      "name": "Museums Victoria"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=ba670472-3f44-4504-a5db-89203fdcb4ba",
+    "pubDescription": "The Marine Invertebrates collection encompasses invertebrates with the exception of insects and spiders. It includes crabs, sea spiders, lobsters, isopods, sponges, corals, worms, molluscs, echinoderms, protozoans and some non-vertebrate chordates.\r\nThere are over 1,200,000 specimens in the collection, including several thousand type specimens. The mollusc collection, which includes shells, comprises over 800,000 lots and is of international significance."
+  },
+  {
+    "uid": "co10",
+    "name": "Australian Museum Herpetology Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=1125be15-295e-4ce1-867e-366c3a876510",
+    "pubDescription": "Two thirds of collection are reptiles, two thirds of which are lizards.  Contains collections of most recently extinct eastern Australian frogs."
+  },
+  {
+    "uid": "co11",
+    "name": "Australian Museum Ornithology Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=1dd8681f-f67b-4a5a-ad19-347083528cea",
+    "pubDescription": "Specimens of rare and extinct Australian and international bird species. Historical Australian collections from 1860s onwards."
+  },
+  {
+    "uid": "co195",
+    "name": "Calder Chaffey Collection",
+    "institution": {
+      "name": "Southern Cross University"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=62484245-7b54-44cc-992a-32726674e5a1",
+    "pubDescription": null
+  },
+  {
+    "uid": "co80",
+    "name": "Australian Museum Mammalogy Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=3af879ef-58a4-4515-bfad-5ab347bb7ee7",
+    "pubDescription": "The Australian Museum Mammalogy collection is one of the most comprehensive collections of Australasian mammals in the world. While it contains specimens from all over the world the largest collections are from Australia, Papua New Guinea, Indonesia and the Solomon Islands.\r\n\r\nAmong the most important specimens in the collection are the more than 500 type specimens (types are the original specimens on which the first description of a particular species or subspecies is based). Most types in the collection are from Australia, although there are also many from other parts of the Pacific region including many from Papua New Guinea, the Solomon Islands and Indonesia. Other important specimens include extinct species about which little is known, such as the Pig-footed Bandicoot, Eastern Hare-wallaby, and Thylacine. The types and specimens of extinct species are stored separate from the main collection so they can be readily accessed for research and curation purposes.\r\n"
+  },
+  {
+    "uid": "co112",
+    "name": "Australian Museum Ichthyology Collection",
+    "institution": {
+      "name": "Australian Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=1ebcad2d-b65d-406f-83f2-85c59a083c38",
+    "pubDescription": "As one would expect, the Fish Research Collection contains many adult and larval fish specimens. These are used by researchers worldwide.\r\nThe collection contains specimens from all around the world, but has large holdings of fishes from the deepsea and Indo-Pacific reefs as well as larval fishes, gobies and freshwater fishes from New South Wales.\r\nOf particular importance are the fish type specimens. These are the specimens upon which the original scientific description of the relevant species was based. The Australian Museum fish type collection is one of the most important in the world, containing over 11,000 specimens, some of which date back well into the 1800s.\r\nThe majority of the collection has been fixed in 10% formaldehyde then transferred to 70% ethyl alcohol for long term storage. In recent years many frozen and alcohol-fixed tissues have been added to the collection for use in genetic studies."
+  },
+  {
+    "uid": "co118",
+    "name": "Museums Victoria Mammalogy Collection",
+    "institution": {
+      "name": "Museums Victoria"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=2165aece-0507-4f57-a0ae-778956a697fd",
+    "pubDescription": "This major Australian collection encompasses more than 30,000 specimens, many relating to Victoria's history. It is significant not only due to its size but also because many items are of historical and continuing scientific value.\r\nIn particular the collection emphasises Victorian mammal distribution, both past and present; mammal biology and ecology; representatives of Australian and non-Australian faunas; historical collections obtained on scientific expeditions; and practical applications of science relating to the history of Victoria.\r\nThe collection also includes a remarkable number of specimens from locations around the world. In total, more than 1000 species of mammals are represented.\r\nThis collection has two main focuses:\r\nContinue building a well-documented collection based on Victorian species.\r\nMaintain a well-formed collection of valuable reference material pertinent to the study of all Australian mammals.\r\nThe collection broadly consists of three basic elements:\r\nSkins and mounts: these cover most world families and are a broad representation of mammal diversity. Many have historical interest, being procured from overseas sources and local exploratory trips.\r\nSkeletons: an effort has been made to accrue a series of skeletal material that represents all Australian mammal fauna. As a result the museum holds one of the best-documented and largest collections of such material. This is constantly used by osteologists and archaeologists.\r\nAlcoholic: while other collections have lost, through preparation, internal organs and muscle tissues, the wet collection contains materials useful in anatomical studies. These have been retained in a preserved state."
+  },
+  {
+    "uid": "co153",
+    "name": "Queensland Museum Amphibians and Reptiles",
+    "institution": {
+      "name": "Queensland Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=b1a0e7e5-eb59-4af7-a085-1d27081d2033",
+    "pubDescription": "Our herpetology collections include all reptile and amphibian species presently know to occur in Queensland. Many of these are endemic to narrowly defined habitats. Of particular interest are species occurring in the Brigalow Belt and the Wet Tropics World Heritage area.\r\nCollection strengths include: \r\n-\textinct and threatened frogs;\r\n-\tcritically endangered geckos and skinks;\r\n-\tcomprehensive skeletal material of marine turtles;\r\n-\ttype specimens representing some of the most significant Australian herpetological discoveries dating back to the 1880s.\r\n"
+  },
+  {
+    "uid": "co151",
+    "name": "Queensland Museum Birds",
+    "institution": {
+      "name": "Queensland Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=c4b61200-a92f-4a82-b159-be8d3b5a5261",
+    "pubDescription": "Our bird collection focuses on Queensland and Papua New Guinea regions, documenting an historical record of species distributions, past and present.\r\nSkin, skeleton and spirit collections dating back to the 1870s, including extinct species, provide a valuable reference resource for biological and ecological studies. These holdings are supplemented with more than 5,000 egg clutches and 300 nests.\r\n"
+  },
+  {
+    "uid": "co40",
+    "name": "Museums Victoria Ichthyology Collection",
+    "institution": {
+      "name": "Museums Victoria"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=a6ec1920-cea5-49c5-904e-d60edc728f0b",
+    "pubDescription": "The Ichthyology Collection is one of the oldest and most significant fish collections in Australia, representing 150 years of acquisition from a wide variety of sources and comprising some 36,000 lots and 350,000 specimens.\r\nIt includes fishes (sharks, rays, chimaeroids, jawless and bony fishes) as well as representatives of the lancelets (primitive chordates belonging to the subphylum Cephalochordata). The collection also contains the world’s most comprehensive representation of fishes from marine, estuarine and freshwater environments of south-eastern and southern Australian waters, as well as a broad spectrum of the world’s fish fauna.\r\nThe majority of the collection is comprised of specimens in 70% alcohol, with subcollections of ethanol-fixed and frozen tissues, a larval fish collection, a dry and skeletal collection, an X-ray and photographic collection.\r\nThe collection is used for research and exhibition purposes, with the research component having increased significantly with the growth of the tissue collection."
+  },
+  {
+    "uid": "co51",
+    "name": "Queensland Museum Fishes",
+    "institution": {
+      "name": "Queensland Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=ffbc0b83-054e-42cc-9a6f-d3a7b3e2e7be",
+    "pubDescription": "Fishes are the most diverse of all the vertebrates. The estimated 5,000 species that occur in Australian waters are amongst the most diverse marine fauna of any country, and many of these species occur in Queensland waters.\r\nOur ichthyology collection contains:\r\n*\tstrengths in freshwater and estuarine fishes of northern Australia; shallow to deepwater demersal trawled species Queensland-wide; and southern Queensland reef and shore fish fauna; \r\n*\ttype specimens representing some of the most significant early Australian ichthyological discoveries;\r\n*\tother important material including dredged fishes from surveys across the entire length of the Great Barrier Reef, the Seabed Biodiversity Project; reef fishes from the central Great Barrier Reef; and reef and shore fishes from the central Gulf of Carpentaria region.\r\n"
+  },
+  {
+    "uid": "co147",
+    "name": "Queensland Museum Molluscs",
+    "institution": {
+      "name": "Queensland Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=4dc6c0de-afcd-4aea-a865-c508e1ff375c",
+    "pubDescription": "Queensland has extraordinarily high diversities of marine and terrestrial molluscs. These encompass the megadiverse faunas of the Great Barrier Reef, the Wet Tropics and the Brigalow Belt with over 17,000 species represented in our collections. \r\nData from these specimens and their habitats provide a valuable benchmark for environmental assessment studies. Principal among these issues are species management and conservation, detection of invasive species and the effects of climate change on natural ecosystems.\r\nThe Mollusca collection contains:\r\n*\tmore than 200,000 land snail specimens from over 2,000 localities throughout Eastern Australia;\r\n*\tdonated marine collections of exceptional scientific importance.\r\n"
+  },
+  {
+    "uid": "co150",
+    "name": "Queensland Museum Mammals",
+    "institution": {
+      "name": "Queensland Museum"
+    },
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=0cf0e8ab-1f0c-4d74-9187-d23ba08a84d2",
+    "pubDescription": "Our mammal collection focuses on Queensland and Papua New Guinea regions, documenting an historical record of species distributions, past and present.\r\nSkin, skeleton and spirit collections dating back to the 1870s provide a valuable reference resource for biological and ecological studies. The museumâ??s mammal collection also provides comparative material for fossil and subfossil research, particularly with reference to the Riversleigh fauna and megafauna of the Darling Downs.\r\n"
+  },
+  {
+    "uid": "dr16455",
+    "name": "Wing images of Australian dragonflies",
+    "institution": {},
+    "displayCollectionImage": "https://images.ala.org.au/image/proxyImageThumbnailLarge?imageId=c13a6ed4-1be2-4925-b4c5-762f083be89d",
+    "pubDescription": "A high-resolution photographic library of wings of Australian dragonflies and damselflies. Using specimens from the Australian Museum and other collections, images of wings of both male and female dragonflies and damselflies found in Australia are available for identification and research.\r\n\r\nVolume 1. Anisoptera (dragonflies) https://doi.org/10.6084/m9.figshare.11845230\r\nVolume 2. Zygoptera  (damselflies) https://doi.org/10.6084/m9.figshare.12579959"
+  }
+]
