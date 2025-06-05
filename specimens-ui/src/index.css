@@ -48,16 +48,13 @@ ul {
 
 .imgCon {
     display: inline-block;
-    /*margin-right: 8px;*/
     text-align: center;
     line-height: 1.3em;
     background-color: #DDD;
     color: #DDD;
-    /*padding: 5px;*/
-    /*margin-bottom: 8px;*/
     margin: 2px;
     position: relative;
-    max-height: 200px;
+    max-height: 180px;
 }
 
 .imgCon .meta {
@@ -135,7 +132,7 @@ ul {
 }
 
 .imgCon img {
-    max-height: 200px;
+    max-height: 180px;
     width: auto;
     height: auto;
     display: block;

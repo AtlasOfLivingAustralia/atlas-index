@@ -7,7 +7,7 @@
 import {useEffect, useState} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import useHashState from "../components/util/useHashState.tsx";
-import { useParams } from "react-router-dom";
+import {useParams} from "react-router-dom";
 
 type ImageData = {
     uuid: string;
@@ -51,7 +51,7 @@ interface BrowseProps {
 }
 
 /**
- * Browse page. Has a filter on the left, and a grid of images on the right.
+ * Browse biocache occurrence images. Has a filter on the left, and a grid of images on the right.
  *
  * @param setBreadcrumbs
  * @constructor
@@ -60,7 +60,10 @@ function Browse({setBreadcrumbs}: BrowseProps) {
     const [images, setImages] = useState<ImageData[]>([]);
     const [facets, setFacets] = useState<Facet[]>([]);
     const [taxonomyHierarchy, setTaxonomyHierarchy] = useState<TaxonomyHierarchyLevel[]>([]);
-    const [taxonomyCurrentRank, setTaxonomyCurrentRank] = useState<TaxonomyCurrentRank>({currentRankLabel: "", values: []});
+    const [taxonomyCurrentRank, setTaxonomyCurrentRank] = useState<TaxonomyCurrentRank>({
+        currentRankLabel: "",
+        values: []
+    });
     const [loadStatus, setLoadStatus] = useState("loading");
     const [totalRecords, setTotalRecords] = useState(-1);
     const [offset, setOffset] = useState(0);
@@ -76,7 +79,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
     const [fqSpecies, setFqSpecies] = useHashState("species", "");
     const [entityName, setEntityName] = useState("all collections");
 
-    const { entityUid = "" } = useParams<{ entityUid?: string }>();
+    const {entityUid = ""} = useParams<{ entityUid?: string }>();
 
     const ranks = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
         facetNames: Record<string, string> = {
@@ -90,7 +93,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
     useEffect(() => {
         setBreadcrumbs([
             {title: "Home", href: import.meta.env.VITE_HOME_URL},
-            {title: "Specimen Images", href: import.meta.env.VITE_EXPLORE_URL},
+            {title: "Specimen Images", href: '/'},
             {title: entityName, href: ""}
         ])
     }, [entityName]);
@@ -167,8 +170,10 @@ function Browse({setBreadcrumbs}: BrowseProps) {
         if (entityUid) {
             if (entityUid.startsWith('c')) {
                 url += "&fq=collectionUid:" + entityUid;
-            } else if (entityUid.startsWith('d')) {
+            } else if (entityUid.startsWith('dr')) {
                 url += "&fq=dataResourceUid:" + entityUid;
+            } else if (entityUid.startsWith('dp')) {
+                url += "&fq=dataProviderUid:" + entityUid;
             } else if (entityUid.startsWith('i')) {
                 url += "&fq=institutionUid:" + entityUid;
             }
@@ -209,7 +214,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                     buildHierarchyDrilldown(data);
                 }
 
-                let newImages : ImageData[] = [];
+                let newImages: ImageData[] = [];
                 data.occurrences.forEach((occ: any) => {
                     for (let img of occ.imageMetadata) {
                         newImages.push({
@@ -225,7 +230,6 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                             largeImageViewerUrl: import.meta.env.VITE_APP_IMAGES_URL + "/image/" + img.imageId,
                             smallImageUrl: img.thumbUrl,
                             recordLink: import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/" + occ.uuid
-
                         });
                         if (fqFirstImageOnly) {
                             // if first image only, break after the first image
@@ -268,7 +272,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
     }
 
     const buildHierarchyFilters = () => {
-        let hierarchy : TaxonomyHierarchyLevel[] = [];
+        let hierarchy: TaxonomyHierarchyLevel[] = [];
         if (fqKingdom) {
             hierarchy.push({
                 displayRank: "Kingdom",
@@ -371,21 +375,9 @@ function Browse({setBreadcrumbs}: BrowseProps) {
             setFqTypeStatus(fq);
         } else if (fieldName === "raw_sex") {
             setFqSex(fq);
-        } else if (fieldName === "kingdom") {
-            setFqKingdom(fq);
-        } else if (fieldName === "phylum") {
-            setFqPhylum(fq);
-        } else if (fieldName === "class") {
-            setFqClass(fq);
-        } else if (fieldName === "order") {
-            setFqOrder(fq);
-        } else if (fieldName === "family") {
-            setFqFamily(fq);
-        } else if (fieldName === "genus") {
-            setFqGenus(fq);
-        } else if (fieldName === "species") {
-            setFqSpecies(fq);
         }
+
+        resetRankFq(fieldName);
     }
 
     const removeFq = (fieldName: string) => {
@@ -420,27 +412,28 @@ function Browse({setBreadcrumbs}: BrowseProps) {
         const rankIndex = ranks.indexOf(rank.toLowerCase());
         if (rankIndex === -1) return;
 
-        console.log("Removing lower ranks from:", rank, "at index:", rankIndex);
-
         // remove all lower ranks
         for (let i = rankIndex + 1; i < ranks.length; i++) {
             const fieldName = ranks[i];
-            console.log("Removing fq for field:", fieldName);
-            if (fieldName === "kingdom") {
-                setFqKingdom("");
-            } else if (fieldName === "phylum") {
-                setFqPhylum("");
-            } else if (fieldName === "class") {
-                setFqClass("");
-            } else if (fieldName === "order") {
-                setFqOrder("");
-            } else if (fieldName === "family") {
-                setFqFamily("");
-            } else if (fieldName === "genus") {
-                setFqGenus("");
-            } else if (fieldName === "species") {
-                setFqSpecies("");
-            }
+            resetRankFq(fieldName);
+        }
+    }
+
+    const resetRankFq = (fieldName: string) => {
+        if (fieldName === "kingdom") {
+            setFqKingdom("");
+        } else if (fieldName === "phylum") {
+            setFqPhylum("");
+        } else if (fieldName === "class") {
+            setFqClass("");
+        } else if (fieldName === "order") {
+            setFqOrder("");
+        } else if (fieldName === "family") {
+            setFqFamily("");
+        } else if (fieldName === "genus") {
+            setFqGenus("");
+        } else if (fieldName === "species") {
+            setFqSpecies("");
         }
     }
 
@@ -476,11 +469,12 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                                         fontWeight: "bold",
                                         marginLeft: (ranks.indexOf(level?.displayRank?.toLowerCase()) * 10) + "px"
                                     }}>{level.displayRank}</span>:&nbsp;
-                                    <span className={(taxonomyCurrentRank.values || "").length > 0 || i < taxonomyHierarchy.length - 1 ? "clickable" : ""}
-                                          onClick={() => removeLowerRanks(level.displayRank)}>{level.name}</span>
+                                    <span
+                                        className={(taxonomyCurrentRank.values || "").length > 0 || i < taxonomyHierarchy.length - 1 ? "clickable" : ""}
+                                        onClick={() => removeLowerRanks(level.displayRank)}>{level.name}</span>
                                 </li>
                             ))}
-                            <li className={/* levelClassForCurrentRank logic*/  ""}>
+                            <li>
                                 <span style={{
                                     fontWeight: "bold",
                                     marginLeft: (ranks.indexOf((taxonomyCurrentRank?.currentRankLabel || "").toLowerCase()) * 10) + "px"
@@ -566,7 +560,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                         ))}
                     </div>
                     <div style={{textAlign: "center", marginTop: 15}}>
-                        {loadStatus === "loading" && <img src="ajax-loader.gif" alt="Loading..."/>}
+                        {loadStatus === "loading" && <>Loading...</>}
                         {offset + pageSize < totalRecords && loadStatus !== "loading" && (
                             <span className="btn clickable" onClick={onShowMoreResults}>Show more results</span>
                         )}

@@ -56,10 +56,10 @@ function Home({setBreadcrumbs}: HomeProps) {
                     <div className="col-12 col-md-4" key={collection.uid}>
                         <div className="thumbnail" style={{ border: "1px solid black", borderRadius: "5px", margin: "10px", padding: "10px" }}>
                             <h2>
-                                <Link to={`/browse?id=${collection.uid}`}>{collection.name}</Link>
+                                <Link to={`/browse/${collection.uid}`}>{collection.name}</Link>
                             </h2>
                             {collection.institution && <h3>{collection.institution.name}</h3>}
-                            <Link to={`/browse?id=${collection.uid}`}>
+                            <Link to={`/browse/${collection.uid}`}>
                                 <img className="img-fluid" src={collection.displayCollectionImage} alt={collection.name} />
                             </Link>
                             <p className="panel-text">
