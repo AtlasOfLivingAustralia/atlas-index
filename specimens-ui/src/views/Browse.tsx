@@ -4,10 +4,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 import {Breadcrumb} from "../api/sources/model.ts";
 import useHashState from "../components/util/useHashState.tsx";
 import {useParams} from "react-router-dom";
+import missingImage from '../image/missing-image.svg';
+
+const MAX_ROW_HEIGHT = 200; // maximum height of each image row, adjust as needed
 
 type ImageData = {
     uuid: string;
@@ -81,13 +84,15 @@ function Browse({setBreadcrumbs}: BrowseProps) {
 
     const {entityUid = ""} = useParams<{ entityUid?: string }>();
 
+    const imageContainerRef = useRef<HTMLDivElement | null>(null);
+
     const ranks = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species'],
         facetNames: Record<string, string> = {
             'typeStatus': 'Types', 'raw_sex': 'Sex', 'family': 'Family', 'order': 'Order', 'class': 'Class',
             'kingdom': 'Kingdom', 'phylum': 'Phylum', 'genus': 'Genus', 'species': 'Species'
         },
         facetsToShow = ["typeStatus", "raw_sex"],
-        baseQuery = "?q=multimedia:Image&im=true&fq=collectionUid:*&fl=id,collectionName,institution,dataProviderName,dataResourceName,images,typeStatus,scientificName,vernacularName",
+        baseQuery = "?q=multimedia:Image&im=true&fq=collectionUid:*&fl=id,collectionName,institution,dataProviderName,dataResourceName,images,typeStatus,scientificName,raw_scientificName,vernacularName",
         pageSize = 100;
 
     useEffect(() => {
@@ -219,7 +224,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                     for (let img of occ.imageMetadata) {
                         newImages.push({
                             uuid: occ.uuid,
-                            scientificName: occ.scientificName,
+                            scientificName: occ.scientificName || occ.raw_scientificName,
                             vernacularName: occ.vernacularName,
                             typeStatus: occ.typeStatus,
                             imageId: img.imageId,
@@ -377,7 +382,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
             setFqSex(fq);
         }
 
-        resetRankFq(fieldName);
+        setRankFq(fieldName, fq);
     }
 
     const removeFq = (fieldName: string) => {
@@ -415,25 +420,80 @@ function Browse({setBreadcrumbs}: BrowseProps) {
         // remove all lower ranks
         for (let i = rankIndex + 1; i < ranks.length; i++) {
             const fieldName = ranks[i];
-            resetRankFq(fieldName);
+            setRankFq(fieldName, "");
         }
     }
 
-    const resetRankFq = (fieldName: string) => {
+    const setRankFq = (fieldName: string, value: string) => {
         if (fieldName === "kingdom") {
-            setFqKingdom("");
+            setFqKingdom(value);
         } else if (fieldName === "phylum") {
-            setFqPhylum("");
+            setFqPhylum(value);
         } else if (fieldName === "class") {
-            setFqClass("");
+            setFqClass(value);
         } else if (fieldName === "order") {
-            setFqOrder("");
+            setFqOrder(value);
         } else if (fieldName === "family") {
-            setFqFamily("");
+            setFqFamily(value);
         } else if (fieldName === "genus") {
-            setFqGenus("");
+            setFqGenus(value);
         } else if (fieldName === "species") {
-            setFqSpecies("");
+            setFqSpecies(value);
+        }
+    }
+
+    useEffect(() => {
+        layoutImages(imageContainerRef, MAX_ROW_HEIGHT);
+        window.addEventListener('resize', () => layoutImages(imageContainerRef, MAX_ROW_HEIGHT));
+        return () => window.removeEventListener('resize', () => layoutImages(imageContainerRef, MAX_ROW_HEIGHT));
+    }, [images]);
+
+    // Utility to layout images in a gapless style using a ref
+    function layoutImages(imageContainerRef: React.RefObject<HTMLDivElement | null>, maxRowHeight: number = MAX_ROW_HEIGHT) {
+        const container = imageContainerRef.current;
+
+        if (!container) return;
+
+        const images = Array.from(container.querySelectorAll('img'));
+        const size = container.clientWidth - 30;
+        let remainingImages = images.slice();
+
+        function getHeight(imgs: HTMLImageElement[], width: number) {
+            width -= imgs.length * 5;
+            let h = 0;
+            for (const img of imgs) {
+                const w = Number(img.getAttribute('data-width')) || img.naturalWidth || img.width;
+                const ht = Number(img.getAttribute('data-height')) || img.naturalHeight || img.height;
+                h += w / ht;
+            }
+            return width / h;
+        }
+
+        function setHeight(imgs: HTMLImageElement[], height: number) {
+            for (const img of imgs) {
+                const w = Number(img.getAttribute('data-width')) || img.naturalWidth || img.width;
+                const ht = Number(img.getAttribute('data-height')) || img.naturalHeight || img.height;
+                img.style.width = `${height * w / ht}px`;
+                img.style.height = `${height}px`;
+            }
+        }
+
+        while (remainingImages.length > 0) {
+            let slice: HTMLImageElement[] = [];
+            let h = 0;
+            for (let i = 1; i <= remainingImages.length; ++i) {
+                slice = remainingImages.slice(0, i);
+                h = getHeight(slice, size);
+                if (h < maxRowHeight) {
+                    setHeight(slice, h);
+                    remainingImages = remainingImages.slice(i);
+                    break;
+                }
+                if (i === remainingImages.length) {
+                    setHeight(slice, Math.min(maxRowHeight, h));
+                    remainingImages = [];
+                }
+            }
         }
     }
 
@@ -529,7 +589,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                     {loadStatus === "timeout" && (
                         <div className="alert alert-error">The search timed out.</div>
                     )}
-                    <div>
+                    <div ref={imageContainerRef}>
                         {images.map((img) => (
                             <div className="imgCon" key={img.imageId}>
                                 <a href={img.largeImageViewerUrl}>
@@ -538,6 +598,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                                         data-width={img.thumbWidth}
                                         data-height={img.thumbHeight}
                                         alt={img.scientificName}
+                                        onError={e => (e.currentTarget.src = missingImage)}
                                     />
                                 </a>
                                 <div className="meta brief">
