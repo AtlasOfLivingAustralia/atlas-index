@@ -8,10 +8,8 @@
 
     <groupId>au.org.ala</groupId>
     <artifactId>dashboard-ui</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
 
-    <!-- When changing the version value, also change the version number in /server/run-local.sh -->
-    <!--    <version>0.0.1-SNAPSHOT</version>-->
     <packaging>pom</packaging>
 
     <properties>
