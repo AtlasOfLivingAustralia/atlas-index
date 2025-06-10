@@ -2,7 +2,7 @@
  * This will generate a regionsList.json file, if missing. It will use the VITE_SPATIAL_URL from the .env.production.
  */
 
-import {readFileSync, writeFileSync} from 'fs';
+import {readFileSync, writeFileSync, statSync } from 'fs';
 import { execSync } from 'child_process';
 
 // read ./regionsList.meta.json to an object
@@ -38,9 +38,14 @@ if (!baseSpatialUrl) {
     process.exit(1);
 }
 
-// check meta vs VITE_SPATIAL_URL
-if (regionsMeta.baseSpatialUrl !== baseSpatialUrl) {
-    console.log('VITE_SPATIAL_WS_URL changed. Rebuilding regionsList.json with new baseSpatialUrl:', baseSpatialUrl);
+const regionsJsonModified = statSync('./resources/regions.json').mtime;
+const regionsMetaModified = regionsMeta.modified ? new Date(regionsMeta.modified) : null;
+const regionsResourceChanged = !regionsMetaModified || regionsJsonModified > regionsMetaModified;
+console.log(`regionsList.meta.json modified: ${regionsMetaModified}\nregions.json modified: ${regionsJsonModified}\nregionsResourceChanged: ${regionsResourceChanged}`);
+
+// rebuild regions if meta vs VITE_SPATIAL_URL is different or if regions.json has changed since last build
+if (regionsMeta.baseSpatialUrl !== baseSpatialUrl || regionsResourceChanged) {
+    console.log('VITE_SPATIAL_WS_URL changed or regionsResourceChanged. Rebuilding regionsList.json with new baseSpatialUrl:', baseSpatialUrl);
 
     // run "node buildRegions.js <baseSpatialUrl>"
     execSync(`node buildRegions.js ${baseSpatialUrl}`, { stdio: 'inherit' });
