@@ -73,7 +73,9 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
 
     // setup the html after the component is mounted
     useEffect(() => {
-        setupHtml();
+        if (externalHeaderHtml && externalHeaderHtml.length > 0) {
+            setupHtml();
+        }
     }, [externalHeaderHtml]);
 
     // listen for login status changes
@@ -250,7 +252,8 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
             const menuElement = document.getElementById("main-menu");
             if (menuElement && !menuElement.contains(event.target as Node) &&
                 !(event.target && (event.target as HTMLElement).classList.contains("autocomplete-heading")) &&
-                !(event.target && (event.target as HTMLElement).classList.contains("autocomplete-button"))) {
+                !(event.target && (event.target as HTMLElement).classList.contains("autocomplete-button")) &&
+                !(event.target && (event.target as HTMLElement).classList.contains("autocomplete-item"))) {
                 setOpenMenu(0);
                 setAutocompleteResult([])
             }

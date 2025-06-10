@@ -45,7 +45,9 @@ function Footer({isLoggedIn, loginFn, logoutFn}: FooterProps) {
 
     // setup the footer html after it is set
     useEffect(() => {
-        setupHtml();
+        if (externalFooterHtml && externalFooterHtml.length > 0) {
+            setupHtml();
+        }
     }, [externalFooterHtml]);
 
     // show login/logout buttons when the login state changes
