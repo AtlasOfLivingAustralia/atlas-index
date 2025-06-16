@@ -92,7 +92,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
             'kingdom': 'Kingdom', 'phylum': 'Phylum', 'genus': 'Genus', 'species': 'Species'
         },
         facetsToShow = ["typeStatus", "raw_sex"],
-        baseQuery = "?q=multimedia:Image&im=true&fq=collectionUid:*&fl=id,collectionName,institution,dataProviderName,dataResourceName,images,typeStatus,scientificName,raw_scientificName,vernacularName",
+        baseQuery = "?q=multimedia:Image&im=true&fl=id,collectionName,institution,dataProviderName,dataResourceName,images,typeStatus,scientificName,raw_scientificName,vernacularName",
         pageSize = 100;
 
     useEffect(() => {
@@ -190,6 +190,7 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                     if (response.status === 404) {
                         setLoadStatus("no results");
                     } else {
+                        console.log(response)
                         setLoadStatus("error");
                     }
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -245,7 +246,8 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                 setImages(prevImages => [...prevImages, ...newImages]);
                 setLoadStatus("done");
             })
-            .catch(() => {
+            .catch((e) => {
+                console.error("Error fetching data:", e);
                 setLoadStatus("error");
             });
     }
@@ -354,8 +356,11 @@ function Browse({setBreadcrumbs}: BrowseProps) {
         var currentRank = getCurrentRank();
         let values = [];
         if (currentRank && data.facetResults) {
-            for (let item of data.facetResults.find((f: any) => f.fieldName === currentRank).fieldResult) {
-                values.push({label: item.label, count: item.count, fq: item.fq, fieldName: currentRank});
+            let result = data.facetResults.find((f: any) => f.fieldName === currentRank)
+            if (result) {
+                for (let item of result.fieldResult) {
+                    values.push({label: item.label, count: item.count, fq: item.fq, fieldName: currentRank});
+                }
             }
         }
         setTaxonomyCurrentRank({
@@ -520,58 +525,60 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                                 onClick={onClearAllFilters}>Clear filters
                         </button>
                     </div>
-                    <div id="taxonomyFacet" className="mb-3">
-                        <h3>Taxonomy</h3>
-                        <ul style={{marginLeft: 0, marginBottom: 0}}>
-                            {taxonomyHierarchy.map((level, i) => (
-                                <li key={i}>
-                                    <span style={{
-                                        fontWeight: "bold",
-                                        marginLeft: (ranks.indexOf(level?.displayRank?.toLowerCase()) * 10) + "px"
-                                    }}>{level.displayRank}</span>:&nbsp;
-                                    <span
-                                        className={(taxonomyCurrentRank.values || "").length > 0 || i < taxonomyHierarchy.length - 1 ? "clickable" : ""}
-                                        onClick={() => removeLowerRanks(level.displayRank)}>{level.name}</span>
-                                </li>
-                            ))}
-                            <li>
-                                <span style={{
-                                    fontWeight: "bold",
-                                    marginLeft: (ranks.indexOf((taxonomyCurrentRank?.currentRankLabel || "").toLowerCase()) * 10) + "px"
-                                }}>{taxonomyCurrentRank.currentRankLabel}</span>
-                                <ul>
-                                    {taxonomyCurrentRank.values?.map((val, i) => (
-                                        <li key={i}>
-                                                <span className="clickable"
-                                                      style={{marginLeft: (ranks.indexOf((taxonomyCurrentRank?.currentRankLabel || "").toLowerCase()) * 10) + "px"}}
-                                                      onClick={() => addFq(val.fieldName, val.fq)}>
-                                                    <span>{val.label}</span> ({val.count})
-                                                </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                    {facets.filter((it) => facetsToShow.includes(it.fieldName)).map((facet, i) => (
-                        <div key={facet.fieldName + i}>
-                            <h3 style={{marginBottom: "5px", lineHeight: "30px"}}>{facetNames[facet.fieldName]}</h3>
-                            <ul>
-                                {facet.fieldResult.map((val, j) => (
-                                    <li key={j}>
-                                                    <span className="clickable"
-                                                          onClick={() => addFq(facet.fieldName, val.fq)}>
-                                                        <span>{val.label}</span> ({val.count})
-                                                    </span>
+                    <div className={"ps-3"}>
+                        <div id="taxonomyFacet" className="mb-3">
+                            <h3>Taxonomy</h3>
+                            <ul style={{marginLeft: 0, marginBottom: 0}}>
+                                {taxonomyHierarchy.map((level, i) => (
+                                    <li key={i}>
+                                        <span style={{
+                                            fontWeight: "bold",
+                                            marginLeft: (ranks.indexOf(level?.displayRank?.toLowerCase()) * 10) + "px"
+                                        }}>{level.displayRank}</span>:&nbsp;
+                                        <span
+                                            className={(taxonomyCurrentRank.values || "").length > 0 || i < taxonomyHierarchy.length - 1 ? "clickable" : ""}
+                                            onClick={() => removeLowerRanks(level.displayRank)}>{level.name}</span>
                                     </li>
                                 ))}
                                 <li>
-                                    <span className="clickable"
-                                          onClick={() => removeFq(facet.fieldName)}>all values</span>
+                                    <span style={{
+                                        fontWeight: "bold",
+                                        marginLeft: (ranks.indexOf((taxonomyCurrentRank?.currentRankLabel || "").toLowerCase()) * 10) + "px"
+                                    }}>{taxonomyCurrentRank.currentRankLabel}</span>
+                                    <ul>
+                                        {taxonomyCurrentRank.values?.map((val, i) => (
+                                            <li key={i}>
+                                                    <span className="clickable"
+                                                          style={{marginLeft: (ranks.indexOf((taxonomyCurrentRank?.currentRankLabel || "").toLowerCase()) * 10) + "px"}}
+                                                          onClick={() => addFq(val.fieldName, val.fq)}>
+                                                        <span>{val.label}</span> ({val.count})
+                                                    </span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </li>
                             </ul>
                         </div>
-                    ))}
+                        {facets.filter((it) => facetsToShow.includes(it.fieldName)).map((facet, i) => (
+                            <div key={i}>
+                                <h3 style={{marginBottom: "5px", lineHeight: "30px"}}>{facetNames[facet.fieldName]}</h3>
+                                <ul>
+                                    {facet.fieldResult.map((val, j) => (
+                                        <li key={j}>
+                                                        <span className="clickable"
+                                                              onClick={() => addFq(facet.fieldName, val.fq)}>
+                                                            <span>{val.label}</span> ({val.count})
+                                                        </span>
+                                        </li>
+                                    ))}
+                                    <li>
+                                        <span className="clickable"
+                                              onClick={() => removeFq(facet.fieldName)}>all values</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="col-md-9 ps-4 pe-4">
                     {loadStatus === "done" && (
@@ -590,8 +597,8 @@ function Browse({setBreadcrumbs}: BrowseProps) {
                         <div className="alert alert-error">The search timed out.</div>
                     )}
                     <div ref={imageContainerRef}>
-                        {images.map((img) => (
-                            <div className="imgCon" key={img.imageId}>
+                        {images.map((img, idx) => (
+                            <div className="imgCon" key={idx}>
                                 <a href={img.largeImageViewerUrl}>
                                     <img
                                         src={img.smallImageUrl}

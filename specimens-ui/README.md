@@ -1,4 +1,4 @@
-# Regions UI
+# Specimens UI
 
 A UI replacement for the specimens app.
 
