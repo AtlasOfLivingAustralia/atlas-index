@@ -1,0 +1,69 @@
+
+[
+  {
+    "tab": "species",
+    "examples": [
+      { "label": "Species: Emu - Dromaius novaehollandiae", "query": "Dromaius novaehollandiae" },
+        { "label": "Species: Australian King-Parrot - Alisterus scapularis", "query": "Alisterus scapularis" },
+        { "label": "Species: Australian Magpie - Gymnorhina tibicen", "query": "Gymnorhina tibicen" },
+        { "label": "Species: Barramundi - Lates calcarifer", "query": "Lates calcarifer" },
+        { "label": "Species: Golden Wattle - Acacia pycnantha", "query": "Acacia pycnantha" },
+        { "label": "Species: Eastern Grey Kangaroo - Macropus giganteus", "query": "Macropus giganteus" },
+        { "label": "Species: Swamp Wallaby - Wallabia bicolor", "query": "Wallabia bicolor" },
+        { "label": "Species: Duck-Billed Platypus - Ornithorhynchus anatinus", "query": "Ornithorhynchus anatinus" },
+        { "label": "Species: Common Bearded Dragon - Pogona barbata", "query": "Pogona barbata" },
+        { "label": "Species: Typical Geckos - Gekko gecko", "query": "Gekko gecko" },
+        { "label": "Species: Raspberry Jam - Acacia acuminata", "query": "Acacia acuminata"}
+    ]
+  },
+  {
+    "tab": "datasets",
+    "examples": [
+      { "label": "Dataset: Census", "query": "census" },
+      { "label": "Dataset: Museum", "query": "museum" }
+    ]
+  },
+  {
+    "tab": "specieslists",
+    "examples": [
+      { "label": "Species list: EPBC", "query": "EPBC" },
+      { "label": "Species list: Victoria", "query": "Victoria" }
+    ]
+  },
+  {
+    "tab": "dataprojects",
+    "examples": [
+      { "label": "Data project: blitz", "query": "blitz" }
+    ]
+  },
+  {
+    "tab": "environmentallayers",
+    "examples": [
+      { "label": "Spatial layer: Land cover", "query": "Land cover" },
+      { "label": "Spatial layer: Climate data", "query": "Climate data" }
+    ]
+  },
+  {
+    "tab": "regionslocalities",
+    "examples": [
+      { "label": "Location: Great Barrier Reef", "query": "Great Barrier Reef" },
+      { "label": "Location: National Park", "query": "National Park" },
+      { "label": "Location: Canberra", "query": "Canberra" }
+    ]
+  },
+  {
+    "tab": "alageneralcontent",
+    "examples": [
+      { "label": "General content on ALA", "query": "about ALA" },
+      { "label": "General content on ALA", "query": "citation" },
+      { "label": "General content on biodiversity", "query": "biodiversity" }
+    ]
+  },
+  {
+    "tab": "helparticles",
+    "examples": [
+      { "label": "Help article on using the search bar", "query": "search bar" },
+      { "label": "Help article on sharing data with ALA", "query": "sharing data" }
+    ]
+  }
+]

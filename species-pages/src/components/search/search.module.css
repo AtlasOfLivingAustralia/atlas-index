@@ -1,3 +1,136 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+.searchInput, .searchInput div, .searchInput div input {
+    width: 895px;
+    height: 47px;
+    border-radius: 5px 0px 0px 5px;
+    background: #FFF;
+}
+
+.searchInput, .searchInput:focus-visible {
+    border: 1px solid #637073;
+    outline: 1px solid #637073;
+    outline-offset: -1px;
+    padding-left: 15px;
+}
+
+.searchButton, .searchButton:hover, .searchButton:active {
+    flex-shrink: 0;
+    width: 50px;
+    height: 47px;
+    border-radius: 0px 5px 5px 0px;
+    background: #C44D34;
+    border: 1px solid #637073;
+    cursor: pointer;
+    transform: none;
+    color: white;
+}
+
+.searchButton:hover {
+    background: #637073 !important;
+}
+
+.searchButton:active {
+    background: #212121 !important;
+}
+
+.mobileSelect {
+    width: 895px;
+    height: 47px;
+    border: 1px solid #637073 !important;
+    border-radius: 0 0 5px 5px !important;
+    margin: -1px 15px 20px;
+    font-size: 12px !important;
+    line-height: 16px !important;
+}
+
+@media (max-width: 768px) {
+    .searchInput {
+        border-bottom-left-radius: 0;
+        font-size: 12px;
+        line-height: 16px;
+    }
+    .searchButton {
+        border-bottom-right-radius: 0;
+    }
+}
+
+.searchTitle {
+    color: #212121;
+    text-align: center;
+
+    font-family: Roboto;
+    font-size: 44px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 52px;
+
+    margin-top: 60px;
+}
+
+@media (max-width: 768px) {
+    .searchTitle {
+        font-size: 22px;
+        line-height: 28px;
+        margin-top: 30px;
+    }
+}
+
+.tabButtons svg {
+    margin-right: 7px;
+}
+
+.activeTab {
+    border-bottom: 2px solid #C44D34 !important;
+    color: #C44D34;
+}
+
+.tabButtons:hover {
+    border-bottom: 2px solid #C44D34;
+    color: #C44D34;
+}
+
+.tabButtons {
+    padding: 15px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+}
+
+
+.headerLogo {
+    background-repeat: no-repeat;
+    background-position: right -10px top -20px;
+
+    background-image: url('../../image/logo-back-light.svg');
+}
+
+@media (max-width: 768px) {
+    .headerLogo {
+        background-size: 50%;
+        background-position: right -5px top -10px;
+    }
+}
+
+.searchContainer {
+    position: relative;
+    margin-top: 30px;
+    padding-bottom: 30px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+@media (max-width: 768px) {
+    .searchContainer {
+        margin-top: 20px;
+        padding-bottom: 0px;
+    }
+}
+
+
 .filterButton:active {
     transform: none;
 }
@@ -17,6 +150,13 @@
     line-height: 32px; /* 123.077% */
 }
 
+@media (max-width: 768px) {
+    .groupName {
+        font-size: 18px;
+        line-height: 24px;
+    }
+}
+
 .listItemName {
     color: #003A70;
 
@@ -27,12 +167,40 @@
     font-weight: 600;
     line-height: 24px; /* 150% */
     text-decoration-line: underline;
+
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .listItemName {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+.listItemText {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .listItemText {
+        font-size: 12px;
+        line-height: 16px;
+    }
 }
 
 .overflowText {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .overflowText {
+        font-size: 12px;
+        line-height: 16px;
+    }
 }
 
 .filterButton, .filterButton:hover, .filterButton:active {
@@ -58,10 +226,10 @@
     overflow: hidden;
     cursor: pointer;
     position: relative;
-    padding: 10px;
+    padding: 0px 0px 10px 0px;
 }
 
-.tile::after {
+.tile::after, .tileNoImage::after {
     content: "";
     position: absolute;
     bottom: 10px;
@@ -72,15 +240,37 @@
     z-index: 1;
 }
 
+.tile img {
+    border-radius: 10px 10px 0px 0px;
+}
+
 .tileNoImage {
     height: 219px;
     border-radius: 10px;
     background-color: #F2F2F2;
     overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    padding: 10px;
+}
+
+@media (max-width: 768px) {
+    .tile {
+        height: 150px;
+        padding: 10px;
+    }
+    .tile img {
+        border-radius: 10px;
+    }
+    .tileNoImage {
+        height: 150px;
+        padding-left: 0px;
+        /*margin-left: -40px;*/
+    }
 }
 
 .tileContent {
-    padding: 15px 20px 20px;
+    padding: 15px 20px 20px 15px;
     line-height: 1.5;
     max-height: 195px;
     overflow: hidden;
@@ -90,27 +280,15 @@
     line-height: 20px;
 }
 
+@media (max-width: 768px) {
+    .tileContent {
+        max-height: 130px;
+        padding: 0px 15px 20px 10px;
+    }
+}
+
 .disabledFilter span svg {
     margin-right: 5px;
-}
-
-.activeFilter span svg {
-    margin-right: 5px;
-}
-
-.activeFilter {
-    color: white !important;
-    transform: none;
-
-    @mixin light {
-        border-color: var(--mantine-color-charcoal-9);
-        background-color: var(--mantine-color-charcoal-9);
-    }
-
-    @mixin dark {
-        border-color: var(--mantine-color-rust-6);
-        background-color: var(--mantine-color-rust-6);
-    }
 }
 
 .refineTitle {
@@ -122,6 +300,13 @@
     font-style: normal;
     font-weight: 600;
     line-height: 28px; /* 140% */
+}
+
+@media (max-width: 768px) {
+    .refineTitle {
+        font-size: 16px;
+        line-height: 22px;
+    }
 }
 
 .resultsTitle {
@@ -157,6 +342,21 @@
     line-height: 28px; /* 140% */
 }
 
+@media (max-width: 768px) {
+    .resultsTitle {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .resultsTitleItalic {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .resultsTitleBold {
+        font-size: 16px;
+        line-height: 22px;
+    }
+}
+
 .topResult {
     color: #212121;
 
@@ -168,8 +368,16 @@
     line-height: 24px; /* 150% */
 }
 
+@media (max-width: 768px) {
+    .topResult {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
 .alaSelect {
-    height: 38px;
+    font-size: 14px !important;
+    height: 38px !important;
 }
 
 .alaSelect div input {
@@ -182,7 +390,26 @@
     color: #212121;
     height: 16px !important;
     width: 16px !important;
+}
 
+@media (max-width: 768px) {
+    .alaSelect {
+        font-size: 12px !important;
+        line-height: 16px !important;
+        height: 32px;
+    }
+
+    .alaSelect div input {
+        border: 1px solid #212121;
+        border-radius: 5px;
+        height: 32px;
+    }
+
+    .alaSelect div svg {
+        color: #212121;
+        height: 14px !important;
+        width: 14px !important;
+    }
 }
 
 .refineSectionTitle {
@@ -194,35 +421,159 @@
     font-style: normal;
     font-weight: 600;
     line-height: 24px; /* 150% */
+
+    display: block;
 }
 
-.paginationButton {
-    border-radius: 5px;
-    border: 1px solid #637073;
-    background: #FFF;
+@media (max-width: 768px) {
+    .refineSectionTitle {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+.refineItem {
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .refineItem {
+        font-size: 12px;
+        line-height: 16px;
+        margin-top: 1px
+    }
+
+}
+
+.alaFilter svg {
+    margin-right: 5px;
+}
+
+.alaFilter {
+    height: 38px;
+    background-color: #F2F2F2;
+    padding: 8px 19px 10px 19px;
     color: #212121;
-    padding: 8px 15px 10px 15px;
+    border: 1px solid #F2F2F2;
+    border-radius: 4px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 20px;
 }
 
-.paginationButton:hover {
+@media (max-width: 768px) {
+    .alaFilter {
+        height: 32px;
+        background-color: #F2F2F2;
+        padding: 8px 15px 8px 15px;
+        color: #212121;
+        border: 1px solid #F2F2F2;
+        border-radius: 4px;
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-size: 12px;
+        line-height: 16px;
+    }
+    .alaFilter svg {
+        margin-top: 1px !important;
+    }
+}
+
+.activeFilter {
+    color: #212121;
+    transform: none;
+    border: 1px solid #212121;
+    background-color: white;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.groupCount {
+    color: #003A70;
+    font-weight: 500;
+    line-height: 22px;
+    font-size: 16px;
+    text-decoration: underline;
+}
+
+.groupCount:hover {
+    color: #C44D34;
+}
+
+@media (max-width: 768px) {
+    .groupCount {
+        font-size: 14px;
+        line-height: 18px;
+    }
+}
+
+.headerLabels {
+    line-height: 16px;
+    font-size: 14px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .headerLabels {
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
+
+.listItemDescription {
+    position: relative;
+}
+
+.multilineText {
+    word-break: break-all;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .multilineText {
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
+
+.listDescription {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .listDescription {
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
+
+.listItemImage {
+    width: 62px;
+    height: 62px;
     border-radius: 5px;
-    background: #637073;
-    color: #FFF;
+    object-fit: contain;
+    object-position: top;
 }
 
-.paginationButtonSelected {
+.refineResultsBtn {
+    background-color: #FFFFFF;
+    border: 1px solid #212121;
+    border-radius: 20px;
+
+    font-size: 12px;
+    line-height: 16px;
+    height: 32px;
+    width: 100%;
+}
+
+.refineResultsBtn svg {
+    margin-top: 1px !important;
+    margin-right: 5px;
+}
+
+.refineDialog {
+    border: 1px solid #212121;
     border-radius: 5px;
-    background: #212121;
-    color: #FFF;
-    padding: 8px 15px 10px 15px;
 }
-
-.next {
-    background: #C44D34 !important;
-    color: #FFF;
-}
-
-.next:hover {
-    background: #637073 !important;
-}
-

@@ -1,0 +1,106 @@
+.btn.ala-btn-primary {
+    position: relative;
+    padding: 10px 40px 10px 14px;
+    background: #FFFFFF;
+    border: 1px solid #C44D34;
+    border-radius: 5px;
+    color: #212121;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 500;
+    text-align: left;
+    text-decoration-line: none !important;
+}
+
+.btn.ala-btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 14px;
+    height: 14px;
+    background-color: currentColor;
+    -webkit-mask: url('data:image/svg+xml;utf8,<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.75 7.55094L8.25 12.8009C7.9375 13.0822 7.46875 13.0822 7.1875 12.7697C6.90625 12.4572 6.90625 11.9884 7.21875 11.7072L11.375 7.73844H0.75C0.3125 7.73844 0 7.42594 0 6.98844C0 6.58219 0.3125 6.23844 0.75 6.23844H11.375L7.21875 2.30094C6.90625 2.01969 6.90625 1.51969 7.1875 1.23844C7.46875 0.925936 7.96875 0.925936 8.25 1.20719L13.75 6.45719C13.9062 6.61344 14 6.80094 14 6.98844C14 7.20719 13.9062 7.39469 13.75 7.55094Z" fill="black"/></svg>') no-repeat center/contain;
+    mask: url('data:image/svg+xml;utf8,<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.75 7.55094L8.25 12.8009C7.9375 13.0822 7.46875 13.0822 7.1875 12.7697C6.90625 12.4572 6.90625 11.9884 7.21875 11.7072L11.375 7.73844H0.75C0.3125 7.73844 0 7.42594 0 6.98844C0 6.58219 0.3125 6.23844 0.75 6.23844H11.375L7.21875 2.30094C6.90625 2.01969 6.90625 1.51969 7.1875 1.23844C7.46875 0.925936 7.96875 0.925936 8.25 1.20719L13.75 6.45719C13.9062 6.61344 14 6.80094 14 6.98844C14 7.20719 13.9062 7.39469 13.75 7.55094Z" fill="black"/></svg>') no-repeat center/contain;
+}
+
+.btn.ala-btn-primary:hover {
+    background-color: #F26649 !important;
+    border-color: #F26649 !important;
+}
+
+.btn:active.ala-btn-primary {
+    background-color: #C44D34 !important;
+    color: #FFFFFF !important;
+    border-color: #C44D34 !important;
+}
+
+.form-select:focus {
+    border-color: inherit !important;
+    box-shadow: none !important;
+}
+
+.speciesPage a:not(:is(.btn, .leaflet-container a, .leaflet-container * a)) {
+    color: #003A70 !important;
+    text-decoration: underline !important;
+}
+
+.leaflet-container * a {
+    text-decoration: none !important;
+}
+
+.ala-btn-large {
+    min-height: 69px;
+    width: 255px;
+    display: flex !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(even) {
+  --bs-table-accent-bg: #f2f2f2 !important;
+  background-color: #f2f2f2 !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: #fff !important;
+}
+
+.table > :not(caption) > * > * {
+    border-bottom-width: 0 !important;
+}
+
+.table > tbody > tr:first-of-type > * {
+    border-top: 0.5px solid #212121 !important;
+}
+
+.ala-btn-secondary {
+    padding: 0px 20px 0px 20px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #212121 !important;
+    border-radius: 20px !important;
+
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    line-height: 36px !important;
+}
+
+.ala-btn-secondary:hover {
+    background: #637073 !important;
+    border: 1px solid #637073 !important;
+    color: #FFF !important;
+}
+
+.ala-btn-secondary:active {
+    background: #212121 !important;
+}
+
+@media (max-width: 768px) {
+    .ala-btn-secondary {
+        font-size:  14px !important;
+        line-height: 34px !important;
+    }
+}
+
+.ala-h3 {
+    font-size: 32px;
+    line-height: 40px;
+}

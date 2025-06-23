@@ -1,9 +1,15 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {useCallback, useEffect, useState} from "react";
-import { Anchor, Alert, Skeleton, Table, Text } from "@mantine/core";
-import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
+import FlaggedAlert from "../common-ui/flaggedAlert.tsx";
+import classes from "./species.module.css";
 
 interface MapViewProps {
-    result?:  Record<PropertyKey, string | number | any >
+    result?: Record<PropertyKey, string | number | any>
 }
 
 interface Dataset {
@@ -27,7 +33,7 @@ function DatasetsView({result}: MapViewProps) {
         setLoading(true);
         setErrorMessage('');
         fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search?q=lsid:\"" + encodeURIComponent(result.guid) + "\"&pageSize=0&facet=true&facets=dataResourceUid", {
-            headers: { 'Content-Type': 'application/json' }
+            headers: {'Content-Type': 'application/json'}
         })
             .then(response => response.json())
             .then(data => {
@@ -85,37 +91,67 @@ function DatasetsView({result}: MapViewProps) {
         return {
             head: ['Dataset', 'Licence', 'Records'],
             body: datasets.map((item) => [
-                <Anchor target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + "/public/show/" + item.dataResourceUid}>
+                <a
+                    className={classes.speciesLink}
+                    style={{fontSize: "16px", lineHeight: "24px"}}
+                    target="_blank"
+                    href={import.meta.env.VITE_COLLECTIONS_URL + "/public/show/" + item.dataResourceUid}
+                >
                     {item.name}
-                </Anchor>,
+                </a>,
                 item.licence,
-                <Anchor target="_blank" href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/search?q=lsid:\"" + result?.guid
-                    + "\"&fq=dataResourceUid:" + item.dataResourceUid}>
+                <a
+                    className={classes.speciesLink}
+                    style={{fontSize: "16px", lineHeight: "24px"}}
+                    target="_blank"
+                    href={
+                        import.meta.env.VITE_APP_BIOCACHE_UI_URL +
+                        "/occurrences/search?q=lsid:\"" +
+                        result?.guid +
+                        "\"&fq=dataResourceUid:" +
+                        item.dataResourceUid
+                    }
+                >
                     {item.records.toLocaleString()}
-                </Anchor>
+                </a>
             ]),
         };
     }, [datasets]);
 
     return <>
-        { loading &&
-            <Skeleton height={40} width="100%" radius="md" />
+        {loading &&
+            <div className="placeholder-glow">
+                <span className="placeholder" style={{height: 24, display: "block", borderRadius: "5px", width: "100%"}}></span>
+                <span className="placeholder" style={{height: 800, display: "block", borderRadius: "5px", width: "100%", marginTop: "10px"}}></span>
+            </div>
         }
-        { errorMessage &&
-            <Alert icon={<FlagIcon />}>
-                <b>Error loading datasets</b>
+        {errorMessage &&
+            <FlaggedAlert content={<><b>Error loading datasets</b>
                 <p>Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.</p>
-                <code>{errorMessage}</code>
-            </Alert>
+                <code>{errorMessage}</code></>}/>
         }
-        { datasets.length > 0 &&
-            <Table
-                striped="even"
-                data={populateTableData()}
-            />
+        {datasets.length > 0 &&
+            <table className="table table-striped" style={{fontSize: "16px", lineHeight: "24px"}}>
+                <thead>
+                <tr>
+                    {populateTableData().head.map((col, idx) => (
+                        <th key={idx}>{col}</th>
+                    ))}
+                </tr>
+                </thead>
+                <tbody>
+                {populateTableData().body.map((row, rowIdx) => (
+                    <tr key={rowIdx}>
+                        {row.map((cell, cellIdx) => (
+                            <td key={cellIdx}>{cell}</td>
+                        ))}
+                    </tr>
+                ))}
+                </tbody>
+            </table>
         }
-        { !loading && !errorMessage && datasets.length == 0 &&
-            <Text>No datasets found</Text>
+        {!loading && !errorMessage && datasets.length == 0 &&
+            <span>No datasets found</span>
         }
     </>
 }

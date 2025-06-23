@@ -1,8 +1,14 @@
-import {GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Image, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {GenericViewProps, RenderItemElements, RenderItemParams} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {limitDescription, openUrl} from "../util.tsx";
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from "../util.tsx";
 import missingImage from '../../../image/missing-image.png';
+import {FadeInImage} from "../../common-ui/fadeInImage.tsx";
 
 export const dataprojectsDefn: GenericViewProps = {
     fq: "idxtype:BIOCOLLECT OR idxtype:DIGIVOL",
@@ -11,60 +17,54 @@ export const dataprojectsDefn: GenericViewProps = {
 
     facetDefinitions: {
         "projectType": {
-            label: "Project type",
+            label: "Type",
             order: 1
         }
     },
 
-    renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = missingImage}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src={missingImage}
-                    />
-                }
-            </div>
-            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <FadeInImage
+                className={classes.listItemImage}
+                src={item.image || missingImage}
+                missingImage={missingImage}
+            />,
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+            </>,
+            extra: <>
                 {/*<Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} records</Text>*/}
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+            </>,
+            description: <>
+                <span title={item.description}
+                      className={classes.listDescription}>{limitDescription(item.description, isMobile ? 80 : (wide ? 230 : 120))}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item}: RenderItemParams) => {
-        return <div className={classes.tile} onClick={() => openUrl(item.guid)}>
-            {item.image && <Image height={150} width="auto"
-                                  src={item.image}
-                                  onError={(e) => e.currentTarget.src = missingImage}
-            />
-            }
-            {!item.image && <Image height={150} width="auto"
-                                   src={missingImage}
-            />
-            }
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: "13px"}}>{item.name}</span>
+                <span title={item.description}
+                      className={classes.listDescription}>{item.description}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericTileItemFn(isMobile, elements);
+    },
 
-            <div className={classes.tileContent}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Space h="13px"/>
-                <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
-            </div>
-        </div>
-    }
+    resourceLinks: [
+        {
+            label: "Biocollect",
+            url: import.meta.env.VITE_APP_BIOCOLLECT_URL
+        },
+        {
+            label: "Digivol",
+            url: import.meta.env.VITE_APP_DIGIVOL_URL
+        }
+    ]
 }

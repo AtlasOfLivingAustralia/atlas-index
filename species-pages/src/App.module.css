@@ -1,17 +1,15 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 .header {
   z-index: 0;
   background-repeat: no-repeat;
   background-position: right -70px top -20px;
 
-  @mixin light {
-    background-color: var(--mantine-color-concrete-0);
-    /* background-image: url('/logo/logo-back-light.svg'); */
-  }
-
-  @mixin dark {
-    background-color: var(--mantine-color-charcoal-8);
-    /* background-image: url('/logo/logo-back-dark.svg'); */
-  }
+  background-color: #F2F2F2;
 
   /* Mobile Sizes */
   @media (max-width: calc(48em - 1px)) {
@@ -25,15 +23,8 @@
   background-position: right -70px top -20px;
   background-size: 60%;
 
-  @mixin light {
-    background-color: var(--mantine-color-concrete-0);
-    background-image: url('/logo/logo-back-light.svg');
-  }
-
-  @mixin dark {
-    background-color: var(--mantine-color-charcoal-8);
-    background-image: url('/logo/logo-back-dark.svg');
-  }
+  background-color: #F2F2F2;
+  background-image: url('/logo/logo-back-light.svg');
 
   /* Mobile Sizes */
   @media (max-width: calc(48em - 1px)) {
@@ -43,17 +34,10 @@
 
 
 .breadcrumb {
-  color: var(--mantine-color-gray-7);
+  color: #6c7679;
 
-  @mixin dark {
-    color: var(--mantine-color-gray-2);
-  }
 }
 
 .title {
   font-style: italic;
-
-  @mixin dark {
-    color: var(--mantine-color-flamingo-4) !important;
-  }
 }

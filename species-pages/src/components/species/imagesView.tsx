@@ -1,16 +1,30 @@
-import { useCallback, useEffect, useState } from "react";
-import { Anchor, Badge, Box, Button, Checkbox, Collapse, Divider, Flex, Grid, Image, Modal, Radio, Skeleton, Text, UnstyledButton } from "@mantine/core";
-import { IconAdjustmentsHorizontal, IconChevronDown, IconChevronUp, IconExternalLink, IconMovie, IconVolume, IconZoomReset } from "@tabler/icons-react";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {Fragment, useCallback, useEffect, useState} from "react";
+import FontAwesomeIcon from '../common-ui/fontAwesomeIconLite.tsx';
+import {
+    faChevronDown,
+    faFilm,
+    faVolumeUp,
+} from '@fortawesome/free-solid-svg-icons';
 import classes from "./species.module.css";
-import { useDisclosure } from "@mantine/hooks";
-import capitalizeFirstLetter from "../../helpers/Capitalise";
+import FormatName from "../nameUtils/formatName.tsx";
+import capitalise from "../../helpers/Capitalise.ts";
+import missingImage from '../../image/missing-image.png';
+import {FadeInImage} from "../common-ui/fadeInImage.tsx";
+import refineSection, {RefineSectionItem} from "../common-ui/refineSection.tsx";
 
 interface MediaViewProps {
-    result?: Record<PropertyKey, string | number | any >
+    result?: Record<PropertyKey, string | number | any>
 }
 
 interface MediaTypes {
-    images: string[];
+    uuid: string;
+    imageMetadata: { imageId: string, height: number, width: number }[];
     videos: string[];
     sounds: string[];
 }
@@ -18,12 +32,15 @@ interface MediaTypes {
 interface Items {
     id: string;
     type: string;
+    height: number;
+    width: number;
+    occurrenceId: string;
 }
 
 interface FacetResult {
     count: number
     fq: string
-    i18nCode: string
+    i18nCode?: string
     label: string
 }
 
@@ -42,8 +59,6 @@ enum MediaTypeEnum {
     video = 'video',
     sound = 'sound'
 }
-
-type MediaTypeValues = keyof typeof MediaTypeEnum;
 
 // "Grouped" filters require a mapping for the values to be grouped together
 const fieldMapping = {
@@ -77,65 +92,39 @@ const fieldMapping = {
         // 'Not supplied': 'Not supplied',
     }
 };
-const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName']; // TODO: move to config?
-
-// Started implementing links for license types, too fiddly for now (needs mapping to separate URLs for each license type)
-const fieldLink: Record<string, string[]> = {
-    'license-XXX': ['https://creativecommons.org/licenses/','/4.0/deed.en'],
-}
+const facetFields = ['basisOfRecord', 'multimedia', 'license', 'dataResourceName'];
 
 function ImagesView({result}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
-    const [mediaType, setMediaType] = useState<MediaTypeValues>('all'); // all, image, video, sound
     const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc');
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [firstFetchDone, setFirstFetchDone] = useState(false);
 
     // Control of modal for image details
-    const [openModalId, setOpenModalId] = useState<string | null>(null);
-    const [opened, { open, close }] = useDisclosure(false);
-
-    // Control of expand/collapse state for facets display
-    const [expandCollapseState, setExpandCollapseState] = useState({
-        license: false,
-        dataResourceName: false,
-        basisOfRecord: false
-    });
-    const toggleExpandCollapse = (facet: keyof typeof expandCollapseState) => {
-        setExpandCollapseState(prevState => ({
-            ...prevState,
-            [facet]: !prevState[facet]
-        }));
-    };
+    const [openImageIdx, setOpenImageIdx] = useState(0);
+    const [opened, setOpened] = useState<boolean>(false);
 
     // Build the `fq` query param (string, with multiple `fq` params for array-style facets)
-    const fqParameterString = useCallback( (): string => {
+    const fqParameterString = useCallback((): string => {
         const fqQueryList: String[] = facetFields.map((field) => {
             const fq = fqUserTrigged[field];
             return (fq && fq.length > 0) ? `&fq=${fq.join("+OR+")}` : '';
         });
         return fqQueryList.join('');
-    }, [fqUserTrigged]); 
+    }, [fqUserTrigged]);
 
-    const pageSize = 10;
+    const pageSize = 12;
     const facetLimit = 15;
-    const maxVisibleFacets = 4;
     const gridHeight = 210;
     const gridWidthTypical = 240;
-    const biocacheBaseUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
-    const mediaFqMap: Record<MediaTypeValues, string> = {
-        all: "&fq=multimedia:*",
-        image: "&fq=multimedia:Image",
-        sound: "&fq=multimedia:Sound",
-        video: "&fq=multimedia:Video",
-    };
 
     useEffect(() => {
-        fetchImages(); 
-    }, [result, page, sortDir, fqUserTrigged, mediaType]);
+        fetchImages();
+    }, [result, page, sortDir, fqUserTrigged]);
 
     function fetchImages() {
         if (!result?.guid) {
@@ -143,58 +132,136 @@ function ImagesView({result}: MediaViewProps) {
         }
 
         setLoading(true);
-        fetch(biocacheBaseUrl + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
-            `&facets=${facetFields.join(',')}` +
+
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
+            (page == 0 ? `&facets=${facetFields.join(',')}` : '') +
             '&start=' + (page * pageSize) +
             '&pageSize=' + pageSize +
             '&dir=' + sortDir +
             '&sort=eventDate' +
-            '&qualityProfile=ALA' +
+            import.meta.env.VITE_GLOBAL_FQ +
             '&flimit=' + facetLimit +
-            '&includeUnfilteredFacetValues=true' +
             fqParameterString() +
-            mediaFqMap[mediaType] || '&fq=multimedia:*'
-        )
+            '&fq=multimedia:*' +
+            '&im=true';
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
-                const list: { id: string, type: string }[] = [];
+                const list: { id: string, type: string, height: number, width: number, occurrenceId: string }[] = [];
+                let fqMultimedia = fqUserTrigged['multimedia'] || [];
+                let includeImages = fqMultimedia.length == 0 || fqMultimedia.includes('multimedia:"Image"');
+                let includeSounds = fqMultimedia.length == 0 || fqMultimedia.includes('multimedia:"Sound"');
+                let includeVideos = fqMultimedia.length == 0 || fqMultimedia.includes('multimedia:"Video"');
                 data.occurrences.map((item: MediaTypes) => {
-                    // The following `for` loops are commented out as it distorts the `counts`, due to
-                    // multiple media files per record result in an indeterminate number of media files
-                    // (i.e., ask for 10 get more than 10). So we take only the first file per record.
-                    // TODO: Delete the `for` loops if we're sticking with Biocache API (vs using image-service API)
-                    if (item.images && (mediaType === MediaTypeEnum.all || mediaType === MediaTypeEnum.image)) {
-                        // for (let id of item.images) {
-                        //     list.push({id: id, type: 'image'});
-                        // }
-                        list.push({id: item.images[0], type: MediaTypeEnum.image});
+                    if (item.imageMetadata && includeImages) {
+                        for (let image of item.imageMetadata) {
+                            let aspectRatio = image.width / image.height;
+                            list.push({
+                                id: image.imageId,
+                                occurrenceId: item.uuid,
+                                type: MediaTypeEnum.image,
+                                height: gridHeight,
+                                width: gridHeight * aspectRatio > gridWidthTypical ? gridWidthTypical : gridHeight * aspectRatio
+                            });
+                        }
                     }
-                    if (item.videos && (mediaType === MediaTypeEnum.all || mediaType === MediaTypeEnum.video)) {
-                        // for (let id of item.videos) {
-                        //     list.push({id: id, type: 'video'});
-                        // }
-                        list.push({id: item.videos[0], type: MediaTypeEnum.video});
+                    if (item.videos && includeVideos) {
+                        for (let id of item.videos) {
+                            list.push({
+                                id: id,
+                                type: MediaTypeEnum.video,
+                                height: gridHeight,
+                                width: gridWidthTypical,
+                                occurrenceId: item.uuid
+                            });
+                        }
                     }
-                    if (item.sounds && (mediaType === MediaTypeEnum.all || mediaType === MediaTypeEnum.sound)) {
-                        // for (let id of item.sound) {
-                        //     list.push({id: id, type: 'sound'});
-                        // }
-                        list.push({id: item.sounds[0], type: MediaTypeEnum.sound});
+                    if (item.sounds && includeSounds) {
+                        for (let id of item.sounds) {
+                            list.push({
+                                id: id,
+                                type: MediaTypeEnum.sound,
+                                height: gridHeight,
+                                width: gridWidthTypical,
+                                occurrenceId: item.uuid
+                            });
+                        }
                     }
                 })
 
                 if (page == 0) {
                     setItems(list);
                     setOccurrenceCount(data.totalRecords);
-                    setFacetResults(data.facetResults);
+                    updateFacetResults(data.facetResults);
                 } else {
                     setItems([...items, ...list]);
                 }
+
+                setFirstFetchDone(true);
             }).catch(error => {
-                console.error('Failed to fetch images - ' + error);
-            }).finally(() => {
-                setLoading(false);
-            });
+            console.error('Failed to fetch images - ' + error);
+        }).finally(() => {
+            setLoading(false);
+        });
+    }
+
+    // Initialises, aggregates, labels, and updates counts if needed for facets.
+    function updateFacetResults(newFacetResults: FacetResultSet[]) {
+        // iterate through facet results and perform aggregation using fieldMapping
+        const aggregatedResults: FacetResultSet[] = [];
+        for (const facet of newFacetResults) {
+            const fieldName: string = facet.fieldName;
+            // skip if no aggregation is needed
+            let thisMapping: Record<string, string> | undefined = fieldMapping[fieldName as keyof typeof fieldMapping];
+            if (!thisMapping) {
+                aggregatedResults.push(facet);
+                continue;
+            }
+
+            let newFieldResultsMap: Record<string, FacetResult> = {};
+            for (const result of facet.fieldResult) {
+                let mappedLabel = thisMapping[result.label];
+
+                // Aggregate "Other"
+                if (!mappedLabel) {
+                    mappedLabel = "Other";
+                }
+
+                // TODO: handle fq that is "-field:*", it cannot be joined with OR
+                let aggregatedResult = newFieldResultsMap[mappedLabel];
+                if (aggregatedResult) {
+                    aggregatedResult.count += result.count;
+                    aggregatedResult.fq += ` OR ${result.fq}`;
+                } else {
+                    newFieldResultsMap[mappedLabel] = {
+                        label: mappedLabel,
+                        count: result.count,
+                        fq: result.fq
+                    };
+                }
+            }
+            aggregatedResults.push({
+                fieldName: fieldName,
+                fieldResult: Object.values(newFieldResultsMap)
+            })
+        }
+
+        if (!firstFetchDone) {
+            setFacetResults(aggregatedResults);
+        } else {
+            // Facet selection was changed, only update existing facetResults counts
+            for (const facet of facetResults) {
+                const aggregatedFacet = aggregatedResults.find(f => f.fieldName === facet.fieldName);
+                if (aggregatedFacet) {
+                    for (const result of facet.fieldResult) {
+                        const aggregatedFacetItem = aggregatedFacet.fieldResult.find(r => r.label === result.label);
+                        result.count = aggregatedFacetItem ? aggregatedFacetItem.count : 0;
+                    }
+                }
+            }
+            setFacetResults([...facetResults]);
+        }
     }
 
     const getImageThumbnailUrl = (id: string) => {
@@ -205,14 +272,8 @@ function ImagesView({result}: MediaViewProps) {
         return `${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/proxyImage?imageId=${id}`;
     }
 
-    function resetView() {
-        setPage(0);
-        setFqUserTrigged({});
-    }
-
     // Remove image from list if it fails to load
     const handleImageError = (idx: number, _e: any) => {
-        // console.log('Image error', _e.target?.src, idx, items[idx]);
         setItems(prevItems => prevItems.filter((_, index) => index !== idx));
     };
 
@@ -220,349 +281,364 @@ function ImagesView({result}: MediaViewProps) {
         return new Intl.NumberFormat('en').format(num); // TODO: move to helper and add locale detection
     }
 
-    // Helper to invert a Record<string, string> object to Record<string, string[]>
-    // E.g., `{a: 'one', b: 'one, c: 'two'} -> {one: ['a','b'], two: ['c']}`
-    function invertObject(obj: Record<string, string>): Record<string, string[]> {
-        return Object.fromEntries(
-            Object.entries(obj).reduce((acc, [key, value]) => {
-                if (!acc.has(value)) {
-                    acc.set(value, []);
-                }
-                acc.get(value).push(key);
-                return acc;
-            }, new Map())
-        );
-    }
-
     // Modal event handlers
-    const handleOpenModal = (id: string) => {
-        setOpenModalId(id);
-        open();
-    };
+    function handleOpenModal(idx: number) {
+        setOpenImageIdx(idx);
+        setOpened(true);
 
-    const handleCloseModal = () => {
-        setOpenModalId(null);
-        close();
+        // prepare the next page if this is the last image on the current page
+        if (idx >= items.length - 2 && occurrenceCount > pageSize * (page + 1)) {
+            setPage(page + 1);
+        }
     };
-
-    // Bunch of methods to handle facet filtering - A bit of a Rube Goldberg machine unfortunately
 
     // Check if a facet value is active (should be shown as checked)
-    const fqValueIsActive = (facetName: string, facetValue: string) : boolean => {
+    const fqValueIsActive = (facetName: string, facetValue: string): boolean => {
         const fqTriggeredForField = fqUserTrigged[facetName];
-        return (fqTriggeredForField) ? fqTriggeredForField?.includes(facetValue) : false;
+        return (fqTriggeredForField && fqTriggeredForField.length > 0) ? fqTriggeredForField?.includes(facetValue) : false;
     };
 
-    // Checkbox group reusable component
-    const FilterCheckBoxGroup = ({ fieldName, limit = maxVisibleFacets, grouped = false }: { fieldName: string, limit?: number, grouped?: boolean }) => {
-        // Update the fqUserTrigged state when clicked
-        const updateUserFqs = (fq: string, active: boolean) => {
-            setPage(0);
-            !active
-                ? setFqUserTrigged(prevState => {
-                    const newFq = { ...prevState };
-                    newFq[fieldName] = [...(newFq[fieldName] || []), fq];
-                    return newFq;
-                })
-                : setFqUserTrigged(prevState => {
-                    const newFq = { ...prevState };
-                    newFq[fieldName] = newFq[fieldName]?.filter(filter => filter !== fq);
-                    return newFq;
-                });
-        };
+    // Add/remove a fq for a facet field. It handles multiple fq's for the same field, e.g. `multimedia:"Image" OR multimedia:"Video"`.
+    const updateUserFqs = (fq: string, active: boolean, fieldName: string) => {
+        setPage(0);
+        setLoading(true);
+        !active
+            // add the fq
+            ? setFqUserTrigged(prevState => {
+                const newFq = {...prevState};
+                newFq[fieldName] = [...(newFq[fieldName] || []), fq];
+                return newFq;
+            })
+            : (
+                (fqUserTrigged[fieldName] || []).length == 0
+                    // add all other fq for this fieldName
+                    ? setFqUserTrigged(prevState => {
+                        const newFq = {...prevState};
+                        newFq[fieldName] = facetResults.find(facet => facet.fieldName === fieldName)?.fieldResult.filter(item => item.fq !== fq).map(item => item.fq) || [];
+                        return newFq;
+                    })
+                    :
+                    // remove the fq
+                    setFqUserTrigged(prevState => {
+                        const newFq = {...prevState};
+                        newFq[fieldName] = newFq[fieldName]?.filter(filter => filter !== fq);
+                        return newFq;
+                    })
+            );
+    };
 
-        let fieldsToDisplay: FacetResult[] = facetResults.filter(facet => facet.fieldName === fieldName).map(facet => facet.fieldResult)[0];
-
-        if (grouped) {
-            // If the field is grouped, then we need to create synthetic entries based on the fieldMapping
-            const typeMap = fieldMapping[fieldName as keyof typeof fieldMapping] || {}; // e.g. {'Machine observation': 'Occurrences', 'Preserved specimen': 'Specimens', ...}
-            const invertedTypeMap = invertObject(typeMap); // e.g. {'Occurrences': ['Machine observation','Observation, ...], 'Specimens': ['Preserved specimen','Material sample', ...]}
-            
-            // Generate "synthetic" grouped fields based on the invertedTypeMap
-            const generateSyntheticFields = (
-                invertedTypeMap: Record<string, string[]>,
-                fields: FacetResult[] | undefined,
-                fieldsToDisplay: FacetResult[] | undefined
-            ): FacetResult[] => {
-                return Object.entries(invertedTypeMap).map(([key, values]: [string, string[]]) => {
-                    const availableValues = fields?.filter(field => values.includes(field.label));
-            
-                    // If no `facetResults` values are available for the synthetic field,
-                    // then we need to create an empty entry with count 0 (disabled)
-                    if (!availableValues || availableValues.length === 0) {
-                        return { label: key, count: 0, fq: '', i18nCode: '' };
-                    }
-            
-                    const totalCount: number = availableValues.reduce((acc, field) => acc + field.count, 0); // Sum of counts
-                    const fq: string = fieldsToDisplay
-                        ?.filter(field => values.includes(field.label))
-                        .map(field => field.fq)
-                        .join('+OR+') || '';
-                    return { label: key, count: totalCount, fq: fq, i18nCode: '' };
-                });
-            };
-            
-            const syntheticFields: FacetResult[] = generateSyntheticFields(invertedTypeMap, fieldsToDisplay, fieldsToDisplay); //.filter(field => field.count > 0);
-            fieldsToDisplay = syntheticFields.sort((a, b) => b.count - a.count);
+    // Create facet items for use in a refine section
+    function itemsForFacet(fieldName: string, showCount: boolean = true): RefineSectionItem[] {
+        if (!facetResults || facetResults.length === 0) {
+            return [];
         }
-
-        return (
-            <>
-                {fieldsToDisplay?.map((item, idx) =>
-                    <Collapse in={idx < limit || expandCollapseState[fieldName as keyof typeof expandCollapseState]} key={idx}>
-                        <Checkbox
-                            size="xs"
-                            disabled={item.count === 0}
-                            checked={fqValueIsActive(fieldName, item.fq)}
-                            onChange={() => { updateUserFqs(item.fq, fqValueIsActive(fieldName, item.fq))}}
-                            label={<>
-                                <Text span c={(item.count === 0) ? 'gray' : 'default'}>
-                                { fieldLink[fieldName]
-                                    ? <Anchor href={`${fieldLink[fieldName][0]}${item.label.replace('CC-','')}${fieldLink[fieldName][1]}`} target="_blank">{item.label}</Anchor>
-                                    : item.label }
-                                </Text>
-                                <Badge
-                                    variant="light"
-                                    color="rgba(100, 100, 100, 1)"
-                                    ml={8} pt={2} pr={8} pl={8}
-                                    radius="lg"
-                                >
-                                    {formatNumber(item.count)}
-                                </Badge>
-                            </>}
-                            styles={{ inner: { marginTop: 3} }}
-                        />
-                    </Collapse>
-                )}
-                {fieldsToDisplay?.length > limit &&
-                    <Anchor
-                        onClick={() => toggleExpandCollapse(fieldName as keyof typeof expandCollapseState)}
-                        mt={5}
-                        style={{ width: '80%', display: 'block', textAlign: 'center'}}
-                    >
-                        {expandCollapseState[fieldName as keyof typeof expandCollapseState]
-                            ? <IconChevronUp />
-                            : <IconChevronDown />
-                        }
-                    </Anchor>
-                }
-            </>
-        );
-    };
-
-    // Thumbnail image component, with its own useState so we can show a skeleton while image is loading
-    const ImageThumbnailModal = ({imageId, type, idx}:{imageId: string, type: MediaTypeValues, idx: number}) => {
-        const [loading, setLoading] = useState(true);
-
-        return (
-            <Flex maw={gridWidthTypical} h={gridHeight} justify="center" align="center" direction="column" style={{overflow: 'hidden', borderRadius: 12}}>
-                {type === MediaTypeEnum.image &&
-                    <UnstyledButton 
-                        onClick={() => handleOpenModal(imageId)}
-                    >
-                        <Image
-                            radius="md"
-                            h={loading ? 0 : gridHeight}
-                            maw={loading ? 0 : gridWidthTypical}
-                            src={getImageThumbnailUrl(imageId)}
-                            onMouseOver={(event) => {
-                                // Slight zoom effect on hover
-                                const target = event.target as HTMLImageElement;
-                                target.style.transform = 'scale(1.1)';
-                                target.style.transition = 'transform 0.3s ease';
-                            }}
-                            onMouseOut={(event) => {
-                                // Reset zoom effect on hover out
-                                const target = event.target as HTMLImageElement;
-                                target.style.transform = 'scale(1.0)';
-                                target.style.transition = 'transform 0.3s ease';
-                            }}
-                            onLoad={(event) => {
-                                const target = event.target as HTMLImageElement;
-                                if (target && target.complete) {
-                                    setLoading(false);
-                                } 
-                            }}
-                            onError={(e) => handleImageError(idx, e)}
-                        />
-                        {loading && <Skeleton height={gridHeight} width={gridWidthTypical} radius="md" styles={{ root: {display: 'inline-block'}}}/>}
-                    </UnstyledButton>
-                }
-                {(type === MediaTypeEnum.sound || type === MediaTypeEnum.video) &&
-                    <Button 
-                        variant="subtle" color="gray"
-                        h="100%"
-                        w={200}
-                        radius={10}
-                        className={classes.mediaIconBtn}
-                        style={{ textWrap: 'wrap' }}
-                        fz='md'
-                        onClick={() => handleOpenModal(imageId)}
-                    >
-                        { type === MediaTypeEnum.sound && <><IconVolume size={80} stroke={1.5} color="gray" />Sound file</> }
-                        { type === MediaTypeEnum.video && <><IconMovie size={80} stroke={1.5} color="gray" />Video file</> }
-                    </Button>
-                }    
-                <Modal
-                    opened={opened && openModalId === imageId}
-                    onClose={handleCloseModal}
-                    size="auto"
-                    title={ <Anchor
-                            display="block"
-                            target="_blank"
-                            ml={5}
-                            fw="bold"
-                            mt="xs"
-                            size="md"
-                            href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${imageId}`}
-                        >View {type} file details <IconExternalLink size={20}/></Anchor>}
-                >
-                    { type === MediaTypeEnum.image && 
-                        <Image
-                            radius="md"
-                            mah="80vh"
-                            h="100%"
-                            src={ getImageOriginalUrl(imageId) }
-                        />
-                    }
-                    { type === MediaTypeEnum.sound &&
-                        <audio controls preload="auto" style={{ width: '50vw', margin: '50px'}}>
-                            <source
-                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${imageId}`}
-                                type="audio/mpeg"
-                                width="100%"
-                            />
-                        </audio>
-                    }
-                    { type === MediaTypeEnum.video &&
-                        <video controls preload="false" style={{ maxWidth: '100%', maxHeight: '80vh'}}>
-                            <source
-                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${imageId}`}
-                            />
-                        </video>
-                    }
-                </Modal>
-            </Flex>
-        );
+        const fieldResult = facetResults.find(facet => facet.fieldName === fieldName)?.fieldResult || [];
+        return fieldResult.map(item => ({
+            label: <>{item.label}{showCount ? ` (${formatNumber(item.count)})` : ""}</>,
+            onClick: () => {
+                const fq = item.fq;
+                const isActive = fqValueIsActive(fieldName, fq);
+                updateUserFqs(fq, isActive, fieldName);
+            },
+            isOpen: fqValueIsActive(fieldName, item.fq),
+            isDisabled: () => item.count === 0
+        }));
     }
 
     return (
-        <Box>
-            <Flex gap="md" direction={{ base: 'column', sm: 'row' }}>
-            { Object.keys(mediaFqMap).map((key, idx) => // all, image, video, sound
-                <Button
-                    key={idx}
-                    variant={key === mediaType ? 'filled' : 'outline'}
-                    onClick={() => {
-                        resetView();
-                        setMediaType(key as MediaTypeValues);
-                    }}
-                >{capitalizeFirstLetter(key)}{key !== 'all' && 's'}</Button>
-            )}
-            </Flex>
-            <Text mt="lg" mb="md" size="md" fw="bold">
-                Showing {occurrenceCount > 0 ? (occurrenceCount < (page+1)*pageSize ? occurrenceCount : (page+1)*pageSize) : 0} {' '}
-                of {formatNumber(occurrenceCount)} results.{' '}
-                <Anchor
-                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${result?.guid}&fq=multimedia:*#tab_recordImages`}
-                    target="_blanks"
-                    inherit
-                >View all occurrence records</Anchor>
-            </Text>
-            <Grid>
-                <Grid.Col span={{ base: 12, md: 9, lg: 9 }}>
-                    <Flex gap="sm"
-                        justify="flex-start"
-                        align="flex-start"
-                        direction="row"
-                        wrap="wrap"
-                    >
-                        {items && items.map((item, idx) =>
-                            <Flex
-                                key={idx}
-                                justify="center"
+        <>
+            <div className="d-flex flex-row gap-3">
+                <div style={{width: "250px"}}>
+                    {!firstFetchDone ?
+                        <>
+                            <span className={`placeholder-glow ${classes.refineTitle}`}>
+                              <span className="placeholder col-8"
+                                    style={{width: "200px", borderRadius: "10px"}}>&nbsp;</span>
+                            </span>
+
+                            <span className={`placeholder-glow ${classes.refineSectionTitle}`}>
+                              <span className="placeholder col-8" style={{
+                                  width: "100px",
+                                  marginTop: "15px",
+                                  marginBottom: "10px",
+                                  borderRadius: "10px"
+                              }}>&nbsp;</span>
+                            </span>
+                            <span className={`placeholder-glow ${classes.refineItem}`}>
+                              <span className="placeholder col-8"
+                                    style={{width: "150px", height: "90px", borderRadius: "10px"}}>&nbsp;</span>
+                            </span>
+
+                            <span className={`placeholder-glow ${classes.refineSectionTitle}`}>
+                              <span className="placeholder col-8" style={{
+                                  width: "100px",
+                                  marginTop: "15px",
+                                  marginBottom: "10px",
+                                  borderRadius: "10px"
+                              }}>&nbsp;</span>
+                            </span>
+                            <span className={`placeholder-glow ${classes.refineItem}`}>
+                              <span className="placeholder col-8"
+                                    style={{width: "150px", height: "190px", borderRadius: "10px"}}>&nbsp;</span>
+                            </span>
+
+                        </>
+                        : <>
+                            <span className={classes.refineTitle} style={{display: "block"}}>Refine occurrences</span>
+
+                            {refineSection("Media type", itemsForFacet("multimedia"))}
+
+                            {refineSection("Occurrence type", itemsForFacet("basisOfRecord"))}
+
+                            {refineSection("Licence type", itemsForFacet("license"))}
+
+                            {refineSection("Dataset", itemsForFacet("dataResourceName"))}
+                        </>
+                    }
+                </div>
+
+                <div style={{flex: 1}}>
+                    <div className={"d-flex flex-wrap justify-content-between"} style={{rowGap: "30px"}}>
+                        <span className={classes.resultsTitle}>
+                             Showing {loading ?
+                            <span className="placeholder-glow">
+                                      <span className="placeholder col-8"
+                                            style={{width: "20px", borderRadius: "10px"}}>&nbsp;</span>
+                                    </span>
+                            : items.length} media from {loading && page == 0 ?
+                            <span className="placeholder-glow">
+                                      <span className="placeholder col-8"
+                                            style={{width: "20px", borderRadius: "10px"}}>&nbsp;</span>
+                                    </span>
+                            : formatNumber(occurrenceCount)} occurrences
+                        </span>
+                        <div className="d-flex align-items-center gap-3">
+                            <span className={classes.headerLabels}>Sort by</span>
+                            <select
+                                className={`form-select ${classes.alaSelect}`}
+                                value={sortDir}
+                                onChange={e => {
+                                    setSortDir(e.target.value as 'desc' | 'asc');
+                                    setPage(0);
+                                }}
                             >
-                                <ImageThumbnailModal imageId={item.id} type={item.type as MediaTypeValues} idx={idx}/>
-                            </Flex>
-                        )}
-                        { loading &&
-                            [...Array(10)].map((_ , idx) =>
-                                <Box key={idx} w={gridWidthTypical} h={gridHeight}>
-                                    <Skeleton height="100%" width="100%" radius="md" />
-                                </Box>
-                            )
+                                <option value={"desc"}>Oldest</option>
+                                <option value={"asc"}>Newest</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className={"d-flex flex-row flex-wrap"} style={{gap: "10px", marginTop: "20px"}}>
+                        {loading && page == 0 &&
+                            Array.from({length: 12}).map((_, idx) => (
+                                <span className="placeholder-glow" key={idx}>
+                                  <span
+                                      className="placeholder col-8"
+                                      style={{width: gridWidthTypical, height: gridHeight, borderRadius: "10px"}}
+                                  ></span>
+                                </span>
+                            ))
                         }
-                    </Flex>
+                        {(!loading || page > 0) && items && items.map((item, idx) => (
+                            <Fragment key={idx}>
+                                <div style={{
+                                    overflow: 'hidden',
+                                    borderRadius: 10,
+                                    maxWidth: gridWidthTypical,
+                                    height: gridHeight
+                                }}>
+                                    {item.type === MediaTypeEnum.image &&
+                                        <img
+                                            alt={`Image of ${result?.scientificName} (${idx + 1})`}
+                                            style={{
+                                                borderRadius: '10px',
+                                                height: item.height,
+                                                width: item.width,
+                                                objectFit: 'cover',
+                                                transition: 'transform 0.3s ease',
+                                                backgroundColor: "#e2e2e2"
+                                            }}
+                                            src={getImageThumbnailUrl(item.id)}
+                                            onMouseOver={event => {
+                                                const target = event.target as HTMLImageElement;
+                                                target.style.transform = 'scale(1.1)';
+                                            }}
+                                            onMouseOut={event => {
+                                                const target = event.target as HTMLImageElement;
+                                                target.style.transform = 'scale(1.0)';
+                                            }}
+                                            onLoad={event => {
+                                                const target = event.target as HTMLImageElement;
+                                                if (target && target.complete) {
+                                                    setLoading(false);
+                                                }
+                                            }}
+                                            onError={e => handleImageError(idx, e)}
+                                            onClick={() => handleOpenModal(idx)}
+                                        />
+                                    }
+                                    {(item.type === MediaTypeEnum.sound || item.type === MediaTypeEnum.video) &&
+                                        <button
+                                            type="button"
+                                            className={`btn btn-outline-secondary ${classes.mediaIconBtn}`}
+                                            style={{
+                                                width: 200,
+                                                height: '100%',
+                                                borderRadius: 10,
+                                                whiteSpace: 'normal',
+                                                wordBreak: 'break-word'
+                                            }}
+                                            onClick={() => handleOpenModal(idx)}
+                                        >
+                                            {item.type === MediaTypeEnum.sound && (
+                                                <span style={{display: "inline-flex", alignItems: "center", gap: 15}}>
+                                                    <FontAwesomeIcon icon={faVolumeUp} size="2xl" color="gray"
+                                                                     style={{fontSize: 40}}/>Sound
+                                                    file
+                                                </span>
+                                            )}
+                                            {item.type === MediaTypeEnum.video && (
+                                                <span style={{display: "inline-flex", alignItems: "center", gap: 15}}>
+                                                    <FontAwesomeIcon icon={faFilm} size="2xl" color="gray"
+                                                                     style={{fontSize: 40}}/>Video
+                                                    file
+                                                </span>
+                                            )}
+                                        </button>
+                                    }
+                                </div>
+                            </Fragment>
+                        ))}
+                    </div>
+
                     {items && items.length > 0 && (occurrenceCount > page * pageSize) &&
-                        <Flex justify="center" align="center">
-                            <Button
-                                mt="lg"
-                                variant="default"
-                                radius="xl"
-                                pr={40}
-                                pl={50}
+                        <div className="d-flex justify-content-center align-items-center mt-4">
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary rounded-pill px-5 py-2"
                                 onClick={() => setPage(page + 1)}
-                                disabled={(page + 1) * pageSize >= occurrenceCount}
-                                rightSection={<IconChevronDown />}
-                            >View more</Button>
-                        </Flex>
+                                disabled={(page + 1) * pageSize >= occurrenceCount || loading}
+                                aria-label="Load more images"
+                                style={{cursor: loading ? 'wait' : 'pointer'}}
+                            >
+                                <FontAwesomeIcon icon={faChevronDown}/>&nbsp;View more{loading}
+                            </button>
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+            {opened &&
+                <div
+                    role="dialog"
+                    aria-labelledby="dialogTitle"
+                    aria-modal="true"
+                    className={classes.dialogContainer}
+                    onClick={e => {
+                        if (e.target === e.currentTarget) {
+                            setOpened(false);
                         }
-                </Grid.Col>
-                <Grid.Col span={3} className={classes.hideMobile}>
-                    <Flex justify="flex-start" align="center" gap="sm">
-                        <IconAdjustmentsHorizontal />
-                        <Text fw="bold">Refine view</Text>
-                    </Flex>
-                    <Divider mt="lg" mb="lg" />
+                    }}
+                >
+                    <div className={classes.dialogContent}>
+                        <button
+                            onClick={() => setOpenImageIdx(idx => Math.max(0, idx - 1))}
+                            disabled={openImageIdx === 0}
+                            aria-label="Previous image"
+                            className={classes.imageDialogButton}
+                            style={{left: "15px", cursor: openImageIdx === 0 ? "not-allowed" : "pointer"}}
+                        >&lt;</button>
 
-                    <Text fw="bold" mb="sm">Sort by</Text>
-                    <Radio.Group
-                        classNames={{ label: classes.gallerySortLabel }}
-                        value={sortDir}
-                        onChange={(value: string) => {
-                            resetView();
-                            setSortDir(value as 'desc' | 'asc')
-                        }}
-                    >
-                        <Radio
-                            size="xs"
-                            value="desc"
-                            styles={{ inner: { marginTop: 2} }}
-                            label="Latest" />
-                        <Radio
-                            size="xs"
-                            value="asc"
-                            styles={{ inner: { marginTop: 2} }}
-                            label="Oldest" />
-                    </Radio.Group>
-                    <Divider mt="lg" mb="lg" />
+                        <button
+                            onClick={() => {
+                                // load the next page if the next image is the last one on the page
+                                if (openImageIdx >= items.length - 2 && occurrenceCount > pageSize * (page + 1)) {
+                                    setPage(page + 1);
+                                }
+                                setOpenImageIdx(idx => idx + 1);
+                            }}
+                            disabled={openImageIdx === items.length - 1}
+                            aria-label="Next image"
+                            className={classes.imageDialogButton}
+                            style={{
+                                right: "15px",
+                                cursor: loading ? "wait" : (openImageIdx === items.length - 1 ? "not-allowed" : "pointer")
+                            }}
+                        >&gt;</button>
 
-                    <Text fw="bold" mb="sm">Record type</Text>
-                    <FilterCheckBoxGroup fieldName="basisOfRecord" grouped={true} />
-                    <Divider mt="lg" mb="lg" />
+                        <div style={{display: 'flex', justifyContent: 'center', height: '30px'}}>
+                            <span className={classes.refineTitle} id="dialogTitle">
+                            {loading || openImageIdx >= items.length || !result ? "Loading..." :
+                                <>{capitalise(items[openImageIdx].type)} of <FormatName name={result.scientificName}
+                                                                                        rankId={result.rank}/> ({openImageIdx + 1})</>
+                            }
+                            </span>
+                        </div>
+                        <button
+                            className={classes.dialogCloseButton}
+                            onClick={() => setOpened(false)}
+                            aria-label="Close"
+                        >&times;</button>
 
-                    <Text fw="bold" mb="sm">Licence type</Text>
-                    <FilterCheckBoxGroup fieldName="license" grouped={true} />
-                    <Divider mt="sm" mb="lg" />
-
-                    <Text fw="bold" mb="sm">Dataset</Text>
-                    <FilterCheckBoxGroup fieldName="dataResourceName" />
-
-                    <Button
-                        mt="lg"
-                        variant="default"
-                        radius="xl"
-                        fullWidth
-                        onClick={() => {
-                            resetView();
-                            setFqUserTrigged({});
-                        }}
-                        disabled={Object.keys(fqUserTrigged).length === 0}
-                        rightSection={<IconZoomReset />}>Reset</Button>
-                </Grid.Col>
-            </Grid>
-        </Box>
-    );
+                        <div style={{
+                            marginTop: "30px",
+                            borderRadius: '10px',
+                            height: 'calc(100vh - 310px)',
+                            textAlign: "center"
+                        }}>
+                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}>
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    height: '100%'
+                                }}>
+                                    {items[openImageIdx].type === MediaTypeEnum.image && (
+                                        // TODO: Needs a progress indicator, but given the variable image dimensions, maybe passs them through from the API
+                                        <FadeInImage src={getImageOriginalUrl(items[openImageIdx].id)}
+                                                     style={{
+                                                         borderRadius: '10px',
+                                                         maxHeight: '100%',
+                                                         maxWidth: '100%',
+                                                         objectFit: 'contain'
+                                                     }}
+                                                     missingImage={missingImage}
+                                        />
+                                    )}
+                                    {items[openImageIdx].type === MediaTypeEnum.sound && (
+                                        <audio controls preload="auto" style={{width: '50vw'}}>
+                                            <source
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}
+                                                type="audio/mpeg"
+                                            />
+                                        </audio>
+                                    )}
+                                    {items[openImageIdx].type === MediaTypeEnum.video && (
+                                        <video controls preload="false"
+                                               style={{maxWidth: '100%', maxHeight: '100%', borderRadius: "10px"}}>
+                                            <source
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}
+                                            />
+                                        </video>
+                                    )}
+                                </div>
+                            </a>
+                        </div>
+                        <div className="d-flex justify-content-center flex-wrap"
+                             style={{rowGap: "40px", columnGap: "30px", marginTop: "30px"}}>
+                            <a href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/${encodeURIComponent(items[openImageIdx].occurrenceId)}`}
+                               className="btn ala-btn-primary">
+                                View occurrence details
+                            </a>
+                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
+                               className="btn ala-btn-primary">
+                                View {items[openImageIdx].type} details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </>);
 }
 
 export default ImagesView;

@@ -1,14 +1,25 @@
-import {CustomFacetFn, GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Image, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {
+    CustomFacetFn,
+    GenericViewProps,
+    RenderItemElements,
+    RenderItemParams
+} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
-import {getImageThumbnailUrl} from "../util.tsx";
+import {getImageThumbnailUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from "../util.tsx";
 
 import speciesGroupMap from "../../../config/speciesGroupsMap.json"
 import capitalise from "../../../helpers/Capitalise.ts";
 import missingImage from '../../../image/missing-image.png';
 
 import '../../../css/nameFormatting.css';
+import FolderIcon from "../../common-ui/icons/folderIcon.tsx";
+import {FadeInImage} from "../../common-ui/fadeInImage.tsx";
 
 interface SpeciesGroupMapType {
     [key: string]: {
@@ -17,7 +28,6 @@ interface SpeciesGroupMapType {
     }
 }
 
-// TODO: put into a file
 // rankMap to convert rank name to rank id for the purposes of sorting
 // This from https://github.com/AtlasOfLivingAustralia/ala-name-matching/blob/master/ala-name-matching-model/src/main/java/au/org/ala/names/model/RankType.java
 const rankMap: { [key: string]: number } = {
@@ -126,7 +136,7 @@ export const speciesDefn: GenericViewProps = {
 
     facetDefinitions: {
         "status": {
-            label: "Names",
+            label: "Names", // redundant, this is overridden below
             order: 2,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // looking for status == 'traditionalKnowledge' only
@@ -150,7 +160,7 @@ export const speciesDefn: GenericViewProps = {
             }
         },
         "speciesGroup": {
-            label: "Species group",
+            label: "Species group", // redundant, this is overridden below
             order: 3,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // put result in a map, then iterate over the speciesGroupsMap so the output is of the correct structure
@@ -178,7 +188,7 @@ export const speciesDefn: GenericViewProps = {
             order: 4
         },
         "rank": {
-            label: "Taxonomic rank",
+            label: "Taxonomic rank", // redundant, this is overridden below
             order: 5,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom sort
@@ -187,7 +197,7 @@ export const speciesDefn: GenericViewProps = {
                     var fq = facet.fieldName + ":\"" + status.label + "\"";
                     items.push({
                         fq: fq,
-                        label: capitalise(status.label), // TODO: lookup the 'nice' label
+                        label: capitalise(status.label),
                         count: status.count,
                         depth: 0
                     })
@@ -195,7 +205,6 @@ export const speciesDefn: GenericViewProps = {
                 if (items.length > 0) {
                     // sort by rank
                     items.sort((a: any, b: any) => {
-                        // TODO: handle unknown ranks
                         let left: number = rankMap[a.label.toLowerCase()] || 1000000
                         let right = rankMap[b.label.toLowerCase()] || 1000000
                         return left - right;
@@ -211,70 +220,62 @@ export const speciesDefn: GenericViewProps = {
         }
     },
 
-    renderListItemFn: ({item, navigate, wide}: RenderItemParams) => {
-        return <Flex gap="30px" style={{cursor: "pointer"}} onClick={() => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src={getImageThumbnailUrl(item.image)}
-                        onError={(e) => e.currentTarget.src = missingImage}
-                    />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src={missingImage}
-                    />
-                }
-            </div>
-            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                {item.nameFormatted && <Text className={classes.listItemName}
-                    dangerouslySetInnerHTML={{__html: item.nameFormatted}}
-                ></Text>}
-                {!item.nameFormatted && <Text>{item.name}</Text>}
-                <Text>{item.commonNameSingle}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                {item.speciesGroup && <Text>{item.speciesGroup.join(', ')}</Text>}
-                {item?.data?.rk_kingdom && <Text>Kingdom: {item?.data?.rk_kingdom}</Text>}
-                <Text><FolderIcon color="#637073"/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence records</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                {/*TODO: hero description goes here when it is defined*/}
-            </div>
-        </Flex>
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <FadeInImage
+                className={classes.listItemImage}
+                src={item.image ? getImageThumbnailUrl(item.image) : missingImage}
+                missingImage={missingImage}
+            />,
+            title: <>
+                {item.nameFormatted && <span className={classes.listItemName}
+                                             dangerouslySetInnerHTML={{__html: item.nameFormatted}}
+                ></span>}
+                {!item.nameFormatted && <span className={classes.listItemName}>{item.name}</span>}
+                <span className={classes.overflowText}>{item.commonNameSingle}</span>
+            </>,
+            extra: <>
+                {item.speciesGroup && <span className={classes.overflowText}>{item.speciesGroup.join(', ')}</span>}
+                {item?.data?.rk_kingdom &&
+                    <span className={classes.overflowText}>Kingdom: {item?.data?.rk_kingdom}</span>}
+                <span
+                    className={classes.listItemText}><FolderIcon/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence records</span>
+            </>,
+            description: <>
+                {/*TODO: hero description goes here when it is defined */}
+            </>,
+            clickFn: () => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item, navigate}: RenderItemParams) => {
-        return <div className={classes.tile} onClick={() => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)}>
-            <Image src={getImageThumbnailUrl(item.image)} height={150} width="auto"
-                onError={(e) => e.currentTarget.src = missingImage}
-            />
-
-            <div className={classes.tileContent}>
-                {item.nameFormatted && <Text className={classes.listItemName}
-                    dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>}
-                {!item.nameFormatted && <Text >{item.name}</Text>}
-                <Space h="8px"/>
-                {item.commonNameSingle && <Text fz={14}>{item.commonNameSingle}</Text>}
-                {item.speciesGroup && <Text fz={14}>{item.speciesGroup.join(', ')}</Text>}
-                {item?.data?.rk_kingdom && <Text fz={14}>Kingdom: {item?.data?.rk_kingdom}</Text>}
-                <Text fz={14}><FolderIcon color="#637073"/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence
-                    records</Text>
-                <Space h="13px"/>
+    renderTileItemFn: ({item, isMobile, navigate}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <TileImage image={item.image ? getImageThumbnailUrl(item.image) : undefined} isMobile={isMobile}/>,
+            title: <>
+                {item.nameFormatted && <span className={classes.listItemName}
+                                             dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>}
+                {!item.nameFormatted && <span className={classes.listItemName}>{item.name}</span>}
+                <div style={{height: "8px"}}/>
+                {item.commonNameSingle &&
+                    <span className={classes.listItemText}>{item.commonNameSingle}</span>}
+                {item.speciesGroup &&
+                    <span className={classes.listItemText}>{item.speciesGroup.join(', ')}</span>}
+                {item?.data?.rk_kingdom &&
+                    <span className={classes.listItemText}>Kingdom: {item?.data?.rk_kingdom}</span>}
+                <span className={classes.listItemText}><FolderIcon/> {item.occurrenceCount ? item.occurrenceCount : 0} occurrence
+                    records</span>
+                <div style={{height: "13px"}}/>
                 {/* TODO: hero description goes here when defined */}
-            </div>
-        </div>
+            </>,
+            clickFn: () => navigate(`/species/${item.idxtype == "TAXON" ? item.guid : item.taxonGuid}`)
+        }
+        return renderGenericTileItemFn(isMobile, elements);
     },
 
     addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + "&fq=image:*").then(response => response.json()).then(data => {
-            var items :any[] = [];
+            var items: any[] = [];
 
             if (data.totalRecords > 0) {
                 items.push(

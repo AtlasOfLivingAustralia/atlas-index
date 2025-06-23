@@ -1,27 +1,39 @@
-import {CustomFacetFn, GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Image, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
-import {limitDescription, openUrl} from "../util.tsx";
+import {
+    limitDescription,
+    openUrl,
+    renderGenericListItemFn,
+    renderGenericTileItemFn, TileImage
+} from "../util.tsx";
 import missingImage from '../../../image/missing-image.png';
+import FolderIcon from "../../common-ui/icons/folderIcon.tsx";
+import {FadeInImage} from "../../common-ui/fadeInImage.tsx";
+import capitalise from "../../../helpers/Capitalise.ts";
+
+const idxtypeLabels: Record<string, string> = {
+    "DATARESOURCE": "Data Resource",
+    "DATAPROVIDER": "Data Provider",
+    "COLLECTION": "Collection",
+    "INSTITUTION": "Institution"
+};
 
 export const datasetsDefn: GenericViewProps = {
-    // TODO: awaiting clarification if the fq should instead be: idxtype:DATARESOURCE OR idxtype:DATAPROVIDER OR idxtype:COLLECTION OR idxtype:INSTITUTION
-    fq: "idxtype:DATARESOURCE",
+    fq: "idxtype:DATARESOURCE OR idxtype:DATAPROVIDER OR idxtype:COLLECTION OR idxtype:INSTITUTION",
 
     sortByDate: true,
 
+    customFacets: ["idxtype", "resourceType"],
+
     facetDefinitions: {
-        "resourceType": {
-            label: "Dataset Type",
-            order: 1
-        },
         "license": {
-            label: "Licence Type",
-            order: 2
-        },
-        "dataProvider": {
-            label: "Data Provider",
+            label: "Licence type",
             order: 3
         },
         "state": {
@@ -30,61 +42,100 @@ export const datasetsDefn: GenericViewProps = {
         }
     },
 
-    renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = missingImage}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src={missingImage}
-                    />
-                }
-            </div>
-            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} occurrence records</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <FadeInImage
+                className={classes.listItemImage}
+                src={item.image || missingImage}
+                missingImage={missingImage}
+            />,
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+            </>,
+            extra: <>
+                <span className={classes.listItemText}><FolderIcon/> contains {item.occurrenceCount} occurrence records</span>
+            </>,
+            description: <>
+                <span title={item.description}
+                      className={classes.listDescription}>{limitDescription(item.description, isMobile ? 80 : (wide ? 230 : 120))}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item}: RenderItemParams) => {
-        return <div className={classes.tile} onClick={() => openUrl(item.guid)}>
-            {item.image && <Image height={150} width="auto"
-                                  src={item.image}
-                                  onError={(e) => e.currentTarget.src = missingImage}
-            />
-            }
-            {!item.image && <Image height={150} width="auto"
-                                   src={missingImage}
-            />
-            }
-
-            <div className={classes.tileContent}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Space h="8px"/>
-                <Text fz={14}><FolderIcon color="#637073"/> contains {item.occurrenceCount} occurrence records</Text>
-                <Space h="13px"/>
-                <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
-            </div>
-        </div>
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+                <span style={{marginTop: "8px", marginBottom: "13px"}}
+                      className={classes.overflowText}><FolderIcon/> contains {item.occurrenceCount} occurrence records</span>
+                <span title={item.description}
+                      className={classes.listDescription}>{item.description}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericTileItemFn(isMobile, elements);
     },
 
     addCustomFacetsFn: ({url, thisFacetFqs, parentData, setCustomFacetData}: CustomFacetFn) => {
+        // 1. Add a custom facet for the "Type" of dataset from idxtype and resourceType fields
+        var typeFacet = {};
+        var idxtypeFacet: any = Object.values(parentData.facetResults).find(
+            (f: any) => f.fieldName === "idxtype"
+        );
+        var resourceTypeFacet: any = Object.values(parentData.facetResults).find(
+            (f: any) => f.fieldName === "resourceType"
+        );
+        var resourceTypeItems: any[] = [];
+        if (resourceTypeFacet) {
+            resourceTypeFacet.fieldResult.forEach((status: any) => {
+                var fq = "resourceType:\"" + status.label + "\"";
+                resourceTypeItems.push({
+                    fq: fq,
+                    label: capitalise(status.label),
+                    count: status.count,
+                    depth: 1,
+                    selected: thisFacetFqs.includes(fq)
+                });
+            });
+            // sort by label
+            resourceTypeItems.sort((a: any, b: any) => {
+                return a.label.localeCompare(b.label);
+            });
+        }
+        var typeItems: any[] = [];
+        if (idxtypeFacet) {
+            idxtypeFacet.fieldResult.forEach((status: any) => {
+                var fq = "idxtype:\"" + status.label + "\"";
+                typeItems.push({
+                    fq: fq,
+                    label: idxtypeLabels[status.label] || capitalise(status.label),
+                    count: status.count,
+                    depth: 0,
+                    selected: thisFacetFqs.includes(fq)
+                });
+            });
+            // sort by label
+            typeItems.sort((a: any, b: any) => {
+                return a.label.localeCompare(b.label);
+            });
+            // insert resourceType items into typeItems after DATARESOURCE
+            var dataResourceIndex = typeItems.findIndex((item: any) => item.label == idxtypeLabels["DATARESOURCE"]);
+            if (dataResourceIndex >= 0) {
+                typeItems.splice(dataResourceIndex + 1, 0, ...resourceTypeItems);
+            }
+        }
+        if (typeItems.length > 0) {
+            typeFacet = {
+                name: "Type",
+                items: typeItems,
+                order: 1
+            };
+        }
+
+        // 2. Add "Contains records" facet, for filtering datasets with and without occurrence records
         fetch(url + "&fq=occurrenceCount:0").then(response => response.json()).then(data => {
             var items = []
             if (parentData.totalRecords - data.totalRecords > 0) {
@@ -109,11 +160,18 @@ export const datasetsDefn: GenericViewProps = {
                 setCustomFacetData([{
                     name: "Contains records",
                     items: items,
-                    order: 5
-                }])
+                    order: 2
+                }, typeFacet])
             } else {
-                setCustomFacetData([])
+                setCustomFacetData([typeFacet]);
             }
         });
-    }
+    },
+
+    resourceLinks: [
+        {
+            label: "Collectory",
+            url: import.meta.env.VITE_COLLECTIONS_URL
+        }
+    ]
 }

@@ -1,14 +1,20 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Alert, Anchor, Flex, Grid, Skeleton, Space, Text } from "@mantine/core";
-import { IconInfoCircleFilled } from "@tabler/icons-react";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {useEffect, useState} from "react";
+import {Link} from "react-router-dom";
+import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import classes from "./species.module.css";
-import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
 
 import '../../css/nameFormatting.css';
+import InfoBox from "../common-ui/infoBox.tsx";
+import FlaggedAlert from "../common-ui/flaggedAlert.tsx";
 
 interface ViewProps {
-    result?: Record<PropertyKey, string | number | any >
+    result?: Record<PropertyKey, string | number | any>
 }
 
 function ClassificationView({result}: ViewProps) {
@@ -30,13 +36,13 @@ function ClassificationView({result}: ViewProps) {
                         setErrorMessage(data.error)
                     }
                 }).catch((error) => {
-                    setErrorMessage(error)
-                }).finally(() => {
-                    setLoading(false)
-                });
+                setErrorMessage(error)
+            }).finally(() => {
+                setLoading(false)
+            });
         }
         if (result?.rankOrder) {
-            let items: Record<PropertyKey, string | number | any >[] = []
+            let items: Record<PropertyKey, string | number | any>[] = []
             for (let rank of result.rankOrder.split(',')) {
                 var rankString = rank.replace(/[0-9]/g, ' ') // remove the suffix number that is used to handle duplicates
                 items = [{rank: rankString, name: result['rkf_' + rank], guid: result['rkid_' + rank]}, ...items]
@@ -53,77 +59,147 @@ function ClassificationView({result}: ViewProps) {
     }
 
     return (
-        <Grid>
-            <Grid.Col span={9}>
-                { /* the choice made here is to display all of the hierarchy at once, rather than parents and children separately */}
-                { loading && <Skeleton height={40} width="90%" radius="md" />}
-                { !loading && hierarchy.length === 0 && <>
-                        {/* TODO: this is needed only for kingdom records. They do not currently have hierarchy information */}
-                            <Flex
-                                data-guid={result?.guid}
-                                className={ classes.currentTaxa }
-                                style={{
-                                    borderRadius: "4px",
-                                }}
-                                mb="3px"
-                            >
-                                <Text miw={110} pl="md" fw="bold">{capitalize(result?.rank)}</Text>
-                                <Anchor component={Link} to={`/species/${result?.guid}?tab=classification`}
-                                    dangerouslySetInnerHTML={{__html: result?.nameFormatted}}></Anchor>
-                            </Flex>
-                    </>
+        <div className="d-flex flex-column">
+            { /* the choice made here is to display all of the hierarchy at once, rather than parents and children separately */}
+            <InfoBox icon={faCircleInfo} title="About classification"
+                     content={<>Classification of organisms allows us to group them and imply how they are related
+                         to each other.
+                         This includes a hierarchy of ranks e.g. kingdom, phylum etc. for more information see&nbsp;
+                         <a target="_blank" href={import.meta.env.VITE_TAXONOMY_INTRO_URL}
+                            className={classes.speciesLink} style={{fontSize: "16px"}}>
+                             An introduction to taxonomy
+                         </a>.</>}
+            />
+            <div style={{height: "30px"}}/>
+            {loading && (
+                <div className={"placeholder-glow"}>
+                    <span className="placeholder"
+                          style={{height: "20px", display: "block", width: "200px", borderRadius: "5px"}}></span>
+                    <span className="placeholder" style={{
+                        height: "20px",
+                        display: "block",
+                        width: "200px",
+                        borderRadius: "5px",
+                        marginLeft: "30px",
+                        marginTop: "10px"
+                    }}></span>
+                    <span className="placeholder" style={{
+                        height: "20px",
+                        display: "block",
+                        width: "200px",
+                        borderRadius: "5px",
+                        marginLeft: "60px",
+                        marginTop: "10px"
+                    }}></span>
+                    <span className="placeholder" style={{
+                        height: "20px",
+                        display: "block",
+                        width: "200px",
+                        borderRadius: "5px",
+                        marginLeft: "90px",
+                        marginTop: "10px"
+                    }}></span>
+                    <span className="placeholder" style={{
+                        height: "40px",
+                        display: "block",
+                        width: "400px",
+                        borderRadius: "5px",
+                        marginLeft: "120px",
+                        marginTop: "10px"
+                    }}></span>
+                    <span className="placeholder" style={{
+                        height: "20px",
+                        display: "block",
+                        width: "400px",
+                        borderRadius: "5px",
+                        marginLeft: "150px",
+                        marginTop: "10px"
+                    }}></span>
+                    <span className="placeholder" style={{
+                        height: "20px",
+                        display: "block",
+                        width: "400px",
+                        borderRadius: "5px",
+                        marginLeft: "150px",
+                        marginTop: "10px"
+                    }}></span>
+                    <span className="placeholder" style={{
+                        height: "20px",
+                        display: "block",
+                        width: "400px",
+                        borderRadius: "5px",
+                        marginLeft: "150px",
+                        marginTop: "10px"
+                    }}></span>
+                </div>
+            )}
+            <div className="d-flex flex-column gap-1 align-items-start" style={{width: "100%", marginLeft: "-1rem"}}>
+                {!loading && hierarchy.length === 0 && <>
+                    {/* For kingdom level items */}
+                    <div
+                        className={`d-flex align-items-start ${classes.currentTaxa}`}
+                        style={{borderRadius: "4px", marginBottom: "3px"}}
+                    >
+                              <span className="fw-bold" style={{minWidth: 110, fontSize: "16px"}}>
+                                {capitalize(result?.rank)}
+                              </span>
+                        <Link
+                            to={`/species/${result?.guid}?tab=classification`}
+                            dangerouslySetInnerHTML={{__html: result?.nameFormatted}}
+                            style={{paddingLeft: "15px", fontSize: "16px"}}
+                        />
+                    </div>
+                </>
                 }
-                { !loading && hierarchy && hierarchy.map((item, idx) =>
-                    <Flex
+                {!loading && hierarchy && hierarchy.map((item, idx) =>
+                    <div
                         key={idx}
-                        data-guid={item.guid}
-                        className={ idx === hierarchy.length -1 ? classes.currentTaxa : "" }
+                        className={`d-flex align-items-start ${idx === hierarchy.length - 1 ? classes.currentTaxa : ""}`}
                         style={{
                             marginLeft: (idx * 20) + "px",
                             borderRadius: "4px",
+                            marginBottom: "3px",
+                            display: "block"
                         }}
-                        mb="3px"
                     >
-                        <Text miw={110} pl="md" fw="bold">{capitalize(item.rank)}</Text>
-                        <Anchor component={Link} to={`/species/${item.guid}?tab=classification`} pl="sm"
-                            dangerouslySetInnerHTML={{__html: item.name}}
-                            ></Anchor>
-                    </Flex>
+                        <span className="fw-bold"
+                              style={{minWidth: 110, paddingLeft: "1rem", fontSize: "16px"}}>{capitalize(item.rank)}</span>
+                        <Link className={classes.speciesLink}
+                              to={`/species/${item?.guid}?tab=classification`}
+                              dangerouslySetInnerHTML={{__html: item?.name}}
+                              style={{paddingLeft: "15px", fontSize: "16px"}}
+                        />
+                    </div>
                 )}
-                { children && children.map((child, idx) =>
-                    <Flex
+                {children && children.map((child, idx) =>
+                    <div
                         key={idx}
+                        className="d-flex align-items-start"
                         style={{
                             marginLeft: (Math.max(1, hierarchy.length) * 20 + 1) + "px"
                         }}
                     >
-                        <Text miw={110} pl="md" fw="bold">{capitalize(child.rank)}</Text>
-                        <Anchor component={Link} to={`/species/${child.guid}?tab=classification`} pl="sm"
-                            dangerouslySetInnerHTML={{__html: child.nameFormatted}}
-                        ></Anchor>
-                    </Flex>
+                        <span className="fw-bold" style={{minWidth: 110, paddingLeft: "1rem", fontSize: "16px"}}>
+                          {capitalize(child.rank)}
+                        </span>
+                        <Link className={classes.speciesLink}
+                              to={`/species/${child.guid}?tab=classification`}
+                              dangerouslySetInnerHTML={{__html: child.nameFormatted}}
+                              style={{paddingLeft: "15px", fontSize: "16px"}}
+                        />
+                    </div>
                 )}
-                { errorMessage &&
-                    <Alert icon={<FlagIcon />}>
-                        <b>Error loading child taxa.</b>
-                        <p>Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.</p>
-                        <code>{errorMessage}</code>
-                    </Alert>
-                }
-            </Grid.Col>
-            <Grid.Col span={3}>
-                <Flex justify="flex-start" align="center" gap="5px">
-                    <IconInfoCircleFilled size={18}/>
-                    <Text fw={800} fz={16}>About classification</Text>
-                </Flex>
-                <Space h="px10" />
-                <Text>
-                    Classification of organisms allows us to group them and imply how they are related to each other.
-                    This includes a hierarchy of ranks e.g. kingdom, phylum etc. for more information see{" "}
-                    <Anchor inherit target="_blank" href={import.meta.env.VITE_TAXONOMY_INTRO_URL}>An introduction to taxonomy</Anchor>
-                </Text>
-            </Grid.Col>
-        </Grid>
+
+            </div>
+            {errorMessage && (
+                <FlaggedAlert content={<>
+                    <b>Error loading child taxa.</b>
+                    <p>Report this error by clicking on the <b>Need Help?</b> button on the right
+                        edge of the screen.</p>
+                    <code>{errorMessage}</code>
+                </>}/>
+            )}
+        </div>
     )
 }
 

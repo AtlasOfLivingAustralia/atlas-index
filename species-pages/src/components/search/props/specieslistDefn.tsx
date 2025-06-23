@@ -1,8 +1,13 @@
-import {GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {GenericViewProps, RenderItemElements, RenderItemParams} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {FolderIcon} from "@atlasoflivingaustralia/ala-mantine";
-import {limitDescription, openUrl} from "../util.tsx";
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn} from "../util.tsx";
+import FolderIcon from "../../common-ui/icons/folderIcon.tsx";
 
 function formatListType(type: string) {
     if (!type) {
@@ -18,7 +23,7 @@ export const specieslistDefn: GenericViewProps = {
 
     facetDefinitions: {
         "type": {
-            label: "Species list",
+            label: "Type", // redundant, this is overridden below
             order: 1,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom label
@@ -39,7 +44,7 @@ export const specieslistDefn: GenericViewProps = {
                     })
 
                     facetList.push({
-                        name: "Species list",
+                        name: "Type",
                         items: items,
                         order: 1
                     })
@@ -48,31 +53,40 @@ export const specieslistDefn: GenericViewProps = {
         }
     },
 
-    renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Text>{formatListType(item.type)}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text><FolderIcon color="#637073"/> contains {item.itemCount} taxa</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+        const elements : RenderItemElements = {
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+                <span className={classes.multilineText}>{formatListType(item.type)}</span>
+            </>,
+            extra: <>
+                <span className={classes.multilineText}><FolderIcon/> contains {item.itemCount} taxa</span>
+            </>,
+            description: <>
+                <span className={classes.listDescription} title={item.description}>{limitDescription(item.description, isMobile ? 80 : (wide ? 230 : 120))}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item}: RenderItemParams) => {
-        return <div className={classes.tileNoImage} onClick={() => openUrl(item.guid)}>
-            <div className={classes.tileContent}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Space h="8px"/>
-                <Text fz={14}>{formatListType(item.type)}</Text>
-                <Text fz={14}><FolderIcon color="#637073"/> contains {item.itemCount} taxa</Text>
-                <Space h="13px"/>
-                <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
-            </div>
-        </div>
-    }
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: "8px"}}>{item.name}</span>
+                <span className={classes.listItemText}>{formatListType(item.type)}</span>
+                <span className={classes.listItemText}><FolderIcon /> contains {item.itemCount} taxa</span>
+                <span style={{marginTop: "13px"}} className={classes.listDescription} title={item.description}>{item.description}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericTileItemFn(isMobile, elements);
+    },
+
+    resourceLinks: [
+        {
+            label: "Species lists",
+            url: import.meta.env.VITE_SPECIESLIST_URL
+        }
+    ]
 }

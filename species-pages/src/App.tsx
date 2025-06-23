@@ -1,27 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
-import { Breadcrumb, ListsUser } from './api/sources/model';
-import { User } from 'oidc-client-ts';
-import { useAuth } from 'react-oidc-context';
-import { Anchor, Box, Container, Divider, Space } from '@mantine/core';
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
-import { Footer, Header, IndigenousAcknowledgement } from "@atlasoflivingaustralia/ala-mantine";
+import React, {useEffect, useState} from 'react';
+import {Link, Route, Routes} from 'react-router-dom';
+import {Breadcrumb} from './api/sources/model';
+
 import Species from './views/Species';
 
-import '@mantine/core/styles.css';
-import classes from './App.module.css';
-import UserContext from './helpers/UserContext';
-import BreadcrumbSection from './components/header/breadcrumbs';
-import Home from './views/Home';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
+import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
+import "bootstrap-icons/font/bootstrap-icons.css";
+import FontAwesomeIcon from './components/common-ui/fontAwesomeIconLite.tsx'
+import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import buildInfo from './buildInfo.json';
 import Search from "./views/Search.tsx";
+import Header from "./components/common-ui/header.tsx";
+import Banner from "./components/common-ui/banner.tsx";
+import Footer from "./components/common-ui/footer.tsx";
+import NotFound from "./components/common-ui/notFound.tsx";
+
+const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
+
+const MOBILE_BREAKPOINT = 768; // Define the breakpoint for mobile view
 
 const App: React.FC = () => {
-    const [currentUser, setCurrentUser] = useState<ListsUser | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
+    const [cssLoaded, setCssLoaded] = useState<boolean>(false);
+    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([
+        {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+        {title: 'Search', href: '/'}
+    ]);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
-    const auth = useAuth();
-    const location = useLocation();
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         // Add build info to head meta tags
@@ -29,87 +48,99 @@ const App: React.FC = () => {
         meta.name = 'buildInfo';
         meta.content = JSON.stringify(buildInfo);
         document.head.appendChild(meta);
+
+        // Add env value to head meta tags
+        const envMeta = document.createElement('meta');
+        envMeta.name = 'env';
+        envMeta.content = JSON.stringify({env: import.meta.env.VITE_ENV});
+        document.head.appendChild(envMeta);
+
+        if (import.meta.env.VITE_COMMON_CSS) {
+            // load the common CSS used by both the header and footer
+            fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {
+                if (response.ok) {
+                    response.text().then((text) => {
+                        const style = document.createElement('style');
+                        style.innerHTML = text;
+                        document.head.appendChild(style);
+                    });
+                }
+            }).finally(() => {
+                // set css loaded to true even if the fetch fails
+                setCssLoaded(true);
+            });
+        } else {
+            setCssLoaded(true);
+        }
+
+        if (import.meta.env.VITE_COMMON_JS) {
+            // load the common js
+            const script = document.createElement('script');
+            script.src = import.meta.env.VITE_COMMON_JS;
+            script.async = true;
+            document.body.appendChild(script);
+        }
     }, []);
 
-    // const breadcrumbItems = breadcrumbMap.map(item => item.title);
     const breadcrumbItems = breadcrumbs.map((breadcrumb: Breadcrumb, index) => {
         return (
-            <>
+            <li className="breadcrumb-item" key={index}>
+                {index > 0 && <FontAwesomeIcon icon={faChevronRight} className={"breadcrumb-icon"}/>}
                 {index < breadcrumbs.length - 1 ? (
-                    <Anchor component={Link} to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Anchor>
+                    <Link to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Link>
                 ) : (
                     <>
                         {breadcrumb.title}
                     </>
                 )
                 }
-            </>
-        );
+            </li>);
     });
 
-    if (auth.error) {
-        return <div>Configuration error... {auth.error.message}</div>;
+    // when receiving a login URL, handle the login by setting the auth cookie only
+    function handleLogin() {
+        if (import.meta.env.MODE === 'production') {
+            // do login that is suitable for an application that has no authentication requirement (redirect another app)
+            window.location.href = import.meta.env.VITE_LOGIN_URL;
+        } else {
+            // simulate login by setting the cookie and state
+            document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; expires=Thu, 01 Jul 2025 00:00:00 UTC; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
+            setIsLoggedIn(true);
+        }
     }
 
-    function getUser(): User | null | undefined {
-        return auth.user
+    function handleLogout() {
+        // remove cookie
+        document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
+
+        setIsLoggedIn(false);
     }
 
-    function getRoles(): string [] {
-        return (auth.user?.profile[import.meta.env.VITE_PROFILE_ROLES] || []) as string[];
-    }
-
-    function getUserId(): string {
-        return (auth.user?.profile[import.meta.env.VITE_PROFILE_USERID]) as string || '';
-    }
-
-    function isAdmin(): boolean {
-        return getRoles().includes(import.meta.env.VITE_ADMIN_ROLE);
-    }
-
-    function isLoading(): boolean {
-        return auth.isLoading;
-    }
-
-    if (auth.isAuthenticated && auth.user && !currentUser) {
-        setCurrentUser({
-            user: getUser,
-            userId: getUserId,
-            isAdmin: isAdmin,
-            roles: getRoles,
-            isLoading: isLoading
-        });
-    }
-
-    function login() {
-        void auth.signinRedirect({
-            // this is used by onSigninCallback to redirect back to the original page
-            state: {from: location.pathname + location.search + location.hash}
-        })
+    if (!cssLoaded) {
+        return <></>
     }
 
     return (
-        <UserContext.Provider value={currentUser}>
-            <Header
-                onAuthClick={login}
-                isAuthenticated={currentUser ? true : false}
-            />
-             { breadcrumbItems.length > 0 && // Some pages don't have breadcrumbs or include them in the page
-                <Box className={classes.header}>
-                    <Container py="lg" size="lg">
-                        <BreadcrumbSection breadcrumbValues={breadcrumbs} />
-                    </Container>
-                </Box>
+        <>
+            {import.meta.env.VITE_COMMON_HEADER_HTML &&
+                <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
             }
+
+            <Banner/>
+
+            {breadcrumbItems.length > 0 && !isMobile && // Some pages don't have breadcrumbs or include them in the page
+                <section id="breadcrumb" style={{width: "fit-content", zIndex: 1, position: "relative", backgroundColor: "transparent", border: "none"}}>
+                    <div>
+                        <nav aria-label="Breadcrumb" role="navigation">
+                            <ol className="breadcrumb-list breadcrumb">
+                                {breadcrumbItems}
+                            </ol>
+                        </nav>
+                    </div>
+                </section>
+            }
+
             <Routes>
-                <Route
-                    path="/"
-                    element={
-                        <Home
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                        />
-                    }
-                />
                 <Route
                     path="/species/*"
                     element={
@@ -119,19 +150,21 @@ const App: React.FC = () => {
                     }
                 />
                 <Route
-                    path="/search"
+                    path="/"
                     element={
                         <Search
                             setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                         />
                     }
                 />
+                <Route path="*" element={<NotFound />} />
             </Routes>
-            <Space h="xl" />
-            <Divider />
-            <Footer />
-            <IndigenousAcknowledgement />
-        </UserContext.Provider>
+            <div style={{height: "60px"}}/>
+
+            {import.meta.env.VITE_COMMON_FOOTER_HTML &&
+                <Footer isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
+            }
+        </>
     );
 };
 

@@ -1,14 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Anchor, Box, Divider, Flex, Table, Text, Title, Space } from "@mantine/core";
-import { IconInfoCircleFilled } from "@tabler/icons-react";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 
+import {useEffect, useState} from 'react';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import '../../css/nameFormatting.css';
+import InfoBox from "../common-ui/infoBox.tsx";
+import classes from "./species.module.css";
 
 interface MapViewProps {
-    result?:  Record<PropertyKey, string | number | any >
+    result?: Record<PropertyKey, string | number | any>
 }
 
-function NamesView({ result }: MapViewProps) {
+function NamesView({result}: MapViewProps) {
 
     const [commonNames, setCommonNames] = useState<any[]>([]);
     const [indigenousNames, setIndigenousNames] = useState<any[]>([]);
@@ -21,228 +27,365 @@ function NamesView({ result }: MapViewProps) {
     }, [result]);
 
     return <>
-        <Box>
-            <Title order={3}>Scientific names</Title>
-            <Space h="px30" />
-            <Table striped="even">
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Accepted name</Table.Th>
-                        <Table.Th w="30%">Source</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                <Table.Tr>
-                    <Table.Td>
-                        <Text dangerouslySetInnerHTML={{__html: result?.nameFormatted}}></Text>
-                        {result?.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {result?.nameAccordingTo}</Text></>}
-                        {result?.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {result?.namePublishedIn}</Text></>}
-                    </Table.Td>
-                    <Table.Td><Anchor href={result?.source} target="_source">{result?.datasetName}</Anchor></Table.Td>
-                </Table.Tr>
-                </Table.Tbody>
-                <Space h="px30" />
-            </Table>
-
-            { result?.synonymData && <>
-                <Table striped="even">
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Synonyms</Table.Th>
-                            <Table.Th w="30%">Source</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {result.synonymData.sort((a: any, b:any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
-                            <Table.Tr key={idx}>
-                                <Table.Td>
-                                    {item?.source ?
-                                        <Anchor inherit href={item?.source}
-                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
-                                        :
-                                        <Text inherit
-                                              dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
-                                    }
-                                    {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
-                                    {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
-                                </Table.Td>
-                                <Table.Td>
-                                    {item?.source ?
-                                        <Anchor inherit href={item?.source}>{item?.datasetName || 'Link'}</Anchor>
-                                        :
-                                        <Text inherit>{item?.datasetName}</Text>
-                                    }
-                                </Table.Td>
-                            </Table.Tr>
+        <div>
+            <span className={classes.speciesDescriptionTitle}>Scientific names</span>
+            <div style={{height: "30px"}}/>
+            <table className="table table-striped align-middle" style={{fontSize: "16px", lineHeight: "24px"}}>
+                <thead>
+                <tr>
+                    <th>Accepted name</th>
+                    <th style={{width: "30%"}}>Source</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <span dangerouslySetInnerHTML={{__html: result?.nameFormatted}}/>
+                        {result?.nameAccordingTo && (
+                            <>
+                                <div style={{height: "10px"}}/>
+                                <span style={{fontStyle: "italic"}}>
+                          According to: {result?.nameAccordingTo}
+                        </span>
+                            </>
                         )}
-                    </Table.Tbody>
-                </Table>
-                <Space h="px30" />
-                </>
+                        {result?.namePublishedIn && (
+                            <>
+                                <div style={{height: "10px"}}/>
+                                <span style={{fontStyle: "italic"}}>
+                          Published in: {result?.namePublishedIn}
+                        </span>
+                            </>
+                        )}
+                    </td>
+                    <td>
+                        <a href={result?.source} style={{color: "#003A70", textDecoration: "underline"}}>
+                            {result?.datasetName}
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div style={{height: "30px"}}/>
+
+            {result?.synonymData && <>
+                <table className="table table-striped align-middle" style={{fontSize: "16px", lineHeight: "24px"}}>
+                    <thead>
+                    <tr>
+                        <th>Synonyms</th>
+                        <th style={{width: "30%"}}>Source</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {result.synonymData
+                        .sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted))
+                        .map((item: any, idx: any) => (
+                            <tr key={idx}>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        />
+                                    ) : (
+                                        <span dangerouslySetInnerHTML={{__html: item.nameFormatted}}/>
+                                    )}
+                                    {item.nameAccordingTo && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                  According to: {item.nameAccordingTo}
+                                </span>
+                                        </>
+                                    )}
+                                    {item.namePublishedIn && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                  Published in: {item.namePublishedIn}
+                                </span>
+                                        </>
+                                    )}
+                                </td>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        >
+                                            {item?.datasetName || "Link"}
+                                        </a>
+                                    ) : (
+                                        <span>{item?.datasetName}</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div style={{height: "30px"}}/>
+            </>
             }
 
             {result?.variantData && <>
-                <Table striped="even">
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Variants</Table.Th>
-                            <Table.Th w="30%">Source</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                        {result.variantData.sort((a: any, b:any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
-                            <Table.Tr key={idx}>
-                                <Table.Td>
-                                    {item?.source ?
-                                        <Anchor inherit href={item?.source}
-                                                dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Anchor>
-                                        :
-                                        <Text inherit
-                                              dangerouslySetInnerHTML={{__html: item.nameFormatted}}></Text>
-                                    }
-                                    {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
-                                    {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
-                                </Table.Td>
-                                <Table.Td>
-                                    {item?.source ?
-                                        <Anchor inherit href={item?.source}>{item?.datasetName || 'Link'}</Anchor>
-                                        :
-                                        <Text inherit>{item?.datasetName}</Text>
-                                    }
-                                </Table.Td>
-                            </Table.Tr>
-                        )}
-                    </Table.Tbody>
-                </Table>
-                <Space h="px30" />
-                </>
+                <table className="table table-striped align-middle" style={{fontSize: "16px", lineHeight: "24px"}}>
+                    <thead>
+                    <tr>
+                        <th>Variants</th>
+                        <th style={{width: "30%"}}>Source</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {result.variantData
+                        .sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted))
+                        .map((item: any, idx: any) => (
+                            <tr key={idx}>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            dangerouslySetInnerHTML={{__html: item.nameFormatted}}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        />
+                                    ) : (
+                                        <span dangerouslySetInnerHTML={{__html: item.nameFormatted}}/>
+                                    )}
+                                    {item.nameAccordingTo && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                  According to: {item.nameAccordingTo}
+                                </span>
+                                        </>
+                                    )}
+                                    {item.namePublishedIn && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                  Published in: {item.namePublishedIn}
+                                </span>
+                                        </>
+                                    )}
+                                </td>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        >
+                                            {item?.datasetName || "Link"}
+                                        </a>
+                                    ) : (
+                                        <span>{item?.datasetName}</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div style={{height: "30px"}}/>
+            </>
             }
 
             {result?.identifierData && <>
-                <Table striped="even">
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Identifiers</Table.Th>
-                        <Table.Th w="30%">Source</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    { result.identifierData.sort((a: any, b:any) => a.guid.localeCompare(b.guid)).map((item: any, idx: any) =>
-                        <Table.Tr key={idx}>
-                            <Table.Td>
-                                {item?.source ?
-                                    <Anchor inherit href={item?.source}>{item?.guid}</Anchor>
-                                    :
-                                    <Text inherit>{item.guid}</Text>
-                                }
-                                {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
-                                {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
-                            </Table.Td>
-                            <Table.Td>
-                                {item?.source ?
-                                    <Anchor inherit href={item?.source}>{item?.datasetName || 'Link'}</Anchor>
-                                    :
-                                    <Text inherit>{item?.datasetName}</Text>
-                                }
-                            </Table.Td>
-                        </Table.Tr>
-                    )}
-                </Table.Tbody>
-            </Table>
-                <Space h="px30" />
-                </>
+                <table className="table table-striped align-middle" style={{fontSize: "16px", lineHeight: "24px"}}>
+                    <thead>
+                    <tr>
+                        <th>Identifiers</th>
+                        <th style={{width: "30%"}}>Source</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {result.identifierData
+                        .sort((a: any, b: any) => a.guid.localeCompare(b.guid))
+                        .map((item: any, idx: any) => (
+                            <tr key={idx}>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        >
+                                            {item?.guid}
+                                        </a>
+                                    ) : (
+                                        <span>{item.guid}</span>
+                                    )}
+                                    {item.nameAccordingTo && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                              According to: {item.nameAccordingTo}
+                            </span>
+                                        </>
+                                    )}
+                                    {item.namePublishedIn && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                              Published in: {item.namePublishedIn}
+                            </span>
+                                        </>
+                                    )}
+                                </td>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        >
+                                            {item?.datasetName || "Link"}
+                                        </a>
+                                    ) : (
+                                        <span>{item?.datasetName}</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div style={{height: "30px"}}/>
+            </>
             }
 
             {commonNames && commonNames.length > 0 && <>
-                <Divider/>
-                <Space h="px30" />
-                <Title order={3}>Common names</Title>
-                <Space h="px30" />
-                <Table striped="even">
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Common name</Table.Th>
-                            <Table.Th w="30%">Source</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                    {commonNames.sort((a: any, b:any) => a.name.localeCompare(b.name)).map((item: any, idx: any) =>
-                        <Table.Tr key={idx}>
-                            <Table.Td>
-                                {item?.source ?
-                                    <Anchor inherit href={item?.source}>{item?.name}</Anchor>
-                                    :
-                                    <Text inherit>{item.name}</Text>
-                                }
-                                {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
-                                {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
-                            </Table.Td>
-                            <Table.Td>
-                                {item?.source ?
-                                    <Anchor inherit href={item?.source}>{item?.datasetName || 'Link'}</Anchor>
-                                    :
-                                    <Text inherit>{item?.datasetName}</Text>
-                                }
-                            </Table.Td>
-                        </Table.Tr>
-                    )}
-                    </Table.Tbody>
-                </Table>
-                <Space h="px30" />
-                </>
+                <hr/>
+                <div style={{height: "30px"}}/>
+                <span className={classes.speciesDescriptionTitle}>Common names</span>
+                <div style={{height: "30px"}}/>
+                <table className="table table-striped align-middle" style={{fontSize: "16px", lineHeight: "24px"}}>
+                    <thead>
+                    <tr>
+                        <th>Common name</th>
+                        <th style={{width: "30%"}}>Source</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {commonNames
+                        .sort((a: any, b: any) => a.name.localeCompare(b.name))
+                        .map((item: any, idx: any) => (
+                            <tr key={idx}>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        >
+                                            {item?.name}
+                                        </a>
+                                    ) : (
+                                        <span>{item.name}</span>
+                                    )}
+                                    {item.nameAccordingTo && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                      According to: {item.nameAccordingTo}
+                                    </span>
+                                        </>
+                                    )}
+                                    {item.namePublishedIn && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                      Published in: {item.namePublishedIn}
+                                    </span>
+                                        </>
+                                    )}
+                                </td>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{textDecoration: "underline", color: "#003A70"}}
+                                        >
+                                            {item?.datasetName || "Link"}
+                                        </a>
+                                    ) : (
+                                        <span>{item?.datasetName}</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div style={{height: "30px"}}/>
+            </>
             }
 
             {indigenousNames && indigenousNames.length > 0 && <>
-                <Divider/>
-                <Space h="px30" />
-                <Title order={3}>Indigenous names</Title>
-                <Space h="px30" />
-                <Flex justify="flex-start" align="center" gap="5px">
-                    <IconInfoCircleFilled size={18}/>
-                    <Text fw={800} fz={16}>About indigenous names</Text>
-                </Flex>
-                <Space h="px10" />
-                <Text>
-                    The links from the Indigenous name provide more information about Indigenous Ecological
+                <hr/>
+                <div style={{height: "30px"}}/>
+                <span className={classes.speciesDescriptionTitle}>Indigenous names</span>
+                <div style={{height: "30px"}}/>
+                <InfoBox className="mb-2" icon={faCircleInfo} title="About indigenous names" content={<>The links from the Indigenous name provide more information about Indigenous Ecological
                     Knowledge (IEK) relating to the species. The link from language group links to the
                     Australian Institute of Aboriginal and Torres Strait Islander Studies
-                    (<Anchor href="https://aiatsis.gov.au" target="_source">AIATSIS</Anchor>)
-                    information about the language.
-                </Text>
-                <Space h="px30" />
-                <Table striped="even">
-                    <Table.Thead>
-                        <Table.Tr>
-                            <Table.Th>Name</Table.Th>
-                            <Table.Th w="30%">See language group</Table.Th>
-                        </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                    {indigenousNames.sort((a: any, b:any) => a.name.localeCompare(b.name)).map((item: any, idx: any) =>
-                        <Table.Tr key={idx}>
-                            <Table.Td>
-                                {item?.source ?
-                                    <Anchor inherit href={item?.source}>{item?.name}</Anchor>
-                                    :
-                                    <Text inherit>{item.name}</Text>
-                                }
-                                {item.nameAccordingTo && <><Space h="px10" /><Text inherit fs="italic">According to: {item.nameAccordingTo}</Text></>}
-                                {item.namePublishedIn && <><Space h="px10" /><Text inherit fs="italic">Published in: {item.namePublishedIn}</Text></>}
-                            </Table.Td>
-                            <Table.Td>
-                                {item?.source ?
-                                    <Anchor inherit href={item?.languageURL}>{item?.languageName || item?.language}</Anchor>
-                                    :
-                                    <Text inherit>{item?.languageName || item?.language}</Text>
-                                }
-                            </Table.Td>
-                        </Table.Tr>
-                    )}
-                    </Table.Tbody>
-                </Table>
-                </>
+                    (<a href="https://aiatsis.gov.au" target="_blank"
+                        style={{color: "#003A70", textDecoration: "underline"}}>AIATSIS</a>)
+                    information about the language.</>}
+                />
+                <div style={{height: "30px"}}/>
+                <table className="table table-striped align-middle" style={{fontSize: "16px", lineHeight: "24px"}}>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th style={{width: "30%"}}>See language group</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {indigenousNames
+                        .sort((a: any, b: any) => a.name.localeCompare(b.name))
+                        .map((item: any, idx: any) => (
+                            <tr key={idx}>
+                                <td>
+                                    {item?.source ? (
+                                        <a
+                                            href={item?.source}
+                                            style={{color: "#003A70", textDecoration: "underline"}}
+                                        >
+                                            {item?.name}
+                                        </a>
+                                    ) : (
+                                        <span>{item.name}</span>
+                                    )}
+                                    {item.nameAccordingTo && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                                    According to: {item.nameAccordingTo}
+                                                </span>
+                                        </>
+                                    )}
+                                    {item.namePublishedIn && (
+                                        <>
+                                            <div style={{height: "10px"}}/>
+                                            <span style={{fontStyle: "italic"}}>
+                                                    Published in: {item.namePublishedIn}
+                                                </span>
+                                        </>
+                                    )}
+                                </td>
+                                <td>
+                                    {item?.languageURL ? (
+                                        <a
+                                            href={item?.languageURL}
+                                            style={{color: "#003A70", textDecoration: "underline"}}
+                                        >
+                                            {item?.languageName || item?.language}
+                                        </a>
+                                    ) : (
+                                        <span>{item?.languageName || item?.language}</span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </>
             }
-        </Box>
+        </div>
     </>
 }
 

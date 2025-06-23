@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, Anchor, Box, Divider, Grid, Skeleton, Space, Text, Title } from '@mantine/core';
-import LargeLinkButton from '../common/externalLinkButton';
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import { useEffect, useState } from 'react';
 import FormatName from '../nameUtils/formatName';
 import classes from "./species.module.css";
-import { FlagIcon } from '@atlasoflivingaustralia/ala-mantine';
+import FlaggedAlert from "../common-ui/flaggedAlert.tsx";
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>;
@@ -152,100 +156,106 @@ function ResourcesView({ result }: MapViewProps) {
     }
 
     return (
-        <Box>
-            <Title order={3}>
+        <div>
+            <span className={classes.speciesDescriptionTitle}>
                 Literature
-            </Title>
+            </span>
 
-            <Space h="px30" />
-
-            <Title order={4} className={classes.h4grey}>
+            <span className={classes.h4grey} style={{marginBottom: "30px", marginTop: "30px"}}>
                 Biodiversity Heritage Library (BHL)
-            </Title>
-            <Space h="px30" />
+            </span>
 
-            { loading && <><Skeleton height={40} width="100%" radius="md" /></>}
-            { errorMessage &&
-                <>
-                    <Alert icon={<FlagIcon />}>
-                        <b>Error loading BHL results.</b>
-                        <p>Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.</p>
-                        <code>{errorMessage}</code>
-                    </Alert>
-                </>
+            {loading && (
+              <div className={"placeholder-glow"}>
+                <span className="placeholder" style={{height: 24, display: "block", width: "500px", borderRadius: "5px"}}></span>
+                <span className="placeholder" style={{height: 256, display: "block", width: "100%", borderRadius: "5px", marginTop: "20px"}}></span>
+              </div>
+            )}
+            { errorMessage && <FlaggedAlert content={<><b>Error loading BHL results.</b>
+                <p>
+                    Report this error by clicking on the <b>Need Help?</b> button on the right edge of the screen.
+                </p>
+                <code>{errorMessage}</code></>} />
             }
             {
                 bhl && bhl.length > 0 &&
                 <>
-                    <Text>
-                        Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length}  for {" "}
-                        <FormatName name={result?.name} rankId={result?.rankID} />.{" "}
-                        <Anchor inherit href={bhlQuery} target="bhl">View all results</Anchor>.
-                    </Text>
-                    { bhl.map((resource, index) => (
-                        index < maxBhlSize &&
-                            <React.Fragment key={index}>
-                                <Space h="px15" />
-                                <Alert variant="ala-light" className={classes.lightLarge}>
-                                    {resource.Authors?.length === 1 ? (
-                                        <>{formatAuthor(resource.Authors[0].Name)}</>
-                                    ) : (
-                                        <>
-                                            {resource.Authors?.slice(0, -2).map((author) => formatAuthor(author.Name)).join(", ")}
-                                            {resource.Authors?.length > 1 && (
-                                                <>
-                                                    {resource.Authors?.length > 2 && ", "}
-                                                    {resource.Authors?.slice(-2).map((author) => formatAuthor(author.Name)).join(" and ")}
-                                                </>
-                                            )}
-                                        </>
-                                    )}
-                                    {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
-                                        <>{resource.Authors?.length > 0 && ", "}<Text inherit span fs={resource.ItemUrl && 'italic'}>
-                                            <Anchor fz="md" inherit href={resource.PartUrl || resource.ItemUrl} target="bhl">
-                                                '{resource.Title}'
-                                            </Anchor></Text>
-                                        </>)}
-                                    {resource.ContainerTitle && (
-                                        <>, <i>{resource.ContainerTitle}</i>
-                                        </>)}
-                                    {resource.PublisherName && (
-                                        <>, {resource.PublisherName}
-                                        </>
-                                    )}
-                                    {resource.Volume && (
-                                        <>, <Text inherit span fw="bold">{resource.Volume}</Text>
-                                        </>)}
-                                    {resource.Issue && (
-                                        <>, {resource.Issue}{""}
-                                        </>)}
-                                    {(resource.Date || resource.PublicationDate) && (
-                                        <>, {resource.Date || resource.PublicationDate}
-                                        </>)}
-                                </Alert>
-                            </React.Fragment>
-                        )
-                    )}
+                    <span style={{ fontSize: "16px", lineHeight: "24px", fontWeight: 70 }}>
+                      Showing {1} to {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} for{" "}
+                      <FormatName name={result?.name} rankId={result?.rankID} />.{" "}
+                      <a href={bhlQuery} target="bhl" className={classes.speciesLink} style={{fontSize: "16px", lineHeight: "24px", fontWeight: 700}}>
+                        View in BHL
+                      </a>.
+                    </span>
+                    <table className="table table-striped align-middle" style={{ marginTop: "20px", borderTop: "0.5px solid #212121", paddingTop: "10px", paddingBottom: "10px"}}>
+                        <tbody>
+                        { bhl.map((resource, index) => (
+                            index < maxBhlSize &&
+                                <tr key={index}>
+                                    <td style={{border: "0px", fontSize: "16px", lineHeight: "24px"}}>
+                                        {resource.Authors?.length === 1 ? (
+                                            <>{formatAuthor(resource.Authors[0].Name)}</>
+                                        ) : (
+                                            <>
+                                                {resource.Authors?.slice(0, -2).map((author) => formatAuthor(author.Name)).join(", ")}
+                                                {resource.Authors?.length > 1 && (
+                                                    <>
+                                                        {resource.Authors?.length > 2 && ", "}
+                                                        {resource.Authors?.slice(-2).map((author) => formatAuthor(author.Name)).join(" and ")}
+                                                    </>
+                                                )}
+                                            </>
+                                        )}
+                                        {resource.Title && (resource.PartUrl || resource.ItemUrl) && (
+                                            <>
+                                              {resource.Authors?.length > 0 && ", "}
+                                              <span style={{ fontStyle: resource.ItemUrl ? "italic" : undefined }}>
+                                                <a
+                                                  href={resource.PartUrl || resource.ItemUrl}
+                                                  style={{ color: "#003A70", textDecoration: "underline" }}
+                                                >
+                                                  '{resource.Title}'
+                                                </a>
+                                              </span>
+                                            </>)}
+                                        {resource.ContainerTitle && (
+                                            <>, <i>{resource.ContainerTitle}</i>
+                                            </>)}
+                                        {resource.PublisherName && (
+                                            <>, {resource.PublisherName}
+                                            </>
+                                        )}
+                                        {resource.Volume && (
+                                            <>, <span style={{ fontWeight: "bold" }}>{resource.Volume}</span>
+                                            </>)}
+                                        {resource.Issue && (
+                                            <>, {resource.Issue}{""}
+                                            </>)}
+                                        {(resource.Date || resource.PublicationDate) && (
+                                            <>, {resource.Date || resource.PublicationDate}
+                                            </>)}
+                                    </td>
+                                </tr>
+                            )
+                        )}
+                        </tbody>
+                    </table>
                 </>
             }
             { !loading && !errorMessage && (!bhl || bhl.length === 0) &&
-                <Text>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></Text>
+                <span style={{ fontSize: "16px", lineHeight: "24px"}}>No BHL references found for <FormatName name={result?.name} rankId={result?.rankID} /></span>
             }
-            <Space h="px60" />
-            <Divider/>
-            <Space h="px40" />
+            <hr className={classes.hrColour} style={{marginTop: "30px", marginBottom: "40px"}}/>
 
-            <Title order={3}>Other resources</Title>
-            <Space h="px30" />
-            <Grid gutter={{base: 15, md: 20, lg: 35}}>
-                {onlineResources.map((resource: Resource, idx) => (
-                    isResourceVisible(resource) &&
-                        <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={idx} className={classes.primaryButton}>
-                            <LargeLinkButton url={resource.url} external={resource.external}>{resource.name}</LargeLinkButton>
-                        </Grid.Col>
-                ))}
-            </Grid>
-        </Box>
+            <span className={classes.h3}>Other resources</span>
+            <div className="d-flex flex-wrap" style={{ rowGap: 30, columnGap: 40, marginTop: "30px"}}>
+              {onlineResources.map((resource: Resource, idx) =>
+                isResourceVisible(resource) && (
+                  <a key={idx} className="btn ala-btn-primary ala-btn-large" href={resource.url}>{resource.name}</a>
+                )
+              )}
+            </div>
+        </div>
     );
 }
 

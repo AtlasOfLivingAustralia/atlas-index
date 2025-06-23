@@ -1,17 +1,22 @@
-import {GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {GenericViewProps, RenderItemElements, RenderItemParams} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {limitDescription, openUrl} from "../util.tsx";
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn} from "../util.tsx";
 
 function formatCategory(category: string) {
     if (category == "REGION") {
-        return "Region / Area";
+        return "Region";
     } else {
         return "Locality";
     }
 }
 
-function openRegionLocality(item: any, navigate: any) {
+function openRegionLocality(item: any) {
     // idxtype:LOCALITY opens expore your area
     // idxtype:REGION opens spatial portal, because regions does not have a landing page for a pid
 
@@ -23,7 +28,7 @@ function openRegionLocality(item: any, navigate: any) {
         return;
     } else {
         // id is of the form "fid-pid", get the pid
-        navigate(`/region?id=${item.id.split('-')[1]}`);
+        openUrl(import.meta.env.VITE_REGIONS_URL + `/region?id=${item.id.split('-')[1]}`); // new regions app
         return;
     }
 }
@@ -35,7 +40,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
 
     facetDefinitions: {
         "idxtype": {
-            label: "Primary category",
+            label: "Type", // redundant, this is overridden below
             order: 1,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom label
@@ -56,7 +61,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
                     })
 
                     facetList.push({
-                        name: "Primary category",
+                        name: "Type",
                         items: items,
                         order: 1
                     })
@@ -64,37 +69,49 @@ export const regionslocalitiesDefn: GenericViewProps = {
             }
         },
         "fieldName": {
-            label: "Region Type",
+            label: "Source",
             order: 2
         }
     },
 
-    renderListItemFn: ({item, wide, navigate}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openRegionLocality(item, navigate)}
-                     style={{cursor: "pointer"}}>
-            <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text>{item.fieldName}</Text>
-                <Text>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, 230)}</Text>
-            </div>
-        </Flex>
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+        const elements : RenderItemElements = {
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+            </>,
+            extra: <>
+                <span className={classes.listItemText}>{item.fieldName}</span>
+                <span className={classes.multilineText}>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</span>
+            </>,
+            description: <>
+                <span className={classes.listDescription} title={item.description}>{limitDescription(item.description, isMobile ? 80 : (wide ? 230 : 120))}</span>
+            </>,
+            clickFn: () => openRegionLocality(item)
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item, navigate}: RenderItemParams) => {
-        return <div className={classes.tileNoImage} onClick={() => openRegionLocality(item, navigate)}>
-            <div className={classes.tileContent}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Space h="8px"/>
-                <Text fz={14}>{item.fieldName}</Text>
-                <Text fz={14}>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</Text>
-                <Space h="13px"/>
-                <Text fz={14} title={item.description}>{limitDescription(item.description, 230)}</Text>
-            </div>
-        </div>
-    }
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: "8px"}}>{item.name}</span>
+                <span className={classes.listItemText}>{item.fieldName}</span>
+                <span className={classes.listItemText}>Type {item.idxtype == "LOCALITY" ? "Locality" : "Region / Area"}</span>
+                <span style={{ marginTop: "13px"}} className={classes.listDescription} title={item.description}>{item.description}</span>
+            </>,
+            clickFn: () => openRegionLocality(item)
+        }
+        return renderGenericTileItemFn(isMobile, elements);
+    },
+
+    resourceLinks: [
+        {
+            label: "Explore your area",
+            url: import.meta.env.VITE_BIOCACHE_UI_URL + "/explore/your-area"
+        },
+        {
+            label: "Regions",
+            url: import.meta.env.VITE_REGIONS_URL
+        }
+    ]
 }

@@ -1,0 +1,43 @@
+.paginationButton {
+    border-radius: 5px;
+    border: 1px solid #637073;
+    background: #FFF;
+    color: #212121;
+    padding: 8px 15px 10px 15px;
+}
+
+.paginationButton:hover {
+    border-radius: 5px;
+    background: #637073;
+    color: #FFF;
+}
+
+.paginationButtonSelected {
+    border-radius: 5px;
+    background: #212121;
+    color: #FFF;
+    padding: 8px 15px 10px 15px;
+}
+
+.paginationSpacer {
+    margin-top: 8px;
+}
+
+@media (max-width: 768px) {
+    .paginationButton, .paginationButtonSelected {
+        font-size: 12px;
+        line-height: 16px;
+    }
+    .paginationSpacer {
+        margin-top: 5px;
+    }
+}
+
+.next {
+    background: #C44D34 !important;
+    color: #FFF;
+}
+
+.next:hover {
+    background: #637073 !important;
+}

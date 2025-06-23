@@ -1,15 +1,17 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import {HashRouter as Router} from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { NuqsAdapter } from 'nuqs/adapters/react-router';
 import messages_en from "./translations/en.json";
 import {IntlProvider} from "react-intl";
-import {AuthProvider} from "react-oidc-context";
-import {WebStorageStateStore} from "oidc-client-ts";
-import { MantineProvider } from '@mantine/core';
-import { theme } from '@atlasoflivingaustralia/ala-mantine';
 import FontFaceObserver from 'fontfaceobserver'
 
 import "@fontsource/roboto";
@@ -21,54 +23,18 @@ const robotoRegular = new FontFaceObserver('Roboto', { weight: 400 });
 const roboto500 = new FontFaceObserver('Roboto', { weight: 500 });
 const roboto700 = new FontFaceObserver('Roboto', { weight: 700 });
 
-const oidcConfig = {
-    authority: import.meta.env.VITE_OIDC_AUTH_SERVER,
-    client_id: import.meta.env.VITE_OIDC_CLIENT_ID,
-    redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URL,
-    scope: import.meta.env.VITE_OIDC_SCOPE,
-    post_logout_redirect_uri: import.meta.env.VITE_OIDC_REDIRECT_URL,
-    userStore: new WebStorageStateStore({store: window.localStorage}),
-    onSigninCallback: (user: any) => {
-        // user.state.from is set when clicking the login button.
-        // While it could route instead, the use of query parameters is not yet explored.
-        window.location.href = `${window.location.origin}${user.state.from}`
-    },
-    onSignoutCallback: () => {
-        console.log("onSignoutCallback");
-    }
-
-};
-
-// TODO: When the UI is more or less finished, move this up to ala-mantine
-// TODO: Make spacing variable, in case it is used for a component that automatically changes between mobile and desktop
-// custom spacing
-Object.assign(theme, {
-    spacing: {
-        px60: "60px",
-        px40: "40px",
-        px30: "30px",
-        px15: "15px"
-    }
-});
-
 Promise.all([robotoRegular.load(), roboto500.load(), roboto700.load()]).then(() => {
     const root = ReactDOM.createRoot(
         document.getElementById('root') as HTMLElement
     );
     root.render(
-        // TODO: react-leaflet does not handle strict mode
         <React.StrictMode>
             <NuqsAdapter>
                 <Router>
-                    <AuthProvider {...oidcConfig}>
-                        <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
-                        }}>
-                            {/*<Notifications position="top-center" />*/}
-                            <MantineProvider theme={theme}>
-                                <App/>
-                            </MantineProvider>
-                        </IntlProvider>
-                    </AuthProvider>
+                    <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
+                    }}>
+                        <App/>
+                    </IntlProvider>
                 </Router>
             </NuqsAdapter>
         </React.StrictMode>

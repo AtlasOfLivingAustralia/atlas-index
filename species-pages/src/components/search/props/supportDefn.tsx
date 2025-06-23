@@ -1,7 +1,12 @@
-import {GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {GenericViewProps, RenderItemElements, RenderItemParams} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {limitDescription, openUrl} from "../util.tsx";
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn} from "../util.tsx";
 
 function formatWordpressCategory(category: string) {
     if (!category) {
@@ -17,7 +22,7 @@ export const supportDefn: GenericViewProps = {
 
     facetDefinitions: {
         "classification": {
-            label: "Webpage type",
+            label: "Type", // redundant, this is overridden below
             order: 1,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom label and indentation (depth)
@@ -71,7 +76,7 @@ export const supportDefn: GenericViewProps = {
                     })
 
                     facetList.push({
-                        name: "Webpage type",
+                        name: "Type",
                         items: items,
                         order: 1
                     })
@@ -80,32 +85,41 @@ export const supportDefn: GenericViewProps = {
         }
     },
 
-    renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(item.guid)} style={{cursor: "pointer"}}>
-            <div style={{minWidth: wide ? "342px" : "300px", maxWidth: wide ? "342px" : "300px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                {item.classification1 && <Text>{item.classification1}</Text>}
-                {item.classification2 && <Text>{item.classification2}</Text>}
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+    renderListItemFn: ({item, navigate, wide,isMobile}: RenderItemParams) => {
+        const elements : RenderItemElements = {
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+            </>,
+            extra: <>
+                {item.classification1 && <span className={classes.overflowText}>{item.classification1}</span>}
+                {item.classification2 && <span className={classes.overflowText}>{item.classification2}</span>}
+            </>,
+            description: <>
+                <span className={classes.listDescription} title={item.description}>{limitDescription(item.description, isMobile ? 80 : (wide ? 230 : 120))}</span>
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item}: RenderItemParams) => {
-        return <div className={classes.tileNoImage} onClick={() => openUrl(item.guid)}>
-            <div className={classes.tileContent}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Space h="8px"/>
-                {item.classification1 && <Text fz={14}>{formatWordpressCategory(item.classification1)}</Text>}
-                {item.classification2 && <Text fz={14}>{formatWordpressCategory(item.classification2)}</Text>}
-                <Space h="13px"/>
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: "8px"}}>{item.name}</span>
+                {item.classification1 && <span className={classes.listItemText}>{formatWordpressCategory(item.classification1)}</span>}
+                {item.classification2 && <span className={classes.listItemText}>{formatWordpressCategory(item.classification2)}</span>}
                 {item.description &&
-                    <Text fz={14} title={item.description}>{item.description}</Text>}
-            </div>
-        </div>
-    }
+                    <span style={{marginTop: "13px"}} className={classes.listDescription} title={item.description}>{item.description}</span>}
+            </>,
+            clickFn: () => openUrl(item.guid)
+        }
+        return renderGenericTileItemFn(isMobile, elements);
+    },
+
+    resourceLinks: [
+        {
+            label: "Knowledge Base",
+            url: import.meta.env.VITE_APP_KNOWLEDGE_BASE_URL
+        }
+    ]
 }

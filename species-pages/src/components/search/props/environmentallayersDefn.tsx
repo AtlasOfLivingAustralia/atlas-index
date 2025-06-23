@@ -1,9 +1,15 @@
-import {GenericViewProps, RenderItemParams} from "../../../api/sources/model.ts";
-import {Flex, Image, Space, Text} from "@mantine/core";
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+import {GenericViewProps, RenderItemElements, RenderItemParams} from "../../../api/sources/model.ts";
 import classes from "../search.module.css";
-import {limitDescription, openUrl} from "../util.tsx";
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from "../util.tsx";
 import missingImage from '../../../image/missing-image.png';
 import capitalise from "../../../helpers/Capitalise.ts";
+import {FadeInImage} from "../../common-ui/fadeInImage.tsx";
 
 export const environmentallayersDefn: GenericViewProps = {
     fq: "idxtype:LAYER",
@@ -12,7 +18,7 @@ export const environmentallayersDefn: GenericViewProps = {
 
     facetDefinitions: {
         "type": {
-            label: "Spatial layer type",
+            label: "Type", // redundant, this is overridden below
             order: 1,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with reverse alpha sorting
@@ -33,7 +39,7 @@ export const environmentallayersDefn: GenericViewProps = {
                     })
 
                     facetList.push({
-                        name: "Spatial layer type",
+                        name: "Type",
                         items: items,
                         order: 1
                     })
@@ -41,7 +47,7 @@ export const environmentallayersDefn: GenericViewProps = {
             }
         },
         "classification": {
-            label: "Classification",
+            label: "Classification", // redundant, this is overridden below
             order: 2,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom label and indentation (depth)
@@ -100,62 +106,48 @@ export const environmentallayersDefn: GenericViewProps = {
         }
     },
 
-    renderListItemFn: ({item, wide}: RenderItemParams) => {
-        return <Flex gap="30px" onClick={() => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())}
-                     style={{cursor: "pointer"}}>
-            <div style={{minWidth: "62px", minHeight: "62px"}}>
-                {item.image && <Image
-                    radius="5px"
-                    mah={62}
-                    maw={62}
-                    src={item.image}
-                    onError={(e) => e.currentTarget.src = missingImage}
-                />
-                }
-                {!item.image &&
-                    <Image
-                        radius="5px"
-                        mah={62}
-                        maw={62}
-                        src={missingImage}
-                    />
-                }
-            </div>
-            <div style={{minWidth: wide ? "250px" : "210px", maxWidth: wide ? "250px" : "210px"}}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-            </div>
-            <div style={{minWidth: wide ? "250px" : "200px", maxWidth: wide ? "250px" : "200px"}}>
-                <Text className={classes.overflowText} title={item.keywords}>{item.keywords}</Text>
-                <Text title={item.source}>{item.source}</Text>
-            </div>
-            <div style={{minWidth: wide ? "550px" : "340px", maxWidth: wide ? "550px" : "340px"}}>
-                <Text title={item.description}>{limitDescription(item.description, wide ? 230 : 120)}</Text>
-            </div>
-        </Flex>
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+        const elements : RenderItemElements = {
+            image: <FadeInImage
+                className={classes.listItemImage}
+                src={item.image || missingImage}
+                missingImage={missingImage}
+            />,
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+            </>,
+            extra: <>
+                <span className={classes.overflowText} title={item.keywords}>{item.keywords}</span>
+                <span className={classes.multilineText} title={item.source}>{item.source}</span>
+            </>,
+            description: <>
+                <span className={classes.listDescription} title={item.description}>{limitDescription(item.description, isMobile ? 80 : (wide ? 230 : 120))}</span>
+            </>,
+            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())
+        }
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({item}: RenderItemParams) => {
-        return <div className={classes.tile} onClick={() => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())}>
-            {item.image && <Image height={150} width="auto"
-                                  src={item.image}
-                                  onError={(e) => e.currentTarget.src = missingImage}
-            />
-            }
-            {!item.image && <Image height={150} width="auto"
-                                   src={missingImage}
-            />
-            }
-
-            <div className={classes.tileContent}>
-                <Text className={classes.listItemName}>{item.name}</Text>
-                <Space h="8px"/>
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
+        const elements: RenderItemElements = {
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: "8px"}}>{item.name}</span>
                 {item.keywords &&
-                    <Text fz={14} className={classes.overflowText} title={item.keywords}>{item.keywords}</Text>}
-                {item.source && <Text fz={14} title={item.source}>{item.source}</Text>}
-                <Space h="13px"/>
+                    <span className={classes.overflowText} title={item.keywords}>{item.keywords}</span>}
+                {item.source && <span title={item.source} className={classes.overflowText}>{item.source}</span>}
                 {item.description &&
-                    <Text fz={14} title={item.description}>{item.description}</Text>}
-            </div>
-        </div>
-    }
+                    <span style={{ marginTop: "13px"}} className={classes.listDescription} title={item.description}>{item.description}</span>}
+            </>,
+            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + "?layers=" + item.guid.split('/').pop())
+        }
+        return renderGenericTileItemFn(isMobile, elements);
+    },
+
+    resourceLinks: [
+        {
+            label: "Spatial layers",
+            url: import.meta.env.VITE_SPATIAL_URL + "/ws/layers/index"
+        }
+    ]
 }

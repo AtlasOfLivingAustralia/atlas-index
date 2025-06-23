@@ -1,29 +1,195 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+.hideMobile {
+    /* Mobile Sizes */
+    @media (max-width: calc(48em - 1px)) {
+        display: none;
+    }
+}
+
+.currentTaxa p, .currentTaxa a {
+    line-height: 34px;
+}
+
+.currentTaxa p {
+    padding-left: 12px !important;
+}
+
+.currentTaxa a {
+    padding-right: 11px !important;
+}
+
+.currentTaxa {
+    margin-top: 5px;
+    margin-bottom: 10px !important;
+    display: inline-flex !important;
+    background-color: #EAE6E7;
+    line-height: 34px;
+}
+
+.citation, .mediaIconBtn {
+    background-color: #E7E7E7;
+}
+
+.speciesSectionText a, .traitsSectionText a {
+    color: #003a70;
+    &:hover {
+        color: #1b5e83;
+    }
+}
+
+.speciesSectionText {
+    color: #6c7679;
+
+    font-size: 16px;
+    line-height: 24px;
+    display: block;
+
+    /*> figure {*/
+    /*    margin-block-start: 10px;*/
+    /*    margin-inline-start: 10px;*/
+
+    /*    figcaption {*/
+    /*        font-size: 12px;*/
+    /*    }*/
+
+    /*    audio {*/
+    /*        width: 250px;*/
+    /*        height: 54px;*/
+    /*        display: inline !important;*/
+    /*        box-sizing: border-box;*/
+    /*    }*/
+    /*}*/
+}
+
+.gallerySortLabel {
+    font-size: 14px !important;
+}
+
+.nameFormatted {
+    font-style: italic;
+    .rank-species {
+        .name {
+            font-style: italic;
+        }
+    }
+}
+
+.rankSpecies > .name {
+    font-style: italic !important;
+}
+
+.rankName {
+    margin-inline-end: 6px !important;
+}
+
+/* section for handling the cleansed species description HTML from profiles, wikipedia, etc */
+.speciesSectionText p {
+    margin-block: 0px;
+}
+
+.primaryButton button {
+    height: 69px !important;
+}
+
+.lightLarge {
+    padding: 15px 15px 18px 18px !important;
+}
+
+.traitsLeftColumnWidth {
+    width: 305px;
+}
+
+
+.searchInput, .searchInput div, .searchInput div input {
+    width: 895px;
+    height: 47px;
+    border-radius: 5px 0px 0px 5px;
+
+    background: #FFF;
+}
+
+.searchInput, .searchInput:focus-visible {
+    border: 1px solid #637073;
+    outline: 1px solid #637073;
+    outline-offset: -1px;
+    padding-left: 15px;
+}
+
+.searchButton, .searchButton:hover, .searchButton:active {
+    width: 50px;
+    height: 47px;
+    border-radius: 0px 5px 5px 0px;
+    background: #C44D34;
+    border: 1px solid #637073;
+    cursor: pointer;
+    transform: none;
+    color: white;
+}
+
+.searchButton:hover {
+    background: #637073 !important;
+}
+
+.searchButton:active {
+    background: #212121 !important;
+}
+
+.searchTitle {
+    color: #212121;
+    text-align: center;
+    text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+
+    /* Desktop/H2/Semibold */
+    /*-webkit-text-stroke-width: 1;*/
+    -webkit-text-stroke-color: #000;
+    font-family: Roboto;
+    font-size: 44px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 52px;
+}
+
+.tabButtons svg {
+    margin-right: 7px;
+}
+
+.activeTab {
+    border-bottom: 2px solid #C44D34;
+    color: #C44D34;
+}
+
+.tabButtons:hover {
+    border-bottom: 2px solid #C44D34;
+    color: #C44D34;
+}
+
+.tabButtons {
+    padding: 15px;
+}
+
 .speciesHeader {
-    z-index: 0;
     background-repeat: no-repeat;
     background-position: right -10px top -20px;
+    background-color: #E7E7E7;
+    background-image: url('../../image/logo-back-light.svg');
+    margin-top: -46px;
+    padding-top: 46px;
+    position: relative;
+    z-index: 0;
+}
 
-    @mixin light {
-        background-color: var(--mantine-color-concrete-0);
-        background-image: url('/logo/logo-back-light.svg');
-    }
-
-    @mixin dark {
-        background-color: var(--mantine-color-charcoal-9);
-        background-image: url('/logo/logo-back-dark.svg');
-    }
-
-    /* Mobile Sizes */
-    /* @media (max-width: calc(48em - 1px)) {
-        display: none;
-    } */
-
-    /* @mixin light {
-        background-color: var(--mantine-color-light-grey-2);
-    }
-    @mixin dark {
-        background-color: var(--mantine-color-dark-4);
-    } */
+.speciesHeaderName {
+    font-weight: 600;
+    font-size: 52px;
+    line-height: 58px;
+    font-family: 'Roboto';
+    color: #212121;
+    display: block;
 }
 
 .hideMobile {
@@ -50,56 +216,29 @@
     margin-bottom: 10px !important;
     display: inline-flex !important;
 
-    @mixin light {
-        background-color: var(--mantine-color-light-grey-1);
-    }
-
-    @mixin dark {
-        background-color: var(--mantine-color-dark-4);
-    }
+    background-color: #eae6e7;
 }
 
 .citation, .mediaIconBtn {
-    @mixin light {
-        background-color: var(--mantine-color-charcoal-1);
-    }
-
-    @mixin dark {
-        background-color: var(--mantine-color-dark-4);
-    }
+    background-color: #e7e7e7;
 }
 
 .speciesSectionText a, .traitsSectionText a {
-    @mixin light {
-        color: var(--mantine-color-ocean-9);
-        &:hover {
-            color: var(--mantine-color-peacock-9);
-        }
-    }
-
-    @mixin dark {
-        color: var(--mantine-color-glacial-2);
-        &:hover {
-    color: var(--mantine-color-seafoam-4);
-        }
+    color: #003a70;
+    &:hover {
+        color: #1b5e83;
     }
 }
 
 .speciesSectionText {
-    @mixin light {
-        color: var(--mantine-color-gray-7);
-    }
-
-    @mixin dark {
-        color: var(--mantine-color-gray-2);
-    }
+    color: #6c7679;
 
     > figure {
         margin-block-start: 10px;
         margin-inline-start: 10px;
 
         figcaption {
-            font-size: var(--text-fz, var(--mantine-font-size-sm));
+            font-size: 12px;
         }
 
         audio {
@@ -112,7 +251,7 @@
 }
 
 .gallerySortLabel {
-    font-size: var(--text-fz, var(--mantine-font-size-md)) !important;
+    font-size: 14px !important;
 }
 
 .nameFormatted {
@@ -137,21 +276,278 @@
     margin-block: 0px;
 }
 
-/* TODO: there is an ongoing discussion about putting the pattern library colours into the theme so they can be used without additional lookups */
 .h4grey {
     color: #637073 !important; /* grey */
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 32px;
+    display: block;
 }
 
-/* TODO: fix usage of this override when https://github.com/AtlasOfLivingAustralia/ala-mantine/issues/11 is resolved */
 .primaryButton button {
     height: 69px !important;
 }
 
-/* TODO: refactor this out when the variant can be used instead see https://github.com/AtlasOfLivingAustralia/ala-mantine/issues/12 */
 .lightLarge {
     padding: 15px 15px 18px 18px !important;
 }
 
 .traitsLeftColumnWidth {
     width: 305px;
+}
+
+.speciesHeaderRank {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    display: block;
+    position: relative;
+    padding-left: 14px;
+}
+
+.speciesHeaderRank::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #333; /* or your preferred color */
+    display: inline-block;
+}
+
+.speciesHeaderVernacular {
+    font-size: 20px;
+    line-height: 28px;
+    display: block;
+}
+
+.speciesLink {
+    font-size: 14px;
+    line-height: 20px;
+    text-decoration-line: underline;
+    color: #003A70;
+    cursor: pointer;
+}
+
+.speciesHeaderDescription {
+    font-size: 16px;
+    line-height: 24px;
+    display: block;
+}
+
+.headerImage {
+    border-radius: 10px;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.speciesDescriptionTitle {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    display: block;
+}
+
+.speciesDescriptionSection {
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 32px;
+    color: #637073;
+    display: block;
+}
+
+.h3 {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    display: block;
+}
+
+.hrColour {
+    color: transparent;
+    border-bottom: 1px solid #D9D9D9;
+    opacity: 1;
+}
+
+.refineTitle {
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 28px; /* 140% */
+}
+
+@media (max-width: 768px) {
+    .refineTitle {
+        font-size: 16px;
+        line-height: 22px;
+    }
+}
+
+.refineSectionTitle {
+    color: #C44D34 !important;
+
+    /* Desktop/Body/Semibold */
+    font-family: Roboto;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px; /* 150% */
+
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .refineSectionTitle {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+.refineItem {
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .refineItem {
+        font-size: 12px;
+        line-height: 16px;
+        margin-top: 1px
+    }
+}
+
+.resultsTitle {
+    color: #212121;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 28px;
+}
+
+.resultsTitleBold {
+    color: #212121;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 28px;
+}
+
+.resultsTitleItalic {
+    color: #212121;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 28px;
+}
+
+@media (max-width: 768px) {
+    .resultsTitle {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .resultsTitleItalic {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .resultsTitleBold {
+        font-size: 16px;
+        line-height: 22px;
+    }
+}
+
+.dialogContainer {
+    background: rgba(0,0,0,0.8);
+    z-index: 2000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 60px;
+}
+
+.dialogContent {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 30px;
+}
+
+.dialogCloseButton {
+    position: absolute;
+    top: 8px;
+    right: 18px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+}
+
+.alaSelect {
+    font-size: 14px !important;
+    height: 38px !important;
+}
+
+.alaSelect div input {
+    border: 1px solid #212121;
+    border-radius: 5px;
+    height: 38px;
+}
+
+.alaSelect div svg {
+    color: #212121;
+    height: 16px !important;
+    width: 16px !important;
+}
+
+@media (max-width: 768px) {
+    .alaSelect {
+        font-size: 12px !important;
+        line-height: 16px !important;
+        height: 32px;
+    }
+
+    .alaSelect div input {
+        border: 1px solid #212121;
+        border-radius: 5px;
+        height: 32px;
+    }
+
+    .alaSelect div svg {
+        color: #212121;
+        height: 14px !important;
+        width: 14px !important;
+    }
+}
+
+.headerLabels {
+    line-height: 36px;
+    font-size: 14px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .headerLabels {
+        font-size: 12px;
+        line-height: 16px;
+    }
+}
+
+.imageDialogButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    background: rgba(255,255,255,0.7);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
 }
