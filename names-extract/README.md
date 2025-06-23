@@ -29,6 +29,8 @@ wget -O "/data/ala-namematching-service/config/groups.json" "https://raw.githubu
 wget -O "/data/ala-namematching-service/config/subgroups.json" "https://raw.githubusercontent.com/AtlasOfLivingAustralia/ala-install/master/ansible/roles/namematching-service/files/subgroups.json"
 ```
 
+Unpack the lucene index `https://archives.ala.org.au/archives/nameindexes/20230725-5/namematching-20230725-5.tgz` to the default `/data/lucene/namematching-20230725-5`.
+
 Run
 ```shell
 java -Dlucene.dir=/data/lucene/namematching-20230725-5/ -jar target/names-extract-0.0.1-SNAPSHOT-jar-with-dependencies.jar server
@@ -56,15 +58,10 @@ This enables local access to left & right values.
 ## CSV of id, preferred common name
 The preferred common name is as determined by ala-namematching-service.
 
-This enables consistency between bie-index and ala-namematching-service that is used by pipelines.
+This enables a lookup of the vernacular name returned by ala-namematching-service.
 
 # Species Groups and testing search-service against namematching-service
 
-There is one additional export, `lsid-speciesGroups.csv`, that on its own, or in combination with a modified 
-ExtractAppliation. To enable a comprehensive test between elasticsearch and name matching service, see the 3 ExtractApplication.java `TODO` statements to enable and configure this test.
+There is one additional export, `lsid-speciesGroups.csv`. It is used for a comprehensive test between the search-service elasticsearch and name matching service's interpretation of the `groups.json` file. See the 3 ExtractApplication.java `TODO` statements to enable and configure this test.
 
-Noted differences that require additional configuration in the species groups file:
-- namematching-ws will do an additional name search. This means that the species groups file must be accurate.
-- namematching-ws will do an internal searches. This is not implied by the configuration file and results in some entries having >1 rank. To accommodate multiple ranks for a single group, duplicate the group for the "includes" of the other rank.
-
-TODO: The existing species groups required minor changes (see git history of this file). The proposed changes have some outstanding issues, see https://github.com/AtlasOfLivingAustralia/ux-ui/issues/162. After these are resolved, repeat the comprehensive species group testing.
+namematching-ws incorporates numerous name and/or rank searches when loading `groups.json`. Using the accepted name and rank in `groups.json` is required to ensure consistency.
