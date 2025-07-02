@@ -1,0 +1,30 @@
+.side-menu {
+    max-height: 100%;
+    max-width: 200px;
+    min-width: 200px;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+    background: #fff;
+}
+
+.menu-link {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #222;
+    transition:
+        background 0.2s,
+        color 0.2s;
+}
+
+.menu-link:hover {
+    background: #000;
+    color: #ccc;
+}
+
+.menu-link.active {
+    background: #ccc;
+    color: #000;
+}

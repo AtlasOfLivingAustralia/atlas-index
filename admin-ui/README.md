@@ -5,10 +5,11 @@ A generic, admin only UI. Initially for search-service. Based on the UI in the s
 Intended to serve as a template for UI/UX design outputs.
 
 Uses:
+
 - React
 - TypeScript (for the most part)
 - Bootstrap 5
-- Node version v18.12.1 
+- Node version v18.12.1
 - Yarn version v1.22.10 (brew install yarn)
 
 ## Getting started
@@ -29,6 +30,7 @@ yarn run build
 The following environment variables are used:
 
 TODO: clean up this list. Add comments to explain each line. It is already a mess.
+
 ```properties
 VITE_HOME_URL=https://ala.org.au
 VITE_OIDC_AUTH_PROFILE=
@@ -71,6 +73,7 @@ VITE_ADMIN_ROLE=admin
 ```
 
 ## Views
+
 - Atlas Admin - Admin functions for the Atlas search service. Includes the ability to run admin tasks and edit species records.
 - Atlas Index - A very loose replication of the ala-bie-hub search, list and show functions.
 - Dashboard - A replication of the Atlas search dashboard. Includes non-chart content and chart content.

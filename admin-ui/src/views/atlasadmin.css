@@ -1,0 +1,23 @@
+.tabs-as-buttons.nav-tabs {
+    border-bottom: none;
+}
+.tabs-as-buttons .nav-item {
+    margin-right: 1rem;
+}
+.tabs-as-buttons .nav-link {
+    border-radius: 5px;
+    background: #f8f9fa;
+    color: #222;
+    padding: 0.5rem 1.2rem;
+    margin-bottom: 0;
+    transition:
+        background 0.2s,
+        color 0.2s;
+    border: 1px solid #ddd;
+}
+.tabs-as-buttons .nav-link.active,
+.tabs-as-buttons .nav-link:focus,
+.tabs-as-buttons .nav-link:hover {
+    background: #c3c3c3;
+    color: #000;
+}

@@ -1,9 +1,4 @@
-import {User} from "oidc-client-ts";
-
-interface Breadcrumb {
-    title: string;
-    href: string | undefined | null;
-}
+import { User } from 'oidc-client-ts';
 
 interface TaskType {
     log: {
@@ -20,11 +15,11 @@ interface TaskType {
 interface AtlasLog {
     queues: {
         [key: string]: {
-            activeCount: number,
-            queueSize: number,
-            description: string,
-            queueCapacity: number
-        }
+            activeCount: number;
+            queueSize: number;
+            description: string;
+            queueCapacity: number;
+        };
     };
     tasks: {
         [key: string]: TaskType;
@@ -32,11 +27,11 @@ interface AtlasLog {
 }
 
 interface ListsUser {
-    user: () => User | null | undefined,
-    userId: () => string,
-    isAdmin: () => boolean,
-    roles: () => string[],
-    isLoading: () => boolean
+    user: () => User | null | undefined;
+    userId: () => string;
+    isAdmin: () => boolean;
+    roles: () => string[];
+    isLoading: () => boolean;
 }
 
 interface QualityFilter {
@@ -61,16 +56,16 @@ interface QualityCategory {
 
 interface QualityProfile {
     id: number;
-    name: string
-    shortName: string
-    description: string
-    contactName: string
-    contactEmail: string
-    enabled: boolean
-    isDefault: boolean
-    displayOrder: number
-    dateCreated: Date | undefined
-    lastUpdated: Date | undefined
+    name: string;
+    shortName: string;
+    description: string;
+    contactName: string;
+    contactEmail: string;
+    enabled: boolean;
+    isDefault: boolean;
+    displayOrder: number;
+    dateCreated: Date | undefined;
+    lastUpdated: Date | undefined;
     categories: QualityCategory[];
 }
 
@@ -106,7 +101,7 @@ interface FacetItem {
 
 interface Facet {
     label: string;
-    facets: FacetItem [];
+    facets: FacetItem[];
 }
 
 interface GroupedFacetData {
@@ -121,15 +116,15 @@ interface DataQualityInfo {
 }
 
 interface FieldInfo {
-    name: string,
-    description: string,
-    dataType: string,
-    indexed: boolean,
-    stored: boolean,
-    multiValued: boolean,
-    info: string,
-    dwcTerm: string,
-    category: string
+    name: string;
+    description: string;
+    dataType: string;
+    indexed: boolean;
+    stored: boolean;
+    multiValued: boolean;
+    info: string;
+    dwcTerm: string;
+    category: string;
 }
 
 interface IndexFields {
@@ -137,7 +132,6 @@ interface IndexFields {
 }
 
 export type {
-    Breadcrumb,
     ListsUser,
     AtlasLog,
     TaskType,
@@ -150,5 +144,5 @@ export type {
     GroupedFacetData,
     DataQualityInfo,
     FieldInfo,
-    IndexFields
+    IndexFields,
 };
