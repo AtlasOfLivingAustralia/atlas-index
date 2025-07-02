@@ -5,39 +5,37 @@
  */
 
 .header {
-  z-index: 0;
-  background-repeat: no-repeat;
-  background-position: right -70px top -20px;
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-position: right -70px top -20px;
 
-  background-color: #F2F2F2;
+    background-color: #f2f2f2;
 
-  /* Mobile Sizes */
-  @media (max-width: calc(48em - 1px)) {
-    display: none;
-  }
+    /* Mobile Sizes */
+    @media (max-width: calc(48em - 1px)) {
+        display: none;
+    }
 }
 
 .speciesHeader {
-  z-index: 0;
-  background-repeat: no-repeat;
-  background-position: right -70px top -20px;
-  background-size: 60%;
+    z-index: 0;
+    background-repeat: no-repeat;
+    background-position: right -70px top -20px;
+    background-size: 60%;
 
-  background-color: #F2F2F2;
-  background-image: url('/logo/logo-back-light.svg');
+    background-color: #f2f2f2;
+    background-image: url('/logo/logo-back-light.svg');
 
-  /* Mobile Sizes */
-  @media (max-width: calc(48em - 1px)) {
-    display: none;
-  }
+    /* Mobile Sizes */
+    @media (max-width: calc(48em - 1px)) {
+        display: none;
+    }
 }
 
-
 .breadcrumb {
-  color: #6c7679;
-
+    color: #6c7679;
 }
 
 .title {
-  font-style: italic;
+    font-style: italic;
 }

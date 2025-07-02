@@ -1,13 +1,6 @@
-# Species Pages SPA
+# Search and Species Pages
 
 Replacement for the ALA BIE ([`ala-bie-hub`](https://github.com/AtlasOfLivingAustralia/ala-bie-hub)), implemented in React using the [Mantine UI](https://mantine.dev/) library.
-
-Uses:
-- React
-- TypeScript (for the most part)
-- Mantine
-- Node version v18.12.1 
-- Yarn version v1.22.10 (brew install yarn)
 
 ## Getting started
 
@@ -22,11 +15,17 @@ yarn run dev
 yarn run build
 ```
 
+## Code formatting
+```bash
+yarn prettier --write .
+```
+
 ## Environment variables
 
 The following environment variables are used:
 
 TODO: clean up this list. Add comments to explain each line. It is already a mess.
+
 ```properties
 VITE_HOME_URL=https://ala.org.au
 VITE_OIDC_AUTH_PROFILE=
@@ -92,32 +91,40 @@ VITE_APP_ALERT_RESOURCE_NAME=Atlas of Living Australia
 ## Other configuration
 
 ### ./src/config/firstDescriptionLabels.json
-This file is used to determine what appears in the header, beneath the common names. It is the list of description tab 
-content labels that contain suitably curated content for the first description tab. 
+
+This file is used to determine what appears in the header, beneath the common names. It is the list of description tab
+content labels that contain suitably curated content for the first description tab.
 
 ### ./src/config/onlineResource.{test | prod}.json
-This file is used to determine the online resource links that appear at the end of the online resources tab. It is a 
+
+This file is used to determine the online resource links that appear at the end of the online resources tab. It is a
 list of objects with the following properties:
+
 - `name`: the text that appears on the button
 - `url`: the URL that the button links to
 - `external`: true to indicate it opens in a new tab
 - `rules`: an array of rules that determine whether the button is visible.
 
-The rules determine what buttons are visible: 
+The rules determine what buttons are visible:
+
 - `inSpeciesGroup`: an array of species groups
 - `inSpeciesList`: an array of authoritative list IDs
 
 Rules are applied such that
+
 1. If no rules exist for a resource, it is visible
 2. All rules must return TRUE for the resource to be visible
 3. A rule returns TRUE if any of the item values exist in the list of rule values.
+
 - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Mammals", "Reptiles"], the rule returns TRUE
 - e.g. if the rule is inSpeciesGroup: ["Mammals", "Fungi"] and the item.speciesGroup is ["Reptiles", "Amphibians"], the rule returns FALSE
 
 ### ./public/speciesGroups.json
-This file is consistent with the namematching service file. It must align with search-service. It will produce the 
+
+This file is consistent with the namematching service file. It must align with search-service. It will produce the
 file `./src/config/speciesGroupsMap.json`. The names-extract tool has information on testing this file.
 
 ### ./src/config/speciesGroupsMap.json
-This file is constructed by the `generateBuildInfo.js` script and using `./public/speciesGroups.json`. This is done 
+
+This file is constructed by the `generateBuildInfo.js` script and using `./public/speciesGroups.json`. This is done
 during the dev and build scripts. It is used by the UI to be able to display the species group hierarchy.

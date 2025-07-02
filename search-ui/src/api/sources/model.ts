@@ -1,4 +1,4 @@
-import {NavigateFunction} from "react-router-dom";
+import { NavigateFunction } from 'react-router-dom';
 
 interface TaxonDescription {
     name: string;
@@ -9,21 +9,27 @@ interface TaxonDescription {
 }
 
 interface GenericViewProps {
-    queryString?: String | undefined
-    fq: string
+    queryString?: String | undefined;
+    fq: string;
     facetDefinitions: {
         [key: string]: {
-            label: string
-            order: number
-            parseFacetFn?: (facet: any, facetList: any[]) => void
-        }
-    }
-    sortByDate?: boolean
-    customFacets?: string[] // additional facets to fetch in the query
-    addCustomFacetsFn?: ({url, getFacets, thisFacetFqs, parentData, setCustomFacetData}: CustomFacetFn) => void
-    renderListItemFn: ({item, navigate, wide}: RenderItemParams) => any
-    renderTileItemFn: ({item, navigate, wide}: RenderItemParams) => any
-    resourceLinks?: {url: string, label: string}[]
+            label: string;
+            order: number;
+            parseFacetFn?: (facet: any, facetList: any[]) => void;
+        };
+    };
+    sortByDate?: boolean;
+    customFacets?: string[]; // additional facets to fetch in the query
+    addCustomFacetsFn?: ({
+        url,
+        getFacets,
+        thisFacetFqs,
+        parentData,
+        setCustomFacetData,
+    }: CustomFacetFn) => void;
+    renderListItemFn: ({ item, navigate, wide }: RenderItemParams) => any;
+    renderTileItemFn: ({ item, navigate, wide }: RenderItemParams) => any;
+    resourceLinks?: { url: string; label: string }[];
 }
 
 interface RenderItemElements {
@@ -42,16 +48,16 @@ interface RenderItemParams {
 }
 
 interface CustomFacetFn {
-    url: string,
-    getFacets: boolean,
-    thisFacetFqs: string[],
-    parentData: any,
-    setCustomFacetData: any
+    url: string;
+    getFacets: boolean;
+    thisFacetFqs: string[];
+    parentData: any;
+    setCustomFacetData: any;
 }
 
 interface AutocompleteItem {
-    lsid: string,
-    name: string
+    lsid: string;
+    name: string;
 }
 
 export type {
@@ -60,5 +66,5 @@ export type {
     RenderItemParams,
     CustomFacetFn,
     AutocompleteItem,
-    RenderItemElements
+    RenderItemElements,
 };

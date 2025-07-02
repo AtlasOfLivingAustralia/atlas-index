@@ -4,18 +4,28 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import React, {useEffect, useState} from 'react';
-import {Route, Routes} from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
 import Species from './views/Species';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
-import "bootstrap-icons/font/bootstrap-icons.css";
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import buildInfo from './buildInfo.json';
-import Search from "./views/Search.tsx";
-import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound} from "@ala/common-ui";
+import Search from './views/Search.tsx';
+import {
+    Banner,
+    Breadcrumb,
+    Breadcrumbs,
+    Footer,
+    Header,
+    injectCommonInfo,
+    NotFound,
+} from '@ala/common-ui';
 
-const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
+const isLoggedInInitial = document.cookie.includes(
+    import.meta.env.VITE_AUTH_COOKIE
+);
 
 const MOBILE_BREAKPOINT = 768; // Define the breakpoint for mobile view
 
@@ -23,19 +33,26 @@ const App: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([
-        {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-        {title: 'Search', href: '/'}
+        { title: 'Home', href: import.meta.env.VITE_HOME_URL },
+        { title: 'Search', href: '/' },
     ]);
     const [_, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+        const handleResize = () =>
+            setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
     useEffect(() => {
-        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_JS, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+        injectCommonInfo(
+            buildInfo,
+            import.meta.env.VITE_ENV,
+            import.meta.env.VITE_COMMON_JS,
+            import.meta.env.VITE_COMMON_CSS,
+            setCssLoaded
+        );
     }, []);
 
     // when receiving a login URL, handle the login by setting the auth cookie only
@@ -58,25 +75,33 @@ const App: React.FC = () => {
     }
 
     if (!cssLoaded) {
-        return <></>
+        return <></>;
     }
 
     return (
         <>
-            <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}
-                    headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}/>
+            <Header
+                isLoggedIn={isLoggedIn}
+                logoutFn={handleLogout}
+                loginFn={handleLogin}
+                headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+            />
 
-            <Breadcrumbs breadcrumbs={breadcrumbs}/>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
 
-            <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL}
-                    scope={import.meta.env.VITE_BANNER_SCOPE}/>
+            <Banner
+                bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL}
+                scope={import.meta.env.VITE_BANNER_SCOPE}
+            />
 
             <Routes>
                 <Route
                     path="/species/*"
                     element={
                         <Species
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) =>
+                                setBreadcrumbs(crumbs)
+                            }
                         />
                     }
                 />
@@ -84,16 +109,22 @@ const App: React.FC = () => {
                     path="/"
                     element={
                         <Search
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                            setBreadcrumbs={(crumbs: Breadcrumb[]) =>
+                                setBreadcrumbs(crumbs)
+                            }
                         />
                     }
                 />
                 <Route path="*" element={<NotFound />} />
             </Routes>
-            <div style={{height: "60px"}}/>
+            <div style={{ height: '60px' }} />
 
-            <Footer isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}
-                    footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}/>
+            <Footer
+                isLoggedIn={isLoggedIn}
+                logoutFn={handleLogout}
+                loginFn={handleLogin}
+                footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}
+            />
         </>
     );
 };

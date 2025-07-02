@@ -4,26 +4,31 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-.searchInput, .searchInput div, .searchInput div input {
+.searchInput,
+.searchInput div,
+.searchInput div input {
     width: 895px;
     height: 47px;
     border-radius: 5px 0px 0px 5px;
-    background: #FFF;
+    background: #fff;
 }
 
-.searchInput, .searchInput:focus-visible {
+.searchInput,
+.searchInput:focus-visible {
     border: 1px solid #637073;
     outline: 1px solid #637073;
     outline-offset: -1px;
     padding-left: 15px;
 }
 
-.searchButton, .searchButton:hover, .searchButton:active {
+.searchButton,
+.searchButton:hover,
+.searchButton:active {
     flex-shrink: 0;
     width: 50px;
     height: 47px;
     border-radius: 0px 5px 5px 0px;
-    background: #C44D34;
+    background: #c44d34;
     border: 1px solid #637073;
     cursor: pointer;
     transform: none;
@@ -85,13 +90,13 @@
 }
 
 .activeTab {
-    border-bottom: 2px solid #C44D34 !important;
-    color: #C44D34;
+    border-bottom: 2px solid #c44d34 !important;
+    color: #c44d34;
 }
 
 .tabButtons:hover {
-    border-bottom: 2px solid #C44D34;
-    color: #C44D34;
+    border-bottom: 2px solid #c44d34;
+    color: #c44d34;
 }
 
 .tabButtons {
@@ -99,7 +104,6 @@
     white-space: nowrap;
     border-bottom: 2px solid transparent;
 }
-
 
 .headerLogo {
     background-repeat: no-repeat;
@@ -130,7 +134,6 @@
     }
 }
 
-
 .filterButton:active {
     transform: none;
 }
@@ -140,7 +143,7 @@
 }
 
 .groupName {
-    color: #C44D34;
+    color: #c44d34;
 
     /* Desktop/H4/Semibold */
     font-family: Roboto;
@@ -158,7 +161,7 @@
 }
 
 .listItemName {
-    color: #003A70;
+    color: #003a70;
 
     /* Desktop/Body/Semibold italic underline */
     font-family: Roboto;
@@ -203,7 +206,9 @@
     }
 }
 
-.filterButton, .filterButton:hover, .filterButton:active {
+.filterButton,
+.filterButton:hover,
+.filterButton:active {
     color: #212121;
     transform: none !important;
     height: 38px;
@@ -222,15 +227,16 @@
 .tile {
     height: 369px;
     border-radius: 10px;
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     overflow: hidden;
     cursor: pointer;
     position: relative;
     padding: 0px 0px 10px 0px;
 }
 
-.tile::after, .tileNoImage::after {
-    content: "";
+.tile::after,
+.tileNoImage::after {
+    content: '';
     position: absolute;
     bottom: 10px;
     left: 0;
@@ -247,7 +253,7 @@
 .tileNoImage {
     height: 219px;
     border-radius: 10px;
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     overflow: hidden;
     cursor: pointer;
     position: relative;
@@ -413,7 +419,7 @@
 }
 
 .refineSectionTitle {
-    color: #C44D34 !important;
+    color: #c44d34 !important;
 
     /* Desktop/Body/Semibold */
     font-family: Roboto;
@@ -440,9 +446,8 @@
     .refineItem {
         font-size: 12px;
         line-height: 16px;
-        margin-top: 1px
+        margin-top: 1px;
     }
-
 }
 
 .alaFilter svg {
@@ -451,10 +456,10 @@
 
 .alaFilter {
     height: 38px;
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     padding: 8px 19px 10px 19px;
     color: #212121;
-    border: 1px solid #F2F2F2;
+    border: 1px solid #f2f2f2;
     border-radius: 4px;
     flex-shrink: 0;
     white-space: nowrap;
@@ -465,10 +470,10 @@
 @media (max-width: 768px) {
     .alaFilter {
         height: 32px;
-        background-color: #F2F2F2;
+        background-color: #f2f2f2;
         padding: 8px 15px 8px 15px;
         color: #212121;
-        border: 1px solid #F2F2F2;
+        border: 1px solid #f2f2f2;
         border-radius: 4px;
         flex-shrink: 0;
         white-space: nowrap;
@@ -490,7 +495,7 @@
 }
 
 .groupCount {
-    color: #003A70;
+    color: #003a70;
     font-weight: 500;
     line-height: 22px;
     font-size: 16px;
@@ -498,7 +503,7 @@
 }
 
 .groupCount:hover {
-    color: #C44D34;
+    color: #c44d34;
 }
 
 @media (max-width: 768px) {
@@ -558,7 +563,7 @@
 }
 
 .refineResultsBtn {
-    background-color: #FFFFFF;
+    background-color: #ffffff;
     border: 1px solid #212121;
     border-radius: 20px;
 

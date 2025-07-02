@@ -4,7 +4,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-.scientific-name { font-style: normal; display: block}
-.scientific-name.rank-genus .name { font-style: italic; }
-.scientific-name.rank-species .name { font-style: italic; }
-.scientific-name.rank-subspecies .name { font-style: italic; }
+.scientific-name {
+    font-style: normal;
+    display: block;
+}
+.scientific-name.rank-genus .name {
+    font-style: italic;
+}
+.scientific-name.rank-species .name {
+    font-style: italic;
+}
+.scientific-name.rank-subspecies .name {
+    font-style: italic;
+}

@@ -11,7 +11,8 @@
     }
 }
 
-.currentTaxa p, .currentTaxa a {
+.currentTaxa p,
+.currentTaxa a {
     line-height: 34px;
 }
 
@@ -27,15 +28,17 @@
     margin-top: 5px;
     margin-bottom: 10px !important;
     display: inline-flex !important;
-    background-color: #EAE6E7;
+    background-color: #eae6e7;
     line-height: 34px;
 }
 
-.citation, .mediaIconBtn {
-    background-color: #E7E7E7;
+.citation,
+.mediaIconBtn {
+    background-color: #e7e7e7;
 }
 
-.speciesSectionText a, .traitsSectionText a {
+.speciesSectionText a,
+.traitsSectionText a {
     color: #003a70;
     &:hover {
         color: #1b5e83;
@@ -104,27 +107,31 @@
     width: 305px;
 }
 
-
-.searchInput, .searchInput div, .searchInput div input {
+.searchInput,
+.searchInput div,
+.searchInput div input {
     width: 895px;
     height: 47px;
     border-radius: 5px 0px 0px 5px;
 
-    background: #FFF;
+    background: #fff;
 }
 
-.searchInput, .searchInput:focus-visible {
+.searchInput,
+.searchInput:focus-visible {
     border: 1px solid #637073;
     outline: 1px solid #637073;
     outline-offset: -1px;
     padding-left: 15px;
 }
 
-.searchButton, .searchButton:hover, .searchButton:active {
+.searchButton,
+.searchButton:hover,
+.searchButton:active {
     width: 50px;
     height: 47px;
     border-radius: 0px 5px 5px 0px;
-    background: #C44D34;
+    background: #c44d34;
     border: 1px solid #637073;
     cursor: pointer;
     transform: none;
@@ -159,13 +166,13 @@
 }
 
 .activeTab {
-    border-bottom: 2px solid #C44D34;
-    color: #C44D34;
+    border-bottom: 2px solid #c44d34;
+    color: #c44d34;
 }
 
 .tabButtons:hover {
-    border-bottom: 2px solid #C44D34;
-    color: #C44D34;
+    border-bottom: 2px solid #c44d34;
+    color: #c44d34;
 }
 
 .tabButtons {
@@ -175,7 +182,7 @@
 .speciesHeader {
     background-repeat: no-repeat;
     background-position: right -10px top -20px;
-    background-color: #E7E7E7;
+    background-color: #e7e7e7;
     background-image: url('../../image/logo-back-light.svg');
     margin-top: -46px;
     padding-top: 46px;
@@ -199,7 +206,8 @@
     }
 }
 
-.currentTaxa p, .currentTaxa a {
+.currentTaxa p,
+.currentTaxa a {
     line-height: 34px;
 }
 
@@ -219,11 +227,13 @@
     background-color: #eae6e7;
 }
 
-.citation, .mediaIconBtn {
+.citation,
+.mediaIconBtn {
     background-color: #e7e7e7;
 }
 
-.speciesSectionText a, .traitsSectionText a {
+.speciesSectionText a,
+.traitsSectionText a {
     color: #003a70;
     &:hover {
         color: #1b5e83;
@@ -306,7 +316,7 @@
 }
 
 .speciesHeaderRank::before {
-    content: "";
+    content: '';
     position: absolute;
     left: 0;
     top: 50%;
@@ -328,7 +338,7 @@
     font-size: 14px;
     line-height: 20px;
     text-decoration-line: underline;
-    color: #003A70;
+    color: #003a70;
     cursor: pointer;
 }
 
@@ -369,7 +379,7 @@
 
 .hrColour {
     color: transparent;
-    border-bottom: 1px solid #D9D9D9;
+    border-bottom: 1px solid #d9d9d9;
     opacity: 1;
 }
 
@@ -388,7 +398,7 @@
 }
 
 .refineSectionTitle {
-    color: #C44D34 !important;
+    color: #c44d34 !important;
 
     /* Desktop/Body/Semibold */
     font-family: Roboto;
@@ -415,7 +425,7 @@
     .refineItem {
         font-size: 12px;
         line-height: 16px;
-        margin-top: 1px
+        margin-top: 1px;
     }
 }
 
@@ -459,7 +469,7 @@
 }
 
 .dialogContainer {
-    background: rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.8);
     z-index: 2000;
     position: fixed;
     top: 0;
@@ -544,7 +554,7 @@
     top: 50%;
     transform: translateY(-50%);
     z-index: 2;
-    background: rgba(255,255,255,0.7);
+    background: rgba(255, 255, 255, 0.7);
     border: none;
     border-radius: 50%;
     width: 50px;

@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-
 /*#main-content {*/
 /*    margin-top: -10px;*/
 /*}*/
@@ -213,7 +212,6 @@
 /*    border-left: 1px solid #999;*/
 /*}*/
 
-
 /*!*.nav-tabs li a {*!*/
 /*    !*background-color: #f0f0e8;*!*/
 /*    !*border: 1px solid #ddd;*!*/
@@ -257,15 +255,13 @@
     margin-left: -4px;
     /*max-height: 6.4em;*/
     /*overflow: -moz-scrollbars-vertical;*/
-    /*overflow-y: auto; *//*for vertical scroll bar*/
+    /*overflow-y: auto; */ /*for vertical scroll bar*/
 }
 
 #content .sidebar .subnavlist > ul#refinedFacets {
     list-style: none;
     margin: 5px 0 5px 0px;
 }
-
-
 
 /*.nano { max-height: 6.5em; }*/
 /*.nano .nano-content { padding: 10px; }*/
@@ -341,7 +337,8 @@
 /*    !*color: #C44D34;*!*/
 /*}*/
 
-span.activeFq, facet-item {
+span.activeFq,
+facet-item {
     /*float: left;*/
     vertical-align: top;
     display: inline-block;
@@ -412,8 +409,8 @@ span.activeFq, facet-item {
 }
 #results .resultValue {
     color: #222;
-    text-transform:capitalize;
-    font-weight:500
+    text-transform: capitalize;
+    font-weight: 500;
 }
 #results .rowA .occurrenceNames {
     color: #222;
@@ -562,7 +559,9 @@ span.activeFq, facet-item {
     line-height: 1.4em;
     padding: 0;
 }
-.showHide a:link, .showHide a:visited, .showHide div  {
+.showHide a:link,
+.showHide a:visited,
+.showHide div {
     /*color: #005A8E;*/
     font-size: 12px;
     font-weight: normal; /* was bold */
@@ -583,8 +582,8 @@ span.activeFq, facet-item {
     text-align: left;
     padding: 2px 7px 1px 5px;
     margin: 7px 0px 8px -2px;
-    border: 1px solid #BBBBBB;
-    background-color: #F0F0E8;
+    border: 1px solid #bbbbbb;
+    background-color: #f0f0e8;
     font-weight: bold;
 }
 
@@ -652,12 +651,18 @@ span.activeFq, facet-item {
     cursor: pointer;
 }
 
-.facetGroupName span, .facet-item, .multipleFacetsLink, .dqLabel {
+.facetGroupName span,
+.facet-item,
+.multipleFacetsLink,
+.dqLabel {
     color: #c44d34;
     cursor: pointer;
 }
 
-.facetGroupName span:hover, .facet-item:hover, .multipleFacetsLink:hover, .dqLabel:hover {
+.facetGroupName span:hover,
+.facet-item:hover,
+.multipleFacetsLink:hover,
+.dqLabel:hover {
     color: #883524;
 }
 
@@ -835,7 +840,7 @@ span.activeFq, facet-item {
 /*}*/
 span.FieldName {
     font-weight: bold;
-    float:left;
+    float: left;
 }
 
 .FieldName {
@@ -866,13 +871,13 @@ span.FieldName {
 /*}*/
 
 ul.facets {
-    padding-left:0;
-    margin-left:0;
-    list-style:none;
+    padding-left: 0;
+    margin-left: 0;
+    list-style: none;
 }
 
 ul.facets li {
-    padding-left:5px;
+    padding-left: 5px;
     margin-left: 0;
 }
 
@@ -914,13 +919,14 @@ ul.facets li {
     margin-right: 0px;
 }
 
-#facetWell .facetGroupName{
-    border-top: 1px solid #D3D3D3;
+#facetWell .facetGroupName {
+    border-top: 1px solid #d3d3d3;
     padding: 10px 10px 5px 10px;
     margin-bottom: 4px;
 }
 
-.right-caret, .facetGroupName .right-caret {
+.right-caret,
+.facetGroupName .right-caret {
     border-bottom: 4px solid transparent;
     border-top: 4px solid transparent;
     border-left: 4px solid #000000;
@@ -931,7 +937,8 @@ ul.facets li {
     width: 0;
 }
 
-.facetGroupName > .showHideFacetGroup, .facetGroupName > .showHideFacetGroup:hover {
+.facetGroupName > .showHideFacetGroup,
+.facetGroupName > .showHideFacetGroup:hover {
     text-decoration: none;
 }
 
@@ -1222,7 +1229,6 @@ ul.facets li {
 /*    white-space: normal;*/
 /*}*/
 
-
 #listHeader {
     font-family: Roboto, sans-serif;
     border-bottom: 1px solid #ccc;
@@ -1236,14 +1242,25 @@ ul.facets li {
 
 /*bootstrap*/
 body {
-    font-family: "Roboto", sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 14px;
     line-height: 1.428571429;
     color: #212121;
     background-color: #fff;
 }
 
-h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
     font-weight: 500;
     line-height: 1.1;
     color: inherit;
@@ -1254,14 +1271,27 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
 
 /* Global
 ================================= */
-#main{padding-top: 30px; padding-bottom: 5em; }
-body.background-white {background-color:#fff;}
-body.background-lightgrey {background-color:#f2f2f2;}
+#main {
+    padding-top: 30px;
+    padding-bottom: 5em;
+}
+body.background-white {
+    background-color: #fff;
+}
+body.background-lightgrey {
+    background-color: #f2f2f2;
+}
 
 /* Columns
 ================================= */
-.no-gutter>[class*='col-']{padding-right:0;padding-left:0;}
-.col-centered{float:none;margin:0 auto;}
+.no-gutter > [class*='col-'] {
+    padding-right: 0;
+    padding-left: 0;
+}
+.col-centered {
+    float: none;
+    margin: 0 auto;
+}
 
 /* Breadcrumb
 ================================= */
@@ -1307,13 +1337,13 @@ body.background-lightgrey {background-color:#f2f2f2;}
 
 section#breadcrumb {
     padding-top: 14px;
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     font-weight: 400;
     color: #212121;
 }
 
 section#breadcrumb li + li::before {
-    content: "\00a0";
+    content: '\00a0';
     background-image: url('data:image/svg+xml, <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-left" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/> </svg>');
     background-repeat: no-repeat;
     margin-right: 10px;
@@ -1322,7 +1352,8 @@ section#breadcrumb li + li::before {
     line-height: 18px;
 }
 
-.breadcrumb-item a, .breadcrumb-item a:hover {
+.breadcrumb-item a,
+.breadcrumb-item a:hover {
     color: #212121;
 }
 
@@ -1334,40 +1365,144 @@ section#breadcrumb li + li::before {
 
 .breadcrumb-list li {
     display: inline-block;
-    line-height: normal
+    line-height: normal;
 }
-
 
 .breadcrumb-item + .breadcrumb-item {
     padding-left: 0;
 }
 
 /* table of contents floating div */
-.toc-floating-menu.affix {position: static;}
-.sidebar-col {margin-bottom: 20px;position:relative !important;}
+.toc-floating-menu.affix {
+    position: static;
+}
+.sidebar-col {
+    margin-bottom: 20px;
+    position: relative !important;
+}
 
 /* Colours and Swatchs
 ================================= */
-.swatch-colour{height:70px;width:100%;display:block;border-bottom:1px solid #ccc;}
-.color--dark-grey{color: #9d9d9d;} .backgroundcolor--dark-grey{background-color: #9d9d9d;}
-.color--dark-red{color: #C44D34;} .backgroundcolor--dark-red{background-color: #C44D34;}
-.color--green{color: #006435;} .backgroundcolor--green{background-color: #006435;}
-.color--medium-blue{color: #2475A4;} .backgroundcolor--medium-blue{background-color: #2475A4;}
-.color--medium-grey{color: #637073;} .backgroundcolor--medium-grey{background-color: #637073;}
-.color--mellow-red{color: #DF3034;} .backgroundcolor--mellow-red{background-color: #DF3034;}
-.color--off-black{color: #212121;} .backgroundcolor--off-black{background-color: #212121;}
-.color--off-white{color: #F2F2F2;} .backgroundcolor--off-white{background-color: #F2F2F2;}
-.color--pink{color: #D0367D;} .backgroundcolor--pink{background-color: #D0367D;}
-.color--primary-red{color: #F26649;} .backgroundcolor--primary-red{background-color: #F26649;}
-.color--purple{color: #2E358B;} .backgroundcolor--purple{background-color: #2E358B;}
-.color--red{color: #B10E1E;} .backgroundcolor--red{background-color: #B10E1E;}
-.color--white{color: #fff !important;} .backgroundcolor--white{background-color: #fff;}
-.color--yellow{color: #FFBF47;} .backgroundcolor--yellow{background-color: #FFBF47;}
-.color--apple{color: #65B044;} .backgroundcolor--apple{background-color: #65B044;}
-.color--flamingo{color: #f26649;} .backgroundcolor--flamingo{background-color: #f26649;}
-.color--mojo{color: #C44D34;} .backgroundcolor--mojo{background-color: #C44D34;}
-.color-lochmara {color: #0087BE;} .background-lochmara {background-color: #0087BE;}
-.color-facebook {color: #507CBE;} .background-facebook {background-color: #507CBE;}
+.swatch-colour {
+    height: 70px;
+    width: 100%;
+    display: block;
+    border-bottom: 1px solid #ccc;
+}
+.color--dark-grey {
+    color: #9d9d9d;
+}
+.backgroundcolor--dark-grey {
+    background-color: #9d9d9d;
+}
+.color--dark-red {
+    color: #c44d34;
+}
+.backgroundcolor--dark-red {
+    background-color: #c44d34;
+}
+.color--green {
+    color: #006435;
+}
+.backgroundcolor--green {
+    background-color: #006435;
+}
+.color--medium-blue {
+    color: #2475a4;
+}
+.backgroundcolor--medium-blue {
+    background-color: #2475a4;
+}
+.color--medium-grey {
+    color: #637073;
+}
+.backgroundcolor--medium-grey {
+    background-color: #637073;
+}
+.color--mellow-red {
+    color: #df3034;
+}
+.backgroundcolor--mellow-red {
+    background-color: #df3034;
+}
+.color--off-black {
+    color: #212121;
+}
+.backgroundcolor--off-black {
+    background-color: #212121;
+}
+.color--off-white {
+    color: #f2f2f2;
+}
+.backgroundcolor--off-white {
+    background-color: #f2f2f2;
+}
+.color--pink {
+    color: #d0367d;
+}
+.backgroundcolor--pink {
+    background-color: #d0367d;
+}
+.color--primary-red {
+    color: #f26649;
+}
+.backgroundcolor--primary-red {
+    background-color: #f26649;
+}
+.color--purple {
+    color: #2e358b;
+}
+.backgroundcolor--purple {
+    background-color: #2e358b;
+}
+.color--red {
+    color: #b10e1e;
+}
+.backgroundcolor--red {
+    background-color: #b10e1e;
+}
+.color--white {
+    color: #fff !important;
+}
+.backgroundcolor--white {
+    background-color: #fff;
+}
+.color--yellow {
+    color: #ffbf47;
+}
+.backgroundcolor--yellow {
+    background-color: #ffbf47;
+}
+.color--apple {
+    color: #65b044;
+}
+.backgroundcolor--apple {
+    background-color: #65b044;
+}
+.color--flamingo {
+    color: #f26649;
+}
+.backgroundcolor--flamingo {
+    background-color: #f26649;
+}
+.color--mojo {
+    color: #c44d34;
+}
+.backgroundcolor--mojo {
+    background-color: #c44d34;
+}
+.color-lochmara {
+    color: #0087be;
+}
+.background-lochmara {
+    background-color: #0087be;
+}
+.color-facebook {
+    color: #507cbe;
+}
+.background-facebook {
+    background-color: #507cbe;
+}
 
 a {
     color: #c44d34;
@@ -1385,7 +1520,8 @@ a:hover {
     margin-left: auto;
 }
 
-.btn-primary, .gform_button {
+.btn-primary,
+.gform_button {
     color: #fff;
     background-color: #c44d34;
     border-color: #c44d34;
@@ -1408,7 +1544,9 @@ nav {
     border: 1px solid #999;
 }
 
-.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
     color: #6c757d;
     cursor: default;
     background-color: #fff;
@@ -1421,7 +1559,8 @@ nav {
     border-bottom: 1px solid #999;
 }
 
-.nav-tabs .nav-link.active, .nav-tabs .nav-link.active:hover {
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active:hover {
     border-color: #999;
     border-bottom: 1px solid white;
     color: black;
@@ -1454,7 +1593,7 @@ nav {
 }
 
 #resultsContainer {
-    padding-left:0;
+    padding-left: 0;
 }
 
 #headingBar {
@@ -1463,7 +1602,6 @@ nav {
 }
 #headingBar h1 {
     font-size: 26px;
-
 }
 
 #main {
@@ -1471,7 +1609,8 @@ nav {
     padding-bottom: 5em;
 }
 
-h4, .h4 {
+h4,
+.h4 {
     font-size: 18px;
 }
 
@@ -1486,7 +1625,8 @@ h4, .h4 {
     font-weight: normal;
 }
 
-.radio label, .checkbox label {
+.radio label,
+.checkbox label {
     min-height: 20px;
     padding-left: 20px;
     margin-bottom: 0;
@@ -1500,7 +1640,7 @@ h4, .h4 {
 }
 
 .no-wrap {
-    white-space: nowrap
+    white-space: nowrap;
 }
 
 #dataQualitySelect {
@@ -1530,8 +1670,8 @@ h4, .h4 {
     display: inline-block;
     text-align: center;
     line-height: 1.3em;
-    background-color: #DDD;
-    color: #DDD;
+    background-color: #ddd;
+    color: #ddd;
     font-size: 12px;
     margin: 2px 4px 2px 0;
     position: relative;
@@ -1610,7 +1750,7 @@ h4, .h4 {
 }
 
 #speciesListHeader {
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     /*height: 488px;*/
     padding-top: 28px;
 
@@ -1644,7 +1784,7 @@ h4, .h4 {
     font-weight: 400;
     line-height: 18px;
     text-align: left;
-    color: #003A70;
+    color: #003a70;
     text-decoration: underline;
 }
 
@@ -1663,7 +1803,7 @@ h4, .h4 {
     font-weight: 400;
     line-height: 18px;
     text-align: left;
-    background-color: #FFC557;
+    background-color: #ffc557;
     padding: 8px 8px 11px 8px;
     display: flex;
     width: 492px;
@@ -1677,7 +1817,7 @@ h4, .h4 {
     font-weight: 400;
     line-height: 18px;
     text-align: left;
-    background-color: #FFC557;
+    background-color: #ffc557;
     padding: 8px 8px 11px 8px;
     display: flex;
     width: 813px;
@@ -1687,7 +1827,7 @@ h4, .h4 {
 
 .speciesInvasiveLink {
     text-decoration: underline;
-    color: #003A70;
+    color: #003a70;
 }
 
 .speciesInvasiveFlag {
@@ -1710,7 +1850,7 @@ h4, .h4 {
 /*}*/
 
 .speciesImageBlock {
-    float:right;
+    float: right;
 }
 
 .speciesImg {
@@ -1719,7 +1859,7 @@ h4, .h4 {
     /*height: 335px;*/
 }
 
-.speciesImg > img{
+.speciesImg > img {
     border-radius: 10px;
     width: 393px;
     height: 335px;
@@ -1727,11 +1867,11 @@ h4, .h4 {
 }
 
 .speciesImageBlockTall {
-    float:right;
+    float: right;
     margin-left: 15px;
 }
 
-.speciesImgTall > img{
+.speciesImgTall > img {
     border-radius: 10px;
     width: 182px;
     height: 160px;
@@ -1739,7 +1879,9 @@ h4, .h4 {
     margin-bottom: 15px;
 }
 
-.speciesPage .nav-tabs > li.active > a,.speciesPage .nav-tabs > li.active > a:hover,.speciesPage .nav-tabs > li.active > a:focus {
+.speciesPage .nav-tabs > li.active > a,
+.speciesPage .nav-tabs > li.active > a:hover,
+.speciesPage .nav-tabs > li.active > a:focus {
     color: #6c757d;
     cursor: default;
     background-color: #fff;
@@ -1756,22 +1898,22 @@ h4, .h4 {
     border-top-right-radius: 0;
 }
 
-.speciesPage .nav-tabs .nav-link.active,.speciesPage  .nav-tabs .nav-link.active:hover {
+.speciesPage .nav-tabs .nav-link.active,
+.speciesPage .nav-tabs .nav-link.active:hover {
     border-color: transparent;
     border-left: 0;
     border-right: 0;
-    border-top:0;
-    border-bottom: 3px solid #C44D34;
-    color: #C44D34;
+    border-top: 0;
+    border-bottom: 3px solid #c44d34;
+    color: #c44d34;
 
     font-size: 14px;
     font-weight: 600;
     line-height: 18px;
     text-align: left;
-
 }
 
-.speciesPage  .nav-tabs .nav-link:not(.active) {
+.speciesPage .nav-tabs .nav-link:not(.active) {
     background-color: white;
     border: 0;
 
@@ -1779,7 +1921,6 @@ h4, .h4 {
     font-weight: 400;
     line-height: 18px;
     text-align: left;
-
 }
 
 .speciesPage .nav-tabs .nav-link {
@@ -1798,8 +1939,8 @@ h4, .h4 {
 
 .speciesPage .nav-tabs:after {
     display: inline-block;
-    content: "";
-    border-bottom: 1px solid #D9D9D9;
+    content: '';
+    border-bottom: 1px solid #d9d9d9;
     width: 200%;
     margin-left: -50%;
 }
@@ -1826,7 +1967,7 @@ h4, .h4 {
     font-weight: 700;
     line-height: 22px;
     text-align: left;
-    margin-top:30px;
+    margin-top: 30px;
 }
 
 .speciesMapText {
@@ -1845,7 +1986,6 @@ h4, .h4 {
     line-height: 40px;
     text-align: left;
     margin-top: 30px;
-
 }
 
 .speciesMapButtons {
@@ -1854,7 +1994,7 @@ h4, .h4 {
 
 .speciesMapButton {
     padding: 10px 14px 15px 14px;
-    border: 1px solid #C44D34;
+    border: 1px solid #c44d34;
     width: 255px;
     border-radius: 5px;
     height: 69px;
@@ -1866,7 +2006,7 @@ h4, .h4 {
 }
 
 .species-red {
-    color: #C44D34;
+    color: #c44d34;
     font-size: 25px;
     margin-top: -2px;
     margin-right: -5px;
@@ -1902,7 +2042,7 @@ h4, .h4 {
     text-align: left;
 
     padding-bottom: 15px;
-    border-bottom: 1px solid #D9D9D9;
+    border-bottom: 1px solid #d9d9d9;
 }
 
 .speciesMapControlItem {
@@ -1916,7 +2056,7 @@ h4, .h4 {
 }
 
 .speciesMapControlItemHr {
-    border-bottom: 1px solid #D9D9D9;
+    border-bottom: 1px solid #d9d9d9;
 }
 
 .speciesMapControlDist {
@@ -1956,7 +2096,7 @@ h4, .h4 {
     line-height: 36px;
     text-align: center;
 
-    margin-top:15px;
+    margin-top: 15px;
 
     height: 36px;
 
@@ -1964,7 +2104,7 @@ h4, .h4 {
 }
 
 .speciesPageBackground {
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
 }
 
 .speciesRow {
@@ -1989,7 +2129,7 @@ h4, .h4 {
     line-height: 22px;
     text-align: left;
 
-    color: #003A70;
+    color: #003a70;
     text-decoration: underline;
 
     position: absolute;
@@ -2030,7 +2170,7 @@ h4, .h4 {
 }
 
 .speciesLast {
-    background-color: #D9D9D9;
+    background-color: #d9d9d9;
     height: 34px;
     border-radius: 4px;
     margin-top: 10px;
@@ -2044,7 +2184,7 @@ h4, .h4 {
 }
 
 .speciesLast:last-child {
-    background-color: #D9D9D9;
+    background-color: #d9d9d9;
     border-radius: 4px;
 }
 
@@ -2065,17 +2205,18 @@ h4, .h4 {
     font-weight: 400;
     line-height: 22px;
     text-align: left;
-    margin-top:15px;
+    margin-top: 15px;
 }
 
 .sectionFoot {
-    border-bottom: 1px solid #D9D9D9;
+    border-bottom: 1px solid #d9d9d9;
     width: 1139px;
     margin-top: 60px;
 }
 
-.speciesDescription a, .speciesDescription a:hover {
-    color: #003A70;
+.speciesDescription a,
+.speciesDescription a:hover {
+    color: #003a70;
 }
 
 .speciesImagesBlock {
@@ -2101,7 +2242,7 @@ h4, .h4 {
 }
 
 .speciesImageBtn {
-    border: 1px solid #D9D9D9;
+    border: 1px solid #d9d9d9;
     border-radius: 5px;
 
     font-size: 16px;
@@ -2113,7 +2254,6 @@ h4, .h4 {
     height: 40px;
 
     margin-right: 10px;
-
 }
 
 .speciesImageBtnSelected {
@@ -2143,7 +2283,7 @@ h4, .h4 {
 .speciesImageBtn:hover {
     color: black;
     background-color: white;
-    border-color: #D9D9D9;
+    border-color: #d9d9d9;
 }
 
 .speciesImageBlockImg {
@@ -2153,7 +2293,6 @@ h4, .h4 {
 
     max-width: 271px;
     max-height: 210px;
-
 }
 
 .namesSectionHeader {
@@ -2166,7 +2305,7 @@ h4, .h4 {
 }
 
 .namesView {
-    margin-top:60px;
+    margin-top: 60px;
     width: 845px;
 }
 
@@ -2175,12 +2314,12 @@ h4, .h4 {
 }
 
 .namesLink {
-    color: #003A70;
+    color: #003a70;
     text-decoration: underline;
 }
 
 .namesSectionFoot {
-    border-bottom: 1px solid #D9D9D9;
+    border-bottom: 1px solid #d9d9d9;
     width: 1139px;
     margin-top: 30px;
     margin-bottom: 30px;
@@ -2209,14 +2348,14 @@ h4, .h4 {
 }
 
 .namesRowOdd {
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
 }
 
 .namesRowHeader {
     height: 32px;
     border-bottom: 0.5px solid #212121;
     margin-top: 30px;
-    padding-bottom: 10px
+    padding-bottom: 10px;
 }
 
 .namesRowHeaderLabelLeft {
@@ -2237,8 +2376,9 @@ h4, .h4 {
     text-align: left;
 }
 
-.speciesPage a:not(.btn), .speciesPage a:hover:not(.btn) {
-    color: #003A70;
+.speciesPage a:not(.btn),
+.speciesPage a:hover:not(.btn) {
+    color: #003a70;
     text-decoration: underline;
 }
 
@@ -2250,7 +2390,7 @@ h4, .h4 {
 }
 
 .speciesFooterLine {
-    border-bottom: 1px solid #D9D9D9;
+    border-bottom: 1px solid #d9d9d9;
     width: 200%;
     margin-left: -50%;
     margin-top: 17px;
@@ -2264,9 +2404,9 @@ h4, .h4 {
 }
 
 .speciesTypeTag {
-    background-color: #D9D9D9;
+    background-color: #d9d9d9;
     border-radius: 5px;
-    border: 1px solid #D9D9D9;
+    border: 1px solid #d9d9d9;
 
     font-size: 16px;
     font-weight: 400;
@@ -2278,13 +2418,11 @@ h4, .h4 {
     display: inline-block;
 
     margin-bottom: 15px;
-
 }
 
 .statusView {
     margin-top: 60px;
     width: 845px;
-
 }
 
 .statusRowHeaderLabelLeft {
@@ -2385,15 +2523,15 @@ h4, .h4 {
     font-weight: 400;
     line-height: 22px;
     text-align: left;
-
 }
 
 .traitsButtons {
     margin-top: 25px;
 }
 
-.traitsButtonDefinitions, .traitsButtonDefinitions:hover  {
-    border: 1px solid #D9D9D9;
+.traitsButtonDefinitions,
+.traitsButtonDefinitions:hover {
+    border: 1px solid #d9d9d9;
     border-radius: 5px;
 
     font-size: 16px;
@@ -2408,7 +2546,8 @@ h4, .h4 {
     text-decoration-line: none;
 }
 
-.traitsButtonCsv, .traitsButtonCsv:hover {
+.traitsButtonCsv,
+.traitsButtonCsv:hover {
     background-color: #212121;
     color: white;
     border-color: #212121;
@@ -2425,10 +2564,7 @@ h4, .h4 {
 
     padding: 8px 19px 10px 19px;
 
-
     margin-left: 20px;
-
-
 }
 
 .traitsInfoBox {
@@ -2438,7 +2574,7 @@ h4, .h4 {
 .traitsCite {
     margin-top: 30px;
 
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     border-radius: 5px;
     padding: 12px 12px 14px 14px;
 }
@@ -2473,7 +2609,6 @@ h4, .h4 {
     font-weight: 400;
     line-height: 22px;
     text-align: left;
-
 }
 
 .traitsConservationName {
@@ -2527,7 +2662,6 @@ h4, .h4 {
 }
 
 .traitNumericUrl {
-
 }
 
 .datasetsView {
@@ -2565,7 +2699,7 @@ h4, .h4 {
 }
 
 .resourceBox {
-    background-color: #F2F2F2;
+    background-color: #f2f2f2;
     border-radius: 5px;
     padding: 15px 15px 18px 18px;
 
@@ -2588,7 +2722,3 @@ h4, .h4 {
 .mt-30 {
     margin-top: 30px;
 }
-
-
-
-
