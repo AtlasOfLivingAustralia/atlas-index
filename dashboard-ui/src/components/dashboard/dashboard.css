@@ -160,35 +160,44 @@
 /*    cursor: move;*/
 /*}*/
 
-
 /* commonui-bs5-2019/css/ala-styles.css overrides */
 .btn-primary {
     color: #fff;
     background-color: #c44d34 !important;
-    border-color: #c44d34 !important;;
+    border-color: #c44d34 !important;
     font-size: 14px;
 }
 
-.btn-primary:hover, .gform_button:hover {
+.btn-primary:hover,
+.gform_button:hover {
     color: #fff;
-    background-color: #9c3d29 !important;;
-    border-color: #943a27 !important;;
+    background-color: #9c3d29 !important;
+    border-color: #943a27 !important;
 }
 
-.btn-primary:active, .gform_button:active, .btn-primary.active, .active.gform_button, .open > .btn-primary.dropdown-toggle, .open > .dropdown-toggle.gform_button {
+.btn-primary:active,
+.gform_button:active,
+.btn-primary.active,
+.active.gform_button,
+.open > .btn-primary.dropdown-toggle,
+.open > .dropdown-toggle.gform_button {
     color: #fff;
-    background-color: #9c3d29 !important;;
+    background-color: #9c3d29 !important;
     background-image: none;
-    border-color: #943a27 !important;;
+    border-color: #943a27 !important;
 }
 
-.btn-primary:focus, .gform_button:focus, .btn-primary.focus, .focus.gform_button {
+.btn-primary:focus,
+.gform_button:focus,
+.btn-primary.focus,
+.focus.gform_button {
     color: #fff;
-    background-color: #9c3d29 !important;;
-    border-color: #5f2519 !important;;
+    background-color: #9c3d29 !important;
+    border-color: #5f2519 !important;
 }
 
-.btn, .gform_button {
+.btn,
+.gform_button {
     display: inline-block;
     margin-bottom: 0;
     font-weight: 400;
@@ -208,6 +217,3 @@
     -ms-user-select: none;
     user-select: none;
 }
-
-
-

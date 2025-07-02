@@ -1,10 +1,11 @@
 # Dashboard UI
 
-A UI replacement for the dashboard app. 
+A UI replacement for the dashboard app.
 
 This app depends on data produced by the search-service.
 
 Built with:
+
 - React
 - TypeScript
 - Bootstrap 5
@@ -14,6 +15,7 @@ Built with:
 ## Getting started
 
 ### Config
+
 - For ALA development, refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/dashboard-ui) configuration and deployment information.
 - For all other use, see the [Environment variables](#environment-variables) section below and create your own `.env.local` file.
 
@@ -22,10 +24,12 @@ Built with:
 Use [search-service](../search-service) to generate the data found at VITE_APP_DASHBOARD_DATA_URL, VITE_APP_DASHBOARD_ZIP_URL and VITE_APP_DASHBOARD_I18N_URL.
 
 Example files:
+
 - For example files, see the [static-server/static/dashboard](../static-server/static/dashboard) project directory.
 - Serve these locally using the [static-server](../static-server) project.
 
 ### Run locally
+
 ```bash
 yarn install
 yarn run dev

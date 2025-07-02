@@ -10,17 +10,17 @@ type GridCardProps = {
     children: React.ReactNode;
 };
 
-const GridCard = ({headerNum, header, children}: GridCardProps) => {
+const GridCard = ({ headerNum, header, children }: GridCardProps) => {
     return (
-        <div className='dashboardPanel card'>
+        <div className="dashboardPanel card">
             <div className={'dashboardPanelHeader card-header'}>
-                <h1 className="dashboardH1">{headerNum} {header}</h1>
+                <h1 className="dashboardH1">
+                    {headerNum} {header}
+                </h1>
             </div>
-            <div className={"dashboardPanelBody card-body"}>
-                {children}
-            </div>
+            <div className={'dashboardPanelBody card-body'}>{children}</div>
         </div>
-    )
-}
+    );
+};
 
 export default GridCard;

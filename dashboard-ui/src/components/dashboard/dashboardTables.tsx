@@ -4,10 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useState} from "react";
-import {FormattedMessage} from "react-intl";
-import DashboardTable from "./dashboardTable.tsx";
-import {Table} from "../../api/sources/model.ts";
+import { useState } from 'react';
+import { FormattedMessage } from 'react-intl';
+import DashboardTable from './dashboardTable.tsx';
+import { Table } from '../../api/sources/model.ts';
 
 type DashboardTablesState = {
     select: number;
@@ -18,36 +18,45 @@ type DashboardTablesProps = {
     italisize?: boolean;
 };
 
-const DashboardTables = ({tables, italisize = false}: DashboardTablesProps) => {
-
+const DashboardTables = ({
+    tables,
+    italisize = false,
+}: DashboardTablesProps) => {
     const [state, setState] = useState<DashboardTablesState>({
-        select: 0
+        select: 0,
     });
 
     function changeSelect(e: React.ChangeEvent<HTMLSelectElement>) {
         let newState = {
-            select: e.target.selectedIndex
-        }
+            select: e.target.selectedIndex,
+        };
 
-        setState(newState)
+        setState(newState);
     }
 
-    return <>
-        <div className={"dashboardSelectWrapper"}>
-            <select onChange={(e) => changeSelect(e)}>
-                {
-                    tables.map((table: Table) => {
-                        return <option value={table.name} key={table.name}>
-                            <FormattedMessage id={table.name ? table.name : " "} defaultMessage={table.name}/>
-                        </option>
-                    })
-                }
-            </select>
-        </div>
+    return (
+        <>
+            <div className={'dashboardSelectWrapper'}>
+                <select onChange={(e) => changeSelect(e)}>
+                    {tables.map((table: Table) => {
+                        return (
+                            <option value={table.name} key={table.name}>
+                                <FormattedMessage
+                                    id={table.name ? table.name : ' '}
+                                    defaultMessage={table.name}
+                                />
+                            </option>
+                        );
+                    })}
+                </select>
+            </div>
 
-        <DashboardTable table={tables[state.select]} italisize={italisize}/>
-    </>
-
-}
+            <DashboardTable
+                table={tables[state.select]}
+                italisize={italisize}
+            />
+        </>
+    );
+};
 
 export default DashboardTables;
