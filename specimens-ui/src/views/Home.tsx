@@ -4,9 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect} from "react";
-import {Link} from "react-router-dom";
-import {Breadcrumb} from "../api/sources/model.ts";
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 // interface Collection {
 //     uid: string;
@@ -16,10 +15,11 @@ import {Breadcrumb} from "../api/sources/model.ts";
 //     pubDescription: string;
 // }
 
-import collectionsData from "../api/sources/collections.json";
+import collectionsData from '../api/sources/collections.json';
+import { Breadcrumb } from '@ala/common-ui';
 
 interface HomeProps {
-    setBreadcrumbs: (crumbs: Breadcrumb[]) => void
+    setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 }
 
 /**
@@ -28,39 +28,67 @@ interface HomeProps {
  * @param setBreadcrumbs
  * @constructor
  */
-function Home({setBreadcrumbs}: HomeProps) {
-
+function Home({ setBreadcrumbs }: HomeProps) {
     useEffect(() => {
         setBreadcrumbs([
-            {title: "Home", href: import.meta.env.VITE_HOME_URL},
-            {title: "Images of specimens | Atlas of Living Australia", href: ""}
-        ])
+            { title: 'Home', href: import.meta.env.VITE_HOME_URL },
+            {
+                title: 'Images of specimens | Atlas of Living Australia',
+                href: '',
+            },
+        ]);
     }, []);
 
     return (
-        <div className="container-fluid" >
+        <div className="container-fluid">
             <div>
-                <div style={{height: "25px"}}/>
-                <span style={{fontSize: "36px", fontWeight: "500"}}>Images of specimens from Australia’s Natural History Collections</span>
-                <p style={{fontSize: "21px", fontWeight: "300", marginTop: "4px"}}>
-                    Images from Australia's Natural History collections made available by the museums and herbaria of
-                    Australia.
-                    <br/>
-                    To view images from all collections, <Link to="/browse">click here</Link>.
+                <div style={{ height: '25px' }} />
+                <span style={{ fontSize: '36px', fontWeight: '500' }}>
+                    Images of specimens from Australia’s Natural History
+                    Collections
+                </span>
+                <p
+                    style={{
+                        fontSize: '21px',
+                        fontWeight: '300',
+                        marginTop: '4px',
+                    }}
+                >
+                    Images from Australia's Natural History collections made
+                    available by the museums and herbaria of Australia.
+                    <br />
+                    To view images from all collections,{' '}
+                    <Link to="/browse">click here</Link>.
                 </p>
-                <hr style={{marginTop: "30px", color: "#212121"}}/>
+                <hr style={{ marginTop: '30px', color: '#212121' }} />
             </div>
 
             <div className="row">
                 {collectionsData.map((collection) => (
                     <div className="col-12 col-md-4" key={collection.uid}>
-                        <div className="thumbnail" style={{ border: "1px solid black", borderRadius: "5px", margin: "10px", padding: "10px" }}>
+                        <div
+                            className="thumbnail"
+                            style={{
+                                border: '1px solid black',
+                                borderRadius: '5px',
+                                margin: '10px',
+                                padding: '10px',
+                            }}
+                        >
                             <h2>
-                                <Link to={`/browse/${collection.uid}`}>{collection.name}</Link>
+                                <Link to={`/browse/${collection.uid}`}>
+                                    {collection.name}
+                                </Link>
                             </h2>
-                            {collection.institution && <h3>{collection.institution.name}</h3>}
+                            {collection.institution && (
+                                <h3>{collection.institution.name}</h3>
+                            )}
                             <Link to={`/browse/${collection.uid}`}>
-                                <img className="img-fluid" src={collection.displayCollectionImage} alt={collection.name} />
+                                <img
+                                    className="img-fluid"
+                                    src={collection.displayCollectionImage}
+                                    alt={collection.name}
+                                />
                             </Link>
                             <p className="panel-text">
                                 {collection.pubDescription}

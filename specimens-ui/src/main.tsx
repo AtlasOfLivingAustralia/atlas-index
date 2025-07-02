@@ -7,8 +7,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import messages_en from "./translations/en.json";
-import {IntlProvider} from "react-intl";
+import messages_en from './translations/en.json';
+import { IntlProvider } from 'react-intl';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 const root = ReactDOM.createRoot(
@@ -18,9 +18,13 @@ const root = ReactDOM.createRoot(
 root.render(
     <React.StrictMode>
         <Router>
-            <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {
-            }}>
-                <App/>
+            <IntlProvider
+                messages={messages_en}
+                locale="en"
+                defaultLocale="en"
+                onError={() => {}}
+            >
+                <App />
             </IntlProvider>
         </Router>
     </React.StrictMode>

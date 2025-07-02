@@ -3,9 +3,17 @@
     display: none !important;
 }
 
-.panel-text { margin-top : 15px; font-size: 15px; line-height: 1.5em;}
-.panel h2 { line-height: 1.2em; }
-.panel h3 { line-height: 1.2em; }
+.panel-text {
+    margin-top: 15px;
+    font-size: 15px;
+    line-height: 1.5em;
+}
+.panel h2 {
+    line-height: 1.2em;
+}
+.panel h3 {
+    line-height: 1.2em;
+}
 
 .space-after {
     margin-bottom: 10px;
@@ -23,7 +31,9 @@
     margin-top: 20px;
 }
 
-.center {text-align: center}
+.center {
+    text-align: center;
+}
 
 .clickable {
     cursor: pointer;
@@ -42,7 +52,7 @@ ul {
 }
 
 #imagesList {
-    margin:0;
+    margin: 0;
     padding-right: 60px;
 }
 
@@ -50,8 +60,8 @@ ul {
     display: inline-block;
     text-align: center;
     line-height: 1.3em;
-    background-color: #DDD;
-    color: #DDD;
+    background-color: #ddd;
+    color: #ddd;
     margin: 2px;
     position: relative;
     max-height: 180px;

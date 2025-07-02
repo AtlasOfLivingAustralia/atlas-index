@@ -2,18 +2,11 @@
 
 A UI replacement for the specimens app.
 
-Built with:
-- React
-- TypeScript
-- Bootstrap 5
-- Node version v18.12.1
-- Yarn version v1.22.10
-
 ## Getting started
 
 ### List of collections to include
 
-The list of collections to include in the regions UI is defined in `./public/collections.json`. As part of the build
+The list of collections to include in the specimens UI are defined in `./public/collections.json`. As part of the build
 process, this file is used to generate a `./src/api/sources/collections.json` by fetching the collection metadata from
 `.env.production:VITE_APP_COLLECTIONS_URL` and based on the `collections.json` file.
 
@@ -31,7 +24,7 @@ uses `.env.production:VITE_APP_COLLECTIONS_URL`.
 
 ```bash
 node buildCollections.js
-``` 
+```
 
 ### Install dependencies and run the development server
 
@@ -77,4 +70,3 @@ VITE_COMMON_JS=http://localhost:8082/static/common/common.js
 VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
 VITE_BANNER_SCOPE=specimens
 ```
-
