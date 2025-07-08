@@ -5,6 +5,7 @@ A UI replacement for the regions app.
 This app depends on data produced by the search-service.
 
 Built with:
+
 - React
 - TypeScript
 - Bootstrap 5
@@ -29,7 +30,7 @@ with either:
 
 #### Production
 
-`yarn run build` makes use of `.env.production:VITE_SPATIAL_WS_URL` and `./resources/regions.json` to add a hashed 
+`yarn run build` makes use of `.env.production:VITE_SPATIAL_WS_URL` and `./resources/regions.json` to add a hashed
 `regionsList.json` file into `/dist/assets/`.
 
 Delete the `regionsList*.json` files in the project directory to trigger a rebuild.
@@ -44,11 +45,12 @@ Run `buildRegions.js` to produce a `regionsList.json` file.
 
 ```bash
 node buildRegions.js {spatial-ws-url}
-``` 
+```
 
-Update `.env.local` with the URL to this `regionsList.json` file in `.env.local:VITE_REGIONS_CONFIG_URL`. 
+Update `.env.local` with the URL to this `regionsList.json` file in `.env.local:VITE_REGIONS_CONFIG_URL`.
 
 Example:
+
 - copy the `regionsList.json` file to the `static-server/static/regions/` directory.
 - start the static server, see [static-server](../static-server/README.md).
 - use `.env.local:VITE_REGIONS_CONFIG_URL=http://localhost:8082/static/regions/regionsList.json`
@@ -113,4 +115,3 @@ VITE_DOWNLOAD_URL=https://biocache.ala.org.au/download/options1?targetUri=%2Focc
 #VITE_GOOGLE_MAP_API_KEY={optional}
 VITE_OPENSTREETMAP_ZXY_URL=https://spatial.ala.org.au/osm/{z}/{x}/{y}.png
 ```
-

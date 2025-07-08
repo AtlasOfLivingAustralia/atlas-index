@@ -10,7 +10,7 @@ describe('formatNumber', () => {
     beforeAll(() => {
         Object.defineProperty(navigator, 'language', {
             value: 'en',
-            configurable: true
+            configurable: true,
         });
     });
 

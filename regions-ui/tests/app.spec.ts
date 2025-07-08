@@ -1,6 +1,6 @@
-import {test, expect, type TestInfo} from '@playwright/test';
-import {createCanvas, type CanvasRenderingContext2D} from 'canvas';
-import {Buffer} from 'buffer'; // Node.js Buffer module
+import { test, expect, type TestInfo } from '@playwright/test';
+import { createCanvas, type CanvasRenderingContext2D } from 'canvas';
+import { Buffer } from 'buffer'; // Node.js Buffer module
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -9,12 +9,19 @@ import { fileURLToPath } from 'url';
 // @ts-ignore
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const g_regionsListPath = path.resolve(__dirname, './resources/regionsList.json');
+const g_regionsList = JSON.parse(fs.readFileSync(g_regionsListPath, 'utf-8'));
 const g_kingdomsPath = path.resolve(__dirname, './resources/kingdoms.json');
 const g_kingdoms = JSON.parse(fs.readFileSync(g_kingdomsPath, 'utf-8'));
 const g_speciesPath = path.resolve(__dirname, './resources/species.json');
 const g_species = JSON.parse(fs.readFileSync(g_speciesPath, 'utf-8'));
-const g_speciesGroupsPath = path.resolve(__dirname, './resources/speciesGroups.json');
-const g_speciesGroups = JSON.parse(fs.readFileSync(g_speciesGroupsPath, 'utf-8'));
+const g_speciesGroupsPath = path.resolve(
+    __dirname,
+    './resources/speciesGroups.json'
+);
+const g_speciesGroups = JSON.parse(
+    fs.readFileSync(g_speciesGroupsPath, 'utf-8')
+);
 
 // Extend TestInfo to include the seenUrls property
 interface ExtendedTestInfo extends TestInfo {
@@ -23,17 +30,21 @@ interface ExtendedTestInfo extends TestInfo {
 
 // Function to convert tile X coordinate and zoom level to longitude
 function tileToLong(x: number, z: number): number {
-    return x / Math.pow(2, z) * 360 - 180;
+    return (x / Math.pow(2, z)) * 360 - 180;
 }
 
 // Function to convert tile Y coordinate and zoom level to latitude (using inverse Mercator)
 function tileToLat(y: number, z: number): number {
-    const n = Math.PI - 2 * Math.PI * y / Math.pow(2, z);
+    const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
     return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
 }
 
 // Function to get decimal degrees for the four corners of a tile
-function getTileCorners(x: number, y: number, z: number): {
+function getTileCorners(
+    x: number,
+    y: number,
+    z: number
+): {
     topLeft: { lat: number; lon: number };
     topRight: { lat: number; lon: number };
     bottomLeft: { lat: number; lon: number };
@@ -45,10 +56,10 @@ function getTileCorners(x: number, y: number, z: number): {
     const latBottom = tileToLat(y + 1, z); // Latitude of the top edge of the tile below
 
     return {
-        topLeft: {lat: latTop, lon: lonLeft},
-        topRight: {lat: latTop, lon: lonRight},
-        bottomLeft: {lat: latBottom, lon: lonLeft},
-        bottomRight: {lat: latBottom, lon: lonRight},
+        topLeft: { lat: latTop, lon: lonLeft },
+        topRight: { lat: latTop, lon: lonRight },
+        bottomLeft: { lat: latBottom, lon: lonLeft },
+        bottomRight: { lat: latBottom, lon: lonRight },
     };
 }
 
@@ -56,7 +67,8 @@ const R = 6378137; // Earth's radius in meters
 
 // Convert projected coordinates to decimal degrees
 const toLon = (x: number) => (x / R) * (180 / Math.PI);
-const toLat = (y: number) => (180 / Math.PI) * (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2);
+const toLat = (y: number) =>
+    (180 / Math.PI) * (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2);
 
 // Function to generate a PNG buffer with tile info drawn on it
 async function generateTileImage(
@@ -99,19 +111,35 @@ async function generateTileImage(
     // Draw corner coordinates
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText(`TL: ${formatCoord(corners.topLeft.lat)}, ${formatCoord(corners.topLeft.lon)}`, padding, padding);
+    ctx.fillText(
+        `TL: ${formatCoord(corners.topLeft.lat)}, ${formatCoord(corners.topLeft.lon)}`,
+        padding,
+        padding
+    );
 
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    ctx.fillText(`TR: ${formatCoord(corners.topRight.lat)}, ${formatCoord(corners.topRight.lon)}`, size - padding, padding);
+    ctx.fillText(
+        `TR: ${formatCoord(corners.topRight.lat)}, ${formatCoord(corners.topRight.lon)}`,
+        size - padding,
+        padding
+    );
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(`BL: ${formatCoord(corners.bottomLeft.lat)}, ${formatCoord(corners.bottomLeft.lon)}`, padding, size - padding);
+    ctx.fillText(
+        `BL: ${formatCoord(corners.bottomLeft.lat)}, ${formatCoord(corners.bottomLeft.lon)}`,
+        padding,
+        size - padding
+    );
 
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(`BR: ${formatCoord(corners.bottomRight.lat)}, ${formatCoord(corners.bottomRight.lon)}`, size - padding, size - padding);
+    ctx.fillText(
+        `BR: ${formatCoord(corners.bottomRight.lat)}, ${formatCoord(corners.bottomRight.lon)}`,
+        size - padding,
+        size - padding
+    );
 
     // Convert canvas to PNG buffer
     return new Promise((resolve, reject) => {
@@ -124,7 +152,7 @@ async function generateTileImage(
 }
 
 // Set up mocking for all tests
-test.beforeEach(async ({page}, testInfo) => {
+test.beforeEach(async ({ page }, testInfo) => {
     const seenUrls = new Set<URL>();
 
     // Mock base layer requests to OSM base layers
@@ -137,9 +165,20 @@ test.beforeEach(async ({page}, testInfo) => {
 
         const pathParts = pathname.split('/');
         // Look for sequences that might be z, x, y numbers
-        let z: number | undefined = parseInt(pathParts[pathParts.length - 3], 10);
-        let x: number | undefined = parseInt(pathParts[pathParts.length - 2], 10);
-        let y: number | undefined = parseInt(pathParts[pathParts.length - 1].replace('@2x', '').replace('.png', ''), 10);
+        let z: number | undefined = parseInt(
+            pathParts[pathParts.length - 3],
+            10
+        );
+        let x: number | undefined = parseInt(
+            pathParts[pathParts.length - 2],
+            10
+        );
+        let y: number | undefined = parseInt(
+            pathParts[pathParts.length - 1]
+                .replace('@2x', '')
+                .replace('.png', ''),
+            10
+        );
 
         // detect high DPI
         if (pathParts[pathParts.length - 1].indexOf('@2x') !== -1) {
@@ -150,20 +189,29 @@ test.beforeEach(async ({page}, testInfo) => {
 
         // Generate the tile image dynamically
         try {
-            const imageBuffer = await generateTileImage(x, y, z, corners, requestedSize);
+            const imageBuffer = await generateTileImage(
+                x,
+                y,
+                z,
+                corners,
+                requestedSize
+            );
 
             await route.fulfill({
                 status: 200,
                 contentType: 'image/png',
-                body: imageBuffer
+                body: imageBuffer,
             });
         } catch (error) {
-            console.error(`Error generating mock tile image for ${z}/${x}/${y}:`, error);
+            console.error(
+                `Error generating mock tile image for ${z}/${x}/${y}:`,
+                error
+            );
             // If image generation fails, fulfill with an error status or a fallback
             await route.fulfill({
                 status: 500, // Internal Server Error
                 contentType: 'text/plain',
-                body: `Error generating mock tile for ${z}/${x}/${y}`
+                body: `Error generating mock tile for ${z}/${x}/${y}`,
             });
         }
     });
@@ -212,8 +260,16 @@ test.beforeEach(async ({page}, testInfo) => {
             // Draw info in the center
             let layers = params.get('layers') || 'Unknown Layer';
             ctx.fillText(`${layers}`, width / 2, height / 2 - 20);
-            ctx.fillText(`${toLon(minX).toFixed(4)}, ${toLat(minY).toFixed(4)}`, width / 2, height / 2 + 10);
-            ctx.fillText(`${toLon(maxX).toFixed(4)}, ${toLat(maxY).toFixed(4)}`, width / 2, height / 2 + 30);
+            ctx.fillText(
+                `${toLon(minX).toFixed(4)}, ${toLat(minY).toFixed(4)}`,
+                width / 2,
+                height / 2 + 10
+            );
+            ctx.fillText(
+                `${toLon(maxX).toFixed(4)}, ${toLat(maxY).toFixed(4)}`,
+                width / 2,
+                height / 2 + 30
+            );
 
             const buffer = canvas.toBuffer('image/png');
 
@@ -231,25 +287,36 @@ test.beforeEach(async ({page}, testInfo) => {
         }
     });
 
-    await page.route('**/spatial*.ala.org.au/ws/intersect/cl10925/*/*', async (route) => {
-        const url = new URL(route.request().url());
-        seenUrls.add(url);
+    await page.route(
+        '**/spatial*.ala.org.au/ws/intersect/cl10925/*/*',
+        async (route) => {
+            const url = new URL(route.request().url());
+            seenUrls.add(url);
 
-        // always return the same response, a successful intersection
-        const response = [
-            {
-                "field": "cl10925",
-                "description": "AUSTRALIAN CAPITAL TERRITORY",
-                "layername": "PSMA States (2016)",
-                "pid": "8832857",
-                "value": "AUSTRALIAN CAPITAL TERRITORY"
-            }
-        ]
-        await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(response)
-        });
+            // always return the same response, a successful intersection
+            const response = [
+                {
+                    field: 'cl10925',
+                    description: 'AUSTRALIAN CAPITAL TERRITORY',
+                    layername: 'PSMA States (2016)',
+                    pid: '8832857',
+                    value: 'AUSTRALIAN CAPITAL TERRITORY',
+                },
+            ];
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
+        }
+    );
+
+    await page.route('**/regionsList.json', async(route) => {
+       await route.fulfill({
+           status: 200,
+           contentType: 'application/json',
+           body: JSON.stringify(g_regionsList)
+       });
     });
 
     await page.route('**/spatial*.ala.org.au/ws/object/*', async (route) => {
@@ -258,55 +325,61 @@ test.beforeEach(async ({page}, testInfo) => {
 
         // always return the same response, a successful intersection
         const response = {
-            pid: "8832857",
-            name: "AUSTRALIAN CAPITAL TERRITORY",
-            wmsurl: "https://spatial.ala.org.au/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ALA:Objects&format=image/png&viewparams=s:8832857",
-            fid: "cl10925",
-            fieldname: "PSMA States (2016)",
-            bbox: "POLYGON((148.762675104 -35.9207620485,148.762675104 -35.124517035,149.399284512 -35.124517035,149.399284512 -35.9207620485,148.762675104 -35.9207620485))",
-            description: "AUSTRALIAN CAPITAL TERRITORY",
+            pid: '8832857',
+            name: 'AUSTRALIAN CAPITAL TERRITORY',
+            wmsurl: 'https://spatial.ala.org.au/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ALA:Objects&format=image/png&viewparams=s:8832857',
+            fid: 'cl10925',
+            fieldname: 'PSMA States (2016)',
+            bbox: 'POLYGON((148.762675104 -35.9207620485,148.762675104 -35.124517035,149.399284512 -35.124517035,149.399284512 -35.9207620485,148.762675104 -35.9207620485))',
+            description: 'AUSTRALIAN CAPITAL TERRITORY',
             area_km: 2363.2136863251985,
-            id: "8832857"
-        }
+            id: '8832857',
+        };
         await route.fulfill({
             status: 200,
             contentType: 'application/json',
-            body: JSON.stringify(response)
+            body: JSON.stringify(response),
         });
     });
 
-    await page.route('**/biocache-ws.ala.org.au/ws/occurrences/search**', async (route) => {
-        const url = new URL(route.request().url());
-        seenUrls.add(url);
+    await page.route(
+        '**/biocache-ws*.ala.org.au/ws/occurrences/search**',
+        async (route) => {
+            const url = new URL(route.request().url());
+            seenUrls.add(url);
 
-        const facets = url.searchParams.get('facets');
+            const facets = url.searchParams.get('facets');
 
-        var response;
-        if (facets === 'species') {
-            response = g_species;
-        } else if (facets === 'kingdom') {
-            response = g_kingdoms;
-        } else if (facets === 'speciesGroup') {
-            response = g_speciesGroups;
+            var response;
+            if (facets === 'species') {
+                response = g_species;
+            } else if (facets === 'kingdom') {
+                response = g_kingdoms;
+            } else if (facets === 'speciesGroup') {
+                response = g_speciesGroups;
+            }
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(response),
+            });
         }
-        await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(response)
-        });
-    });
+    );
 
     (testInfo as ExtendedTestInfo).seenUrls = seenUrls;
 });
 
-test('build-info', async ({page}, testInfo) => {
+test('build-info', async ({ page }, testInfo) => {
     await page.goto('http://localhost:5173');
 
     // Wait for content to load
     await page.waitForLoadState('networkidle');
 
     // get build info meta tag
-    const jsonContent = await page.locator('meta[name="buildInfo"]').getAttribute('content');
+    const jsonContent = await page
+        .locator('meta[name="buildInfo"]')
+        .first()
+        .getAttribute('content');
     const buildInfo = JSON.parse(jsonContent || '{}');
 
     // confirm it has the expected properties
@@ -326,7 +399,7 @@ test('build-info', async ({page}, testInfo) => {
  * - opens the "other" layer accordion, and checks state
  * - opens the default accordion (again), and checks state
  */
-test('accordion-interactivity', async ({page}, testInfo) => {
+test('accordion-interactivity', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173');
@@ -335,28 +408,41 @@ test('accordion-interactivity', async ({page}, testInfo) => {
     await page.waitForLoadState('networkidle');
 
     // Locate the accordion button with the text "States and territories"
-    const accordionButton = page.locator('button.accordion-button', {hasText: 'States and territories'});
+    const accordionButton = page.locator('button.accordion-button', {
+        hasText: 'States and territories',
+    });
 
-    // Ensure the button is visible
     await expect(accordionButton).toBeVisible();
 
     // Verify the parent h2's next sibling div has the "show" class
-    const accordionContent = accordionButton.locator('xpath=../following-sibling::div');
+    const accordionContent = accordionButton.locator(
+        'xpath=../following-sibling::div'
+    );
     await expect(accordionContent).toHaveClass(/show/);
 
     // Verify no other accordion-collapse divs have the "show" class, as it should be the only one expanded
-    const otherAccordions = page.locator('div.accordion-collapse.collapse:not(.show)');
-    await expect(otherAccordions).toHaveCount(await page.locator('div.accordion-collapse.collapse').count() - 1);
+    const otherAccordions = page.locator(
+        'div.accordion-collapse.collapse:not(.show)'
+    );
+    await expect(otherAccordions).toHaveCount(
+        (await page.locator('div.accordion-collapse.collapse').count()) - 1
+    );
 
     // Verify that it is actually visible by checking some of the content is visible
-    const actContent = accordionContent.locator('p', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
-    const nswContent = accordionContent.locator('p', {hasText: 'NEW SOUTH WALES'});
+    const actContent = accordionContent.locator('p', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
+    const nswContent = accordionContent.locator('p', {
+        hasText: 'NEW SOUTH WALES',
+    });
     await expect(actContent).toBeVisible();
     await expect(nswContent).toBeVisible();
 
     // Verify map contains at least one expected layer WMS request
     const expectedLayersValue = 'ALA:psma_state_2016';
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('layers') === expectedLayersValue);
+    const hasExpectedLayer = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('layers') === expectedLayersValue
+    );
     expect(hasExpectedLayer).toBeTruthy();
 
     // Verify map has 2 layers mapped (the base layer and the WMS layer of the default accordion)
@@ -366,41 +452,71 @@ test('accordion-interactivity', async ({page}, testInfo) => {
     // Verify a collapse
     await accordionButton.click(); // collapse the accordion
     await expect(accordionContent).not.toHaveClass(/show/); // content is now collapsed
-    const otherAccordions2 = page.locator('div.accordion-collapse.collapse:not(.show)');
-    await expect(otherAccordions2).toHaveCount(await page.locator('div.accordion-collapse.collapse').count()); // no accordions open
+    const otherAccordions2 = page.locator(
+        'div.accordion-collapse.collapse:not(.show)'
+    );
+    await expect(otherAccordions2).toHaveCount(
+        await page.locator('div.accordion-collapse.collapse').count()
+    ); // no accordions open
     const leafletLayers2 = page.locator('div.leaflet-layer');
     expect(await leafletLayers2.count()).toEqual(1); // only the base layer is visible
 
     // Verify a second accordion
-    const secondAccordionButton = page.locator('button.accordion-button', {hasText: 'Local government'});
+    const secondAccordionButton = page.locator('button.accordion-button', {
+        hasText: 'Local government',
+    });
     await expect(secondAccordionButton).toBeVisible(); // check the button is visible
     await secondAccordionButton.click();
-    const accordionContent2 = secondAccordionButton.locator('xpath=../following-sibling::div'); // get the content div for this button
+    const accordionContent2 = secondAccordionButton.locator(
+        'xpath=../following-sibling::div'
+    ); // get the content div for this button
     await expect(accordionContent2).toHaveClass(/show/); // content is now expanded
-    const otherAccordions3 = page.locator('div.accordion-collapse.collapse:not(.show)');
-    await expect(otherAccordions3).toHaveCount(await page.locator('div.accordion-collapse.collapse').count() - 1); // only one accordion open
-    const adelaideCityCouncilContent = accordionContent2.locator('p', {hasText: 'ADELAIDE CITY COUNCIL'});
-    const alpineShireContent = accordionContent2.locator('p', {hasText: 'ALPINE SHIRE'});
+    const otherAccordions3 = page.locator(
+        'div.accordion-collapse.collapse:not(.show)'
+    );
+    await expect(otherAccordions3).toHaveCount(
+        (await page.locator('div.accordion-collapse.collapse').count()) - 1
+    ); // only one accordion open
+    const adelaideCityCouncilContent = accordionContent2.locator('p', {
+        hasText: 'ADELAIDE CITY COUNCIL',
+    });
+    const alpineShireContent = accordionContent2.locator('p', {
+        hasText: 'ALPINE SHIRE',
+    });
     await expect(adelaideCityCouncilContent).toBeVisible(); // check some of the content is visible
     await expect(alpineShireContent).toBeVisible(); // check some of the content is visible
     const leafletLayers3 = page.locator('div.leaflet-layer');
     expect(await leafletLayers3.count()).toEqual(2); // base layer and this layer are visible
     const expectedLayersValue2 = 'ALA:psma_lga_2018';
-    const hasExpectedLayer2 = Array.from(seenUrls).some(url => url.searchParams.get('layers') === expectedLayersValue2);
+    const hasExpectedLayer2 = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('layers') === expectedLayersValue2
+    );
     expect(hasExpectedLayer2).toBeTruthy(); // WMS requests include the expected layer
 
     // Verify the "other layers" accordion
-    const otherAccordionButton = page.locator('button.accordion-button', {hasText: 'Other regions'});
+    const otherAccordionButton = page.locator('button.accordion-button', {
+        hasText: 'Other regions',
+    });
     // scroll into view
     await otherAccordionButton.scrollIntoViewIfNeeded();
     await expect(otherAccordionButton).toBeVisible(); // check the button is visible
     await otherAccordionButton.click();
-    const accordionContent3 = otherAccordionButton.locator('xpath=../following-sibling::div'); // get the content div for this button
+    const accordionContent3 = otherAccordionButton.locator(
+        'xpath=../following-sibling::div'
+    ); // get the content div for this button
     await expect(accordionContent3).toHaveClass(/show/); // content is now expanded
-    const otherAccordions4 = page.locator('div.accordion-collapse.collapse:not(.show)');
-    await expect(otherAccordions4).toHaveCount(await page.locator('div.accordion-collapse.collapse').count() - 1); // only one accordion open
-    const otherContent1 = accordionContent3.locator('p', {hasText: 'Great Eastern Ranges Initiative'});
-    const otherContent2 = accordionContent3.locator('p', {hasText: 'Directory of Important Wetlands'});
+    const otherAccordions4 = page.locator(
+        'div.accordion-collapse.collapse:not(.show)'
+    );
+    await expect(otherAccordions4).toHaveCount(
+        (await page.locator('div.accordion-collapse.collapse').count()) - 1
+    ); // only one accordion open
+    const otherContent1 = accordionContent3.locator('p', {
+        hasText: 'Great Eastern Ranges Initiative',
+    });
+    const otherContent2 = accordionContent3.locator('p', {
+        hasText: 'Directory of Important Wetlands',
+    });
     await expect(otherContent1).toBeVisible(); // check some of the content is visible
     await expect(otherContent2).toBeVisible(); // check some of the content is visible
     const leafletLayers4 = page.locator('div.leaflet-layer');
@@ -409,12 +525,22 @@ test('accordion-interactivity', async ({page}, testInfo) => {
     // Verify the default accordion, again
     await accordionButton.scrollIntoViewIfNeeded();
     await accordionButton.click();
-    const accordionContent4 = accordionButton.locator('xpath=../following-sibling::div'); // get the content div for this button
+    const accordionContent4 = accordionButton.locator(
+        'xpath=../following-sibling::div'
+    ); // get the content div for this button
     await expect(accordionContent4).toHaveClass(/show/); // content is now expanded
-    const otherAccordions5 = page.locator('div.accordion-collapse.collapse:not(.show)');
-    await expect(otherAccordions5).toHaveCount(await page.locator('div.accordion-collapse.collapse').count() - 1); // only one accordion open
-    const actContent2 = accordionContent.locator('p', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
-    const nswContent2 = accordionContent.locator('p', {hasText: 'NEW SOUTH WALES'});
+    const otherAccordions5 = page.locator(
+        'div.accordion-collapse.collapse:not(.show)'
+    );
+    await expect(otherAccordions5).toHaveCount(
+        (await page.locator('div.accordion-collapse.collapse').count()) - 1
+    ); // only one accordion open
+    const actContent2 = accordionContent.locator('p', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
+    const nswContent2 = accordionContent.locator('p', {
+        hasText: 'NEW SOUTH WALES',
+    });
     await expect(actContent2).toBeVisible();
     await expect(nswContent2).toBeVisible();
     const leafletLayers5 = page.locator('div.leaflet-layer');
@@ -426,9 +552,12 @@ test('accordion-interactivity', async ({page}, testInfo) => {
  * - zoom in (so we can test the reset map button)
  * - the reset map button after the zoom
  */
-test('regions map controls', async ({page}, testInfo) => {
+test('regions map controls', async ({ page }, testInfo) => {
     if (testInfo.project.name === 'firefox') {
-        test.skip(true, 'Skipping this assertion for Firefox due to page.route not firing as expected for previously seen URLs');
+        test.skip(
+            true,
+            'Skipping this assertion for Firefox due to page.route not firing as expected for previously seen URLs'
+        );
     }
 
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
@@ -448,7 +577,7 @@ test('regions map controls', async ({page}, testInfo) => {
     expect(newMapTileUrls).toBeGreaterThan(initialMapTileUrls); // check new tiles requested
 
     // reset is now enabled
-    const resetButton = page.locator('button', {hasText: 'Reset map'});
+    const resetButton = page.locator('button', { hasText: 'Reset map' });
     await expect(resetButton).toBeVisible(); // check the button is visible
     await expect(resetButton).toBeEnabled(); // check the button is enabled
 
@@ -463,14 +592,16 @@ test('regions map controls', async ({page}, testInfo) => {
     expect(resetMapTileUrls).toEqual(initialMapTileUrls); // check no new tiles requested
     const resetMapTileUrl = Array.from(seenUrls)[0];
     // find resetMapTileUrl in the seenUrls
-    const resetMapTileUrlIndex = Array.from(seenUrls).findIndex(url => url.href === resetMapTileUrl.href);
+    const resetMapTileUrlIndex = Array.from(seenUrls).findIndex(
+        (url) => url.href === resetMapTileUrl.href
+    );
     expect(resetMapTileUrlIndex).toBeGreaterThan(-1);
 });
 
 /**
  * Test layer item selection from the expanded list and checkboxes
  */
-test('regions checkboxes', async ({page}, testInfo) => {
+test('regions checkboxes', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173');
@@ -478,7 +609,9 @@ test('regions checkboxes', async ({page}, testInfo) => {
     // Wait for images to load
     await page.waitForLoadState('networkidle');
 
-    const actContent = page.locator('p', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const actContent = page.locator('p', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     await expect(actContent).toBeVisible(); // check some of the content is visible
     await actContent.click(); // click the region
 
@@ -488,7 +621,9 @@ test('regions checkboxes', async ({page}, testInfo) => {
     const leafletLayers = page.locator('div.leaflet-layer');
     expect(await leafletLayers.count()).toEqual(3); // base layer, this layer, and this region are visible
 
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:8832857');
+    const hasExpectedLayer = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('viewparams') === 's:8832857' //21654846
+    );
     expect(hasExpectedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // look for popup
@@ -528,13 +663,12 @@ test('regions checkboxes', async ({page}, testInfo) => {
     await expect(checkbox2).toBeChecked(); // check the checkbox is checked
     const leafletLayers5 = page.locator('div.leaflet-layer');
     expect(await leafletLayers5.count()).toEqual(3); // base layer, this layer, this region
-
 });
 
 /**
  * Test layer item selection from a map click, and test the popup link
  */
-test('map click region selection', async ({page}, testInfo) => {
+test('map click region selection', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173');
@@ -544,13 +678,15 @@ test('map click region selection', async ({page}, testInfo) => {
 
     // click the map
     const map = page.locator('div.leaflet-container');
-    await map.click({position: {x: 100, y: 100}}); // click the map
+    await map.click({ position: { x: 100, y: 100 } }); // click the map
     await page.waitForTimeout(1000); // wait for the map to load
 
     // Verify that 3 layers are now visible
     const leafletLayers = page.locator('div.leaflet-layer');
     expect(await leafletLayers.count()).toEqual(3); // base layer, this layer, and this region are visible
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:8832857');
+    const hasExpectedLayer = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('viewparams') === 's:8832857'
+    );
     expect(hasExpectedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // look for popup
@@ -561,7 +697,9 @@ test('map click region selection', async ({page}, testInfo) => {
     expect(popupText).toContain('AUSTRALIAN CAPITAL TERRITORY'); // check the popup has the expected text
 
     // confirm the popup has a link clicking it navigates to '/region?id=8832857'
-    const popupLink = page.locator('a', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const popupLink = page.locator('a', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     expect(await popupLink.count()).toEqual(1); // check the link is visible
     await popupLink.click(); // click the link
     await page.waitForTimeout(1000); // wait for the page to load
@@ -572,7 +710,7 @@ test('map click region selection', async ({page}, testInfo) => {
 /**
  * Test zoom to region button
  */
-test('zoom to region', async ({page}, testInfo) => {
+test('zoom to region', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173');
@@ -580,23 +718,30 @@ test('zoom to region', async ({page}, testInfo) => {
     // Wait for images to load
     await page.waitForLoadState('networkidle');
 
-    const actContent = page.locator('p', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const actContent = page.locator('p', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     await expect(actContent).toBeVisible(); // check some of the content is visible
     await actContent.click(); // click the region
 
     // Verify the zoom to region button
-    const zoomToRegionButton = page.locator('button', {hasText: 'Zoom to region'});
+    const zoomToRegionButton = page.locator('button', {
+        hasText: 'Zoom to region',
+    });
     await expect(zoomToRegionButton).toBeVisible(); // check the button is visible
     await expect(zoomToRegionButton).toBeEnabled(); // check the button is enabled
     await zoomToRegionButton.click(); // click the button
 
     await page.waitForTimeout(1000); // wait for the map to load
-    const zoomedUrl = 'https://spatial.ala.org.au/geoserver/wms?styles=polygon&viewparams=s%3A8832857&service=WMS&request=GetMap&layers=ALA%3AObjects&styles=polygon&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=16437018.562444305,-4383204.9499851465,16515290.079408325,-4304933.433021128'
-    const hasZoomedLayer = Array.from(seenUrls).some(url => url.href === zoomedUrl);
+    const zoomedUrl =
+        'https://spatial.ala.org.au/geoserver/wms?styles=polygon&viewparams=s%3A8832857&service=WMS&request=GetMap&layers=ALA%3AObjects&styles=polygon&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=16437018.562444305,-4383204.9499851465,16515290.079408325,-4304933.433021128';
+    const hasZoomedLayer = Array.from(seenUrls).some(
+        (url) => url.href === zoomedUrl
+    );
     expect(hasZoomedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // reset is now enabled
-    const resetButton = page.locator('button', {hasText: 'Reset map'});
+    const resetButton = page.locator('button', { hasText: 'Reset map' });
     await expect(resetButton).toBeVisible(); // check the button is visible
     await expect(resetButton).toBeEnabled(); // check the button is enabled
 });
@@ -604,18 +749,24 @@ test('zoom to region', async ({page}, testInfo) => {
 /**
  * Test open region link above the map
  */
-test('open region page from button above the map', async ({page}, testInfo) => {
+test('open region page from button above the map', async ({
+    page,
+}, testInfo) => {
     await page.goto('http://localhost:5173');
 
     // Wait for images to load
     await page.waitForLoadState('networkidle');
 
-    const actContent = page.locator('p', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const actContent = page.locator('p', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     await expect(actContent).toBeVisible(); // check some of the content is visible
     await actContent.click(); // click the region
 
     // Verify the zoom to region button
-    const zoomToRegionButton = page.locator('button', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const zoomToRegionButton = page.locator('button', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     await expect(zoomToRegionButton).toBeVisible(); // check the button is visible
     await expect(zoomToRegionButton).toBeEnabled(); // check the button is enabled
     await zoomToRegionButton.click(); // click the button
@@ -629,10 +780,12 @@ test('open region page from button above the map', async ({page}, testInfo) => {
 /**
  * Test hashes 1
  */
-test('hash test - layer & region', async ({page}, testInfo) => {
+test('hash test - layer & region', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
-    await page.goto('http://localhost:5173/#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY');
+    await page.goto(
+        'http://localhost:5173/#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY'
+    );
 
     // Wait for images to load
     await page.waitForLoadState('networkidle');
@@ -640,11 +793,15 @@ test('hash test - layer & region', async ({page}, testInfo) => {
     // Verify that 3 layers are now visible
     const leafletLayers = page.locator('div.leaflet-layer');
     expect(await leafletLayers.count()).toEqual(3); // base layer, this layer, and this region are visible
-    const hasExpectedLayer = Array.from(seenUrls).some(url => url.searchParams.get('viewparams') === 's:8832857');
+    const hasExpectedLayer = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('viewparams') === 's:8832857'
+    );
     expect(hasExpectedLayer).toBeTruthy(); // WMS requests include the expected layer
 
     // Verify the zoom to region button
-    const zoomToRegionButton = page.locator('button', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const zoomToRegionButton = page.locator('button', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     await expect(zoomToRegionButton).toBeVisible(); // check the button is visible
     await expect(zoomToRegionButton).toBeEnabled(); // check the button is enabled
     await zoomToRegionButton.click(); // click the button
@@ -658,7 +815,7 @@ test('hash test - layer & region', async ({page}, testInfo) => {
 /**
  * Test hashes 2
  */
-test('hash test - layer only', async ({page}, testInfo) => {
+test('hash test - layer only', async ({ page }, testInfo) => {
     await page.goto('http://localhost:5173/#layer=Local+government');
 
     // Wait for images to load
@@ -672,7 +829,7 @@ test('hash test - layer only', async ({page}, testInfo) => {
 /**
  * Test hashes 3
  */
-test('hash test - other regions', async ({page}, testInfo) => {
+test('hash test - other regions', async ({ page }, testInfo) => {
     await page.goto('http://localhost:5173/#layer=OTHER_REGIONS');
 
     // Wait for images to load
@@ -686,8 +843,10 @@ test('hash test - other regions', async ({page}, testInfo) => {
 /**
  * Test hashes 4
  */
-test('hash test - other regions & layer', async ({page}, testInfo) => {
-    await page.goto('http://localhost:5173/#layer=Great+Eastern+Ranges+Initiative');
+test('hash test - other regions & layer', async ({ page }, testInfo) => {
+    await page.goto(
+        'http://localhost:5173/#layer=Great+Eastern+Ranges+Initiative'
+    );
 
     // Wait for images to load
     await page.waitForLoadState('networkidle');
@@ -700,7 +859,7 @@ test('hash test - other regions & layer', async ({page}, testInfo) => {
 /**
  * Test region page default info
  */
-test('region page default info', async ({page}, testInfo) => {
+test('region page default info', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173/region?id=8832857');
@@ -713,40 +872,65 @@ test('region page default info', async ({page}, testInfo) => {
     expect(await leafletLayers.count()).toEqual(3); // base layer, this area, species points
 
     // Verify area name is visible
-    const breadcrumb = page.locator('li', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const breadcrumb = page.locator('li', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
     await expect(breadcrumb).toBeVisible(); // check the breadcrumb is visible
-    const h2 = page.locator('h2', {hasText: 'AUSTRALIAN CAPITAL TERRITORY'});
+    const h2 = page.locator('h2', { hasText: 'AUSTRALIAN CAPITAL TERRITORY' });
     await expect(h2).toBeVisible(); // check the button is visible
 
     // Verify counts
-    const occurrenceCount = page.locator('h3', {hasText: 'Occurrence records (4.31M)'}); // count from speciesGroups.json
+    const occurrenceCount = page.locator('h3', {
+        hasText: 'Occurrence records (4.31M)',
+    }); // count from speciesGroups.json
     await expect(occurrenceCount).toBeVisible(); // check the count is visible
-    const speciesCount = page.locator('h3', {hasText: 'Number of species (271)'}); // count from species.json
+    const speciesCount = page.locator('h3', {
+        hasText: 'Number of species (271)',
+    }); // count from species.json
     await expect(speciesCount).toBeVisible(); // check the count is visible
 
     // Verify the expected URLs were called
-    const speciesGroupUrl = "https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue"
-    const speciesUrl = "https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D"
-    const kingdomUrl = "https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D&pageSize=0&flimit=-1&facets=kingdom"
+    const speciesGroupUrl =
+        'https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue';
+    const speciesUrl =
+        'https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D';
+    const kingdomUrl =
+        'https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D&pageSize=0&flimit=-1&facets=kingdom';
 
-    const hasSpeciesGroupUrl = Array.from(seenUrls).some(url => url.href === speciesGroupUrl);
+    const hasSpeciesGroupUrl = Array.from(seenUrls).some(
+        (url) => url.href === speciesGroupUrl
+    );
     expect(hasSpeciesGroupUrl).toBeTruthy(); // WMS requests include the expected layer
-    const hasSpeciesUrl = Array.from(seenUrls).some(url => url.href === speciesUrl);
+    const hasSpeciesUrl = Array.from(seenUrls).some(
+        (url) => url.href === speciesUrl
+    );
     expect(hasSpeciesUrl).toBeTruthy(); // WMS requests include the expected layer
-    const hasKingdomUrl = Array.from(seenUrls).some(url => url.href === kingdomUrl);
+    const hasKingdomUrl = Array.from(seenUrls).some(
+        (url) => url.href === kingdomUrl
+    );
     expect(hasKingdomUrl).toBeTruthy(); // WMS requests include the expected layer
 
     // Verify some species groups
-    const speciesGroup1 = page.locator('div.speciesItem', {hasText: 'All Species'});
-    const speciesGroup2 = page.locator('div.speciesItem', {hasText: 'Mammals'});
-    const speciesGroup3 = page.locator('div.speciesItem', {hasText: 'Bacteria'});
+    const speciesGroup1 = page.locator('div.speciesItem', {
+        hasText: 'All Species',
+    });
+    const speciesGroup2 = page.locator('div.speciesItem', {
+        hasText: 'Mammals',
+    });
+    const speciesGroup3 = page.locator('div.speciesItem', {
+        hasText: 'Bacteria',
+    });
     await expect(speciesGroup1).toBeVisible(); // check the species group is visible
     await expect(speciesGroup2).toBeVisible(); // check the species group is visible
     await expect(speciesGroup3).toBeVisible(); // check the species group is visible
 
     // Verify some species
-    const species1 = page.locator('div[class^="_speciesName_"]', { hasText: 'Aaaaba nodosus' });
-    const species2 = page.locator('div[class^="_speciesName_"]', {hasText: 'Abantiades labyrinthicus'});
+    const species1 = page.locator('div[class^="_speciesName_"]', {
+        hasText: 'Aaaaba nodosus',
+    });
+    const species2 = page.locator('div[class^="_speciesName_"]', {
+        hasText: 'Abantiades labyrinthicus',
+    });
     await expect(species1).toBeVisible(); // check the species is visible
     await expect(species2).toBeVisible(); // check the species is visible
 });

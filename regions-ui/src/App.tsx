@@ -5,73 +5,49 @@
  */
 
 import 'bootstrap/dist/css/bootstrap.css';
-import Regions from "./views/Regions.tsx"
-import Region from "./views/Region.tsx"
+import Regions from './views/Regions.tsx';
+import Region from './views/Region.tsx';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
-import "bootstrap-icons/font/bootstrap-icons.css";
-import "@fontsource/roboto";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
-import Header from "./components/common-ui/header.tsx";
-import Footer from "./components/common-ui/footer.tsx";
-import FontAwesomeIcon from './components/common-ui/fontAwesomeIconLite.tsx'
-import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
-import {useEffect, useState} from "react";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import '@fontsource/roboto';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+import {
+    Banner,
+    Header,
+    Footer,
+    injectCommonInfo,
+    Breadcrumbs,
+    Breadcrumb,
+} from '@ala/common-ui';
+import { useEffect, useState } from 'react';
 import './index.css';
-import {Link, Route, Routes} from "react-router-dom";
-import {Breadcrumb} from "./api/sources/model.ts";
+import { Route, Routes } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
-import Banner from "./components/common-ui/banner.tsx";
 
-const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
+const isLoggedInInitial = document.cookie.includes(
+    import.meta.env.VITE_AUTH_COOKIE
+);
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
-    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([{
-        title: "Home",
-        href: import.meta.env.VITE_HOME_URL
-    }]);
+    const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([
+        {
+            title: 'Home',
+            href: import.meta.env.VITE_HOME_URL,
+        },
+    ]);
 
     useEffect(() => {
-        // Add build info to head meta tags
-        const meta = document.createElement('meta');
-        meta.name = 'buildInfo';
-        meta.content = JSON.stringify(buildInfo);
-        document.head.appendChild(meta);
-
-        // Add env value to head meta tags
-        const envMeta = document.createElement('meta');
-        envMeta.name = 'env';
-        envMeta.content = JSON.stringify({ env: import.meta.env.VITE_ENV });
-        document.head.appendChild(envMeta);
-
-        if (import.meta.env.VITE_COMMON_CSS) {
-            // load the common CSS used by both the header and footer
-            fetch(import.meta.env.VITE_COMMON_CSS).then((response) => {
-                if (response.ok) {
-                    response.text().then((text) => {
-                        const style = document.createElement('style');
-                        style.innerHTML = text;
-                        document.head.appendChild(style);
-                    });
-                }
-            }).finally(() => {
-                // set css loaded to true even if the fetch fails
-                setCssLoaded(true);
-            });
-        } else {
-            setCssLoaded(true);
-        }
-
-        if (import.meta.env.VITE_COMMON_JS) {
-            // load the common js
-            const script = document.createElement('script');
-            script.src = import.meta.env.VITE_COMMON_JS;
-            script.async = true;
-            document.body.appendChild(script);
-        }
+        injectCommonInfo(
+            buildInfo,
+            import.meta.env.VITE_ENV,
+            import.meta.env.VITE_COMMON_JS,
+            import.meta.env.VITE_COMMON_CSS,
+            setCssLoaded
+        );
     }, []);
 
     // when receiving a login URL, handle the login by setting the auth cookie only
@@ -93,58 +69,47 @@ export default function App() {
         setIsLoggedIn(false);
     }
 
-    const breadcrumbItems = breadcrumbs.map((breadcrumb: Breadcrumb, index) => {
-        return (
-            <li className="breadcrumb-item" key={index}>
-                {index > 0 && <FontAwesomeIcon icon={faChevronRight} className={"breadcrumb-icon"}/>}
-                {index < breadcrumbs.length - 1 ? (
-                    <Link to={breadcrumb.href ? breadcrumb.href : '#'}>{breadcrumb.title}</Link>
-                ) : (
-                    <>
-                        {breadcrumb.title}
-                    </>
-                )
-                }
-            </li>);
-    });
-
     if (!cssLoaded) {
-        return <></>
+        return <></>;
     }
 
     return (
         <main>
-            {import.meta.env.VITE_COMMON_HEADER_HTML &&
-                <Header isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
-            }
+            <Header
+                isLoggedIn={isLoggedIn}
+                logoutFn={handleLogout}
+                loginFn={handleLogin}
+                headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+            />
 
-            <section id="breadcrumb">
-                <div className="container-fluid">
-                    <div className="row">
-                        <nav aria-label="Breadcrumb" role="navigation">
-                            <ol className="breadcrumb-list breadcrumb">
-                                {breadcrumbItems}
-                            </ol>
-                        </nav>
-                    </div>
-                </div>
-            </section>
+            <Breadcrumbs breadcrumbs={breadcrumbs} />
 
-            <Banner/>
+            <Banner
+                bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL ?? ''}
+                scope={import.meta.env.VITE_BANNER_SCOPE ?? ''}
+            />
 
-            <div className="mt-4"/>
+            <div className="mt-4" />
 
             <Routes>
-                <Route path="/" element={<Regions setBreadcrumbs={setBreadcrumbs}/>}/>
-                <Route path="/region" element={<Region setBreadcrumbs={setBreadcrumbs}/>}/>
+                <Route
+                    path="/"
+                    element={<Regions setBreadcrumbs={setBreadcrumbs} />}
+                />
+                <Route
+                    path="/region"
+                    element={<Region setBreadcrumbs={setBreadcrumbs} />}
+                />
             </Routes>
 
-            <div className="mt-4"/>
+            <div className="mt-4" />
 
-            {import.meta.env.VITE_COMMON_FOOTER_HTML &&
-                <Footer isLoggedIn={isLoggedIn} logoutFn={handleLogout} loginFn={handleLogin}/>
-            }
+            <Footer
+                isLoggedIn={isLoggedIn}
+                logoutFn={handleLogout}
+                loginFn={handleLogin}
+                footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}
+            />
         </main>
     );
 }
-

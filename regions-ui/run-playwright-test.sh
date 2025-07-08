@@ -21,6 +21,9 @@ set -e
 echo "Building the project..."
 yarn run build:playwright
 
+echo "Copy regionsList.json to dist"
+cp ./tests/resources/regionsList.json ./dist/regionsList.json
+
 # Start the app server in the background
 echo "Starting the app server..."
 http-server ./dist -p 5173 --cors --proxy "http://localhost:5173?" --silent &
