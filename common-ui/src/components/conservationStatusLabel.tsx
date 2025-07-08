@@ -14,7 +14,7 @@ export type Statuses = {
     };
 };
 
-const statuses : Statuses = {
+const conservationStatuses : Statuses = {
     EX: {
         label: "Extinct",
         backgroundColour: "#000",
@@ -52,7 +52,7 @@ const statuses : Statuses = {
     },
 };
 
-export type ConservationStatusKey = keyof typeof statuses;
+export type ConservationStatusKey = keyof typeof conservationStatuses;
 
 interface ConservationStatusProps {
     status: ConservationStatusKey;
@@ -63,7 +63,7 @@ function ConservationStatusLabel({
                                 status,
                                 withLabel,
                             }: ConservationStatusProps): React.ReactElement {
-    const { label, backgroundColour, textColour } = statuses[status];
+    const { label, backgroundColour, textColour } = conservationStatuses[status];
 
     return (
         <div className="d-flex align-items-start">
@@ -87,4 +87,4 @@ function ConservationStatusLabel({
     );
 }
 
-export { ConservationStatusLabel, statuses };
+export { ConservationStatusLabel, conservationStatuses };

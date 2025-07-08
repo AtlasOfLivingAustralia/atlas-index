@@ -4,13 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect, useState} from "react";
-import {setClickEventByClassName, showLoginLogoutButtons} from "./utils.tsx";
+import {useEffect, useRef, useState} from "react";
+import {setClickEventByClassName, showLoginLogoutButtons} from "../util/utils";
 
 interface FooterProps {
     isLoggedIn?: boolean,
     loginFn?: () => void,
-    logoutFn?: () => void
+    logoutFn?: () => void,
+    footerUrl: string, // URL to fetch the external footer HTML
 }
 
 /**
@@ -29,23 +30,36 @@ interface FooterProps {
  * @param isLoggedIn
  * @param loginFn
  * @param logoutFn
+ * @param footerUrl component will not render if this is not set
  * @constructor
  */
 
-function Footer({isLoggedIn, loginFn, logoutFn}: FooterProps) {
+function Footer({isLoggedIn, loginFn, logoutFn, footerUrl}: FooterProps) {
 
     const [externalFooterHtml, setExternalFooterHtml] = useState('');
 
+    const footerRef = useRef<HTMLDivElement>(null);
+
     // fetch the external footer html
     useEffect(() => {
-        fetch(import.meta.env.VITE_COMMON_FOOTER_HTML)
-            .then((response) => response.text())
-            .then((text) => setExternalFooterHtml(text));
+        if (footerUrl) {
+            fetch(footerUrl)
+                .then((response) => response.text())
+                .then((text) => setExternalFooterHtml(text));
+        }
     }, []);
 
     // setup the footer html after it is set
     useEffect(() => {
+        if (!footerRef.current) {
+            return;
+        }
+
         if (externalFooterHtml && externalFooterHtml.length > 0) {
+            // manually set the innerHTML to prevent React from reapplying after DOM modification
+            footerRef.current.innerHTML = externalFooterHtml;
+
+            // setup the html after it has been set, this will loop if DOM is not ready
             setupHtml();
         }
     }, [externalFooterHtml]);
@@ -72,9 +86,13 @@ function Footer({isLoggedIn, loginFn, logoutFn}: FooterProps) {
         setClickEventByClassName("footer-logout-button", logoutFn);
     }
 
+    if (!footerUrl) {
+        return null;
+    }
+
     return <>
         {externalFooterHtml &&
-            <div dangerouslySetInnerHTML={{__html: externalFooterHtml}}></div>
+            <div ref={footerRef}></div>
         }
     </>
 }

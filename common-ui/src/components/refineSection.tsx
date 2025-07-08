@@ -1,8 +1,8 @@
 import React from "react";
-import classes from "../species/species.module.css";
-import CheckDisabledIcon from "./icons/checkDisabledIcon.tsx";
-import CheckedIcon from "./icons/checkedIcon.tsx";
-import CheckIcon from "./icons/checkIcon.tsx";
+import classes from "./refineSection.module.css";
+import CheckDisabledIcon from "../icons/checkDisabledIcon.tsx";
+import CheckedIcon from "../icons/checkedIcon.tsx";
+import CheckIcon from "../icons/checkIcon.tsx";
 
 export interface RefineSectionItem {
     label: string | React.ReactElement;

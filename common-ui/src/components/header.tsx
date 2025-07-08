@@ -5,19 +5,26 @@
  */
 
 import {useEffect, useRef, useState} from 'react';
-import {AutocompleteItem} from "../../api/sources/model.ts";
 import {
     setClickEventByClassName,
     setClickEventById,
     setElementDisplayByClassName,
     setElementDisplayById,
     showLoginLogoutButtons
-} from './utils.tsx';
+} from '../util/utils';
+
+interface AutocompleteItem {
+    lsid: string,
+    name: string
+}
 
 interface HeaderProps {
     isLoggedIn?: boolean,
     loginFn?: () => void,
-    logoutFn?: () => void
+    logoutFn?: () => void,
+    headerUrl: string, // URL to fetch the external header HTML
+    namematchingWsUrl?: string, // Optional URL for the name matching service
+    speciesUrlPrefix?: string, // Optional URL prefix for species pages
 }
 
 /**
@@ -48,9 +55,12 @@ interface HeaderProps {
  * @param isLoggedIn
  * @param loginFn
  * @param logoutFn
+ * @param headerUrl component will not render if this is not set
+ * @param namematchingWsUrl used by the autocomplete search
+ * @param speciesUrlPrefix used by the autocomplete search
  * @constructor
  */
-function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
+function Header({isLoggedIn, loginFn, logoutFn, headerUrl, namematchingWsUrl, speciesUrlPrefix}: HeaderProps) {
 
     const [openMenu, setOpenMenu] = useState(0);
     const [searchVisible, setSearchVisible] = useState(false);
@@ -64,16 +74,30 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
 
     const [externalHeaderHtml, setExternalHeaderHtml] = useState('');
 
+    const headerRef = useRef<HTMLDivElement>(null);
+
     // fetch the external header html
     useEffect(() => {
-        fetch(import.meta.env.VITE_COMMON_HEADER_HTML)
-            .then((response) => response.text())
-            .then((text) => setExternalHeaderHtml(text));
+        if (headerUrl) {
+            fetch(headerUrl)
+                .then((response) => response.text())
+                .then((text) => {
+                    setExternalHeaderHtml(text);
+                });
+        }
     }, []);
 
     // setup the html after the component is mounted
     useEffect(() => {
+        if (!headerRef.current) {
+            return;
+        }
+
         if (externalHeaderHtml && externalHeaderHtml.length > 0) {
+            // manually set the innerHTML to prevent React from reapplying after DOM modification
+            headerRef.current.innerHTML = externalHeaderHtml;
+
+            // setup the html after it has been set, this will loop if DOM is not ready
             setupHtml();
         }
     }, [externalHeaderHtml]);
@@ -150,7 +174,9 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
         );
 
         // 4. Autcomplete visibility toggle
-        setClickEventByClassName("header-search-button", () => setSearchVisible((prevSearchVisible) => !prevSearchVisible));
+        setClickEventByClassName("header-search-button", () => {
+            setSearchVisible((prevSearchVisible) => !prevSearchVisible)
+        });
 
         // 5. Menu toggles
         const dropDownMenus = document.getElementsByClassName("dropdown-menu")
@@ -311,7 +337,7 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
         // use document.getElementById("autocompleteHeader").value as a workaround for one use case
         const inputElement = document.getElementById("autocompleteHeader") as HTMLInputElement;
         const searchTerm = inputElement.value
-        fetch(import.meta.env.VITE_NAMEMATCHING_WS + "/api/autocomplete?includeSynonyms=false&q=" + encodeURIComponent(searchTerm)).then(response => response.json()).then(json => {
+        fetch(namematchingWsUrl + "/api/autocomplete?includeSynonyms=false&q=" + encodeURIComponent(searchTerm)).then(response => response.json()).then(json => {
             if (json) {
                 setSelectedIndex(-1);
                 setAutocompleteResult(json);
@@ -326,7 +352,7 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
 
     // opens the species page for the selected autocomplete
     function openAutocompleteItem(lsid: string) {
-        window.location.href = import.meta.env.VITE_SPECIES_URL_PREFIX + lsid;
+        window.location.href = speciesUrlPrefix + lsid;
     }
 
     // displays only the menu that is open when the openMenu state changes
@@ -356,9 +382,13 @@ function Header({isLoggedIn, loginFn, logoutFn}: HeaderProps) {
         setElementDisplayById("navbarOuterWrapper", menuVisible ? "block" : "none");
     }, [menuVisible]);
 
+    if (!headerUrl) {
+        return null; // if no headerUrl is provided, do not render the header
+    }
+
     return <>
         {externalHeaderHtml &&
-            <div dangerouslySetInnerHTML={{__html: externalHeaderHtml}}></div>
+            <div ref={headerRef}></div>
         }
     </>
 };

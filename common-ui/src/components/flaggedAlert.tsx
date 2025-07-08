@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import FlagIcon from "./icons/flagIcon.tsx";
+import FlagIcon from "../icons/flagIcon.tsx";
 
 interface InfoBoxProps {
     content: React.ReactNode;

@@ -1,0 +1,30 @@
+
+.refineSectionTitle {
+    color: #c44d34 !important;
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px; /* 150% */
+
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .refineSectionTitle {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+.refineItem {
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .refineItem {
+        font-size: 12px;
+        line-height: 16px;
+        margin-top: 1px;
+    }
+}

@@ -27,6 +27,11 @@ function isoToLong(isoString: string): number {
 
 const BANNER_LAST_CLOSED_STORAGE_KEY_PREFIX = 'bannerLastClosed_';
 
+interface BannerProps {
+    bannerUrl: string;
+    scope: string;
+}
+
 /**
  * Banner component to display messages from an external source.
  * - fetches the messages from VITE_BANNER_MESSAGES_URL, if present
@@ -36,22 +41,22 @@ const BANNER_LAST_CLOSED_STORAGE_KEY_PREFIX = 'bannerLastClosed_';
  *
  * @constructor
  */
-const Banner = () => {
+const Banner = ({bannerUrl, scope} :BannerProps) => {
     const [messages, setMessages] = useState<Messages>();
 
-    if (!import.meta.env.VITE_BANNER_MESSAGES_URL) {
+    if (!bannerUrl) {
         return <></>;
     }
 
     useEffect(() => {
-        fetch(import.meta.env.VITE_BANNER_MESSAGES_URL)
+        fetch(bannerUrl)
             .then(response => response.json())
             .then(data => {
                 // filter out messages that are not for the current scope
                 let typedData: Messages = data;
                 const filtered = Object.fromEntries(
                     Object.entries(typedData).filter(([key, value]) => {
-                        return (key === 'global' || key === import.meta.env.VITE_BANNER_SCOPE) &&
+                        return (key === 'global' || key === scope) &&
                             value.message.length > 0 && getLastClosed(key) < isoToLong(value.updated);
                     })
                 );

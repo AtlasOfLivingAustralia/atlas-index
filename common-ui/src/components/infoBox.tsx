@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import FontAwesomeIcon from '../common-ui/fontAwesomeIconLite.tsx';
+import FontAwesomeIcon from './fontAwesomeIconLite.tsx';
 
 interface InfoBoxProps {
     icon: any;
