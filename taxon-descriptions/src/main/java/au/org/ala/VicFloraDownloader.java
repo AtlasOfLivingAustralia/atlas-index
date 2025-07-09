@@ -17,10 +17,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -48,15 +45,18 @@ public class VicFloraDownloader {
         Map<String, Object> data = new ConcurrentHashMap<>();
 
         // Because this is a long running process, we need to store the data in a temporary file in case of failure and restart
-        try (FileReader reader = new FileReader(tmpDir + "/vicflora-tmp.json")) {
-            Map cache = new ObjectMapper().readValue(reader, Map.class);
-            if (cache != null) {
-                System.out.println("Resuming from cache: " + cache.size());
-                data.putAll(cache);
+        File vicFloraFile = new File(tmpDir + "/vicflora-tmp.json");
+        if (vicFloraFile.exists()) {
+            try (FileReader reader = new FileReader(vicFloraFile)) {
+                Map cache = new ObjectMapper().readValue(reader, Map.class);
+                if (cache != null) {
+                    System.out.println("Resuming from cache: " + cache.size());
+                    data.putAll(cache);
+                }
+            } catch (IOException e) {
+                // ignore
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            // ignore
-            e.printStackTrace();
         }
 
         // Adjust the thread pool size as needed. Getting lots of timeouts so lowering expectations and implementing backoff.
@@ -85,7 +85,7 @@ public class VicFloraDownloader {
             e.printStackTrace();
         }
 
-        // write to cache file, including items that have no data
+        // write to cache file, including items that have no data. This is for re-running the process to retry URLs that failed.
         try (FileWriter writer = new FileWriter(tmpDir + "/vicflora-tmp.json")) {
             new ObjectMapper().writeValue(writer, data);
         } catch (IOException e) {
@@ -234,6 +234,14 @@ public class VicFloraDownloader {
 
                     String[] nextLine;
                     while ((nextLine = reader.readNext()) != null) {
+                        // The CSV response values can be wrapped in [], remove them.
+                        for (int i=0;i<nextLine.length;i++) {
+                            String s = nextLine[i];
+                            if (s != null && s.startsWith("[") && s.endsWith("]")) {
+                                nextLine[i] = s.substring(1, s.length() - 1).trim();
+                            }
+                        }
+
                         String id = nextLine[0];
                         String scientificName = nextLine[1];
                         String author = nextLine[2];

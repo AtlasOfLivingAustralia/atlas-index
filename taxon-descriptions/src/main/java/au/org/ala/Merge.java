@@ -250,7 +250,7 @@ public class Merge {
 
         // get a list of all previously downloaded files, recursively through directories, one level deep
         Map<String, File> existingFiles = new HashMap<>();
-        File[] files = new File(wikipediaTmp).listFiles();
+        File[] files = new File(wikipediaTmp + "/wikipedia").listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".html")) {
                 existingFiles.put(file.getName().replace(".html", ""), file);
@@ -266,7 +266,7 @@ public class Merge {
 
         CSVWriter errorWriter = new CSVWriter(new FileWriter(mergeDir + "/errors.csv"));
         errorWriter.writeNext(new String[]{"error message", "guid", "genus", "family", "order", "class", "phylum", "kingdom", "cached html file"});
-        File matchedFile = new File(wikipediaTmp + "/matched.csv");
+        File matchedFile = new File(wikipediaTmp + "/wikipedia/matched.csv");
         CSVReader reader = new CSVReader(new FileReader(matchedFile));
         String[] nextLine;
         int row = 0;

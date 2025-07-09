@@ -34,13 +34,12 @@ public class FetchData {
     static int profilesThreads;
     static String wikipediaUrl;
     static String wikipediaTitles;
-    static String wikipediaTmp;
+    static String descriptionsTmp;
     static String acceptedCsv;
-    static String wikipediaUserAgent;
+    static String userAgent;
     static String listsUrl;
     static String mergeDir;
     static String overrideFile;
-    static String antsUrl;
     static String vicMuseumPageUrl;
     static String vicMuseumUrl;
     static String qldMuseumTopicUrl;
@@ -54,7 +53,7 @@ public class FetchData {
 
     public static void main(String[] args) throws Exception {
 
-        String configFile = "/data/taxon-descriptions/config.json"; //args[0];
+        String configFile = args[0];
         String filename = args[1];
 
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " starting fetch for " + filename);
@@ -69,9 +68,16 @@ public class FetchData {
 
         wikipediaUrl = config.get("wikipediaUrl").toString();
         wikipediaTitles = config.get("wikipediaTitles").toString();
-        wikipediaTmp = config.get("wikipediaTmp").toString(); // it is evident that this is poorly named as it is used for more than wikipedia now
-        wikipediaUserAgent = config.get("wikipediaUserAgent").toString().trim(); // it is evident that this is poorly named as it is used for more than wikipedia now
-        antsUrl = config.get("antsUrl").toString().trim();
+        descriptionsTmp = config.get("descriptionsTmp").toString();
+        File descriptionsTmpDir = new File(descriptionsTmp);
+        if (!descriptionsTmpDir.exists()) {
+            descriptionsTmpDir.mkdirs();
+        }
+        File wikipediaTmpDir = new File(descriptionsTmp + "/wikipedia");
+        if (!wikipediaTmpDir.exists()) {
+            wikipediaTmpDir.mkdirs();
+        }
+        userAgent = config.get("userAgent").toString().trim();
         vicMuseumPageUrl = config.get("vicMuseumPageUrl").toString().trim();
         vicMuseumUrl = config.get("vicMuseumUrl").toString().trim();
         qldMuseumTopicUrl = config.get("qldMuseumTopicUrl").toString().trim();
@@ -85,18 +91,23 @@ public class FetchData {
 
         overrideFile = config.get("overrideFile").toString();
 
-        if (StringUtils.isEmpty(wikipediaUserAgent)) {
-            System.out.println("wikipediaUserAgent is not set in config.json, see https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions");
+        if (StringUtils.isEmpty(userAgent)) {
+            System.out.println("userAgent is not set in config.json, see https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions");
         }
 
         acceptedCsv = config.get("acceptedCsv").toString();
 
         mergeDir = config.get("mergeDir").toString();
 
+        File mergeDirDir = new File(mergeDir);
+        if (!mergeDirDir.exists()) {
+            mergeDirDir.mkdirs();
+        }
+
         List sources = (List) config.get("sources");
 
         if (filename.equalsIgnoreCase("merge")) {
-            Merge merge = new Merge(wikipediaUrl, wikipediaTmp, acceptedCsv, mergeDir, overrideFile);
+            Merge merge = new Merge(wikipediaUrl, descriptionsTmp, acceptedCsv, mergeDir, overrideFile);
             merge.mergeSources(sources);
             System.out.println("finished merge");
             return;
@@ -141,14 +152,12 @@ public class FetchData {
 
             // wikipedia data does not get aggregated into a single .json file
             return;
-        } else if (type.equalsIgnoreCase("ants")) {
-            output.put("taxa", AntsDownloader.downloadAnts(antsUrl, wikipediaTmp + "/ants-tmp/"));
         } else if (type.equalsIgnoreCase("qldmuseum")) {
             output.put("taxa", QldMuseumDownloader.downloadQldMuseum(acceptedCsv, qldMusuemUrl, qldMuseumApiKey, qldMuseumTopicUrl));
         } else if (type.equalsIgnoreCase("vicmuseum")) {
             output.put("taxa", VicMuseumDownloader.downloadVicMuseum(vicMuseumUrl));
         } else if (type.equalsIgnoreCase("vicflora")) {
-            output.put("taxa", VicFloraDownloader.downloadVicFlora(vicFloraGraphqlUrl, vicFloraUrl, wikipediaUserAgent, wikipediaTmp));
+            output.put("taxa", VicFloraDownloader.downloadVicFlora(vicFloraGraphqlUrl, vicFloraUrl, userAgent, descriptionsTmp));
         } else {
             System.out.println("Unknown source type: " + type);
             return;
@@ -156,7 +165,7 @@ public class FetchData {
 
         // write the output to a file
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Writing output to " + filename + ".json, " + ((Map) output.get("taxa")).size() + " taxa");
-        try (FileWriter file = new FileWriter(wikipediaTmp + "/" + filename + ".json")) {
+        try (FileWriter file = new FileWriter(descriptionsTmp + "/" + filename + ".json")) {
             file.write(new ObjectMapper().writeValueAsString(output));
         }
     }
@@ -304,7 +313,7 @@ public class FetchData {
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " matching wikipedia titles to accepted taxa");
 
         // create matchedFile
-        File matchedFile = new File(wikipediaTmp + "/matched.csv");
+        File matchedFile = new File(descriptionsTmp + "/wikipedia/matched.csv");
         if (!matchedFile.exists()) {
             createWikipediaMatchedFile(matchedFile);
         }
@@ -313,7 +322,7 @@ public class FetchData {
 
         // get a list of all previously downloaded files, recursively through directories, one level deep
         Map<String, File> existingFiles = new HashMap<>();
-        File[] files = new File(wikipediaTmp).listFiles();
+        File[] files = new File(descriptionsTmp).listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".html")) {
                 existingFiles.put(file.getName().replace(".html", ""), file);
@@ -358,9 +367,9 @@ public class FetchData {
 
             // the initial limit of each cache dir is 1000 files
             String dir = "cache_" + (row / 1000);
-            String outputFile = wikipediaTmp + "/" + dir + "/" + filename + ".html";
+            String outputFile = descriptionsTmp + "/wikipedia/" + dir + "/" + filename + ".html";
 
-            File dirFile = new File(wikipediaTmp + "/" + dir);
+            File dirFile = new File(descriptionsTmp + "/wikipedia/" + dir);
             if (!dirFile.exists()) {
                 dirFile.mkdir();
             }
@@ -434,7 +443,7 @@ public class FetchData {
             String url = wikipediaUrl + title;
 
             // this follows redirects
-            Document doc = Jsoup.connect(url).userAgent(wikipediaUserAgent).get();
+            Document doc = Jsoup.connect(url).userAgent(userAgent).get();
 
             // write the file, for later use
             FileWriter writer = new FileWriter(outputFile);
