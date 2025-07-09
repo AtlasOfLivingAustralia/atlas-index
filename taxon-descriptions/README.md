@@ -193,7 +193,7 @@ Exclude example:
 ## Generating Hero Descriptions
 To generate hero descriptions, use the following command:
 ```shell
-java -cp target/taxon-descriptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar au.org.ala.DescriptionsExtractor
+java -jar target/taxon-descriptions-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.json hero-descriptions
 ```
 The directory containing the merged JSON files and output file location must be specified in the `config.json` file. 
 

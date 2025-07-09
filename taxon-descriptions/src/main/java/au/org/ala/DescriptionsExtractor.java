@@ -4,21 +4,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.stanford.nlp.pipeline.*;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
+import edu.stanford.nlp.util.logging.RedwoodConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class DescriptionsExtractor {
 
     private static final int DEFAULT_MAX_LENGTH = 230;
-    private static final List<String> DEFAULT_SOURCES = Arrays.asList("General Description", "Description", "Protologue text", "Brief Description");
-    private String mergeDir;
-    private String heroDescriptionsFile;
+    private static final List<String> DEFAULT_SOURCES = Arrays.asList("summary", "Summary", "General Description", "Description", "Protologue text", "Brief Description");
+    public String mergeDir;
+    public String heroDescriptionsFile;
 
     public static void main(String[] args) throws Exception {
-        String configFile = "/data/taxon-descriptions/config.json";
+        String configFile = args[0];
 
         Map<String, String> config = new ObjectMapper().readValue(new File(configFile), Map.class);
 
@@ -41,26 +43,47 @@ public class DescriptionsExtractor {
         processDirectory(inputDir, heroDescriptions, mapper);
 
         mapper.writeValue(outputFile, heroDescriptions);
+
+        System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " hero-descriptions found: " + heroDescriptions.size());
     }
 
     private void processDirectory(File dir, Map<String, String> heroDescriptions, ObjectMapper mapper) throws IOException {
+        int noDescriptionCount = 0;
+        List<String> failed = new ArrayList<>();
         for (File file : Objects.requireNonNull(dir.listFiles())) {
             if (file.isDirectory()) {
                 processDirectory(file, heroDescriptions, mapper);
             } else if (file.isFile() && file.getName().endsWith(".json")) {
                 List<Map<String, Object>> taxonDataList = mapper.readValue(file, List.class);
                 for (Map<String, Object> taxonData : taxonDataList) {
-                    String description = extractDescription(taxonData);
+                    String description = extractDescription(taxonData, DescriptionsExtractor.DEFAULT_SOURCES);
+                    if (StringUtils.isEmpty(description)) {
+                        // use any source for descriptions as a fallback
+                        description = extractDescription(
+                            taxonData,
+                            taxonData.keySet().stream()
+                                .filter(k -> !k.equals("url") && !k.equals("name") && !k.equals("attribution"))
+                                .toList()
+                        );
+                        if (StringUtils.isEmpty(description)) {
+                            noDescriptionCount++;
+                            failed.add(file.getName());
+                        }
+                    }
                     if (StringUtils.isNotEmpty(description)) {
                         heroDescriptions.put(file.getName().replace(".json", ""), description);
                     }
                 }
             }
         }
+        if (noDescriptionCount > 0) {
+            System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " no descriptions found for: " + noDescriptionCount + " files");
+            System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " errors: first 5 files with no hero-description: " + failed.stream().limit(5).toList());
+        }
     }
 
-    private static String extractDescription(Map<String, Object> taxonData) {
-        for (String source : DescriptionsExtractor.DEFAULT_SOURCES) {
+    private static String extractDescription(Map<String, Object> taxonData, List<String> keys) {
+        for (String source : keys) {
             if (taxonData.containsKey(source) && taxonData.get(source) != null) {
                 String text = taxonData.get(source).toString();
                 String truncatedText = truncateText(text);
@@ -76,14 +99,22 @@ public class DescriptionsExtractor {
         Properties props = new Properties();
         props.setProperty("annotators", "tokenize,ssplit");
 
+        // Reduce logging
+        RedwoodConfiguration.current().clear().apply();
+        RedwoodConfiguration.errorLevel().apply();
+
         StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+
         Annotation document = new Annotation(text);
         pipeline.annotate(document);
 
         StringBuilder truncatedText = new StringBuilder();
         for (CoreMap sentence : document.get(CoreAnnotations.SentencesAnnotation.class)) {
             String sentenceText = sentence.get(CoreAnnotations.TextAnnotation.class);
-            if (truncatedText.length() + sentenceText.length() > DescriptionsExtractor.DEFAULT_MAX_LENGTH) {
+
+            // remove HTML tags and extra spaces for length check
+            String withoutHtmlTags = (truncatedText + sentenceText).replaceAll("<[^>]+>", " ").replaceAll("\\s+", " ").trim();
+            if (!truncatedText.isEmpty() && withoutHtmlTags.length() > DescriptionsExtractor.DEFAULT_MAX_LENGTH) {
                 break;
             }
             truncatedText.append(sentenceText).append(" ");

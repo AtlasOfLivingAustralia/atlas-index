@@ -113,6 +113,15 @@ public class FetchData {
             return;
         }
 
+        if (filename.equalsIgnoreCase("hero-descriptions")) {
+            DescriptionsExtractor extractor = new DescriptionsExtractor();
+            extractor.mergeDir = mergeDir;
+            extractor.heroDescriptionsFile = config.get("heroDescriptionsOutputFile").toString().trim();
+            extractor.generateHeroDescriptions();
+            System.out.println("finished hero-descriptions download");
+            return;
+        }
+
         Map<String, Object> item = null;
 
         int orderIdx = 0;
