@@ -1,17 +1,15 @@
-import { useEffect, useState } from 'react';
-import { TaskType } from '../api/sources/model.ts';
-import { Tab, Tabs } from 'react-bootstrap';
+import {useEffect, useState} from 'react';
+import {TaskType, Tasks} from '../api/sources/model.ts';
+import {Tab, Tabs} from 'react-bootstrap';
 import '../css/atlasAdmin.css';
-import { useAuth } from 'react-oidc-context';
+import {useAuth} from 'react-oidc-context';
 import Menu from '../components/menu.tsx';
 import './atlasadmin.css';
-import { Breadcrumb } from '@ala/common-ui';
+import {Breadcrumb} from '@ala/common-ui';
 
 const defaultTaskFilter = '(N entries for each type)';
 
-function AtlasAdmin({
-    setBreadcrumbs,
-}: {
+function AtlasAdmin({setBreadcrumbs,}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 }) {
     const [queueString, setQueueString] = useState('');
@@ -19,9 +17,6 @@ function AtlasAdmin({
     const [logString, setLogString] = useState('');
     const [logFilter, setLogFilter] = useState('');
     const [logSize, setLogSize] = useState(1);
-    const [taskTypes, setTaskTypes] = useState<string[] | []>([
-        defaultTaskFilter,
-    ]);
     const [taskString, setTaskString] = useState('');
     const [guid, setGuid] = useState('');
     const [guidSearched, setGuidSearched] = useState('');
@@ -44,10 +39,30 @@ function AtlasAdmin({
     const [images, setImages] = useState<string[]>([]);
     const [imageStart, setImageStart] = useState(0);
     const [imageViewMode, setImageViewMode] = useState('all');
-    const [description, setDescription] = useState<{ [key: string]: string }>(
-        {}
-    );
-    const [lastRun, setLastRun] = useState<{ [key: string]: string }>({});
+    const [tasks, setTasks] = useState<Tasks>({
+        "ALL": {
+            instructions: <ul>
+                <li>
+                    When the ES index is
+                    empty this will import
+                    the local DWCA names
+                    index, then run all
+                    other enabled tasks.
+                </li>
+                <li>
+                    When the index is not
+                    empty this will run all
+                    enabled tasks except for
+                    the local DWCA names
+                    index import.
+                </li>
+                <li>
+                    This task is scheduled
+                    to run regularly.
+                </li>
+            </ul>
+        }
+    });
 
     const auth = useAuth();
 
@@ -72,9 +87,9 @@ function AtlasAdmin({
 
     useEffect(() => {
         setBreadcrumbs([
-            { title: 'Home', href: import.meta.env.VITE_HOME_URL },
-            { title: 'Admin', href: '/' },
-            { title: 'Search Index', href: '/atlas-admin' },
+            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+            {title: 'Admin', href: '/'},
+            {title: 'Search Index', href: '/atlas-admin'},
         ]);
         if (isAdmin) {
             fetchLog();
@@ -90,9 +105,9 @@ function AtlasAdmin({
         var thisLogSize = requestedLogSize ? requestedLogSize : logSize;
         fetch(
             import.meta.env.VITE_APP_BIE_URL +
-                '/v2/admin/info?pageSize=' +
-                thisLogSize +
-                type,
+            '/v2/admin/log?pageSize=' +
+            thisLogSize +
+            type,
             {
                 method: 'GET',
                 headers: {
@@ -114,56 +129,21 @@ function AtlasAdmin({
 
                     setQueueString(JSON.stringify(json.queues, null, 2));
 
-                    //let filteredLog: TaskType = json.tasks[logFilter];
-
-                    // if (filteredLog !== undefined && defaultTaskFilter !== logFilter) {
-                    //     setLogString(JSON.stringify(flattenLog(filteredLog), null, 2))
-                    // } else {
                     setLogString(
                         JSON.stringify(flattenLogAll(json.tasks), null, 2)
                     );
-                    // }
-
-                    let newDescription: { [key: string]: string } = {
-                        ...description,
-                    };
-                    let newLastRun: { [key: string]: string } = { ...lastRun };
 
                     // check for new task types, and update description
-                    var newTypes: string[] = [];
+                    var newTasks = {...tasks};
                     for (let task of Object.keys(json.tasks)) {
-                        var exists = false;
-                        for (let key of taskTypes) {
-                            if (key === task) {
-                                exists = true;
-                                break;
-                            }
+                        if (!newTasks[task]) {
+                            newTasks[task] = {}
                         }
-                        if (!exists) {
-                            newTypes.push(task);
-                        }
-
-                        newDescription[task] =
-                            json.tasks[task].description +
-                            ' (enabled:' +
-                            json.tasks[task].enabled +
-                            ')';
-                        newLastRun[task] = json.tasks[task]?.log?.length
-                            ? json.tasks[task]?.log[0].modifiedDate
-                            : 'never';
+                        newTasks[task].description = json.tasks[task].description +
+                            ' (enabled:' + json.tasks[task].enabled + ')';
+                        newTasks[task].lastRun = json.tasks[task]?.log?.length ? json.tasks[task]?.log[0].modifiedDate : 'never';
                     }
-
-                    // update task descriptions
-                    setDescription(newDescription);
-
-                    // update task last run times
-                    setLastRun(newLastRun);
-
-                    // update task types
-                    if (newTypes.length > 0) {
-                        let sorted = [...taskTypes, ...newTypes].sort();
-                        setTaskTypes(sorted);
-                    }
+                    setTasks(newTasks);
                 });
             }
         });
@@ -205,8 +185,8 @@ function AtlasAdmin({
         setTaskString('Running ' + updateType + ' update...');
         fetch(
             import.meta.env.VITE_APP_BIE_URL +
-                '/v2/admin/update?type=' +
-                updateType,
+            '/v2/admin/task?type=' +
+            updateType,
             {
                 method: 'POST',
                 headers: {
@@ -259,11 +239,11 @@ function AtlasAdmin({
 
         fetch(
             import.meta.env.VITE_TAXON_DESCRIPTIONS_URL +
-                '/' +
-                lsidEncoded.substring(lsidEncoded.length - 2) +
-                '/' +
-                lsidEncoded +
-                '.json'
+            '/' +
+            lsidEncoded.substring(lsidEncoded.length - 2) +
+            '/' +
+            lsidEncoded +
+            '.json'
         )
             .then((response) => response.json())
             .then((json) => {
@@ -306,12 +286,12 @@ function AtlasAdmin({
                 }).then((responseHide) => {
                     setSaveImageResponse(
                         responsePrefer.status +
-                            ': ' +
-                            responsePrefer.statusText +
-                            ', ' +
-                            responseHide.status +
-                            ': ' +
-                            responseHide.statusText
+                        ': ' +
+                        responsePrefer.statusText +
+                        ', ' +
+                        responseHide.status +
+                        ': ' +
+                        responseHide.statusText
                     );
                 });
             } else {
@@ -353,12 +333,12 @@ function AtlasAdmin({
     function loadImages() {
         fetch(
             import.meta.env.VITE_APP_BIOCACHE_URL +
-                '/occurrences/search?fq=imageID:*&q=lsid:"' +
-                taxonID +
-                '"&fl=imageID&pageSize=' +
-                imagePageSize +
-                '&start=' +
-                imageStart,
+            '/occurrences/search?fq=imageID:*&q=lsid:"' +
+            taxonID +
+            '"&fl=imageID&pageSize=' +
+            imagePageSize +
+            '&start=' +
+            imageStart,
             {
                 method: 'GET',
             }
@@ -397,8 +377,8 @@ function AtlasAdmin({
                     (priority > 0
                         ? 'border-success border-5'
                         : priority < 0
-                          ? 'border-danger border-5'
-                          : 'border-black')
+                            ? 'border-danger border-5'
+                            : 'border-black')
                 }
             >
                 <a
@@ -526,7 +506,7 @@ function AtlasAdmin({
 
     return (
         <div className="d-flex flex-row">
-            <Menu />
+            <Menu/>
 
             <div className="flex-grow-1 p-3">
                 {!isAdmin && !auth.isAuthenticated && (
@@ -550,397 +530,45 @@ function AtlasAdmin({
                                 {taskString && (
                                     <pre
                                         className="alert alert-info"
-                                        style={{ height: '100px' }}
+                                        style={{height: '100px'}}
                                     >
                                         <small>{taskString}</small>
                                     </pre>
                                 )}
                                 <table className="table table-sm table-bordered">
                                     <thead>
-                                        <tr>
-                                            <th>Task</th>
-                                            <th>View log</th>
-                                            <th>Last Run</th>
-                                            <th>Description</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Last Run</th>
+                                        <th>Description</th>
+                                        <th>Actions</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
+                                    {Object.entries(tasks).map(([key, value]) => (
+                                        <tr key={key}>
+                                            <td>{key}</td>
+                                            <td>{value.lastRun || 'never'}</td>
+                                            <td>{value.description}{value.instructions && <>
+                                                <hr/>
+                                                {value.instructions}</>}</td>
                                             <td>
                                                 <button
-                                                    className="btn border-black task-button"
+                                                    className="btn btn-link"
                                                     onClick={() =>
-                                                        update('ALL')
-                                                    }
-                                                >
-                                                    Update ALL
+                                                        update(key)
+                                                    }>
+                                                    Run now
                                                 </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('ALL')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['ALL']}</td>
-                                            <td>
-                                                <p>{description['ALL']}</p>
-                                                <ul>
-                                                    <li>
-                                                        When the ES index is
-                                                        empty this will import
-                                                        the local DWCA names
-                                                        index, then run all
-                                                        other enabled tasks.
-                                                    </li>
-                                                    <li>
-                                                        When the index is not
-                                                        empty this will run all
-                                                        enabled tasks except for
-                                                        the local DWCA names
-                                                        index import.
-                                                    </li>
-                                                    <li>
-                                                        This task is scheduled
-                                                        to run regularly.
-                                                    </li>
-                                                </ul>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
                                                 <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('BIOCACHE')
-                                                    }
+                                                    className="btn btn-link"
+                                                    onClick={() => openLog(key)}
                                                 >
-                                                    Update BIOCACHE
+                                                    View log
                                                 </button>
                                             </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('BIOCACHE')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['BIOCACHE']}</td>
-                                            <td>{description['BIOCACHE']}</td>
                                         </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update(
-                                                            'TAXON_DESCRIPTION'
-                                                        )
-                                                    }
-                                                >
-                                                    Update TAXON DESCRIPTIONS
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog(
-                                                            'TAXON_DESCRIPTION'
-                                                        )
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>
-                                                {lastRun['TAXON_DESCRIPTION']}
-                                            </td>
-                                            <td>
-                                                {
-                                                    description[
-                                                        'TAXON_DESCRIPTION'
-                                                    ]
-                                                }
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('AREA')
-                                                    }
-                                                >
-                                                    Update AREA
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('AREA')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['AREA']}</td>
-                                            <td>{description['AREA']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('BIOCOLLECT')
-                                                    }
-                                                >
-                                                    Update BIOCOLLECT
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('BIOCOLLECT')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['BIOCOLLECT']}</td>
-                                            <td>{description['BIOCOLLECT']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('COLLECTIONS')
-                                                    }
-                                                >
-                                                    Update COLLECTIONS
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('COLLECTIONS')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['COLLECTIONS']}</td>
-                                            <td>
-                                                {description['COLLECTIONS']}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('LAYER')
-                                                    }
-                                                >
-                                                    Update LAYER
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('LAYER')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['LAYER']}</td>
-                                            <td>{description['LAYER']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('WORDPRESS')
-                                                    }
-                                                >
-                                                    Update WORDPRESS
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('WORDPRESS')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['WORDPRESS']}</td>
-                                            <td>{description['WORDPRESS']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('KNOWLEDGEBASE')
-                                                    }
-                                                >
-                                                    Update KNOWLEDGEBASE
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('KNOWLEDGEBASE')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['KNOWLEDGEBASE']}</td>
-                                            <td>
-                                                {description['KNOWLEDGEBASE']}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('LISTS')
-                                                    }
-                                                >
-                                                    Update LISTS
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('LISTS')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['LISTS']}</td>
-                                            <td>{description['LISTS']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('DIGIVOL')
-                                                    }
-                                                >
-                                                    Update DIGIVOL
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('DIGIVOL')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['DIGIVOL']}</td>
-                                            <td>{description['DIGIVOL']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('SITEMAP')
-                                                    }
-                                                >
-                                                    Update SITEMAP
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('SITEMAP')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['SITEMAP']}</td>
-                                            <td>{description['SITEMAP']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('DASHBOARD')
-                                                    }
-                                                >
-                                                    Update DASHBOARD
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('DASHBOARD')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['DASHBOARD']}</td>
-                                            <td>{description['DASHBOARD']}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>
-                                                <button
-                                                    className="btn border-black task-button"
-                                                    onClick={() =>
-                                                        update('CACHE_RESET')
-                                                    }
-                                                >
-                                                    Reset caches
-                                                </button>
-                                            </td>
-                                            <td>
-                                                <a
-                                                    className="d-flex justify-content-center"
-                                                    onClick={() =>
-                                                        openLog('CACHE_RESET')
-                                                    }
-                                                >
-                                                    log
-                                                </a>
-                                            </td>
-                                            <td>{lastRun['CACHE_RESET']}</td>
-                                            <td>
-                                                {description['CACHE_RESET']}
-                                            </td>
-                                        </tr>
+                                    ))}
                                     </tbody>
                                 </table>
                             </Tab>
@@ -955,10 +583,10 @@ function AtlasAdmin({
                                         }}
                                         value={logFilter}
                                     >
-                                        {taskTypes.map((type, index) => (
+                                        <option value={defaultTaskFilter}>{defaultTaskFilter}</option>
+                                        {Object.keys(tasks).map((type, index) => (
                                             <option key={index}>{type}</option>
                                         ))}
-                                        ;
                                     </select>
                                     <label
                                         htmlFor="logSize"
@@ -996,7 +624,7 @@ function AtlasAdmin({
                                         <pre>
                                             <small>{queueString}</small>
                                         </pre>
-                                        <hr />
+                                        <hr/>
                                     </>
                                 )}
                                 <pre>
@@ -1027,7 +655,7 @@ function AtlasAdmin({
                                 </div>
                                 {taxonString && (
                                     <div className="">
-                                        <div style={{ marginTop: '30px' }} />
+                                        <div style={{marginTop: '30px'}}/>
                                         <Tabs
                                             id="species-tabs"
                                             activeKey={speciesTab}
@@ -1047,15 +675,15 @@ function AtlasAdmin({
                                                 />
                                                 <table className="table table-sm">
                                                     <thead>
-                                                        <tr>
-                                                            <th className="col-2"></th>
-                                                            <th className="col-10"></th>
-                                                        </tr>
+                                                    <tr>
+                                                        <th className="col-2"></th>
+                                                        <th className="col-10"></th>
+                                                    </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <tr>
-                                                            <td>TaxonID</td>
-                                                            <td>
+                                                    <tr>
+                                                        <td>TaxonID</td>
+                                                        <td>
                                                                 <pre
                                                                     style={{
                                                                         whiteSpace:
@@ -1070,11 +698,11 @@ function AtlasAdmin({
                                                                     }
                                                                     ")
                                                                 </pre>
-                                                            </td>
-                                                        </tr>
+                                                        </td>
+                                                    </tr>
                                                     </tbody>
                                                 </table>
-                                                <br />
+                                                <br/>
                                                 <input
                                                     type="text"
                                                     placeholder="filter JSON"
@@ -1112,15 +740,15 @@ function AtlasAdmin({
                                                 />
                                                 <table className="table table-sm">
                                                     <thead>
-                                                        <tr>
-                                                            <th></th>
-                                                            <th></th>
-                                                        </tr>
+                                                    <tr>
+                                                        <th></th>
+                                                        <th></th>
+                                                    </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <tr>
-                                                            <td>TaxonID</td>
-                                                            <td>
+                                                    <tr>
+                                                        <td>TaxonID</td>
+                                                        <td>
                                                                 <pre
                                                                     style={{
                                                                         whiteSpace:
@@ -1135,41 +763,41 @@ function AtlasAdmin({
                                                                     }
                                                                     ")
                                                                 </pre>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <label
-                                                                    htmlFor="preferredImage"
-                                                                    className="ms-auto me-1 mb-4"
-                                                                    style={{
-                                                                        display:
-                                                                            'block',
-                                                                    }}
-                                                                >
-                                                                    Prefered
-                                                                    imageIDs
-                                                                    (comma
-                                                                    separated,
-                                                                    no
-                                                                    whitespace)
-                                                                </label>
-                                                                <a
-                                                                    target="_blank"
-                                                                    href={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_APP_LIST_URL +
-                                                                        preferredImageListID
-                                                                    }
-                                                                >
-                                                                    Open
-                                                                    preferred
-                                                                    image
-                                                                    species list
-                                                                </a>
-                                                            </td>
-                                                            <td>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label
+                                                                htmlFor="preferredImage"
+                                                                className="ms-auto me-1 mb-4"
+                                                                style={{
+                                                                    display:
+                                                                        'block',
+                                                                }}
+                                                            >
+                                                                Prefered
+                                                                imageIDs
+                                                                (comma
+                                                                separated,
+                                                                no
+                                                                whitespace)
+                                                            </label>
+                                                            <a
+                                                                target="_blank"
+                                                                href={
+                                                                    import.meta
+                                                                        .env
+                                                                        .VITE_APP_LIST_URL +
+                                                                    preferredImageListID
+                                                                }
+                                                            >
+                                                                Open
+                                                                preferred
+                                                                image
+                                                                species list
+                                                            </a>
+                                                        </td>
+                                                        <td>
                                                                 <textarea
                                                                     className="form-control"
                                                                     id="preferredImage"
@@ -1187,51 +815,51 @@ function AtlasAdmin({
                                                                         );
                                                                     }}
                                                                 ></textarea>
-                                                                <button
-                                                                    className="btn border-black ms-auto me-5"
-                                                                    onClick={() => {
-                                                                        setSaveImageResponse(
-                                                                            '...'
-                                                                        );
-                                                                        saveImages();
-                                                                    }}
-                                                                >
-                                                                    Save Changes
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                <label
-                                                                    htmlFor="hiddenImage"
-                                                                    className="ms-auto me-1 mb-4"
-                                                                    style={{
-                                                                        display:
-                                                                            'block',
-                                                                    }}
-                                                                >
-                                                                    Hidden
-                                                                    imageIDs
-                                                                    (comma
-                                                                    separated,
-                                                                    no
-                                                                    whitespace)
-                                                                </label>
-                                                                <a
-                                                                    target="_blank"
-                                                                    href={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_APP_LIST_URL +
-                                                                        hiddenImageListID
-                                                                    }
-                                                                >
-                                                                    Open hidden
-                                                                    image
-                                                                    species list
-                                                                </a>
-                                                            </td>
-                                                            <td>
+                                                            <button
+                                                                className="btn border-black ms-auto me-5"
+                                                                onClick={() => {
+                                                                    setSaveImageResponse(
+                                                                        '...'
+                                                                    );
+                                                                    saveImages();
+                                                                }}
+                                                            >
+                                                                Save Changes
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <label
+                                                                htmlFor="hiddenImage"
+                                                                className="ms-auto me-1 mb-4"
+                                                                style={{
+                                                                    display:
+                                                                        'block',
+                                                                }}
+                                                            >
+                                                                Hidden
+                                                                imageIDs
+                                                                (comma
+                                                                separated,
+                                                                no
+                                                                whitespace)
+                                                            </label>
+                                                            <a
+                                                                target="_blank"
+                                                                href={
+                                                                    import.meta
+                                                                        .env
+                                                                        .VITE_APP_LIST_URL +
+                                                                    hiddenImageListID
+                                                                }
+                                                            >
+                                                                Open hidden
+                                                                image
+                                                                species list
+                                                            </a>
+                                                        </td>
+                                                        <td>
                                                                 <textarea
                                                                     className="form-control"
                                                                     id="hiddenImage"
@@ -1249,79 +877,79 @@ function AtlasAdmin({
                                                                         );
                                                                     }}
                                                                 ></textarea>
-                                                                <button
-                                                                    className="btn border-black ms-auto me-5"
-                                                                    onClick={() => {
-                                                                        setSaveImageResponse(
-                                                                            '...'
-                                                                        );
-                                                                        saveImages();
-                                                                    }}
-                                                                >
-                                                                    Save Changes
-                                                                </button>
-                                                            </td>
-                                                        </tr>
+                                                            <button
+                                                                className="btn border-black ms-auto me-5"
+                                                                onClick={() => {
+                                                                    setSaveImageResponse(
+                                                                        '...'
+                                                                    );
+                                                                    saveImages();
+                                                                }}
+                                                            >
+                                                                Save Changes
+                                                            </button>
+                                                        </td>
+                                                    </tr>
 
-                                                        {saveImageResponse && (
-                                                            <tr>
-                                                                <td>
-                                                                    Response
-                                                                    code
-                                                                </td>
-                                                                <td>
+                                                    {saveImageResponse && (
+                                                        <tr>
+                                                            <td>
+                                                                Response
+                                                                code
+                                                            </td>
+                                                            <td>
                                                                     <pre>
                                                                         {
                                                                             saveImageResponse
                                                                         }
                                                                     </pre>
-                                                                </td>
-                                                            </tr>
-                                                        )}
-
-                                                        <tr>
-                                                            <td>
-                                                                Select type of
-                                                                images to list
-                                                            </td>
-                                                            <td>
-                                                                <select
-                                                                    className="mb-4"
-                                                                    value={
-                                                                        imageViewMode
-                                                                    }
-                                                                    style={{
-                                                                        lineHeight:
-                                                                            '34px',
-                                                                        height: '34px',
-                                                                        borderRadius:
-                                                                            '5px',
-                                                                    }}
-                                                                    onChange={(
-                                                                        e
-                                                                    ) =>
-                                                                        setImageViewMode(
-                                                                            e
-                                                                                .target
-                                                                                .value
-                                                                        )
-                                                                    }
-                                                                >
-                                                                    <option value="all">
-                                                                        All
-                                                                        Images
-                                                                    </option>
-                                                                    <option value="preferred">
-                                                                        Preferred
-                                                                        Images
-                                                                    </option>
-                                                                    <option value="hidden">
-                                                                        Hidden
-                                                                        Images
-                                                                    </option>
-                                                                </select>
                                                             </td>
                                                         </tr>
+                                                    )}
+
+                                                    <tr>
+                                                        <td>
+                                                            Select type of
+                                                            images to list
+                                                        </td>
+                                                        <td>
+                                                            <select
+                                                                className="mb-4"
+                                                                value={
+                                                                    imageViewMode
+                                                                }
+                                                                style={{
+                                                                    lineHeight:
+                                                                        '34px',
+                                                                    height: '34px',
+                                                                    borderRadius:
+                                                                        '5px',
+                                                                }}
+                                                                onChange={(
+                                                                    e
+                                                                ) =>
+                                                                    setImageViewMode(
+                                                                        e
+                                                                            .target
+                                                                            .value
+                                                                    )
+                                                                }
+                                                            >
+                                                                <option value="all">
+                                                                    All
+                                                                    Images
+                                                                </option>
+                                                                <option value="preferred">
+                                                                    Preferred
+                                                                    Images
+                                                                </option>
+                                                                <option value="hidden">
+                                                                    Hidden
+                                                                    Images
+                                                                </option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
                                                     </tbody>
                                                 </table>
                                                 <div className="d-flex flex-wrap">
@@ -1390,15 +1018,15 @@ function AtlasAdmin({
                                                 />
                                                 <table className="table table-sm">
                                                     <thead>
-                                                        <tr>
-                                                            <th className="col-4"></th>
-                                                            <th className="col-8"></th>
-                                                        </tr>
+                                                    <tr>
+                                                        <th className="col-4"></th>
+                                                        <th className="col-8"></th>
+                                                    </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <tr>
-                                                            <td>TaxonID</td>
-                                                            <td>
+                                                    <tr>
+                                                        <td>TaxonID</td>
+                                                        <td>
                                                                 <pre
                                                                     style={{
                                                                         whiteSpace:
@@ -1413,29 +1041,29 @@ function AtlasAdmin({
                                                                     }
                                                                     ")
                                                                 </pre>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>
-                                                                Hero description
-                                                                (HTML)
-                                                                <br />
-                                                                <br />
-                                                                <a
-                                                                    target="_blank"
-                                                                    href={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_APP_LIST_URL +
-                                                                        heroDescriptionListID
-                                                                    }
-                                                                >
-                                                                    Open hero
-                                                                    description
-                                                                    list
-                                                                </a>
-                                                            </td>
-                                                            <td>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            Hero description
+                                                            (HTML)
+                                                            <br/>
+                                                            <br/>
+                                                            <a
+                                                                target="_blank"
+                                                                href={
+                                                                    import.meta
+                                                                        .env
+                                                                        .VITE_APP_LIST_URL +
+                                                                    heroDescriptionListID
+                                                                }
+                                                            >
+                                                                Open hero
+                                                                description
+                                                                list
+                                                            </a>
+                                                        </td>
+                                                        <td>
                                                                 <textarea
                                                                     id="heroDescription"
                                                                     className="w-100"
@@ -1453,90 +1081,90 @@ function AtlasAdmin({
                                                                         );
                                                                     }}
                                                                 />
-                                                                <button
-                                                                    className="btn border-black"
-                                                                    onClick={() => {
-                                                                        setSaveHeroDescriptionResponse(
-                                                                            '...'
-                                                                        );
-                                                                        saveHeroDescription();
-                                                                    }}
-                                                                >
-                                                                    Save Changes
-                                                                </button>
-                                                            </td>
-                                                        </tr>
+                                                            <button
+                                                                className="btn border-black"
+                                                                onClick={() => {
+                                                                    setSaveHeroDescriptionResponse(
+                                                                        '...'
+                                                                    );
+                                                                    saveHeroDescription();
+                                                                }}
+                                                            >
+                                                                Save Changes
+                                                            </button>
+                                                        </td>
+                                                    </tr>
 
-                                                        {saveHeroDescriptionResponse && (
-                                                            <tr>
-                                                                <td>
-                                                                    Response
-                                                                    code (Hero
-                                                                    Description)
-                                                                </td>
-                                                                <td>
+                                                    {saveHeroDescriptionResponse && (
+                                                        <tr>
+                                                            <td>
+                                                                Response
+                                                                code (Hero
+                                                                Description)
+                                                            </td>
+                                                            <td>
                                                                     <pre>
                                                                         {
                                                                             saveHeroDescriptionResponse
                                                                         }
                                                                     </pre>
-                                                                </td>
-                                                            </tr>
-                                                        )}
-
-                                                        <tr>
-                                                            <td>
-                                                                Descriptions
-                                                                (JSON).
-                                                                <ul>
-                                                                    <li>
-                                                                        Edit the
-                                                                        HTML
-                                                                        category
-                                                                        values.
-                                                                    </li>
-                                                                    <li>
-                                                                        Edit
-                                                                        fields.
-                                                                        Excludes
-                                                                        "name",
-                                                                        "url"
-                                                                        and
-                                                                        "attribution"
-                                                                        values.
-                                                                        Excludes
-                                                                        changes
-                                                                        to keys.
-                                                                        To
-                                                                        change
-                                                                        these,
-                                                                        refer to
-                                                                        the
-                                                                        taxon-description
-                                                                        tool.
-                                                                    </li>
-                                                                    <li>
-                                                                        Order of
-                                                                        items
-                                                                        cannot
-                                                                        be
-                                                                        changed.
-                                                                    </li>
-                                                                    <li>
-                                                                        Items
-                                                                        cannot
-                                                                        be
-                                                                        deleted.
-                                                                    </li>
-                                                                    <li>
-                                                                        Items
-                                                                        cannot
-                                                                        be
-                                                                        added.
-                                                                    </li>
-                                                                </ul>
                                                             </td>
-                                                            <td>
+                                                        </tr>
+                                                    )}
+
+                                                    <tr>
+                                                        <td>
+                                                            Descriptions
+                                                            (JSON).
+                                                            <ul>
+                                                                <li>
+                                                                    Edit the
+                                                                    HTML
+                                                                    category
+                                                                    values.
+                                                                </li>
+                                                                <li>
+                                                                    Edit
+                                                                    fields.
+                                                                    Excludes
+                                                                    "name",
+                                                                    "url"
+                                                                    and
+                                                                    "attribution"
+                                                                    values.
+                                                                    Excludes
+                                                                    changes
+                                                                    to keys.
+                                                                    To
+                                                                    change
+                                                                    these,
+                                                                    refer to
+                                                                    the
+                                                                    taxon-description
+                                                                    tool.
+                                                                </li>
+                                                                <li>
+                                                                    Order of
+                                                                    items
+                                                                    cannot
+                                                                    be
+                                                                    changed.
+                                                                </li>
+                                                                <li>
+                                                                    Items
+                                                                    cannot
+                                                                    be
+                                                                    deleted.
+                                                                </li>
+                                                                <li>
+                                                                    Items
+                                                                    cannot
+                                                                    be
+                                                                    added.
+                                                                </li>
+                                                            </ul>
+                                                        </td>
+                                                        <td>
                                                                 <textarea
                                                                     id="descriptionJson"
                                                                     className="w-100"
@@ -1554,37 +1182,37 @@ function AtlasAdmin({
                                                                         );
                                                                     }}
                                                                 />
-                                                                <button
-                                                                    className="btn border-black"
-                                                                    onClick={() => {
-                                                                        setSaveDescriptionJsonResponse(
-                                                                            '...'
-                                                                        );
-                                                                        saveDescriptionJson();
-                                                                    }}
-                                                                >
-                                                                    Save Changes
-                                                                </button>
-                                                            </td>
-                                                        </tr>
+                                                            <button
+                                                                className="btn border-black"
+                                                                onClick={() => {
+                                                                    setSaveDescriptionJsonResponse(
+                                                                        '...'
+                                                                    );
+                                                                    saveDescriptionJson();
+                                                                }}
+                                                            >
+                                                                Save Changes
+                                                            </button>
+                                                        </td>
+                                                    </tr>
 
-                                                        {saveDescriptionJsonResponse && (
-                                                            <tr>
-                                                                <td>
-                                                                    Response
-                                                                    code
-                                                                    (Description
-                                                                    JSON)
-                                                                </td>
-                                                                <td>
+                                                    {saveDescriptionJsonResponse && (
+                                                        <tr>
+                                                            <td>
+                                                                Response
+                                                                code
+                                                                (Description
+                                                                JSON)
+                                                            </td>
+                                                            <td>
                                                                     <pre>
                                                                         {
                                                                             saveDescriptionJsonResponse
                                                                         }
                                                                     </pre>
-                                                                </td>
-                                                            </tr>
-                                                        )}
+                                                            </td>
+                                                        </tr>
+                                                    )}
                                                     </tbody>
                                                 </table>
                                             </Tab>

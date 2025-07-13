@@ -11,6 +11,25 @@ interface TaskType {
     description: string;
     enabled: boolean;
 }
+type Task = {
+    name?: string;
+    description?: string;
+    enabled?: boolean;
+    log?: {
+        id?: string;
+        task?: string;
+        modified?: number;
+        message?: string;
+        modifiedDate?: string;
+    }[];
+    instructions?: React.ReactNode;
+    lastRun?: string;
+    schedule?: string;
+};
+
+type Tasks = {
+    [key: string]: Task;
+};
 
 interface AtlasLog {
     queues: {
@@ -145,4 +164,6 @@ export type {
     DataQualityInfo,
     FieldInfo,
     IndexFields,
+    Task,
+    Tasks
 };

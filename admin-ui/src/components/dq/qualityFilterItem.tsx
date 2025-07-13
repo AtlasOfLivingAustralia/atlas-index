@@ -6,6 +6,7 @@ function QualityFilterItem(props: {
     parentFilter: QualityFilter | undefined;
     resetInverseFilter: () => void;
     setProfileDirty: (dirty: boolean) => void;
+    deleteFilterItem: (id: number) => void;
 }) {
     const [filterItem, setFilterItem] = useState<QualityFilter>(props.filter);
 
@@ -78,14 +79,15 @@ function QualityFilterItem(props: {
                         type="checkbox"
                         checked={filterItem.enabled}
                         onChange={() => setEnabled(!filterItem.enabled)}
+                        className={"me-1"}
                     ></input>
-                    ({filterItem.id})
+                    (id: {filterItem.id})
                 </td>
                 <td>
                     <input
                         type="text"
                         value={filterItem.filter}
-                        className="w-50"
+                        className="w-100"
                         onChange={(e) => setFilter(e.target.value)}
                     />
                 </td>
@@ -93,17 +95,27 @@ function QualityFilterItem(props: {
                     <input
                         type="text"
                         value={filterItem.inverseFilter}
-                        className="w-50"
+                        className="w-100"
                         onChange={(e) => setInverseFilter(e.target.value)}
                     />
                 </td>
                 <td>
-                    <input
-                        type="text"
+                    <textarea
+                        rows={3}
                         value={filterItem.description}
-                        className="w-50"
+                        className="w-100"
                         onChange={(e) => setDescription(e.target.value)}
                     />
+                </td>
+                <td>
+                    <button
+                        className="btn border-black btn-danger ms-auto"
+                        onClick={() => {
+                            props.deleteFilterItem(filterItem.id);
+                        }}
+                    >
+                        Delete
+                    </button>
                 </td>
             </tr>
         </>
