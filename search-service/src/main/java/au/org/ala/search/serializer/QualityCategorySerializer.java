@@ -30,12 +30,12 @@ public class QualityCategorySerializer extends StdSerializer<QualityCategory> {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeNumberField("id", qc.getId());
         jsonGenerator.writeBooleanField("enabled", qc.isEnabled());
-        jsonGenerator.writeStringField("name", qc.getName());
-        jsonGenerator.writeStringField("label", qc.getLabel());
-        jsonGenerator.writeStringField("description", qc.getDescription());
-        jsonGenerator.writeNumberField("displayOrder", qc.getDisplayOrder());
-        jsonGenerator.writeObjectField("qualityFilters", qc.getQualityFilters());
-        jsonGenerator.writeStringField("inverseFilter", qc.getInverseFilter());
+        if (qc.getName() != null) jsonGenerator.writeStringField("name", qc.getName());
+        if (qc.getLabel() != null) jsonGenerator.writeStringField("label", qc.getLabel());
+        if (qc.getDescription() != null) jsonGenerator.writeStringField("description", qc.getDescription());
+        if (qc.getDisplayOrder() != null) jsonGenerator.writeNumberField("displayOrder", qc.getDisplayOrder());
+        if (qc.getQualityFilters() != null) jsonGenerator.writeObjectField("qualityFilters", qc.getQualityFilters());
+        if (qc.getInverseFilter() != null) jsonGenerator.writeStringField("inverseFilter", qc.getInverseFilter());
         jsonGenerator.writeEndObject();
     }
 }

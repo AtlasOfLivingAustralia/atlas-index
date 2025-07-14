@@ -231,6 +231,7 @@ function DataQualityAdmin({
                                                         save(profileItem);
                                                     }}
                                                     disabled={profileItem.isDefault || !profileItem.enabled}
+                                                    style={{ backgroundColor: profileItem.isDefault ? '#c7254e' : '' }}
                                                 >Default</button>
                                                 <button
                                                     className="btn btn-secondary border-black ms-1"

@@ -180,8 +180,15 @@ function QualityCategoryItem(props: {
                     </td>
                 </tr>
                 <tr>
-                    <td className={"ps-3 w-25 fw-bold"}>Inverse filter (manual override)</td>
+                    <td className={"ps-3 w-25 fw-bold"}>Inverse filter (manual override when API incorrect)</td>
                     <td>
+                        { category.qualityFilters.find(f => f.filter.includes('(')) &&
+                            <span className={"text-danger"}>
+                                <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                                This category contains filters with parentheses, which may cause issues with inverse filtering.
+                                Set the inverse filter manually.
+                            </span>
+                        }
                         <input
                             type="text"
                             value={category.inverseFilter}
@@ -201,7 +208,7 @@ function QualityCategoryItem(props: {
                             <tr>
                                 <th>enabled</th>
                                 <th>filter</th>
-                                <th>inverse filter (manual override)</th>
+                                <th>inverse filter (manual override when API incorrect)</th>
                                 <th>description</th>
                                 <th></th>
                             </tr>

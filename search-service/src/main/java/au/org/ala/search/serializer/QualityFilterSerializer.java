@@ -30,9 +30,10 @@ public class QualityFilterSerializer extends StdSerializer<QualityFilter> {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeNumberField("id", qf.getId());
         jsonGenerator.writeBooleanField("enabled", qf.isEnabled());
-        jsonGenerator.writeStringField("description", qf.getDescription());
+        if (qf.getDescription() != null) jsonGenerator.writeStringField("description", qf.getDescription());
         jsonGenerator.writeObjectField("filter", qf.getFilter());
-        jsonGenerator.writeNumberField("displayOrder", qf.getDisplayOrder());
+        if (qf.getDescription() != null) jsonGenerator.writeNumberField("displayOrder", qf.getDisplayOrder());
+        if (qf.getInverseFilter() != null) jsonGenerator.writeStringField("inverseFilter", qf.getInverseFilter());
         jsonGenerator.writeEndObject();
     }
 }

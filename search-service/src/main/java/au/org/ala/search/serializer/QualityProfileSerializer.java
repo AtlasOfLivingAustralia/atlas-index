@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+// Flattens the QualityProfile object for serialization, including only the necessary fields.
 public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
 
     public QualityProfileSerializer() {
@@ -30,11 +31,11 @@ public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeNumberField("id", qp.getId());
         jsonGenerator.writeStringField("name", qp.getName());
-        jsonGenerator.writeStringField("shortName", qp.getData().getShortName());
-        jsonGenerator.writeNumberField("displayOrder", qp.getData().getDisplayOrder());
-        jsonGenerator.writeStringField("description", qp.getData().getDescription());
-        jsonGenerator.writeStringField("contactName", qp.getData().getContactName());
-        jsonGenerator.writeStringField("contactEmail", qp.getData().getContactEmail());
+        if (qp.getData().getShortName() != null) jsonGenerator.writeStringField("shortName", qp.getData().getShortName());
+        if (qp.getData().getDisplayOrder() != null) jsonGenerator.writeNumberField("displayOrder", qp.getData().getDisplayOrder());
+        if (qp.getData().getDescription() != null) jsonGenerator.writeStringField("description", qp.getData().getDescription());
+        if (qp.getData().getContactName() != null) jsonGenerator.writeStringField("contactName", qp.getData().getContactName());
+        if (qp.getData().getContactEmail() != null) jsonGenerator.writeStringField("contactEmail", qp.getData().getContactEmail());
         jsonGenerator.writeObjectField("categories", qp.getData().getCategories());
         jsonGenerator.writeEndObject();
     }
