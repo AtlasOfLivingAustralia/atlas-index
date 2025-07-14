@@ -269,6 +269,37 @@ public class ElasticService {
         return result.map(SearchHit::getContent).orElse(null);
     }
 
+    public Map<String, String> queryTaxonIds(List<String> guids) {
+        if (guids == null || guids.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Build a terms query for all guids
+        Query query = NativeQuery.builder()
+                .withQuery(wq -> wq.bool(bq -> {
+                    bq.filter(f -> f.terms(t -> t.field("guid").terms(ts -> ts.value(
+                            guids.stream().map(FieldValue::of).toList()
+                    ))));
+                    bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                    bq.filter(f -> f.bool(b -> b.mustNot(q -> q.exists(eq -> eq.field("acceptedConceptID")))));
+                    return bq;
+                }))
+                .withSourceFilter(new FetchSourceFilter(new String[]{"id", "guid"}, null))
+                .withMaxResults(guids.size())
+                .build();
+
+        SearchHits<SearchItemIndex> results = elasticsearchOperations.search(query, SearchItemIndex.class);
+
+        Map<String, String> guidToId = new HashMap<>();
+        for (SearchHit<SearchItemIndex> hit : results.getSearchHits()) {
+            SearchItemIndex doc = hit.getContent();
+            if (doc.getGuid() != null && doc.getId() != null) {
+                guidToId.put(doc.getGuid(), doc.getId());
+            }
+        }
+        return guidToId;
+    }
+
     // This retrieves the document id for the guid. It will be idxtype TAXON and not have an acceptedConceptID.
     public String queryTaxonId(String guid) {
         Query query = NativeQuery.builder()

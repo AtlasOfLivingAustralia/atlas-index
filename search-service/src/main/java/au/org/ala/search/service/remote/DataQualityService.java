@@ -9,7 +9,7 @@ package au.org.ala.search.service.remote;
 import au.org.ala.search.model.quality.QualityCategory;
 import au.org.ala.search.model.quality.QualityFilter;
 import au.org.ala.search.model.quality.QualityProfile;
-import au.org.ala.search.repo.DataQualityMongoRepository;
+import au.org.ala.search.repo.DataQualityPostgresRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class DataQualityService {
 
     private static final Logger logger = LoggerFactory.getLogger(DataQualityService.class);
 
-    protected final DataQualityMongoRepository dataQualityMongoRepository;
+    protected final DataQualityPostgresRepository dataQualityRepository;
     protected final CacheManager cacheManager;
     protected final StaticFileStoreService staticFileStoreService;
     final Object editLock = new Object();
@@ -42,8 +42,8 @@ public class DataQualityService {
     @Getter
     List<QualityProfile> profiles;
 
-    public DataQualityService(DataQualityMongoRepository dataQualityMongoRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
-        this.dataQualityMongoRepository = dataQualityMongoRepository;
+    public DataQualityService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
+        this.dataQualityRepository = dataQualityRepository;
         this.cacheManager = cacheManager;
         this.staticFileStoreService = staticFileStoreService;
     }
@@ -55,16 +55,15 @@ public class DataQualityService {
     @PostConstruct
     void init() {
         // read from mongoDB, all profiles
-        profiles = dataQualityMongoRepository.findAll();
+        profiles = dataQualityRepository.findAll();
 
-        // init unique id
+        // fetch the max id from the profiles, categories and filters.
         long maxId = 1;
         for (QualityProfile profile : profiles) {
             if (profile.getId() != null && profile.getId() > maxId) {
                 maxId = profile.getId();
             }
-            profile.setId(nextId());
-            for (QualityCategory category : profile.getCategories()) {
+            for (QualityCategory category : profile.getData().getCategories()) {
                 if (category.getId() != null && category.getId() > maxId) {
                     maxId = category.getId();
                 }
@@ -90,22 +89,21 @@ public class DataQualityService {
     }
 
     public void clearCache() {
-        profiles = dataQualityMongoRepository.findAll();
+        profiles = dataQualityRepository.findAll();
         cacheManager.getCache("qualityProfiles").clear();
     }
 
-    @Cacheable("qualityProfiles")
     public List<QualityProfile> getProfiles(String shortName, String name, Boolean enabled, Integer max, Integer offset, String sort, String order) {
         List<QualityProfile> list = new ArrayList<>();
 
         for (QualityProfile profile : profiles) {
-            if (StringUtils.isNotBlank(shortName) && !profile.getShortName().equals(shortName)) {
+            if (StringUtils.isNotBlank(shortName) && !profile.getData().getShortName().equals(shortName)) {
                 continue;
             }
             if (StringUtils.isNotBlank(name) && !profile.getName().equals(name)) {
                 continue;
             }
-            if (enabled != null && profile.isEnabled() != enabled) {
+            if (enabled != null && profile.getData().isEnabled() != enabled) {
                 continue;
             }
 
@@ -113,13 +111,15 @@ public class DataQualityService {
         }
 
         if (StringUtils.isNotEmpty(sort) && StringUtils.isNotEmpty(order)) {
+            int direction = order.equalsIgnoreCase("desc") ? -1 : 1;
             list.sort((a, b) -> {
                 return switch (sort) {
-                    case "shortName" -> a.getShortName().compareTo(b.getShortName());
-                    case "name" -> a.getName().compareTo(b.getName());
-                    case "dateCreated" -> a.getDateCreated().compareTo(b.getDateCreated());
-                    case "lastUpdated" -> a.getLastUpdated().compareTo(b.getLastUpdated());
-                    case "displayOrder" -> a.getDisplayOrder().compareTo(b.getDisplayOrder());
+                    case "id" -> a.getId().compareTo(b.getId()) * direction;
+                    case "shortName" -> a.getData().getShortName().compareTo(b.getData().getShortName()) * direction;
+                    case "name" -> a.getName().compareTo(b.getName()) * direction;
+                    case "dateCreated" -> a.getData().getDateCreated().compareTo(b.getData().getDateCreated()) * direction;
+                    case "lastUpdated" -> a.getData().getLastUpdated().compareTo(b.getData().getLastUpdated()) * direction;
+                    case "displayOrder" -> a.getData().getDisplayOrder().compareTo(b.getData().getDisplayOrder()) * direction;
                     default -> 0;
                 };
             });
@@ -132,27 +132,27 @@ public class DataQualityService {
         return list.subList(offset, Math.min(list.size(), offset + max));
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getProfile_' + #profileId")
     public QualityProfile getProfile(String profileId) {
-        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
+        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getData().getShortName().equals(profileId)).findFirst();
         return profile.orElse(null);
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getCategory_' + #profileId + '_' + #categoryId")
     public QualityCategory getCategory(String profileId, Long categoryId) {
-        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
+        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getData().getShortName().equals(profileId)).findFirst();
         if (profile.isPresent()) {
-            Optional<QualityCategory> category = profile.get().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
+            Optional<QualityCategory> category = profile.get().getData().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
             return category.orElse(null);
         }
         return null;
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getFilter_' + #profileId + '_' + #categoryId + '_' + #id")
     public QualityFilter getFilter(String profileId, Long categoryId, Long id) {
-        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
+        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getData().getShortName().equals(profileId)).findFirst();
         if (profile.isPresent()) {
-            Optional<QualityCategory> category = profile.get().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
+            Optional<QualityCategory> category = profile.get().getData().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
             if (category.isPresent()) {
                 Optional<QualityFilter> filter = category.get().getQualityFilters().stream().filter(it -> it.getId().equals(id)).findFirst();
                 return filter.orElse(null);
@@ -161,26 +161,27 @@ public class DataQualityService {
         return null;
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getProfileOrDefault_' + #profileName")
     public QualityProfile getProfileOrDefault(String profileName) {
+        int id = StringUtils.isNumeric(profileName) ? Integer.parseInt(profileName) : 0;
         Optional<QualityProfile> profile = StringUtils.isNotEmpty(profileName) ?
-                profiles.stream().filter(p -> p.getShortName().equals(profileName) || p.getName().equals(profileName)).findFirst() :
+                profiles.stream().filter(p -> p.getData().getShortName().equals(profileName) || p.getName().equals(profileName) || p.getId() == id).findFirst() :
                 Optional.empty();
 
         if (profile.isEmpty()) {
-            return profiles.stream().filter(QualityProfile::isDefault).findFirst().orElse(null);
+            return profiles.stream().filter(q -> q.getData().isDefault()).findFirst().orElse(null);
         }
         return profile.get();
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getEnabledFiltersByLabel_' + #profileName")
     public Map<String, String> getEnabledFiltersByLabel(String profileName) {
         Map<String, String> map = new HashMap<>();
 
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getCategories().forEach(category -> {
+            profile.getData().getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     List<String> filters = category.getQualityFilters().stream().filter(QualityFilter::isEnabled).map(QualityFilter::getFilter).toList();
                     if (!filters.isEmpty()) {
@@ -193,14 +194,14 @@ public class DataQualityService {
         return map;
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getEnabledQualityFilters_' + #profileName")
     public Set<String> getEnabledQualityFilters(String profileName) {
         Set<String> set = new HashSet<>();
 
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getCategories().forEach(category -> {
+            profile.getData().getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     category.getQualityFilters().stream().filter(QualityFilter::isEnabled).forEach(it -> set.add(it.getFilter()));
                 }
@@ -210,14 +211,14 @@ public class DataQualityService {
         return set;
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getGroupedEnabledFilters_' + #profileName")
     public LinkedHashMap<String, List<QualityFilter>> getGroupedEnabledFilters(String profileName) {
         LinkedHashMap<String, List<QualityFilter>> map = new LinkedHashMap<>();
 
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getCategories().forEach(category -> {
+            profile.getData().getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     List<QualityFilter> filters = category.getQualityFilters().stream().filter(QualityFilter::isEnabled).toList();
                     if (!filters.isEmpty()) {
@@ -230,14 +231,14 @@ public class DataQualityService {
         return map;
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'findAllEnabledCategories_' + #profileName")
     public List<QualityCategory> findAllEnabledCategories(String profileName) {
         List<QualityCategory> result = new ArrayList<>();
 
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getCategories().forEach(category -> {
+            profile.getData().getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     QualityCategory qc = QualityCategory.builder()
                             .id(category.getId())
@@ -266,17 +267,17 @@ public class DataQualityService {
         return result;
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getJoinedQualityFilter_' + #profileName")
     public String getJoinedQualityFilter(String profileName) {
         return StringUtils.join(getEnabledQualityFilters(profileName), " AND ");
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getInverseCategoryFilter_' + #qualityCategoryId")
     public String getInverseCategoryFilter(Long qualityCategoryId) {
         List<QualityFilter> filters = new ArrayList<>();
         List<String> inverseFilter = new ArrayList<>();
         profiles.forEach(it -> {
-            it.getCategories().forEach(category -> {
+            it.getData().getCategories().forEach(category -> {
                 if (category.getId().equals(qualityCategoryId)) {
                     if (StringUtils.isNotEmpty(category.getInverseFilter())) {
                         inverseFilter.add(category.getInverseFilter());
@@ -294,14 +295,14 @@ public class DataQualityService {
         return StringUtils.join(filters.stream().map(it -> invert(it.getFilter())).toList(), " OR ");
     }
 
-    @Cacheable("qualityProfiles")
+    @Cacheable(value = "qualityProfiles", key = "'getAllInverseCategoryFiltersForProfile_' + #qualityProfileId")
     public Map<String, String> getAllInverseCategoryFiltersForProfile(String qualityProfileId) {
         Map<String, String> result = new HashMap<>();
 
         QualityProfile profile = getProfileOrDefault(qualityProfileId);
 
         if (profile != null) {
-            profile.getCategories().forEach(category -> {
+            profile.getData().getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     if (StringUtils.isNotEmpty(category.getInverseFilter())) {
                         result.put(category.getLabel(), category.getInverseFilter());
@@ -322,7 +323,7 @@ public class DataQualityService {
     public boolean delete(Long profileId) {
         synchronized (editLock) {
             try {
-                dataQualityMongoRepository.deleteById(profileId);
+                dataQualityRepository.deleteById(profileId);
 
                 clearCache();
 
@@ -340,43 +341,27 @@ public class DataQualityService {
     public QualityProfile save(QualityProfile profile) {
         synchronized (editLock) {
             // ensure isDefault:true is unique
-            if (profile.isDefault()) {
+            if (profile.getData().isDefault()) {
                 // remove isDefault from all other profiles
                 profiles.forEach(it -> {
-                    if (it.isDefault() && !it.getId().equals(profile.getId())) {
-                        it.setDefault(false);
-                        dataQualityMongoRepository.save(it);
+                    if (it.getData().isDefault() && !it.getId().equals(profile.getId())) {
+                        it.getData().setDefault(false);
+                        dataQualityRepository.save(it);
                     }
                 });
             } else {
                 // do not remove isDefault from the last profile
-                if (profiles.stream().noneMatch(QualityProfile::isDefault)) {
-                    profile.setDefault(true);
+                if (profiles.stream().noneMatch(q -> q.getData().isDefault())) {
+                    profile.getData().setDefault(true);
+                    profile.getData().setEnabled(true); // the default must be enabled
                 }
             }
 
             // update lastUpdated
-            profile.setLastUpdated(new Date());
-
-            // set inverseFilter for all categories and filters without one
-            profile.getCategories().forEach(category -> {
-                category.getQualityFilters().forEach(filter -> {
-                    if (StringUtils.isEmpty(filter.getInverseFilter())) {
-                        filter.setInverseFilter(invert(filter.getFilter()));
-                    }
-                });
-
-                if (StringUtils.isEmpty(category.getInverseFilter())) {
-                    List<QualityFilter> filters = category.getQualityFilters().stream().filter(QualityFilter::isEnabled).toList();
-
-                    String inverse = StringUtils.join(filters.stream().map(QualityFilter::getInverseFilter).toList(), " OR ");
-
-                    category.setInverseFilter(inverse);
-                }
-            });
+            profile.getData().setLastUpdated(new Date());
 
             // A legacy requirement is that QualityFilter.id and QualityCategory.id are unique, not null and not 0.
-            profile.getCategories().forEach(category -> {
+            profile.getData().getCategories().forEach(category -> {
                 category.getQualityFilters().forEach(filter -> {
                     if (filter.getId() == null || filter.getId() == 0) {
                         filter.setId(nextId());
@@ -393,12 +378,12 @@ public class DataQualityService {
             }
 
             // displayOrder must be present
-            if (profile.getDisplayOrder() == null) {
-                profile.setDisplayOrder((long) profiles.size());
+            if (profile.getData().getDisplayOrder() == null) {
+                profile.getData().setDisplayOrder((long) profiles.size());
             }
 
             try {
-                QualityProfile savedProfile = dataQualityMongoRepository.save(profile);
+                QualityProfile savedProfile = dataQualityRepository.save(profile);
 
                 clearCache();
 

@@ -4,15 +4,11 @@ This is a replacement for bie-index.
 
 It is a Spring Boot application that provides REST web services for accessing and updating an Elasticsearch index.
 
-TODO: cleanup i18n files (move to default-ui as required)
-TODO: cleanup Docker files (tidy commented out sections, document local paths)
-
 # Table of Contents
 
 - [Getting started](#getting-started)
 - [Migrating from bie-index](#migrating-from-bie-index)
 - [Docker hub](#docker-hub)
-- [Helm charts](#helm-charts)
 - [Importing data](#import-process)
     - [Prerequisites](#prerequisites)
     - [Configure data sources](#configure-data-sources)
@@ -27,7 +23,7 @@ TODO: cleanup Docker files (tidy commented out sections, document local paths)
 
 ### Elasticsearch
 
-To run the elasticsearch, mongodb and rabbitmq needed for the search-service use the following command:
+To run the elasticsearch, mongodb, postgresql and rabbitmq needed for the search-service use the following command:
 
 ```bash
 docker-compose -f ./docker/docker-compose.yml up
@@ -53,11 +49,6 @@ Commits to this `develop` branch will result in a new image being built and push
 ```shell
 docker build -t search-service ./docker/Dockerfile .
 ```
-
-## Helm charts
-
-The helm charts for list-service are available in the
-TODO [helm-charts](https://github.com/AtlasOfLivingAustralia/helm-charts) repository.
 
 ## Migrating from bie-index
 

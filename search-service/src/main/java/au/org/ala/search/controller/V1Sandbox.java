@@ -25,7 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.security.Principal;
 
 /**
- * bie-index API services, minus some admin services
+ * sandbox API services, minus some admin services
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController

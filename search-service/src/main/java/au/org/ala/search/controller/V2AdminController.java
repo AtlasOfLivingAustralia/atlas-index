@@ -135,11 +135,12 @@ public class V2AdminController {
     }
 
     @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Update something")
+    @Operation(tags = "ADMIN", summary = "Start a task")
     @Tag(name = "ADMIN", description = "REST Services for admin")
-    @PostMapping(path = "/v2/admin/update", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v2/admin/task", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(
             @RequestParam(name = "type") TaskType type,
+            @RequestBody(required = false) Map<String, Object> requestBody,
             @AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
@@ -174,11 +175,11 @@ public class V2AdminController {
         return ResponseEntity.ok("{\"message\": \"task queued\"}");
     }
 
-    @Operation(tags = "ADMIN", summary = "Application info")
+    @Operation(tags = "ADMIN", summary = "Application events log")
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v2/admin/info", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> info(
+    @GetMapping(path = "/v2/admin/log", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> log(
             @RequestParam(name = "type", required = false) TaskType type,
             @RequestParam(name = "pageSize", required = false, defaultValue = "1") Integer logPageSize,
             @AuthenticationPrincipal Principal principal)
@@ -201,6 +202,23 @@ public class V2AdminController {
             }
         }
         response.put("tasks", tasks);
+
+        return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
+    }
+
+    // TODO: this is incomplete as it does not work when there are multiple instances.
+    //  It should also include rabbitmq queue information, if any.
+    @Operation(tags = "ADMIN", summary = "Application staus")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @SecurityRequirement(name = "JWT")
+    @GetMapping(path = "/v2/admin/status", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> status(@AuthenticationPrincipal Principal principal)
+            throws IOException {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        Map<String, Object> response = new HashMap<>();
 
         Map<String, Object> queues = new HashMap<>();
         Map<String, Object> queue = new HashMap<>();
@@ -228,18 +246,14 @@ public class V2AdminController {
         queue.put("description", "queued fieldguide requests");
         queue.put("threadCount", fieldguideConsumerService.consumerThreads);
         queue.put("active", fieldguideConsumerService.activeItems);
-        if (type == TaskType.FIELDGUIDE) {
-            queue.put("queued", queueService.list(TaskType.FIELDGUIDE.name()));
-        }
+        queue.put("queued", queueService.list(TaskType.FIELDGUIDE.name()));
         queues.put("fieldguide", queue);
 
         queue = new HashMap<>();
         queue.put("description", "queued searched download requests");
         queue.put("threadCount", searchConsumerService.consumerThreads);
         queue.put("active", searchConsumerService.activeItems);
-        if (type == TaskType.SEARCH_DOWNLOAD) {
-            queue.put("queued", queueService.list(TaskType.SEARCH_DOWNLOAD.name()));
-        }
+        queue.put("queued", queueService.list(TaskType.SEARCH_DOWNLOAD.name()));
         queues.put("search_download", queue);
 
         response.put("queues", queues);
@@ -247,6 +261,7 @@ public class V2AdminController {
         return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
     }
 
+    // TODO: can this GET be replaced by the public API?
     @Operation(tags = "ADMIN", summary = "List data quality profiles")
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
@@ -288,13 +303,13 @@ public class V2AdminController {
     @SecurityRequirement(name = "JWT")
     @PostMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<QualityProfileAdmin> dqPost(
-            @RequestBody QualityProfile profile,
+            @RequestBody QualityProfileAdmin profile,
             @AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
 
-        QualityProfile savedProfile = dataQualityService.save(profile);
+        QualityProfile savedProfile = dataQualityService.save(profile.toQualityProfile());
 
         if (savedProfile != null) {
             return ResponseEntity.ok(new QualityProfileAdmin(savedProfile));

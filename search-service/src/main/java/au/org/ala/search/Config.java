@@ -117,6 +117,11 @@ public class Config extends ElasticsearchConfiguration {
 
             for (Map.Entry<String, Object> key : source.entrySet()) {
                 try {
+                    // Silently skip null values. These need to be addressed but this is not the place to do it.
+                    if (key.getValue() == null) {
+                        continue;
+                    }
+
                     // check for dynamic fields, default to standard fields
                     if (key.getKey().startsWith("sds_")) {
                         if (target.sdsFields == null) {

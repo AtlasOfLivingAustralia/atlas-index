@@ -513,7 +513,7 @@ public class V1DataQualityController {
                     schema = @Schema(implementation = String.class),
                     example = "ALA"
             )
-            @RequestParam(required = false) String profileName) {
+            @RequestParam String profileName) {
         String filter = dataQualityService.getJoinedQualityFilter(profileName);
 
         return ResponseEntity.ok().body(filter);
@@ -633,7 +633,7 @@ public class V1DataQualityController {
             @PathVariable String profileId) {
         QualityProfile profile = dataQualityService.getProfile(profileId);
         if (profile != null) {
-            return ResponseEntity.ok().body(profile.getCategories());
+            return ResponseEntity.ok().body(profile.getData().getCategories());
         }
         return ResponseEntity.notFound().build();
     }

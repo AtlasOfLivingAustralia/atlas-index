@@ -16,25 +16,28 @@ It is a work in progress and subject to change.
 |                                          | https://github.com/AtlasOfLivingAustralia/fieldguide (service)                  | 80%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/data-quality-filter-service (service) | 95%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/sandbox (service)                     | 60%      |
-| [search-pages](species-pages)            | https://github.com/AtlasOfLivingAustralia/ala-bie-hub (UI)                      | 85%      |         
+| [search-ui](species-pages)               | https://github.com/AtlasOfLivingAustralia/ala-bie-hub (UI)                      | 85%      |         
 | [dashboard-ui](dashboard-ui)             | https://github.com/AtlasOfLivingAustralia/dashboard (UI)                        | 100%     |
-| [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions                               | 90%      |
-| [default-ui](default-ui)                 | Admin UI (bie-index, ala-bie-hub, data-quality-filter-service, sandbox)         | 80%      |
-| [taxon-descriptions](taxon-descriptions) | New data preparation tool                                                       | 95%      |
+| [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions                               | 100%     |
+| [admin-ui](admin-ui)                     | Admin UI                                                                        | 80%      |
+| [taxon-descriptions](taxon-descriptions) | New data preparation tool                                                       | 100%     |
 | [names-extract](names-extract)           | New data preparation tool                                                       | 100%     |
 | [search-test](search-test)               | local development tool                                                          | 100%     |
+| [specimens-ui](specimens-ui)             | https://github.com/AtlasOfLivingAustralia/specimenbrowser (UI)                  | 100%     |
 | [static-server](static-server)           | local development tool                                                          | 100%     |
-| [cicd](cicd)                             | New CICD tool                                                                   | 0%       |
 
 ## Components
 
+* [admin-ui](admin-ui) - Admin UI for search-service.
+* [common-ui](common-ui) - Common UI components used by other UI projects.
 * [dashboard-ui](dashboard-ui) - Dashboard with a summary of ALA data.
-* [default-ui](default-ui) - Admin UI for all components integrated.
 * [names-extract](names-extract) - Java application that extracts name information from the Lucene names index to
   supplement the DwCA names index imported into search-service.
-* [regions-ui](regions-ui) - Page to inspect and interact with some spatial regions for their species data.
-* [search-service](search-service) - Spring boot REST web services for accessing and administering the search index.
+* [regions-ui](regions-ui) - Pages to inspect and interact with some spatial regions for their species data.
+* [search-service](search-service) - Spring boot REST web services for accessing and administering the search index and other data.
 * [search-test](search-test) - Java application for comparing GET responses of bie-index and search-service.
+* [search-ui](search-ui) - Pages to search the search-service index and display species information.
+* [specimens-ui](specimens-ui) - Pages to search and display specimen information for some sources.
 * [static-server](static-server) - Development only file server for serving static files. Production should use a proper
   file server.
 * [taxon-descriptions](taxon-descriptions) - Java application for generating taxon descriptions from profiles,
@@ -48,9 +51,12 @@ To prepare the search-service and other UI requirements for local development, f
 2. (Optional) [Harvest taxon descriptions for search-service and species-pages](taxon-descriptions/README.md)
 3. [Start search-service after setting up Elasticsearch, Mongodb and configuring authentication](search-service/README.md)
 4. [Serve static files for UI pages using static-server](static-server/README.md)
-5. [Start default-ui and start building the admin index. See the Atlas Admin page.](default-ui/README.md)
+5. [Start admin-ui and start building the admin index. See the Admin page.](default-ui/README.md)
 
 The user UI applications can now be configured and started.
-1. [Start dashboard-ui](dashboard-ui/README.md)
-2. [Start regions-ui](regions-ui/README.md)
-3. [Start species-pages](species-pages/README.md)
+
+1. [Start admin-ui](admin-ui/README.md)
+2. [Start dashboard-ui](dashboard-ui/README.md)
+3. [Start regions-ui](regions-ui/README.md)
+4. [Start search-ui](search-ui/README.md)
+5. [Start specimens-ui](specimens-ui/README.md)

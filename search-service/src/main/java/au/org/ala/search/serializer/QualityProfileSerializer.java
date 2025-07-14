@@ -30,12 +30,12 @@ public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeNumberField("id", qp.getId());
         jsonGenerator.writeStringField("name", qp.getName());
-        jsonGenerator.writeStringField("shortName", qp.getShortName());
-        jsonGenerator.writeNumberField("displayOrder", qp.getDisplayOrder());
-        jsonGenerator.writeStringField("description", qp.getDescription());
-        jsonGenerator.writeStringField("contactName", qp.getContactName());
-        jsonGenerator.writeStringField("contactEmail", qp.getContactEmail());
-        jsonGenerator.writeObjectField("categories", qp.getCategories());
+        jsonGenerator.writeStringField("shortName", qp.getData().getShortName());
+        jsonGenerator.writeNumberField("displayOrder", qp.getData().getDisplayOrder());
+        jsonGenerator.writeStringField("description", qp.getData().getDescription());
+        jsonGenerator.writeStringField("contactName", qp.getData().getContactName());
+        jsonGenerator.writeStringField("contactEmail", qp.getData().getContactEmail());
+        jsonGenerator.writeObjectField("categories", qp.getData().getCategories());
         jsonGenerator.writeEndObject();
     }
 }

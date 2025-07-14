@@ -24,8 +24,6 @@ import java.util.List;
  * Same as QualityProfile but with the default marshaller
  */
 @NoArgsConstructor
-@Getter
-@Setter
 @SuperBuilder
 @Jacksonized
 @Data
@@ -48,20 +46,43 @@ public class QualityProfileAdmin {
     public QualityProfileAdmin(QualityProfile qualityProfile) {
         this.id = qualityProfile.id;
         this.name = qualityProfile.name;
-        this.shortName = qualityProfile.shortName;
-        this.description = qualityProfile.description;
-        this.contactName = qualityProfile.contactName;
-        this.contactEmail = qualityProfile.contactEmail;
-        this.enabled = qualityProfile.enabled;
-        this.isDefault = qualityProfile.isDefault;
-        this.displayOrder = qualityProfile.displayOrder;
-        this.dateCreated = qualityProfile.dateCreated;
-        this.lastUpdated = qualityProfile.lastUpdated;
+        this.shortName = qualityProfile.data.shortName;
+        this.description = qualityProfile.data.description;
+        this.contactName = qualityProfile.data.contactName;
+        this.contactEmail = qualityProfile.data.contactEmail;
+        this.enabled = qualityProfile.data.enabled;
+        this.isDefault = qualityProfile.data.isDefault;
+        this.displayOrder = qualityProfile.data.displayOrder;
+        this.dateCreated = qualityProfile.data.dateCreated;
+        this.lastUpdated = qualityProfile.data.lastUpdated;
         this.categories = new ArrayList<>();
-        if (qualityProfile.categories != null) {
-            for (QualityCategory category : qualityProfile.categories) {
+        if (qualityProfile.data.categories != null) {
+            for (QualityCategory category : qualityProfile.data.categories) {
                 this.categories.add(new QualityCategoryAdmin(category));
             }
         }
+    }
+
+    public QualityProfile toQualityProfile() {
+        QualityProfile qualityProfile = new QualityProfile();
+        qualityProfile.id = this.id;
+        qualityProfile.name = this.name;
+        qualityProfile.data = new QualityProfileData();
+        qualityProfile.data.shortName = this.shortName;
+        qualityProfile.data.description = this.description;
+        qualityProfile.data.contactName = this.contactName;
+        qualityProfile.data.contactEmail = this.contactEmail;
+        qualityProfile.data.enabled = this.enabled;
+        qualityProfile.data.isDefault = this.isDefault;
+        qualityProfile.data.displayOrder = this.displayOrder;
+        qualityProfile.data.dateCreated = this.dateCreated;
+        qualityProfile.data.lastUpdated = this.lastUpdated;
+        qualityProfile.data.categories = new ArrayList<>();
+        if (this.categories != null) {
+            for (QualityCategoryAdmin categoryAdmin : this.categories) {
+                qualityProfile.data.categories.add(categoryAdmin.toQualityCategory());
+            }
+        }
+        return qualityProfile;
     }
 }

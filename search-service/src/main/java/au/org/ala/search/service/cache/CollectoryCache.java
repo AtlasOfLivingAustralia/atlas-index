@@ -50,6 +50,7 @@ public class CollectoryCache {
         cacheRefresh();
     }
 
+    // TODO: scheduling move to SchedulerService
     @Scheduled(cron = "${collectory.cache.cron}")
     public void cacheRefresh() {
         String pit = null;

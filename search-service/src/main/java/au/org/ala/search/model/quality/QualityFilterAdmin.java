@@ -34,4 +34,15 @@ public class QualityFilterAdmin {
         this.displayOrder = qualityFilter.displayOrder;
         this.inverseFilter = qualityFilter.inverseFilter;
     }
+
+    public QualityFilter toQualityFilter() {
+        return QualityFilter.builder()
+                .id(this.id)
+                .enabled(this.enabled)
+                .description(this.description)
+                .filter(this.filter)
+                .displayOrder(this.displayOrder)
+                .inverseFilter(this.inverseFilter)
+                .build();
+    }
 }

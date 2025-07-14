@@ -43,8 +43,8 @@ public class DescriptionsUpdateService {
     private final ElasticService elasticService;
     private final LogService logService;
     private final DataFileStoreService dataFileStoreService;
-    @Value("${data.file.descriptions.name}")
-    private String descriptionsFileName;
+    @Value("${data.file.hero.descriptions}")
+    private String heroDescriptionsFilePath;
 
     public DescriptionsUpdateService(ElasticService elasticService, LogService logService, DataFileStoreService dataFileStoreService) {
         this.elasticService = elasticService;
@@ -56,22 +56,23 @@ public class DescriptionsUpdateService {
     public CompletableFuture<Boolean> run() {
         try {
             String startMsg = "Hero descriptions started";
+            String endMsg = "Hero descriptions finished.";
             logService.log(taskType, startMsg);
 
-            // do not update if the file has not been modified since the last update
-            List<AdminIndex> taskLog = logService.getStatus(TaskType.TAXON_DESCRIPTION, 6);
+            // do not update if the file has not been modified since the last update, within the last 20 logs
+            List<AdminIndex> taskLog = logService.getStatus(TaskType.TAXON_DESCRIPTION, 20);
             // find all logs that are the start message, and get the max lastModified
             Optional<Date> lastRunTime = taskLog.stream()
-                    .filter(log -> log.getMessage().equals(startMsg))
+                    .filter(log -> log.getMessage().contains(endMsg))
                     .map(AdminIndex::getModified)
                     .max(Date::compareTo);
-            long fileLastModified = dataFileStoreService.retrieveFileLastModified(descriptionsFileName);
+            long fileLastModified = dataFileStoreService.retrieveFileLastModified(heroDescriptionsFilePath);
             if (lastRunTime.isPresent() && lastRunTime.get().getTime() >= fileLastModified) {
-                logService.log(taskType, "Hero descriptions finished. Skipped, source file was not modified.");
+                logService.log(taskType, endMsg + " Skipped, source file was not modified.");
                 return CompletableFuture.completedFuture(true);
             }
 
-            File descriptionsFile = dataFileStoreService.retrieveFile(descriptionsFileName);
+            File descriptionsFile = dataFileStoreService.retrieveFile(heroDescriptionsFilePath);
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {
@@ -89,7 +90,7 @@ public class DescriptionsUpdateService {
 
             addDescriptions(heroDescriptions);
 
-            logService.log(taskType, "Hero descriptions finished.");
+            logService.log(taskType, endMsg);
             return CompletableFuture.completedFuture(true);
         } catch (IOException e) {
             logService.log(taskType, "Error updating hero descriptions: " + e.getMessage());
@@ -169,12 +170,27 @@ public class DescriptionsUpdateService {
 
     private void addDescriptions(Map<String, Object> heroDescriptions) {
         List<UpdateQuery> updates = new ArrayList<>();
+        List<String> guids = new ArrayList<>(1000);
+        Map<String, String> guidToDocumentId = new HashMap<>();
+        for (Map.Entry<String, Object> entry : heroDescriptions.entrySet()) {
+            String guid = entry.getKey();
+            guids.add(guid);
+            if (guids.size() == 1000) {
+                Map<String, String> documentIds = elasticService.queryTaxonIds(guids);
+                guidToDocumentId.putAll(documentIds);
+                guids.clear();
+            }
+        }
+        if (!guids.isEmpty()) {
+            Map<String, String> documentIds = elasticService.queryTaxonIds(guids);
+            guidToDocumentId.putAll(documentIds);
+        }
 
         int guidsNotFound = 0;
         for (Map.Entry<String, Object> entry : heroDescriptions.entrySet()) {
             String guid = entry.getKey();
             Object newDescription = entry.getValue();
-            String documentId = elasticService.queryTaxonId(guid);
+            String documentId = guidToDocumentId.get(guid);
 
             if (documentId != null) {
                 buildUpdateQuery(updates, documentId, newDescription);

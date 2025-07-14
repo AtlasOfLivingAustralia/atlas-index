@@ -1,19 +1,15 @@
 # Dashboard integration
 
-## Current state
-Dashboard grails application is gsp pages on top of both static and dynamic data services. The static data is rarely updated.
-
-## Future state
-The data will be generated on a schedule, or trigger, and stored as static files:
+## Details
+The dashboard data is updated on a schedule, or trigger in the admin-ui, and stored as static files:
 - `dashboard.json` to be used by the UI to render the current information.
 - `dashboard.zip` zipped CSV files for each dashboard item.
 - `dashboardI18n.json` is the solution to the UI i18n requirements.
+- `summary.json` is the summary of the dashboard data, used by the ALA home page.
 
-## Progress
-- [x] Create task on a schedule to generate the data.
-- [x] Store the data in the correct location.
-- [x] Add a standalone UI for the dashboard using the current styling.
-- [x] Display the tables.
-- [x] Display the charts.
-- [x] Display the occurrence tree.
-- [x] Add buttons to download the JSON and ZIP files.
+The destination for these files is configured at the `static.filestore.path` parameter of `application.properties`, 
+supports AWS S3 and local paths, and may be the same as the deployed static files so that it overwrites the existing 
+files directly.
+
+## Changes
+- `summary.json` should be made available with the path `/dashboard/homePageStats`, if required.

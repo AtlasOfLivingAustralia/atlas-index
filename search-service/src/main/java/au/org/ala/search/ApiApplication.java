@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 
@@ -42,13 +41,6 @@ public class ApiApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ApiApplication.class, args);
-    }
-
-    @Scheduled(cron = "${task.all.cron}")
-    public void runAllTasks() {
-        if (leadershipStatus.isLeader()) {
-            allService.run();
-        }
     }
 
     // modify firewall for path variables that need to be supported by legacy services

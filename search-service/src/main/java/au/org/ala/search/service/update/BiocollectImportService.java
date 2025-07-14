@@ -137,7 +137,12 @@ public class BiocollectImportService {
 
         Date created;
         try {
-            created = sdf.parse((String) project.get("dateCreated"));
+            String dateCreatedStr = (String) project.get("dateCreated");
+            if (dateCreatedStr == null) {
+                created = current;
+            } else {
+                created = sdf.parse(dateCreatedStr);
+            }
         } catch (Exception e) {
             logService.log(taskType, "failed to parse dateCreated date for " + id);
             return null;

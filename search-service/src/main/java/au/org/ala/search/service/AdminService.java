@@ -54,6 +54,8 @@ public class AdminService {
     private String heroDescriptionsListId;
     @Value("${lists.hero.description.field}")
     private String heroDescriptionsListField;
+
+    // TODO: move override content to the database
     @Value("${data.path.description.override}")
     private String descriptionOverridePath;
 

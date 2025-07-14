@@ -184,9 +184,9 @@ public class DashboardService {
             if (data.data.get("usageStats") != null) {
                 for (TableRow row : data.data.get("usageStats").tables.get(0).getRows()) {
                     if ("recordsDownloaded".equals(row.getName())) {
-                        downloadCount = (Long) row.getValues()[0];
+                        downloadCount = ((Number) row.getValues()[0]).longValue();
                     } else if ("numberOfDownloads".equals(row.getName())) {
-                        eventCount = (Long) row.getValues()[0];
+                        eventCount = ((Number) row.getValues()[0]).longValue();
                     }
                 }
             }
@@ -663,17 +663,19 @@ public class DashboardService {
             LoggerSearch reasons = getLogger(loggerUrl + "/service/reasonBreakdown?eventId=1002");
 
             table.rows.add(new TableRow("recordsDownloaded", null,
-                    new Long[]{reasons.all.records - reasons.all.reasonBreakdown.get("testing").records}));
+                    new Long[]{reasons.all.records - (reasons.all.reasonBreakdown.containsKey("testing") && reasons.all.reasonBreakdown.get("testing") != null ? reasons.all.reasonBreakdown.get("testing").records : 0)}));
             table.rows.add(new TableRow("numberOfDownloads", null,
-                    new Long[]{reasons.all.events - reasons.all.reasonBreakdown.get("testing").events}));
-            table.rows.add(new TableRow("recordsViewed", null,
-                    new Long[]{totals.totals.get("1000").records}));
+                    new Long[]{reasons.all.events - (reasons.all.reasonBreakdown.containsKey("testing") && reasons.all.reasonBreakdown.get("testing") != null ? reasons.all.reasonBreakdown.get("testing").events : 0)}));
+            if (totals.totals.containsKey("1000")) {
+                table.rows.add(new TableRow("recordsViewed", null,
+                        new Long[]{totals.totals.get("1000").records}));
+            }
 
             dashboardData.data.put("usageStats", record);
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update usageStats: " + e.getMessage());
-            logger.error("failed to update usageStats: " + e.getMessage());
+            logger.error("failed to update usageStats: " + e.getMessage() + " at " + (e.getStackTrace().length > 0 ? e.getStackTrace()[0] : "no stack trace"));
             return 1; // 1 error
         }
     }

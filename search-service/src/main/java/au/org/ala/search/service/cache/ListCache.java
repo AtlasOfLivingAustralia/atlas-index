@@ -45,6 +45,7 @@ public class ListCache {
         cacheRefresh();
     }
 
+    // TODO: finish moving to SchedulerService
     @Scheduled(cron = "${list.cache.cron}")
     public void cacheRefresh() {
         try {
@@ -54,9 +55,7 @@ public class ListCache {
                 listNames.put(listId, listName);
             });
         } catch (Exception e) {
-            logger.error("Failed to cache species list names", e.getMessage());
+            logger.error("Failed to cache species list", e.getMessage());
         }
     }
-
-
 }

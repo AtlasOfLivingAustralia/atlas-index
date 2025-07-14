@@ -46,4 +46,23 @@ public class QualityCategoryAdmin {
             }
         }
     }
+
+    public QualityCategory toQualityCategory() {
+        QualityCategory qc = QualityCategory.builder()
+                .id(this.id)
+                .enabled(this.enabled)
+                .name(this.name)
+                .label(this.label)
+                .description(this.description)
+                .displayOrder(this.displayOrder)
+                .inverseFilter(this.inverseFilter)
+                .qualityFilters(new ArrayList<>())
+                .build();
+        if (this.qualityFilters != null) {
+            for (QualityFilterAdmin qualityFilterAdmin : this.qualityFilters) {
+                qc.getQualityFilters().add(qualityFilterAdmin.toQualityFilter());
+            }
+        }
+        return qc;
+    }
 }
