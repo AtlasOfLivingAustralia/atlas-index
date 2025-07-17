@@ -30,7 +30,7 @@ public class MessageQueueConfig {
     public String broadcastExchange;
     @Value("${rabbitmq.exchange.direct}")
     public String directExchange;
-    @Value("${rabbitmq.host}")
+    @Value("${rabbitmq.host:}")
     private String rabbitMqHost;
     @Value("${rabbitmq.port}")
     private String port;
