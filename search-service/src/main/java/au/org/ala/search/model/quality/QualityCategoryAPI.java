@@ -6,19 +6,12 @@
 
 package au.org.ala.search.model.quality;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
-import java.io.Serializable;
 import java.util.List;
 
-@JsonInclude(value= JsonInclude.Include.NON_EMPTY, content= JsonInclude.Include.NON_NULL)
-@SuperBuilder
-@NoArgsConstructor
-@Data
-public class QualityCategory implements Serializable {
+/**
+ * for OpenAPI anntotations
+ */
+public class QualityCategoryAPI {
     Long id;
     boolean enabled;
     String name;
@@ -26,5 +19,5 @@ public class QualityCategory implements Serializable {
     String description;
     Long displayOrder;
     String inverseFilter;
-    List<QualityFilter> qualityFilters;
+    List<QualityFilterAPI> qualityFilters;
 }

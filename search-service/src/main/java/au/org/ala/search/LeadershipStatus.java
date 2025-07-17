@@ -6,8 +6,10 @@
 
 package au.org.ala.search;
 
+import au.org.ala.search.service.queue.LeaderService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
@@ -24,6 +26,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Component
 public class LeadershipStatus {
 
+    private final RabbitListenerEndpointRegistry registry;
+
+    public LeadershipStatus(RabbitListenerEndpointRegistry registry) {
+        this.registry = registry;
+    }
+
     private final AtomicBoolean isLeader = new AtomicBoolean(System.getenv("KUBERNETES_SERVICE_HOST") == null);
 
     @PostConstruct
@@ -34,6 +42,7 @@ public class LeadershipStatus {
 
         log.info("Leadership status: {}", isLeader.get());
     }
+
 
     @EventListener
     public void handleOnGrantedEvent(OnGrantedEvent event) {
@@ -50,6 +59,8 @@ public class LeadershipStatus {
     public void handleOnRevokedEvent(OnRevokedEvent event) {
         isLeader.set(false);
         log.info("Leadership revoked: {}", event.getRole());
+
+        registry.getListenerContainer(LeaderService.LEADER_QUEUE).stop();
     }
 
     public boolean isLeader() {
@@ -61,5 +72,29 @@ public class LeadershipStatus {
 
         // 1. identify and restart any failed tasks
         log.error("Leadership setup goes here");
+
+        // 2. start the leader queue listener
+        new Thread(() -> {
+            int attempts = 0;
+            int delayMs = 100;
+            while (attempts < 300 * 1000 / delayMs) { // 5 minutes
+                attempts++;
+                try {
+                    registry.getListenerContainer(LeaderService.LEADER_QUEUE).start();
+                    log.info("Started leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
+                    return;
+                } catch (Exception e) {
+                    if (attempts % 10 == 0) {
+                        log.info("Failed to start leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
+                    }
+                }
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ignored) {
+
+                }
+            }
+            log.error("Error starting leader queue listener after 5 minutes, giving up");
+        }).start();
     }
 }

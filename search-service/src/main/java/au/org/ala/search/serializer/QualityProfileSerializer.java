@@ -12,8 +12,9 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import au.org.ala.search.util.Views;
 
-// Flattens the QualityProfile object for serialization, including only the necessary fields.
+// Customize Views.Api responses.
 public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
 
     public QualityProfileSerializer() {
@@ -28,15 +29,33 @@ public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
     public void serialize(QualityProfile qp,
                           JsonGenerator jsonGenerator,
                           SerializerProvider serializerProvider) throws IOException {
+        boolean isApi = serializerProvider.getActiveView() == Views.Api.class;
+
         jsonGenerator.writeStartObject();
-        jsonGenerator.writeNumberField("id", qp.getId());
-        jsonGenerator.writeStringField("name", qp.getName());
-        if (qp.getData().getShortName() != null) jsonGenerator.writeStringField("shortName", qp.getData().getShortName());
-        if (qp.getData().getDisplayOrder() != null) jsonGenerator.writeNumberField("displayOrder", qp.getData().getDisplayOrder());
-        if (qp.getData().getDescription() != null) jsonGenerator.writeStringField("description", qp.getData().getDescription());
-        if (qp.getData().getContactName() != null) jsonGenerator.writeStringField("contactName", qp.getData().getContactName());
-        if (qp.getData().getContactEmail() != null) jsonGenerator.writeStringField("contactEmail", qp.getData().getContactEmail());
-        jsonGenerator.writeObjectField("categories", qp.getData().getCategories());
+
+        if (qp.getId() != null) jsonGenerator.writeNumberField("id", qp.getId());
+        if (qp.getShortName() != null) jsonGenerator.writeStringField("shortName", qp.getShortName());
+        if (qp.getName() != null) jsonGenerator.writeStringField("name", qp.getName());
+        if (qp.getDisplayOrder() != null)
+            jsonGenerator.writeNumberField("displayOrder", qp.getDisplayOrder());
+        if (qp.getDescription() != null)
+            jsonGenerator.writeStringField("description", qp.getDescription());
+        if (qp.getContactName() != null)
+            jsonGenerator.writeStringField("contactName", qp.getContactName());
+        if (qp.getContactEmail() != null)
+            jsonGenerator.writeStringField("contactEmail", qp.getContactEmail());
+        if (qp.getCategories() != null)
+            jsonGenerator.writeObjectField("categories", qp.getCategories());
+
+        if (!isApi) {
+            jsonGenerator.writeBooleanField("isDefault", qp.isDefault());
+            jsonGenerator.writeBooleanField("enabled", qp.isEnabled());
+            if (qp.getDateCreated() != null)
+                jsonGenerator.writeStringField("dateCreated", qp.getDateCreated().toString());
+            if (qp.getLastUpdated() != null)
+                jsonGenerator.writeStringField("lastUpdated", qp.getLastUpdated().toString());
+        }
+
         jsonGenerator.writeEndObject();
     }
 }

@@ -24,10 +24,14 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Data Quality service API
+ * - The majority of the methods have caching.
+ * - Only the leader instance can safely write to the database.
+ *
  */
 @Service
 public class DataQualityService {
@@ -41,6 +45,7 @@ public class DataQualityService {
     final private AtomicLong uniqueId = new AtomicLong(1);
     @Getter
     List<QualityProfile> profiles;
+    private CountDownLatch cacheRefreshLatch = new CountDownLatch(0);
 
     public DataQualityService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
         this.dataQualityRepository = dataQualityRepository;
@@ -63,7 +68,7 @@ public class DataQualityService {
             if (profile.getId() != null && profile.getId() > maxId) {
                 maxId = profile.getId();
             }
-            for (QualityCategory category : profile.getData().getCategories()) {
+            for (QualityCategory category : profile.getCategories()) {
                 if (category.getId() != null && category.getId() > maxId) {
                     maxId = category.getId();
                 }
@@ -88,22 +93,33 @@ public class DataQualityService {
         return "-(" + query + ")";
     }
 
-    public void clearCache() {
+    // If expecting a call cacheRefresh(), set the latch to 1 or just return it
+    public synchronized CountDownLatch getCacheRefreshLatch() {
+        if (cacheRefreshLatch.getCount() == 0) {
+            cacheRefreshLatch = new CountDownLatch(1);
+        }
+        return cacheRefreshLatch;
+    }
+
+    public void cacheRefresh() {
         profiles = dataQualityRepository.findAll();
         cacheManager.getCache("qualityProfiles").clear();
+
+        // signal latch
+        cacheRefreshLatch.countDown();
     }
 
     public List<QualityProfile> getProfiles(String shortName, String name, Boolean enabled, Integer max, Integer offset, String sort, String order) {
         List<QualityProfile> list = new ArrayList<>();
 
         for (QualityProfile profile : profiles) {
-            if (StringUtils.isNotBlank(shortName) && !profile.getData().getShortName().equals(shortName)) {
+            if (StringUtils.isNotBlank(shortName) && !profile.getShortName().equals(shortName)) {
                 continue;
             }
             if (StringUtils.isNotBlank(name) && !profile.getName().equals(name)) {
                 continue;
             }
-            if (enabled != null && profile.getData().isEnabled() != enabled) {
+            if (enabled != null && profile.isEnabled() != enabled) {
                 continue;
             }
 
@@ -115,11 +131,11 @@ public class DataQualityService {
             list.sort((a, b) -> {
                 return switch (sort) {
                     case "id" -> a.getId().compareTo(b.getId()) * direction;
-                    case "shortName" -> a.getData().getShortName().compareTo(b.getData().getShortName()) * direction;
+                    case "shortName" -> a.getShortName().compareTo(b.getShortName()) * direction;
                     case "name" -> a.getName().compareTo(b.getName()) * direction;
-                    case "dateCreated" -> a.getData().getDateCreated().compareTo(b.getData().getDateCreated()) * direction;
-                    case "lastUpdated" -> a.getData().getLastUpdated().compareTo(b.getData().getLastUpdated()) * direction;
-                    case "displayOrder" -> a.getData().getDisplayOrder().compareTo(b.getData().getDisplayOrder()) * direction;
+                    case "dateCreated" -> a.getDateCreated().compareTo(b.getDateCreated()) * direction;
+                    case "lastUpdated" -> a.getLastUpdated().compareTo(b.getLastUpdated()) * direction;
+                    case "displayOrder" -> a.getDisplayOrder().compareTo(b.getDisplayOrder()) * direction;
                     default -> 0;
                 };
             });
@@ -134,15 +150,15 @@ public class DataQualityService {
 
     @Cacheable(value = "qualityProfiles", key = "'getProfile_' + #profileId")
     public QualityProfile getProfile(String profileId) {
-        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getData().getShortName().equals(profileId)).findFirst();
+        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
         return profile.orElse(null);
     }
 
     @Cacheable(value = "qualityProfiles", key = "'getCategory_' + #profileId + '_' + #categoryId")
     public QualityCategory getCategory(String profileId, Long categoryId) {
-        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getData().getShortName().equals(profileId)).findFirst();
+        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
         if (profile.isPresent()) {
-            Optional<QualityCategory> category = profile.get().getData().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
+            Optional<QualityCategory> category = profile.get().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
             return category.orElse(null);
         }
         return null;
@@ -150,9 +166,9 @@ public class DataQualityService {
 
     @Cacheable(value = "qualityProfiles", key = "'getFilter_' + #profileId + '_' + #categoryId + '_' + #id")
     public QualityFilter getFilter(String profileId, Long categoryId, Long id) {
-        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getData().getShortName().equals(profileId)).findFirst();
+        Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
         if (profile.isPresent()) {
-            Optional<QualityCategory> category = profile.get().getData().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
+            Optional<QualityCategory> category = profile.get().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
             if (category.isPresent()) {
                 Optional<QualityFilter> filter = category.get().getQualityFilters().stream().filter(it -> it.getId().equals(id)).findFirst();
                 return filter.orElse(null);
@@ -165,11 +181,11 @@ public class DataQualityService {
     public QualityProfile getProfileOrDefault(String profileName) {
         int id = StringUtils.isNumeric(profileName) ? Integer.parseInt(profileName) : 0;
         Optional<QualityProfile> profile = StringUtils.isNotEmpty(profileName) ?
-                profiles.stream().filter(p -> p.getData().getShortName().equals(profileName) || p.getName().equals(profileName) || p.getId() == id).findFirst() :
+                profiles.stream().filter(p -> p.getShortName().equals(profileName) || p.getName().equals(profileName) || p.getId() == id).findFirst() :
                 Optional.empty();
 
         if (profile.isEmpty()) {
-            return profiles.stream().filter(q -> q.getData().isDefault()).findFirst().orElse(null);
+            return profiles.stream().filter(q -> q.isDefault()).findFirst().orElse(null);
         }
         return profile.get();
     }
@@ -181,7 +197,7 @@ public class DataQualityService {
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getData().getCategories().forEach(category -> {
+            profile.getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     List<String> filters = category.getQualityFilters().stream().filter(QualityFilter::isEnabled).map(QualityFilter::getFilter).toList();
                     if (!filters.isEmpty()) {
@@ -201,7 +217,7 @@ public class DataQualityService {
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getData().getCategories().forEach(category -> {
+            profile.getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     category.getQualityFilters().stream().filter(QualityFilter::isEnabled).forEach(it -> set.add(it.getFilter()));
                 }
@@ -218,7 +234,7 @@ public class DataQualityService {
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getData().getCategories().forEach(category -> {
+            profile.getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     List<QualityFilter> filters = category.getQualityFilters().stream().filter(QualityFilter::isEnabled).toList();
                     if (!filters.isEmpty()) {
@@ -238,7 +254,7 @@ public class DataQualityService {
         QualityProfile profile = getProfileOrDefault(profileName);
 
         if (profile != null) {
-            profile.getData().getCategories().forEach(category -> {
+            profile.getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     QualityCategory qc = QualityCategory.builder()
                             .id(category.getId())
@@ -277,7 +293,7 @@ public class DataQualityService {
         List<QualityFilter> filters = new ArrayList<>();
         List<String> inverseFilter = new ArrayList<>();
         profiles.forEach(it -> {
-            it.getData().getCategories().forEach(category -> {
+            it.getCategories().forEach(category -> {
                 if (category.getId().equals(qualityCategoryId)) {
                     if (StringUtils.isNotEmpty(category.getInverseFilter())) {
                         inverseFilter.add(category.getInverseFilter());
@@ -302,7 +318,7 @@ public class DataQualityService {
         QualityProfile profile = getProfileOrDefault(qualityProfileId);
 
         if (profile != null) {
-            profile.getData().getCategories().forEach(category -> {
+            profile.getCategories().forEach(category -> {
                 if (category.isEnabled()) {
                     if (StringUtils.isNotEmpty(category.getInverseFilter())) {
                         result.put(category.getLabel(), category.getInverseFilter());
@@ -325,7 +341,7 @@ public class DataQualityService {
             try {
                 dataQualityRepository.deleteById(profileId);
 
-                clearCache();
+                cacheRefresh();
 
                 exportProfiles();
 
@@ -341,27 +357,27 @@ public class DataQualityService {
     public QualityProfile save(QualityProfile profile) {
         synchronized (editLock) {
             // ensure isDefault:true is unique
-            if (profile.getData().isDefault()) {
+            if (profile.isDefault()) {
                 // remove isDefault from all other profiles
                 profiles.forEach(it -> {
-                    if (it.getData().isDefault() && !it.getId().equals(profile.getId())) {
-                        it.getData().setDefault(false);
+                    if (it.isDefault() && !it.getId().equals(profile.getId())) {
+                        it.setDefault(false);
                         dataQualityRepository.save(it);
                     }
                 });
             } else {
                 // do not remove isDefault from the last profile
-                if (profiles.stream().noneMatch(q -> q.getData().isDefault())) {
-                    profile.getData().setDefault(true);
-                    profile.getData().setEnabled(true); // the default must be enabled
+                if (profiles.stream().noneMatch(q -> q.isDefault())) {
+                    profile.setDefault(true);
+                    profile.setEnabled(true); // the default must be enabled
                 }
             }
 
             // update lastUpdated
-            profile.getData().setLastUpdated(new Date());
+            profile.setLastUpdated(new Date());
 
             // A legacy requirement is that QualityFilter.id and QualityCategory.id are unique, not null and not 0.
-            profile.getData().getCategories().forEach(category -> {
+            profile.getCategories().forEach(category -> {
                 category.getQualityFilters().forEach(filter -> {
                     if (filter.getId() == null || filter.getId() == 0) {
                         filter.setId(nextId());
@@ -378,14 +394,17 @@ public class DataQualityService {
             }
 
             // displayOrder must be present
-            if (profile.getData().getDisplayOrder() == null) {
-                profile.getData().setDisplayOrder((long) profiles.size());
+            if (profile.getDisplayOrder() == null) {
+                profile.setDisplayOrder((long) profiles.size());
             }
+
+            // TODO: validate the shortName is unique and if not, append an incrementing number to it
+
 
             try {
                 QualityProfile savedProfile = dataQualityRepository.save(profile);
 
-                clearCache();
+                cacheRefresh();
 
                 exportProfiles();
 
@@ -401,5 +420,14 @@ public class DataQualityService {
         File tmpFile = File.createTempFile("qualityProfiles", ".json");
         FileUtils.writeStringToFile(tmpFile, new ObjectMapper().writeValueAsString(profiles), "UTF-8");
         staticFileStoreService.copyToFileStore(tmpFile, "dataQuality/profiles.json", true);
+    }
+
+    // fetch the profile by shortName from the database without caching
+    public QualityProfile getProfileNow(String shortName) {
+        List<QualityProfile> list = dataQualityRepository.findAllByShortName(shortName);
+        if (list.isEmpty()) {
+            return null;
+        }
+        return list.get(0);
     }
 }

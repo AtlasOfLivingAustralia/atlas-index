@@ -1,0 +1,169 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+package au.org.ala.search.service.queue;
+
+import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.quality.QualityProfile;
+import au.org.ala.search.service.remote.DataQualityService;
+import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.util.InstanceUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.smile.SmileFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Map;
+
+/**
+ * Service to send and consume messages intended for the leader instance. Supports waiting for message acknowledgments.
+ * <p>
+ * Messages supported:
+ * - TaskType.DATA_QUALITY_SAVE
+ * - TaskType.DATA_QUALITY_DELETE
+ */
+@Slf4j
+@Service
+public class LeaderService {
+    public static final String LEADER_QUEUE = "leader";
+
+    @Getter
+    private static LeaderService instance;
+    protected final LogService logService;
+    private final RabbitTemplate rabbitTemplate;
+    private final DataQualityService dataQualityService;
+    @Value("${rabbitmq.exchange.direct}")
+    private String directExchange;
+    @Value("${rabbitmq.host:}")
+    private String rabbitMqHost;
+
+    ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
+
+    public LeaderService(RabbitTemplate rabbitTemplate, LogService logService, DataQualityService dataQualityService) {
+        this.rabbitTemplate = rabbitTemplate;
+        this.logService = logService;
+
+        instance = this;
+        this.dataQualityService = dataQualityService;
+
+        // Increase the timeout for RPC responses to 30 seconds
+        this.rabbitTemplate.setReplyTimeout(30_000);
+    }
+
+    /**
+     * RPC method to send a message to the leader instance and wait for a response.
+     *
+     * Performance: Respond with an enum value.
+     *
+     * @param message message to send
+     * @return A map containing the response status, e.g. {"status": "ok"} or {"status": "error"} or {"status": "timeout"}
+     */
+    public Map<String, String> sendRpcMessage(TaskType message, Object payload) throws IOException {
+        if (StringUtils.isNotEmpty(rabbitMqHost)) {
+            Map<String, Object> map = Map.of(
+                    "payload", payload,
+                    "message", message.name()
+            );
+
+            byte[] bytes = smileObjectMapper.writeValueAsBytes(map);
+            Object response = rabbitTemplate.convertSendAndReceive(directExchange, LEADER_QUEUE, bytes);
+
+            // convert response from byte[] to Map with smileObjectMapper
+            if (response instanceof byte[] responseBytes) {
+                Map<String, String> responseMap = smileObjectMapper.readValue(responseBytes, Map.class);
+                log.info("Received response from leader: {}", responseMap);
+                return responseMap;
+            } else {
+                log.info("RPC timeout: {}", message.name());
+                return Map.of("status", "timeout");
+            }
+        }
+
+        if (receiveMessage(message.name(), payload)) {
+            return Map.of("status", "ok");
+        } else {
+            return Map.of("status", "error");
+        }
+    }
+
+    public void receiveMessage(byte[] message) {
+        try {
+            Map<String, Object> map = smileObjectMapper.readValue(message, Map.class);
+            String taskTypeName = (String) map.get("message");
+            Object payload = map.get("payload");
+            receiveMessage(taskTypeName, payload);
+        } catch (Exception e) {
+            log.error("Error parsing message: {}", e);
+        }
+    }
+
+    /**
+     * Receive a message from the broadcast queue, or directly if no exchange is configured.
+     *
+     * @param message
+     * @param payload Object compatible with the TaskType's payloadType, or null if not applicable
+     * @return true if the message was processed successfully, false otherwise
+     */
+    public boolean receiveMessage(String message, Object payload) {
+        TaskType taskType;
+
+        // Parse payload to qualityProfile
+        QualityProfile qualityProfile = null;
+        try {
+            taskType = TaskType.valueOf(message);
+            if (taskType.payloadType != null && payload != null) {
+                qualityProfile = smileObjectMapper.convertValue(payload, QualityProfile.class);
+            }
+        } catch (IllegalArgumentException e) {
+            log.error("Unknown message received: {}", message, e);
+            return false;
+        }
+
+        logService.log(taskType, "instance: " + InstanceUtil.getInstanceId());
+        if (message.equals(TaskType.DATA_QUALITY_DELETE.name())) {
+            if (qualityProfile == null || qualityProfile.getId() == null) {
+                log.error("Quality profile ID is required for deletion.");
+                return false;
+            }
+            dataQualityService.delete(qualityProfile.getId());
+        } else if (message.equals(TaskType.DATA_QUALITY_SAVE.name())) {
+            if (qualityProfile == null) {
+                log.error("Quality profile is required for saving.");
+                return false;
+            }
+            QualityProfile qp = dataQualityService.save(qualityProfile);
+            if (qp == null) {
+                return false;
+            }
+        } else {
+            logService.log(taskType, "Unknown broadcast message: " + message);
+            return false;
+        }
+        return true;
+    }
+
+    @RabbitListener(queues = LeaderService.LEADER_QUEUE, id = LeaderService.LEADER_QUEUE, autoStartup = "false")
+    public byte[] handleRpc(byte[] message) throws JsonProcessingException {
+        Map<String, String> response;
+        try {
+            log.debug("Received message on leader queue: {}", message);
+            receiveMessage(message);
+            response = Map.of("status", "ok");
+        } catch (Exception e) {
+            log.error("Error processing message on leader queue: {}", e.getMessage(), e);
+            response = Map.of("status", "error");
+        }
+
+        return smileObjectMapper.writeValueAsBytes(response);
+    }
+}

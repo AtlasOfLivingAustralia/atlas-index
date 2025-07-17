@@ -7,8 +7,10 @@
 package au.org.ala.search;
 
 import au.org.ala.search.service.queue.BroadcastService;
+import au.org.ala.search.service.queue.LeaderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -21,12 +23,15 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @ConditionalOnProperty(name = "rabbitmq.host")
 @Configuration
+@EnableRabbit
 public class MessageQueueConfig {
 
-    @Value("${rabbitmq.exchange}")
-    public String exchange;
+    @Value("${rabbitmq.exchange.broadcast}") // TODO: change the config variable name to align
+    public String broadcastExchange;
+    @Value("${rabbitmq.exchange.direct}")
+    public String directExchange;
     @Value("${rabbitmq.host}")
-    private String host;
+    private String rabbitMqHost;
     @Value("${rabbitmq.port}")
     private String port;
     @Value("${rabbitmq.username}")
@@ -36,7 +41,7 @@ public class MessageQueueConfig {
 
     @Bean
     public FanoutExchange broadcastExchange() {
-        return ExchangeBuilder.fanoutExchange(exchange).durable(true).build();
+        return ExchangeBuilder.fanoutExchange(broadcastExchange).durable(true).build();
     }
 
     @Bean
@@ -45,14 +50,31 @@ public class MessageQueueConfig {
     }
 
     @Bean
-    public Binding binding(Queue broadcastQueue, FanoutExchange broadcastExchange) {
+    public Binding broadcastBinding(Queue broadcastQueue, FanoutExchange broadcastExchange) {
         return BindingBuilder.bind(broadcastQueue).to(broadcastExchange);
+    }
+
+    @Bean
+    public DirectExchange directExchange() {
+        return ExchangeBuilder.directExchange(directExchange).durable(true).build();
+    }
+
+    @Bean
+    public Queue leaderQueue() {
+        return new Queue(LeaderService.LEADER_QUEUE);
+    }
+
+    @Bean
+    public Binding leaderBinding(Queue leaderQueue, DirectExchange directExchange) {
+        return BindingBuilder.bind(leaderQueue)
+                .to(directExchange)
+                .with(LeaderService.LEADER_QUEUE);
     }
 
     @Bean
     public ConnectionFactory connectionFactory() {
         CachingConnectionFactory factory = new CachingConnectionFactory();
-        factory.setHost(host);
+        factory.setHost(rabbitMqHost);
 
         // The port is being set incorrectly somewhere
         try {
@@ -76,9 +98,8 @@ public class MessageQueueConfig {
      */
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
-        log.info("RabbitTemplate for: {}:{}", host, port);
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        return rabbitTemplate;
+        log.info("RabbitTemplate for: {}:{}", rabbitMqHost, port);
+        return new RabbitTemplate(connectionFactory);
     }
 
     @RabbitListener(queues = BroadcastService.BROADCAST_QUEUE)

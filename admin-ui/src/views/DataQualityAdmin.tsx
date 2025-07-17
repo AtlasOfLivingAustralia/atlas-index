@@ -6,6 +6,17 @@ import {useAuth} from 'react-oidc-context';
 import Menu from '../components/menu.tsx';
 import {Breadcrumb} from '@ala/common-ui';
 
+// TODO: prevent saving a profile with the same name and shortName as another profile, best to handle it here as adding
+//  messaging for such error specifics is more difficult.
+// TODO: add UI for communicating that the POST create/update request is in progress and handle each response
+//  status code; 200, 500, 202, 401, and any others, appropriately. e.g. lock screen with slighly transparent overlay
+//  and spinner, and some text and a close button if not successful.
+// TODO: add "loading" indicator on the list tab while fetching or updating the list of profiles
+// TODO: double check delete profile and import profile workflows, might be a random local env issue but did see
+//  - delete profile did not refresh the list of profiles
+//  - upload profile uploaded it twice
+// TODO: reset the fileUpload input after reading the file, so that the same file can be uploaded again if needed
+// TODO: limit shortName, name, contactName, contactEmail fields to 255 characters, and description to 1000 characters
 function DataQualityAdmin({
                               setBreadcrumbs,
                           }: {

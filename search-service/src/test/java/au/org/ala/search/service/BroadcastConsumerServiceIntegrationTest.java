@@ -6,6 +6,7 @@
 
 package au.org.ala.search.service;
 
+import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastService;
@@ -74,9 +75,9 @@ public class BroadcastConsumerServiceIntegrationTest {
 
     @Test
     void testSendAndReceiveCacheReset() throws InterruptedException {
-        broadcastService.sendMessage(BroadcastService.BroadcastMessage.CACHE_RESET);
-        broadcastService.sendMessage(BroadcastService.BroadcastMessage.CACHE_RESET);
-        broadcastService.sendMessage(BroadcastService.BroadcastMessage.CACHE_RESET);
+        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL);
+        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL);
+        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL);
 
         // Wait for the message to be consumed
         Thread.sleep(2000);

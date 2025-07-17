@@ -18,16 +18,12 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
 /**
- * Schema
- *
- * CREATE TABLE dqprofile (
- *     id BIGSERIAL PRIMARY KEY,
- *     name VARCHAR(255) NOT NULL,
- *     data JSONB NOT NULL
- * );
- *
- * CREATE INDEX idx_dqprofile_name ON dqprofile(name);
+ * For schema see resources/flyway/
  */
 @NoArgsConstructor
 @SuperBuilder
@@ -36,16 +32,25 @@ import org.hibernate.type.SqlTypes;
 @JsonSerialize(using = QualityProfileSerializer.class)
 @Entity
 @Table(name = "dqprofile")
-public class QualityProfile {
+public class QualityProfile implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-
     @Column(nullable = false)
-    String name = "";
+    String shortName = "";
+
+    String name;
+    String description;
+    String contactName;
+    String contactEmail;
+    boolean enabled = false;
+    boolean isDefault = false;
+    Long displayOrder = 0L;
+    Date dateCreated = new Date();
+    Date lastUpdated = new Date();
 
     @Type(JsonBinaryType.class)
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
-    QualityProfileData data;
+    List<QualityCategory> categories;
 }

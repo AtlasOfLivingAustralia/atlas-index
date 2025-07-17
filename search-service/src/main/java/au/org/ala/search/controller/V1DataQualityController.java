@@ -9,8 +9,11 @@ package au.org.ala.search.controller;
 import au.org.ala.search.model.quality.QualityCategory;
 import au.org.ala.search.model.quality.QualityFilter;
 import au.org.ala.search.model.quality.QualityProfile;
+import au.org.ala.search.model.quality.QualityProfileAPI;
 import au.org.ala.search.service.remote.DataQualityService;
+import au.org.ala.search.util.Views;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -56,7 +59,7 @@ public class V1DataQualityController {
                             content = {
                                     @Content(
                                             mediaType = "application/json",
-                                            array = @ArraySchema(schema = @Schema(implementation = QualityProfile.class))
+                                            array = @ArraySchema(schema = @Schema(implementation = QualityProfileAPI.class))
                                     )
                             },
                             headers = {
@@ -68,6 +71,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/data-profiles", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityProfile>> profiles(
             @Parameter(
                     name = "max",
@@ -154,6 +158,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/data-profiles/{profileId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<QualityProfile> profile(
             @Parameter(
                     name = "profileId",
@@ -198,6 +203,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/data-profiles/{profileId}/categories/{categoryId}/filters", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityFilter>> qualityFilters(
             @Parameter(
                     name = "profileId",
@@ -250,6 +256,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/data-profiles/{profileId}/categories/{categoryId}/filters/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<QualityFilter> qualityFilter(
             @Parameter(
                     name = "profileId",
@@ -310,6 +317,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/getEnabledFiltersByLabel", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<Map<String, String>> getEnabledFiltersByLabel(
             @Parameter(
                     name = "profileName",
@@ -348,6 +356,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/getEnabledQualityFilters", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<Set<String>> getEnabledQualityFilters(
             @Parameter(
                     name = "profileName",
@@ -386,6 +395,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/getGroupedEnabledFilters", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<LinkedHashMap<String, List<QualityFilter>>> getGroupedEnabledFilters(
             @Parameter(
                     name = "profileName",
@@ -424,6 +434,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/findAllEnabledCategories", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityCategory>> findAllEnabledCategories(
             @Parameter(
                     name = "profileName",
@@ -462,6 +473,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/activeProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<QualityProfile> activeProfile(
             @Parameter(
                     name = "profileName",
@@ -505,6 +517,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/getJoinedQualityFilter", produces = MediaType.TEXT_PLAIN_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<String> getJoinedQualityFilter(
             @Parameter(
                     name = "profileName",
@@ -544,6 +557,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/getInverseCategoryFilter", produces = MediaType.TEXT_PLAIN_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<String> getInverseCategoryFilter(
             @Parameter(
                     name = "qualityCategoryId",
@@ -583,6 +597,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/quality/getAllInverseCategoryFiltersForProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<Map<String, String>> getAllInverseCategoryFiltersForProfile(
             @Parameter(
                     name = "qualityProfileId",
@@ -621,6 +636,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/data-profiles/{profileId}/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityCategory>> categories(
             @Parameter(
                     name = "profileId",
@@ -633,7 +649,7 @@ public class V1DataQualityController {
             @PathVariable String profileId) {
         QualityProfile profile = dataQualityService.getProfile(profileId);
         if (profile != null) {
-            return ResponseEntity.ok().body(profile.getData().getCategories());
+            return ResponseEntity.ok().body(profile.getCategories());
         }
         return ResponseEntity.notFound().build();
     }
@@ -663,6 +679,7 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/data-profiles/{profileId}/categories/{categoryId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
     public ResponseEntity<QualityCategory> category(
             @Parameter(
                     name = "profileId",

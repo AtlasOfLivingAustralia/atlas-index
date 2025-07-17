@@ -9,20 +9,18 @@ package au.org.ala.search.controller;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.model.quality.QualityProfile;
-import au.org.ala.search.model.quality.QualityProfileAdmin;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
-import au.org.ala.search.service.queue.BroadcastService;
-import au.org.ala.search.service.queue.FieldguideConsumerService;
-import au.org.ala.search.service.queue.QueueService;
-import au.org.ala.search.service.queue.SearchConsumerService;
+import au.org.ala.search.service.queue.*;
 import au.org.ala.search.service.remote.DataQualityService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.update.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
@@ -38,8 +36,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static au.org.ala.search.service.queue.BroadcastService.BroadcastMessage.CACHE_RESET;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Admin API
@@ -74,6 +71,7 @@ public class V2AdminController {
     protected final DescriptionsUpdateService descriptionsUpdateService;
     protected final DataQualityService dataQualityService;
     protected final BroadcastService broadcastService;
+    private final LeaderService leaderService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
@@ -87,7 +85,7 @@ public class V2AdminController {
                              QueueService queueService, FieldguideConsumerService fieldguideConsumerService,
                              SearchConsumerService searchConsumerService,
                              DescriptionsUpdateService descriptionsUpdateService,
-                             DataQualityService dataQualityService, BroadcastService broadcastService) {
+                             DataQualityService dataQualityService, BroadcastService broadcastService, LeaderService leaderService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -113,6 +111,7 @@ public class V2AdminController {
         this.descriptionsUpdateService = descriptionsUpdateService;
         this.dataQualityService = dataQualityService;
         this.broadcastService = broadcastService;
+        this.leaderService = leaderService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -154,7 +153,9 @@ public class V2AdminController {
             return ResponseEntity.ok().body("{\"message\": \"cannot queue ALL when any task is in progress\"}");
         }
 
+        boolean notSupported = false;
         switch (type) {
+            // ingestion tasks
             case TaskType.ALL -> allService.run();
             case TaskType.AREA -> areaImportService.run();
             case TaskType.BIOCACHE -> taxonUpdateService.run();
@@ -169,9 +170,21 @@ public class V2AdminController {
             case TaskType.WORDPRESS -> wordpressImportService.run();
             case TaskType.DASHBOARD -> dashboardService.run();
             case TaskType.TAXON_DESCRIPTION -> descriptionsUpdateService.run();
-            case TaskType.CACHE_RESET -> broadcastService.sendMessage(CACHE_RESET);
+
+            // broadcast tasks
+            case TaskType.CACHE_RESET_ALL -> broadcastService.sendMessage(type);
+            case TaskType.CACHE_RESET_COLLECTORY -> broadcastService.sendMessage(type);
+            case TaskType.CACHE_RESET_LISTS -> broadcastService.sendMessage(type);
+            case TaskType.CACHE_RESET_DATA_QUALITY -> broadcastService.sendMessage(type);
+
+            default -> {
+                notSupported = true;
+            }
         }
 
+        if (notSupported) {
+            return ResponseEntity.badRequest().body("{\"message\": \"notSupported task type: " + type + "\"}");
+        }
         return ResponseEntity.ok("{\"message\": \"task queued\"}");
     }
 
@@ -266,7 +279,7 @@ public class V2AdminController {
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
     @GetMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<QualityProfileAdmin>> dqGet(
+    public ResponseEntity<List<QualityProfile>> dqGet(
             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize,
             @RequestParam(name = "q", required = false) String q,
@@ -275,12 +288,16 @@ public class V2AdminController {
             throw new AccessDeniedException("Not authorised");
         }
 
-        List<QualityProfileAdmin> list = dataQualityService.getProfiles().stream().map(QualityProfileAdmin::new).toList();
-
-        return ResponseEntity.ok(list);
+        return ResponseEntity.ok(dataQualityService.getProfiles());
     }
 
-    @Operation(tags = "ADMIN", summary = "Delete a data quality profile")
+    @SneakyThrows
+    @Operation(tags = "ADMIN", summary = "Delete a data quality profile",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Profile deleted successfully"),
+                    @ApiResponse(responseCode = "202", description = "Profile deletion is queued (timeout)"),
+                    @ApiResponse(responseCode = "500", description = "Profile deletion failed")
+            })
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
     @DeleteMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -291,30 +308,63 @@ public class V2AdminController {
             throw new AccessDeniedException("Not authorised");
         }
 
-        if (dataQualityService.delete(id)) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.internalServerError().build();
+        // Check if the profile exists
+        QualityProfile existingProfile = dataQualityService.getProfile(String.valueOf(id));
+        if (existingProfile == null) {
+            return ResponseEntity.notFound().build();
         }
+
+        // A basic wait for the cache to be cleared after the deletion
+        CountDownLatch latch = dataQualityService.getCacheRefreshLatch();
+        Map<String, String> response = leaderService.sendRpcMessage(TaskType.DATA_QUALITY_DELETE, QualityProfile.builder().id(id).build());
+        if (response == null || response.get("status").equals("error")) {
+            return ResponseEntity.status(500).body("{\"message\": \"Profile deletion failed\"}");
+        } else if (response.get("status").equals("timeout")) {
+            return ResponseEntity.status(202).body("{\"message\": \"Profile deletion is queued (timeout)\"}");
+        }
+
+        // Wait for max 5 seconds for the cache to be cleared after a successful deletion. Otherwise it probably failed.
+        latch.await(5000, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+        // Check if the profile was deleted
+        QualityProfile profile = dataQualityService.getProfileNow(existingProfile.getShortName());
+        if (profile != null) {
+            return ResponseEntity.status(500).body("{\"message\": \"Profile deletion failed\"}");
+        }
+
+        return ResponseEntity.ok("{\"message\": \"Profile deleted successfully\"}");
     }
 
-    @Operation(tags = "ADMIN", summary = "Add or update a data quality profile")
+    @SneakyThrows
+    @Operation(tags = "ADMIN", summary = "Create or update a data quality profile",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Profile saved/created successfully"),
+                    @ApiResponse(responseCode = "202", description = "Profile save/creation is queued (timeout)"),
+                    @ApiResponse(responseCode = "500", description = "Profile save/creation failed")
+            })
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
     @PostMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<QualityProfileAdmin> dqPost(
-            @RequestBody QualityProfileAdmin profile,
+    public ResponseEntity<QualityProfile> dqPost(
+            @RequestBody QualityProfile profile,
             @AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
 
-        QualityProfile savedProfile = dataQualityService.save(profile.toQualityProfile());
-
-        if (savedProfile != null) {
-            return ResponseEntity.ok(new QualityProfileAdmin(savedProfile));
-        } else {
-            return ResponseEntity.internalServerError().build();
+        Map<String, String> response = leaderService.sendRpcMessage(TaskType.DATA_QUALITY_SAVE, profile);
+        if (response == null || response.get("status").equals("error")) {
+            return ResponseEntity.status(500).build();
+        } else if (response.get("status").equals("timeout")) {
+            return ResponseEntity.status(202).build();
         }
+
+        // unlike the delete API this create/update API does not need to wait for the cache to be cleared
+        QualityProfile newProfile = dataQualityService.getProfileNow(profile.getShortName());
+        if (newProfile == null) {
+            return ResponseEntity.status(500).build();
+        }
+
+        return ResponseEntity.ok(newProfile);
     }
 }

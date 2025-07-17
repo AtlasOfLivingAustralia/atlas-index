@@ -6,18 +6,8 @@
 
 package au.org.ala.search.model.quality;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
-import java.io.Serializable;
-
-@JsonInclude(value= JsonInclude.Include.NON_EMPTY, content= JsonInclude.Include.NON_NULL)
-@SuperBuilder
-@NoArgsConstructor
-@Data
-public class QualityFilter implements Serializable {
+// for OpenAPI anntotations
+public class QualityFilterAPI {
     Long id;
     boolean enabled;
     String description;
