@@ -51,9 +51,9 @@ public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
             jsonGenerator.writeBooleanField("isDefault", qp.isDefault());
             jsonGenerator.writeBooleanField("enabled", qp.isEnabled());
             if (qp.getDateCreated() != null)
-                jsonGenerator.writeStringField("dateCreated", qp.getDateCreated().toString());
+                jsonGenerator.writeNumberField("dateCreated", qp.getDateCreated().getTime());
             if (qp.getLastUpdated() != null)
-                jsonGenerator.writeStringField("lastUpdated", qp.getLastUpdated().toString());
+                jsonGenerator.writeNumberField("lastUpdated", qp.getLastUpdated().getTime());
         }
 
         jsonGenerator.writeEndObject();

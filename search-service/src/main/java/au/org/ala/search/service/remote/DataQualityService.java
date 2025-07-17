@@ -398,8 +398,11 @@ public class DataQualityService {
                 profile.setDisplayOrder((long) profiles.size());
             }
 
-            // TODO: validate the shortName is unique and if not, append an incrementing number to it
-
+            QualityProfile duplicate = profiles.stream().filter(it -> it.getShortName().equals(profile.getShortName())).findFirst().orElse(null);
+            if (duplicate != null && !duplicate.getId().equals(profile.getId())) {
+                logger.error("Profile with shortName {} already exists", profile.getShortName());
+                return null;
+            }
 
             try {
                 QualityProfile savedProfile = dataQualityRepository.save(profile);

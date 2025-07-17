@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 
 /**
@@ -58,6 +59,9 @@ public class LeaderService {
 
         // Increase the timeout for RPC responses to 30 seconds
         this.rabbitTemplate.setReplyTimeout(30_000);
+
+        SimpleDateFormat customDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+        smileObjectMapper.setDateFormat(customDateFormat);
     }
 
     /**
@@ -96,15 +100,16 @@ public class LeaderService {
         }
     }
 
-    public void receiveMessage(byte[] message) {
+    public boolean receiveMessage(byte[] message) {
         try {
             Map<String, Object> map = smileObjectMapper.readValue(message, Map.class);
             String taskTypeName = (String) map.get("message");
             Object payload = map.get("payload");
-            receiveMessage(taskTypeName, payload);
+            return receiveMessage(taskTypeName, payload);
         } catch (Exception e) {
             log.error("Error parsing message: {}", e);
         }
+        return false;
     }
 
     /**
@@ -157,8 +162,8 @@ public class LeaderService {
         Map<String, String> response;
         try {
             log.debug("Received message on leader queue: {}", message);
-            receiveMessage(message);
-            response = Map.of("status", "ok");
+            boolean successful = receiveMessage(message);
+            response = Map.of("status", successful ? "ok" : "error");
         } catch (Exception e) {
             log.error("Error processing message on leader queue: {}", e.getMessage(), e);
             response = Map.of("status", "error");

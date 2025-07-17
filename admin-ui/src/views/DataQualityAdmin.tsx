@@ -6,17 +6,6 @@ import {useAuth} from 'react-oidc-context';
 import Menu from '../components/menu.tsx';
 import {Breadcrumb} from '@ala/common-ui';
 
-// TODO: prevent saving a profile with the same name and shortName as another profile, best to handle it here as adding
-//  messaging for such error specifics is more difficult.
-// TODO: add UI for communicating that the POST create/update request is in progress and handle each response
-//  status code; 200, 500, 202, 401, and any others, appropriately. e.g. lock screen with slighly transparent overlay
-//  and spinner, and some text and a close button if not successful.
-// TODO: add "loading" indicator on the list tab while fetching or updating the list of profiles
-// TODO: double check delete profile and import profile workflows, might be a random local env issue but did see
-//  - delete profile did not refresh the list of profiles
-//  - upload profile uploaded it twice
-// TODO: reset the fileUpload input after reading the file, so that the same file can be uploaded again if needed
-// TODO: limit shortName, name, contactName, contactEmail fields to 255 characters, and description to 1000 characters
 function DataQualityAdmin({
                               setBreadcrumbs,
                           }: {
@@ -25,9 +14,11 @@ function DataQualityAdmin({
     const [profiles, setProfiles] = useState<QualityProfile[]>([]);
     const [profile, setProfile] = useState<QualityProfile>();
     const [tab, setTab] = useState('profiles');
-    const [_, setSaving] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const uploadFile = useRef(null);
+    const uploadFile = useRef<HTMLInputElement>(null);
     const auth = useAuth();
 
     const isAdmin =
@@ -47,37 +38,55 @@ function DataQualityAdmin({
     }, [auth]);
 
     function fetchProfiles() {
+        setLoading(true);
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
             },
         }).then((response) => {
-            if (response.ok) {
+            if (response.status === 200) {
                 response.json().then((json) => {
                     setProfiles(json);
-                    setSaving(false);
+                    setError(null);
                 });
+            } else if (response.status === 401) {
+                setError("Unauthorized. Please log in.");
+            } else if (response.status === 500) {
+                setError(`Request failed, server error`);
             } else {
-                setSaving(false);
+                setError(`Unexpected status: ${response.status}`);
             }
+        }).finally(() => {
+            setLoading(false);
         });
     }
 
     function readFile(e: any) {
-        var file = e.target.files[0];
+        let file = e.target.files[0];
         if (!file) {
             return;
         }
-        var reader = new FileReader();
+        let reader = new FileReader();
         reader.onload = function (e: any) {
-            var contents = e.target.result;
-            save(JSON.parse(contents));
+            let contents = e.target.result;
+            let profile: QualityProfile = JSON.parse(contents);
+
+            // there should be no id field in the profile when creating a new profile, but remove it just in case
+            delete (profile as any).id;
+
+            save(profile);
         };
         reader.readAsText(file);
     }
 
     function save(profile: QualityProfile) {
+        // double check that the shortName is unique
+        if (profiles.some(p => p.shortName === profile.shortName && p.id !== profile.id)) {
+            setError(`Profile with short name "${profile.shortName}" already exists.`);
+            return;
+        }
+
         setSaving(true);
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
             method: 'POST',
@@ -86,20 +95,46 @@ function DataQualityAdmin({
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(profile),
-        }).then(() => {
-            // reload all profiles
-            fetchProfiles();
+        }).then((response) => {
+            if (response.status === 200) {
+                // reload all profiles
+                fetchProfiles();
 
-            // reset to list view
-            setTab('profiles');
+                // reset to list view
+                setTab('profiles');
 
-            // clear the profile
-            setProfile(undefined);
-        });
+                // clear the profile
+                setProfile(undefined);
+            } else if (response.status === 202) {
+                setError("Request accepted but not yet processed.");
+            } else if (response.status === 401) {
+                setError("Unauthorized. Please log in.");
+            } else if (response.status === 500) {
+                setError("Request failed, server error.");
+            } else {
+                setError(`Unexpected status: ${response.status}`);
+            }
+        }).finally(() => {
+            setSaving(false);
+        })
     }
 
     function downloadProfile(profile: QualityProfile) {
-        const data = JSON.stringify(profile, null, 2);
+        // remove id fields from the profile
+        var tmpProfile = JSON.parse(JSON.stringify(profile));
+        delete tmpProfile.id;
+        if (tmpProfile.categories) {
+            for (const category of tmpProfile.categories) {
+                delete category.id;
+                if (category.qualityFilters) {
+                    for (const qualityFilter of category.qualityFilters) {
+                        delete qualityFilter.id;
+                    }
+                }
+            }
+        }
+
+        const data = JSON.stringify(tmpProfile, null, 2);
         const blob = new Blob([data], {
             type: 'application/json;charset=utf-8',
         });
@@ -148,148 +183,194 @@ function DataQualityAdmin({
         if (!window.confirm(`Are you sure you want to delete the profile ${profileItem.shortName}?`)) {
             return;
         }
+        setSaving(true);
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq?id=' + profileItem.id, {
                 method: 'DELETE',
                 headers: {Authorization: 'Bearer ' + auth.user?.access_token}
             }
         ).then((response) => {
-            if (response.ok) {
+            console.log(response);
+            if (response.status === 200) {
                 fetchProfiles();
+            } else if (response.status === 202) {
+                setError("Request accepted but not yet processed.");
+            } else if (response.status === 401) {
+                setError("Unauthorized. Please log in.");
+            } else if (response.status === 500) {
+                setError("Request failed, server error.");
+            } else {
+                setError(`Unexpected status: ${response.status}`);
             }
-        });
+        }).finally(() => {
+            setSaving(false);
+        })
     }
 
     return (
-        <div className="d-flex w-100">
-            <Menu/>
-            <div className={'flex-grow-1 p-3'}>
-                {!isAdmin && (
-                    <p>
-                        User {auth.user?.profile?.name} is not authorised to
-                        access these tools.
-                    </p>
-                )}
-                {isAdmin && <>
-                    <p>
-                        Create, edit, import, download, delete data quality
-                        profiles.
-                    </p>
-                    <Tabs
-                        id="data-quality-tabs"
-                        activeKey={tab}
-                        onSelect={(k) => setTab('' + k)}
-                    >
-                        <Tab eventKey="profiles" title="List">
-                            <br/>
-                            <input
-                                type="file"
-                                ref={uploadFile}
-                                style={{display: 'none'}}
-                                onChange={(e) => readFile(e)}
-                            />
-                            <button
-                                className="btn border-black"
-                                onClick={() => addProfile()}
-                            >
-                                Add profile
-                            </button>
-                            <button
-                                className="btn border-black ms-1"
-                                onClick={() => clickUpload()}
-                            >
-                                Import a profile
-                            </button>
-                            <br/>
-                            <br/>
+        <>
+            {(loading || saving || error) &&
+                <div
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                    style={{background: 'rgba(0,0,0,0.8)', zIndex: 9999}}
+                >
+                    <div
+                        className="bg-white rounded-4 p-4 shadow d-flex flex-column align-items-center justify-content-center min-vw-25"
+                        style={{maxWidth: '90vw'}}>
 
-                            <table className="table table-bordered">
-                                <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Name</th>
-                                    <th>short-name</th>
-                                    <th>enabled</th>
-                                    <th></th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {profiles && profiles.slice().sort((a, b) => a.id - b.id).map((profileItem, idx) => (
-                                    <tr key={idx}>
-                                        <td>{profileItem.id}</td>
-                                        <td className="text-reset">
-                                            {profileItem.name}
-                                        </td>
-                                        <td>
-                                            {profileItem.shortName}
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="checkbox"
-                                                defaultChecked={profileItem.enabled}
-                                                disabled={profileItem.isDefault}
-                                                onChange={() => {
-                                                    profileItem.enabled = !profileItem.enabled;
-                                                    save(profileItem);
-                                                }}
-                                            />
-                                        </td>
-                                        <td>
-                                            <div className="d-flex">
-                                                <button
-                                                    className="btn btn-secondary border-black ms-1"
-                                                    onClick={() => {
-                                                        profileItem.isDefault = true;
+                        <h2 style={{textAlign: 'center'}}>{loading ? "loading..." : (saving ? "saving..." : "Error")}</h2>
+                        {error &&
+                            <>
+                                <p style={{textAlign: 'center'}}>{error}</p>
+                                <button className="btn btn-secondary" onClick={() => {
+                                    setError(null);
+                                    fetchProfiles();
+                                }}>Close
+                                </button>
+                            </>
+                        }
+                    </div>
+                </div>
+            }
+            <div className="d-flex w-100">
+                <Menu/>
+                <div className={'flex-grow-1 p-3'}>
+                    {!isAdmin && (
+                        <p>
+                            User {auth.user?.profile?.name} is not authorised to
+                            access these tools.
+                        </p>
+                    )}
+                    {isAdmin && <>
+                        <p>
+                            Create, edit, import, download, delete data quality
+                            profiles.
+                        </p>
+                        <Tabs
+                            id="data-quality-tabs"
+                            activeKey={tab}
+                            onSelect={(k) => setTab('' + k)}
+                        >
+                            <Tab eventKey="profiles" title="List">
+                                <br/>
+                                <input
+                                    type="file"
+                                    ref={uploadFile}
+                                    style={{display: 'none'}}
+                                    onChange={(e) => {
+                                        readFile(e);
+                                        if (uploadFile.current instanceof HTMLInputElement) {
+                                            uploadFile.current.value = '';
+                                        }
+                                    }}
+                                />
+                                <button
+                                    className="btn border-black"
+                                    onClick={() => addProfile()}
+                                >
+                                    Add profile
+                                </button>
+                                <button
+                                    className="btn border-black ms-1"
+                                    onClick={() => clickUpload()}
+                                >
+                                    Import a profile
+                                </button>
+                                <br/>
+                                <br/>
+
+                                <table className="table table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Name</th>
+                                        <th>short-name</th>
+                                        <th>enabled</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {profiles && profiles.slice().sort((a, b) => a.id - b.id).map((profileItem, idx) => (
+                                        <tr key={idx}>
+                                            <td>{profileItem.id}</td>
+                                            <td className="text-reset">
+                                                {profileItem.name}
+                                            </td>
+                                            <td>
+                                                {profileItem.shortName}
+                                            </td>
+                                            <td>
+                                                <input
+                                                    type="checkbox"
+                                                    defaultChecked={profileItem.enabled}
+                                                    disabled={profileItem.isDefault}
+                                                    onChange={() => {
+                                                        profileItem.enabled = !profileItem.enabled;
                                                         save(profileItem);
                                                     }}
-                                                    disabled={profileItem.isDefault || !profileItem.enabled}
-                                                    style={{ backgroundColor: profileItem.isDefault ? '#c7254e' : '' }}
-                                                >Default</button>
-                                                <button
-                                                    className="btn btn-secondary border-black ms-1"
-                                                    onClick={() => deleteProfile(profileItem)}
-                                                    disabled={profileItem.isDefault}
-                                                >Delete</button>
-                                                <button
-                                                    className="btn btn-secondary border-black ms-1"
-                                                    onClick={() => downloadProfile(profileItem)}>
-                                                    Download</button>
-                                                <button
-                                                    className="btn btn-secondary border-black ms-1"
-                                                    onClick={() => {
-                                                        setProfile(profileItem);
-                                                        setTab('profile');
-                                                    }}>Edit</button>
-                                            </div>
-                                            <br/>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </Tab>
-                        <Tab eventKey="profile" title="Edit Profile">
-                            {profile && (
-                                <>
-                                    <QualityProfileItem
-                                        profile={profile}
-                                        updateProfile={updateProfile}
-                                        save={save}
-                                    />
-                                </>
-                            )}
-                            {!profile && (
-                                <div style={{marginTop: '30px'}}>
-                                    On the "List" tab, click an "Edit"
-                                    button beside a profile to begin
-                                    editing.
-                                </div>
-                            )}
-                        </Tab>
-                    </Tabs>
-                </>
-                }
+                                                />
+                                            </td>
+                                            <td>
+                                                <div className="d-flex">
+                                                    <button
+                                                        className="btn btn-secondary border-black ms-1"
+                                                        onClick={() => {
+                                                            profileItem.isDefault = true;
+                                                            save(profileItem);
+                                                        }}
+                                                        disabled={profileItem.isDefault || !profileItem.enabled}
+                                                        style={{backgroundColor: profileItem.isDefault ? '#c7254e' : ''}}
+                                                    >Default
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary border-black ms-1"
+                                                        onClick={() => deleteProfile(profileItem)}
+                                                        disabled={profileItem.isDefault}
+                                                    >Delete
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary border-black ms-1"
+                                                        onClick={() => downloadProfile(profileItem)}>
+                                                        Download
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-secondary border-black ms-1"
+                                                        onClick={() => {
+                                                            setProfile(profileItem);
+                                                            setTab('profile');
+                                                        }}>Edit
+                                                    </button>
+                                                </div>
+                                                <br/>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </Tab>
+                            <Tab eventKey="profile" title="Edit Profile">
+                                {profile && (
+                                    <>
+                                        <QualityProfileItem
+                                            profile={profile}
+                                            updateProfile={updateProfile}
+                                            save={save}
+                                        />
+                                    </>
+                                )}
+                                {!profile && (
+                                    <div style={{marginTop: '30px'}}>
+                                        On the "List" tab, click an "Edit"
+                                        button beside a profile to begin
+                                        editing.
+                                    </div>
+                                )}
+                            </Tab>
+                        </Tabs>
+                    </>
+                    }
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 

@@ -115,6 +115,7 @@ function QualityProfileItem(props: {
                                 value={profile.name}
                                 className="w-50"
                                 onChange={(e) => updateName(e.target.value)}
+                                maxLength={255}
                             />
                         </td>
                     </tr>
@@ -126,6 +127,7 @@ function QualityProfileItem(props: {
                                 value={profile.shortName}
                                 className="w-50"
                                 onChange={(e) => updateShortName(e.target.value)}
+                                maxLength={255}
                             />
                         </td>
                     </tr>
@@ -137,6 +139,7 @@ function QualityProfileItem(props: {
                             rows={3}
                             cols={50}
                             onChange={(e) => updateDescription(e.target.value)}
+                            maxLength={1000}
                         ></textarea>
                         </td>
                     </tr>
@@ -148,6 +151,7 @@ function QualityProfileItem(props: {
                                 value={profile.contactName}
                                 className="w-50"
                                 onChange={(e) => updateContactName(e.target.value)}
+                                maxLength={255}
                             />
                         </td>
                     </tr>
@@ -159,6 +163,7 @@ function QualityProfileItem(props: {
                                 value={profile.contactEmail}
                                 className="w-50"
                                 onChange={(e) => updateContactEmail(e.target.value)}
+                                maxLength={255}
                             />
                         </td>
                     </tr>
