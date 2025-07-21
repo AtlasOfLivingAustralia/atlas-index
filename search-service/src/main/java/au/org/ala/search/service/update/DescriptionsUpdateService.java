@@ -19,8 +19,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -35,10 +34,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class DescriptionsUpdateService {
     private static final TaskType taskType = TaskType.TAXON_DESCRIPTION;
-    private static final Logger logger = LoggerFactory.getLogger(DescriptionsUpdateService.class);
+
     private static final int batchSize = 10000;
     private final ElasticService elasticService;
     private final LogService logService;
@@ -153,13 +153,13 @@ public class DescriptionsUpdateService {
                 elasticService.update(updates);
             }
         } catch (Exception e) {
-            logger.error("Failed to fetch current documents from Elasticsearch", e);
+            log.error("Failed to fetch current documents from Elasticsearch", e);
         } finally {
             if (pit != null) {
                 try {
                     elasticService.closePointInTime(pit);
                 } catch (Exception e) {
-                    logger.error("Failed to close point in time", e);
+                    log.error("Failed to close point in time", e);
                 }
             }
         }

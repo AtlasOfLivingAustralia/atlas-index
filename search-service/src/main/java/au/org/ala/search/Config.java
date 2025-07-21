@@ -7,9 +7,8 @@
 package au.org.ala.search;
 
 import au.org.ala.search.model.SearchItemIndex;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +23,9 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.Field;
 import java.util.*;
 
+@Slf4j
 @Configuration
 public class Config extends ElasticsearchConfiguration {
-    private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
     @Value("${elastic.host}")
     private String elasticHost;
@@ -111,7 +110,7 @@ public class Config extends ElasticsearchConfiguration {
 
                     f.set(target, obj);
                 } catch (Exception ignored) {
-                    logger.error("Failed to set field: " + f.getName());
+                    log.error("Failed to set field: {}", f.getName());
                 }
             }
 
@@ -157,7 +156,7 @@ public class Config extends ElasticsearchConfiguration {
                 } catch (NoSuchFieldException | IllegalAccessException e) {
                     // This error can be thrown when a field was added to elasticsearch but was not yet added to the
                     // model SearchItemIndex.
-                    logger.warn("Failed to set field: " + key.getKey());
+                    log.warn("Failed to set field: {}", key.getKey());
                 }
             }
 

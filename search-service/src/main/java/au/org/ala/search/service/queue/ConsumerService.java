@@ -11,8 +11,7 @@ import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.LogService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -32,9 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * super.init(numberOfThreads);
  * }
  */
+@Slf4j
 @Service
 public abstract class ConsumerService {
-    private static final Logger logger = LoggerFactory.getLogger(ConsumerService.class);
+
     protected final QueueService queueService;
     protected final LogService logService;
     protected final JavaMailSender emailSender;
@@ -55,7 +55,7 @@ public abstract class ConsumerService {
     }
 
     void init(int consumerThreads) {
-        logger.info(taskType.name().toLowerCase() + ".consumer.threads: " + consumerThreads);
+        log.info("{}.consumer.threads: {}", taskType.name().toLowerCase(), consumerThreads);
         this.consumerThreads = consumerThreads;
         if (consumerThreads > 0) {
             for (int i = 0; i < consumerThreads; i++) {
@@ -108,11 +108,11 @@ public abstract class ConsumerService {
                     // when doing a clean shutdown, add it back to the queue
                     queueService.updateStatus(item, StatusCode.QUEUED, "interrupted");
 
-                    logger.warn("(interrupted) added " + taskType.name().toLowerCase() + " back to the queue: " + item.id);
+                    log.warn("(interrupted) added {} back to the queue: {}", taskType.name().toLowerCase(), item.id);
                 } catch (Exception e) {
                     queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
 
-                    logger.error("Error processing " + taskType.name().toLowerCase(), e);
+                    log.error("Error processing {}", taskType.name().toLowerCase(), e);
                 }
                 if (item != null) {
                     activeItems.remove(item.id);

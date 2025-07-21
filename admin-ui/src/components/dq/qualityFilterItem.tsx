@@ -2,8 +2,8 @@ import { QualityFilter } from '../../api/sources/model.ts';
 import { useEffect, useState } from 'react';
 
 function QualityFilterItem(props: {
-    filter: QualityFilter;
-    parentFilter: QualityFilter | undefined;
+    filter: QualityFilter; // clone of the filter to avoid modifying the original object directly
+    actualFilter: QualityFilter | undefined; // actual filter item that is being edited
     resetInverseFilter: () => void;
     setProfileDirty: (dirty: boolean) => void;
     deleteFilterItem: (id: number) => void;
@@ -20,8 +20,8 @@ function QualityFilterItem(props: {
         setFilterItem({ ...filterItem });
 
         // update parent
-        if (props.parentFilter) {
-            props.parentFilter.enabled = enabled;
+        if (props.actualFilter) {
+            props.actualFilter.enabled = enabled;
             props.setProfileDirty(true);
         }
 
@@ -35,8 +35,8 @@ function QualityFilterItem(props: {
         setFilterItem({ ...filterItem });
 
         // update parent
-        if (props.parentFilter) {
-            props.parentFilter.filter = filter;
+        if (props.actualFilter) {
+            props.actualFilter.filter = filter;
             props.setProfileDirty(true);
         }
 
@@ -50,8 +50,8 @@ function QualityFilterItem(props: {
         setFilterItem({ ...filterItem });
 
         // update parent
-        if (props.parentFilter) {
-            props.parentFilter.description = description;
+        if (props.actualFilter) {
+            props.actualFilter.description = description;
             props.setProfileDirty(true);
         }
     }
@@ -62,8 +62,8 @@ function QualityFilterItem(props: {
         setFilterItem({ ...filterItem });
 
         // update parent
-        if (props.parentFilter) {
-            props.parentFilter.inverseFilter = inverseFilter;
+        if (props.actualFilter) {
+            props.actualFilter.inverseFilter = inverseFilter;
             props.setProfileDirty(true);
         }
 

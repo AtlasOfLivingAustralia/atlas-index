@@ -29,11 +29,10 @@ import au.org.ala.search.util.QueryParserUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.scheduling.annotation.Async;
@@ -49,10 +48,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@Slf4j
 @Service
 public class DashboardService {
     private static final TaskType taskType = TaskType.DASHBOARD;
-    private static final Logger logger = LoggerFactory.getLogger(DashboardService.class);
 
     private final LogService logService;
     private final StaticFileStoreService staticFileStoreService;
@@ -129,7 +128,7 @@ public class DashboardService {
             logService.log(taskType, "Finished, errors: " + errorCount);
         } catch (IOException e) {
             logService.log(taskType, "Failed to save: " + dataDir + "/dashboard.json, errors:" + (errorCount + 1));
-            logger.error("failed to save: " + dataDir + "/dashboard.json");
+            log.error("failed to save: {}/dashboard.json", dataDir);
         }
 
         return CompletableFuture.completedFuture(true);
@@ -142,7 +141,7 @@ public class DashboardService {
                 return objectMapper.readValue(IOUtils.toString(file.toURI(), StandardCharsets.UTF_8), DashboardData.class);
             } catch (IOException e) {
                 logService.log(taskType, "cannot read: " + dataDir + "/dashboard.json");
-                logger.error("cannot read: " + dataDir + "/dashboard.json");
+                log.error("cannot read: {}/dashboard.json", dataDir);
             }
         }
 
@@ -206,7 +205,7 @@ public class DashboardService {
             staticFileStoreService.copyToFileStore(new File(dataDir + "/summary.json"), "dashboard/summary.json", false);
         } catch (Exception e) {
             logService.log(taskType, "Failed to save summary.json: " + e.getMessage());
-            logger.error("Failed to save summary.json: " + e.getMessage(), e);
+            log.error("Failed to save summary.json: {}", e.getMessage(), e);
         }
 
         // save csv files
@@ -362,7 +361,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update occurrenceCount: " + e.getMessage());
-            logger.error("failed to update occurrenceCount: " + e.getMessage());
+            log.error("failed to update kingdoms: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -382,7 +381,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update occurrenceCount: " + e.getMessage());
-            logger.error("failed to update occurrenceCount: " + e.getMessage());
+            log.error("failed to update occurrenceCount: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -412,7 +411,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update basisOfRecord: " + e.getMessage());
-            logger.error("failed to update basisOfRecord: " + e.getMessage());
+            log.error("failed to update basisOfRecord: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -466,7 +465,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update datasets: " + e.getMessage());
-            logger.error("failed to update datasets: " + e.getMessage());
+            log.error("failed to update datasets: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -505,7 +504,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update bhl: " + e.getMessage());
-            logger.error("failed to update bhl: " + e.getMessage());
+            log.error("failed to update bhl: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -546,7 +545,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update digivol: " + e.getMessage());
-            logger.error("failed to update digivol: " + e.getMessage());
+            log.error("failed to update digivol: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -612,7 +611,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update recordsByDate: " + e.getMessage());
-            logger.error("failed to update recordsByDate: " + e.getMessage());
+            log.error("failed to update recordsByDate: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -640,7 +639,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update nationalSpeciesLists: " + e.getMessage());
-            logger.error("failed to update nationalSpeciesLists: " + e.getMessage());
+            log.error("failed to update nationalSpeciesLists: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -675,7 +674,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update usageStats: " + e.getMessage());
-            logger.error("failed to update usageStats: " + e.getMessage() + " at " + (e.getStackTrace().length > 0 ? e.getStackTrace()[0] : "no stack trace"));
+            log.error("failed to update usageStats: {} at {}", e.getMessage(), e.getStackTrace().length > 0 ? e.getStackTrace()[0] : "no stack trace");
             return 1; // 1 error
         }
     }
@@ -709,7 +708,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update emailDownloads: " + e.getMessage());
-            logger.error("failed to update emailDownloads: " + e.getMessage());
+            log.error("failed to update emailDownloads: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -747,7 +746,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update reasonDownloads: " + e.getMessage());
-            logger.error("failed to update reasonDownloads: " + e.getMessage());
+            log.error("failed to update reasonDownloads: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -786,7 +785,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update specimenTypes: " + e.getMessage());
-            logger.error("failed to update specimenTypes: " + e.getMessage());
+            log.error("failed to update specimenTypes: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -817,7 +816,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update conservation: " + e.getMessage());
-            logger.error("failed to update conservation: " + e.getMessage());
+            log.error("failed to update conservation: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -863,7 +862,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update " + facet + ": " + e.getMessage());
-            logger.error("failed to update " + facet + ": " + e.getMessage());
+            log.error("failed to update " + facet + ": " + e.getMessage());
             return 1; // 1 error
         }
     }
@@ -915,7 +914,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update states: " + e.getMessage());
-            logger.error("failed to update states: " + e.getMessage());
+            log.error("failed to update states: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -957,7 +956,7 @@ public class DashboardService {
             return 0;
         } catch (IOException e) {
             logService.log(taskType, "failed to update speciesTable: " + e.getMessage());
-            logger.error("failed to update speciesTable: " + e.getMessage());
+            log.error("failed to update speciesTable: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -986,7 +985,7 @@ public class DashboardService {
             return errorCount;
         } catch (Exception e) {
             logService.log(taskType, "failed to update species: " + e.getMessage());
-            logger.error("failed to update species: " + e.getMessage());
+            log.error("failed to update species: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -1047,7 +1046,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update spatialLayers: " + e.getMessage());
-            logger.error("failed to update spatialLayers: " + e.getMessage());
+            log.error("failed to update spatialLayers: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -1079,7 +1078,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update image: " + e.getMessage());
-            logger.error("failed to update image: " + e.getMessage());
+            log.error("failed to update image: {}", e.getMessage());
             return 1; // 1 error
         }
     }
@@ -1136,7 +1135,7 @@ public class DashboardService {
             return 0;
         } catch (Exception e) {
             logService.log(taskType, "failed to update collections: " + e.getMessage());
-            logger.error("failed to update collections: " + e.getMessage());
+            log.error("failed to update collections: {}", e.getMessage());
             return 1; // 1 error
         }
     }

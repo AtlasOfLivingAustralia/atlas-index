@@ -18,12 +18,11 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gbif.dwc.terms.Term;
 import org.gbif.dwc.terms.TermFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,9 +34,9 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 // TODO: align with spatial-service's SandboxService
+@Slf4j
 @Service
 public class SandboxService {
-    private static final Logger logger = LoggerFactory.getLogger(SandboxService.class);
     private final WebService webService;
     private final SandboxMongoRepository sandboxMongoRepository;
     private final QueueService queueService;
@@ -144,19 +143,19 @@ public class SandboxService {
                     sandboxIngress.setHeaders(interpretHeader(header));
                 } else {
                     sandboxIngress = null;
-                    logger.error("Error interpreting header: " + thisDir.getAbsolutePath());
+                    log.error("Error interpreting header: {}", thisDir.getAbsolutePath());
                 }
             }
         } catch (IOException e) {
             sandboxIngress = null;
-            logger.error("Error importing ZIP file: " + thisDir.getAbsolutePath(), e);
+            log.error("Error importing ZIP file: {}", thisDir.getAbsolutePath(), e);
         }
 
         if (sandboxIngress == null) {
             try {
                 FileUtils.deleteDirectory(thisDir);
             } catch (IOException e) {
-                logger.error("Error deleting directory: " + thisDir.getAbsolutePath(), e);
+                log.error("Error deleting directory: {}", thisDir.getAbsolutePath(), e);
             }
         }
     }
@@ -172,7 +171,7 @@ public class SandboxService {
             // convert csv to tsv
             si.setHeaders(convertCsvToDwCA(csvFile, thisDir, si.getUserId(), si.getDescription()));
         } catch (IOException e) {
-            logger.error("Error importing CSV file", e);
+            log.error("Error importing CSV file", e);
         }
 
         // update sandboxIngress
@@ -314,7 +313,7 @@ public class SandboxService {
 
             zipOut.close();
         } catch (IOException e) {
-            logger.error("Error importing CSV file", e);
+            log.error("Error importing CSV file", e);
         }
 
         if (reader != null) {
@@ -389,7 +388,7 @@ public class SandboxService {
         try {
             FileUtils.deleteDirectory(thisDir);
         } catch (IOException e) {
-            logger.error("Error deleting directory: " + thisDir.getAbsolutePath(), e);
+            log.error("Error deleting directory: {}", thisDir.getAbsolutePath(), e);
         }
 
         // delete from SOLR

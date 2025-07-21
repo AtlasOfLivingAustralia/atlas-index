@@ -13,8 +13,7 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.SandboxService;
 import au.org.ala.search.service.queue.QueueService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +26,10 @@ import java.security.Principal;
 /**
  * sandbox API services, minus some admin services
  */
+@Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V1Sandbox {
-    private static final Logger logger = LoggerFactory.getLogger(V1Sandbox.class);
 
     final
     SandboxService sandboxService;
@@ -59,7 +58,7 @@ public class V1Sandbox {
             SandboxIngress sandboxIngress = sandboxService.upload(file, datasetName, userId);
             return ResponseEntity.ok(sandboxIngress);
         } catch (Exception e) {
-            logger.error("Error uploading file", e);
+            log.error("Error uploading file", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).header("error", e.getMessage()).build();
         }
     }

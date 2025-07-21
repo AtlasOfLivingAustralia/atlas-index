@@ -8,9 +8,8 @@ package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.service.auth.WebService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -26,10 +25,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ListService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ListService.class);
     protected final WebService webService;
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${lists.url}")
@@ -78,7 +77,7 @@ public class ListService {
                 found.addAll(currentPage);
                 hasMore = currentPage.size() == pageSize;
             } else {
-                logger.error("failed to get lists for params: " + params);
+                log.error("failed to get lists for params: {}", params);
                 hasMore = false;
             }
         }
@@ -108,7 +107,7 @@ public class ListService {
 
                 hasMore = currentPage.size() == pageSize;
             } else {
-                logger.error("failed to get list items: " + listId);
+                log.error("failed to get list items: {}", listId);
                 hasMore = false;
             }
         }

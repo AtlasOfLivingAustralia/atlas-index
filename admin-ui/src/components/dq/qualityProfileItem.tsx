@@ -198,7 +198,7 @@ function QualityProfileItem(props: {
                                             <span style={{
                                                 color: '#c7254e',
                                                 marginLeft: '15px'
-                                            }}>{category.qualityFilters.map((f) => f.filter).join(' AND ')}</span>
+                                            }}>{category.qualityFilters && category.qualityFilters.map((f) => f.filter).join(' AND ')}</span>
                                         </li>
                                     )}
                                 </ul>
@@ -210,7 +210,7 @@ function QualityProfileItem(props: {
                                     <QualityCategoryItem
                                         key={idx}
                                         category={category}
-                                        parentCategory={props.profile.categories.find(
+                                        actualCategory={props.profile.categories.find(
                                             (it) =>
                                                 it.displayOrder ==
                                                 category.displayOrder

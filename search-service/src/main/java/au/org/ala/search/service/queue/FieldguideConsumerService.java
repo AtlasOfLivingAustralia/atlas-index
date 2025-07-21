@@ -16,8 +16,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
@@ -40,9 +39,9 @@ import java.util.*;
 /**
  * Consumes the fieldguide queue to produce PDF files.
  */
+@Slf4j
 @Service
 public class FieldguideConsumerService extends ConsumerService {
-    private static final Logger logger = LoggerFactory.getLogger(FieldguideConsumerService.class);
     private final ElasticService elasticService;
 
     @Value("${images.url}")
@@ -92,14 +91,14 @@ public class FieldguideConsumerService extends ConsumerService {
 
     void processItem(QueueItem item) {
         // process item
-        logger.info("Processing fieldguide: " + item.id);
+        log.info("Processing fieldguide: {}", item.id);
 
         try {
             writePdf(item, generateTemplate(item));
             sendEmail(item);
         } catch (IOException e) {
             queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
-            logger.error("Error processing fieldguide: " + item.id, e);
+            log.error("Error processing fieldguide: {}", item.id, e);
         }
     }
 
@@ -165,7 +164,7 @@ public class FieldguideConsumerService extends ConsumerService {
                             itemMap.put("imageLicenceUrl", ((Map) imgMetadata.get("recognisedLicence")).get("url"));
                         }
                     } catch (IOException e) {
-                        logger.error("Error getting image metadata: " + id);
+                        log.error("Error getting image metadata: {}", id);
                     }
                 }
 
@@ -256,10 +255,7 @@ public class FieldguideConsumerService extends ConsumerService {
             message.setText(content);
             emailSender.send(message);
         } else {
-            logger.debug("to: " + item.queueRequest.email);
-            logger.debug("from: " + emailFrom);
-            logger.debug("subject:" + subject);
-            logger.debug("html:" + content);
+            log.debug("to: {}, from: {}, subject: {}, html: {}", item.queueRequest.email, emailFrom, subject, content);
         }
     }
 }

@@ -10,10 +10,9 @@ import au.org.ala.search.model.queue.FieldguideQueueRequest;
 import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.SearchQueueRequest;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -34,10 +33,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Service to store files, usually static files, info a file store. e.g. local file system or S3
  */
+@Slf4j
 @Service
 public class DownloadFileStoreService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DownloadFileStoreService.class);
     S3AsyncClient s3Client;
     @Value("${download.filestore.path}")
     private String fileStorePath;
@@ -83,7 +82,7 @@ public class DownloadFileStoreService {
 
                 // report error
                 if (result.isCompletedExceptionally()) {
-                    logger.error("Failed to copy file to s3 src: " + src.getAbsolutePath() + ", dstPath" + itemFileName(queueItem));
+                    log.error("Failed to copy file to s3 src: {}, dstPath{}", src.getAbsolutePath(), itemFileName(queueItem));
                     return false;
                 }
             } else {
@@ -95,7 +94,7 @@ public class DownloadFileStoreService {
             }
             return true;
         } catch (Exception e) {
-            logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + itemFileName(queueItem) + ", " + e.getMessage());
+            log.error("Failed to copy file to file store src: {}, dstPath{}, {}", src.getAbsolutePath(), itemFileName(queueItem), e.getMessage());
             return false;
         }
     }

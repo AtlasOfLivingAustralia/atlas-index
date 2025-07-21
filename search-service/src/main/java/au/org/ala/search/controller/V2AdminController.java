@@ -7,11 +7,13 @@
 package au.org.ala.search.controller;
 
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.model.quality.QualityProfile;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.queue.*;
+import au.org.ala.search.service.remote.ConfigService;
 import au.org.ala.search.service.remote.DataQualityService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.update.*;
@@ -21,8 +23,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,8 +44,6 @@ import java.util.concurrent.CountDownLatch;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V2AdminController {
-    private static final Logger logger = LoggerFactory.getLogger(V2AdminController.class);
-
     protected final WordpressImportService wordpressImportService;
     protected final KnowledgebaseImportService knowledgebaseImportService;
     protected final ListImportService listImportService;
@@ -72,6 +70,7 @@ public class V2AdminController {
     protected final DataQualityService dataQualityService;
     protected final BroadcastService broadcastService;
     private final LeaderService leaderService;
+    private final ConfigService configService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
@@ -85,7 +84,7 @@ public class V2AdminController {
                              QueueService queueService, FieldguideConsumerService fieldguideConsumerService,
                              SearchConsumerService searchConsumerService,
                              DescriptionsUpdateService descriptionsUpdateService,
-                             DataQualityService dataQualityService, BroadcastService broadcastService, LeaderService leaderService) {
+                             DataQualityService dataQualityService, BroadcastService broadcastService, LeaderService leaderService, ConfigService configService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -112,6 +111,7 @@ public class V2AdminController {
         this.dataQualityService = dataQualityService;
         this.broadcastService = broadcastService;
         this.leaderService = leaderService;
+        this.configService = configService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -172,10 +172,10 @@ public class V2AdminController {
             case TaskType.TAXON_DESCRIPTION -> descriptionsUpdateService.run();
 
             // broadcast tasks
-            case TaskType.CACHE_RESET_ALL -> broadcastService.sendMessage(type);
-            case TaskType.CACHE_RESET_COLLECTORY -> broadcastService.sendMessage(type);
-            case TaskType.CACHE_RESET_LISTS -> broadcastService.sendMessage(type);
-            case TaskType.CACHE_RESET_DATA_QUALITY -> broadcastService.sendMessage(type);
+            case TaskType.CACHE_RESET_ALL -> broadcastService.sendMessage(type, null);
+            case TaskType.CACHE_RESET_COLLECTORY -> broadcastService.sendMessage(type, null);
+            case TaskType.CACHE_RESET_LISTS -> broadcastService.sendMessage(type, null);
+            case TaskType.CACHE_RESET_DATA_QUALITY -> broadcastService.sendMessage(type, null);
 
             default -> {
                 notSupported = true;
@@ -274,7 +274,6 @@ public class V2AdminController {
         return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
     }
 
-    // TODO: can this GET be replaced by the public API?
     @Operation(tags = "ADMIN", summary = "List data quality profiles")
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
@@ -366,5 +365,36 @@ public class V2AdminController {
         }
 
         return ResponseEntity.ok(newProfile);
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(tags = "ADMIN", summary = "Update one dynamic config value")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @PostMapping(path = "/v2/admin/config", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> configSet(@RequestBody ConfigData newConfigData,
+                                        @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        try {
+            configService.save(newConfigData);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"message\": \"Failed to save config data: " + e.getMessage() + "\"}");
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(tags = "ADMIN", summary = "Get all dynamic config values")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @GetMapping(path = "/v2/admin/config", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ConfigData>> configSet(@AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        return ResponseEntity.ok().body(configService.getAll());
     }
 }

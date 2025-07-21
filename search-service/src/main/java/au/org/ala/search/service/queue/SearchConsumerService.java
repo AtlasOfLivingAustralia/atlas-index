@@ -14,9 +14,8 @@ import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -32,9 +31,9 @@ import java.util.zip.ZipOutputStream;
 /**
  * Consumes the search download queue to produce Zipped CSV files.
  */
+@Slf4j
 @Service
 public class SearchConsumerService extends ConsumerService {
-    private static final Logger logger = LoggerFactory.getLogger(SearchConsumerService.class);
     final ElasticService elasticService;
     @Value("${search.consumer.threads}")
     public Integer searchConsumerThreads;
@@ -83,7 +82,7 @@ public class SearchConsumerService extends ConsumerService {
                 zos.closeEntry();
                 zos.close();
             } catch (Exception e) {
-                logger.error("search download: " + item.id, e);
+                log.error("search download: {}", item.id, e);
                 queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
             } finally {
                 if (tmpFile != null) {
@@ -95,7 +94,7 @@ public class SearchConsumerService extends ConsumerService {
                 downloadFileStoreService.copyToFileStore(file, item, true);
             }
         } catch (Exception e) {
-            logger.error("search download: " + item.id, e);
+            log.error("search download: {}", item.id, e);
             queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
         }
     }

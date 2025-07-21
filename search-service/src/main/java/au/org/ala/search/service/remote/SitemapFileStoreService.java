@@ -7,10 +7,9 @@
 package au.org.ala.search.service.remote;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -26,10 +25,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Service to store sitemap files
  */
+@Slf4j
 @Service
 public class SitemapFileStoreService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SitemapFileStoreService.class);
     S3AsyncClient s3Client;
     @Value("${sitemap.filestore.path}")
     private String fileStorePath;
@@ -73,7 +72,7 @@ public class SitemapFileStoreService {
 
                 // log result
                 if (result.isCompletedExceptionally()) {
-                    logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + dstPath);
+                    log.error("Failed to copy file to file store src: {}, dstPath{}", src.getAbsolutePath(), dstPath);
                     return false;
                 }
             } else {
@@ -85,7 +84,7 @@ public class SitemapFileStoreService {
             }
             return true;
         } catch (Exception e) {
-            logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + dstPath + ", " + e.getMessage());
+            log.error("Failed to copy file to file store src: {}, dstPath{}, {}", src.getAbsolutePath(), dstPath, e.getMessage(), e);
             return false;
         }
     }
@@ -129,7 +128,7 @@ public class SitemapFileStoreService {
             }
             return true;
         } catch (Exception e) {
-            logger.error("Failed to delete file, " + file + ", " + e.getMessage());
+            log.error("Failed to delete file, {}, {}", file, e.getMessage());
             return false;
         }
     }

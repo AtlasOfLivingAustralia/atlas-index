@@ -19,6 +19,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.TitleCapitaliser;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.gbif.dwc.ArchiveFile;
@@ -31,8 +32,6 @@ import org.gbif.nameparser.api.NameParser;
 import org.gbif.nameparser.api.ParsedName;
 import org.gbif.nameparser.api.UnparsableNameException;
 import org.gbif.utils.file.ClosableIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -46,11 +45,11 @@ import static org.gbif.dwc.terms.DwcTerm.Taxon;
 import static org.gbif.dwc.terms.GbifTerm.Identifier;
 import static org.gbif.dwc.terms.GbifTerm.VernacularName;
 
+@Slf4j
 @Service
 public class DwCAImportRunner {
     private static final TaskType taskType = TaskType.DWCA;
 
-    private static final Logger logger = LoggerFactory.getLogger(DwCAImportRunner.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
     protected final DwCADenormaliseImportService dwCADenormaliseImportService;
@@ -134,7 +133,7 @@ public class DwCAImportRunner {
                 }
             } catch (Exception e) {
                 logService.log(taskType, "failed to count number of rows of: " + term.simpleName());
-                logger.error("failed to count number of rows of: " + term.simpleName());
+                log.error("failed to count number of rows of: {}", term.simpleName());
             }
 
             switch (term) {
@@ -191,7 +190,7 @@ public class DwCAImportRunner {
                             }
                         } else {
                             logService.log(taskType, "failed to load, DwCA type not supported: " + term.simpleName());
-                            logger.warn("DwCA type not supported by import: " + term);
+                            log.warn("DwCA type not supported by import: {}", term);
                             return CompletableFuture.completedFuture(0);
                         }
                     }
@@ -213,7 +212,7 @@ public class DwCAImportRunner {
             }
         } catch (Exception e) {
             logService.log(taskType, "failed to load: " + term.simpleName());
-            logger.error("failed to load: " + term.simpleName(), e);
+            log.error("failed to load: {}", term.simpleName(), e);
         }
 
         counter += buffer.size();
@@ -529,7 +528,7 @@ public class DwCAImportRunner {
                                             field.set(item, core.value(term));
                                         }
                                     } catch (NoSuchFieldException | IllegalAccessException ignored) {
-                                        logger.error("error setting field: " + term.simpleName());
+                                        log.error("error setting field: {}", term.simpleName());
                                     }
                                 }
                             }

@@ -9,8 +9,6 @@ package au.org.ala.search.controller;
 import au.org.ala.search.service.auth.WebService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +27,6 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class UtilController {
-    private static final Logger logger = LoggerFactory.getLogger(UtilController.class);
     protected final WebService webService;
     @Value("${austraits.url}")
     public String austraitsUrl;

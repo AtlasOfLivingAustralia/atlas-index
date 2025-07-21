@@ -12,12 +12,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -40,9 +39,9 @@ import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 import static org.springframework.http.HttpMethod.*;
 
 // TODO: move this and related classes into ala-security-project
+@Slf4j
 @Service
 public class WebService {
-    private static final Logger logger = LoggerFactory.getLogger(WebService.class);
     // TODO: enable authService; static final String DEFAULT_AUTH_HEADER = "X-ALA-userId";
     // TODO: enable authService; AuthService authService
     @Autowired
@@ -230,7 +229,7 @@ public class WebService {
      * @param includeUser   true to include the userId and email in the request headers and the ALA-Auth cookie.  If using JWTs sends the current user's access token, if false only sends a ClientCredentials grant token for this apps client id Default = true.
      */
     void proxyGetRequest(HttpServletResponse response, String url, boolean includeApiKey, boolean includeUser) {
-        logger.debug("Proxying GET request to " + url);
+        log.debug("Proxying GET request to {}", url);
         HttpURLConnection conn = null;
 
         try {
@@ -255,7 +254,7 @@ public class WebService {
             response.setStatus(conn.getResponseCode());
             IOUtils.copy(conn.getInputStream(), response.getOutputStream());
         } catch (IOException e) {
-            logger.error("failed to proxyGetRequest " + url + ", " + e.getMessage(), e);
+            log.error("failed to proxyGetRequest {}, {}", url, e.getMessage(), e);
         } finally {
             if (conn != null) {
                 conn.disconnect();
@@ -274,7 +273,7 @@ public class WebService {
      * @param includeUser   true to include the userId and email in the request headers and the ALA-Auth cookie.  If using JWTs sends the current user's access token, if false only sends a ClientCredentials grant token for this apps client id Default = true.
      */
     void proxyPostRequest(HttpServletResponse response, String url, Object postBody, ContentType contentType, boolean includeApiKey, boolean includeUser, Map<String, String> cookies) {
-        logger.debug("Proxying POST request to " + url);
+        log.debug("Proxying POST request to {}", url);
 
         HttpURLConnection conn = null;
 
@@ -340,7 +339,7 @@ public class WebService {
     private Map send(HttpMethod method, String url, Map params, ContentType contentType,
                      Object body, Object files, boolean includeApiKey, boolean includeUser,
                      Map customHeaders) {
-        logger.debug(method.name() + " request to " + url);
+        log.debug("{} request to {}", method.name(), url);
 
         Map result = new HashMap();
 
@@ -391,11 +390,11 @@ public class WebService {
                     result.put("resp", text);
                 }
             } else {
-                logger.error(url + " return statusCode: " + statusCode);
+                log.error("{} return statusCode: {}", url, statusCode);
                 result.put("error", "Failed calling web service - service returned HTTP " + statusCode);
             }
         } catch (Exception e) {
-            logger.error("Failed sending " + method.name() + "request to " + url, e);
+            log.error("Failed sending {} request to {}", method.name(), url, e);
             result.put("statusCode", HttpStatus.SC_INTERNAL_SERVER_ERROR);
             result.put("error", "Failed calling web service. " + e.getClass().getName() + " " + e.getMessage() + " URL= " + url + ", method " + method.name() + ".");
         }

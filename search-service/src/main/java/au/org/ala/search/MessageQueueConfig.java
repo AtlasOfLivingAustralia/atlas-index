@@ -20,6 +20,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Map;
+
 @Slf4j
 @ConditionalOnProperty(name = "rabbitmq.host")
 @Configuration
@@ -103,7 +105,7 @@ public class MessageQueueConfig {
     }
 
     @RabbitListener(queues = BroadcastService.BROADCAST_QUEUE)
-    public void receiveMessage(String message) {
+    public void receiveMessage(byte [] message) {
         // it is fine to ignore a broadcast message if BroadcastService is not initialized.
         if (BroadcastService.getInstance() != null) {
             BroadcastService.getInstance().receiveMessage(message);

@@ -24,17 +24,16 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
 
+@Slf4j
 @Service
 public class OpenapiService {
-    private static final Logger logger = LoggerFactory.getLogger(OpenapiService.class);
     protected final ElasticService elasticService;
 
     @Value("${openapi.title}")
@@ -89,7 +88,7 @@ public class OpenapiService {
                     default -> defaultExample;
                 };
             } catch (IOException e) {
-                logger.warn("failed to update openapi example for: " + operationId + ", " + e.getMessage());
+                log.warn("failed to update openapi example for: {}, {}", operationId, e.getMessage());
             }
         }
         return defaultExample;
@@ -239,7 +238,7 @@ public class OpenapiService {
                 return false;
             }
         } catch (Exception e) {
-            logger.warn("failed to update openapi example for: " + op.getOperationId() + ", " + e.getMessage());
+            log.warn("failed to update openapi example for: {}, {}", op.getOperationId(), e.getMessage());
         }
 
         // return true because when the op does not require an update false has already been returned

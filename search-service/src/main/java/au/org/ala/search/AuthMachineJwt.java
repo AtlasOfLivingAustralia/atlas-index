@@ -13,6 +13,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.credentials.Credentials;
@@ -22,8 +23,6 @@ import org.pac4j.core.profile.UserProfile;
 import org.pac4j.core.util.FindBest;
 import org.pac4j.jee.context.JEEContextFactory;
 import org.pac4j.oidc.credentials.OidcCredentials;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -36,8 +35,8 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
 
+@Slf4j
 public class AuthMachineJwt extends OncePerRequestFilter {
-    public static final Logger log = LoggerFactory.getLogger(AlaWebServiceAuthFilter.class);
     private Config config;
     private AlaAuthClient alaAuthClient;
 

@@ -11,9 +11,8 @@ import au.org.ala.search.model.queue.*;
 import au.org.ala.search.repo.QueueMongoRepository;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.util.QueryParserUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,10 +21,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@Slf4j
 @Service
 public class QueueService {
-
-    private static final Logger logger = LoggerFactory.getLogger(QueueService.class);
 
     protected final QueueMongoRepository queueMongoRepository;
     private final ElasticService elasticService;
@@ -39,7 +37,7 @@ public class QueueService {
 
     public Status add(QueueRequest queueRequest) {
         String requestType = queueRequest.taskType.name();
-        logger.info("Adding download request to queue: " + requestType);
+        log.info("Adding download request to queue: {}", requestType);
 
         // fix filenames
         fixFilenames(queueRequest);
@@ -96,7 +94,7 @@ public class QueueService {
         }
 
         QueueItem item = queue.take();
-        logger.info("Retrieved item from queue: " + item);
+        log.info("Retrieved item from queue: {}", item);
 
         return item;
     }

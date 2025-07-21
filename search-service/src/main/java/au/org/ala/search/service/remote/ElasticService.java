@@ -39,9 +39,8 @@ import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import jakarta.annotation.PostConstruct;
 import jakarta.json.JsonValue;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.PageRequest;
@@ -66,10 +65,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ElasticService {
     final static int BULK_BATCH_SIZE = 100;
-    private static final Logger logger = LoggerFactory.getLogger(ElasticService.class);
+
     protected final ElasticsearchOperations elasticsearchOperations;
     protected final ElasticsearchClient elasticsearchClient;
     protected final LegacyService legacyService;
@@ -128,7 +128,7 @@ public class ElasticService {
         if (vt != null) {
             vernacularNameCommonPriority = vt.getPriority();
         } else {
-            logger.error("config vernacularNameCommon=" + vernacularNameCommon + " is invalid");
+            log.error("config vernacularNameCommon={} is invalid", vernacularNameCommon);
         }
 
         // @Document(createIndex=true) is not working as expected when >1 @Document, so create explicitly if !exist
@@ -233,14 +233,14 @@ public class ElasticService {
                 hasMore = hits.size() == pageSize;
             }
         } catch (Exception e) {
-            logger.warn("Failed to page through elasticsearch (e.g. query field may not yet exist: " + queryString + ")", e.getMessage());
+            log.warn("Failed to page through elasticsearch (e.g. query field may not yet exist: {})", queryString, e.getMessage());
         } finally {
             try {
                 if (pit != null) {
                     closePointInTime(pit);
                 }
             } catch (Exception e) {
-                logger.error("Failed to close point in time", e);
+                log.error("Failed to close point in time", e);
             }
         }
 
@@ -346,7 +346,7 @@ public class ElasticService {
             try {
                 elasticsearchOperations.bulkIndex(buffer, SearchItemIndex.class);
             } catch (Exception e) {
-                logger.error("failed: " + e.getMessage(), e);
+                log.error("failed flush: {}", e.getMessage(), e);
             }
         }
     }
@@ -373,7 +373,7 @@ public class ElasticService {
             try {
                 elasticsearchOperations.bulkUpdate(buffer, SearchItemIndex.class);
             } catch (Exception e) {
-                logger.error("failed: " + e.getMessage(), e);
+                log.error("failed update: {}", e.getMessage(), e);
             }
         }
     }
@@ -415,7 +415,7 @@ public class ElasticService {
                 .build();
         ByQueryResponse response = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
 
-        logger.info("deleting " + response.getDeleted() + " found with " + field + ":" + value);
+        log.info("deleting {} found with {}:{}", response.getDeleted(), field, value);
     }
 
     public long queryCount(String field, String value) {
@@ -1709,7 +1709,7 @@ public class ElasticService {
                     closePointInTime(pit);
                 }
             } catch (Exception e) {
-                logger.error("Error closing point in time", e);
+                log.error("Error closing point in time", e);
             }
         }
 
@@ -1954,7 +1954,7 @@ public class ElasticService {
                     }
                     searchResults.add(values);
                 } catch (Exception e) {
-                    logger.error("Error processing search result: " + e.getMessage());
+                    log.error("Error processing search result: {}", e.getMessage());
                 }
             } else {
                 searchResults.add(item.getContent());

@@ -13,6 +13,7 @@ import au.org.ala.search.model.dto.DatasetInfo;
 import au.org.ala.search.names.ALATerm;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.api.model.registry.Dataset;
 import org.gbif.dwc.Archive;
 import org.gbif.dwc.ArchiveFile;
@@ -22,8 +23,6 @@ import org.gbif.dwc.terms.DcTerm;
 import org.gbif.dwc.terms.DwcTerm;
 import org.gbif.dwc.terms.GbifTerm;
 import org.gbif.metadata.eml.parse.DatasetEmlParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -38,11 +37,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 public class DwCAImportService {
     public static final String META_XML = "meta.xml";
     private static final TaskType taskType = TaskType.DWCA;
-    private static final Logger logger = LoggerFactory.getLogger(DwCAImportService.class);
+
     protected final ElasticService elasticService;
     protected final DwCAImportRunner dwCAImportRunner;
     protected final DwCADenormaliseImportService dwCADenormaliseImportService;
@@ -257,7 +257,7 @@ public class DwCAImportService {
                     + ", identifier=" + identifier.get());
         } catch (Exception ex) {
             logService.log(taskType, "Error There was problem with the " + logLabel + ": " + ex.getMessage());
-            logger.error("There was problem with the import: " + ex.getMessage(), ex);
+            log.error("There was problem with the import: {}", ex.getMessage(), ex);
         }
 
         return cache;
@@ -289,7 +289,7 @@ public class DwCAImportService {
                 }
             } catch (Exception e) {
                 logService.log(taskType, "Error dwca.dir contains no directories " + dwcaDir);
-                logger.error("dwca.dir contains no directories " + dwcaDir);
+                log.error("dwca.dir contains no directories {}", dwcaDir);
             }
         }
         return filePaths;

@@ -1,17 +1,22 @@
 package au.org.ala.search.service.remote;
 
+import au.org.ala.search.LeadershipStatus;
+import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.config.ConfigChangeListener;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.config.ConfigValidationListener;
-import au.org.ala.search.repo.ConfigDataMongoRepository;
+import au.org.ala.search.repo.ConfigDataPostgresRepository;
+import au.org.ala.search.service.queue.BroadcastService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.io.InputStream;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -19,52 +24,77 @@ import java.util.concurrent.ConcurrentHashMap;
  * - handles retrieval of the latest and history of a dynamic configuration key.
  * - managers listeners of configuration changes.
  */
+@Slf4j
 @Service
 public class ConfigService {
-    private final ConfigDataMongoRepository configDataMongoRepository;
-    private final Map<String, List<ConfigChangeListener>> listeners = new ConcurrentHashMap<>();
-    private final Map<String, List<ConfigValidationListener>> validationListeners = new ConcurrentHashMap<>();
+    private final ConfigDataPostgresRepository configDataPostgresRepository;
+    private final ResourceLoader resourceLoader;
+    private final Map<String, Set<ConfigChangeListener>> listeners = new ConcurrentHashMap<>();
+    private final Map<String, Set<ConfigValidationListener>> validationListeners = new ConcurrentHashMap<>();
 
-    public ConfigService(ConfigDataMongoRepository repo) {
-        this.configDataMongoRepository = repo;
+    @Value("${dynamic-config-defaults.path}")
+    private String dynamicConfigDefaultsPath;
+
+    public ConfigService(ConfigDataPostgresRepository configDataPostgresRepository, ResourceLoader resourceLoader) {
+        this.configDataPostgresRepository = configDataPostgresRepository;
+        this.resourceLoader = resourceLoader;
     }
 
     @PostConstruct
     public void init() {
-        // TODO: if absent, add default values into the db
-    }
+        // open the dynamic config defaults file and load it into the database
+        try {
+            // read the properties file containing the defaults, and iterate line by line
+            Resource resource = resourceLoader.getResource(dynamicConfigDefaultsPath);
+            Properties properties = new Properties();
+            try (InputStream input = resource.getInputStream()) {
+                properties.load(input);
+            }
 
-    public String get(String key) {
-        ConfigData cd = configDataMongoRepository.getLatest(key);
-        if (cd != null && cd.getData() != null) {
-            return cd.getData().value;
+            for (String key : properties.stringPropertyNames()) {
+                ConfigData cd = get(key);
+                if (cd != null) {
+                    // If the config already exists, skip it
+                    continue;
+                }
+
+                String value = properties.getProperty(key);
+                String notes = "Default value loaded from " + dynamicConfigDefaultsPath;
+
+                ConfigData newConfigData = ConfigData.builder().id(key)
+                        .value(value)
+                        .notes(notes)
+                        .updated(new Date())
+                        .build();
+
+                configDataPostgresRepository.save(newConfigData);
+            }
+        } catch (Exception e) {
+            log.error("Failed to load dynamic config defaults from {}: {}", dynamicConfigDefaultsPath, e.getMessage(), e);
         }
-        return null;
     }
 
-    public List<ConfigData> history(String key) {
-        return configDataMongoRepository.findAllByKeyOrderByCreatedDesc(key);
+    public ConfigData get(String id) {
+        return configDataPostgresRepository.findById(id).orElse(null);
     }
 
+    // throws a description of the error if the config data is not valid
     public void save(ConfigData configData) {
         // Enforce mandatory fields and non-empty data fields
-        if (configData.getData() == null
-                || StringUtils.isEmpty(configData.getData().description)
-                || StringUtils.isEmpty(configData.getData().userId)) {
-            throw new IllegalArgumentException("Config data must contain 'description', 'userId'.");
-        }
-        if (configData.getKey() == null || configData.getKey().isEmpty()) {
-            throw new IllegalArgumentException("Config key must not be null or empty.");
+        if (StringUtils.isEmpty(configData.id) || StringUtils.isEmpty(configData.value)) {
+            throw new IllegalArgumentException("Config data must contain an 'id' and 'value'.");
         }
 
-        ConfigData prevConfigData = configDataMongoRepository.getLatest(configData.getKey());
+        ConfigData prevConfigData = get(configData.id);
 
         // compare with previous config data for "value" changes
-        if (prevConfigData != null && prevConfigData.getData() != null) {
-            String prevValue = prevConfigData.getData().value;
-            String newValue = configData.getData().value;
-            if (newValue.equals(prevValue)) {
-                // No change in value, do not save
+        if (prevConfigData != null) {
+            if (StringUtils.equals(prevConfigData.value, configData.value)) {
+                // No change in value, save the notes if changed
+                if (!StringUtils.equals(configData.notes, prevConfigData.notes)) {
+                    prevConfigData.setNotes(configData.notes);
+                    configDataPostgresRepository.save(prevConfigData);
+                }
                 return;
             }
         }
@@ -73,37 +103,48 @@ public class ConfigService {
             throw new IllegalArgumentException("Config value is invalid.");
         }
 
-        configData.setCreated(java.time.LocalDateTime.now());
-        configDataMongoRepository.save(configData);
+        configData.setUpdated(new Date());
+        configDataPostgresRepository.save(configData);
 
-        // Apply the configuration change to the system
-        triggerListeners(configData, prevConfigData);
+        // Broadcast the change, for any node that listens for config changes
+        try {
+            if (BroadcastService.getInstance() != null) {
+                BroadcastService.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData); // new config data is in the db
+            } else {
+                log.warn("BroadcastService is not initialized, cannot broadcast config change for {}", configData.id);
+            }
+        } catch (Exception e) {
+            log.error("Failed to broadcast config change for {}: {}", configData.id, e.getMessage(), e);
+        }
     }
 
     public void registerListener(String key, ConfigChangeListener listener, ConfigValidationListener validation) {
         if (listener != null) {
-            listeners.computeIfAbsent(key, k -> Collections.synchronizedList(new ArrayList<>())).add(listener);
+            listeners.computeIfAbsent(key, k -> Collections.synchronizedSet(new HashSet<>())).add(listener);
         }
 
         if (validation != null) {
-            validationListeners.computeIfAbsent(key, k -> Collections.synchronizedList(new ArrayList<>())).add(validation);
+            validationListeners.computeIfAbsent(key, k -> Collections.synchronizedSet(new HashSet<>())).add(validation);
         }
     }
 
-    private void triggerListeners(ConfigData configData, ConfigData prevConfigData) {
-        List<ConfigChangeListener> keyListeners = listeners.get(configData.getKey());
+    // triggered by BroadcastService when a config change is received
+    public void triggerListeners(ConfigData configData, ConfigData prevConfigData) {
+        Set<ConfigChangeListener> keyListeners = listeners.get(configData.id);
         if (keyListeners != null) {
-            for (ConfigChangeListener listener : keyListeners) {
+            // copy into an array on the off chance keyListeners is modified during iteration
+            for (ConfigChangeListener listener : new ArrayList<>(keyListeners)) {
                 listener.onConfigChanged(configData, prevConfigData);
             }
         }
     }
 
     private boolean triggerValidation(ConfigData configData) {
-        List<ConfigValidationListener> keyValidationListeners = validationListeners.get(configData.getKey());
+        Set<ConfigValidationListener> keyValidationListeners = validationListeners.get(configData.id);
         if (keyValidationListeners != null) {
-            for (ConfigValidationListener validationListener : keyValidationListeners) {
-                if (!validationListener.isValid(configData.getData().value)) {
+            // copy into an array on the off chance keyListeners is modified during iteration
+            for (ConfigValidationListener validationListener : new ArrayList<>(keyValidationListeners)) {
+                if (!validationListener.isValid(configData.value)) {
                     return false;
                 }
             }
@@ -111,4 +152,7 @@ public class ConfigService {
         return true;
     }
 
+    public List<ConfigData> getAll() {
+        return configDataPostgresRepository.findAll();
+    }
 }

@@ -15,3 +15,11 @@ CREATE TABLE dqprofile
 );
 
 CREATE INDEX idx_dqprofile_name ON dqprofile (short_name);
+
+CREATE TABLE config
+(
+    id      VARCHAR(255) PRIMARY KEY,
+    updated TIMESTAMP,
+    value   TEXT,
+    notes   TEXT
+);

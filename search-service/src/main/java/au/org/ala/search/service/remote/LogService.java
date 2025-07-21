@@ -9,8 +9,7 @@ package au.org.ala.search.service.remote;
 import au.org.ala.search.model.AdminIndex;
 import au.org.ala.search.model.TaskType;
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
@@ -26,10 +25,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 public class LogService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogService.class);
     protected final ElasticsearchOperations elasticsearchOperations;
 
     @Value("${elastic.adminIndex}")

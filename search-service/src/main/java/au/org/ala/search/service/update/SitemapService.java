@@ -19,10 +19,9 @@ import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -37,11 +36,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
+@Slf4j
 @Service
 public class SitemapService {
     private static final TaskType taskType = TaskType.SITEMAP;
 
-    private static final Logger logger = LoggerFactory.getLogger(SitemapService.class);
     static String URLSET_HEADER = "<?xml version='1.0' encoding='UTF-8'?><urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">";
     static String URLSET_FOOTER = "</urlset>";
     static int MAX_URLS = 50000; // maximum number of URLs in a sitemap file
@@ -118,7 +117,7 @@ public class SitemapService {
             sitemapFileStoreService.copyToFileStore(tmpFile, filename + (gzip ? ".gz" : ""), true);
         } catch (Exception e) {
             logService.log(taskType, "Error failed to write sitemap file: " + filename + (gzip ? ".gz" : ""));
-            logger.error("failed to write sitemap file: " + filename + (gzip ? ".gz" : ""));
+            log.error("failed to write sitemap file: {}{}", filename, gzip ? ".gz" : "");
         } finally {
             if (tmpFile != null && tmpFile.exists()) {
                 tmpFile.delete();
@@ -207,14 +206,14 @@ public class SitemapService {
             logService.log(taskType, "Finished urls: " + counter);
         } catch (Exception ex) {
             logService.log(taskType, "Error failed sitemap: " + ex.getMessage());
-            logger.error("failed sitemap: " + ex.getMessage(), ex);
+            log.error("failed sitemap: {}", ex.getMessage(), ex);
         } finally {
             try {
                 if (pit != null) {
                     elasticService.closePointInTime(pit);
                 }
             } catch (Exception e) {
-                logger.error("Failed to close point in time", e);
+                log.error("Failed to close point in time", e);
             }
         }
     }

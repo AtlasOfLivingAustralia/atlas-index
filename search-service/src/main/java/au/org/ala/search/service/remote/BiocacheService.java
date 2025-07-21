@@ -7,10 +7,9 @@
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.service.auth.WebService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -25,10 +24,10 @@ import java.util.Map;
 /**
  * Biocache service API
  */
+@Slf4j
 @Service
 public class BiocacheService {
 
-    private static final Logger logger = LoggerFactory.getLogger(BiocacheService.class);
     final WebService webService;
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -69,7 +68,7 @@ public class BiocacheService {
     public Map getSpeciesImages() {
         Map resp = webService.get(biocacheWsUrl + "/index/speciesImages", null, ContentType.APPLICATION_JSON, true, false, null);
         if (((Integer) resp.get("statusCode")) != 200) {
-            logger.error("failed to get " + biocacheWsUrl + "/index/speciesImages, statusCode: " + resp.get("statusCode"));
+            log.error("failed to get {}/index/speciesImages, statusCode: {}", biocacheWsUrl, resp.get("statusCode"));
         }
         return (Map) resp.get("resp");
     }
@@ -77,7 +76,7 @@ public class BiocacheService {
     public Map<String, Integer> entityCounts(String facet) {
         Map resp = webService.get(biocacheWsUrl + "/occurrences/search?q=" + facet + ":*&pageSize=0&flimit=-1&facets=" + facet, null, ContentType.APPLICATION_JSON, false, false, null);
         if (((Integer) resp.get("statusCode")) != 200) {
-            logger.error("failed to get biocache facets for: " + facet + ", statusCode: " + resp.get("statusCode"));
+            log.error("failed to get biocache facets for: {}, statusCode: {}", facet, resp.get("statusCode"));
             return null;
         }
 

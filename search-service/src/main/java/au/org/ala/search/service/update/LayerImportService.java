@@ -11,9 +11,8 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.http.HttpMethod;
@@ -26,11 +25,11 @@ import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class LayerImportService {
     private static final TaskType taskType = TaskType.LAYER;
 
-    private static final Logger logger = LoggerFactory.getLogger(LayerImportService.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -160,7 +159,7 @@ public class LayerImportService {
             }
         } catch (Exception e) {
             logService.log(taskType, "Error failed to get layers: " + e.getMessage());
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         return updateList;
     }

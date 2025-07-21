@@ -14,8 +14,7 @@ import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.FormatUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -29,10 +28,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Service to import data from the Digivol API.
  */
+@Slf4j
 @Service
 public class DigivolImportService {
     private static final TaskType taskType = TaskType.DIGIVOL;
-    private static final Logger logger = LoggerFactory.getLogger(DigivolImportService.class);
 
     protected final ElasticService elasticService;
     protected final LogService logService;
@@ -116,7 +115,7 @@ public class DigivolImportService {
             logService.log(taskType, "total: " + expeditions.size() + ", conversion errors: " + conversionErrors + ", deleted " + existingItems.size());
         } catch (Exception e) {
             logService.log(taskType, "Error getting expedition");
-            logger.error("Error fetching expedition data", e);
+            log.error("Error fetching expedition data", e);
         }
         return updateList;
     }
@@ -150,7 +149,7 @@ public class DigivolImportService {
                     .build();
         } catch (Exception e) {
             logService.log(taskType, "Failed to parse expedition data: " + expedition);
-            logger.error("Error parsing expedition data", e);
+            log.error("Error parsing expedition data", e);
             return null;
         }
     }

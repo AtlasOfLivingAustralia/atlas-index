@@ -13,9 +13,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,9 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * The concept of "subGroup" no longer applies.
  */
+@Slf4j
 @Service
 public class SpeciesGroupService {
-    private static final Logger logger = LoggerFactory.getLogger(SpeciesGroupService.class);
 
     public Map<RankedName, SubGroup> invertedSpeciesGroups;
 
@@ -151,7 +150,7 @@ public class SpeciesGroupService {
             return om.readValue(is, new TypeReference<List<SpeciesGroup>>() {
             });
         } catch (IOException e) {
-            logger.error("failed to load speciesGroups " + speciesGroupPath, e);
+            log.error("failed to load speciesGroups {}", speciesGroupPath, e);
         } finally {
             if (is != null) {
                 is.close();

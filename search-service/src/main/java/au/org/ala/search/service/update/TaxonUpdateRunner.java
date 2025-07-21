@@ -14,9 +14,8 @@ import au.org.ala.search.service.remote.LogService;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.gbif.utils.file.csv.CSVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
@@ -28,11 +27,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 public class TaxonUpdateRunner {
     private static final TaskType taskType = TaskType.BIOCACHE;
 
-    private static final Logger logger = LoggerFactory.getLogger(TaxonUpdateRunner.class);
     protected final ElasticService elasticService;
     protected final BiocacheService biocacheService;
     protected final LogService logService;
@@ -90,7 +89,7 @@ public class TaxonUpdateRunner {
             return CompletableFuture.completedFuture(updatesSize);
         } catch (Exception e) {
             logService.log(taskType, "Error updating counts: " + e.getMessage());
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
             return CompletableFuture.completedFuture(-1 * list.size());
         }
     }
@@ -120,7 +119,7 @@ public class TaxonUpdateRunner {
                 imageCache.put(row[0], row[1] + "," + row[2]);
             }
         } catch (Exception e) {
-            logger.error("Failed to import dwca.extract.leftRightCsvPath:" + leftRightCsvPath + ", " + e.getMessage(), e);
+            log.error("Failed to import dwca.extract.leftRightCsvPath:{}, {}", leftRightCsvPath, e.getMessage(), e);
         }
 
         // load biocache speciesImages

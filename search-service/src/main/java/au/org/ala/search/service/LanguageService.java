@@ -9,9 +9,8 @@ package au.org.ala.search.service;
 import au.org.ala.search.model.cache.LanguageInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +19,13 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * LanguageService provides a mapping of vernacular name languages with codes.
+ */
+@Slf4j
 @Service
 public class LanguageService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LanguageService.class);
     public Map<String, LanguageInfo> languageMapping;
 
     @Value("${languages.path}")
@@ -49,7 +51,7 @@ public class LanguageService {
                     languageMapping.put(entry.getKey().toString(), new LanguageInfo(values.get("name"), values.get("uri")));
                 }
             } catch (Exception e) {
-                logger.error("Failed to read language.path:" + languagesPath);
+                log.error("Failed to read language.path:{}", languagesPath);
             }
         }
     }

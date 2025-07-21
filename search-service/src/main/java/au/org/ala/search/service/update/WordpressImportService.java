@@ -16,8 +16,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -33,7 +31,6 @@ import java.util.concurrent.CompletableFuture;
 public class WordpressImportService {
     private static final TaskType taskType = TaskType.WORDPRESS;
 
-    private static final Logger logger = LoggerFactory.getLogger(WordpressImportService.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
 

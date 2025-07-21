@@ -8,9 +8,8 @@ package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.LogService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -20,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class AllService {
-    private static final Logger logger = LoggerFactory.getLogger(AllService.class);
     private static final TaskType taskType = TaskType.ALL;
     protected final WordpressImportService wordpressImportService;
     protected final KnowledgebaseImportService knowledgebaseImportService;
@@ -102,7 +101,7 @@ public class AllService {
 
                 if (!dwcaImport.get()) {
                     logService.log(taskType, "Failed to import DwCA");
-                    logger.error("DwCA import failed. Aborting Import everything.");
+                    log.error("DwCA import failed. Aborting Import everything.");
                     return CompletableFuture.completedFuture(false);
                 }
             }
@@ -141,7 +140,7 @@ public class AllService {
             return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
             logService.log(taskType, "Failed to import all: " + e.getMessage());
-            logger.error("Failed import all: " + e.getMessage(), e);
+            log.error("Failed import all: {}", e.getMessage(), e);
             return CompletableFuture.completedFuture(false);
         }
     }

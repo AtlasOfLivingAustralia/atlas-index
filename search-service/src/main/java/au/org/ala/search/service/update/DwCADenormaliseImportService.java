@@ -14,10 +14,9 @@ import au.org.ala.search.model.dto.RankedName;
 import au.org.ala.search.service.SpeciesGroupService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.gbif.utils.file.csv.CSVReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +27,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
+@Slf4j
 @Service
 public class DwCADenormaliseImportService {
     private static final TaskType taskType = TaskType.DWCA;
-    private static final Logger logger = LoggerFactory.getLogger(DwCADenormaliseImportService.class);
+
     // priority is low to high
     static String[] linkIdentifierTaxonomicStatusPriority =
             new String[]{"inferredAccepted", "accepted"};
@@ -154,7 +154,7 @@ public class DwCADenormaliseImportService {
                 }
             } catch (Exception e) {
                 logService.log(taskType, "failed to read commonName CSV: " + commonNamePath + ", " + e.getMessage());
-                logger.error("failed to read commonName CSV: " + commonNamePath + ", " + e.getMessage());
+                log.error("failed to read commonName CSV: {}, {}", commonNamePath, e.getMessage());
             }
         } else {
             logService.log(taskType, "commonName CSV does not exist: " + commonNamePath);
@@ -315,7 +315,7 @@ public class DwCADenormaliseImportService {
                 // This test was in bie-index, and while it should never happen, test just in case
                 if (seenGuid.contains(parent.key)) {
                     logService.log(taskType, "infinite loop for parentGuid follow for: " + guid);
-                    logger.error("infinite loop for parentGuid follow for: " + guid);
+                    log.error("infinite loop for parentGuid follow for: {}", guid);
                     return;
                 }
 

@@ -80,6 +80,11 @@ function DataQualityAdmin({
         reader.readAsText(file);
     }
 
+    // TODO: Add actual validation of the profile.
+    //  - Test biocache-service requests with each filter
+    //  - Test each inverse filter. This will require replicating the logic of the inverse filter construction in
+    //  search-service for use with the override inverse filter is not defined.
+    //  - Test the filter result count + inverse filter result count = total count of records in biocache-service.
     function save(profile: QualityProfile) {
         // double check that the shortName is unique
         if (profiles.some(p => p.shortName === profile.shortName && p.id !== profile.id)) {

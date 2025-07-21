@@ -28,8 +28,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.http.HttpHeaders;
@@ -70,7 +68,6 @@ public class V1SearchController {
     public static final String SEARCH_AUTO_ID = "searchAuto";
     public static final String SEARCH_ID = "search";
     public static final String DOWNLOAD_ID = "download";
-    private static final Logger logger = LoggerFactory.getLogger(V1SearchController.class);
     protected final ElasticService elasticService;
     protected final LegacyService legacyService;
     protected final AdminService adminService;

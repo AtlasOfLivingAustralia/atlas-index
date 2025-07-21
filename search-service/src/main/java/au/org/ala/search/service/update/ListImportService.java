@@ -18,8 +18,7 @@ import au.org.ala.search.util.ListToFieldValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -32,11 +31,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class ListImportService {
     private static final TaskType taskType = TaskType.LISTS;
 
-    private static final Logger logger = LoggerFactory.getLogger(ListImportService.class);
     private static final String listsFavouriteField = "favourite";
     protected final ElasticService elasticService;
     protected final ListService listService;
@@ -87,7 +86,7 @@ public class ListImportService {
                     assert StringUtils.isNotEmpty(listIdString[1]);
                 }
             } catch (Exception e) {
-                logger.error("lists.favourite.config is invalid. Must be a list of 'listId,label' separated by ';'. e.g. 'dr4778,interest;dr781,iconic'");
+                log.error("lists.favourite.config is invalid. Must be a list of 'listId,label' separated by ';'. e.g. 'dr4778,interest;dr781,iconic'");
                 throw e;
             }
         }
@@ -273,7 +272,7 @@ public class ListImportService {
                             updateWeights(updatedIds);
                             logService.log(taskType, "Finished weights for " + updatedIds.size() + " items.");
                         } catch (InterruptedException e) {
-                            logger.error(e.getMessage(), e);
+                            log.error(e.getMessage(), e);
                         }
                     }
                 }.start();
@@ -314,7 +313,7 @@ public class ListImportService {
                             updateWeights(updatedIds);
                             logService.log(taskType, "Finished weights for " + updatedIds.size() + " items.");
                         } catch (InterruptedException e) {
-                            logger.error(e.getMessage(), e);
+                            log.error(e.getMessage(), e);
                         }
                     }
                 }.start();
@@ -488,7 +487,7 @@ public class ListImportService {
             }
         } catch (Exception e) {
             logService.log(taskType, "Error processing lists: " + e.getMessage());
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
 
         return updateList;
@@ -605,7 +604,7 @@ public class ListImportService {
                             + ", removed:" + existingItems.size() + ", duplicates(ERRORS):" + duplicateIds);
         } catch (Exception e) {
             logService.log(taskType, "failed kvp list " + field + ", " + e.getMessage());
-            logger.error("failed kvp list " + field + ", " + e.getMessage(), e);
+            log.error("failed kvp list {}, {}", field, e.getMessage(), e);
         }
 
         return updatedIds;
@@ -704,7 +703,7 @@ public class ListImportService {
                             + ", removed:" + existingItems.size());
         } catch (Exception e) {
             logService.log(taskType, "failed list " + field + ", " + e.getMessage());
-            logger.error("failed list " + field + ", " + e.getMessage(), e);
+            log.error("failed list {}, {}", field, e.getMessage(), e);
         }
 
         return updatedIds;

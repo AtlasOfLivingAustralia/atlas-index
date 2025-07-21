@@ -17,8 +17,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import jakarta.annotation.PostConstruct;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -31,10 +30,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * This service provides a cache for collectory information
  * - dataResourceUid -> name
  */
+@Slf4j
 @Service
 public class CollectoryCache {
-
-    private static final Logger logger = LoggerFactory.getLogger(CollectoryCache.class);
 
     final ElasticService elasticService;
 
@@ -90,14 +88,14 @@ public class CollectoryCache {
             }
         } catch (Exception e) {
             // Note: this error is always logged when the index has not yet been initialized with idxtype:DATARESOURCE
-            logger.error("Failed to cache data resource names", e.getMessage());
+            log.error("Failed to cache data resource names", e);
         } finally {
             try {
                 if (pit != null) {
                     elasticService.closePointInTime(pit);
                 }
             } catch (Exception e) {
-                logger.error("Failed to close point in time", e);
+                log.error("Failed to close point in time", e);
             }
         }
     }

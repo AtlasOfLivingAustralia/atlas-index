@@ -107,7 +107,7 @@ public class LeaderService {
             Object payload = map.get("payload");
             return receiveMessage(taskTypeName, payload);
         } catch (Exception e) {
-            log.error("Error parsing message: {}", e);
+            log.error("Error parsing message", e);
         }
         return false;
     }

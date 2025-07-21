@@ -4,8 +4,8 @@ import QualityFilterItem from './qualityFilterItem.tsx';
 import classes from './quality.module.css';
 
 function QualityCategoryItem(props: {
-    category: QualityCategory;
-    parentCategory: QualityCategory | undefined;
+    category: QualityCategory; // clone of the category to avoid modifying the original object directly
+    actualCategory: QualityCategory | undefined; // actual category to update when changes are made
     setProfileDirty: (dirty: boolean) => void;
     saveCategory?: (category: QualityCategory) => void;
     saveFilter?: (category: QualityFilter) => void;
@@ -42,8 +42,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.enabled = enabled;
+        if (props.actualCategory) {
+            props.actualCategory.enabled = enabled;
             props.setProfileDirty(true);
         }
     }
@@ -54,8 +54,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.name = name;
+        if (props.actualCategory) {
+            props.actualCategory.name = name;
             props.setProfileDirty(true);
         }
     }
@@ -66,8 +66,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.label = label;
+        if (props.actualCategory) {
+            props.actualCategory.label = label;
             props.setProfileDirty(true);
         }
     }
@@ -78,8 +78,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.description = description;
+        if (props.actualCategory) {
+            props.actualCategory.description = description;
             props.setProfileDirty(true);
         }
     }
@@ -90,8 +90,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.inverseFilter = inverseFilter;
+        if (props.actualCategory) {
+            props.actualCategory.inverseFilter = inverseFilter;
             props.setProfileDirty(true);
         }
     }
@@ -102,8 +102,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.inverseFilter = '';
+        if (props.actualCategory) {
+            props.actualCategory.inverseFilter = '';
             props.setProfileDirty(true);
         }
     }
@@ -116,8 +116,8 @@ function QualityCategoryItem(props: {
         setCategory({...category});
 
         // update parent
-        if (props.parentCategory) {
-            props.parentCategory.qualityFilters = props.parentCategory.qualityFilters.filter(
+        if (props.actualCategory) {
+            props.actualCategory.qualityFilters = props.actualCategory.qualityFilters.filter(
                 (f) => f.id !== id
             );
             props.setProfileDirty(true);
@@ -182,7 +182,7 @@ function QualityCategoryItem(props: {
                 <tr>
                     <td className={"ps-3 w-25 fw-bold"}>Inverse filter (manual override when API incorrect)</td>
                     <td>
-                        { category.qualityFilters.find(f => f.filter.includes('(')) &&
+                        { category.qualityFilters && category.qualityFilters.find(f => f.filter.includes('(')) &&
                             <span className={"text-danger"}>
                                 <i className="bi bi-exclamation-triangle-fill me-1"></i>
                                 This category contains filters with parentheses, which may cause issues with inverse filtering.
@@ -214,14 +214,14 @@ function QualityCategoryItem(props: {
                             </tr>
                             </thead>
                             <tbody>
-                            {category.qualityFilters.slice().sort((a, b) => a.id - b.id).map(
+                            {category.qualityFilters && category.qualityFilters.slice().sort((a, b) => a.id - b.id).map(
                                 (filter, idx) => (
                                     <QualityFilterItem
                                         key={idx}
                                         filter={filter}
-                                        parentFilter={
-                                            props.parentCategory
-                                                ? props.parentCategory.qualityFilters.find(
+                                        actualFilter={
+                                            props.actualCategory?.qualityFilters
+                                                ? props.actualCategory.qualityFilters.find(
                                                     (it) =>
                                                         it.displayOrder ==
                                                         filter.displayOrder

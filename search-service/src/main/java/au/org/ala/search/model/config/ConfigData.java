@@ -6,46 +6,36 @@
 
 package au.org.ala.search.model.config;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.CompoundIndexes;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.Date;
 
 /**
  * This is the modifiable search-service config.
- * - Changes are expected.
- * - It is not appropriate to restart each instance of the search-service for each change.
  * - Changes will be to be made by admin via the API. e.g. with admin-ui.
- * - Defaults may or may not be provided.
- * - Change history is supported.
+ * - Listeners exist for validation and updating.
+ * - No history.
+ * - Has a notes field for comments, reasons for change, etc.
  *
- * e.g. key/value
- * dashboard.enabled={ value: true, description: "Enable the dashboard", userId: "123" }
- * dashboard.schedule={ value : 0 0 12 * * ?, description: "Schedule for the dashboard to run at noon every day", userId: "m2m" }
- *
+ * e.g.
+ * dashboard.enabled=true
+ * dashboard.schedule=0 0 12 * * ?
  */
-@Getter
-@Setter
-@Document(collection = "config")
-@CompoundIndexes({
-    @CompoundIndex(name = "key_created_idx", def = "{'key': 1, 'created': -1}") // for quick retrieval of latest config by key
-})
+@NoArgsConstructor
+@SuperBuilder
+@Data
+@Entity
+@Table(name = "config")
 public class ConfigData {
     @Id
-    private String uuid;
-    private String key;
-    private LocalDateTime created;
-    private ConfigValue data;
-
-    public ConfigData(String key, LocalDateTime created, ConfigValue data) {
-        this.uuid = UUID.randomUUID().toString();
-        this.key = key;
-        this.created = created;
-        this.data = data;
-    }
+    public String id;
+    public Date updated; // the last time the value changed
+    public String value; // text field for the configuration value, e.g. "true", "0 0 12 * * ?"
+    public String notes; // text field for comments, reasons for change, etc.
 }

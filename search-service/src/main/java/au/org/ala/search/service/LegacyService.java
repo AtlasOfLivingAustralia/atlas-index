@@ -12,10 +12,9 @@ import au.org.ala.search.names.RankType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +27,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class LegacyService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LegacyService.class);
     public Map<String, Map<String, String>> conservationMapping;
     public Map<String, Rank> taxonRanks;
     @Value("${conservation.mapping.path}")
@@ -63,14 +62,14 @@ public class LegacyService {
                     conservationMapping.put(currentField, item);
                 }
             } catch (Exception e) {
-                logger.error("Failed to read conservation.mapping.path:" + conservationMappingPath);
+                log.error("Failed to read conservation.mapping.path:{}", conservationMappingPath);
             }
         }
 
         try {
             initTaxonRanks();
         } catch (IOException e) {
-            logger.error("Failed to init taxon ranks:" + e.getMessage());
+            log.error("Failed to init taxon ranks:{}", e.getMessage());
         }
     }
 

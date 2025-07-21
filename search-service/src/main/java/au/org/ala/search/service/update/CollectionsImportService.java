@@ -15,8 +15,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.http.HttpMethod;
@@ -30,11 +29,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class CollectionsImportService {
     private static final TaskType taskType = TaskType.COLLECTIONS;
 
-    private static final Logger logger = LoggerFactory.getLogger(CollectionsImportService.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
     protected final BiocacheService biocacheService;
@@ -132,7 +131,7 @@ public class CollectionsImportService {
             }
         } catch (Exception e) {
             logService.log(taskType, "Error getting entities: " + entityName);
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         return updateList;
     }
@@ -176,7 +175,7 @@ public class CollectionsImportService {
                 properties = objectMapper.readValue((String) item, Map.class);
             } catch (JsonProcessingException e) {
                 logService.log(taskType, "Error parsing collectory entities");
-                logger.error("failed to parse collection entity");
+                log.error("failed to parse collection entity");
                 return result;
             }
 

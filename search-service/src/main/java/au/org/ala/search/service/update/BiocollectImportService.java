@@ -13,8 +13,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -26,11 +25,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class BiocollectImportService {
     private static final TaskType taskType = TaskType.BIOCOLLECT;
 
-    private static final Logger logger = LoggerFactory.getLogger(BiocollectImportService.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
 
@@ -117,7 +116,7 @@ public class BiocollectImportService {
             }
         } catch (Exception e) {
             logService.log(taskType, "Error getting project");
-            logger.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         return updateList;
     }

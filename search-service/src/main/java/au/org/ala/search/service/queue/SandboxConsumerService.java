@@ -14,9 +14,8 @@ import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.LogService;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +30,7 @@ import java.util.Map;
 /**
  * Consumes the fieldguide queue to produce PDF files.
  */
+@Slf4j
 @Service
 public class SandboxConsumerService extends ConsumerService {
     public static final String UUID_METRICS = "uuid-metrics.yml";
@@ -38,7 +38,7 @@ public class SandboxConsumerService extends ConsumerService {
     public static final String VERBATIM_METRICS = "dwca-metrics.yml";
     public static final String INDEXING_METRICS = "indexing-metrics.yml";
     public static final String SENSITIVE_METRICS = "sensitive-metrics.yml";
-    private static final Logger logger = LoggerFactory.getLogger(SandboxConsumerService.class);
+
     @Value("${sandbox.consumer.threads}")
     public Integer sandboxConsumerThreads;
 
@@ -72,7 +72,7 @@ public class SandboxConsumerService extends ConsumerService {
 
     void processItem(QueueItem item) {
         // process item
-        logger.info("Processing sandbox: " + item.id);
+        log.info("Processing sandbox: {}", item.id);
 
         String datasetID = null;
         try {
@@ -89,7 +89,7 @@ public class SandboxConsumerService extends ConsumerService {
             } // else, updateStatus already called in loadDwCA with an error message
         } catch (Exception e) {
             queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
-            logger.error("Error processing sandbox: " + item.id, e);
+            log.error("Error processing sandbox: {}", item.id, e);
         } finally {
             // delete pipelines files
             File dir = new File(sandboxDir + "/processed/" + datasetID);
@@ -97,7 +97,7 @@ public class SandboxConsumerService extends ConsumerService {
                 try {
                     org.apache.commons.io.FileUtils.deleteDirectory(dir);
                 } catch (IOException e) {
-                    logger.error("Error deleting directory: " + dir.getAbsolutePath(), e);
+                    log.error("Error deleting directory: {}", dir.getAbsolutePath(), e);
                 }
             }
         }
@@ -127,7 +127,7 @@ public class SandboxConsumerService extends ConsumerService {
         // test if it was successful
         File verbatimDir = new File(sandboxDir + "/processed/" + datasetID + "/1/verbatim/");
         if (!verbatimDir.exists() || verbatimDir.listFiles() == null || verbatimDir.listFiles().length == 0) {
-            logger.error("DwCA to verbatim failed");
+            log.error("DwCA to verbatim failed");
             queueService.updateStatus(queueItem, StatusCode.ERROR, "DwCA to verbatim failed");
             return 0;
         }
@@ -149,7 +149,7 @@ public class SandboxConsumerService extends ConsumerService {
 
         File occurrenceDir = new File(sandboxDir + "/processed/" + datasetID + "/1/occurrence/");
         if (!occurrenceDir.exists() || occurrenceDir.listFiles().length < 4) {
-            logger.error("Verbatim to interpreted failed");
+            log.error("Verbatim to interpreted failed");
             queueService.updateStatus(queueItem, StatusCode.ERROR, "Verbatim to interpreted failed");
             return 0;
         }
@@ -199,7 +199,7 @@ public class SandboxConsumerService extends ConsumerService {
 
         File processedDir = new File(sandboxDir + "/processed/" + datasetID + "/all-datasets/index-record/" + datasetID);
         if (!processedDir.exists() || processedDir.listFiles() == null || processedDir.listFiles().length == 0) {
-            logger.error("Index Record Pipeline failed");
+            log.error("Index Record Pipeline failed");
             queueService.updateStatus(queueItem, StatusCode.ERROR, "index-record failed");
             return 0;
         }
@@ -219,7 +219,7 @@ public class SandboxConsumerService extends ConsumerService {
 
         File latLngDir = new File(sandboxDir + "/processed/" + datasetID + "/1/latlng");
         if (!latLngDir.exists() || latLngDir.listFiles() == null || latLngDir.listFiles().length == 0) {
-            logger.error("Export Lat Lng failed");
+            log.error("Export Lat Lng failed");
             queueService.updateStatus(queueItem, StatusCode.ERROR, "lat-lng failed");
             return 0;
         }
@@ -239,7 +239,7 @@ public class SandboxConsumerService extends ConsumerService {
 
         File samplingDir = new File(sandboxDir + "/processed/" + datasetID + "/1/sampling");
         if (!samplingDir.exists() || samplingDir.listFiles() == null || samplingDir.listFiles().length == 0) {
-            logger.error("Sampling failed");
+            log.error("Sampling failed");
             queueService.updateStatus(queueItem, StatusCode.ERROR, "sampling failed");
             return 0;
         }
@@ -279,7 +279,7 @@ public class SandboxConsumerService extends ConsumerService {
                 if (response.getStatusCode().is2xxSuccessful() &&
                         ((Integer) ((Map) response.getBody().get("response")).get("numFound")) > 0) {
                     int solrCount = ((Integer) ((Map) response.getBody().get("response")).get("numFound"));
-                    logger.info("SOLR import successful: " + solrCount + " records");
+                    log.info("SOLR import successful: {} records", solrCount);
                     queueService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import successful: " + solrCount + " records (subject to indexing)");
                     return solrCount;
                 }
@@ -287,7 +287,7 @@ public class SandboxConsumerService extends ConsumerService {
                 retry++;
             }
         } catch (Exception e) {
-            logger.error("SOLR request failed: " + e.getMessage());
+            log.error("SOLR request failed: {}", e.getMessage(), e);
         }
 
         queueService.updateStatus(queueItem, StatusCode.ERROR, "SOLR import failed (or timed out)");
@@ -302,33 +302,31 @@ public class SandboxConsumerService extends ConsumerService {
         cmd[cmd.length - 1] = pipelinesConfig;
 
         try {
-            logger.info("Executing pipeline: " + StringUtils.join(cmd, " "));
+            log.info("Executing pipeline: {}", StringUtils.join(cmd, " "));
             ProcessBuilder builder = new ProcessBuilder(cmd);
             builder.environment().putAll(System.getenv());
             builder.redirectErrorStream(true);
 
             Process proc = builder.start();
 
-            logStream(proc.getInputStream(), null);
+            logStream(proc.getInputStream());
 
             proc.waitFor();
         } catch (Exception e) {
-            logger.error("Error executing pipeline: " + Arrays.toString(cmd), e);
+            log.error("Error executing pipeline: {}", Arrays.toString(cmd), e);
             throw new RuntimeException(e);
         }
     }
 
-    private void logStream(InputStream stream, Logger logger) {
+    private void logStream(InputStream stream) {
         new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (logger != null) {
-                        logger.info(line);
-                    }
+                    log.info(line);
                 }
             } catch (IOException e) {
-                logger.error("Error reading stream", e);
+                log.error("Error reading stream", e);
             }
         }).start();
     }

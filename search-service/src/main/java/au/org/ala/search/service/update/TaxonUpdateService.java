@@ -16,9 +16,8 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.scheduling.annotation.Async;
@@ -30,11 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class TaxonUpdateService {
     private static final TaskType taskType = TaskType.BIOCACHE;
 
-    private static final Logger logger = LoggerFactory.getLogger(TaxonUpdateService.class);
     protected final ElasticService elasticService;
     protected final TaxonUpdateRunner taxonUpdateRunner;
     protected final LogService logService;
@@ -138,7 +137,7 @@ public class TaxonUpdateService {
             logService.log(taskType, "Finished found: " + counter + ", updates: " + updateCount + ", skipped (error): " + skippedCount);
         } catch (Exception ex) {
             logService.log(taskType, "Error there was problem with occurrences import: " + ex.getMessage());
-            logger.error("There was problem with occurrences import: " + ex.getMessage(), ex);
+            log.error("There was problem with occurrences import: {}", ex.getMessage(), ex);
             return false;
         } finally {
             try {
@@ -146,7 +145,7 @@ public class TaxonUpdateService {
                     elasticService.closePointInTime(pit);
                 }
             } catch (Exception e) {
-                logger.error("Failed to close point in time", e);
+                log.error("Failed to close point in time", e);
             }
         }
         return true;
@@ -215,7 +214,7 @@ public class TaxonUpdateService {
             logService.log(taskType, "Finished acceptedConceptName: " + counter);
         } catch (Exception ex) {
             logService.log(taskType, "Error there was problem with acceptedConceptName import: " + ex.getMessage());
-            logger.error("There was problem with acceptedConceptName import: " + ex.getMessage(), ex);
+            log.error("There was problem with acceptedConceptName import: {}", ex.getMessage(), ex);
             return false;
         } finally {
             try {
@@ -223,7 +222,7 @@ public class TaxonUpdateService {
                     elasticService.closePointInTime(pit);
                 }
             } catch (Exception e) {
-                logger.error("Failed to close point in time", e);
+                log.error("Failed to close point in time", e);
             }
         }
         return true;

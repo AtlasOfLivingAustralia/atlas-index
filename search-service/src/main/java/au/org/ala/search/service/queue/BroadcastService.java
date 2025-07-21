@@ -7,17 +7,25 @@
 package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
+import au.org.ala.search.service.remote.ConfigService;
 import au.org.ala.search.service.remote.DataQualityService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.InstanceUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.Map;
 
 /**
  * Service to send and consume messages from the broadcast queue for all messages that are to be broadcast to all instances.
@@ -36,12 +44,15 @@ public class BroadcastService {
     private final ListCache listCache;
     private final RabbitTemplate rabbitTemplate;
     private final DataQualityService dataQualityService;
+    private final ConfigService configService;
     @Value("${rabbitmq.exchange.broadcast}")
     private String broadcastExchange;
     @Value("${rabbitmq.host:}")
     private String rabbitMqHost;
 
-    public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, DataQualityService dataQualityService) {
+    ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
+
+    public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, DataQualityService dataQualityService, ConfigService configService) {
         this.collectoryCache = collectoryCache;
         this.listCache = listCache;
         this.rabbitTemplate = rabbitTemplate;
@@ -49,6 +60,10 @@ public class BroadcastService {
 
         instance = this;
         this.dataQualityService = dataQualityService;
+
+        SimpleDateFormat customDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
+        smileObjectMapper.setDateFormat(customDateFormat);
+        this.configService = configService;
     }
 
     /**
@@ -56,11 +71,32 @@ public class BroadcastService {
      *
      * @param message message to send
      */
-    public void sendMessage(TaskType message) {
+    public void sendMessage(TaskType message, Object payload) {
         if (StringUtils.isNotEmpty(rabbitMqHost)) {
-            rabbitTemplate.convertAndSend(broadcastExchange, "", message.name());
+            Map<String, Object> map = Map.of(
+                    "payload", payload,
+                    "message", message.name()
+            );
+
+            try {
+                byte[] bytes = smileObjectMapper.writeValueAsBytes(map);
+                rabbitTemplate.convertAndSend(broadcastExchange, "", bytes);
+            } catch (JsonProcessingException e) {
+                log.error("Error serializing message to send", e);
+            }
         } else {
-            receiveMessage(message.name());
+            receiveMessage(message.name(), payload);
+        }
+    }
+
+    public void receiveMessage(byte[] message) {
+        try {
+            Map<String, Object> map = smileObjectMapper.readValue(message, Map.class);
+            String taskTypeName = (String) map.get("message");
+            Object payload = map.get("payload");
+            receiveMessage(taskTypeName, payload);
+        } catch (Exception e) {
+            log.error("Error parsing message", e);
         }
     }
 
@@ -69,7 +105,7 @@ public class BroadcastService {
      *
      * @param message a TaskType of category TaskType.Category.BROADCAST
      */
-    public void receiveMessage(String message) {
+    public void receiveMessage(String message, Object payload) {
         TaskType taskType;
         try {
             taskType = TaskType.valueOf(message);
@@ -88,6 +124,17 @@ public class BroadcastService {
             listCache.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_DATA_QUALITY.name())) {
             dataQualityService.cacheRefresh();
+        } else if (message.equals(TaskType.CONFIG_CHANGE.name())) {
+            try {
+                // Parse payload to ConfigData
+                ConfigData prevConfigData = null;
+                if (payload != null) {
+                    prevConfigData = smileObjectMapper.convertValue(payload, ConfigData.class);
+                }
+                configService.triggerListeners(configService.get(prevConfigData.id), prevConfigData);
+            } catch (IllegalArgumentException e) {
+                log.error("Unknown message received: {}", message, e);
+            }
         } else {
             log.error("Unhandled message received: {}", message);
         }

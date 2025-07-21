@@ -13,8 +13,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -29,11 +28,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class AreaImportService {
     private static final TaskType taskType = TaskType.AREA;
 
-    private static final Logger logger = LoggerFactory.getLogger(AreaImportService.class);
     protected final ElasticService elasticService;
     protected final LogService logService;
 
@@ -178,7 +177,7 @@ public class AreaImportService {
                 }
             } catch (Exception e) {
                 logService.log(taskType, "failed to get fields " + spatialUrl + "/fields; " + e.getMessage());
-                logger.error("failed to get fields " + spatialUrl + "/fields; " + e.getMessage());
+                log.error("failed to get fields {}/fields; {}", spatialUrl, e.getMessage());
             }
 
             logService.log(taskType, "field " + fieldId + " import finished");
@@ -197,7 +196,7 @@ public class AreaImportService {
                 allFields = objectMapper.readValue(URI.create(spatialUrl + "/fields").toURL(), List.class);
             } catch (IOException e) {
                 logService.log(taskType, "failed to get fields " + spatialUrl + "/fields");
-                logger.error("failed to get fields " + spatialUrl + "/fields");
+                log.error("failed to get fields {}/fields", spatialUrl);
             }
         }
 
@@ -366,7 +365,7 @@ public class AreaImportService {
 
         } catch (Exception e) {
             logService.log(taskType, "failed to get distributions " + spatialUrl + "/distributions");
-            logger.error("failed to get distributions " + spatialUrl + "/distributions");
+            log.error("failed to get distributions {}/distributions", spatialUrl);
         }
     }
 }

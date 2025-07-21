@@ -75,9 +75,9 @@ public class BroadcastConsumerServiceIntegrationTest {
 
     @Test
     void testSendAndReceiveCacheReset() throws InterruptedException {
-        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL);
-        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL);
-        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL);
+        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL, null);
+        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL, null);
+        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL, null);
 
         // Wait for the message to be consumed
         Thread.sleep(2000);

@@ -7,10 +7,9 @@
 package au.org.ala.search.service.remote;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -29,10 +28,10 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Service to store files, usually static files, info a file store. e.g. local file system or S3
  */
+@Slf4j
 @Service
 public class StaticFileStoreService {
 
-    private static final Logger logger = LoggerFactory.getLogger(StaticFileStoreService.class);
     S3AsyncClient s3Client;
     @Value("${static.filestore.path}")
     private String fileStorePath;
@@ -75,7 +74,7 @@ public class StaticFileStoreService {
 
                 // report error
                 if (result.isCompletedExceptionally()) {
-                    logger.error("Failed to copy file to s3 src: " + src.getAbsolutePath() + ", dstPath" + path + "/" + dstPath);
+                    log.error("Failed to copy file to s3 src: {}, dstPath{}/{}", src.getAbsolutePath(), path, dstPath);
                     return false;
                 }
             } else {
@@ -87,7 +86,7 @@ public class StaticFileStoreService {
             }
             return true;
         } catch (Exception e) {
-            logger.error("Failed to copy file to file store src: " + src.getAbsolutePath() + ", dstPath" + dstPath + ", " + e.getMessage());
+            log.error("Failed to copy file to file store src: {}, dstPath{}, {}", src.getAbsolutePath(), dstPath, e.getMessage(), e);
             return false;
         }
     }
@@ -133,7 +132,7 @@ public class StaticFileStoreService {
 
                 // report error
                 if (result.isCompletedExceptionally()) {
-                    logger.error("Failed to get file from s3 srcPath: " + srcPath);
+                    log.error("Failed to get file from s3 srcPath: {}", srcPath);
                 } else {
                     return tmpFile;
                 }
@@ -145,7 +144,7 @@ public class StaticFileStoreService {
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to get the file for srcPath: " + srcPath + ", " + e.getMessage());
+            log.error("Failed to get the file for srcPath: {}, {}", srcPath, e.getMessage(), e);
         }
         return null;
     }

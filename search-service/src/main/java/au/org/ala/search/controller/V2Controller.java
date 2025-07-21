@@ -34,8 +34,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
@@ -53,6 +52,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * bie-index API services, minus some admin services
  */
+@Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V2Controller {
@@ -60,7 +60,7 @@ public class V2Controller {
     public static final String LIST_ID = "list_v2";
     public static final String DOWNLOAD_ID = "download_v2";
     public static final String DOWNLOAD_FIELDGUIDE = "fieldguide_v2";
-    private static final Logger logger = LoggerFactory.getLogger(V2Controller.class);
+
     protected final ElasticService elasticService;
     protected final LegacyService legacyService;
     protected final AdminService adminService;
