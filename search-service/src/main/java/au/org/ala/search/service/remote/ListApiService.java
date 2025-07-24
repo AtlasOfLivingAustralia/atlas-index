@@ -27,7 +27,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class ListService {
+public class ListApiService {
 
     protected final WebService webService;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -41,7 +41,7 @@ public class ListService {
     @Value("${lists.search.max}")
     private Integer listsSearchMax;
 
-    public ListService(WebService webService) {
+    public ListApiService(WebService webService) {
         this.webService = webService;
     }
 

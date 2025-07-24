@@ -100,12 +100,12 @@ public class DownloadFileStoreService {
     }
 
     private String itemFileName(QueueItem queueItem) {
-        if (queueItem.queueRequest instanceof SearchQueueRequest) {
+        if (queueItem.queueRequest.searchQueueRequest != null) {
             return "search/" + queueItem.id + ".zip";
-        } else if (queueItem.queueRequest instanceof FieldguideQueueRequest) {
+        } else if (queueItem.queueRequest.fieldguideQueueRequest != null) {
             return "fieldguide/" + queueItem.id + ".pdf";
         }
-        return queueItem.id;
+        return String.valueOf(queueItem.id);
     }
 
     public String createPresignedGetUrl(QueueItem queueItem) {

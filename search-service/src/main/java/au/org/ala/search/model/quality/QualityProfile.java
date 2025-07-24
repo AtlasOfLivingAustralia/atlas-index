@@ -36,6 +36,7 @@ public class QualityProfile implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
+
     @Column(nullable = false)
     String shortName = "";
 

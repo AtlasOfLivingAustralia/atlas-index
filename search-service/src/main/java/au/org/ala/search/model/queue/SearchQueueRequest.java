@@ -13,7 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SearchQueueRequest extends QueueRequest {
-    public String[] q;
-    public String[] fl;
+public class SearchQueueRequest {
+    public String[] q; // query parameters
+    public String[] fl; // fields to return
+    public String filename; // optional filename, without extension, for the search results, e.g. "search_results.csv"
 }

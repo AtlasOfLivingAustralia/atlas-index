@@ -9,7 +9,7 @@ package au.org.ala.search.service;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
-import au.org.ala.search.service.queue.BroadcastService;
+import au.org.ala.search.service.queue.BroadcastQueue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ public class BroadcastConsumerServiceIntegrationTest {
     private ListCache listCache;
 
     @Autowired
-    private BroadcastService broadcastService;
+    private BroadcastQueue broadcastQueue;
 
     @DynamicPropertySource
     static void rabbitProperties(DynamicPropertyRegistry registry) {
@@ -75,9 +75,9 @@ public class BroadcastConsumerServiceIntegrationTest {
 
     @Test
     void testSendAndReceiveCacheReset() throws InterruptedException {
-        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL, null);
-        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL, null);
-        broadcastService.sendMessage(TaskType.CACHE_RESET_ALL, null);
+        broadcastQueue.sendMessage(TaskType.CACHE_RESET_ALL, null);
+        broadcastQueue.sendMessage(TaskType.CACHE_RESET_ALL, null);
+        broadcastQueue.sendMessage(TaskType.CACHE_RESET_ALL, null);
 
         // Wait for the message to be consumed
         Thread.sleep(2000);

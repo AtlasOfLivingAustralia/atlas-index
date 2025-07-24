@@ -12,9 +12,11 @@ import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.model.quality.QualityProfile;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
+import au.org.ala.search.service.consumer.FieldguideConsumer;
+import au.org.ala.search.service.consumer.SearchConsumer;
 import au.org.ala.search.service.queue.*;
 import au.org.ala.search.service.remote.ConfigService;
-import au.org.ala.search.service.remote.DataQualityService;
+import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.update.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,13 +65,13 @@ public class V2AdminController {
     protected final TaskExecutor processExecutor;
     protected final TaskExecutor blockingExecutor;
     protected final TaskExecutor elasticSearchUpdate;
-    protected final QueueService queueService;
-    protected final FieldguideConsumerService fieldguideConsumerService;
-    protected final SearchConsumerService searchConsumerService;
+    protected final ConsumerQueue consumerQueue;
+    protected final FieldguideConsumer fieldguideConsumer;
+    protected final SearchConsumer searchConsumer;
     protected final DescriptionsUpdateService descriptionsUpdateService;
-    protected final DataQualityService dataQualityService;
-    protected final BroadcastService broadcastService;
-    private final LeaderService leaderService;
+    protected final QualityDataService qualityDataService;
+    protected final BroadcastQueue broadcastQueue;
+    private final LeaderQueue leaderQueue;
     private final ConfigService configService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
@@ -81,10 +83,10 @@ public class V2AdminController {
                              DashboardService dashboardService, TaskExecutor processExecutor,
                              TaskExecutor elasticSearchUpdate, AuthService authService,
                              TaxonUpdateService taxonUpdateService, SitemapService sitemapService,
-                             QueueService queueService, FieldguideConsumerService fieldguideConsumerService,
-                             SearchConsumerService searchConsumerService,
+                             ConsumerQueue consumerQueue, FieldguideConsumer fieldguideConsumer,
+                             SearchConsumer searchConsumer,
                              DescriptionsUpdateService descriptionsUpdateService,
-                             DataQualityService dataQualityService, BroadcastService broadcastService, LeaderService leaderService, ConfigService configService) {
+                             QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue, ConfigService configService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -104,13 +106,13 @@ public class V2AdminController {
         this.authService = authService;
         this.taxonUpdateService = taxonUpdateService;
         this.sitemapService = sitemapService;
-        this.queueService = queueService;
-        this.fieldguideConsumerService = fieldguideConsumerService;
-        this.searchConsumerService = searchConsumerService;
+        this.consumerQueue = consumerQueue;
+        this.fieldguideConsumer = fieldguideConsumer;
+        this.searchConsumer = searchConsumer;
         this.descriptionsUpdateService = descriptionsUpdateService;
-        this.dataQualityService = dataQualityService;
-        this.broadcastService = broadcastService;
-        this.leaderService = leaderService;
+        this.qualityDataService = qualityDataService;
+        this.broadcastQueue = broadcastQueue;
+        this.leaderQueue = leaderQueue;
         this.configService = configService;
     }
 
@@ -172,10 +174,10 @@ public class V2AdminController {
             case TaskType.TAXON_DESCRIPTION -> descriptionsUpdateService.run();
 
             // broadcast tasks
-            case TaskType.CACHE_RESET_ALL -> broadcastService.sendMessage(type, null);
-            case TaskType.CACHE_RESET_COLLECTORY -> broadcastService.sendMessage(type, null);
-            case TaskType.CACHE_RESET_LISTS -> broadcastService.sendMessage(type, null);
-            case TaskType.CACHE_RESET_DATA_QUALITY -> broadcastService.sendMessage(type, null);
+            case TaskType.CACHE_RESET_ALL -> broadcastQueue.sendMessage(type, null);
+            case TaskType.CACHE_RESET_COLLECTORY -> broadcastQueue.sendMessage(type, null);
+            case TaskType.CACHE_RESET_LISTS -> broadcastQueue.sendMessage(type, null);
+            case TaskType.CACHE_RESET_DATA_QUALITY -> broadcastQueue.sendMessage(type, null);
 
             default -> {
                 notSupported = true;
@@ -219,8 +221,6 @@ public class V2AdminController {
         return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
     }
 
-    // TODO: this is incomplete as it does not work when there are multiple instances.
-    //  It should also include rabbitmq queue information, if any.
     @Operation(tags = "ADMIN", summary = "Application staus")
     @Tag(name = "ADMIN", description = "REST Services for admin")
     @SecurityRequirement(name = "JWT")
@@ -255,19 +255,7 @@ public class V2AdminController {
         queue.put("description", "blocking queue containing a subset of update requests");
         queues.put("elasticsearch", queue);
 
-        queue = new HashMap<>();
-        queue.put("description", "queued fieldguide requests");
-        queue.put("threadCount", fieldguideConsumerService.consumerThreads);
-        queue.put("active", fieldguideConsumerService.activeItems);
-        queue.put("queued", queueService.list(TaskType.FIELDGUIDE.name()));
-        queues.put("fieldguide", queue);
-
-        queue = new HashMap<>();
-        queue.put("description", "queued searched download requests");
-        queue.put("threadCount", searchConsumerService.consumerThreads);
-        queue.put("active", searchConsumerService.activeItems);
-        queue.put("queued", queueService.list(TaskType.SEARCH_DOWNLOAD.name()));
-        queues.put("search_download", queue);
+        queues.putAll(consumerQueue.getQueueStats());
 
         response.put("queues", queues);
 
@@ -287,7 +275,7 @@ public class V2AdminController {
             throw new AccessDeniedException("Not authorised");
         }
 
-        return ResponseEntity.ok(dataQualityService.getProfiles());
+        return ResponseEntity.ok(qualityDataService.getProfiles());
     }
 
     @SneakyThrows
@@ -308,14 +296,14 @@ public class V2AdminController {
         }
 
         // Check if the profile exists
-        QualityProfile existingProfile = dataQualityService.getProfile(String.valueOf(id));
+        QualityProfile existingProfile = qualityDataService.getProfile(String.valueOf(id));
         if (existingProfile == null) {
             return ResponseEntity.notFound().build();
         }
 
         // A basic wait for the cache to be cleared after the deletion
-        CountDownLatch latch = dataQualityService.getCacheRefreshLatch();
-        Map<String, String> response = leaderService.sendRpcMessage(TaskType.DATA_QUALITY_DELETE, QualityProfile.builder().id(id).build());
+        CountDownLatch latch = qualityDataService.getCacheRefreshLatch();
+        Map<String, String> response = leaderQueue.sendRpcMessage(TaskType.DATA_QUALITY_DELETE, QualityProfile.builder().id(id).build());
         if (response == null || response.get("status").equals("error")) {
             return ResponseEntity.status(500).body("{\"message\": \"Profile deletion failed\"}");
         } else if (response.get("status").equals("timeout")) {
@@ -326,7 +314,7 @@ public class V2AdminController {
         latch.await(5000, java.util.concurrent.TimeUnit.MILLISECONDS);
 
         // Check if the profile was deleted
-        QualityProfile profile = dataQualityService.getProfileNow(existingProfile.getShortName());
+        QualityProfile profile = qualityDataService.getProfileNow(existingProfile.getShortName());
         if (profile != null) {
             return ResponseEntity.status(500).body("{\"message\": \"Profile deletion failed\"}");
         }
@@ -351,7 +339,7 @@ public class V2AdminController {
             throw new AccessDeniedException("Not authorised");
         }
 
-        Map<String, String> response = leaderService.sendRpcMessage(TaskType.DATA_QUALITY_SAVE, profile);
+        Map<String, String> response = leaderQueue.sendRpcMessage(TaskType.DATA_QUALITY_SAVE, profile);
         if (response == null || response.get("status").equals("error")) {
             return ResponseEntity.status(500).build();
         } else if (response.get("status").equals("timeout")) {
@@ -359,7 +347,7 @@ public class V2AdminController {
         }
 
         // unlike the delete API this create/update API does not need to wait for the cache to be cleared
-        QualityProfile newProfile = dataQualityService.getProfileNow(profile.getShortName());
+        QualityProfile newProfile = qualityDataService.getProfileNow(profile.getShortName());
         if (newProfile == null) {
             return ResponseEntity.status(500).build();
         }

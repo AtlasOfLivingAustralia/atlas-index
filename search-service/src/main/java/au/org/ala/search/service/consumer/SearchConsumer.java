@@ -4,20 +4,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package au.org.ala.search.service.queue;
+package au.org.ala.search.service.consumer;
 
-import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.SearchQueueRequest;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.LogService;
-import jakarta.annotation.PostConstruct;
+import au.org.ala.search.service.remote.QueueDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 
@@ -33,30 +29,25 @@ import java.util.zip.ZipOutputStream;
  */
 @Slf4j
 @Service
-public class SearchConsumerService extends ConsumerService {
-    final ElasticService elasticService;
-    @Value("${search.consumer.threads}")
-    public Integer searchConsumerThreads;
+public class SearchConsumer {
+    private final QueueDataService queueDataService;
+    private final ElasticService elasticService;
+    private final DownloadFileStoreService downloadFileStoreService;
 
-    public SearchConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService, ElasticService elasticService) {
-        super(logService, queueService, emailSender, downloadFileStoreService);
+    public SearchConsumer(QueueDataService queueDataService, ElasticService elasticService, DownloadFileStoreService downloadFileStoreService) {
+        this.queueDataService = queueDataService;
         this.elasticService = elasticService;
+        this.downloadFileStoreService = downloadFileStoreService;
     }
 
-    @PostConstruct
-    void init() {
-        taskType = TaskType.SEARCH_DOWNLOAD;
-        super.init(searchConsumerThreads);
-    }
-
-    void processItem(QueueItem item) {
-        SearchQueueRequest request = (SearchQueueRequest) item.queueRequest;
+    public void consume(QueueItem item) {
+        SearchQueueRequest request = item.queueRequest.searchQueueRequest;
 
         String q = request.q[0];
         String[] fqs = request.q.length > 1 ? Arrays.copyOfRange(request.q, 1, request.q.length) : null;
 
         try {
-            String csvFilename = item.queueRequest.getFilename();
+            String csvFilename = request.getFilename();
             if (!csvFilename.toLowerCase().endsWith(".csv")) {
                 csvFilename += ".csv";
             }
@@ -83,7 +74,7 @@ public class SearchConsumerService extends ConsumerService {
                 zos.close();
             } catch (Exception e) {
                 log.error("search download: {}", item.id, e);
-                queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
+                queueDataService.updateStatus(item, StatusCode.ERROR, e.getMessage());
             } finally {
                 if (tmpFile != null) {
                     tmpFile.delete();
@@ -95,7 +86,7 @@ public class SearchConsumerService extends ConsumerService {
             }
         } catch (Exception e) {
             log.error("search download: {}", item.id, e);
-            queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
+            queueDataService.updateStatus(item, StatusCode.ERROR, e.getMessage());
         }
     }
 }

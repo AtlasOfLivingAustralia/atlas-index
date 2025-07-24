@@ -4,22 +4,18 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package au.org.ala.search.service.queue;
+package au.org.ala.search.service.consumer;
 
-import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.SandboxIngress;
 import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.model.queue.SandboxQueueRequest;
 import au.org.ala.search.model.queue.StatusCode;
-import au.org.ala.search.service.remote.DownloadFileStoreService;
-import au.org.ala.search.service.remote.LogService;
-import jakarta.annotation.PostConstruct;
+import au.org.ala.search.service.remote.QueueDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -32,15 +28,14 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class SandboxConsumerService extends ConsumerService {
+public class SandboxConsumer {
     public static final String UUID_METRICS = "uuid-metrics.yml";
     public static final String INTERPRETATION_METRICS = "interpretation-metrics.yml";
     public static final String VERBATIM_METRICS = "dwca-metrics.yml";
     public static final String INDEXING_METRICS = "indexing-metrics.yml";
     public static final String SENSITIVE_METRICS = "sensitive-metrics.yml";
 
-    @Value("${sandbox.consumer.threads}")
-    public Integer sandboxConsumerThreads;
+    private final QueueDataService queueDataService;
 
     @Value("${sandbox.dir}")
     public String sandboxDir;
@@ -60,35 +55,29 @@ public class SandboxConsumerService extends ConsumerService {
     @Value("${solr.collection}")
     public String solrCollection;
 
-    public SandboxConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService) {
-        super(logService, queueService, emailSender, downloadFileStoreService);
+    public SandboxConsumer(QueueDataService queueDataService) {
+        this.queueDataService = queueDataService;
     }
 
-    @PostConstruct
-    void init() {
-        taskType = TaskType.SANDBOX;
-        super.init(sandboxConsumerThreads);
-    }
-
-    void processItem(QueueItem item) {
+    public void consume(QueueItem item) {
         // process item
         log.info("Processing sandbox: {}", item.id);
 
         String datasetID = null;
         try {
-            queueService.updateStatus(item, StatusCode.RUNNING, "Processing");
+            queueDataService.updateStatus(item, StatusCode.RUNNING, "Processing");
 
-            SandboxQueueRequest sandboxQueueRequest = (SandboxQueueRequest) item.queueRequest;
+            SandboxQueueRequest sandboxQueueRequest = item.queueRequest.sandboxQueueRequest;
             datasetID = sandboxQueueRequest.sandboxIngress.getDataResourceUid();
             sandboxQueueRequest.sandboxIngress.setDataResourceUid(datasetID);
 
             int recordCount = loadDwCA(item, sandboxQueueRequest.sandboxIngress, datasetID);
 
             if (recordCount > 0) {
-                queueService.updateStatus(item, StatusCode.FINISHED, "Processed " + recordCount + " records (subject to SOLR indexing)");
+                queueDataService.updateStatus(item, StatusCode.FINISHED, "Processed " + recordCount + " records (subject to SOLR indexing)");
             } // else, updateStatus already called in loadDwCA with an error message
         } catch (Exception e) {
-            queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
+            queueDataService.updateStatus(item, StatusCode.ERROR, e.getMessage());
             log.error("Error processing sandbox: {}", item.id, e);
         } finally {
             // delete pipelines files
@@ -121,14 +110,14 @@ public class SandboxConsumerService extends ConsumerService {
                 "--targetPath=" + sandboxDir + "/processed",
                 "--inputPath=" + sandboxDir + "/upload/" + item.getId()
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "DwCA to verbatim");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "DwCA to verbatim");
         pipelinesExecute(dwcaToVerbatimOpts);
 
         // test if it was successful
         File verbatimDir = new File(sandboxDir + "/processed/" + datasetID + "/1/verbatim/");
         if (!verbatimDir.exists() || verbatimDir.listFiles() == null || verbatimDir.listFiles().length == 0) {
             log.error("DwCA to verbatim failed");
-            queueService.updateStatus(queueItem, StatusCode.ERROR, "DwCA to verbatim failed");
+            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "DwCA to verbatim failed");
             return 0;
         }
 
@@ -144,13 +133,13 @@ public class SandboxConsumerService extends ConsumerService {
                 "--inputPath=" + sandboxDir + "/processed/" + datasetID + "/1/verbatim/*",
                 "--useExtendedRecordId=true"
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "Verbatim to interpreted");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "Verbatim to interpreted");
         pipelinesExecute(verbatimToInterpretedOpts);
 
         File occurrenceDir = new File(sandboxDir + "/processed/" + datasetID + "/1/occurrence/");
         if (!occurrenceDir.exists() || occurrenceDir.listFiles().length < 4) {
             log.error("Verbatim to interpreted failed");
-            queueService.updateStatus(queueItem, StatusCode.ERROR, "Verbatim to interpreted failed");
+            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "Verbatim to interpreted failed");
             return 0;
         }
 
@@ -165,7 +154,7 @@ public class SandboxConsumerService extends ConsumerService {
                 "--inputPath=" + sandboxDir + "/processed",
                 "--useExtendedRecordId=true"
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "UUID processing");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "UUID processing");
         pipelinesExecute(uuidMintingOpts);
 
         // run SDS checks
@@ -178,7 +167,7 @@ public class SandboxConsumerService extends ConsumerService {
                 "--targetPath=" + sandboxDir + "/processed",
                 "--inputPath=" + sandboxDir + "/processed",
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "Sensitive processing");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "Sensitive processing");
         pipelinesExecute(interpretedToSensitiveOpts);
 
         // index record generation
@@ -194,13 +183,13 @@ public class SandboxConsumerService extends ConsumerService {
                 "--includeImages=false",
                 "--includeSensitiveDataChecks=false"
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "index-record processing");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "index-record processing");
         pipelinesExecute(indexingOpts);
 
         File processedDir = new File(sandboxDir + "/processed/" + datasetID + "/all-datasets/index-record/" + datasetID);
         if (!processedDir.exists() || processedDir.listFiles() == null || processedDir.listFiles().length == 0) {
             log.error("Index Record Pipeline failed");
-            queueService.updateStatus(queueItem, StatusCode.ERROR, "index-record failed");
+            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "index-record failed");
             return 0;
         }
 
@@ -214,13 +203,13 @@ public class SandboxConsumerService extends ConsumerService {
                 "--inputPath=" + sandboxDir + "/processed",
                 "--allDatasetsInputPath=" + sandboxDir + "/processed/" + datasetID + "/all-datasets",
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "lat-lng processing");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "lat-lng processing");
         pipelinesExecute(exportLatLngsOpts);
 
         File latLngDir = new File(sandboxDir + "/processed/" + datasetID + "/1/latlng");
         if (!latLngDir.exists() || latLngDir.listFiles() == null || latLngDir.listFiles().length == 0) {
             log.error("Export Lat Lng failed");
-            queueService.updateStatus(queueItem, StatusCode.ERROR, "lat-lng failed");
+            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "lat-lng failed");
             return 0;
         }
 
@@ -234,13 +223,13 @@ public class SandboxConsumerService extends ConsumerService {
                 "--inputPath=" + sandboxDir + "/processed",
                 "--allDatasetsInputPath=" + sandboxDir + "/processed/" + datasetID + "/all-datasets",
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "sampling");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "sampling");
         pipelinesExecute(sampleOpts);
 
         File samplingDir = new File(sandboxDir + "/processed/" + datasetID + "/1/sampling");
         if (!samplingDir.exists() || samplingDir.listFiles() == null || samplingDir.listFiles().length == 0) {
             log.error("Sampling failed");
-            queueService.updateStatus(queueItem, StatusCode.ERROR, "sampling failed");
+            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "sampling failed");
             return 0;
         }
 
@@ -260,7 +249,7 @@ public class SandboxConsumerService extends ConsumerService {
                 "--includeImages=false",
                 "--numOfPartitions=10"
         };
-        queueService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import");
+        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import");
         pipelinesExecute(indexRecordToSolrOpts);
 
         // might take a bit of time to index in SOLR, test for records, after 10s
@@ -280,7 +269,7 @@ public class SandboxConsumerService extends ConsumerService {
                         ((Integer) ((Map) response.getBody().get("response")).get("numFound")) > 0) {
                     int solrCount = ((Integer) ((Map) response.getBody().get("response")).get("numFound"));
                     log.info("SOLR import successful: {} records", solrCount);
-                    queueService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import successful: " + solrCount + " records (subject to indexing)");
+                    queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import successful: " + solrCount + " records (subject to indexing)");
                     return solrCount;
                 }
                 Thread.sleep(sleepMs);
@@ -290,7 +279,7 @@ public class SandboxConsumerService extends ConsumerService {
             log.error("SOLR request failed: {}", e.getMessage(), e);
         }
 
-        queueService.updateStatus(queueItem, StatusCode.ERROR, "SOLR import failed (or timed out)");
+        queueDataService.updateStatus(queueItem, StatusCode.ERROR, "SOLR import failed (or timed out)");
         return 0;
     }
 

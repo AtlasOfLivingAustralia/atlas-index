@@ -7,7 +7,7 @@
 package au.org.ala.search.service.cache;
 
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.ListService;
+import au.org.ala.search.service.remote.ListApiService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,14 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ListCache {
 
     final ElasticService elasticService;
-    final ListService listService;
+    final ListApiService listApiService;
 
     // This is a map of species list names to their ids
     public Map<String, String> listNames = new ConcurrentHashMap<>();
 
-    public ListCache(ElasticService elasticService, ListService listService) {
+    public ListCache(ElasticService elasticService, ListApiService listApiService) {
         this.elasticService = elasticService;
-        this.listService = listService;
+        this.listApiService = listApiService;
     }
 
     @PostConstruct
@@ -47,7 +47,7 @@ public class ListCache {
     @Scheduled(cron = "${list.cache.cron}")
     public void cacheRefresh() {
         try {
-            listService.authoritativeLists().forEach(list -> {
+            listApiService.authoritativeLists().forEach(list -> {
                 String listId = (String) list.get("dataResourceUid");
                 String listName = (String) list.get("listName");
                 listNames.put(listId, listName);

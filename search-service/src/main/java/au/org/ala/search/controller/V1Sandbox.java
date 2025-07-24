@@ -8,12 +8,13 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.model.dto.SandboxIngress;
 import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.Status;
+import au.org.ala.search.model.queue.StatusResponse;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.SandboxService;
-import au.org.ala.search.service.queue.QueueService;
+import au.org.ala.search.service.remote.QueueDataService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +35,15 @@ public class V1Sandbox {
     final
     SandboxService sandboxService;
     private final AuthService authService;
-    private final QueueService queueService;
+    private final QueueDataService queueDataService;
 
-    public V1Sandbox(SandboxService sandboxService, AuthService authService, QueueService queueService) {
+    @Value("#{'${openapi.servers}'.split(',')[0]}")
+    public String baseUrl;
+
+    public V1Sandbox(SandboxService sandboxService, AuthService authService, QueueDataService queueDataService) {
         this.sandboxService = sandboxService;
         this.authService = authService;
-        this.queueService = queueService;
+        this.queueDataService = queueDataService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -68,7 +72,6 @@ public class V1Sandbox {
     public ResponseEntity<Object> delete(
             @RequestParam String id,
             @AuthenticationPrincipal Principal principal) {
-        // Delete from uploads directory and SOLR
         boolean isAdmin = authService.isAdmin(principal);
 
         SandboxIngress sandboxIngress = sandboxService.delete(id, authService.getUserId(principal), isAdmin);
@@ -77,29 +80,25 @@ public class V1Sandbox {
 
     @SecurityRequirement(name = "JWT")
     @PostMapping(path = {"/v1/sandbox/ingress"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Status> ingest(
+    public ResponseEntity<StatusResponse> ingest(
             @RequestBody SandboxIngress sandboxIngress,
             @AuthenticationPrincipal Principal principal) {
-        // assign the authenticated userId to the sandboxIngress
         String userId = authService.getUserId(principal);
         if (userId == null) {
-            // Should not happen
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         sandboxIngress.setUserId(userId);
 
-        Status status = sandboxService.ingress(sandboxIngress);
-        return ResponseEntity.ok(status);
+        QueueItem item = sandboxService.ingress(sandboxIngress, userId);
+        return ResponseEntity.ok(new StatusResponse(item, baseUrl));
     }
 
     @GetMapping(path = {"/v1/sandbox/ingress"}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Status> progress(
-            @RequestParam String id) {
-        QueueItem item = queueService.get(id);
+    public ResponseEntity<StatusResponse> progress(
+            @RequestParam Long id) {
+        QueueItem item = queueDataService.get(id);
         if (item != null) {
-            Status status = item.getStatus();
-            status.setId(item.getId());
-            return ResponseEntity.ok(item.getStatus());
+            return ResponseEntity.ok(new StatusResponse(item, baseUrl));
         } else {
             return ResponseEntity.notFound().build();
         }

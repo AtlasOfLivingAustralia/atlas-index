@@ -10,7 +10,7 @@ import au.org.ala.search.model.quality.QualityCategory;
 import au.org.ala.search.model.quality.QualityFilter;
 import au.org.ala.search.model.quality.QualityProfile;
 import au.org.ala.search.model.quality.QualityProfileAPI;
-import au.org.ala.search.service.remote.DataQualityService;
+import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.util.Views;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -40,10 +40,10 @@ import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
 @RestController
 public class V1DataQualityController {
 
-    private final DataQualityService dataQualityService;
+    private final QualityDataService qualityDataService;
 
-    public V1DataQualityController(DataQualityService dataQualityService) {
-        this.dataQualityService = dataQualityService;
+    public V1DataQualityController(QualityDataService qualityDataService) {
+        this.qualityDataService = qualityDataService;
     }
 
     @Operation(
@@ -70,7 +70,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/data-profiles", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/data-profiles", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityProfile>> profiles(
             @Parameter(
@@ -130,7 +130,7 @@ public class V1DataQualityController {
             )
             @RequestParam(required = false) String shortName
     ) {
-        return ResponseEntity.ok().body(dataQualityService.getProfiles(shortName, name, enabled, max, offset, sort, order));
+        return ResponseEntity.ok().body(qualityDataService.getProfiles(shortName, name, enabled, max, offset, sort, order));
     }
 
     @Operation(
@@ -157,7 +157,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/data-profiles/{profileId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/data-profiles/{profileId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<QualityProfile> profile(
             @Parameter(
@@ -170,7 +170,7 @@ public class V1DataQualityController {
             )
             @PathVariable String profileId
     ) {
-        QualityProfile profile = dataQualityService.getProfile(profileId);
+        QualityProfile profile = qualityDataService.getProfile(profileId);
         if (profile != null) {
             return ResponseEntity.ok().body(profile);
         } else {
@@ -202,7 +202,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/data-profiles/{profileId}/categories/{categoryId}/filters", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories/{categoryId}/filters", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityFilter>> qualityFilters(
             @Parameter(
@@ -223,7 +223,7 @@ public class V1DataQualityController {
                     required = true
             )
             @PathVariable Long categoryId) {
-        QualityCategory category = dataQualityService.getCategory(profileId, categoryId);
+        QualityCategory category = qualityDataService.getCategory(profileId, categoryId);
 
         if (category != null) {
             return ResponseEntity.ok().body(category.getQualityFilters());
@@ -255,7 +255,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/data-profiles/{profileId}/categories/{categoryId}/filters/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories/{categoryId}/filters/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<QualityFilter> qualityFilter(
             @Parameter(
@@ -285,7 +285,7 @@ public class V1DataQualityController {
                     required = true
             )
             @PathVariable Long id) {
-        QualityFilter qualityFilter = dataQualityService.getFilter(profileId, categoryId, id);
+        QualityFilter qualityFilter = qualityDataService.getFilter(profileId, categoryId, id);
         if (qualityFilter != null) {
             return ResponseEntity.ok().body(qualityFilter);
         }
@@ -316,7 +316,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/getEnabledFiltersByLabel", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/quality/getEnabledFiltersByLabel", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<Map<String, String>> getEnabledFiltersByLabel(
             @Parameter(
@@ -327,7 +327,7 @@ public class V1DataQualityController {
                     example = "ALA General"
             )
             @RequestParam(required = false) String profileName) {
-        Map<String, String> map = dataQualityService.getEnabledFiltersByLabel(profileName);
+        Map<String, String> map = qualityDataService.getEnabledFiltersByLabel(profileName);
         return ResponseEntity.ok().body(map);
     }
 
@@ -355,7 +355,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/getEnabledQualityFilters", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/quality/getEnabledQualityFilters", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<Set<String>> getEnabledQualityFilters(
             @Parameter(
@@ -366,7 +366,7 @@ public class V1DataQualityController {
                     example = "ALA General"
             )
             @RequestParam(required = false) String profileName) {
-        Set<String> set = dataQualityService.getEnabledQualityFilters(profileName);
+        Set<String> set = qualityDataService.getEnabledQualityFilters(profileName);
         return ResponseEntity.ok().body(set);
     }
 
@@ -394,7 +394,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/getGroupedEnabledFilters", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/quality/getGroupedEnabledFilters", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<LinkedHashMap<String, List<QualityFilter>>> getGroupedEnabledFilters(
             @Parameter(
@@ -405,7 +405,7 @@ public class V1DataQualityController {
                     example = "ALA General"
             )
             @RequestParam(required = false) String profileName) {
-        LinkedHashMap<String, List<QualityFilter>> map = dataQualityService.getGroupedEnabledFilters(profileName);
+        LinkedHashMap<String, List<QualityFilter>> map = qualityDataService.getGroupedEnabledFilters(profileName);
         return ResponseEntity.ok().body(map);
     }
 
@@ -433,7 +433,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/findAllEnabledCategories", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/quality/findAllEnabledCategories", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityCategory>> findAllEnabledCategories(
             @Parameter(
@@ -444,7 +444,7 @@ public class V1DataQualityController {
                     example = "ALA General"
             )
             @RequestParam(required = false) String profileName) {
-        List<QualityCategory> result = dataQualityService.findAllEnabledCategories(profileName);
+        List<QualityCategory> result = qualityDataService.findAllEnabledCategories(profileName);
         return ResponseEntity.ok().body(result);
     }
 
@@ -472,7 +472,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/activeProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/quality/activeProfile", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<QualityProfile> activeProfile(
             @Parameter(
@@ -483,7 +483,7 @@ public class V1DataQualityController {
                     example = "ALA"
             )
             @RequestParam(required = false) String profileName) {
-        QualityProfile profile = dataQualityService.getProfileOrDefault(profileName);
+        QualityProfile profile = qualityDataService.getProfileOrDefault(profileName);
 
         if (profile != null) {
             return ResponseEntity.ok().body(profile);
@@ -516,7 +516,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/getJoinedQualityFilter", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(path = "/v1/dq/quality/getJoinedQualityFilter", produces = MediaType.TEXT_PLAIN_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<String> getJoinedQualityFilter(
             @Parameter(
@@ -527,7 +527,7 @@ public class V1DataQualityController {
                     example = "ALA"
             )
             @RequestParam String profileName) {
-        String filter = dataQualityService.getJoinedQualityFilter(profileName);
+        String filter = qualityDataService.getJoinedQualityFilter(profileName);
 
         return ResponseEntity.ok().body(filter);
     }
@@ -556,7 +556,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/getInverseCategoryFilter", produces = MediaType.TEXT_PLAIN_VALUE)
+    @GetMapping(path = "/v1/dq/quality/getInverseCategoryFilter", produces = MediaType.TEXT_PLAIN_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<String> getInverseCategoryFilter(
             @Parameter(
@@ -568,7 +568,7 @@ public class V1DataQualityController {
                     required = true
             )
             @RequestParam Long qualityCategoryId) {
-        String inverse = dataQualityService.getInverseCategoryFilter(qualityCategoryId);
+        String inverse = qualityDataService.getInverseCategoryFilter(qualityCategoryId);
         return ResponseEntity.ok().body(inverse);
     }
 
@@ -596,7 +596,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/quality/getAllInverseCategoryFiltersForProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/quality/getAllInverseCategoryFiltersForProfile", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<Map<String, String>> getAllInverseCategoryFiltersForProfile(
             @Parameter(
@@ -607,7 +607,7 @@ public class V1DataQualityController {
                     example = "441"
             )
             @RequestParam(required = false) String qualityProfileId) {
-        Map<String, String> result = dataQualityService.getAllInverseCategoryFiltersForProfile(qualityProfileId);
+        Map<String, String> result = qualityDataService.getAllInverseCategoryFiltersForProfile(qualityProfileId);
         return ResponseEntity.ok().body(result);
     }
 
@@ -635,7 +635,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/data-profiles/{profileId}/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityCategory>> categories(
             @Parameter(
@@ -647,7 +647,7 @@ public class V1DataQualityController {
                     required = true
             )
             @PathVariable String profileId) {
-        QualityProfile profile = dataQualityService.getProfile(profileId);
+        QualityProfile profile = qualityDataService.getProfile(profileId);
         if (profile != null) {
             return ResponseEntity.ok().body(profile.getCategories());
         }
@@ -678,7 +678,7 @@ public class V1DataQualityController {
                     )
             }
     )
-    @GetMapping(path = "/v1/data-profiles/{profileId}/categories/{categoryId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories/{categoryId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(Views.Api.class)
     public ResponseEntity<QualityCategory> category(
             @Parameter(
@@ -699,7 +699,7 @@ public class V1DataQualityController {
                     required = true
             )
             @PathVariable Long categoryId) {
-        QualityCategory category = dataQualityService.getCategory(profileId, categoryId);
+        QualityCategory category = qualityDataService.getCategory(profileId, categoryId);
 
         if (category != null) {
             return ResponseEntity.ok().body(category);

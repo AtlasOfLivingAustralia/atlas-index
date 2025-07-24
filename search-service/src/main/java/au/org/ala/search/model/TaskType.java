@@ -7,7 +7,11 @@
 package au.org.ala.search.model;
 
 import au.org.ala.search.model.config.ConfigData;
+import au.org.ala.search.model.dto.FieldguideRequest;
 import au.org.ala.search.model.quality.QualityProfile;
+import au.org.ala.search.model.queue.FieldguideResponse;
+import au.org.ala.search.model.queue.SandboxQueueRequest;
+import au.org.ala.search.model.queue.SearchQueueRequest;
 
 /**
  * Represents the type of task that can be performed by the system.
@@ -37,10 +41,9 @@ public enum TaskType {
     DASHBOARD("update dashboard files used by the dashboard UI", TaskType.Category.INGESTION, null, true),
     TAXON_DESCRIPTION("import taxon hero descriptions into the search index from data.filestore.path/data.file.descriptions.name", TaskType.Category.INGESTION, null, false),
 
-    // Consumers TODO: add payload types for these tasks
-    FIELDGUIDE("consumer of fieldguide requests", TaskType.Category.CONSUMER, null, false),
-    SEARCH_DOWNLOAD("consumer of search download requests", TaskType.Category.CONSUMER, null, false),
-    SANDBOX("consumer of sandbox ingress request", TaskType.Category.CONSUMER, null, false),
+    FIELDGUIDE("consumer of fieldguide requests", TaskType.Category.CONSUMER, FieldguideRequest.class, false),
+    SEARCH_DOWNLOAD("consumer of search download requests", TaskType.Category.CONSUMER, SearchQueueRequest.class, false),
+    SANDBOX("consumer of sandbox ingress request", TaskType.Category.CONSUMER, SandboxQueueRequest.class, false),
 
     // Broadcast
     CACHE_RESET_ALL("reset all caches", TaskType.Category.BROADCAST, null, true),

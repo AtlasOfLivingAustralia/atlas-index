@@ -6,7 +6,7 @@
 
 package au.org.ala.search;
 
-import au.org.ala.search.service.queue.LeaderService;
+import au.org.ala.search.service.queue.LeaderQueue;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +65,7 @@ public class LeadershipStatus {
         isLeader.set(false);
         log.info("Leadership revoked: {}", event.getRole());
 
-        registry.getListenerContainer(LeaderService.LEADER_QUEUE).stop();
+        registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).stop();
     }
 
     public boolean isLeader() {
@@ -86,7 +86,7 @@ public class LeadershipStatus {
                 while (attempts < 300 * 1000 / delayMs) { // 5 minutes
                     attempts++;
                     try {
-                        registry.getListenerContainer(LeaderService.LEADER_QUEUE).start();
+                        registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).start();
                         log.info("Started leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
                         return;
                     } catch (Exception e) {

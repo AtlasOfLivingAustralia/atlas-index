@@ -1,12 +1,11 @@
 package au.org.ala.search.service.remote;
 
-import au.org.ala.search.LeadershipStatus;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.config.ConfigChangeListener;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.config.ConfigValidationListener;
 import au.org.ala.search.repo.ConfigDataPostgresRepository;
-import au.org.ala.search.service.queue.BroadcastService;
+import au.org.ala.search.service.queue.BroadcastQueue;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -108,8 +107,8 @@ public class ConfigService {
 
         // Broadcast the change, for any node that listens for config changes
         try {
-            if (BroadcastService.getInstance() != null) {
-                BroadcastService.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData); // new config data is in the db
+            if (BroadcastQueue.getInstance() != null) {
+                BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData); // new config data is in the db
             } else {
                 log.warn("BroadcastService is not initialized, cannot broadcast config change for {}", configData.id);
             }

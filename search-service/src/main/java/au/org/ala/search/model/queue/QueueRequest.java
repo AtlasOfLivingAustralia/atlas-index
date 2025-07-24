@@ -7,19 +7,26 @@
 package au.org.ala.search.model.queue;
 
 import au.org.ala.search.model.TaskType;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(value= JsonInclude.Include.NON_EMPTY, content= JsonInclude.Include.NON_NULL)
+@Data
 @SuperBuilder
 @NoArgsConstructor
 @Getter
 @Setter
 public class QueueRequest {
-    public String filename;
-    public String sourceUrl;
-    public String description;
     public String email;
     public TaskType taskType;
+
+    public FieldguideQueueRequest fieldguideQueueRequest;
+    public SearchQueueRequest searchQueueRequest;
+    public SandboxQueueRequest sandboxQueueRequest;
 }

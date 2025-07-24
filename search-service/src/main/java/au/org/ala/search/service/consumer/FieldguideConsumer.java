@@ -4,18 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package au.org.ala.search.service.queue;
+package au.org.ala.search.service.consumer;
 
 import au.org.ala.search.model.SearchItemIndex;
-import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.queue.FieldguideQueueRequest;
 import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -41,14 +37,13 @@ import java.util.*;
  */
 @Slf4j
 @Service
-public class FieldguideConsumerService extends ConsumerService {
+public class FieldguideConsumer {
     private final ElasticService elasticService;
+    private final DownloadFileStoreService downloadFileStoreService;
+    private final JavaMailSender emailSender;
 
     @Value("${images.url}")
     public String imagesUrl;
-
-    @Value("${fieldguide.consumer.threads}")
-    public Integer fieldguideConsumerThreads;
 
     @Value("${biocache.url}")
     public String biocacheUrl;
@@ -78,37 +73,26 @@ public class FieldguideConsumerService extends ConsumerService {
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     private String baseUrl;
 
-    public FieldguideConsumerService(LogService logService, QueueService queueService, JavaMailSender emailSender, DownloadFileStoreService downloadFileStoreService, ElasticService elasticService) {
-        super(logService, queueService, emailSender, downloadFileStoreService);
+    public FieldguideConsumer(ElasticService elasticService, DownloadFileStoreService downloadFileStoreService, JavaMailSender emailSender) {
         this.elasticService = elasticService;
+        this.downloadFileStoreService = downloadFileStoreService;
+        this.emailSender = emailSender;
     }
 
-    @PostConstruct
-    void init() {
-        taskType = TaskType.FIELDGUIDE;
-        super.init(fieldguideConsumerThreads);
-    }
-
-    void processItem(QueueItem item) {
-        // process item
+    public void consume(QueueItem item) throws Exception {
         log.info("Processing fieldguide: {}", item.id);
 
-        try {
-            writePdf(item, generateTemplate(item));
-            sendEmail(item);
-        } catch (IOException e) {
-            queueService.updateStatus(item, StatusCode.ERROR, e.getMessage());
-            log.error("Error processing fieldguide: {}", item.id, e);
-        }
+        writePdf(item, generateTemplate(item));
+        sendEmail(item);
     }
 
     private Map generateTemplate(QueueItem item) throws IOException {
-        FieldguideQueueRequest request = (FieldguideQueueRequest) item.queueRequest;
+        FieldguideQueueRequest request = item.queueRequest.fieldguideQueueRequest;
         ObjectMapper om = new ObjectMapper();
 
         Map<String, Object> json = new HashMap<>();
         json.put("title", request.title);
-        json.put("sourceUrl", item.queueRequest.sourceUrl);
+        json.put("sourceUrl", request.sourceUrl);
 
         HashMap<String, List<Map<String, Object>>> families = new HashMap<>();
         for (String id : request.id) {
@@ -206,7 +190,7 @@ public class FieldguideConsumerService extends ConsumerService {
 
         Context context = new Context();
         context.setVariable("fieldguideHeaderPg1", "./images/field-guide-header-pg1.png");
-        context.setVariable("dataLink", item.queueRequest.sourceUrl);
+        context.setVariable("dataLink", item.queueRequest.fieldguideQueueRequest.sourceUrl);
         context.setVariable("baseUrl", homeUrl);
         context.setVariable("fieldguideBannerOtherPages", "./images/field-guide-banner-other-pages.png");
         context.setVariable("fieldguideSpeciesUrl", speciesUIPrefix);
@@ -238,14 +222,14 @@ public class FieldguideConsumerService extends ConsumerService {
     }
 
     void sendEmail(QueueItem item) {
-        String downloadUrl = baseUrl + "/v1/download/" + item.id;
+        String downloadUrl = baseUrl + "/v1/fieldguide/download/" + item.id;
 
         String content = emailTextSuccess
                 .replace("[url]", downloadUrl)
                 .replace("[date]", new Date().toString())
-                .replace("[query]", item.queueRequest.sourceUrl != null ? item.queueRequest.sourceUrl : "");
+                .replace("[query]", item.queueRequest.fieldguideQueueRequest.sourceUrl != null ? item.queueRequest.fieldguideQueueRequest.sourceUrl : "");
 
-        String subject = emailSubjectSuccess.replace("[filename]", item.queueRequest.filename);
+        String subject = emailSubjectSuccess.replace("[filename]", item.queueRequest.fieldguideQueueRequest.filename);
 
         if (emailEnabled) {
             SimpleMailMessage message = new SimpleMailMessage();

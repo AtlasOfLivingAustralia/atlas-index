@@ -19,9 +19,10 @@ import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.cache.ListCache;
-import au.org.ala.search.service.queue.QueueService;
+import au.org.ala.search.service.queue.ConsumerQueue;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
+import au.org.ala.search.service.remote.QueueDataService;
 import au.org.ala.search.service.remote.UserDataService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
@@ -66,27 +67,29 @@ public class V2Controller {
     protected final AdminService adminService;
     protected final AuthService authService;
     protected final ElasticsearchOperations elasticsearchOperations;
-    protected final QueueService queueService;
+    protected final ConsumerQueue consumerQueue;
     protected final DownloadFileStoreService downloadFileStoreService;
     protected final WebService webService;
     protected final LanguageService languageService;
     protected final UserDataService userDataService;
     private final ListCache listCache;
+    private final QueueDataService queueDataService;
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     public String baseUrl;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, QueueService queueService, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
         this.authService = authService;
         this.elasticsearchOperations = elasticsearchOperations;
-        this.queueService = queueService;
+        this.consumerQueue = consumerQueue;
         this.downloadFileStoreService = downloadFileStoreService;
         this.webService = webService;
         this.listCache = listCache;
         this.languageService = languageService;
         this.userDataService = userDataService;
+        this.queueDataService = queueDataService;
     }
 
     @Tag(name = "Search")
@@ -345,16 +348,17 @@ public class V2Controller {
                                     value = "{\"q\":[\"Koala\"], \"filename\":\"koala-20240101\", \"fl\":[\"id\",\"scientificName\",\"rank\",\"rk_kingdom\"]}"
                             )))
             @RequestBody
-            SearchQueueRequest searchDownloadRequest
-    ) {
+            SearchQueueRequest searchDownloadRequest,
+            @AuthenticationPrincipal Principal principal) {
         if (StringUtils.isEmpty(searchDownloadRequest.filename) ||
                 searchDownloadRequest.q == null || searchDownloadRequest.q.length == 0 ||
                 searchDownloadRequest.fl == null || searchDownloadRequest.fl.length == 0) {
             return ResponseEntity.badRequest().build();
         }
 
-        searchDownloadRequest.taskType = TaskType.SEARCH_DOWNLOAD;
-        return addToQueue(searchDownloadRequest);
+        return addToQueue(QueueRequest.builder()
+                .taskType(TaskType.SEARCH_DOWNLOAD)
+                .searchQueueRequest(searchDownloadRequest).build(), authService.getUserId(principal));
     }
 
     @SecurityRequirement(name = "JWT")
@@ -381,17 +385,18 @@ public class V2Controller {
             @RequestBody
             FieldguideQueueRequest fieldguideDownloadRequest,
             @AuthenticationPrincipal Principal principal) {
-        fieldguideDownloadRequest.email = authService.getEmail(principal);
 
-        fieldguideDownloadRequest.taskType = TaskType.FIELDGUIDE;
-        return addToQueue(fieldguideDownloadRequest);
+        return addToQueue(QueueRequest.builder()
+                .taskType(TaskType.FIELDGUIDE)
+                .fieldguideQueueRequest(fieldguideDownloadRequest)
+                .email(authService.getEmail(principal)).build(), authService.getUserId(principal));
     }
 
-    private ResponseEntity<StatusResponse> addToQueue(QueueRequest queueRequest) {
-        Status status = queueService.add(queueRequest);
+    private ResponseEntity<StatusResponse> addToQueue(QueueRequest queueRequest, String userId) {
+        QueueItem queueItem = consumerQueue.add(queueRequest, userId);
 
-        if (status != null) {
-            return ResponseEntity.ok(new StatusResponse(status, baseUrl + "/v2/download"));
+        if (queueItem != null) {
+            return ResponseEntity.ok(new StatusResponse(queueItem, baseUrl + "/v2/download"));
         } else {
             return ResponseEntity.badRequest().build();
         }
@@ -400,7 +405,7 @@ public class V2Controller {
     @Tag(name = "Download")
     @Operation(
             operationId = "downloadStatus",
-            summary = "Get the status of a job and download the file"
+            summary = "Get the status of a job, download the file, or redirect to download the file."
     )
     @ApiResponse(description = "Job Status", responseCode = "200",
             headers = {
@@ -415,18 +420,18 @@ public class V2Controller {
                     description = "The download id",
                     example = "1234"
             )
-            @RequestParam(name = "id") String id,
+            @RequestParam(name = "id") Long id,
             @Parameter(
                     description = "default false. Use true to download the file (directly or via a redirect)",
                     example = "true"
             )
             @RequestParam(name = "download", required = false, defaultValue = "false") Boolean download) {
-        QueueItem queueItem = queueService.get(id);
+        QueueItem queueItem = queueDataService.get(id);
         if (queueItem == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (download && queueItem.status.getStatusCode() == StatusCode.FINISHED) {
+        if (download && queueItem.status == StatusCode.FINISHED) {
             try {
                 HttpHeaders headers = new HttpHeaders();
                 if (downloadFileStoreService.isS3()) {
@@ -453,7 +458,7 @@ public class V2Controller {
             }
         }
 
-        return ResponseEntity.ok(new StatusResponse(queueItem.status, baseUrl + "/v2/download"));
+        return ResponseEntity.ok(new StatusResponse(queueItem, baseUrl + "/v2/download"));
     }
 
     @SecurityRequirement(name = "JWT")

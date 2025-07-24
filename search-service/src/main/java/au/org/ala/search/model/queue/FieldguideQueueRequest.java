@@ -15,7 +15,10 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Getter
 @Setter
-public class FieldguideQueueRequest extends QueueRequest {
-    public String title;
-    public String[] id;
+public class FieldguideQueueRequest {
+    public String title; // Title of the field guide, e.g. "Australian Birds"
+    public String[] id; // Array of GUIDs to include in the field guide, e.g. ["urn:lsid:ala.org.au:dataset:1234", "urn:lsid:ala.org.au:dataset:5678"]
+    public String sourceUrl; // Optional URL to the source of the field guide, e.g. the webpage that generated it
+    public String sortBy; // Optional comma-delimited list. Supported values; family, genus, species, commonName
+    public String filename; // Optional filename for the zip file, e.g. "Australian_Birds.pdf"
 }

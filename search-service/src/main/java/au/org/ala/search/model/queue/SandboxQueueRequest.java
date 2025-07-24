@@ -14,6 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class SandboxQueueRequest extends QueueRequest {
+public class SandboxQueueRequest {
+    public String description;
     public SandboxIngress sandboxIngress;
 }

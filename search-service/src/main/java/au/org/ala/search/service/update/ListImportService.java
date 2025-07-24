@@ -12,7 +12,7 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.ListService;
+import au.org.ala.search.service.remote.ListApiService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.ListToFieldValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,7 +38,7 @@ public class ListImportService {
 
     private static final String listsFavouriteField = "favourite";
     protected final ElasticService elasticService;
-    protected final ListService listService;
+    protected final ListApiService listApiService;
     protected final LogService logService;
     protected final ListCache listCache;
     private final String getListsConservationIUCNStatusField = "IUCN_equivalent_status";
@@ -67,9 +67,9 @@ public class ListImportService {
     // used to suppress duplicate error messages
     private boolean kvpError;
 
-    public ListImportService(ElasticService elasticService, ListService listService, LogService logService, ListCache listCache) {
+    public ListImportService(ElasticService elasticService, ListApiService listApiService, LogService logService, ListCache listCache) {
         this.elasticService = elasticService;
-        this.listService = listService;
+        this.listApiService = listApiService;
         this.logService = logService;
         this.listCache = listCache;
     }
@@ -101,8 +101,8 @@ public class ListImportService {
         Map<String, Date> existingLists = elasticService.queryItems("idxtype", IndexDocType.SPECIESLIST.name());
 
         // there are only a small number of authoritativeLists
-        List<Map<String, Object>> authoritativeLists = listService.authoritativeLists();
-        List<Map<String, Object>> sdsLists = listService.sdsLists();
+        List<Map<String, Object>> authoritativeLists = listApiService.authoritativeLists();
+        List<Map<String, Object>> sdsLists = listApiService.sdsLists();
         List<String> conservationLists = new ArrayList<>();
         List<String> attributeLists = new ArrayList<>();
         List<IndexQuery> authLists = processLists(existingLists, authoritativeLists, conservationLists, attributeLists);
@@ -239,7 +239,7 @@ public class ListImportService {
             String[] listIdAndString = entry.split(",");
             favouriteLists.add(listIdAndString[0]);
             favouriteType.add(listIdAndString[1]);
-            Set<String> ids = listService.items(listIdAndString[0]).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
+            Set<String> ids = listApiService.items(listIdAndString[0]).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
             stringLookup.put(listIdAndString[1], ids);
         }
         // for idxtype:TAXON
@@ -388,7 +388,7 @@ public class ListImportService {
         for (Map<String, Object> list : authoritativeLists) {
             String listId = list.get("dataResourceUid").toString();
             allLists.add(listId);
-            Set<String> ids = listService.items(listId).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
+            Set<String> ids = listApiService.items(listId).stream().map(it -> (String) it.get("lsid")).collect(Collectors.toSet());
 
             for (String id : ids) {
                 List<String> listIds = allListsLookup.get(id);
@@ -524,7 +524,7 @@ public class ListImportService {
 
             List<Map<String, Object>> items = new ArrayList<>();
             for (String listId : listIds) {
-                items.addAll(listService.items(listId));
+                items.addAll(listApiService.items(listId));
             }
 
             for (Map<String, Object> item : items) {

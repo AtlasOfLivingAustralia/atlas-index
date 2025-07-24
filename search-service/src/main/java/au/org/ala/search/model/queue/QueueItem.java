@@ -6,31 +6,40 @@
 
 package au.org.ala.search.model.queue;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
 @Data
 @SuperBuilder
-@AllArgsConstructor
 @Jacksonized
-@org.springframework.data.mongodb.core.mapping.Document(collection = "userqueue")
+@Entity
+@Table(name = "queue")
 public class QueueItem {
     @Id
-    public String id;
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
     public String userId;
 
-    @CreatedDate
-    public LocalDateTime createdDate;
+    public Date created;
+    public Date updated;
+    @Enumerated(EnumType.STRING)
+    public StatusCode status;
+    public String statusMessage;
 
+    @Type(JsonBinaryType.class)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb", nullable = false)
     public QueueRequest queueRequest;
-    public Status status;
 }

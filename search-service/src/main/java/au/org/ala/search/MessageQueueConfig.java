@@ -6,21 +6,22 @@
 
 package au.org.ala.search;
 
-import au.org.ala.search.service.queue.BroadcastService;
-import au.org.ala.search.service.queue.LeaderService;
+import au.org.ala.search.service.queue.BroadcastQueue;
+import au.org.ala.search.service.queue.LeaderQueue;
+import au.org.ala.search.service.queue.ConsumerQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Map;
 
 @Slf4j
 @ConditionalOnProperty(name = "rabbitmq.host")
@@ -40,6 +41,8 @@ public class MessageQueueConfig {
     private String username;
     @Value("${rabbitmq.password}")
     private String password;
+    @Value("${rabbitmq.task.concurrency:1}")
+    private int concurrentUserTasks; // set at runtime
 
     @Bean
     public FanoutExchange broadcastExchange() {
@@ -47,13 +50,13 @@ public class MessageQueueConfig {
     }
 
     @Bean
-    public Queue broadcastQueue() {
-        return new Queue(BroadcastService.BROADCAST_QUEUE);
+    public Queue broadcastQueueDefn() {
+        return new Queue(BroadcastQueue.BROADCAST_QUEUE);
     }
 
     @Bean
-    public Binding broadcastBinding(Queue broadcastQueue, FanoutExchange broadcastExchange) {
-        return BindingBuilder.bind(broadcastQueue).to(broadcastExchange);
+    public Binding broadcastBinding(Queue broadcastQueueDefn, FanoutExchange broadcastExchange) {
+        return BindingBuilder.bind(broadcastQueueDefn).to(broadcastExchange);
     }
 
     @Bean
@@ -62,16 +65,39 @@ public class MessageQueueConfig {
     }
 
     @Bean
-    public Queue leaderQueue() {
-        return new Queue(LeaderService.LEADER_QUEUE);
+    public Queue leaderQueueDfn() {
+        return new Queue(LeaderQueue.LEADER_QUEUE);
     }
 
     @Bean
-    public Binding leaderBinding(Queue leaderQueue, DirectExchange directExchange) {
-        return BindingBuilder.bind(leaderQueue)
+    public Binding leaderBinding(Queue leaderQueueDfn, DirectExchange directExchange) {
+        return BindingBuilder.bind(leaderQueueDfn)
                 .to(directExchange)
-                .with(LeaderService.LEADER_QUEUE);
+                .with(LeaderQueue.LEADER_QUEUE);
     }
+
+    @Bean
+    public Queue consumerQueueDfn() {
+        return new Queue(ConsumerQueue.TASK_QUEUE);
+    }
+
+    @Bean
+    public Binding consumerQueueBinding(Queue consumerQueueDfn, DirectExchange directExchange) {
+        return BindingBuilder.bind(consumerQueueDfn)
+                .to(directExchange)
+                .with(ConsumerQueue.TASK_QUEUE);
+    }
+
+    @Bean
+    public SimpleRabbitListenerContainerFactory consumerQueueListenerContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
+                                                                               ConnectionFactory connectionFactory) {
+        SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+        configurer.configure(factory, connectionFactory);
+        factory.setConcurrentConsumers(2); // initial number of consumers
+        factory.setMaxConcurrentConsumers(concurrentUserTasks);
+        return factory;
+    }
+
 
     @Bean
     public ConnectionFactory connectionFactory() {
@@ -104,11 +130,11 @@ public class MessageQueueConfig {
         return new RabbitTemplate(connectionFactory);
     }
 
-    @RabbitListener(queues = BroadcastService.BROADCAST_QUEUE)
+    @RabbitListener(queues = BroadcastQueue.BROADCAST_QUEUE)
     public void receiveMessage(byte [] message) {
         // it is fine to ignore a broadcast message if BroadcastService is not initialized.
-        if (BroadcastService.getInstance() != null) {
-            BroadcastService.getInstance().receiveMessage(message);
+        if (BroadcastQueue.getInstance() != null) {
+            BroadcastQueue.getInstance().receiveMessage(message);
         }
     }
 }

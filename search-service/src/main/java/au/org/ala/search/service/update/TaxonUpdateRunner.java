@@ -8,7 +8,7 @@ package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
-import au.org.ala.search.service.remote.BiocacheService;
+import au.org.ala.search.service.remote.BiocacheApiService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -33,7 +33,7 @@ public class TaxonUpdateRunner {
     private static final TaskType taskType = TaskType.BIOCACHE;
 
     protected final ElasticService elasticService;
-    protected final BiocacheService biocacheService;
+    protected final BiocacheApiService biocacheApiService;
     protected final LogService logService;
 
     @Getter
@@ -43,9 +43,9 @@ public class TaxonUpdateRunner {
     @Getter
     private Map speciesImages;
 
-    public TaxonUpdateRunner(ElasticService elasticService, BiocacheService biocacheService, LogService logService) {
+    public TaxonUpdateRunner(ElasticService elasticService, BiocacheApiService biocacheApiService, LogService logService) {
         this.elasticService = elasticService;
-        this.biocacheService = biocacheService;
+        this.biocacheApiService = biocacheApiService;
         this.logService = logService;
     }
 
@@ -59,7 +59,7 @@ public class TaxonUpdateRunner {
             for (Hit<SearchItemIndex> item : list) {
                 buffer.add((item.fields().get("guid").toJson().asJsonArray().getJsonString(0).getString()));
             }
-            Map<String, Integer> counts = new HashMap<>(biocacheService.counts(buffer));
+            Map<String, Integer> counts = new HashMap<>(biocacheApiService.counts(buffer));
 
             // construct update object
             for (Hit<SearchItemIndex> item : list) {
@@ -123,7 +123,7 @@ public class TaxonUpdateRunner {
         }
 
         // load biocache speciesImages
-        speciesImages = biocacheService.getSpeciesImages();
+        speciesImages = biocacheApiService.getSpeciesImages();
     }
 
     String getImage(String id) {

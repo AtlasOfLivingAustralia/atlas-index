@@ -8,12 +8,11 @@ package au.org.ala.search.service;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.SandboxIngress;
+import au.org.ala.search.model.queue.QueueItem;
+import au.org.ala.search.model.queue.QueueRequest;
 import au.org.ala.search.model.queue.SandboxQueueRequest;
-import au.org.ala.search.model.queue.Status;
-import au.org.ala.search.model.sandbox.SandboxUpload;
-import au.org.ala.search.repo.SandboxMongoRepository;
 import au.org.ala.search.service.auth.WebService;
-import au.org.ala.search.service.queue.QueueService;
+import au.org.ala.search.service.queue.ConsumerQueue;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriterBuilder;
 import com.opencsv.ICSVWriter;
@@ -38,8 +37,7 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class SandboxService {
     private final WebService webService;
-    private final SandboxMongoRepository sandboxMongoRepository;
-    private final QueueService queueService;
+    private final ConsumerQueue consumerQueue;
 
     @Value("${sandbox.dir}")
     public String sandboxDir;
@@ -47,10 +45,9 @@ public class SandboxService {
     @Value("${solr.url}")
     public String solrUrl;
 
-    public SandboxService(WebService webService, SandboxMongoRepository sandboxMongoRepository, QueueService queueService) {
+    public SandboxService(WebService webService, ConsumerQueue consumerQueue) {
         this.webService = webService;
-        this.sandboxMongoRepository = sandboxMongoRepository;
-        this.queueService = queueService;
+        this.consumerQueue = consumerQueue;
     }
 
     public boolean isValidUUID(String uuid) {
@@ -79,9 +76,6 @@ public class SandboxService {
         } else {
             return null;
         }
-
-        // store in the db so there is a reference to the file from the userId
-        sandboxMongoRepository.save(SandboxUpload.builder().userId(userId).dataResourceUid(uuid).build());
 
         return sandboxIngress;
     }
@@ -394,19 +388,14 @@ public class SandboxService {
         // delete from SOLR
         webService.get(solrUrl + "/update?commit=true&stream.body=<delete><query>dataResourceUid%3A" + id + "</query></delete>", null, null, false, false, null);
 
-        // delete from the database
-        sandboxMongoRepository.deleteByDataResourceUid(id);
-
         return new SandboxIngress();
     }
 
-    public Status ingress(SandboxIngress sandboxIngress) {
-
+    public QueueItem ingress(SandboxIngress sandboxIngress, String userId) {
         SandboxQueueRequest request = new SandboxQueueRequest();
-        request.taskType = TaskType.SANDBOX;
         request.sandboxIngress = sandboxIngress;
 
         // return queue reference
-        return queueService.add(request);
+        return consumerQueue.add(QueueRequest.builder().taskType(TaskType.SANDBOX).sandboxQueueRequest(request).build(), userId);
     }
 }

@@ -11,7 +11,7 @@ import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.remote.ConfigService;
-import au.org.ala.search.service.remote.DataQualityService;
+import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.InstanceUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -35,15 +35,15 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class BroadcastService {
+public class BroadcastQueue {
     public static final String BROADCAST_QUEUE = "broadcast";
     @Getter
-    private static BroadcastService instance;
+    private static BroadcastQueue instance;
     protected final LogService logService;
     private final CollectoryCache collectoryCache;
     private final ListCache listCache;
     private final RabbitTemplate rabbitTemplate;
-    private final DataQualityService dataQualityService;
+    private final QualityDataService qualityDataService;
     private final ConfigService configService;
     @Value("${rabbitmq.exchange.broadcast}")
     private String broadcastExchange;
@@ -52,14 +52,14 @@ public class BroadcastService {
 
     ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
 
-    public BroadcastService(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, DataQualityService dataQualityService, ConfigService configService) {
+    public BroadcastQueue(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, ConfigService configService) {
         this.collectoryCache = collectoryCache;
         this.listCache = listCache;
         this.rabbitTemplate = rabbitTemplate;
         this.logService = logService;
 
         instance = this;
-        this.dataQualityService = dataQualityService;
+        this.qualityDataService = qualityDataService;
 
         SimpleDateFormat customDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
         smileObjectMapper.setDateFormat(customDateFormat);
@@ -117,13 +117,13 @@ public class BroadcastService {
         if (message.equals(TaskType.CACHE_RESET_ALL.name())) {
             collectoryCache.cacheRefresh();
             listCache.cacheRefresh();
-            dataQualityService.cacheRefresh();
+            qualityDataService.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_COLLECTORY.name())) {
             collectoryCache.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_LISTS.name())) {
             listCache.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_DATA_QUALITY.name())) {
-            dataQualityService.cacheRefresh();
+            qualityDataService.cacheRefresh();
         } else if (message.equals(TaskType.CONFIG_CHANGE.name())) {
             try {
                 // Parse payload to ConfigData

@@ -10,7 +10,7 @@ import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.cache.CollectoryCache;
-import au.org.ala.search.service.remote.BiocacheService;
+import au.org.ala.search.service.remote.BiocacheApiService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -36,16 +36,16 @@ public class CollectionsImportService {
 
     protected final ElasticService elasticService;
     protected final LogService logService;
-    protected final BiocacheService biocacheService;
+    protected final BiocacheApiService biocacheApiService;
     protected final CollectoryCache collectoryCache;
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${collections.url}")
     private String collectionsUrl;
 
-    public CollectionsImportService(ElasticService elasticService, LogService logService, BiocacheService biocacheService, CollectoryCache collectoryCache) {
+    public CollectionsImportService(ElasticService elasticService, LogService logService, BiocacheApiService biocacheApiService, CollectoryCache collectoryCache) {
         this.elasticService = elasticService;
         this.logService = logService;
-        this.biocacheService = biocacheService;
+        this.biocacheApiService = biocacheApiService;
         this.collectoryCache = collectoryCache;
     }
 
@@ -53,16 +53,16 @@ public class CollectionsImportService {
     public CompletableFuture<Boolean> run() {
         logService.log(taskType, "Starting");
 
-        int counter = importEntity("dataResource", IndexDocType.DATARESOURCE, biocacheService.entityCounts("dataResourceUid"));
+        int counter = importEntity("dataResource", IndexDocType.DATARESOURCE, biocacheApiService.entityCounts("dataResourceUid"));
 
         // reset datasetMap cache
         if (elasticService.datasetMap != null) {
             elasticService.datasetMap.clear();
         }
 
-        counter += importEntity("dataProvider", IndexDocType.DATAPROVIDER, biocacheService.entityCounts("dataProviderUid"));
-        counter += importEntity("institution", IndexDocType.INSTITUTION, biocacheService.entityCounts("institutionUid"));
-        counter += importEntity("collection", IndexDocType.COLLECTION, biocacheService.entityCounts("collectionUid"));
+        counter += importEntity("dataProvider", IndexDocType.DATAPROVIDER, biocacheApiService.entityCounts("dataProviderUid"));
+        counter += importEntity("institution", IndexDocType.INSTITUTION, biocacheApiService.entityCounts("institutionUid"));
+        counter += importEntity("collection", IndexDocType.COLLECTION, biocacheApiService.entityCounts("collectionUid"));
         logService.log(taskType, "Finished updates: " + counter);
         return CompletableFuture.completedFuture(true).thenApply(
                 a -> {

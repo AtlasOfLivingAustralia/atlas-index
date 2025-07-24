@@ -27,7 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Data Quality service API
+ * Quality data service for managing quality profiles, categories, and filters.
  * - The majority of the methods have caching.
  * - Only the leader instance can safely write to the database.
  *
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 @Service
-public class DataQualityService {
+public class QualityDataService {
 
     protected final DataQualityPostgresRepository dataQualityRepository;
     protected final CacheManager cacheManager;
@@ -50,7 +50,7 @@ public class DataQualityService {
     List<QualityProfile> profiles;
     private CountDownLatch cacheRefreshLatch = new CountDownLatch(0);
 
-    public DataQualityService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
+    public QualityDataService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
         this.dataQualityRepository = dataQualityRepository;
         this.cacheManager = cacheManager;
         this.staticFileStoreService = staticFileStoreService;

@@ -26,7 +26,7 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class BiocacheService {
+public class BiocacheApiService {
 
     final WebService webService;
     private final RestTemplate restTemplate = new RestTemplate();
@@ -34,7 +34,7 @@ public class BiocacheService {
     @Value("${biocache.url}")
     private String biocacheWsUrl;
 
-    public BiocacheService(WebService webService) {
+    public BiocacheApiService(WebService webService) {
         this.webService = webService;
     }
 

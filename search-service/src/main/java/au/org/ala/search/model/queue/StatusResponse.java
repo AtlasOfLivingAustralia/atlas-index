@@ -19,13 +19,13 @@ public class StatusResponse {
     public StatusCode statusCode;
     public String message;
 
-    public StatusResponse(Status status, String baseUrl) {
-        switch (status.statusCode) {
-            case QUEUED, RUNNING -> this.statusUrl = baseUrl + "?id=" + status.id;
-            case FINISHED -> this.downloadUrl = baseUrl + "?id=" + status.id + "&download=true";
+    public StatusResponse(QueueItem queueItem, String baseUrl) {
+        switch (queueItem.status) {
+            case QUEUED, RUNNING -> this.statusUrl = baseUrl + "?id=" + queueItem.id;
+            case FINISHED -> this.downloadUrl = baseUrl + "?id=" + queueItem.id + "&download=true";
         }
 
-        this.statusCode = status.statusCode;
-        this.message = status.message;
+        this.statusCode = queueItem.status;
+        this.message = queueItem.statusMessage;
     }
 }

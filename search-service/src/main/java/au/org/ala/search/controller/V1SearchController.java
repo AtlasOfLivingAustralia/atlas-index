@@ -97,7 +97,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = "/v1/species/lookup/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/bie/species/lookup/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<LongProfile>> speciesLookupBulk(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON map object the list of names",
@@ -128,7 +128,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = "/v1/species/guids/bulklookup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/bie/species/guids/bulklookup", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<SpeciesGuidsBulklookupResponse> speciesGuidsBulklookup(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of GUIDS",
@@ -153,7 +153,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = "/v1/species/image/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/bie/species/image/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Image>> speciesImageBulk(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The guids to look up",
@@ -205,14 +205,14 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/childConcepts/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/childConcepts/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ChildConcept>> childConcepts(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             @Nullable @RequestParam(name = "unranked", required = false, defaultValue = "true") Boolean unranked,
             @Nullable @RequestParam(name = "within", required = false, defaultValue = "2000") Integer within,
             HttpServletRequest request
     ) {
-        String id = request.getRequestURI().split(request.getContextPath() + "/v1/childConcepts/")[1];
+        String id = request.getRequestURI().split(request.getContextPath() + "/v1/bie/childConcepts/")[1];
         return ResponseEntity.ok(elasticService.getChildConcepts(id, within, unranked));
     }
 
@@ -229,12 +229,12 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/classification/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/classification/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Classification>> classification(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
     ) {
-        String guid = request.getRequestURI().split(request.getContextPath() + "/v1/classification/")[1];
+        String guid = request.getRequestURI().split(request.getContextPath() + "/v1/bie/classification/")[1];
 
         List<Classification> classification = elasticService.getClassification(elasticService.getTaxon(elasticService.cleanupId(guid), false, true));
 
@@ -261,7 +261,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/guid/batch", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/guid/batch", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> guidBatch(
             @Parameter(
                     description = "Query string",
@@ -308,12 +308,12 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/guid/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/guid/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Profile>> guidName(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
     ) {
-        String id = request.getRequestURI().split(request.getContextPath() + "/v1/guid/")[1];
+        String id = request.getRequestURI().split(request.getContextPath() + "/v1/bie/guid/")[1];
         List<SearchItemIndex> items = elasticService.getTaxonsByName(id, 10, false);
         if (items != null && !items.isEmpty()) {
             return ResponseEntity.ok(FormatUtil.itemsToProfiles(items));
@@ -335,7 +335,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/imageSearch/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/imageSearch/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> imageSearch(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             @Parameter(
@@ -351,8 +351,8 @@ public class V1SearchController {
             HttpServletRequest request
     ) {
         String id = null;
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/imageSearch/")) {
-            id = request.getRequestURI().substring((request.getContextPath() + "/v1/imageSearch/").length());
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/bie/imageSearch/")) {
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/bie/imageSearch/").length());
         }
 
         Map<String, Object> result = elasticService.imageSearch(elasticService.cleanupId(id), start, rows);
@@ -373,14 +373,14 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/species/shortProfile/**", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/species/shortProfile/**", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ShortProfile> shortProfile(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
     ) {
         String id = null;
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/species/shortProfile/")) {
-            id = request.getRequestURI().substring((request.getContextPath() + "/v1/species/shortProfile/").length());
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/bie/species/shortProfile/")) {
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/bie/species/shortProfile/").length());
         }
 
         ShortProfile model = elasticService.getShortProfile(elasticService.cleanupId(id));
@@ -405,23 +405,23 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = {"/v1/species/**", "/v1/taxon/**"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = {"/v1/bie/species/**", "/v1/bie/taxon/**"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> species(
             /* @PathVariable String id, injected into openapi using OpenAPIExampleService */
             HttpServletRequest request
     ) {
         String id;
-        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/species/")) {
-            id = request.getRequestURI().substring((request.getContextPath() + "/v1/species/").length());
+        if (request.getRequestURI().startsWith(request.getContextPath() + "/v1/bie/species/")) {
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/bie/species/").length());
         } else {
-            id = request.getRequestURI().substring((request.getContextPath() + "/v1/taxon/").length());
+            id = request.getRequestURI().substring((request.getContextPath() + "/v1/bie/taxon/").length());
         }
 
         Map<String, Object> item = elasticService.getTaxonResponse(id);
         if (item != null) {
             if (item.containsKey("redirect")) {
                 HttpHeaders headers = new HttpHeaders();
-                headers.add("Location", request.getContextPath() + "/v1/species/" + item.get("redirect"));
+                headers.add("Location", request.getContextPath() + "/v1/bie/species/" + item.get("redirect"));
                 return new ResponseEntity<>(headers, HttpStatus.FOUND);
             }
             return ResponseEntity.ok(item);
@@ -442,7 +442,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/ranks", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/ranks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Rank>> ranks() {
         return ResponseEntity.ok(legacyService.getRanks(elasticService.indexFields(false)));
     }
@@ -465,7 +465,7 @@ public class V1SearchController {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v1/api/setImages")
+    @GetMapping(path = "/v1/bie/api/setImages")
     public ResponseEntity<String> setImages(
             @Parameter(description = "Scientific Name")
             @RequestParam(name = "name") String name,
@@ -503,7 +503,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/indexFields", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/bie/indexFields", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<IndexedField> search() {
         return elasticService.indexFields(true);
     }
@@ -521,7 +521,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = {"/v1/search", "/v1/search.json"})
+    @GetMapping(path = {"/v1/bie/search", "/v1/bie/search.json"})
     public ResponseEntity<Map<String, Object>> search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",
@@ -600,7 +600,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = {"/v1/search/auto", "/v1/search/auto.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = {"/v1/bie/search/auto", "/v1/bie/search/auto.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> searchAuto(
             @Parameter(
                     description = "The value to auto complete e.g. q=Mac",
@@ -680,7 +680,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v1/download", produces = "text/csv")
+    @GetMapping(path = "/v1/bie/download", produces = "text/csv")
     public ResponseEntity<StreamingResponseBody> download(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",

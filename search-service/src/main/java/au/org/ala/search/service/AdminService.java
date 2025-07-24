@@ -10,7 +10,7 @@ import au.org.ala.search.model.ListBackedFields;
 import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.service.remote.DataFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.ListService;
+import au.org.ala.search.service.remote.ListApiService;
 import au.org.ala.search.service.remote.StaticFileStoreService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ import java.util.Map;
 public class AdminService {
     protected final ElasticsearchOperations elasticsearchOperations;
     protected final ElasticService elasticService;
-    protected final ListService listService;
+    protected final ListApiService listApiService;
     protected final StaticFileStoreService staticFileStoreService;
     protected final DataFileStoreService dataFileStoreService;
 
@@ -58,10 +58,10 @@ public class AdminService {
     private String descriptionOverridePath;
 
     public AdminService(
-            ElasticsearchOperations elasticsearchOperations, ElasticService elasticService, ListService listService, StaticFileStoreService staticFileStoreService, DataFileStoreService dataFileStoreService) {
+            ElasticsearchOperations elasticsearchOperations, ElasticService elasticService, ListApiService listApiService, StaticFileStoreService staticFileStoreService, DataFileStoreService dataFileStoreService) {
         this.elasticsearchOperations = elasticsearchOperations;
         this.elasticService = elasticService;
-        this.listService = listService;
+        this.listApiService = listApiService;
         this.staticFileStoreService = staticFileStoreService;
         this.dataFileStoreService = dataFileStoreService;
     }
@@ -93,7 +93,7 @@ public class AdminService {
             default:
                 return false;
         }
-        listService.updateItem(listId, listField, setRequest);
+        listApiService.updateItem(listId, listField, setRequest);
 
         String esId = elasticService.queryTaxonId(setRequest.getTaxonID());
 

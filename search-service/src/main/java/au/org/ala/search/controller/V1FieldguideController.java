@@ -6,17 +6,13 @@
 
 package au.org.ala.search.controller;
 
-import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.FieldguideRequest;
-import au.org.ala.search.model.queue.FieldguideQueueRequest;
-import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.Status;
-import au.org.ala.search.model.queue.StatusCode;
+import au.org.ala.search.model.queue.*;
 import au.org.ala.search.service.AuthService;
-import au.org.ala.search.service.queue.QueueService;
+import au.org.ala.search.service.queue.ConsumerQueue;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
+import au.org.ala.search.service.remote.QueueDataService;
 import au.org.ala.web.UserDetails;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,7 +20,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -38,8 +33,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.security.Principal;
 
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH;
@@ -56,7 +49,10 @@ public class V1FieldguideController {
     private AuthService authService;
 
     @Autowired
-    private QueueService queueService;
+    private ConsumerQueue consumerQueue;
+
+    @Autowired
+    private QueueDataService queueDataService;
 
     @Value("${fieldguide.validateEmail}")
     private Boolean validateEmail;
@@ -101,7 +97,7 @@ public class V1FieldguideController {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @PostMapping(path = "/v1/generate", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/v1/fieldguide/generate", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FieldguideResponse> offline(
             @org.springframework.web.bind.annotation.RequestBody FieldguideRequest params,
             @Parameter(
@@ -120,7 +116,6 @@ public class V1FieldguideController {
             )
             @RequestParam(name = "file", required = false) String file,
             @AuthenticationPrincipal Principal principal) {
-        //initiate generation of an offline field guide
         String validEmail;
         if (validateEmail) {
             // use logged in user's email
@@ -140,21 +135,25 @@ public class V1FieldguideController {
         if (validateEmail == null) {
             return ResponseEntity.badRequest().build();
         } else {
-            Status status = queueService.add(FieldguideQueueRequest
+            FieldguideQueueRequest fieldguideQueueRequest = FieldguideQueueRequest
                     .builder()
-                    .taskType(TaskType.FIELDGUIDE)
-                    .email(validEmail)
                     .filename(file)
                     .title(params.title)
                     .id(params.guids.toArray(new String[0]))
                     .sourceUrl(params.link)
-                    .build());
+                    .build();
+            QueueItem queueItem = consumerQueue.add(QueueRequest
+                    .builder()
+                    .email(validEmail)
+                    .fieldguideQueueRequest(fieldguideQueueRequest)
+                    .build(), authService.getUserId(principal));
 
             try {
-                if (status.statusCode == StatusCode.ERROR) {
-                    return ResponseEntity.badRequest().body(new FieldguideResponse(status));
+                FieldguideResponse response = new FieldguideResponse(queueItem, baseUrl);
+                if (queueItem.status == StatusCode.ERROR) {
+                    return ResponseEntity.badRequest().body(response);
                 }
-                return ResponseEntity.ok().body(new FieldguideResponse(status));
+                return ResponseEntity.ok().body(response);
             } catch (MalformedURLException e) {
                 return ResponseEntity.internalServerError().build();
             }
@@ -180,21 +179,20 @@ public class V1FieldguideController {
                     )
             }
     )
-    @GetMapping(path = "/v1/status/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v1/fieldguide/status/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FieldguideResponse> status(
             @Parameter(
                     name = "id",
                     in = PATH,
                     description = "Id of the fieldguide",
-                    schema = @Schema(implementation = String.class),
+                    schema = @Schema(implementation = Long.class),
                     required = true
             )
-            @PathVariable(name = "id") String id) {
-        //status of an offline field guide
-        QueueItem status = queueService.get(id);
-        if (status != null) {
+            @PathVariable(name = "id") Long id) {
+        QueueItem item = queueDataService.get(id);
+        if (item != null) {
             try {
-                return ResponseEntity.ok(new FieldguideResponse(status.getStatus()));
+                return ResponseEntity.ok(new FieldguideResponse(item, baseUrl));
             } catch (MalformedURLException e) {
                 return ResponseEntity.internalServerError().build();
             }
@@ -228,7 +226,7 @@ public class V1FieldguideController {
                     )
             }
     )
-    @GetMapping(path = "/v1/download/{downloadId}", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(path = "/v1/fieldguide/download/{downloadId}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<?> offline(
             @Parameter(
                     name = "downloadId",
@@ -237,9 +235,8 @@ public class V1FieldguideController {
                     schema = @Schema(implementation = String.class),
                     required = true
             )
-            @PathVariable(name = "downloadId") String id) {
-        //offline generated field guide download
-        QueueItem queueItem = queueService.get(id);
+            @PathVariable(name = "downloadId") Long id) {
+        QueueItem queueItem = queueDataService.get(id);
         if (queueItem != null) {
             if (downloadFileStoreService.isS3()) {
                 return ResponseEntity
@@ -254,7 +251,7 @@ public class V1FieldguideController {
                         InputStreamResource inputStreamResource = new InputStreamResource(new FileInputStream(file));
 
                         return ResponseEntity.ok()
-                                .header("content-disposition", "attachment; filename=" + queueItem.queueRequest.filename)
+                                .header("content-disposition", "attachment; filename=" + queueItem.queueRequest.fieldguideQueueRequest.filename)
                                 .contentLength(file.length())
                                 .contentType(MediaType.APPLICATION_PDF)
                                 .body(inputStreamResource);
@@ -265,23 +262,5 @@ public class V1FieldguideController {
         }
 
         return ResponseEntity.notFound().build();
-    }
-
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @Getter
-    public class FieldguideResponse {
-        String status;
-        URL statusUrl;
-        URL downloadUrl;
-
-        FieldguideResponse(Status status) throws MalformedURLException {
-            this.status = status.statusCode.name().toLowerCase();
-            if (status.id != null) {
-                this.statusUrl = URI.create(baseUrl + "/v1/status/" + status.id).toURL();
-                if (status.statusCode == StatusCode.FINISHED) {
-                    this.downloadUrl = URI.create(baseUrl + "/v1/download/" + status.id).toURL();
-                }
-            }
-        }
     }
 }

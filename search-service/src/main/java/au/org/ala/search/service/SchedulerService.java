@@ -10,7 +10,7 @@ import au.org.ala.search.LeadershipStatus;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.config.ConfigValidationListener;
-import au.org.ala.search.service.queue.BroadcastService;
+import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.remote.ConfigService;
 import au.org.ala.search.service.update.*;
 import io.micrometer.common.util.StringUtils;
@@ -42,7 +42,7 @@ public class SchedulerService {
     private final ConfigService configService;
     private final LeadershipStatus leadershipStatus;
     private final AllService allService;
-    private final BroadcastService broadcastService;
+    private final BroadcastQueue broadcastQueue;
     private final AreaImportService areaImportService;
     private final TaxonUpdateService taxonUpdateService;
     private final DigivolImportService digivolImportService;
@@ -59,7 +59,7 @@ public class SchedulerService {
     private final Map<TaskType, ScheduledFuture<?>> scheduledTasks = new EnumMap<>(TaskType.class);
 
     public SchedulerService(ConfigService configService, LeadershipStatus leadershipStatus, AllService allService,
-                            BroadcastService broadcastService, AreaImportService areaImportService,
+                            BroadcastQueue broadcastQueue, AreaImportService areaImportService,
                             TaxonUpdateService taxonUpdateService, DigivolImportService digivolImportService,
                             BiocollectImportService biocollectImportService, CollectionsImportService collectionsImportService,
                             KnowledgebaseImportService knowledgebaseImportService, LayerImportService layerImportService,
@@ -68,7 +68,7 @@ public class SchedulerService {
         this.configService = configService;
         this.leadershipStatus = leadershipStatus;
         this.allService = allService;
-        this.broadcastService = broadcastService;
+        this.broadcastQueue = broadcastQueue;
         this.areaImportService = areaImportService;
         this.taxonUpdateService = taxonUpdateService;
         this.digivolImportService = digivolImportService;
@@ -163,7 +163,7 @@ public class SchedulerService {
                 case SITEMAP -> reschedule(task, sitemapService::run);
                 case DASHBOARD -> reschedule(task, dashboardService::run);
                 case CACHE_RESET_ALL, CACHE_RESET_COLLECTORY, CACHE_RESET_LISTS, CACHE_RESET_DATA_QUALITY ->
-                        reschedule(task, () -> broadcastService.sendMessage(task, null));
+                        reschedule(task, () -> broadcastQueue.sendMessage(task, null));
             }
         }
     }

@@ -6,15 +6,15 @@
 
 package au.org.ala.search.service.queue;
 
+import au.org.ala.search.LeadershipStatus;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.quality.QualityProfile;
-import au.org.ala.search.service.remote.DataQualityService;
+import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.InstanceUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -35,14 +35,13 @@ import java.util.Map;
  */
 @Slf4j
 @Service
-public class LeaderService {
+public class LeaderQueue {
     public static final String LEADER_QUEUE = "leader";
 
-    @Getter
-    private static LeaderService instance;
-    protected final LogService logService;
+    private final LogService logService;
     private final RabbitTemplate rabbitTemplate;
-    private final DataQualityService dataQualityService;
+    private final QualityDataService qualityDataService;
+    private final LeadershipStatus leadershipStatus;
     @Value("${rabbitmq.exchange.direct}")
     private String directExchange;
     @Value("${rabbitmq.host:}")
@@ -50,12 +49,12 @@ public class LeaderService {
 
     ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
 
-    public LeaderService(RabbitTemplate rabbitTemplate, LogService logService, DataQualityService dataQualityService) {
+    public LeaderQueue(RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, LeadershipStatus leadershipStatus) {
         this.rabbitTemplate = rabbitTemplate;
         this.logService = logService;
+        this.leadershipStatus = leadershipStatus;
 
-        instance = this;
-        this.dataQualityService = dataQualityService;
+        this.qualityDataService = qualityDataService;
 
         // Increase the timeout for RPC responses to 30 seconds
         this.rabbitTemplate.setReplyTimeout(30_000);
@@ -73,26 +72,49 @@ public class LeaderService {
      * @return A map containing the response status, e.g. {"status": "ok"} or {"status": "error"} or {"status": "timeout"}
      */
     public Map<String, String> sendRpcMessage(TaskType message, Object payload) throws IOException {
-        if (StringUtils.isNotEmpty(rabbitMqHost)) {
+        return sendMessage(message, payload, true);
+    }
+
+    /**
+     * Send a message to the leader instance without waiting for a response.
+     *
+     * @param message message to send
+     * @return A map containing the response status, e.g. {"status": "ok"} or {"status": "error"}
+     */
+    public void sendMessage(TaskType message, Object payload) throws IOException {
+        sendMessage(message, payload, false);
+    }
+
+    private Map<String, String> sendMessage(TaskType message, Object payload, boolean isRpc) throws IOException {
+        if (StringUtils.isNotEmpty(rabbitMqHost) && !leadershipStatus.isLeader()) {
             Map<String, Object> map = Map.of(
                     "payload", payload,
                     "message", message.name()
             );
 
             byte[] bytes = smileObjectMapper.writeValueAsBytes(map);
-            Object response = rabbitTemplate.convertSendAndReceive(directExchange, LEADER_QUEUE, bytes);
 
-            // convert response from byte[] to Map with smileObjectMapper
-            if (response instanceof byte[] responseBytes) {
-                Map<String, String> responseMap = smileObjectMapper.readValue(responseBytes, Map.class);
-                log.info("Received response from leader: {}", responseMap);
-                return responseMap;
+            if (isRpc) {
+                Object response = rabbitTemplate.convertSendAndReceive(directExchange, LEADER_QUEUE, bytes);
+
+                // convert response from byte[] to Map with smileObjectMapper
+                if (response instanceof byte[] responseBytes) {
+                    Map<String, String> responseMap = smileObjectMapper.readValue(responseBytes, Map.class);
+                    log.info("Received response from leader: {}", responseMap);
+                    return responseMap;
+                } else {
+                    log.info("RPC timeout: {}", message.name());
+                    return Map.of("status", "timeout");
+                }
             } else {
-                log.info("RPC timeout: {}", message.name());
-                return Map.of("status", "timeout");
+                // Send the message without waiting for a response
+                rabbitTemplate.convertAndSend(directExchange, LEADER_QUEUE, bytes);
+                log.info("Sent message to leader: {}", message.name());
+                return Map.of("status", "ok");
             }
         }
 
+        // this is the leader
         if (receiveMessage(message.name(), payload)) {
             return Map.of("status", "ok");
         } else {
@@ -140,13 +162,13 @@ public class LeaderService {
                 log.error("Quality profile ID is required for deletion.");
                 return false;
             }
-            dataQualityService.delete(qualityProfile.getId());
+            qualityDataService.delete(qualityProfile.getId());
         } else if (message.equals(TaskType.DATA_QUALITY_SAVE.name())) {
             if (qualityProfile == null) {
                 log.error("Quality profile is required for saving.");
                 return false;
             }
-            QualityProfile qp = dataQualityService.save(qualityProfile);
+            QualityProfile qp = qualityDataService.save(qualityProfile);
             if (qp == null) {
                 return false;
             }
@@ -157,7 +179,7 @@ public class LeaderService {
         return true;
     }
 
-    @RabbitListener(queues = LeaderService.LEADER_QUEUE, id = LeaderService.LEADER_QUEUE, autoStartup = "false")
+    @RabbitListener(queues = LeaderQueue.LEADER_QUEUE, id = LeaderQueue.LEADER_QUEUE, autoStartup = "false")
     public byte[] handleRpc(byte[] message) throws JsonProcessingException {
         Map<String, String> response;
         try {
