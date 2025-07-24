@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {Tab, Tabs} from "react-bootstrap";
 import {useState} from "react";
 import {useAuth} from "react-oidc-context";
@@ -353,7 +359,7 @@ function EditIndexedTaxon() {
         {taxonString && <Tabs id="species-tabs" activeKey={speciesTab} onSelect={(k) => setSpeciesTab('' + k)}
                               className="tabs-as-buttons mt-5">
             <Tab eventKey="json" title="Raw indexed JSON">
-                <div style={{ marginTop: '30px'}}/>
+                <div style={{marginTop: '30px'}}/>
                 <table className="table table-sm">
                     <thead>
                     <tr>
@@ -364,7 +370,9 @@ function EditIndexedTaxon() {
                     <tbody>
                     <tr>
                         <td>TaxonID</td>
-                        <td><pre style={{whiteSpace: 'pre-wrap'}}>{taxonID}{' '}(searched for "{guidSearched}")</pre></td>
+                        <td>
+                            <pre style={{whiteSpace: 'pre-wrap'}}>{taxonID}{' '}(searched for "{guidSearched}")</pre>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -375,7 +383,7 @@ function EditIndexedTaxon() {
             </Tab>
 
             <Tab eventKey="images" title="Image preferences">
-                <div style={{ marginTop: '30px'}}/>
+                <div style={{marginTop: '30px'}}/>
                 <table className="table table-sm">
                     <thead>
                     <tr>
@@ -386,7 +394,9 @@ function EditIndexedTaxon() {
                     <tbody>
                     <tr>
                         <td>TaxonID</td>
-                        <td><pre style={{whiteSpace: 'pre-wrap',}}>{taxonID}{' '}(searched for "{guidSearched}")</pre></td>
+                        <td>
+                            <pre style={{whiteSpace: 'pre-wrap',}}>{taxonID}{' '}(searched for "{guidSearched}")</pre>
+                        </td>
                     </tr>
                     <tr>
                         <td>
@@ -405,7 +415,8 @@ function EditIndexedTaxon() {
                             <button className="btn border-black ms-auto me-5" onClick={() => {
                                 setSaveImageResponse('...');
                                 saveImages();
-                            }}>Save Changes</button>
+                            }}>Save Changes
+                            </button>
                         </td>
                     </tr>
                     <tr>
@@ -426,21 +437,25 @@ function EditIndexedTaxon() {
                             <button className="btn border-black ms-auto me-5" onClick={() => {
                                 setSaveImageResponse('...');
                                 saveImages();
-                            }}>Save Changes</button>
+                            }}>Save Changes
+                            </button>
                         </td>
                     </tr>
 
                     {saveImageResponse && (
                         <tr>
                             <td>Response code</td>
-                            <td><pre>{saveImageResponse}</pre></td>
+                            <td>
+                                <pre>{saveImageResponse}</pre>
+                            </td>
                         </tr>
                     )}
 
                     <tr>
                         <td>Select type of images to list</td>
                         <td>
-                            <select className="mb-4" value={imageViewMode} style={{ lineHeight: '34px', height: '34px', borderRadius: '5px',}}
+                            <select className="mb-4" value={imageViewMode}
+                                    style={{lineHeight: '34px', height: '34px', borderRadius: '5px',}}
                                     onChange={(e) => setImageViewMode(e.target.value)}>
                                 <option value="all">All Images</option>
                                 <option value="preferred">Preferred Images</option>
@@ -451,16 +466,19 @@ function EditIndexedTaxon() {
                     </tbody>
                 </table>
                 <div className="d-flex flex-wrap">
-                    { imageViewMode === 'preferred' && preferredImage &&
+                    {imageViewMode === 'preferred' && preferredImage &&
                         preferredImage.split(',').map((imageID, idx) => {
-                            return buildImageCard(imageID, idx);})
+                            return buildImageCard(imageID, idx);
+                        })
                     }
                     {imageViewMode === 'hidden' && hiddenImage &&
                         hiddenImage.split(',').map((imageID, idx) => {
-                            return buildImageCard(imageID, idx);})
+                            return buildImageCard(imageID, idx);
+                        })
                     }
                     {imageViewMode === 'all' && images.map((imageID, idx) => {
-                        return buildImageCard(imageID, idx);})
+                        return buildImageCard(imageID, idx);
+                    })
                     }
                 </div>
                 {imageViewMode === 'all' && <button className="btn border-black" onClick={() => loadImages()}>
@@ -480,7 +498,9 @@ function EditIndexedTaxon() {
                     <tbody>
                     <tr>
                         <td>TaxonID</td>
-                        <td><pre style={{whiteSpace: 'pre-wrap',}}>{taxonID}{' '}(searched for "{guidSearched}")</pre></td>
+                        <td>
+                            <pre style={{whiteSpace: 'pre-wrap',}}>{taxonID}{' '}(searched for "{guidSearched}")</pre>
+                        </td>
                     </tr>
                     <tr>
                         <td>
@@ -494,10 +514,13 @@ function EditIndexedTaxon() {
                         <td>
                             <textarea id="heroDescription" className="w-100" rows={5} value={heroDescription}
                                       onChange={(e) => {
-                                          setHeroDescription(e.target.value);}}/>
+                                          setHeroDescription(e.target.value);
+                                      }}/>
                             <button className="btn border-black"
-                                    onClick={() => {setSaveHeroDescriptionResponse('...');
-                                        saveHeroDescription();}}>
+                                    onClick={() => {
+                                        setSaveHeroDescriptionResponse('...');
+                                        saveHeroDescription();
+                                    }}>
                                 Save Changes
                             </button>
                         </td>
@@ -506,7 +529,9 @@ function EditIndexedTaxon() {
                     {saveHeroDescriptionResponse && (
                         <tr>
                             <td>Response code (Hero Description)</td>
-                            <td><pre>{saveHeroDescriptionResponse}</pre></td>
+                            <td>
+                                <pre>{saveHeroDescriptionResponse}</pre>
+                            </td>
                         </tr>
                     )}
 
@@ -515,7 +540,8 @@ function EditIndexedTaxon() {
                             <ul>
                                 <li>Edit the HTML category values.</li>
                                 <li>Edit fields. Excludes "name", "url" and "attribution" values. Excludes changes to
-                                    keys. To change these, refer to the taxon-description tool.</li>
+                                    keys. To change these, refer to the taxon-description tool.
+                                </li>
                                 <li>Order of items cannot be changed.</li>
                                 <li>Items cannot be deleted.</li>
                                 <li>Items cannot be added.</li>
@@ -530,14 +556,17 @@ function EditIndexedTaxon() {
                             <button className="btn border-black" onClick={() => {
                                 setSaveDescriptionJsonResponse('...');
                                 saveDescriptionJson();
-                            }}>Save Changes</button>
+                            }}>Save Changes
+                            </button>
                         </td>
                     </tr>
 
                     {saveDescriptionJsonResponse && (
                         <tr>
                             <td>Response code (Description JSON)</td>
-                            <td><pre>{saveDescriptionJsonResponse}</pre></td>
+                            <td>
+                                <pre>{saveDescriptionJsonResponse}</pre>
+                            </td>
                         </tr>
                     )}
                     </tbody>

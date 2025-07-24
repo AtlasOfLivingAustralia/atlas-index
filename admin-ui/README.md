@@ -1,16 +1,10 @@
 # Default UI
 
-A generic, admin only UI. Initially for search-service. Based on the UI in the species-lists project.
-
-Intended to serve as a template for UI/UX design outputs.
-
-Uses:
-
-- React
-- TypeScript (for the most part)
-- Bootstrap 5
-- Node version v18.12.1
-- Yarn version v1.22.10 (brew install yarn)
+UI for admin functions:
+- search-service
+  - Managed tasks, scheduling and related logs.
+  - Manage index taxon records.
+  - Manage data quality profiles.
 
 ## Getting started
 
@@ -72,13 +66,3 @@ VITE_ADMIN_ROLE=admin
 
 ```
 
-## Views
-
-- Atlas Admin - Admin functions for the Atlas search service. Includes the ability to run admin tasks and edit species records.
-- Atlas Index - A very loose replication of the ala-bie-hub search, list and show functions.
-- Dashboard - A replication of the Atlas search dashboard. Includes non-chart content and chart content.
-- Vocabulary - A viewer for the Atlas search vocabulary. This is the result of an incomplete thought.
-- API - A viewer for API documentation and OpenAPI specifications.
-- Map - A map of nothing.
-- Data Quality - A view of a static JSON file.
-- Fieldguide - Generate a PDF from a list of guids.

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { Route, Routes } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
@@ -20,6 +26,7 @@ import {
     Breadcrumb,
 } from '@ala/common-ui';
 import buildInfo from './buildInfo.json';
+import Tasks from "./views/Tasks.tsx";
 
 export default function App() {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -155,6 +162,16 @@ export default function App() {
                         path="/dq"
                         element={
                             <DataQualityAdmin
+                                setBreadcrumbs={(crumbs: Breadcrumb[]) =>
+                                    setBreadcrumbs(crumbs)
+                                }
+                            />
+                        }
+                    />
+                    <Route
+                        path="/tasks"
+                        element={
+                            <Tasks
                                 setBreadcrumbs={(crumbs: Breadcrumb[]) =>
                                     setBreadcrumbs(crumbs)
                                 }
