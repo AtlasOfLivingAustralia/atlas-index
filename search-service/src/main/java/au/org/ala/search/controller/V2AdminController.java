@@ -10,6 +10,8 @@ import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.model.quality.QualityProfile;
+import au.org.ala.search.model.queue.QueueItem;
+import au.org.ala.search.model.queue.QueueRequest;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.consumer.FieldguideConsumer;
@@ -18,6 +20,7 @@ import au.org.ala.search.service.queue.*;
 import au.org.ala.search.service.remote.ConfigService;
 import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.service.remote.QueueDataService;
 import au.org.ala.search.service.update.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,12 +35,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -73,6 +78,7 @@ public class V2AdminController {
     protected final BroadcastQueue broadcastQueue;
     private final LeaderQueue leaderQueue;
     private final ConfigService configService;
+    private final QueueDataService queueDataService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
@@ -86,7 +92,7 @@ public class V2AdminController {
                              ConsumerQueue consumerQueue, FieldguideConsumer fieldguideConsumer,
                              SearchConsumer searchConsumer,
                              DescriptionsUpdateService descriptionsUpdateService,
-                             QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue, ConfigService configService) {
+                             QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue, ConfigService configService, QueueDataService queueDataService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -114,6 +120,7 @@ public class V2AdminController {
         this.broadcastQueue = broadcastQueue;
         this.leaderQueue = leaderQueue;
         this.configService = configService;
+        this.queueDataService = queueDataService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -384,5 +391,43 @@ public class V2AdminController {
         }
 
         return ResponseEntity.ok().body(configService.getAll());
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(tags = "ADMIN", summary = "Search consumer tasks")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @GetMapping(path = "/v2/admin/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<QueueItem>> tasks(
+            @RequestParam(name = "id", required = false) String id,
+            @RequestParam(name = "userId", required = false) String userId,
+            @RequestParam(name = "userEmail", required = false) String userEmail,
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "taskType", required = false) String taskType,
+            @RequestParam(name = "pageSize", required = false, defaultValue = "20") Long pageSize,
+            @RequestParam(name = "page", required = false, defaultValue = "0") Long page,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        Page<QueueItem> result = queueDataService.list(id == null ? null : UUID.fromString(id), userId, userEmail, status, taskType, page, pageSize);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @SecurityRequirement(name = "JWT")
+    @Operation(tags = "ADMIN", summary = "Cancel a task")
+    @Tag(name = "ADMIN", description = "REST Services for admin")
+    @DeleteMapping(path = "/v2/admin/task")
+    public ResponseEntity<?> cancelTask(
+            @RequestParam(name = "id", required = false) Long id,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        broadcastQueue.sendMessage(TaskType.CANCEL_CONSUMER, id.toString());
+
+        return ResponseEntity.ok().build();
     }
 }

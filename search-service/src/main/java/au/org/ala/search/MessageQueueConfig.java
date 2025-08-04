@@ -42,7 +42,7 @@ public class MessageQueueConfig {
     @Value("${rabbitmq.password}")
     private String password;
     @Value("${rabbitmq.task.concurrency:1}")
-    private int concurrentUserTasks; // set at runtime
+    private int concurrentUserTasks;
 
     @Bean
     public FanoutExchange broadcastExchange() {

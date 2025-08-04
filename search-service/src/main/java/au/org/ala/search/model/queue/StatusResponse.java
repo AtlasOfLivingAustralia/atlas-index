@@ -16,12 +16,16 @@ import lombok.Setter;
 public class StatusResponse {
     public String statusUrl;
     public String downloadUrl;
+    public String cancelUrl;
     public StatusCode statusCode;
     public String message;
 
     public StatusResponse(QueueItem queueItem, String baseUrl) {
         switch (queueItem.status) {
-            case QUEUED, RUNNING -> this.statusUrl = baseUrl + "?id=" + queueItem.id;
+            case QUEUED, RUNNING -> {
+                this.statusUrl = baseUrl + "?id=" + queueItem.id;
+                this.cancelUrl = baseUrl + "?id=" + queueItem.id + "&cancel=true";
+            }
             case FINISHED -> this.downloadUrl = baseUrl + "?id=" + queueItem.id + "&download=true";
         }
 

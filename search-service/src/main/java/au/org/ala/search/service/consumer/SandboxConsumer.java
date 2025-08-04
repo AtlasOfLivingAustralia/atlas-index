@@ -65,7 +65,7 @@ public class SandboxConsumer {
 
         String datasetID = null;
         try {
-            queueDataService.updateStatus(item, StatusCode.RUNNING, "Processing");
+            queueDataService.updateStatus(item.id, StatusCode.RUNNING, "Processing");
 
             SandboxQueueRequest sandboxQueueRequest = item.queueRequest.sandboxQueueRequest;
             datasetID = sandboxQueueRequest.sandboxIngress.getDataResourceUid();
@@ -74,10 +74,10 @@ public class SandboxConsumer {
             int recordCount = loadDwCA(item, sandboxQueueRequest.sandboxIngress, datasetID);
 
             if (recordCount > 0) {
-                queueDataService.updateStatus(item, StatusCode.FINISHED, "Processed " + recordCount + " records (subject to SOLR indexing)");
+                queueDataService.updateStatus(item.id, StatusCode.FINISHED, "Processed " + recordCount + " records (subject to SOLR indexing)");
             } // else, updateStatus already called in loadDwCA with an error message
         } catch (Exception e) {
-            queueDataService.updateStatus(item, StatusCode.ERROR, e.getMessage());
+            queueDataService.updateStatus(item.id, StatusCode.ERROR, e.getMessage());
             log.error("Error processing sandbox: {}", item.id, e);
         } finally {
             // delete pipelines files
@@ -110,14 +110,14 @@ public class SandboxConsumer {
                 "--targetPath=" + sandboxDir + "/processed",
                 "--inputPath=" + sandboxDir + "/upload/" + item.getId()
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "DwCA to verbatim");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "DwCA to verbatim");
         pipelinesExecute(dwcaToVerbatimOpts);
 
         // test if it was successful
         File verbatimDir = new File(sandboxDir + "/processed/" + datasetID + "/1/verbatim/");
         if (!verbatimDir.exists() || verbatimDir.listFiles() == null || verbatimDir.listFiles().length == 0) {
             log.error("DwCA to verbatim failed");
-            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "DwCA to verbatim failed");
+            queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, "DwCA to verbatim failed");
             return 0;
         }
 
@@ -133,13 +133,13 @@ public class SandboxConsumer {
                 "--inputPath=" + sandboxDir + "/processed/" + datasetID + "/1/verbatim/*",
                 "--useExtendedRecordId=true"
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "Verbatim to interpreted");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "Verbatim to interpreted");
         pipelinesExecute(verbatimToInterpretedOpts);
 
         File occurrenceDir = new File(sandboxDir + "/processed/" + datasetID + "/1/occurrence/");
         if (!occurrenceDir.exists() || occurrenceDir.listFiles().length < 4) {
             log.error("Verbatim to interpreted failed");
-            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "Verbatim to interpreted failed");
+            queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, "Verbatim to interpreted failed");
             return 0;
         }
 
@@ -154,7 +154,7 @@ public class SandboxConsumer {
                 "--inputPath=" + sandboxDir + "/processed",
                 "--useExtendedRecordId=true"
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "UUID processing");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "UUID processing");
         pipelinesExecute(uuidMintingOpts);
 
         // run SDS checks
@@ -167,7 +167,7 @@ public class SandboxConsumer {
                 "--targetPath=" + sandboxDir + "/processed",
                 "--inputPath=" + sandboxDir + "/processed",
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "Sensitive processing");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "Sensitive processing");
         pipelinesExecute(interpretedToSensitiveOpts);
 
         // index record generation
@@ -183,13 +183,13 @@ public class SandboxConsumer {
                 "--includeImages=false",
                 "--includeSensitiveDataChecks=false"
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "index-record processing");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "index-record processing");
         pipelinesExecute(indexingOpts);
 
         File processedDir = new File(sandboxDir + "/processed/" + datasetID + "/all-datasets/index-record/" + datasetID);
         if (!processedDir.exists() || processedDir.listFiles() == null || processedDir.listFiles().length == 0) {
             log.error("Index Record Pipeline failed");
-            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "index-record failed");
+            queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, "index-record failed");
             return 0;
         }
 
@@ -203,13 +203,13 @@ public class SandboxConsumer {
                 "--inputPath=" + sandboxDir + "/processed",
                 "--allDatasetsInputPath=" + sandboxDir + "/processed/" + datasetID + "/all-datasets",
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "lat-lng processing");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "lat-lng processing");
         pipelinesExecute(exportLatLngsOpts);
 
         File latLngDir = new File(sandboxDir + "/processed/" + datasetID + "/1/latlng");
         if (!latLngDir.exists() || latLngDir.listFiles() == null || latLngDir.listFiles().length == 0) {
             log.error("Export Lat Lng failed");
-            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "lat-lng failed");
+            queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, "lat-lng failed");
             return 0;
         }
 
@@ -223,13 +223,13 @@ public class SandboxConsumer {
                 "--inputPath=" + sandboxDir + "/processed",
                 "--allDatasetsInputPath=" + sandboxDir + "/processed/" + datasetID + "/all-datasets",
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "sampling");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "sampling");
         pipelinesExecute(sampleOpts);
 
         File samplingDir = new File(sandboxDir + "/processed/" + datasetID + "/1/sampling");
         if (!samplingDir.exists() || samplingDir.listFiles() == null || samplingDir.listFiles().length == 0) {
             log.error("Sampling failed");
-            queueDataService.updateStatus(queueItem, StatusCode.ERROR, "sampling failed");
+            queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, "sampling failed");
             return 0;
         }
 
@@ -249,7 +249,7 @@ public class SandboxConsumer {
                 "--includeImages=false",
                 "--numOfPartitions=10"
         };
-        queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import");
+        queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "SOLR import");
         pipelinesExecute(indexRecordToSolrOpts);
 
         // might take a bit of time to index in SOLR, test for records, after 10s
@@ -269,7 +269,7 @@ public class SandboxConsumer {
                         ((Integer) ((Map) response.getBody().get("response")).get("numFound")) > 0) {
                     int solrCount = ((Integer) ((Map) response.getBody().get("response")).get("numFound"));
                     log.info("SOLR import successful: {} records", solrCount);
-                    queueDataService.updateStatus(queueItem, StatusCode.RUNNING, "SOLR import successful: " + solrCount + " records (subject to indexing)");
+                    queueDataService.updateStatus(queueItem.id, StatusCode.RUNNING, "SOLR import successful: " + solrCount + " records (subject to indexing)");
                     return solrCount;
                 }
                 Thread.sleep(sleepMs);
@@ -279,7 +279,7 @@ public class SandboxConsumer {
             log.error("SOLR request failed: {}", e.getMessage(), e);
         }
 
-        queueDataService.updateStatus(queueItem, StatusCode.ERROR, "SOLR import failed (or timed out)");
+        queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, "SOLR import failed (or timed out)");
         return 0;
     }
 

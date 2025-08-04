@@ -19,7 +19,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -33,8 +32,7 @@ public class BroadcastConsumerServiceIntegrationTest {
     @Container
     public static RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3.9.13-management");
 
-    @Container
-    public static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:6.0");
+    // TODO: add postgres test container
 
     @Container
     public static ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.13.0")
@@ -54,17 +52,12 @@ public class BroadcastConsumerServiceIntegrationTest {
         registry.add("rabbitmq.host", rabbitMQContainer::getHost);
         registry.add("rabbitmq.port", rabbitMQContainer::getAmqpPort);
 
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
-        registry.add("spring.data.mongodb.host", mongoDBContainer::getHost);
-        registry.add("spring.data.mongodb.port", mongoDBContainer::getFirstMappedPort);
-
         registry.add("elastic.host", elasticsearchContainer::getHttpHostAddress);
     }
 
     @BeforeAll
     public static void setUp() {
         rabbitMQContainer.start();
-        mongoDBContainer.start();
         elasticsearchContainer.start();
     }
 

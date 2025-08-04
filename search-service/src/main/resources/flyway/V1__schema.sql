@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE dqprofile
 (
     id            BIGSERIAL PRIMARY KEY,
@@ -23,3 +25,23 @@ CREATE TABLE config
     value   TEXT,
     notes   TEXT
 );
+
+CREATE TABLE queue
+(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id        VARCHAR(255) NOT NULL,
+    created        TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    started        TIMESTAMPTZ DEFAULT NULL,
+    liveness       TIMESTAMPTZ DEFAULT NULL,
+    status         VARCHAR(10) NOT NULL,
+    status_message TEXT DEFAULT NULL,
+    queue_request  JSONB NOT NULL
+);
+
+CREATE INDEX idx_queue_user_id ON queue (user_id);
+
+CREATE INDEX idx_queue_status ON queue (status);
+
+CREATE INDEX idx_queue_tasktype ON queue ((queue_request->>'taskType'));
+
+CREATE INDEX idx_queue_email ON queue ((queue_request->>'email'));

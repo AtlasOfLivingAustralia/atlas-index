@@ -8,6 +8,7 @@ package au.org.ala.search.service.queue;
 
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.config.ConfigData;
+import au.org.ala.search.model.queue.QueueCancel;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.remote.ConfigService;
@@ -45,6 +46,7 @@ public class BroadcastQueue {
     private final RabbitTemplate rabbitTemplate;
     private final QualityDataService qualityDataService;
     private final ConfigService configService;
+    private final ConsumerQueue consumerQueue;
     @Value("${rabbitmq.exchange.broadcast}")
     private String broadcastExchange;
     @Value("${rabbitmq.host:}")
@@ -52,11 +54,12 @@ public class BroadcastQueue {
 
     ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
 
-    public BroadcastQueue(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, ConfigService configService) {
+    public BroadcastQueue(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, ConfigService configService, ConsumerQueue consumerQueue) {
         this.collectoryCache = collectoryCache;
         this.listCache = listCache;
         this.rabbitTemplate = rabbitTemplate;
         this.logService = logService;
+        this.consumerQueue = consumerQueue;
 
         instance = this;
         this.qualityDataService = qualityDataService;
@@ -135,6 +138,9 @@ public class BroadcastQueue {
             } catch (IllegalArgumentException e) {
                 log.error("Unknown message received: {}", message, e);
             }
+        } else if (message.equals(TaskType.CANCEL_CONSUMER.name())) {
+            QueueCancel queueCancel = smileObjectMapper.convertValue(payload, QueueCancel.class);
+            consumerQueue.cancel(queueCancel.id, queueCancel.message);
         } else {
             log.error("Unhandled message received: {}", message);
         }

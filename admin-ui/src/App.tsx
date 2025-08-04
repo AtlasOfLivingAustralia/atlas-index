@@ -69,13 +69,49 @@ export default function App() {
 
     switch (auth.activeNavigator) {
         case 'signinSilent':
-            return <div>Signing you in...</div>;
+            const [retryAttempted, setRetryAttempted] = useState(false);
+
+            // retry, in case the network is not yet connected
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    void auth.signinSilent();
+                    setRetryAttempted(true);
+                }, 500);
+                return () => clearInterval(interval);
+            }, []);
+            return (
+            <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="d-flex flex-column align-items-center">
+                    <div>Signing you in...</div>
+                    { retryAttempted && <>
+                        <div className="mt-2">
+                            If you are not redirected automatically, please click a button below.
+                        </div>
+                        <button className="btn btn-primary mb-2"
+                                onClick={() => void auth.signinSilent()}>Retry</button>
+                        <button className="btn btn-success mb-2"
+                                onClick={handleLogin}>Login Again</button>
+                        <button className="btn btn-danger"
+                                onClick={handleLogout}>Logout</button>
+                    </>
+                    }
+                </div>
+            </div>
+            );
         case 'signoutRedirect':
-            return <div>Signing you out...</div>;
+            return (<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="d-flex flex-column align-items-center">
+                    <div>Signing you out...</div>
+                </div>
+            </div>);
     }
 
     if (auth.isLoading) {
-        return <div>Loading...</div>;
+        return (<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="d-flex flex-column align-items-center">
+                <div>Loading...</div>
+            </div>
+        </div>);
     }
 
     if (auth.error) {

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.UUID;
 
 /**
  * sandbox API services, minus some admin services
@@ -95,8 +96,8 @@ public class V1Sandbox {
 
     @GetMapping(path = {"/v1/sandbox/ingress"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<StatusResponse> progress(
-            @RequestParam Long id) {
-        QueueItem item = queueDataService.get(id);
+            @RequestParam String id) {
+        QueueItem item = queueDataService.get(UUID.fromString(id));
         if (item != null) {
             return ResponseEntity.ok(new StatusResponse(item, baseUrl));
         } else {

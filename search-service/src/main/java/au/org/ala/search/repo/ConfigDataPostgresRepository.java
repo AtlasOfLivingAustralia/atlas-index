@@ -8,6 +8,10 @@ package au.org.ala.search.repo;
 
 import au.org.ala.search.model.config.ConfigData;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 /**
  * Repository interface for managing configuration data in Postgresql.
@@ -15,4 +19,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * This is intended for use by ConfigService only.
  */
 public interface ConfigDataPostgresRepository extends JpaRepository<ConfigData, String> {
+
+    @Query(value = "SELECT * FROM config WHERE id = :id", nativeQuery = true)
+    ConfigData findByIdNative(@Param("id") String id);
+
+    @Query(value = "SELECT * FROM config", nativeQuery = true)
+    List<ConfigData> findAllNative();
 }

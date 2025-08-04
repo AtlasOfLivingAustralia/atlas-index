@@ -10,6 +10,7 @@ import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.FieldguideRequest;
 import au.org.ala.search.model.quality.QualityProfile;
 import au.org.ala.search.model.queue.FieldguideResponse;
+import au.org.ala.search.model.queue.QueueCancel;
 import au.org.ala.search.model.queue.SandboxQueueRequest;
 import au.org.ala.search.model.queue.SearchQueueRequest;
 
@@ -51,6 +52,7 @@ public enum TaskType {
     CACHE_RESET_LISTS("reset lists caches", TaskType.Category.BROADCAST, null, true),
     CACHE_RESET_DATA_QUALITY("reset data quality caches", TaskType.Category.BROADCAST, null, true),
     CONFIG_CHANGE("broadcast dynamic config change to all nodes", TaskType.Category.BROADCAST, ConfigData.class, true),
+    CANCEL_CONSUMER("cancel a consumer task", TaskType.Category.BROADCAST, QueueCancel.class, false),
 
     // Leader only tasks
     DATA_QUALITY_DELETE("delete data quality item", TaskType.Category.LEADER_ONLY, QualityProfile.class, false),

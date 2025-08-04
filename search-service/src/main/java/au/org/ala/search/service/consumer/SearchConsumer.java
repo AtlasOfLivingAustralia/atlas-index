@@ -54,9 +54,9 @@ public class SearchConsumer {
 
             File file;
             if (downloadFileStoreService.isS3()) {
-                file = File.createTempFile("search", "." + item.id + ".zip");
+                file = File.createTempFile("search", "." + item.id + ".zip"); // copy to s3 later
             } else {
-                file = new File(downloadFileStoreService.getFilePath(item));
+                file = new File(downloadFileStoreService.getFilePath(item)); // actual output file
             }
 
             File tmpFile = null;
@@ -74,7 +74,7 @@ public class SearchConsumer {
                 zos.close();
             } catch (Exception e) {
                 log.error("search download: {}", item.id, e);
-                queueDataService.updateStatus(item, StatusCode.ERROR, e.getMessage());
+                queueDataService.updateStatus(item.id, StatusCode.ERROR, e.getMessage());
             } finally {
                 if (tmpFile != null) {
                     tmpFile.delete();
@@ -86,7 +86,7 @@ public class SearchConsumer {
             }
         } catch (Exception e) {
             log.error("search download: {}", item.id, e);
-            queueDataService.updateStatus(item, StatusCode.ERROR, e.getMessage());
+            queueDataService.updateStatus(item.id, StatusCode.ERROR, e.getMessage());
         }
     }
 }

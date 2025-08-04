@@ -34,6 +34,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.security.Principal;
+import java.util.UUID;
 
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.PATH;
 import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
@@ -188,8 +189,8 @@ public class V1FieldguideController {
                     schema = @Schema(implementation = Long.class),
                     required = true
             )
-            @PathVariable(name = "id") Long id) {
-        QueueItem item = queueDataService.get(id);
+            @PathVariable(name = "id") String id) {
+        QueueItem item = queueDataService.get(UUID.fromString(id));
         if (item != null) {
             try {
                 return ResponseEntity.ok(new FieldguideResponse(item, baseUrl));
@@ -235,8 +236,8 @@ public class V1FieldguideController {
                     schema = @Schema(implementation = String.class),
                     required = true
             )
-            @PathVariable(name = "downloadId") Long id) {
-        QueueItem queueItem = queueDataService.get(id);
+            @PathVariable(name = "downloadId") String id) {
+        QueueItem queueItem = queueDataService.get(UUID.fromString(id));
         if (queueItem != null) {
             if (downloadFileStoreService.isS3()) {
                 return ResponseEntity

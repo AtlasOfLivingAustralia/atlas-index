@@ -74,7 +74,7 @@ public class ConfigService {
     }
 
     public ConfigData get(String id) {
-        return configDataPostgresRepository.findById(id).orElse(null);
+        return configDataPostgresRepository.findByIdNative(id);
     }
 
     // throws a description of the error if the config data is not valid
@@ -152,6 +152,6 @@ public class ConfigService {
     }
 
     public List<ConfigData> getAll() {
-        return configDataPostgresRepository.findAll();
+        return configDataPostgresRepository.findAllNative();
     }
 }

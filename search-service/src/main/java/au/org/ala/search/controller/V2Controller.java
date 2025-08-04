@@ -9,16 +9,14 @@ package au.org.ala.search.controller;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.cache.LanguageInfo;
 import au.org.ala.search.model.dto.IndexedField;
-import au.org.ala.search.model.dto.UserDataRequest;
-import au.org.ala.search.model.dto.UserDataResponse;
 import au.org.ala.search.model.queue.*;
-import au.org.ala.search.model.userdata.UserData;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.cache.ListCache;
+import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
@@ -76,8 +74,9 @@ public class V2Controller {
     private final QueueDataService queueDataService;
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     public String baseUrl;
+    private final BroadcastQueue broadcastQueue;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, BroadcastQueue broadcastQueue) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -90,6 +89,7 @@ public class V2Controller {
         this.languageService = languageService;
         this.userDataService = userDataService;
         this.queueDataService = queueDataService;
+        this.broadcastQueue = broadcastQueue;
     }
 
     @Tag(name = "Search")
@@ -418,17 +418,37 @@ public class V2Controller {
     public ResponseEntity<?> download(
             @Parameter(
                     description = "The download id",
-                    example = "1234"
+                    example = "123e4567-e89b-12d3-a456-426614174000"
             )
-            @RequestParam(name = "id") Long id,
+            @RequestParam(name = "id") String id,
             @Parameter(
                     description = "default false. Use true to download the file (directly or via a redirect)",
                     example = "true"
             )
-            @RequestParam(name = "download", required = false, defaultValue = "false") Boolean download) {
-        QueueItem queueItem = queueDataService.get(id);
+            @RequestParam(name = "download", required = false, defaultValue = "false") Boolean download,
+            @RequestParam(name = "cancel", required = false, defaultValue = "false") Boolean cancel,
+            @AuthenticationPrincipal Principal principal) {
+
+        // TODO: remove bypass for !download after adding temporary download tokens for a new download endpoint
+        String userId = authService.getUserId(principal);
+        if (userId == null && !download) {
+            return ResponseEntity.status(401).build();
+        }
+
+        QueueItem queueItem = queueDataService.get(UUID.fromString(id));
         if (queueItem == null) {
             return ResponseEntity.notFound().build();
+        }
+
+        // TODO: remove bypass for !download after adding temporary download tokens for a new download endpoint
+        if (!authService.isAdmin(principal) && (userId == null || !userId.equals(queueItem.userId))
+                && !download && !cancel) {
+            return ResponseEntity.status(401).build();
+        }
+
+        if (cancel) {
+            broadcastQueue.sendMessage(TaskType.CANCEL_CONSUMER, QueueCancel.builder().id(UUID.fromString(id)).message("User cancelled").build());
+            return ResponseEntity.ok(new StatusResponse(queueItem, baseUrl + "/v2/download"));
         }
 
         if (download && queueItem.status == StatusCode.FINISHED) {
@@ -443,7 +463,16 @@ public class V2Controller {
                     InputStreamResource inputStreamResource = new InputStreamResource(new FileInputStream(file));
 
                     headers.setContentLength(file.length());
-                    headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getName()).build());
+
+                    // fetch the filename from the queue request
+                    String filename = file.getName();
+                    if (queueItem.queueRequest.fieldguideQueueRequest != null) {
+                        filename = queueItem.queueRequest.fieldguideQueueRequest.filename;
+                    } else if (queueItem.queueRequest.searchQueueRequest != null) {
+                        filename = queueItem.queueRequest.searchQueueRequest.filename;
+                    }
+
+                    headers.setContentDisposition(ContentDisposition.builder("attachment").filename(filename).build());
 
                     if (file.getName().endsWith(".pdf")) {
                         headers.setContentType(MediaType.APPLICATION_PDF);
@@ -464,58 +493,66 @@ public class V2Controller {
     @SecurityRequirement(name = "JWT")
     @Operation(
             summary = "Create or update a data record",
-            description = "Creates or updates a permitted data record for a user. Updating with null will delete the record.",
+            description = "Creates, updates or deletes one data record for a user. Updating with null or empty value will delete it.",
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "The data and optional uuid",
+                    description = "The new key and value",
                     content = @Content(
-                            schema = @Schema(implementation = UserDataRequest.class),
+                            schema = @Schema(implementation = Map.class),
                             examples = @ExampleObject(
-                                    value = "{\"uuid\": \"example-uuid\", \"data\": \"example payload\" }"
+                                    value = "{\"key-to-update\": \"new value\" }"
                             )
                     )
             ),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Record created or updated successfully", content = @Content(schema = @Schema(implementation = UserDataResponse.class))),
+                    @ApiResponse(responseCode = "200", description = "Record created or updated successfully"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized")
             }
     )
-    @PostMapping("/data")
-    public ResponseEntity<UserDataResponse> createOrUpdateUserData(
+    @PostMapping("/user/property")
+    public ResponseEntity<Void> createOrUpdateUserData(
             @AuthenticationPrincipal Principal principal,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody UserDataRequest userDataRequest) {
+            @RequestBody Map<String, String> userDataRequest
+            ) {
         if (principal == null) {
             return ResponseEntity.status(401).build();
         }
 
-        UserData userData = userDataService.createOrUpdate(authService.getUserId(principal), userDataRequest.getUuid(), userDataRequest.getData());
-        if (userData == null) {
+        if (userDataRequest == null || userDataRequest.size() != 1) {
             return ResponseEntity.badRequest().build();
         }
 
-        UserDataResponse response = new UserDataResponse(userData.getUuid());
-        return ResponseEntity.ok(response);
+        Map.Entry<String, String> entry = userDataRequest.entrySet().iterator().next();
+        boolean successful = userDataService.createOrUpdate(authService.getUserId(principal), entry.getKey(), entry.getValue());
+        if (!successful) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @SecurityRequirement(name = "JWT")
     @Operation(
-            summary = "Get data",
-            description = "Get data for a given uuid",
+            summary = "Get user property",
+            description = "Get user property by key",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Data returned", content = @Content(schema = @Schema(implementation = UserDataRequest.class))),
-                    @ApiResponse(responseCode = "404", description = "Data not found")
+                    @ApiResponse(responseCode = "200", description = "Property returned", content = @Content(schema = @Schema(implementation = Map.class))),
+                    @ApiResponse(responseCode = "404", description = "Property not found")
             }
     )
-    @GetMapping("/data")
-    public ResponseEntity<UserDataResponse> getUserData(
+    @GetMapping("/user/property")
+    public ResponseEntity<Map<String, String>> getUserData(
             @AuthenticationPrincipal Principal principal,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody UserDataRequest userDataRequest) {
+            @RequestParam(name="key") String key) {
 
-        UserData userData = userDataService.createOrUpdate(authService.getUserId(principal), userDataRequest.getUuid(), userDataRequest.getData());
-        if (userData == null) {
-            return ResponseEntity.badRequest().build();
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
         }
 
-        UserDataResponse response = new UserDataResponse(userData.getUuid());
-        return ResponseEntity.ok(response);
+        String value = userDataService.get(authService.getUserId(principal), key);
+        if (value == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(Map.of(key, value));
     }
 }

@@ -55,10 +55,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
@@ -105,6 +101,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-smile</artifactId>
+            <version>2.15.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
             <version>2.15.1</version>
         </dependency>
         <dependency>
@@ -162,6 +163,11 @@
             <version>3.13.0</version>
         </dependency>
         <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.17.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
@@ -192,16 +198,11 @@
             <version>5.9</version>
         </dependency>
 
-        <!-- PDF generation. Thymeleaf templates -> flying-saucer-pdf  -->
+        <!-- PDF generation -->
         <dependency>
-            <groupId>org.xhtmlrenderer</groupId>
-            <artifactId>flying-saucer-pdf</artifactId>
-            <version>9.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.thymeleaf</groupId>
-            <artifactId>thymeleaf</artifactId>
-            <version>3.1.2.RELEASE</version>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>fop</artifactId>
+            <version>2.11</version>
         </dependency>
 
         <dependency>
@@ -264,12 +265,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>rabbitmq</artifactId>
-            <version>1.20.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>mongodb</artifactId>
             <version>1.20.6</version>
             <scope>test</scope>
         </dependency>

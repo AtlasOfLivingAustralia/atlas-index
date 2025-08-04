@@ -6,30 +6,37 @@
 
 package au.org.ala.search.model.userdata;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.jackson.Jacksonized;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
-@Getter
-@Setter
-@Document(collection = "userdata")
+@JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor
+@Data
+@SuperBuilder
+@Jacksonized
+@Entity
+@Table(name = "userdata")
+@IdClass(UserDataId.class)
 public class UserData {
-    @Id
-    private String uuid;
-    private String userId;
-    private String data;
-    @Indexed(expireAfterSeconds = 0)
-    private LocalDateTime expiryDate;
 
-    public UserData(String userId, String data, LocalDateTime expiryDate) {
-        this.uuid = UUID.randomUUID().toString();
+    @Id
+    public String userId;
+
+    @Id
+    public String key;
+
+    public String value;
+
+    public UserData(String userId, String key, String value) {
         this.userId = userId;
-        this.data = data;
-        this.expiryDate = expiryDate;
+        this.key = key;
+        this.value = value;
     }
 }

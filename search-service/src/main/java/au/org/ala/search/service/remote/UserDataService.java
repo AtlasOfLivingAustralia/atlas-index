@@ -7,13 +7,10 @@
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.userdata.UserData;
-import au.org.ala.search.repo.UserDataMongoRepository;
-import com.nimbusds.jwt.JWTClaimsSet;
+import au.org.ala.search.repo.UserDataPostgresRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for managing user data.
@@ -23,60 +20,57 @@ import java.time.ZoneId;
  */
 @Service
 public class UserDataService {
-    protected final UserDataMongoRepository userDataMongoRepository;
+    protected final UserDataPostgresRepository userDataPostgresRepository;
 
-    public UserDataService(UserDataMongoRepository userDataMongoRepository) {
-        this.userDataMongoRepository = userDataMongoRepository;
+    public UserDataService(UserDataPostgresRepository userDataPostgresRepository){
+        this.userDataPostgresRepository = userDataPostgresRepository;
     }
 
-    public UserData createOrUpdate(String userId, String uuid, String json) {
-        // delete record if updating with null data
-        if (json == null) {
-            delete(userId, uuid);
-            return new UserData(userId, null, null);
-        }
-
-        // validate JWT
-        LocalDateTime expiryDate = null;
-        try {
-            JWTClaimsSet jwt = JWTClaimsSet.parse(json);
-            expiryDate = LocalDateTime.ofInstant(jwt.getExpirationTime().toInstant(), ZoneId.systemDefault());
-            if (expiryDate.isBefore(LocalDateTime.now())) {
-                return null;
-            }
-        } catch (ParseException e) {
-            return null;
-        }
-
-        UserData userData = null;
-
-        if (uuid == null) {
-            userData = new UserData(userId, json, expiryDate);
-        } else {
-            userData = get(uuid);
-            if (userData == null || !userData.getUserId().equals(userId)) {
-                return null;
-            }
-
-            userData.setData(json);
-            userData.setExpiryDate(expiryDate);
-        }
-
-        return userDataMongoRepository.save(userData);
-    }
-
-    public UserData get(String id) {
-        return userDataMongoRepository.findById(id).orElse(null);
-    }
-
-    public boolean delete(String id, String userId) {
-        UserData userData = get(id);
-
-        if (userData == null || !userData.getUserId().equals(userId)) {
+    /**
+     * Return true if successful, false if not.
+     *
+     * @param userId
+     * @param key
+     * @param value
+     * @return
+     */
+    @Transactional
+    public boolean createOrUpdate(String userId, String key, String value) {
+        if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(key)) {
             return false;
         }
 
-        userDataMongoRepository.deleteById(id);
+        // delete record if updating with null or empty data
+        if (StringUtils.isEmpty(value)) {
+            delete(userId, key);
+            return true;
+        }
+
+        // get the current value
+        String currentValue = get(userId, key);
+
+        if (StringUtils.compare(currentValue, value) == 0) {
+            return true; // no change needed, successful
+        }
+
+        // update the existing record
+        UserData userData = new UserData(userId, key, value);
+        userDataPostgresRepository.save(userData);
+        userDataPostgresRepository.flush();
+
         return true;
+    }
+
+    @Transactional(readOnly = true)
+    public String get(String userId, String key) {
+        if (StringUtils.isEmpty(userId) || StringUtils.isEmpty(key)) {
+            return null;
+        }
+        return userDataPostgresRepository.getByUserIdAndKey(userId, key);
+    }
+
+    @Transactional()
+    public void delete(String userId, String key) {
+        userDataPostgresRepository.deleteUserDataByUserIdAndKey(userId, key);
     }
 }

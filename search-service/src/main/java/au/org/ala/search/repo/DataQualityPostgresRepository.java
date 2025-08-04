@@ -14,8 +14,16 @@ import java.util.List;
 
 @Repository
 public interface DataQualityPostgresRepository extends JpaRepository<QualityProfile, Long> {
-    // This repository interface will automatically provide CRUD operations for QualityProfile entities.
-    // Additional custom query methods can be defined here if needed.
 
-    List<QualityProfile> findAllByShortName(String shortName);
+    @org.springframework.data.jpa.repository.Query(
+        value = "SELECT * FROM quality_profile WHERE short_name = :shortName",
+        nativeQuery = true
+    )
+    List<QualityProfile> findAllByShortName(@org.springframework.data.repository.query.Param("shortName") String shortName);
+
+    @org.springframework.data.jpa.repository.Query(
+        value = "SELECT * FROM quality_profile",
+        nativeQuery = true
+    )
+    List<QualityProfile> findAllNative();
 }

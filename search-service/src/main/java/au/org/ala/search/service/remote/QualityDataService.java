@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -47,7 +48,7 @@ public class QualityDataService {
     final Object editLock = new Object();
     final private AtomicLong uniqueId = new AtomicLong(1);
     @Getter
-    List<QualityProfile> profiles;
+    volatile List<QualityProfile> profiles;
     private CountDownLatch cacheRefreshLatch = new CountDownLatch(0);
 
     public QualityDataService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
@@ -62,27 +63,7 @@ public class QualityDataService {
 
     @PostConstruct
     void init() {
-        // read from mongoDB, all profiles
-        profiles = dataQualityRepository.findAll();
-
-        // fetch the max id from the profiles, categories and filters.
-        long maxId = 1;
-        for (QualityProfile profile : profiles) {
-            if (profile.getId() != null && profile.getId() > maxId) {
-                maxId = profile.getId();
-            }
-            for (QualityCategory category : profile.getCategories()) {
-                if (category.getId() != null && category.getId() > maxId) {
-                    maxId = category.getId();
-                }
-                for (QualityFilter filter : category.getQualityFilters()) {
-                    if (filter.getId() != null && filter.getId() > maxId) {
-                        maxId = filter.getId();
-                    }
-                }
-            }
-        }
-        uniqueId.set(maxId + 1);
+        cacheRefresh();
     }
 
     private String invert(String query) {
@@ -104,8 +85,34 @@ public class QualityDataService {
         return cacheRefreshLatch;
     }
 
+    /**
+     * Need to call on startup, on requested cache refresh, periodically in case a broadcast message is missed,
+     * a short time after startup for the same reason, and before writing to the database so the local id is correct.
+     */
+    @Scheduled(fixedRate = 60 * 60 * 1000, initialDelay = 60 * 1000)
     public void cacheRefresh() {
+        // read from mongoDB, all profiles
         profiles = dataQualityRepository.findAll();
+
+        // fetch the max id from the profiles, categories and filters. Only relevant for the leader instance.
+        long maxId = 1;
+        for (QualityProfile profile : profiles) {
+            if (profile.getId() != null && profile.getId() > maxId) {
+                maxId = profile.getId();
+            }
+            for (QualityCategory category : profile.getCategories()) {
+                if (category.getId() != null && category.getId() > maxId) {
+                    maxId = category.getId();
+                }
+                for (QualityFilter filter : category.getQualityFilters()) {
+                    if (filter.getId() != null && filter.getId() > maxId) {
+                        maxId = filter.getId();
+                    }
+                }
+            }
+        }
+        uniqueId.set(maxId + 1);
+
         cacheManager.getCache("qualityProfiles").clear();
 
         // signal latch
@@ -113,6 +120,8 @@ public class QualityDataService {
     }
 
     public List<QualityProfile> getProfiles(String shortName, String name, Boolean enabled, Integer max, Integer offset, String sort, String order) {
+        List<QualityProfile> profiles = this.profiles;
+
         List<QualityProfile> list = new ArrayList<>();
 
         for (QualityProfile profile : profiles) {
@@ -153,12 +162,14 @@ public class QualityDataService {
 
     @Cacheable(value = "qualityProfiles", key = "'getProfile_' + #profileId")
     public QualityProfile getProfile(String profileId) {
+        List<QualityProfile> profiles = this.profiles;
         Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
         return profile.orElse(null);
     }
 
     @Cacheable(value = "qualityProfiles", key = "'getCategory_' + #profileId + '_' + #categoryId")
     public QualityCategory getCategory(String profileId, Long categoryId) {
+        List<QualityProfile> profiles = this.profiles;
         Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
         if (profile.isPresent()) {
             Optional<QualityCategory> category = profile.get().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
@@ -169,6 +180,7 @@ public class QualityDataService {
 
     @Cacheable(value = "qualityProfiles", key = "'getFilter_' + #profileId + '_' + #categoryId + '_' + #id")
     public QualityFilter getFilter(String profileId, Long categoryId, Long id) {
+        List<QualityProfile> profiles = this.profiles;
         Optional<QualityProfile> profile = profiles.stream().filter(p -> p.getId().toString().equals(profileId) || p.getShortName().equals(profileId)).findFirst();
         if (profile.isPresent()) {
             Optional<QualityCategory> category = profile.get().getCategories().stream().filter(it -> it.getId().equals(categoryId)).findFirst();
@@ -182,6 +194,7 @@ public class QualityDataService {
 
     @Cacheable(value = "qualityProfiles", key = "'getProfileOrDefault_' + #profileName")
     public QualityProfile getProfileOrDefault(String profileName) {
+        List<QualityProfile> profiles = this.profiles;
         int id = StringUtils.isNumeric(profileName) ? Integer.parseInt(profileName) : 0;
         Optional<QualityProfile> profile = StringUtils.isNotEmpty(profileName) ?
                 profiles.stream().filter(p -> p.getShortName().equals(profileName) || p.getName().equals(profileName) || p.getId() == id).findFirst() :
@@ -195,6 +208,7 @@ public class QualityDataService {
 
     @Cacheable(value = "qualityProfiles", key = "'getEnabledFiltersByLabel_' + #profileName")
     public Map<String, String> getEnabledFiltersByLabel(String profileName) {
+        List<QualityProfile> profiles = this.profiles;
         Map<String, String> map = new HashMap<>();
 
         QualityProfile profile = getProfileOrDefault(profileName);
@@ -293,6 +307,7 @@ public class QualityDataService {
 
     @Cacheable(value = "qualityProfiles", key = "'getInverseCategoryFilter_' + #qualityCategoryId")
     public String getInverseCategoryFilter(Long qualityCategoryId) {
+        List<QualityProfile> profiles = this.profiles;
         List<QualityFilter> filters = new ArrayList<>();
         List<String> inverseFilter = new ArrayList<>();
         profiles.forEach(it -> {
@@ -358,6 +373,11 @@ public class QualityDataService {
 
     // Requests are from admin only, so there is a high level of trust in the data
     public QualityProfile save(QualityProfile profile) {
+        List<QualityProfile> profiles = this.profiles;
+
+        // Future: when no longer assigning an id to categories or filters, save() will no longer require a cacheRefresh() call.
+        boolean cacheRefreshed = false;
+
         synchronized (editLock) {
             // ensure isDefault:true is unique
             if (profile.isDefault()) {
@@ -381,26 +401,38 @@ public class QualityDataService {
 
             // A legacy requirement is that QualityFilter.id and QualityCategory.id are unique, not null and not 0.
             if (profile.getCategories() != null) {
-                profile.getCategories().forEach(category -> {
+                for (QualityCategory category : profile.getCategories()) {
                     if (category.getQualityFilters() != null) {
-                        category.getQualityFilters().forEach(filter -> {
+                        for (QualityFilter filter : category.getQualityFilters()) {
                             if (filter.getId() == null || filter.getId() == 0) {
+                                if (!cacheRefreshed) {
+                                    cacheRefresh();
+                                    cacheRefreshed = true;
+                                }
                                 filter.setId(nextId());
                             }
-                        });
+                        }
                         if (category.getId() == null || category.getId() == 0) {
+                            if (!cacheRefreshed) {
+                                cacheRefresh();
+                                cacheRefreshed = true;
+                            }
                             category.setId(nextId());
                         }
                     } else {
                         category.setQualityFilters(new ArrayList<>());
                     }
-                });
+                };
             } else {
                 profile.setCategories(new ArrayList<>());
             }
 
             // Remove placeholder profile.id=0. To be populated by mongodb.
             if (profile.getId() == null || profile.getId() == 0) {
+                if (!cacheRefreshed) {
+                    cacheRefresh();
+                    cacheRefreshed = true;
+                }
                 profile.setId(nextId());
             }
 
@@ -431,6 +463,7 @@ public class QualityDataService {
     }
 
     public void exportProfiles() throws IOException {
+        List<QualityProfile> profiles = this.profiles;
         File tmpFile = File.createTempFile("qualityProfiles", ".json");
         FileUtils.writeStringToFile(tmpFile, new ObjectMapper().writeValueAsString(profiles), "UTF-8");
         staticFileStoreService.copyToFileStore(tmpFile, "dataQuality/profiles.json", true);
