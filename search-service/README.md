@@ -23,7 +23,7 @@ It is a Spring Boot application that provides REST web services for accessing an
 
 ### Elasticsearch
 
-To run the elasticsearch, mongodb, postgresql and rabbitmq needed for the search-service use the following command:
+To run the elasticsearch, postgresql and rabbitmq needed for the search-service use the following command:
 
 ```bash
 docker-compose -f ./docker/docker-compose.yml up

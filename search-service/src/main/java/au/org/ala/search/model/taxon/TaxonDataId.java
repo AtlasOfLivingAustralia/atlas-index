@@ -4,9 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package au.org.ala.search.model.userdata;
+package au.org.ala.search.model.taxon;
 
-import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -16,15 +15,16 @@ import java.io.Serializable;
 /**
  * Represents a composite key for UserData entity.
  */
+
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
-public class UserDataId implements Serializable {
-    public String userId;
+public class TaxonDataId implements Serializable {
+    public String taxonConceptId;
     public String key;
 
-    public UserDataId(String userId, String id) {
-        this.userId = userId;
+    public TaxonDataId(String taxonConceptId, String id) {
+        this.taxonConceptId = taxonConceptId;
         this.key = id;
     }
 }

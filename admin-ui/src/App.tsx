@@ -69,35 +69,56 @@ export default function App() {
 
     switch (auth.activeNavigator) {
         case 'signinSilent':
-            const [retryAttempted, setRetryAttempted] = useState(false);
+            return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+                     <div className="d-flex flex-column align-items-center">
+                         <div>Signing you in...</div>
+                         <div className="mt-2">
+                                 If you are not redirected automatically, please click a button below.
+                             </div>
+                         <button className="btn btn-primary mb-2"
+                                     onClick={() => void auth.signinSilent()}>Retry</button>
+                             <button className="btn btn-success mb-2"
+                                     onClick={handleLogin}>Login Again</button>
+                             <button className="btn btn-danger"
+                                     onClick={handleLogout}>Logout</button>
+                     </div>
+                 </div>
 
-            // retry, in case the network is not yet connected
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    void auth.signinSilent();
-                    setRetryAttempted(true);
-                }, 500);
-                return () => clearInterval(interval);
-            }, []);
-            return (
-            <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="d-flex flex-column align-items-center">
-                    <div>Signing you in...</div>
-                    { retryAttempted && <>
-                        <div className="mt-2">
-                            If you are not redirected automatically, please click a button below.
-                        </div>
-                        <button className="btn btn-primary mb-2"
-                                onClick={() => void auth.signinSilent()}>Retry</button>
-                        <button className="btn btn-success mb-2"
-                                onClick={handleLogin}>Login Again</button>
-                        <button className="btn btn-danger"
-                                onClick={handleLogout}>Logout</button>
-                    </>
-                    }
-                </div>
-            </div>
-            );
+            // TODO: clean this up, it can fail. Also the above HTML layout is messy.
+            //  - can fail if the network is not yet connected, e.g. waking device from sleep. The retry button is intended to fix that, it is untested.
+            //  - can fail if the refreshToken is expired, e.g. 30 days after the user logged in. The Login Again button is intended to fix that, it is untested.
+            // const [retryAttempted, setRetryAttempted] = useState(false);
+            //
+            // // retry, in case the network is not yet connected
+            // useEffect(() => {
+            //     const interval = setInterval(() => {
+            //         console.log('Retrying signinSilent and showing the "fix" buttons...');
+            //         void auth.signinSilent();
+            //         setRetryAttempted(true);
+            //     }, 500);
+            //     return () => clearInterval(interval);
+            // }, []);
+            //
+            // console.log('signinSilent render ...');
+            // return (
+            // <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+            //     <div className="d-flex flex-column align-items-center">
+            //         <div>Signing you in...</div>
+            //         { retryAttempted && <>
+            //             <div className="mt-2">
+            //                 If you are not redirected automatically, please click a button below.
+            //             </div>
+            //             <button className="btn btn-primary mb-2"
+            //                     onClick={() => void auth.signinSilent()}>Retry</button>
+            //             <button className="btn btn-success mb-2"
+            //                     onClick={handleLogin}>Login Again</button>
+            //             <button className="btn btn-danger"
+            //                     onClick={handleLogout}>Logout</button>
+            //         </>
+            //         }
+            //     </div>
+            // </div>
+            // );
         case 'signoutRedirect':
             return (<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
                 <div className="d-flex flex-column align-items-center">

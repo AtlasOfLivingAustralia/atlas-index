@@ -20,6 +20,6 @@ import lombok.Setter;
 public class SetRequest {
     String taxonID;
     String scientificName;
-    String field;
+    String key;
     String value;
 }

@@ -91,7 +91,7 @@ public class QualityDataService {
      */
     @Scheduled(fixedRate = 60 * 60 * 1000, initialDelay = 60 * 1000)
     public void cacheRefresh() {
-        // read from mongoDB, all profiles
+        // read from postgres, all profiles
         profiles = dataQualityRepository.findAll();
 
         // fetch the max id from the profiles, categories and filters. Only relevant for the leader instance.
@@ -427,7 +427,7 @@ public class QualityDataService {
                 profile.setCategories(new ArrayList<>());
             }
 
-            // Remove placeholder profile.id=0. To be populated by mongodb.
+            // Remove placeholder profile.id=0. To be populated by postgres.
             if (profile.getId() == null || profile.getId() == 0) {
                 if (!cacheRefreshed) {
                     cacheRefresh();

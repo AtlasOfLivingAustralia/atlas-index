@@ -6,15 +6,19 @@
 
 package au.org.ala.search.service.update;
 
+import au.org.ala.search.model.ListBackedFields;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.taxon.TaxonData;
 import au.org.ala.search.service.remote.BiocacheApiService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
+import au.org.ala.search.service.remote.TaxonDataService;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.gbif.utils.file.csv.CSVReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.document.Document;
@@ -35,6 +39,7 @@ public class TaxonUpdateRunner {
     protected final ElasticService elasticService;
     protected final BiocacheApiService biocacheApiService;
     protected final LogService logService;
+    protected final TaxonDataService taxonDataService;
 
     @Getter
     private final Map<String, String> imageCache = new ConcurrentHashMap<>();
@@ -42,17 +47,34 @@ public class TaxonUpdateRunner {
     String leftRightCsvPath;
     @Getter
     private Map speciesImages;
+    private Map<String, String> overriddenImages;
+    private Map<String, String> overriddenHiddenImages;
 
-    public TaxonUpdateRunner(ElasticService elasticService, BiocacheApiService biocacheApiService, LogService logService) {
+    public TaxonUpdateRunner(ElasticService elasticService, BiocacheApiService biocacheApiService, LogService logService, TaxonDataService taxonDataService) {
         this.elasticService = elasticService;
         this.biocacheApiService = biocacheApiService;
         this.logService = logService;
+        this.taxonDataService = taxonDataService;
     }
 
     @Async("blockingExecutor")
     public CompletableFuture<Integer> updateForList(List<Hit<SearchItemIndex>> list) {
         try {
             List<UpdateQuery> updates = new ArrayList<>();
+
+            // Not much data for overriddenImages or overriddenHiddenImages so not worth optimizing
+            overriddenImages = new HashMap();
+            for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.IMAGE.field)) {
+                if (StringUtils.isNotEmpty(td.getValue())) {
+                    overriddenImages.put(td.taxonConceptId, td.getValue());
+                }
+            }
+            overriddenHiddenImages = new HashMap();
+            for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.HIDDEN.field)) {
+                if (StringUtils.isNotEmpty(td.getValue())) {
+                    overriddenHiddenImages.put(td.taxonConceptId, td.getValue());
+                }
+            }
 
             // get counts
             List<String> buffer = new ArrayList<>();
@@ -95,10 +117,19 @@ public class TaxonUpdateRunner {
     }
 
     private void updateImage(String guid, String storedImage, Document doc) {
-        String image = getImage(guid);
+        String overriddenImage = overriddenImages.get(guid);
+        String overriddenHiddenImage = overriddenHiddenImages.get(guid);
 
-        if (image != null && !image.equals(storedImage)) {
-            doc.put("image", image);
+        String image = overriddenImage != null ? overriddenImage : getImage(guid);
+
+        if (StringUtils.compare(image, storedImage) != 0) {
+            doc.put(ListBackedFields.IMAGE.field, image);
+        }
+
+        // Removals are performed by the admin API that updates the taxon data for hidden images, no need to check for
+        // removals every time we update the taxon data.
+        if (StringUtils.isNotEmpty(overriddenHiddenImage)) {
+            doc.put(ListBackedFields.HIDDEN.field, overriddenHiddenImage);
         }
     }
 

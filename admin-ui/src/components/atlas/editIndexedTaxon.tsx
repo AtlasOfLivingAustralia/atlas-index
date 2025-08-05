@@ -8,6 +8,8 @@ import {Tab, Tabs} from "react-bootstrap";
 import {useState} from "react";
 import {useAuth} from "react-oidc-context";
 
+import {DescriptionItem} from "../../api/sources/model.tsx";
+
 function EditIndexedTaxon() {
     const [guid, setGuid] = useState('');
     const [guidSearched, setGuidSearched] = useState('');
@@ -16,11 +18,11 @@ function EditIndexedTaxon() {
     const [taxonID, setTaxonID] = useState('');
     const [scientificName, setScientificName] = useState('');
     const [heroDescription, setHeroDescription] = useState('');
-    const [saveHeroDescriptionResponse, setSaveHeroDescriptionResponse] =
-        useState('');
-    const [descriptionJson, setDescriptionJson] = useState('');
-    const [saveDescriptionJsonResponse, setSaveDescriptionJsonResponse] =
-        useState('');
+    const [saveHeroDescriptionResponse, setSaveHeroDescriptionResponse] = useState('');
+    const [descriptionJson, setDescriptionJson] = useState<DescriptionItem[]>([]);
+    const [saveDescriptionJsonResponse, setSaveDescriptionJsonResponse] = useState('');
+    const [descriptionError, setDescriptionError] = useState('');
+    const [previewHtml, setPreviewHtml] = useState('');
     const [preferredImage, setPreferredImage] = useState('');
     const [hiddenImage, setHiddenImage] = useState('');
     const [saveImageResponse, setSaveImageResponse] = useState('');
@@ -34,12 +36,6 @@ function EditIndexedTaxon() {
 
     const imagePageSize = 100;
 
-    const hiddenImageListID: string = import.meta.env
-        .VITE_HIDDEN_IMAGES_LIST_ID;
-    const preferredImageListID: string = import.meta.env
-        .VITE_PREFERRED_IMAGES_LIST_ID;
-    const heroDescriptionListID: string = import.meta.env
-        .VITE_HERO_DESCRIPTION_LIST_ID;
 
     // priority 0 is default, -1 is hidden, 1-5 are priority
     function getImagePriority(imageID: string): number {
@@ -228,29 +224,8 @@ function EditIndexedTaxon() {
     }
 
     function saveHeroDescription() {
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
-            method: 'POST',
-            headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                taxonID: taxonID,
-                field: 'heroDescription',
-                value: heroDescription,
-            }),
-        }).then((responsePrefer) => {
-            setSaveHeroDescriptionResponse(JSON.stringify(responsePrefer));
-        });
-    }
-
-    function saveDescriptionJson() {
-        // validate that it is JSON
-        try {
-            JSON.parse(descriptionJson);
-        } catch (e) {
-            alert('Invalid JSON');
-            setSaveDescriptionJsonResponse('Invalid JSON');
+        if (!validateHeroDescription()) {
+            setSaveHeroDescriptionResponse('Invalid HTML');
             return;
         }
 
@@ -262,10 +237,115 @@ function EditIndexedTaxon() {
             },
             body: JSON.stringify({
                 taxonID: taxonID,
-                field: 'descriptions',
-                value: descriptionJson,
+                scientificName: scientificName,
+                key: 'heroDescription',
+                value: heroDescription,
             }),
         }).then((responsePrefer) => {
+            if (!responsePrefer.ok) {
+                alert('Error saving hero description: ' + responsePrefer.status + ' ' + responsePrefer.statusText);
+            } else {
+                // reload
+                getDescriptionsJson(taxonID)
+
+                alert('Hero description saved successfully');
+            }
+            setSaveHeroDescriptionResponse(JSON.stringify(responsePrefer));
+        });
+    }
+
+    // validate that the hero description is valid HTML
+    function validateHeroDescription() : boolean {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(heroDescription, 'text/html');
+        var isValid = !doc.querySelector('parsererror');
+        if (!isValid) {
+            setSaveHeroDescriptionResponse('Hero description must be valid HTML');
+        } else {
+            setSaveHeroDescriptionResponse('Hero description appears to be valid HTML');
+        }
+        return isValid;
+    }
+
+    function previewDescription() {
+        var html = '';
+        for (let i = 0; i < descriptionJson.length; i++) {
+            let item = descriptionJson[i];
+            if (item.value) {
+                html += "<h3>" + item.source + ": " + item.field + "</h3>";
+                html += "<div>" + item.value + "</div>";
+                html += "<hr/>";
+            }
+        }
+
+        setPreviewHtml(html);
+    }
+
+    function previewHeroDescription() {
+        setPreviewHtml(heroDescription);
+    }
+
+    // validate that each value in the descriptionJson is valid plain text or sanitized HTML
+    function validateDescriptionJson() : boolean {
+        var error = '';
+        var isValid = true;
+        const parser = new DOMParser();
+
+        for (let i = 0; i < descriptionJson.length; i++) {
+            let item = descriptionJson[i];
+
+            if (item.value) {
+                const doc = parser.parseFromString(item.value, 'text/html');
+                if(doc.querySelector('parsererror')) {
+                    isValid = false;
+                    error += 'Item ' +item.source + ":" + item.field + ':"' + item.value + '"  is not valid HTML or plain text\n';
+                }
+            }
+        }
+
+        if (error) {
+            setDescriptionError(error);
+        } else {
+            setDescriptionError('appears to be valid');
+        }
+
+        return isValid;
+    }
+
+    function saveDescriptionJson() {
+        var valid = validateDescriptionJson();
+
+        if (!valid) {
+            alert('Description JSON is not valid: ' + descriptionError);
+            return;
+        }
+
+        // prepare request body
+        let updatedDescriptionJson = descriptionJson
+            .filter(it => it.value !== it.original)
+            .map(({ original, ...rest }) => rest);
+
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + auth.user?.access_token,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                taxonID: taxonID,
+                scientificName: scientificName,
+                key: 'descriptions',
+                value: JSON.stringify(updatedDescriptionJson),
+            }),
+        }).then((responsePrefer) => {
+            if (!responsePrefer.ok) {
+                alert('Error saving description JSON: ' + responsePrefer.status + ' ' + responsePrefer.statusText);
+            } else {
+                // reload
+                getDescriptionsJson(taxonID);
+
+                alert('Description JSON saved successfully');
+            }
             setSaveDescriptionJsonResponse(JSON.stringify(responsePrefer));
         });
     }
@@ -273,21 +353,36 @@ function EditIndexedTaxon() {
     function getDescriptionsJson(taxonID: string) {
         var lsidEncoded = encodeURIComponent(encodeURIComponent(taxonID));
 
-        fetch(
-            import.meta.env.VITE_TAXON_DESCRIPTIONS_URL +
-            '/' +
-            lsidEncoded.substring(lsidEncoded.length - 2) +
-            '/' +
-            lsidEncoded +
-            '.json'
+        fetch(import.meta.env.VITE_TAXON_DESCRIPTIONS_URL + '/' + lsidEncoded.substring(lsidEncoded.length - 2) + '/' + lsidEncoded + '.json'
         )
             .then((response) => response.json())
             .then((json) => {
-                setDescriptionJson(JSON.stringify(json, null, 2));
+                let descriptionArray = [];
+                for (let key in json) {
+                    if (json.hasOwnProperty(key)) {
+                        let source = json[key].name;
+                        for (let field in json[key]) {
+                            let item = json[key][field];
+
+                            // Skip if the key is not a valid description category
+                            if (field === 'name' || field === 'url' || field === 'attribution') {
+                                continue;
+                            }
+
+                            descriptionArray.push({
+                                source: source,
+                                field: field,
+                                original: item,
+                                value: item
+                            });
+                        }
+                    }
+                }
+                setDescriptionJson(descriptionArray);
             })
             .catch(() => {
                 // This will disable the 'loading' indicator in DescriptionView
-                setDescriptionJson('');
+                setDescriptionJson([]);
             });
     }
 
@@ -303,10 +398,11 @@ function EditIndexedTaxon() {
             body: JSON.stringify({
                 taxonID: taxonID,
                 scientificName: scientificName,
-                field: 'image',
+                key: 'image',
                 value: preferredImage,
             }),
         }).then((responsePrefer) => {
+            // TODO: split into 2 functions, one to save hidden images and one to save preferred images
             if (responsePrefer.ok) {
                 fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
                     method: 'POST',
@@ -317,7 +413,7 @@ function EditIndexedTaxon() {
                     body: JSON.stringify({
                         taxonID: taxonID,
                         scientificName: scientificName,
-                        field: 'hiddenImages_s',
+                        key: 'hiddenImages_s',
                         value: hiddenImage,
                     }),
                 }).then((responseHide) => {
@@ -401,11 +497,8 @@ function EditIndexedTaxon() {
                     <tr>
                         <td>
                             <label htmlFor="preferredImage" className="ms-auto me-1 mb-4" style={{display: 'block'}}>
-                                Prefered imageIDs (comma separated, no whitespace)
+                                Preferred imageIDs (comma separated, no whitespace)
                             </label>
-                            <a target="_blank" href={import.meta.env.VITE_APP_LIST_URL + preferredImageListID}>
-                                Open preferred image species list
-                            </a>
                         </td>
                         <td>
                             <textarea className="form-control" id="preferredImage" value={preferredImage} rows={3}
@@ -424,10 +517,6 @@ function EditIndexedTaxon() {
                             <label htmlFor="hiddenImage" className="ms-auto me-1 mb-4" style={{display: 'block'}}>
                                 Hidden imageIDs (comma separated, no whitespace)
                             </label>
-                            <a target="_blank"
-                               href={import.meta.env.VITE_APP_LIST_URL + hiddenImageListID}>
-                                Open hidden image species list
-                            </a>
                         </td>
                         <td>
                             <textarea className="form-control" id="hiddenImage" value={hiddenImage} rows={3}
@@ -505,11 +594,9 @@ function EditIndexedTaxon() {
                     <tr>
                         <td>
                             Hero description (HTML)
-                            <br/>
-                            <br/>
-                            <a target="_blank" href={import.meta.env.VITE_APP_LIST_URL + heroDescriptionListID}>
-                                Open hero description list
-                            </a>
+                            <ul>
+                                <li>Must be plain text or sanitized HTML</li>
+                            </ul>
                         </td>
                         <td>
                             <textarea id="heroDescription" className="w-100" rows={5} value={heroDescription}
@@ -522,6 +609,20 @@ function EditIndexedTaxon() {
                                         saveHeroDescription();
                                     }}>
                                 Save Changes
+                            </button>
+
+                            <button className="btn border-black ms-2"
+                                    onClick={() => {
+                                        validateHeroDescription();
+                                    }}>
+                                Validate
+                            </button>
+
+                            <button className="btn border-black ms-2"
+                                    onClick={() => {
+                                        previewHeroDescription();
+                                    }}>
+                                Preview
                             </button>
                         </td>
                     </tr>
@@ -538,25 +639,45 @@ function EditIndexedTaxon() {
                     <tr>
                         <td>Descriptions (JSON).
                             <ul>
-                                <li>Edit the HTML category values.</li>
-                                <li>Edit fields. Excludes "name", "url" and "attribution" values. Excludes changes to
-                                    keys. To change these, refer to the taxon-description tool.
-                                </li>
-                                <li>Order of items cannot be changed.</li>
-                                <li>Items cannot be deleted.</li>
-                                <li>Items cannot be added.</li>
+                                <li>Set the category value to an empty string to remove it.</li>
+                                <li>Category values must be plain text or sanitized HTML.</li>
                             </ul>
+                            <span>Validation: <span style={{color: "red"}}>{descriptionError}</span></span>
                         </td>
                         <td>
-                            <textarea id="descriptionJson" className="w-100" rows={20} value={descriptionJson}
-                                      onChange={(e) => {
-                                          setDescriptionJson(e.target.value);
-                                      }}
-                            />
+                            {descriptionJson && descriptionJson.map((item, idx) =>
+                                <div key={idx} className="">
+                                    <span style={{ fontWeight: "bold" }}>{item.source}: {item.field}</span>
+                                    <br/>
+                                    <textarea value={item.value} className={"ms-4"} rows={3} cols={150}
+                                              onChange={e => {
+                                                  const newValue = e.target.value;
+                                                  setDescriptionJson(prev =>
+                                                      prev.map((desc, i) =>
+                                                          i === idx ? { ...desc, value: newValue } : desc
+                                                      )
+                                                  );
+                                              }}/>
+                                </div>
+                            )}
                             <button className="btn border-black" onClick={() => {
                                 setSaveDescriptionJsonResponse('...');
                                 saveDescriptionJson();
                             }}>Save Changes
+                            </button>
+
+                            <button className="btn border-black ms-2"
+                                    onClick={() => {
+                                        validateDescriptionJson();
+                                    }}>
+                                Validate
+                            </button>
+
+                            <button className="btn border-black ms-2"
+                                    onClick={() => {
+                                        previewDescription();
+                                    }}>
+                                Preview
                             </button>
                         </td>
                     </tr>
@@ -574,6 +695,27 @@ function EditIndexedTaxon() {
             </Tab>
         </Tabs>
         }
+
+        {previewHtml && (
+            <div className="modal show d-block" tabIndex={-1} style={{ background: "rgba(0,0,0,0.5)" }}>
+                <div className="modal-dialog modal-lg">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Preview</h5>
+                            <button type="button" className="btn-close" aria-label="Close" onClick={() => setPreviewHtml("")}></button>
+                        </div>
+                        <div className="modal-body">
+                            <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setPreviewHtml("")}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </>
 }
 

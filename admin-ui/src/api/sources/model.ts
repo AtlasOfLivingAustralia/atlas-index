@@ -150,6 +150,13 @@ interface IndexFields {
     [key: string]: FieldInfo;
 }
 
+interface DescriptionItem {
+    field: string;
+    source: string;
+    value: string;
+    original: string;
+}
+
 export type {
     ListsUser,
     AtlasLog,
@@ -165,5 +172,6 @@ export type {
     FieldInfo,
     IndexFields,
     Task,
-    Tasks
+    Tasks,
+    DescriptionItem
 };

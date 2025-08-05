@@ -18,8 +18,6 @@ Minimal config required includes:
 ```properties
 # services
 elastic.host=elasticsearch:9200
-spring.data.mongodb.uri=mongodb://mongodb:27017/search
-spring.data.mongodb.host=mongodb
 rabbitmq.host=rabbitmq
 
 # authentication, determined by the auth service in use

@@ -186,51 +186,10 @@ public class ListImportService {
             }
         }
 
-        // 'image' field is also filled by AcceptedTaxonUpdateService.
-        // The imageLists are always expected to override existing values.
-        // Do not track existing 'image' values and do not delete them.
-        logService.log(taskType, "import preferred images");
-        int preferredImageCounter = 0;
-        if (StringUtils.isNotEmpty(listsImagesPreferred)) {
-            preferredImageCounter = importKvpList(
-                    Collections.singletonList(listsImagesPreferred),
-                    ListBackedFields.IMAGE.field,
-                    (it -> {
-                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                            if (map.get("key").equals(listsImagesPreferredField)) {
-                                return map.get("value");
-                            }
-                        }
-                        if (!kvpError) {
-                            logService.log(taskType, "Preferred list " + listsImagesPreferred + " has a null value in field " + listsImagesPreferredField);
-                            kvpError = true;
-                        }
-                        return null;
-                    }),
-                    false, true).size();
-        }
-
-        logService.log(taskType, "import hidden images");
-        int hiddenImagesCounter = 0;
-        if (StringUtils.isNotEmpty(listsImagesHidden)) {
-            hiddenImagesCounter = importKvpList(
-                    Collections.singletonList(listsImagesHidden),
-                    ListBackedFields.HIDDEN.field,
-                    (it -> {
-                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                            if (map.get("key").equals(listsImagesHiddenField)) {
-                                return map.get("value");
-                            }
-                        }
-                        return null;
-                    }),
-                    true, true).size();
-        }
-
         // 'favourite' field is populated with a configured string when a TAXON or COMMON is in a species list. To support the
         // ability to remove with, zero downtime during an update, aggregate the lists and apply in a single pass.
         // Keep track of all items updated so that 'weights' can be reapplied.
-        logService.log(taskType, "import favourites images (TAXON)");
+        logService.log(taskType, "import favourites (TAXON)");
         int favouritesCounter = 0;
         List<String> favouriteLists = new ArrayList<>(2);
         List<String> favouriteType = new ArrayList<>(2);
@@ -414,10 +373,8 @@ public class ListImportService {
         elasticService.indexFields(true);
 
         logService.log(taskType, "Finished updates authoritative: " + counter
-                + ", conservation: " + conservationCounter /*+ ", attributes: " + attributesCounter*/
+                + ", conservation: " + conservationCounter
                 + ", favouritesTaxon: " + favouritesCounter + ", favouritesCommon: " + favouritesCommonCounter
-                + ", hiddenImages: " + hiddenImagesCounter
-                + ", preferredImages (all): " + preferredImageCounter
                 + ", list images: " + listImageCounter
                 + ", native/introduced: " + nativeIntroducedCounter
                 + ", conservationIUCN: " + conservationIUCNCounter

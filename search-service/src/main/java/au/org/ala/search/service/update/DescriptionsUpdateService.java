@@ -34,6 +34,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+// TODO: Refactor this service to use postgres data with TaxonDataService instead of reading from a file, otherwise
+//  there will be conflicts with the database.
+// TODO: Refactor taxon-description tool to update the database directly instead of writing to a file. This is because
+//  admin edits through the UI will not be reflected in the file, only the database. This will cause inconsistencies.
 @Slf4j
 @Service
 public class DescriptionsUpdateService {

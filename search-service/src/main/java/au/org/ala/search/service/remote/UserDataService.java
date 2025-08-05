@@ -14,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for managing user data.
- * <p>
- * Supports
- * 1. User JWT
  */
 @Service
 public class UserDataService {

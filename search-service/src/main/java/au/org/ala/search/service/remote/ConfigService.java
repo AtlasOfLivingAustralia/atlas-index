@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Service for managing configuration data stored in MongoDB.
+ * Service for managing configuration data stored in postgres.
  * - handles retrieval of the latest and history of a dynamic configuration key.
  * - managers listeners of configuration changes.
  */
