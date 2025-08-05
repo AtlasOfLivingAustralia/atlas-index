@@ -50,16 +50,12 @@ public class ListImportService {
     private String favouriteConfig;
     @Value("${lists.images.ids}")
     private String listsImagesIds;
-
-    @Value("${lists.images.preferred.id}")
-    private String listsImagesPreferred;
     @Value("${lists.images.preferred.field}")
     private String listsImagesPreferredField;
-
-    @Value("${lists.images.hidden.id}")
-    private String listsImagesHidden;
-    @Value("${lists.images.hidden.field}")
-    private String listsImagesHiddenField;
+    @Value("${lists.wiki.id}")
+    private String listsWiki;
+    @Value("${lists.wiki.field}")
+    private String listsWikiField;
 
     @Value("${lists.native-introduced}")
     private String nativeIntroduced;
@@ -163,28 +159,30 @@ public class ListImportService {
         }
         deleteFields(iucnFields);
 
-        logService.log(taskType, "import lists images");
-        int listImageCounter = 0;
-        if (StringUtils.isNotEmpty(listsImagesIds)) {
-            for (String listId : listsImagesIds.split(",")) {
-                listImageCounter += importKvpList(
-                        Collections.singletonList(listId),
-                        ListBackedFields.IMAGE.field,
-                        (it -> {
-                            for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                                if (map.get("key").equals(listsImagesPreferredField)) {
-                                    return map.get("value");
-                                }
-                            }
-                            if (!kvpError) {
-                                logService.log(taskType, "images list " + listId + " has a null value in field " + listsImagesPreferredField);
-                                kvpError = true;
-                            }
-                            return null;
-                        }),
-                        false, true).size();
-            }
-        }
+        // TODO: move this to TaxonUpdateRunner so it does not conflict with the "image" setting over there. Disabling
+        //  for now.
+//        logService.log(taskType, "import lists images");
+//        int listImageCounter = 0;
+//        if (StringUtils.isNotEmpty(listsImagesIds)) {
+//            for (String listId : listsImagesIds.split(",")) {
+//                listImageCounter += importKvpList(
+//                        Collections.singletonList(listId),
+//                        ListBackedFields.IMAGE.field,
+//                        (it -> {
+//                            for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
+//                                if (map.get("key").equals(listsImagesPreferredField)) {
+//                                    return map.get("value");
+//                                }
+//                            }
+//                            if (!kvpError) {
+//                                logService.log(taskType, "images list " + listId + " has a null value in field " + listsImagesPreferredField);
+//                                kvpError = true;
+//                            }
+//                            return null;
+//                        }),
+//                        false, true).size();
+//            }
+//        }
 
         // 'favourite' field is populated with a configured string when a TAXON or COMMON is in a species list. To support the
         // ability to remove with, zero downtime during an update, aggregate the lists and apply in a single pass.
@@ -281,6 +279,24 @@ public class ListImportService {
             favouritesCommonCounter = updatedIds.size();
         }
 
+        // This is only required for the legacy V1SearchController.
+        logService.log(taskType, "import wiki");
+        int wikiCounter = 0;
+        if (StringUtils.isNotEmpty(listsWiki)) {
+            wikiCounter = importKvpList(
+                    Collections.singletonList(listsWiki),
+                    ListBackedFields.WIKI.field,
+                    (it -> {
+                        for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
+                            if (map.get("key").equals(listsWikiField)) {
+                                return map.get("value");
+                            }
+                        }
+                        return null;
+                    }),
+                    true, true).size();
+        }
+
         // The expect input and output for native/introduced is explained here
         // https://github.com/AtlasOfLivingAustralia/atlas-index/issues/11#issuecomment-2395219841
         logService.log(taskType, "import native/introduced");
@@ -375,7 +391,8 @@ public class ListImportService {
         logService.log(taskType, "Finished updates authoritative: " + counter
                 + ", conservation: " + conservationCounter
                 + ", favouritesTaxon: " + favouritesCounter + ", favouritesCommon: " + favouritesCommonCounter
-                + ", list images: " + listImageCounter
+//                + ", list images: " + listImageCounter
+                + ", wiki: " + wikiCounter
                 + ", native/introduced: " + nativeIntroducedCounter
                 + ", conservationIUCN: " + conservationIUCNCounter
                 + ", sds: " + sdsCounter

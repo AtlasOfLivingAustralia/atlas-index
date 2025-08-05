@@ -28,6 +28,7 @@ public class TaxaBatchItem {
     String genus;
     String datasetName;
     String datasetID;
+    String wikiUrl;
     String hiddenImages;
     String thumbnailUrl;
     String smallImageUrl;

@@ -6,7 +6,9 @@
 
 package au.org.ala.search.service.update;
 
+import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +39,8 @@ public class AllService {
     protected final LogService logService;
     protected final DashboardService dashboardService;
     protected final DescriptionsUpdateService descriptionsUpdateService;
+    protected final PostgresSyncService postgresSyncService;
+    protected final ElasticService elasticService;
     @Value("${task.AREA.enabled}")
     public Boolean taskAreaEnabled;
     @Value("${task.BIOCACHE.enabled}")
@@ -63,13 +67,15 @@ public class AllService {
     public Boolean taskTaxonDescriptionEnabled;
     @Value("${task.DASHBOARD.enabled}")
     public Boolean taskDashboardEnabled;
+    @Value("${task.POSTGRES_SYNC.enabled}")
+    public Boolean taskPostgresSyncEnabled;
 
     public AllService(CollectionsImportService collectionsImportService, WordpressImportService wordpressImportService,
                       KnowledgebaseImportService knowledgebaseImportService, DigivolImportService digivolImportService, LogService logService,
                       ListImportService listImportService, BiocollectImportService biocollectImportService,
                       LayerImportService layerImportService, AreaImportService areaImportService,
                       DwCAImportService dwCAImportService, TaxonUpdateService taxonUpdateService,
-                      SitemapService sitemapService, DashboardService dashboardService, DescriptionsUpdateService descriptionsUpdateService) {
+                      SitemapService sitemapService, DashboardService dashboardService, DescriptionsUpdateService descriptionsUpdateService, PostgresSyncService postgresSyncService, ElasticService elasticService) {
         this.collectionsImportService = collectionsImportService;
         this.wordpressImportService = wordpressImportService;
         this.knowledgebaseImportService = knowledgebaseImportService;
@@ -84,6 +90,8 @@ public class AllService {
         this.sitemapService = sitemapService;
         this.dashboardService = dashboardService;
         this.descriptionsUpdateService = descriptionsUpdateService;
+        this.postgresSyncService = postgresSyncService;
+        this.elasticService = elasticService;
     }
 
     @Async("processExecutor")
@@ -91,8 +99,9 @@ public class AllService {
         try {
             logService.log(taskType, "Start");
 
+            long countOfTaxonRecords = elasticService.queryCount("idxtype", IndexDocType.TAXON.name());
+
             if (taskDwcaEnabled) {
-                // Delete existing DwCA records and import again
                 CompletableFuture<Boolean> dwcaImport = dwCAImportService.run();
 
                 // wait for DwCA import to finish
@@ -114,6 +123,13 @@ public class AllService {
             // queue update TAXON fields
             if (taskBiocacheEnabled) tasks.add(taxonUpdateService.run());
 
+            // These updates are only automatically run if the index was initially empty of TAXON records. Manual
+            // requests for these specific updates will always run them.
+            if (countOfTaxonRecords > 0) {
+                if (taskTaxonDescriptionEnabled) tasks.add(descriptionsUpdateService.run());
+                if (taskPostgresSyncEnabled) tasks.add(postgresSyncService.run());
+            }
+
             // queue everything else
             if (taskAreaEnabled) tasks.add(areaImportService.run());
             if (taskBiocollectEnabled) tasks.add(biocollectImportService.run());
@@ -121,7 +137,6 @@ public class AllService {
             if (taskKnowledgebaseEnabled) tasks.add(knowledgebaseImportService.run());
             if (taskLayerEnabled) tasks.add(layerImportService.run());
             if (taskWordpressEnabled) tasks.add(wordpressImportService.run());
-            if (taskTaxonDescriptionEnabled) tasks.add(descriptionsUpdateService.run());
             if (taskDigivolEnabled) tasks.add(digivolImportService.run());
 
             // wait for everything to finish

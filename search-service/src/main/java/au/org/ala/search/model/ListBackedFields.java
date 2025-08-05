@@ -14,6 +14,7 @@ public enum ListBackedFields {
     IMAGE("image"),
     NOT_FOUND(""),
     NATIVE_INTRODUCED("nativeIntroduced"), // JSON map of " Place: Status" pairs
+    WIKI("wikiUrl_s"), // legacy field for V1 API
     HERO_DESCRIPTION("heroDescription"), // HTML content that is the hero description
     DESCRIPTIONS("descriptions"); // JSON description content for the local or S3 file and the taxon description override file
 

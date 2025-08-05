@@ -11,7 +11,6 @@ import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.SetRequest;
 import au.org.ala.search.model.quality.QualityProfile;
 import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.QueueRequest;
 import au.org.ala.search.service.AdminService;
 import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.consumer.FieldguideConsumer;
@@ -79,6 +78,7 @@ public class V2AdminController {
     private final LeaderQueue leaderQueue;
     private final ConfigService configService;
     private final QueueDataService queueDataService;
+    private final PostgresSyncService postgresSyncService;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
@@ -92,7 +92,7 @@ public class V2AdminController {
                              ConsumerQueue consumerQueue, FieldguideConsumer fieldguideConsumer,
                              SearchConsumer searchConsumer,
                              DescriptionsUpdateService descriptionsUpdateService,
-                             QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue, ConfigService configService, QueueDataService queueDataService) {
+                             QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue, ConfigService configService, QueueDataService queueDataService, PostgresSyncService postgresSyncService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -121,6 +121,7 @@ public class V2AdminController {
         this.leaderQueue = leaderQueue;
         this.configService = configService;
         this.queueDataService = queueDataService;
+        this.postgresSyncService = postgresSyncService;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -179,6 +180,7 @@ public class V2AdminController {
             case TaskType.WORDPRESS -> wordpressImportService.run();
             case TaskType.DASHBOARD -> dashboardService.run();
             case TaskType.TAXON_DESCRIPTION -> descriptionsUpdateService.run();
+            case TaskType.POSTGRES_SYNC -> postgresSyncService.run();
 
             // broadcast tasks
             case TaskType.CACHE_RESET_ALL -> broadcastQueue.sendMessage(type, null);

@@ -40,13 +40,6 @@ public class AdminService {
     protected final TaxonDataService taxonDataService;
     private final ObjectMapper objectMapper;
 
-    @Value("${lists.images.hidden.field}")
-    private String hiddenImageListField;
-    @Value("${lists.images.preferred.field}")
-    private String preferredImageListField;
-    @Value("${lists.hero.description.field}")
-    private String heroDescriptionsListField;
-
     public AdminService(
             ElasticsearchOperations elasticsearchOperations, ElasticService elasticService, ListApiService listApiService, StaticFileStoreService staticFileStoreService, DataFileStoreService dataFileStoreService, TaxonDataService taxonDataService, ObjectMapper objectMapper) {
         this.elasticsearchOperations = elasticsearchOperations;
@@ -64,16 +57,13 @@ public class AdminService {
      * @return
      */
     public boolean setValue(SetRequest setRequest) {
-        String listField = null;
+        boolean updateES = false;
         switch (ListBackedFields.find(setRequest.getKey())) {
+            case ListBackedFields.WIKI:
             case ListBackedFields.HIDDEN:
-                listField = hiddenImageListField;
-                break;
             case ListBackedFields.IMAGE:
-                listField = preferredImageListField;
-                break;
             case ListBackedFields.HERO_DESCRIPTION:
-                listField = heroDescriptionsListField;
+                updateES = true;
                 break;
             case ListBackedFields.DESCRIPTIONS:
                 // this is not in ES, do not set listField
@@ -107,7 +97,7 @@ public class AdminService {
         taxonDataService.createOrUpdate(setRequest.getTaxonID(), setRequest.getKey(), setRequest.getScientificName(), setRequest.getValue());
 
         // update the Elasticsearch index, where applicable
-        if (listField != null) {
+        if (updateES) {
             String esId = elasticService.queryTaxonId(setRequest.getTaxonID());
             Document doc = Document.create();
             // mark for update or deletion (null value)

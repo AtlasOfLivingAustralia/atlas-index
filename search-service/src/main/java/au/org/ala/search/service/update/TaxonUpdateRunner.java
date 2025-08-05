@@ -62,7 +62,7 @@ public class TaxonUpdateRunner {
         try {
             List<UpdateQuery> updates = new ArrayList<>();
 
-            // Not much data for overriddenImages or overriddenHiddenImages so not worth optimizing
+            // Not much data for overriddenImages or overriddenHiddenImages so not yet worth optimizing
             overriddenImages = new HashMap();
             for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.IMAGE.field)) {
                 if (StringUtils.isNotEmpty(td.getValue())) {

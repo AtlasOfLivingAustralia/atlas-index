@@ -102,6 +102,7 @@ public class SearchItemIndex {
     public Boolean isInvasive;
     public Boolean isThreatened;
     public String region;
+    public String wikiUrl_s;
     public String hiddenImages_s;
     public String favourite;
     public String[] speciesGroup;

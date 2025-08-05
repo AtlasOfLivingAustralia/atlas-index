@@ -25,6 +25,7 @@ function EditIndexedTaxon() {
     const [previewHtml, setPreviewHtml] = useState('');
     const [preferredImage, setPreferredImage] = useState('');
     const [hiddenImage, setHiddenImage] = useState('');
+    const [wikiUrl, setWikiUrl] = useState('');
     const [saveImageResponse, setSaveImageResponse] = useState('');
     const [speciesJsonFilter, setSpeciesJsonFilter] = useState('');
     const [filteredTaxonString, setFilteredTaxonString] = useState('');
@@ -75,6 +76,9 @@ function EditIndexedTaxon() {
                     json[0].heroDescription
                         ? setHeroDescription(json[0].heroDescription)
                         : setHeroDescription('');
+                    json[0].wikiUrl_s
+                        ? setWikiUrl(json[0].wikiUrl_s)
+                        : setWikiUrl('');
 
                     getDescriptionsJson(json[0].guid);
                 }
@@ -386,6 +390,30 @@ function EditIndexedTaxon() {
             });
     }
 
+    function saveWikiUrl() {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+            method: 'POST',
+            headers: {
+                Authorization: 'Bearer ' + auth.user?.access_token,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                taxonID: taxonID,
+                scientificName: scientificName,
+                key: 'wikiUrl_s',
+                value: wikiUrl,
+            }),
+        }).then((responsePrefer) => {
+            if (responsePrefer.ok) {
+                setSaveImageResponse(JSON.stringify(responsePrefer));
+            } else {
+                setSaveImageResponse(
+                    responsePrefer.status + ': ' + responsePrefer.statusText
+                );
+            }
+        });
+    }
+
 
     function saveImages() {
         // set preferred image, then hidden image
@@ -526,6 +554,27 @@ function EditIndexedTaxon() {
                             <button className="btn border-black ms-auto me-5" onClick={() => {
                                 setSaveImageResponse('...');
                                 saveImages();
+                            }}>Save Changes
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label htmlFor="wikiUrl" className="ms-auto me-1 mb-4" style={{display: 'block'}}>
+                                Wikipedia URL (optional, e.g. https://en.wikipedia.org/wiki/Taxon_name)
+                            </label>
+                            <ul>
+                                <li>Only used by old species pages</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <textarea className="form-control" id="wikiUrl" value={wikiUrl} rows={3}
+                                      onChange={(e) => {
+                                          setWikiUrl(e.target.value);
+                                      }}></textarea>
+                            <button className="btn border-black ms-auto me-5" onClick={() => {
+                                setSaveImageResponse('...');
+                                saveWikiUrl();
                             }}>Save Changes
                             </button>
                         </td>
