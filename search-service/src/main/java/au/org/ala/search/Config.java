@@ -7,6 +7,7 @@
 package au.org.ala.search;
 
 import au.org.ala.search.model.SearchItemIndex;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,11 @@ public class Config extends ElasticsearchConfiguration {
 
     @Value("${elastic.host}")
     private String elasticHost;
+    @Value("${elastic.username}")
+    private String elasticUsername;
+    @Value("${elastic.password}")
+    private String elasticPassword;
+
 
     @Value("${elastic.timeout}")
     private Long elasticTimeout;
@@ -36,10 +42,15 @@ public class Config extends ElasticsearchConfiguration {
     @NotNull
     @Override
     public ClientConfiguration clientConfiguration() {
-        return ClientConfiguration.builder()
+        ClientConfiguration.TerminalClientConfigurationBuilder builder = ClientConfiguration.builder()
                 .connectedTo(elasticHost)
-                .withSocketTimeout(elasticTimeout)
-                .build();
+                .withSocketTimeout(elasticTimeout);
+
+        if (StringUtils.isNotEmpty(elasticUsername) && StringUtils.isNotEmpty(elasticPassword)) {
+            builder = builder.withBasicAuth(elasticUsername, elasticPassword);
+        }
+
+        return builder.build();
     }
 
     @Bean
