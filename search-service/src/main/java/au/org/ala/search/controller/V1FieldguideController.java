@@ -46,14 +46,9 @@ import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
 @RestController
 public class V1FieldguideController {
 
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private ConsumerQueue consumerQueue;
-
-    @Autowired
-    private QueueDataService queueDataService;
+    private final AuthService authService;
+    private final ConsumerQueue consumerQueue;
+    private final QueueDataService queueDataService;
 
     @Value("${fieldguide.validateEmail}")
     private Boolean validateEmail;
@@ -61,8 +56,14 @@ public class V1FieldguideController {
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     private String baseUrl;
 
-    @Autowired
-    private DownloadFileStoreService downloadFileStoreService;
+    private final DownloadFileStoreService downloadFileStoreService;
+
+    public V1FieldguideController(AuthService authService, ConsumerQueue consumerQueue, QueueDataService queueDataService, DownloadFileStoreService downloadFileStoreService) {
+        this.authService = authService;
+        this.consumerQueue = consumerQueue;
+        this.queueDataService = queueDataService;
+        this.downloadFileStoreService = downloadFileStoreService;
+    }
 
     @Operation(
             method = "POST",
@@ -149,15 +150,11 @@ public class V1FieldguideController {
                     .fieldguideQueueRequest(fieldguideQueueRequest)
                     .build(), authService.getUserId(principal));
 
-            try {
-                FieldguideResponse response = new FieldguideResponse(queueItem, baseUrl);
-                if (queueItem.status == StatusCode.ERROR) {
-                    return ResponseEntity.badRequest().body(response);
-                }
-                return ResponseEntity.ok().body(response);
-            } catch (MalformedURLException e) {
-                return ResponseEntity.internalServerError().build();
+            FieldguideResponse response = new FieldguideResponse(queueItem, baseUrl);
+            if (queueItem.status == StatusCode.ERROR) {
+                return ResponseEntity.badRequest().body(response);
             }
+            return ResponseEntity.ok().body(response);
         }
     }
 
@@ -192,11 +189,7 @@ public class V1FieldguideController {
             @PathVariable(name = "id") String id) {
         QueueItem item = queueDataService.get(UUID.fromString(id));
         if (item != null) {
-            try {
-                return ResponseEntity.ok(new FieldguideResponse(item, baseUrl));
-            } catch (MalformedURLException e) {
-                return ResponseEntity.internalServerError().build();
-            }
+            return ResponseEntity.ok(new FieldguideResponse(item, baseUrl));
         } else {
             return ResponseEntity.notFound().build();
         }

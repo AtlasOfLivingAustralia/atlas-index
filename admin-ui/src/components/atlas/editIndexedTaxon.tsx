@@ -482,7 +482,7 @@ function EditIndexedTaxon() {
         </div>
         {taxonString && <Tabs id="species-tabs" activeKey={speciesTab} onSelect={(k) => setSpeciesTab('' + k)}
                               className="tabs-as-buttons mt-5">
-            <Tab eventKey="json" title="Raw indexed JSON">
+            <Tab eventKey="json" title="Raw indexed JSON - search again to refresh">
                 <div style={{marginTop: '30px'}}/>
                 <table className="table table-sm">
                     <thead>

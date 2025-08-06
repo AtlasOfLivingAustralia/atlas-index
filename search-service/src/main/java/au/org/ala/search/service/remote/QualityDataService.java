@@ -92,7 +92,7 @@ public class QualityDataService {
     @Scheduled(fixedRate = 60 * 60 * 1000, initialDelay = 60 * 1000)
     public void cacheRefresh() {
         // read from postgres, all profiles
-        profiles = dataQualityRepository.findAll();
+        profiles = dataQualityRepository.findAllNative();
 
         // fetch the max id from the profiles, categories and filters. Only relevant for the leader instance.
         long maxId = 1;
@@ -208,7 +208,6 @@ public class QualityDataService {
 
     @Cacheable(value = "qualityProfiles", key = "'getEnabledFiltersByLabel_' + #profileName")
     public Map<String, String> getEnabledFiltersByLabel(String profileName) {
-        List<QualityProfile> profiles = this.profiles;
         Map<String, String> map = new HashMap<>();
 
         QualityProfile profile = getProfileOrDefault(profileName);
@@ -422,7 +421,7 @@ public class QualityDataService {
                     } else {
                         category.setQualityFilters(new ArrayList<>());
                     }
-                };
+                }
             } else {
                 profile.setCategories(new ArrayList<>());
             }

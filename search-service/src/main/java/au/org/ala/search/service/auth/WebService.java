@@ -44,8 +44,7 @@ import static org.springframework.http.HttpMethod.*;
 public class WebService {
     // TODO: enable authService; static final String DEFAULT_AUTH_HEADER = "X-ALA-userId";
     // TODO: enable authService; AuthService authService
-    @Autowired
-    TokenService tokenService;
+    final TokenService tokenService;
 
     @Value("${webservice.connect.timeout}")
     private Integer connectTimeout;
@@ -57,6 +56,10 @@ public class WebService {
     private String infoAppName;
     @Value("${app.version}")
     private String infoAppVersion;
+
+    public WebService(TokenService tokenService) {
+        this.tokenService = tokenService;
+    }
 
     private static String appendQueryString(String url, Map<String, String> params) {
         if (params != null) {

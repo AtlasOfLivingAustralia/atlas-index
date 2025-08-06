@@ -16,6 +16,7 @@ import lombok.extern.jackson.Jacksonized;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.type.SqlTypes;
 
 import java.util.Date;
@@ -30,8 +31,7 @@ import java.util.UUID;
 @Table(name = "queue")
 public class QueueItem {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     @Column(name = "id", updatable = false, nullable = false)
     public UUID id;
     public String userId;

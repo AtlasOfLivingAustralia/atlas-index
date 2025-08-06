@@ -29,6 +29,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
@@ -177,16 +179,11 @@ public class ConsumerQueue {
         // recover RUNNING tasks for all users, for standalone mode
         int count = 0;
         for (QueueItem queueItem : queuePostgresRepository.findAllByUserIdAndStatus(null, StatusCode.RUNNING.name())) {
-            try {
-                ThreadPoolExecutor executor = userExecutors.computeIfAbsent(queueItem.userId, k -> new ThreadPoolExecutor(1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()));
-                ;
-                synchronized (executor) {
-                    consume(queueItem, executor);
-                    count++;
-                }
-            } catch (InterruptedException e) {
-                log.warn("Interrupted while recovering task: {}", queueItem.id, e);
-                Thread.currentThread().interrupt(); // restore the interrupted status
+            ThreadPoolExecutor executor = userExecutors.computeIfAbsent(queueItem.userId, k -> new ThreadPoolExecutor(1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()));
+
+            synchronized (executor) {
+                consume(queueItem, executor);
+                count++;
             }
         }
         log.info("Recovered {} tasks from the queue that were previously running.", count);
@@ -258,11 +255,7 @@ public class ConsumerQueue {
             ThreadPoolExecutor executor = userExecutors.computeIfAbsent(queueItem.userId, k -> new ThreadPoolExecutor(1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()));
 
             synchronized (executor) {
-                try {
-                    consume(queueItem, executor);
-                } catch (InterruptedException ignored) {
-                    // if shutting down, just ignore the interruption as the init() will recover the item
-                }
+                consume(queueItem, executor);
             }
         }
     }
@@ -277,7 +270,7 @@ public class ConsumerQueue {
      * @param executor  executor to use when RabbitMQ is not enabled.
      * @return true if the item was consumed, false if it needs to be requeued
      */
-    private boolean consume(QueueItem queueItem, ThreadPoolExecutor executor) throws InterruptedException {
+    private boolean consume(QueueItem queueItem, ThreadPoolExecutor executor) {
 
         if (StringUtils.isNotEmpty(rabbitMqHost) && !queueItem.status.equals(StatusCode.RUNNING)) {
             int numRunning = queuePostgresRepository.countByUserIdAndStatus(queueItem.userId, StatusCode.RUNNING.name());
@@ -432,8 +425,8 @@ public class ConsumerQueue {
             // sourceUrl is optional, but if provided it must be a valid URL
             if (queueRequest.fieldguideQueueRequest.sourceUrl != null) {
                 try {
-                    new java.net.URL(queueRequest.fieldguideQueueRequest.sourceUrl);
-                } catch (java.net.MalformedURLException e) {
+                    new java.net.URI(queueRequest.fieldguideQueueRequest.sourceUrl).toURL();
+                } catch (URISyntaxException | MalformedURLException e) {
                     return "invalid sourceUrl";
                 }
             }

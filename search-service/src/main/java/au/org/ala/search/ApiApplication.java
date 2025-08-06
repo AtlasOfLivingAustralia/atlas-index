@@ -7,7 +7,6 @@
 package au.org.ala.search;
 
 import au.org.ala.search.service.OpenapiService;
-import au.org.ala.search.service.update.AllService;
 import au.org.ala.search.util.RejectedExecutionHandlerImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.customizers.OpenApiCustomizer;
@@ -31,12 +30,8 @@ import static org.apache.tomcat.util.buf.EncodedSolidusHandling.DECODE;
 @EnableCaching
 @EnableScheduling
 public class ApiApplication {
-    private final AllService allService;
-    private final LeadershipStatus leadershipStatus;
 
-    public ApiApplication(AllService allService, LeadershipStatus leadershipStatus) {
-        this.allService = allService;
-        this.leadershipStatus = leadershipStatus;
+    public ApiApplication() {
     }
 
     public static void main(String[] args) {

@@ -188,9 +188,7 @@ public class V2AdminController {
             case TaskType.CACHE_RESET_LISTS -> broadcastQueue.sendMessage(type, null);
             case TaskType.CACHE_RESET_DATA_QUALITY -> broadcastQueue.sendMessage(type, null);
 
-            default -> {
-                notSupported = true;
-            }
+            default -> notSupported = true;
         }
 
         if (notSupported) {

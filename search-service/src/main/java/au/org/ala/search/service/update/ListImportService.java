@@ -143,7 +143,6 @@ public class ListImportService {
                     Collections.singletonList(listId),
                     "iucn_" + listId,
                     (it -> {
-                        Map conservation = new HashMap();
                         for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
                             if (map.get("key").equals(getListsConservationIUCNStatusField)) {
                                 return map.get("value");
@@ -593,10 +592,10 @@ public class ListImportService {
             elasticService.addWeights(item);
 
             Document doc = Document.create();
-            if (origSearchWeight != item.searchWeight) {
+            if (!Objects.equals(origSearchWeight, item.searchWeight)) {
                 doc.put("searchWeight", item.searchWeight);
             }
-            if (origSuggestWeight != item.suggestWeight) {
+            if (!Objects.equals(origSuggestWeight, item.suggestWeight)) {
                 doc.put("suggestWeight", item.suggestWeight);
             }
             if (!doc.isEmpty()) {

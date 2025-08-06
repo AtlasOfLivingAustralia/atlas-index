@@ -10,10 +10,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.util.Locale;
-
 /**
  * Response object for field guide V1 API requests.
  */
@@ -25,7 +21,7 @@ public class FieldguideResponse {
     public String downloadUrl;
     public String status;
 
-    public FieldguideResponse(QueueItem queueItem, String baseUrl) throws MalformedURLException {
+    public FieldguideResponse(QueueItem queueItem, String baseUrl) {
         switch (queueItem.status) {
             case QUEUED, RUNNING -> this.statusUrl = baseUrl + "/v1/fieldguide/status/" + queueItem.id;
             case FINISHED -> this.downloadUrl = baseUrl + "/v1/fieldguide/download/" + queueItem.id;

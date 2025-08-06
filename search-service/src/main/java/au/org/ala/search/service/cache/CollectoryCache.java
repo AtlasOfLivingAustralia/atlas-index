@@ -37,7 +37,7 @@ public class CollectoryCache {
     final ElasticService elasticService;
 
     // This is a map of species list names to their ids
-    public Map<String, String> dataResourceNames = new ConcurrentHashMap<>();
+    final public Map<String, String> dataResourceNames = new ConcurrentHashMap<>();
 
     public CollectoryCache(ElasticService elasticService) {
         this.elasticService = elasticService;

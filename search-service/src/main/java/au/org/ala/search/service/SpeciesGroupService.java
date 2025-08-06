@@ -48,7 +48,7 @@ public class SpeciesGroupService {
         try {
             speciesGroupService.init();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         List<RankedName> rankedNames = new ArrayList<>();
         rankedNames.add(new RankedName("Chytridiomycota".toLowerCase(), "phylum"));

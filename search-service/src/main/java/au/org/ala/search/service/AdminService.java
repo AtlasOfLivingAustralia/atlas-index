@@ -14,8 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.stereotype.Service;
@@ -32,21 +30,14 @@ import java.util.Map;
 @Slf4j
 @Service
 public class AdminService {
-    protected final ElasticsearchOperations elasticsearchOperations;
     protected final ElasticService elasticService;
-    protected final ListApiService listApiService;
     protected final StaticFileStoreService staticFileStoreService;
-    protected final DataFileStoreService dataFileStoreService;
     protected final TaxonDataService taxonDataService;
     private final ObjectMapper objectMapper;
 
-    public AdminService(
-            ElasticsearchOperations elasticsearchOperations, ElasticService elasticService, ListApiService listApiService, StaticFileStoreService staticFileStoreService, DataFileStoreService dataFileStoreService, TaxonDataService taxonDataService, ObjectMapper objectMapper) {
-        this.elasticsearchOperations = elasticsearchOperations;
+    public AdminService(ElasticService elasticService, StaticFileStoreService staticFileStoreService, TaxonDataService taxonDataService, ObjectMapper objectMapper) {
         this.elasticService = elasticService;
-        this.listApiService = listApiService;
         this.staticFileStoreService = staticFileStoreService;
-        this.dataFileStoreService = dataFileStoreService;
         this.taxonDataService = taxonDataService;
         this.objectMapper = objectMapper;
     }
@@ -174,7 +165,7 @@ public class AdminService {
                 return false;
             }
 
-            String currentValue = (String) currentDescriptionMap.get(override.get("field"));
+            String currentValue = (String) currentDescriptionMap.get(override.get("field").toString());
 
             // attempting to override something that does not exist in the current description
             if (currentValue == null) {

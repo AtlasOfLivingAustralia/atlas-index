@@ -15,6 +15,7 @@ import au.org.ala.search.model.queue.QueueItem;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.util.InterruptibleResourceResolver;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -144,8 +145,8 @@ public class FieldguideConsumer {
                 newTaxon.imageId = imageId;
 
                 if (imageId != null) {
-                    try {
-                        Map imgMetadata = om.createParser(URI.create(imagesUrl + "/ws/image/" + imageId).toURL()).readValueAs(Map.class);
+                    try (JsonParser parser = om.createParser(URI.create(imagesUrl + "/ws/image/" + imageId).toURL())){
+                        Map imgMetadata = parser.readValueAs(Map.class);
                         newTaxon.thumbnailUrl = imagesUrl + "/image/" + imageId + "/thumbnail";
                         newTaxon.imageUrl = imagesUrl + "/image/" + imageId + "/large";
 

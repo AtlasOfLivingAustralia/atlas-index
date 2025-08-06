@@ -6,7 +6,6 @@
 
 package au.org.ala.search;
 
-import au.org.ala.ws.security.AlaWebServiceAuthFilter;
 import au.org.ala.ws.security.client.AlaAuthClient;
 import au.org.ala.ws.security.profile.AlaUserProfile;
 import jakarta.servlet.FilterChain;

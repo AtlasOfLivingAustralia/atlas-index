@@ -635,6 +635,7 @@ public class V1SearchController {
             Set<String> matchedNames = new HashSet<>();
             map.put("matchedNames", matchedNames);
 
+            // TODO: what is this?
 //            if (item.commonName != null) {
 //                for (String name : item.commonName) {
 //                    String str = FormatUtil.getHighlightedName(name, q);

@@ -27,14 +27,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ListCache {
 
-    final ElasticService elasticService;
     final ListApiService listApiService;
 
     // This is a map of species list names to their ids
     public Map<String, String> listNames = new ConcurrentHashMap<>();
 
-    public ListCache(ElasticService elasticService, ListApiService listApiService) {
-        this.elasticService = elasticService;
+    public ListCache(ListApiService listApiService) {
         this.listApiService = listApiService;
     }
 

@@ -7,7 +7,6 @@
 package au.org.ala.search.repo;
 
 import au.org.ala.search.model.taxon.TaxonData;
-import au.org.ala.search.model.userdata.UserData;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

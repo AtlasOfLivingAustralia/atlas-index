@@ -233,7 +233,7 @@ public class ElasticService {
                 hasMore = hits.size() == pageSize;
             }
         } catch (Exception e) {
-            log.warn("Failed to page through elasticsearch (e.g. query field may not yet exist: {})", queryString, e.getMessage());
+            log.warn("Failed to page through elasticsearch (e.g. query field may not yet exist: {}, {})", queryString, e.getMessage());
         } finally {
             try {
                 if (pit != null) {

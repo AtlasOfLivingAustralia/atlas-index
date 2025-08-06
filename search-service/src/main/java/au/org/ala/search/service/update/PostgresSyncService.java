@@ -6,37 +6,21 @@
 
 package au.org.ala.search.service.update;
 
-import au.org.ala.search.model.AdminIndex;
 import au.org.ala.search.model.ListBackedFields;
-import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.taxon.TaxonData;
-import au.org.ala.search.service.remote.DataFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.service.remote.TaxonDataService;
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.json.JsonData;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 /**
  * Syncs the postgres data for hidden images, hero images and wiki URL with the Elasticsearch index.
@@ -78,7 +62,7 @@ public class PostgresSyncService {
                 int count = 0;
                 List<TaxonData> toWrite = taxonDataService.findAllByKey(field);
                 for (TaxonData td : toWrite) {
-                    if (StringUtils.isNotEmpty(td.getValue())) {
+                    if (StringUtils.isEmpty(td.getValue())) {
                         // skip, no value to write
                         continue;
                     }

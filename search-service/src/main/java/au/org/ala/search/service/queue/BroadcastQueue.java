@@ -52,7 +52,7 @@ public class BroadcastQueue {
     @Value("${rabbitmq.host:}")
     private String rabbitMqHost;
 
-    ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
+    private final ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
 
     public BroadcastQueue(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, ConfigService configService, ConsumerQueue consumerQueue) {
         this.collectoryCache = collectoryCache;

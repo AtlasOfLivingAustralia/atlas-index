@@ -33,8 +33,7 @@ public class DwCADenormaliseImportService {
     private static final TaskType taskType = TaskType.DWCA;
 
     // priority is low to high
-    static String[] linkIdentifierTaxonomicStatusPriority =
-            new String[]{"inferredAccepted", "accepted"};
+    final static String[] linkIdentifierTaxonomicStatusPriority = new String[]{"inferredAccepted", "accepted"};
     protected final SpeciesGroupService speciesGroupService;
     protected final LogService logService;
 

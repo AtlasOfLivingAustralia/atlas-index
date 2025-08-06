@@ -16,7 +16,7 @@ import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.util.Date;
 
-@Document(indexName = "#{@environment.getProperty('elastic.adminIndex')}", createIndex = true)
+@Document(indexName = "#{@environment.getProperty('elastic.adminIndex')}")
 @Setting(settingPath = "/elasticsearch/settings.json")
 @Mapping(mappingPath = "/elasticsearch/mappings.admin.json")
 @NoArgsConstructor

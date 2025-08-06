@@ -9,7 +9,6 @@ package au.org.ala.search.model;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.FieldguideRequest;
 import au.org.ala.search.model.quality.QualityProfile;
-import au.org.ala.search.model.queue.FieldguideResponse;
 import au.org.ala.search.model.queue.QueueCancel;
 import au.org.ala.search.model.queue.SandboxQueueRequest;
 import au.org.ala.search.model.queue.SearchQueueRequest;

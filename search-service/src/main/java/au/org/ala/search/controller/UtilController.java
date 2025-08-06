@@ -38,7 +38,7 @@ public class UtilController {
     @Tag(name = "unsupported")
     @GetMapping("/trait-count")
     public ResponseEntity<?> austraitsCount(
-            @RequestParam(name = "taxon", required = true) String taxon,
+            @RequestParam(name = "taxon") String taxon,
             @RequestParam(name = "APNI_ID", required = false) String id
     ) {
         Map resp = webService.get(austraitsUrl + "/trait-count?taxon=" + URLEncoder.encode(taxon, StandardCharsets.UTF_8) + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.APPLICATION_JSON, false, false, null);
@@ -51,7 +51,7 @@ public class UtilController {
     @Tag(name = "unsupported")
     @GetMapping("/trait-summary")
     public ResponseEntity<?> austraitsSummary(
-            @RequestParam(name = "taxon", required = true) String taxon,
+            @RequestParam(name = "taxon") String taxon,
             @RequestParam(name = "APNI_ID", required = false) String id
     ) {
         Map resp = webService.get(austraitsUrl + "/trait-summary?taxon=" + URLEncoder.encode(taxon, StandardCharsets.UTF_8) + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.APPLICATION_JSON, false, false, null);
@@ -64,7 +64,7 @@ public class UtilController {
     @Tag(name = "unsupported")
     @GetMapping(path = "/download-taxon-data", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<?> austraitsDownload(
-            @RequestParam(name = "taxon", required = true) String taxon,
+            @RequestParam(name = "taxon") String taxon,
             @RequestParam(name = "APNI_ID", required = false) String id
     ) {
         Map resp = webService.get(austraitsUrl + "/download-taxon-data?taxon=" + URLEncoder.encode(taxon, StandardCharsets.UTF_8) + (id != null ? "&APNI_ID=" + id : ""), null, ContentType.TEXT_PLAIN, false, false, null);

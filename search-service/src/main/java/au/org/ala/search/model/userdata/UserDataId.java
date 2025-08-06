@@ -6,7 +6,6 @@
 
 package au.org.ala.search.model.userdata;
 
-import jakarta.persistence.Embeddable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

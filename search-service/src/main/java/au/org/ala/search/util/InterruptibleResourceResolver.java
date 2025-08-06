@@ -36,7 +36,7 @@ public class InterruptibleResourceResolver implements ResourceResolver {
         return delegate.getOutputStream(uri);
     }
 
-    private void checkInterrupted(URI uri) throws IOException {
+    private void checkInterrupted(URI uri) {
         if (Thread.currentThread().isInterrupted()) {
             throw new RuntimeException("Thread interrupted while resolving resource: " + uri);
         }

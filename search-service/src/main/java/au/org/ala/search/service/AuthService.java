@@ -24,11 +24,14 @@ import java.util.List;
 @Service
 public class AuthService {
 
-    @Autowired
-    private UserDetailsClient userDetailsClient;
+    private final UserDetailsClient userDetailsClient;
 
     @Value("#{'${security.admin.role}'.split(',')}")
     private List<String> adminRoles;
+
+    public AuthService(UserDetailsClient userDetailsClient) {
+        this.userDetailsClient = userDetailsClient;
+    }
 
     public boolean hasAdminRole(AlaUserProfile alaUserProfile) {
         if (alaUserProfile == null) return false;

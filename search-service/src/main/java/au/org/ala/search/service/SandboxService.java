@@ -154,8 +154,7 @@ public class SandboxService {
         }
     }
 
-    void importCsv(MultipartFile file, SandboxIngress si) throws IOException, CsvValidationException {
-        String[] header = null;
+    void importCsv(MultipartFile file, SandboxIngress si) throws CsvValidationException {
         try {
             File thisDir = new File(sandboxDir + "/upload/" + si.getId());
             FileUtils.forceMkdir(thisDir);
@@ -201,8 +200,6 @@ public class SandboxService {
                         System.arraycopy(header, 0, newHeader, 0, header.length);
                         newHeader[header.length] = occurrenceIDQualified;
                         header = newHeader;
-                    } else {
-
                     }
 
                     // Append userID to the header, if absent
@@ -213,8 +210,6 @@ public class SandboxService {
                         System.arraycopy(header, 0, newHeader, 0, header.length);
                         newHeader[header.length] = userIDQualified;
                         header = newHeader;
-                    } else {
-
                     }
 
                     // Append datasetName to the header, if absent
@@ -225,8 +220,6 @@ public class SandboxService {
                         System.arraycopy(header, 0, newHeader, 0, header.length);
                         newHeader[header.length] = datasetNameQualified;
                         header = newHeader;
-                    } else {
-
                     }
                 } else {
                     // Append row number as the unique occurrenceID

@@ -79,12 +79,10 @@ public class LeaderQueue {
      * Send a message to the leader instance without waiting for a response.
      *
      * @param message message to send
+     * @param payload Object compatible with the TaskType's payloadType, or null if not applicable
+     * @param isRpc true if this is an RPC message, false for a broadcast message
      * @return A map containing the response status, e.g. {"status": "ok"} or {"status": "error"}
      */
-    public void sendMessage(TaskType message, Object payload) throws IOException {
-        sendMessage(message, payload, false);
-    }
-
     private Map<String, String> sendMessage(TaskType message, Object payload, boolean isRpc) throws IOException {
         if (StringUtils.isNotEmpty(rabbitMqHost) && !leadershipStatus.isLeader()) {
             Map<String, Object> map = Map.of(
@@ -169,9 +167,7 @@ public class LeaderQueue {
                 return false;
             }
             QualityProfile qp = qualityDataService.save(qualityProfile);
-            if (qp == null) {
-                return false;
-            }
+            return qp != null;
         } else {
             logService.log(taskType, "Unknown broadcast message: " + message);
             return false;

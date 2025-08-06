@@ -6,9 +6,7 @@
 
 package au.org.ala.search.service.remote;
 
-import au.org.ala.search.model.queue.FieldguideQueueRequest;
 import au.org.ala.search.model.queue.QueueItem;
-import au.org.ala.search.model.queue.SearchQueueRequest;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;

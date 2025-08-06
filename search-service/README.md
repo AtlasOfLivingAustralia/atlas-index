@@ -105,7 +105,7 @@ These options enable the import of a new names index without affecting the exist
 ### Prerequisites
 
 1. Elasticsearch
-2. Xmx >= 3GB for the initial names index import
+2. Xmx >= 4GB for the initial names index import
 
 For a clean installation, set the search index name and the task log index name.
 
@@ -198,7 +198,8 @@ elastic.adminIndex=search-log-20240401
     - Transform and import the CSV into the search-service postgres table "taxon_data". Ensure entries are resolved.
          - taxon_concept_id is the matched taxon concept id
          - scientific_name is the accepted scientific name of the taxon concept
-         - key is one of;  hiddenImages_s, image, wikiUrl_s
+         - key is one of;  hiddenImages_s, image, wikiUrl_s, e.g.
+            INSERT INTO taxon_data (taxon_concept_id, scientific_name, key, value) VALUES ('ALA_DR24112_113','Gaillona','wikiUrl_s','hide');
          - value is the comma delimited imageId or wiki URL value from the old species list
     - The sync with Elasticsearch will be done on a fresh index build but can also be triggered manually with Admin UI.
     ```
@@ -375,3 +376,14 @@ and [ISO-639 language codes](http://www.sil.org/iso639-3/) (2016-06-01).
   languageCode: { name: "languageName", uri: "languageUri" }
 }
 ```
+
+# Names index rematching
+A general outline of the full rematching process as it relates to updating the search-service is as follows:
+1. Create a new copy of the postgres database. It contains some names matching output that will be rematched.
+2. Create a new instance of search-service. 
+   - Configure for the new names index; e.g. the updated namematching service, lists service, biocache service.
+   - Use a new search-index name and admin-index name to prevent conflicts with the existing search-service.
+   - Use the new postgres database.
+3. Start the new search-service instance and run the task to rebuild the index.
+4. Run the internal rematching task. TODO: implement this admin task,
+5. Manually resolve any issues with the rematching. TODO: implement this admin UI for identifying and resolving issues.

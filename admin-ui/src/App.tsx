@@ -67,58 +67,23 @@ export default function App() {
         };
     }, [auth.events, auth.signinSilent]);
 
+    useEffect(() => {
+        // interval silent signin retry is only required for specific errors
+        if (!auth.error ||
+            // seen when the network is not yet connected, e.g. waking device from sleep
+            !(auth.error.source == 'signinSilent' && auth.error.message == 'Failed to fetch')) {
+            return;
+        }
+
+        const interval = setInterval(() => {
+            auth.signinSilent();
+        }, 500);
+        return () => clearInterval(interval);
+    }, [auth.error]);
+
     switch (auth.activeNavigator) {
         case 'signinSilent':
-            return <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-                     <div className="d-flex flex-column align-items-center">
-                         <div>Signing you in...</div>
-                         <div className="mt-2">
-                                 If you are not redirected automatically, please click a button below.
-                             </div>
-                         <button className="btn btn-primary mb-2"
-                                     onClick={() => void auth.signinSilent()}>Retry</button>
-                             <button className="btn btn-success mb-2"
-                                     onClick={handleLogin}>Login Again</button>
-                             <button className="btn btn-danger"
-                                     onClick={handleLogout}>Logout</button>
-                     </div>
-                 </div>
-
-            // TODO: clean this up, it can fail. Also the above HTML layout is messy.
-            //  - can fail if the network is not yet connected, e.g. waking device from sleep. The retry button is intended to fix that, it is untested.
-            //  - can fail if the refreshToken is expired, e.g. 30 days after the user logged in. The Login Again button is intended to fix that, it is untested.
-            // const [retryAttempted, setRetryAttempted] = useState(false);
-            //
-            // // retry, in case the network is not yet connected
-            // useEffect(() => {
-            //     const interval = setInterval(() => {
-            //         console.log('Retrying signinSilent and showing the "fix" buttons...');
-            //         void auth.signinSilent();
-            //         setRetryAttempted(true);
-            //     }, 500);
-            //     return () => clearInterval(interval);
-            // }, []);
-            //
-            // console.log('signinSilent render ...');
-            // return (
-            // <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-            //     <div className="d-flex flex-column align-items-center">
-            //         <div>Signing you in...</div>
-            //         { retryAttempted && <>
-            //             <div className="mt-2">
-            //                 If you are not redirected automatically, please click a button below.
-            //             </div>
-            //             <button className="btn btn-primary mb-2"
-            //                     onClick={() => void auth.signinSilent()}>Retry</button>
-            //             <button className="btn btn-success mb-2"
-            //                     onClick={handleLogin}>Login Again</button>
-            //             <button className="btn btn-danger"
-            //                     onClick={handleLogout}>Logout</button>
-            //         </>
-            //         }
-            //     </div>
-            // </div>
-            // );
+            return <div>Signing you in...</div>
         case 'signoutRedirect':
             return (<div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center' }}>
                 <div className="d-flex flex-column align-items-center">
@@ -137,8 +102,16 @@ export default function App() {
 
     if (auth.error) {
         return (
-            <div>
-                Oops... {auth.error.source} caused {auth.error.message}
+            <div className="d-flex flex-column align-items-center">
+                <div>Oops... {auth.error.source} caused {auth.error.message}, retrying</div>
+
+
+                <button className="btn btn-primary mt-5 ms-2"
+                        onClick={() => void auth.signinSilent()}>Retry</button>
+                <button className="btn btn-primary mt-2 ms-2"
+                        onClick={handleLogin}>Login Again</button>
+                <button className="btn btn-primary mt-2 ms-2"
+                        onClick={handleLogout}>Logout</button>
             </div>
         );
     }
@@ -167,8 +140,6 @@ export default function App() {
     if (!cssLoaded) {
         return <></>;
     }
-
-    console.log('auth', auth);
 
     const isAdmin =
         auth.isAuthenticated &&

@@ -125,7 +125,7 @@ public class AllService {
 
             // These updates are only automatically run if the index was initially empty of TAXON records. Manual
             // requests for these specific updates will always run them.
-            if (countOfTaxonRecords > 0) {
+            if (countOfTaxonRecords == 0) {
                 if (taskTaxonDescriptionEnabled) tasks.add(descriptionsUpdateService.run());
                 if (taskPostgresSyncEnabled) tasks.add(postgresSyncService.run());
             }

@@ -16,13 +16,13 @@ import java.util.List;
 public interface DataQualityPostgresRepository extends JpaRepository<QualityProfile, Long> {
 
     @org.springframework.data.jpa.repository.Query(
-        value = "SELECT * FROM quality_profile WHERE short_name = :shortName",
+        value = "SELECT * FROM dqprofile WHERE short_name = :shortName",
         nativeQuery = true
     )
     List<QualityProfile> findAllByShortName(@org.springframework.data.repository.query.Param("shortName") String shortName);
 
     @org.springframework.data.jpa.repository.Query(
-        value = "SELECT * FROM quality_profile",
+        value = "SELECT * FROM dqprofile",
         nativeQuery = true
     )
     List<QualityProfile> findAllNative();
