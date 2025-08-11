@@ -140,6 +140,8 @@ public class TaxonUpdateRunner {
     }
 
     public void buildImageCache() throws UnsupportedEncodingException {
+        updatingImageCounter.set(0);
+
         // Not much data for overriddenImages or overriddenHiddenImages so not yet worth optimizing
         overriddenImages = new ConcurrentHashMap();
         for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.IMAGE.field)) {
@@ -262,5 +264,6 @@ public class TaxonUpdateRunner {
         lftImageCache.clear();
         overriddenHiddenImages.clear();
         overriddenImages.clear();
+        updatingImageCounter.set(0);
     }
 }
