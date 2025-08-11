@@ -27,10 +27,9 @@ function DataQualityAdmin({
     const uploadFile = useRef<HTMLInputElement>(null);
     const auth = useAuth();
 
-    const isAdmin =
-        auth.isAuthenticated &&
-        Array.isArray(auth.user?.profile?.['cognito:groups']) &&
-        auth.user.profile['cognito:groups'].includes('admin');
+    const roles = Array.isArray(auth.user?.profile?.[import.meta.env.VITE_PROFILE_ROLES])
+        ? auth.user.profile[import.meta.env.VITE_PROFILE_ROLES] as string[] : [];
+    const isAdmin = auth.isAuthenticated && roles.includes(import.meta.env.VITE_ADMIN_ROLE);
 
     useEffect(() => {
         setBreadcrumbs([

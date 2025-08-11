@@ -74,7 +74,7 @@ public class AdminService {
                     newItems.addAll(currentOverride);
                     newItems.addAll(additionalOverride);
                     String overrideJsonString = objectMapper.writeValueAsString(newItems);
-                    taxonDataService.createOrUpdate(setRequest.getTaxonID(), setRequest.getKey(), setRequest.getScientificName(), overrideJsonString);
+                    taxonDataService.createOrUpdate(setRequest.getTaxonID(), setRequest.getKey(), setRequest.getScientificName(), setRequest.getFamily(), setRequest.getKingdom(), overrideJsonString);
 
                     return updateDescriptions(setRequest);
                 } catch (IOException e) {
@@ -85,7 +85,7 @@ public class AdminService {
                 return false;
         }
 
-        taxonDataService.createOrUpdate(setRequest.getTaxonID(), setRequest.getKey(), setRequest.getScientificName(), setRequest.getValue());
+        taxonDataService.createOrUpdate(setRequest.getTaxonID(), setRequest.getKey(), setRequest.getScientificName(), setRequest.getFamily(), setRequest.getKingdom(), setRequest.getValue());
 
         // update the Elasticsearch index, where applicable
         if (updateES) {

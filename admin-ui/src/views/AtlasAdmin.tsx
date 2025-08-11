@@ -32,7 +32,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
     const [showQueue, setShowQueue] = useState(false);
     const [logString, setLogString] = useState('');
     const [logFilter, setLogFilter] = useState('');
-    const [logSize, setLogSize] = useState(1);
+    const [logSize, setLogSize] = useState(100);
     const [taskString, setTaskString] = useState('');
     const [tab, setTab] = useState('species');
     const [tasks, setTasks] = useState<Tasks>({
@@ -64,15 +64,9 @@ function AtlasAdmin({setBreadcrumbs,}: {
 
     const auth = useAuth();
 
-    const isAdmin =
-        auth.isAuthenticated &&
-        Array.isArray(auth.user?.profile?.['cognito:groups']) &&
-        auth.user.profile['cognito:groups'].includes('admin');
-    console.log(
-        'AtlasAdmin isAdmin',
-        isAdmin,
-        auth.user?.profile?.['cognito:groups']
-    );
+    const roles = Array.isArray(auth.user?.profile?.[import.meta.env.VITE_PROFILE_ROLES])
+        ? auth.user.profile[import.meta.env.VITE_PROFILE_ROLES] as string[] : [];
+    const isAdmin = auth.isAuthenticated && roles.includes(import.meta.env.VITE_ADMIN_ROLE);
 
     useEffect(() => {
         setBreadcrumbs([

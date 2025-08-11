@@ -424,6 +424,7 @@ public class ElasticService {
                 .withFilter(q -> q.term(t -> t.field("_index").value(elasticIndex)))
                 .withMaxResults(0)
                 .withTrackScores(false)
+                .withTrackTotalHits(true)
                 .build();
 
         return elasticsearchOperations.search(query, SearchItemIndex.class).getTotalHits();
@@ -956,6 +957,7 @@ public class ElasticService {
                     }
                     return bq;
                 }))
+                .withTrackTotalHits(true)
                 .withPageable(PageRequest.of(start / rows, rows));
 
         SearchHits<SearchItemIndex> searchResults = elasticsearchOperations.search(query.build(), SearchItemIndex.class);

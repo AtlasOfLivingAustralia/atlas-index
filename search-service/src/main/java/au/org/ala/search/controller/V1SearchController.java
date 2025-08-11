@@ -7,7 +7,6 @@
 package au.org.ala.search.controller;
 
 import au.org.ala.search.model.ImageUrlType;
-import au.org.ala.search.model.ListBackedFields;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.dto.*;
 import au.org.ala.search.service.AdminService;
@@ -23,7 +22,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.io.IOUtils;
@@ -34,8 +32,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
@@ -44,10 +40,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.Principal;
 import java.util.*;
-
-import static io.swagger.v3.oas.annotations.enums.ParameterIn.HEADER;
 
 /**
  * bie-index API services, minus some admin services
@@ -447,50 +440,6 @@ public class V1SearchController {
         return ResponseEntity.ok(legacyService.getRanks(elasticService.indexFields(false)));
     }
 
-    @Operation(
-            method = "GET",
-            tags = "admin",
-            operationId = "setImages",
-            summary = "Set the preferred and hidden images for a taxon",
-            security = {@SecurityRequirement(name = "openIdConnect")},
-            parameters = {
-                    @Parameter(name = "Authorization", in = HEADER, schema = @Schema(implementation = String.class), required = true)
-            }
-    )
-    @ApiResponse(description = "Search results", responseCode = "200",
-            headers = {
-                    @Header(name = "Access-Control-Allow-Headers", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Methods", description = "CORS header", schema = @Schema(type = "string")),
-                    @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
-            }
-    )
-    @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v1/bie/api/setImages")
-    public ResponseEntity<String> setImages(
-            @Parameter(description = "Scientific Name")
-            @RequestParam(name = "name") String name,
-            @Parameter(description = "Taxon ID")
-            @RequestParam(name = "guid") String guid,
-            @Parameter(description = "Comma delimited preferred Image IDs")
-            @RequestParam(name = "prefer") String prefer,
-            @Parameter(description = "Comma delimited hidden Image IDs")
-            @RequestParam(name = "hide") String hide,
-            @AuthenticationPrincipal Principal principal
-    ) {
-        if (!authService.isAdmin(principal)) {
-            throw new AccessDeniedException("Not authorised");
-        }
-
-        boolean preferSuccessful = adminService.setValue(new SetRequest(guid, name, ListBackedFields.IMAGE.name(), prefer));
-        boolean hideSuccessful = adminService.setValue(new SetRequest(guid, name, ListBackedFields.HIDDEN.name(), hide));
-
-        if (!preferSuccessful || !hideSuccessful) {
-            return ResponseEntity.internalServerError().build();
-        }
-
-        return ResponseEntity.ok("ok");
-    }
-
     @Tag(name = "fields")
     @Operation(
             operationId = "fields",
@@ -521,7 +470,7 @@ public class V1SearchController {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = {"/v1/bie/search", "/v1/bie/search.json"})
+    @GetMapping(path = {"/v1/bie/search", "/v1/bie/search.json"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",

@@ -63,25 +63,13 @@ public class DescriptionsUpdateService {
             String endMsg = "Hero descriptions finished.";
             logService.log(taskType, startMsg);
 
-            // do not update if the file has not been modified since the last update, within the last 20 logs
-            List<AdminIndex> taskLog = logService.getStatus(TaskType.TAXON_DESCRIPTION, 20);
-            // find all logs that are the start message, and get the max lastModified
-            Optional<Date> lastRunTime = taskLog.stream()
-                    .filter(log -> log.getMessage().contains(endMsg))
-                    .map(AdminIndex::getModified)
-                    .max(Date::compareTo);
-            long fileLastModified = dataFileStoreService.retrieveFileLastModified(heroDescriptionsFilePath);
-            if (lastRunTime.isPresent() && lastRunTime.get().getTime() >= fileLastModified) {
-                logService.log(taskType, endMsg + " Skipped, source file was not modified.");
-                return CompletableFuture.completedFuture(true);
-            }
-
-            File descriptionsFile = dataFileStoreService.retrieveFile(heroDescriptionsFilePath);
+            File descriptionsFile = dataFileStoreService.get(heroDescriptionsFilePath);
 
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> heroDescriptions = objectMapper.readValue(descriptionsFile, new TypeReference<>() {
             });
-            dataFileStoreService.cleanupFile(descriptionsFile); // removes temporary file from s3 after use
+            log.debug("Hero descriptions file loaded: {}", descriptionsFile.getAbsolutePath());
+            dataFileStoreService.cleanupFile(descriptionsFile); // removes temporary file that was downloaded from s3 now that it is no longer required
             heroDescriptions = heroDescriptions.entrySet().stream()
                     .filter(entry -> entry.getValue() != null)
                     .collect(Collectors.toMap(
@@ -92,11 +80,13 @@ public class DescriptionsUpdateService {
 
             updateCurrentDocuments(heroDescriptions);
 
+            logService.log(taskType, "Found new hero descriptions: " + heroDescriptions.size());
             addDescriptions(heroDescriptions);
 
             logService.log(taskType, endMsg);
             return CompletableFuture.completedFuture(true);
         } catch (IOException e) {
+            log.error(e.getMessage(), e);
             logService.log(taskType, "Error updating hero descriptions: " + e.getMessage());
             return CompletableFuture.completedFuture(false);
         }
@@ -154,7 +144,7 @@ public class DescriptionsUpdateService {
             }
 
             if (!updates.isEmpty()) {
-                elasticService.update(updates);
+                elasticService.update(new ArrayList<>(updates));
             }
         } catch (Exception e) {
             log.error("Failed to fetch current documents from Elasticsearch", e);
@@ -204,7 +194,7 @@ public class DescriptionsUpdateService {
         }
 
         if (!updates.isEmpty()) {
-            elasticService.update(updates);
+            elasticService.update(new ArrayList<>(updates));
         }
 
         logService.log(taskType, "New hero descriptions: " + (heroDescriptions.size() - guidsNotFound));
@@ -224,7 +214,7 @@ public class DescriptionsUpdateService {
         updates.add(updateQuery);
 
         if (updates.size() == batchSize) {
-            elasticService.update(updates);
+            elasticService.update(new ArrayList<>(updates));
             updates.clear();
         }
     }

@@ -70,4 +70,9 @@ public class UserDataService {
     public void delete(String userId, String key) {
         userDataPostgresRepository.deleteUserDataByUserIdAndKey(userId, key);
     }
+
+    @Transactional(readOnly = true)
+    public long count() {
+        return userDataPostgresRepository.count();
+    }
 }

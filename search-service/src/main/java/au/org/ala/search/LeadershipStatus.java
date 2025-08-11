@@ -91,7 +91,7 @@ public class LeadershipStatus {
                         return;
                     } catch (Exception e) {
                         if (attempts % 10 == 0) {
-                            log.info("Failed to start leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
+                            log.info("Failed to start leader queue listener after {} seconds, retrying...", (attempts * delayMs / 1000.0));
                         }
                     }
                     try {

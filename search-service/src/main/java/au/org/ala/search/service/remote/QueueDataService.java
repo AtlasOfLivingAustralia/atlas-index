@@ -83,4 +83,9 @@ public class QueueDataService {
     public List<Object[]> getOrphanedUsers() {
         return queuePostgresRepository.findFirstQueuedTaskIdForUsersWithNoRunningTasks();
     }
+
+    @Transactional(readOnly = true)
+    public long count() {
+        return queuePostgresRepository.count();
+    }
 }

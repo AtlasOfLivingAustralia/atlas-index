@@ -16,6 +16,8 @@ function EditIndexedTaxon() {
     const [taxonString, setTaxonString] = useState('');
     const [speciesTab, setSpeciesTab] = useState('json');
     const [taxonID, setTaxonID] = useState('');
+    const [kingdomName, setKingdomName] = useState('');
+    const [familyName, setFamilyName] = useState('');
     const [scientificName, setScientificName] = useState('');
     const [heroDescription, setHeroDescription] = useState('');
     const [saveHeroDescriptionResponse, setSaveHeroDescriptionResponse] = useState('');
@@ -66,6 +68,8 @@ function EditIndexedTaxon() {
                 setImages([]);
                 if (json.length > 0) {
                     setTaxonID(json[0].guid);
+                    setKingdomName(json[0].rk_kingdom);
+                    setFamilyName(json[0].rk_family);
                     setScientificName(json[0].scientificName);
                     json[0].image
                         ? setPreferredImage(json[0].image)
@@ -242,6 +246,8 @@ function EditIndexedTaxon() {
             body: JSON.stringify({
                 taxonID: taxonID,
                 scientificName: scientificName,
+                family: familyName,
+                kingdom: kingdomName,
                 key: 'heroDescription',
                 value: heroDescription,
             }),
@@ -338,6 +344,8 @@ function EditIndexedTaxon() {
             body: JSON.stringify({
                 taxonID: taxonID,
                 scientificName: scientificName,
+                family: familyName,
+                kingdom: kingdomName,
                 key: 'descriptions',
                 value: JSON.stringify(updatedDescriptionJson),
             }),
@@ -400,6 +408,8 @@ function EditIndexedTaxon() {
             body: JSON.stringify({
                 taxonID: taxonID,
                 scientificName: scientificName,
+                family: familyName,
+                kingdom: kingdomName,
                 key: 'wikiUrl_s',
                 value: wikiUrl,
             }),
@@ -426,6 +436,8 @@ function EditIndexedTaxon() {
             body: JSON.stringify({
                 taxonID: taxonID,
                 scientificName: scientificName,
+                family: familyName,
+                kingdom: kingdomName,
                 key: 'image',
                 value: preferredImage,
             }),
@@ -441,6 +453,8 @@ function EditIndexedTaxon() {
                     body: JSON.stringify({
                         taxonID: taxonID,
                         scientificName: scientificName,
+                        family: familyName,
+                        kingdom: kingdomName,
                         key: 'hiddenImages_s',
                         value: hiddenImage,
                     }),
@@ -564,6 +578,7 @@ function EditIndexedTaxon() {
                                 Wikipedia URL (optional, e.g. https://en.wikipedia.org/wiki/Taxon_name)
                             </label>
                             <ul>
+                                <li>Use the keyword "hide" to exclude the default Wikipedia URL when there is no replacement</li>
                                 <li>Only used by old species pages</li>
                             </ul>
                         </td>

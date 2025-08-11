@@ -34,16 +34,18 @@ public class TaxonDataService {
     }
 
     /**
-     * Return true if successful, false if not.
+     * Generic create or update method for taxon data.
      *
      * @param taxonConceptId
      * @param key
      * @param scientificName
+     * @param family
+     * @param kingdom
      * @param value
-     * @return
+     * @return true if the request now matches the database entry, false if not
      */
     @Transactional
-    public boolean createOrUpdate(String taxonConceptId, String key, String scientificName, String value) {
+    public boolean createOrUpdate(String taxonConceptId, String key, String scientificName, String family, String kingdom, String value) {
         if (StringUtils.isEmpty(taxonConceptId) || StringUtils.isEmpty(key)) {
             return false;
         }
@@ -62,7 +64,7 @@ public class TaxonDataService {
         }
 
         // update the existing record
-        TaxonData taxonData = new TaxonData(taxonConceptId, key, scientificName, value);
+        TaxonData taxonData = new TaxonData(taxonConceptId, key, scientificName, family, kingdom, value);
         taxonDataPostgresRepository.save(taxonData);
         taxonDataPostgresRepository.flush();
 
@@ -86,5 +88,10 @@ public class TaxonDataService {
     @Transactional(readOnly = true)
     public List<TaxonData> findAllByKey (String key) {
         return taxonDataPostgresRepository.findAllByKey(key);
+    }
+
+    @Transactional(readOnly = true)
+    public long count() {
+        return taxonDataPostgresRepository.count();
     }
 }

@@ -61,6 +61,11 @@ public class CollectoryCache {
             fieldList.add(new FieldAndFormat.Builder().field("name").build());
 
             Op op = QueryParserUtil.parse("idxtype:DATARESOURCE", null, elasticService::isValidField);
+            if (op == null) {
+                log.warn("Failed to parse query for collectory cache, using empty Op. Elasticsearch index may be empty.");
+                return;
+            }
+
             Query queryOp = elasticService.opToQuery(op);
 
             List<FieldValue> searchAfter = null;

@@ -30,9 +30,9 @@ public class Config extends ElasticsearchConfiguration {
 
     @Value("${elastic.host}")
     private String elasticHost;
-    @Value("${elastic.username}")
+    @Value("${elastic.username:}")
     private String elasticUsername;
-    @Value("${elastic.password}")
+    @Value("${elastic.password:}")
     private String elasticPassword;
 
 

@@ -18,9 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -165,7 +163,13 @@ public class CollectionsImportService {
     private List<SearchItemIndex> getItems(String entityName, IndexDocType type, List<String> uids) {
         List<SearchItemIndex> result = new ArrayList<>();
 
-        List list = restTemplate.postForObject(collectionsUrl + "/ws/find/" + entityName, uids, List.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<List<String>> request = new HttpEntity<>(uids, headers);
+
+        ResponseEntity<List> response = restTemplate.exchange(collectionsUrl + "/ws/find/" + entityName, HttpMethod.POST, request, List.class);
+
+        List list = response.getBody();
 
         ObjectMapper objectMapper = new ObjectMapper();
 

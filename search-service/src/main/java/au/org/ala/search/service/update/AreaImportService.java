@@ -359,7 +359,7 @@ public class AreaImportService {
                 }
             }
 
-            elasticService.update(updateBuffer);
+            elasticService.update(new ArrayList<>(updateBuffer));
 
             logService.log(taskType, "Finished distributions updates: " + counter + ", deleted: " + deleted + ", taxonInfoUpdated: " + taxonInfoUpdated + ", taxonInfoRemoved: " + taxonInfoRemoved);
 

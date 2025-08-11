@@ -17,9 +17,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -141,5 +139,34 @@ public class DownloadFileStoreService {
 
     public boolean isS3() {
         return fileStorePath.startsWith("s3");
+    }
+
+    public boolean delete(QueueItem queueItem) {
+        try {
+            if (isS3()) {
+                // s3 storage
+                String bucket = fileStorePath.substring(5, fileStorePath.indexOf("/", 5));
+                String path = fileStorePath.substring(fileStorePath.indexOf("/", 5) + 1);
+                DeleteObjectRequest request = DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(path + "/" + itemFileName(queueItem))
+                        .build();
+                CompletableFuture<DeleteObjectResponse> result = s3Client.deleteObject(request);
+                result.join();
+
+                // report error
+                if (result.isCompletedExceptionally()) {
+                    log.error("Failed to delete s3 file: {}", itemFileName(queueItem));
+                    return false;
+                }
+            } else {
+                // local file system
+                FileUtils.delete(new File(getFilePath(queueItem)));
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete file {}, {}", itemFileName(queueItem), e.getMessage());
+            return false;
+        }
     }
 }

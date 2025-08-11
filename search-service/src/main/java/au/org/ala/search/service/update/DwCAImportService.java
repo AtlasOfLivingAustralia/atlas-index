@@ -251,7 +251,7 @@ public class DwCAImportService {
             CompletableFuture.allOf(main, variant, vernacular, identifier).join();
 
             logService.log(taskType, "Finished " + (cacheOnly ? "caching" : "importing") + " archive from " + dir
-                    + " finished: taxon=" + main.get()
+                    + ": taxon=" + main.get()
                     + ", variant=" + variant.get()
                     + ", vernacular=" + vernacular.get()
                     + ", identifier=" + identifier.get());

@@ -88,7 +88,7 @@ public class PostgresSyncService {
                     count++;
 
                     if (updates.size() == batchSize) {
-                        elasticService.update(updates);
+                        elasticService.update(new ArrayList<>(updates));
                         updates.clear();
                     }
                 }
@@ -96,7 +96,7 @@ public class PostgresSyncService {
             }
 
             if (!updates.isEmpty()) {
-                elasticService.update(updates);
+                elasticService.update(new ArrayList<>(updates));
             }
 
             logService.log(taskType, endMsg);

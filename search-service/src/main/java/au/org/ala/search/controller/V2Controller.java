@@ -110,7 +110,7 @@ public class V2Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Map>> species(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of guids or scientificNames to search",
@@ -252,7 +252,7 @@ public class V2Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping("/v2/search")
+    @GetMapping(path = "/v2/search", produces =  MediaType.APPLICATION_JSON_VALUE)
     public /*List<SearchItemIndex>*/ Object search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",

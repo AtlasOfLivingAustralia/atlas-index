@@ -26,10 +26,10 @@ import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -45,10 +45,21 @@ public class TaxonUpdateRunner {
     private final Map<String, String> imageCache = new ConcurrentHashMap<>();
     @Value("${dwca.extract.leftRightCsvPath}")
     String leftRightCsvPath;
+    private Map<String, String> overriddenImages = new ConcurrentHashMap<>();
+    private Map<String, String> overriddenHiddenImages = new ConcurrentHashMap<>();
     @Getter
-    private Map speciesImages;
-    private Map<String, String> overriddenImages;
-    private Map<String, String> overriddenHiddenImages;
+    private final Map<String, String> lftImageCache = new ConcurrentHashMap<>();
+    @Getter
+    private final AtomicInteger updatingImageCounter = new AtomicInteger(0);
+
+    @Value("${images.preferred.fqs}")
+    String[] preferred;
+
+    @Value("${images.required.fq}")
+    String requiredFq;
+
+    @Value("${images.caching.threadpool.size}")
+    int cachingThreadPoolSize;
 
     public TaxonUpdateRunner(ElasticService elasticService, BiocacheApiService biocacheApiService, LogService logService, TaxonDataService taxonDataService) {
         this.elasticService = elasticService;
@@ -61,20 +72,6 @@ public class TaxonUpdateRunner {
     public CompletableFuture<Integer> updateForList(List<Hit<SearchItemIndex>> list) {
         try {
             List<UpdateQuery> updates = new ArrayList<>();
-
-            // Not much data for overriddenImages or overriddenHiddenImages so not yet worth optimizing
-            overriddenImages = new HashMap();
-            for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.IMAGE.field)) {
-                if (StringUtils.isNotEmpty(td.getValue())) {
-                    overriddenImages.put(td.taxonConceptId, td.getValue());
-                }
-            }
-            overriddenHiddenImages = new HashMap();
-            for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.HIDDEN.field)) {
-                if (StringUtils.isNotEmpty(td.getValue())) {
-                    overriddenHiddenImages.put(td.taxonConceptId, td.getValue());
-                }
-            }
 
             // get counts
             List<String> buffer = new ArrayList<>();
@@ -120,9 +117,10 @@ public class TaxonUpdateRunner {
         String overriddenImage = overriddenImages.get(guid);
         String overriddenHiddenImage = overriddenHiddenImages.get(guid);
 
-        String image = overriddenImage != null ? overriddenImage : getImage(guid);
+        String image = StringUtils.isNotEmpty(overriddenImage) ? overriddenImage : getImage(guid);
 
         if (StringUtils.compare(image, storedImage) != 0) {
+            updatingImageCounter.incrementAndGet();
             doc.put(ListBackedFields.IMAGE.field, image);
         }
 
@@ -141,57 +139,128 @@ public class TaxonUpdateRunner {
         return string == null ? null : string.toJson().asJsonArray().getString(0);
     }
 
-    public void buildImageCache() {
+    public void buildImageCache() throws UnsupportedEncodingException {
+        // Not much data for overriddenImages or overriddenHiddenImages so not yet worth optimizing
+        overriddenImages = new ConcurrentHashMap();
+        for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.IMAGE.field)) {
+            if (StringUtils.isNotEmpty(td.getValue())) {
+                overriddenImages.put(td.taxonConceptId, td.getValue());
+            }
+        }
+        overriddenHiddenImages = new ConcurrentHashMap();
+        for (TaxonData td : taxonDataService.findAllByKey(ListBackedFields.HIDDEN.field)) {
+            if (StringUtils.isNotEmpty(td.getValue())) {
+                overriddenHiddenImages.put(td.taxonConceptId, td.getValue());
+            }
+        }
+
+        // get a list of lft values with an image
+        Set<String> lftWithImage = new HashSet(biocacheApiService.getFacet("images:* AND " + requiredFq, null,"lft"));
+        Set<String>[] preferredSets = new Set[preferred.length];
+        for (int i=0;i<preferred.length;i++) {
+            preferredSets[i] = new HashSet(biocacheApiService.getFacet("images:* AND " + requiredFq, preferred[i], "lft"));
+        }
+
         // load left/right lookup
         try (CSVReader reader = new CSVReader(new File(leftRightCsvPath), "UTF-8", ",", '"', 0)) {
             imageCache.clear();
             while (reader.hasNext()) {
                 String[] row = reader.next();
-                imageCache.put(row[0], row[1] + "," + row[2]);
+                if (StringUtils.isNotEmpty(row[1]) && lftWithImage.contains(row[1])) {
+                    imageCache.put(row[0], row[1] + "," + row[2]);
+                }
             }
         } catch (Exception e) {
             log.error("Failed to import dwca.extract.leftRightCsvPath:{}, {}", leftRightCsvPath, e.getMessage(), e);
         }
 
-        // load biocache speciesImages
-        speciesImages = biocacheApiService.getSpeciesImages();
-    }
+        // now that I have lft values, query biocache once for each lft value once for each preferred fq, using required fqs
+        lftImageCache.clear();
+        ExecutorService executor = Executors.newFixedThreadPool(cachingThreadPoolSize);
 
-    String getImage(String id) {
-        // get left/right
-        String leftRight = imageCache.get(id);
-        if (leftRight != null) {
-            String[] leftRightArray = leftRight.split(",");
-            int left = Integer.parseInt(leftRightArray[0]);
-            int right = Integer.parseInt(leftRightArray[1]);
+        AtomicInteger counter = new AtomicInteger();
+        int logInterval = 10000;
 
-            ArrayList<Integer> leftIndex = (ArrayList<Integer>) speciesImages.get("lft");
-
-            // get image
-            int pos = Collections.binarySearch(leftIndex, left);
-            if (pos >= 0) {
-                // exact match on left
-                return (String) ((ArrayList<Map>) speciesImages.get("speciesImage")).get(pos).get("image");
-            }
-
-            // find first item before right
-            pos = pos * -1;
-            while (pos < leftIndex.size()) {
-                int v = leftIndex.get(pos);
-                if (v <= right) {
-                    return (String) ((ArrayList<Map>) speciesImages.get("speciesImage")).get(pos).get("image");
+        for (Map.Entry<String, String> entity : imageCache.entrySet()) {
+            executor.submit(() -> {
+                try {
+                    getImageFor(entity, preferred, requiredFq, preferredSets);
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
                 }
-                pos++;
-            }
-
-            return null;
+                int current = counter.incrementAndGet();
+                if (current % logInterval == 0) {
+                    log.debug("Processed {} image requests out of {}", current, imageCache.size());
+                    logService.log(taskType, "Cached " + current + " imageIds out of " + imageCache.size() + ", current: " + lftImageCache.size());
+                }
+            });
         }
 
-        return null;
+        executor.shutdown();
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while waiting for executor to finish", e);
+        }
+
+        logService.log(taskType, "Cached " + imageCache.size() + " imageIds, current: " + lftImageCache.size());
+
+        // write out lftImageCache to /data/lftImageCache.csv
+        File filePath = new File("/data/search-service/lftImageCache.csv");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (Map.Entry<String, String> entry : lftImageCache.entrySet()) {
+                writer.write(entry.getKey() + "," + entry.getValue());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            log.error("Error writing lftImageCache to file: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get the image for a given entity based on its left/right values and the preferred filters and
+     * writes to the lftImageCache with the entity key (guid).
+     *
+     * @param entity the entity containing the left/right values in the value
+     * @param preferred the preferred filters to apply in order of priority
+     * @param requiredFqs the required filters to apply to the query
+     * @param preferredSets the sets of valid left values for each preferred filter
+     * @throws UnsupportedEncodingException
+     */
+    private void getImageFor(Map.Entry<String, String> entity, String[] preferred, String requiredFqs, Set<String>[] preferredSets) throws UnsupportedEncodingException {
+        String leftRight = entity.getValue();
+        String[] leftRightArray = leftRight.split(",");
+
+        // get the first biocache-service record with an image for the left/right range that matches the first preferred filter
+        for (int i=0;i<preferred.length;i++) {
+            if (!preferredSets[i].contains(leftRightArray[0])) {
+                continue;
+            }
+
+            String images = biocacheApiService.queryOneValue("lft:[" + leftRightArray[0] + " TO " + leftRightArray[1] + "]",
+                    new String[] {"images:*", preferred[i], requiredFqs}, "images");
+            if (StringUtils.isNotEmpty(images)) {
+                lftImageCache.put(entity.getKey(), images);
+                return;
+            }
+        }
+    }
+
+    /**
+     * Get the image for a given taxonConceptId from the cache.
+     *
+     * @param id
+     * @return
+     */
+    String getImage(String id) {
+        return lftImageCache.get(id);
     }
 
     public void clearCache() {
         imageCache.clear();
-        speciesImages = null;
+        lftImageCache.clear();
+        overriddenHiddenImages.clear();
+        overriddenImages.clear();
     }
 }

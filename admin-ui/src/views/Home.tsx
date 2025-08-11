@@ -4,9 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import Menu from '../components/menu.tsx';
 import { Breadcrumb } from '@ala/common-ui';
+import {useAuth} from "react-oidc-context";
 
 const panelStyle = {
     borderRadius: '10px',
@@ -19,25 +20,66 @@ const panelStyle = {
     flex: 1,
 };
 
-const statusUpdates = [
-    { date: '2024-06-10', status: 'Success' },
-    { date: '2024-06-09', status: 'Failure' },
-    { date: '2024-06-08', status: 'Success' },
-    { date: '2024-06-07', status: 'Success' },
-    { date: '2024-06-06', status: 'Success' },
-];
+type Stats = {
+    elasticsearch?: {
+        idxtype?: Record<string, number | string | undefined | null>;
+    };
+    rabbitmq?: Record<string, number | string | undefined | null>;
+    tables?: Record<string, number | string | undefined | null>;
+};
 
 function Home({
     setBreadcrumbs,
 }: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 }) {
+    const [stats, setStats] = useState<Stats>({});
+    const [testResult, setTestResult] = useState({});
+
+    const auth = useAuth();
+
     useEffect(() => {
         setBreadcrumbs([
             { title: 'Home', href: import.meta.env.VITE_HOME_URL },
             { title: 'Admin', href: '/' },
-        ]);
+        ])
+
+        fetchStats();
     }, []);
+
+    function fetchStats() {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/info', {
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + auth.user?.access_token
+            }
+        }).then((response) => {
+            response.json().then((json) => {
+                if (response.ok) {
+                    setStats(json);
+                }
+            });
+        });
+    }
+
+
+    function doTest() {
+        setTestResult({"waiting": true});
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/test', {
+            method: 'GET',
+            headers: {
+                Authorization: 'Bearer ' + auth.user?.access_token
+            }
+        }).then((response) => {
+            response.json().then((json) => {
+                if (response.ok) {
+                    setTestResult(json);
+                } else {
+                    setTestResult({"http error": "response status: " + response.status, "message": json.message});
+                }
+            });
+        });
+    }
 
     return (
         <>
@@ -50,7 +92,6 @@ function Home({
                         left to get started.
                     </p>
 
-                    <p>A fake dashboard below.</p>
                     <div
                         style={{
                             display: 'flex',
@@ -59,54 +100,70 @@ function Home({
                         }}
                     >
                         <div style={panelStyle}>
-                            <h4>Index Size</h4>
-                            <div
-                                style={{ fontSize: '2rem', fontWeight: 'bold' }}
-                            >
-                                4,123,829
-                            </div>
-                        </div>
-
-                        <div style={panelStyle}>
-                            <h4>Status</h4>
-                            <div>
-                                <strong>RabbitMQ Queue Size:</strong> 128
-                            </div>
-                            <div style={{ marginTop: '10px' }}>
-                                <strong>Last 5 Search Index Updates:</strong>
-                                <ul style={{ paddingLeft: '18px', margin: 0 }}>
-                                    {statusUpdates.map((u, i) => (
-                                        <li
-                                            key={i}
-                                            style={{
-                                                color:
-                                                    u.status === 'Success'
-                                                        ? 'green'
-                                                        : 'red',
-                                            }}
-                                        >
-                                            {u.date}: {u.status}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div style={panelStyle}>
-                            <h4>Data Quality Profiles</h4>
-                            <div
-                                style={{ fontSize: '2rem', fontWeight: 'bold' }}
-                            >
-                                17
-                            </div>
+                            <h4>Elasticsearch</h4>
                             <div
                                 style={{
-                                    fontSize: '0.9rem',
-                                    color: '#666',
-                                    marginTop: '8px',
+                                    fontSize: '0.8rem',
+                                    fontWeight: 'bold',
+                                    display: 'flex',
+                                    flexWrap: 'wrap'
                                 }}
                             >
-                                Last Updated: 2024-06-10 12:34:56
+                             {stats?.elasticsearch?.idxtype &&
+                                    Object.entries(stats.elasticsearch.idxtype)
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .map(([key, value], idx) => (
+                                            <div key={idx} style={{ width: '200px'}}>
+                                                <code>{key}</code>: <span style={{fontWeight: "normal"}}>{value}</span>
+                                            </div>
+                                        ))
+                                }
+                            </div>
+                        </div>
+
+                        <div style={panelStyle}>
+                            <h4>RabbitMQ</h4>
+                            <div>
+                                {stats?.rabbitmq &&
+                                    Object.entries(stats.rabbitmq)
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .map(([key, value], idx) => (
+                                            <div key={idx}>
+                                                <strong>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:</strong>
+                                                &nbsp;{value}
+                                            </div>
+                                        ))
+                                }
+                            </div>
+                        </div>
+
+                        <div style={panelStyle}>
+                            <h4>Postgres</h4>
+                            <div>
+                                {stats?.tables &&
+                                    Object.entries(stats.tables)
+                                        .sort(([a], [b]) => a.localeCompare(b))
+                                        .map(([key, value], idx) => (
+                                            <div key={idx}>
+                                                <code><strong>{key}:</strong></code>
+                                                &nbsp;{value}
+                                            </div>
+                                        ))
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card mt-2">
+                        <div className="card-header">
+                            Test Connectivity
+                        </div>
+                        <div className="card-body">
+                            <span className="mt-4">Basic test for elasticsearch connectivity, rabbitmq connnectivity, file stores (data, download, static)</span>
+                            <br/>
+                            <button className="btn btn-primary mt-2" onClick={doTest}>Begin test</button>
+                            <div style={{boxShadow: '0 2px 8px rgba(0,0,0,0.10)', border: '1px solid #ccc', padding: '15px', marginTop: '20px', background: '#e9e9e9'}}>
+                                <pre>{JSON.stringify(testResult, null, 2)}</pre>
                             </div>
                         </div>
                     </div>

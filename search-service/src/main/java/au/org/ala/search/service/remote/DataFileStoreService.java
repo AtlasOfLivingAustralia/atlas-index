@@ -80,7 +80,7 @@ public class DataFileStoreService {
         }
     }
 
-    public File retrieveFile(String fileName) throws IOException {
+    public File get(String fileName) throws IOException {
         if (isS3()) {
             return retrieveFileFromS3(fileName);
         } else {
@@ -107,7 +107,7 @@ public class DataFileStoreService {
 
         // Set the last modified time of the local file to the S3 last modified time
         FileTime fileTime = FileTime.from(response.lastModified());
-        Files.setLastModifiedTime(Paths.get(fileName), fileTime);
+        Files.setLastModifiedTime(tmpFile.toPath(), fileTime);
 
         return tmpFile;
     }

@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <fop version="1.0">
+    <!-- Future: Fix this instead of disabling the font cache. Suspect issue is that the server's user account home dir
+          does not exist, causing FOP to fail -->
+    <use-cache>false</use-cache>
 
   <!-- Source resolution in dpi (dots/pixels per inch) for determining the size of pixels in SVG and bitmap images, default: 72dpi -->
   <source-resolution>72</source-resolution>
@@ -11,6 +14,8 @@
   <renderers>
     <renderer mime="application/pdf">
     <fonts>
+        <use-system-fonts>false</use-system-fonts>
+        <use-cache>false</use-cache>
         <font embed-url="classpath:/templates/fonts/Roboto-Regular.ttf">
             <font-triplet name="Roboto" style="normal" weight="normal"/>
         </font>

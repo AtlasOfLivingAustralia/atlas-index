@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.util.*;
@@ -73,11 +74,13 @@ public class ConfigService {
         }
     }
 
+    @Transactional(readOnly = true)
     public ConfigData get(String id) {
         return configDataPostgresRepository.findByIdNative(id);
     }
 
     // throws a description of the error if the config data is not valid
+    @Transactional()
     public void save(ConfigData configData) {
         // Enforce mandatory fields and non-empty data fields
         if (StringUtils.isEmpty(configData.id) || StringUtils.isEmpty(configData.value)) {
@@ -151,7 +154,13 @@ public class ConfigService {
         return true;
     }
 
+    @Transactional(readOnly = true)
     public List<ConfigData> getAll() {
         return configDataPostgresRepository.findAllNative();
+    }
+
+    @Transactional(readOnly = true)
+    public long count() {
+        return configDataPostgresRepository.count();
     }
 }

@@ -39,11 +39,15 @@ public class TaxonData {
     public String key;
     public String scientificName;
     public String value;
+    public String kingdom;
+    public String family;
 
-    public TaxonData(String taxonConceptId, String key, String scientificName, String value) {
+    public TaxonData(String taxonConceptId, String key, String scientificName, String family, String kingdom, String value) {
         this.taxonConceptId = taxonConceptId;
         this.key = key;
         this.scientificName = scientificName;
         this.value = value;
+        this.family = family;
+        this.kingdom = kingdom;
     }
 }

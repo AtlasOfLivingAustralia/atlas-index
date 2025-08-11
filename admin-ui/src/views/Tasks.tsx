@@ -323,7 +323,7 @@ function Tasks({
                                     </button>
                                 }
                                 {downloadUrl &&
-                                    <a className={"ms-2"} href={downloadUrl}>
+                                    <a className={"ms-2"} href={downloadUrl} target="_blank">
                                         Download Tasks Output
                                     </a>
                                 }

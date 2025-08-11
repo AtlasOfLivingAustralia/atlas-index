@@ -16,10 +16,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -147,5 +144,35 @@ public class StaticFileStoreService {
             log.error("Failed to get the file for srcPath: {}, {}", srcPath, e.getMessage(), e);
         }
         return null;
+    }
+
+    public boolean delete(String filePath) {
+        try {
+            if (fileStorePath.startsWith("s3")) {
+                // s3 storage
+                String bucket = fileStorePath.substring(5, fileStorePath.indexOf("/", 5));
+                String path = fileStorePath.substring(fileStorePath.indexOf("/", 5) + 1);
+                DeleteObjectRequest request = DeleteObjectRequest.builder()
+                        .bucket(bucket)
+                        .key(path + "/" + filePath)
+                        .build();
+                CompletableFuture<DeleteObjectResponse> result = s3Client.deleteObject(request);
+
+                result.join();
+
+                // report error
+                if (result.isCompletedExceptionally()) {
+                    log.error("Failed to delete file on s3: {}/{}", path, filePath);
+                    return false;
+                }
+            } else {
+                // local file system
+                FileUtils.delete(new File(fileStorePath + "/" + filePath));
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete file: {}, {}", filePath, e.getMessage(), e);
+            return false;
+        }
     }
 }

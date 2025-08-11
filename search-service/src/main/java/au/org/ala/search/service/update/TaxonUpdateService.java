@@ -57,15 +57,23 @@ public class TaxonUpdateService {
     }
 
     private boolean updateAccepted() {
-        logService.log(taskType, "Start paging for occurrences count");
+        logService.log(taskType, "Start caching for occurrences count and images update");
 
-        taxonUpdateRunner.buildImageCache();
-
-        if (taxonUpdateRunner.getSpeciesImages() == null || taxonUpdateRunner.getSpeciesImages().isEmpty() ||
-                taxonUpdateRunner.getImageCache() == null || taxonUpdateRunner.getImageCache().isEmpty()) {
-            logService.log(taskType, "Failed occurrences counts. Image cache failed");
+        try {
+            taxonUpdateRunner.buildImageCache();
+        } catch (Exception e) {
+            logService.log(taskType, "Failed to build image cache: " + e.getMessage());
+            log.error("Failed to build image cache: {}", e.getMessage(), e);
             return false;
         }
+
+        if (taxonUpdateRunner.getLftImageCache() == null || taxonUpdateRunner.getLftImageCache().isEmpty() ||
+                taxonUpdateRunner.getImageCache() == null || taxonUpdateRunner.getImageCache().isEmpty()) {
+            logService.log(taskType, "Image cache failed");
+            return false;
+        }
+
+        logService.log(taskType, "Start update for occurrences count and images");
 
         acceptedConceptName = new HashMap<>();
 
@@ -115,7 +123,7 @@ public class TaxonUpdateService {
                 counter += hits.size();
 
                 if (counter % 20000 == 0) {
-                    logService.log(taskType, "occurrence counts progress: " + counter);
+                    logService.log(taskType, "occurrence counts progress: " + counter + ", images updated: " + taxonUpdateRunner.getUpdatingImageCounter().get());
                 }
 
                 hasMore = hits.size() == pageSize;

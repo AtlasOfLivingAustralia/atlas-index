@@ -17,6 +17,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,5 +96,51 @@ public class BiocacheApiService {
         }
 
         return result;
+    }
+
+    public List<String> getFacet(String q, String fq, String facet) throws UnsupportedEncodingException {
+        List<String> result = new ArrayList<>();
+
+        String fqTerm = fq == null ? "" : "&fq=" + URLEncoder.encode(fq, StandardCharsets.UTF_8);
+        String url = biocacheWsUrl + "/occurrences/search?q=" + URLEncoder.encode(q, StandardCharsets.UTF_8) + fqTerm + "&pageSize=0&flimit=-1&facets=" + facet;
+        Map resp = webService.get(url, null, ContentType.APPLICATION_JSON, false, false, null);
+        if (((Integer) resp.get("statusCode")) != 200) {
+            log.error("Failed biocache facet for url: {}", url);
+            return result;
+        }
+
+        List facetResults = (List) ((Map) resp.get("resp")).get("facetResults");
+        if (facetResults == null || facetResults.isEmpty()) {
+            log.warn("No facet results found for url: {}", url);
+            return result;
+        }
+
+        for (Object item : (List) ((Map) (facetResults.get(0))).get("fieldResult")) {
+            Map<String, Object> map = (Map<String, Object>) item;
+            result.add(map.get("label").toString());
+        }
+
+        return result;
+    }
+
+    public String queryOneValue(String q, String[] fqs, String field) throws UnsupportedEncodingException {
+        String formattedQ = URLEncoder.encode(q, StandardCharsets.UTF_8);
+        StringBuilder formattedFq = new StringBuilder();
+        for (String fq : fqs) {
+            formattedFq.append("&fq=").append(URLEncoder.encode(fq, StandardCharsets.UTF_8));
+        }
+        String url = biocacheWsUrl + "/occurrences/search?q=" + formattedQ + formattedFq + "&pageSize=1&fl=" + field;
+        Map resp = webService.get(url, null, ContentType.APPLICATION_JSON, false, false, null);
+        if (((Integer) resp.get("statusCode")) != 200) {
+            log.error("failed to get biocache response for: {}", url);
+            return null;
+        }
+
+        List occurrences = (List) ((Map) resp.get("resp")).get("occurrences");
+        if (occurrences == null || occurrences.isEmpty()) {
+            return null;
+        }
+
+        return (String) ((List) ((Map) occurrences.get(0)).get(field)).get(0);
     }
 }

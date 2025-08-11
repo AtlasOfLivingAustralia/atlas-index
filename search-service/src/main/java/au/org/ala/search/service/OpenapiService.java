@@ -96,6 +96,9 @@ public class OpenapiService {
 
     String listOfGuids() throws IOException {
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND -acceptedConceptID:*", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
@@ -111,6 +114,9 @@ public class OpenapiService {
     String fieldguideExample() throws IOException {
         // get 5 "idxtype:TAXON and -acceptedConceptID:* and image:*" guids
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND -acceptedConceptID:* AND image:*", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
@@ -132,6 +138,9 @@ public class OpenapiService {
     String listOfGuidsWithAnImage() throws IOException {
         // get 5 "idxtype:TAXON and -acceptedConceptID:* and image:*" guids
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND -acceptedConceptID:* AND image:*", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
@@ -147,6 +156,9 @@ public class OpenapiService {
     String guidWithAnImage() throws IOException {
         // get 1 "idxtype:TAXON and -acceptedConceptID:* and image:* and rank:species" guids
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND -acceptedConceptID:* AND image:* AND rank:\"species\"", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
@@ -162,6 +174,9 @@ public class OpenapiService {
     String listOfNamesWrapped() throws IOException {
         // get 5 "idxtype:TAXON and -acceptedConceptID:*" names
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND -acceptedConceptID:*", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 5,
@@ -248,6 +263,9 @@ public class OpenapiService {
     String parentGuid() throws IOException {
         // get 1 "idxtype:TAXON and parentGuid:*" guids
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND parentGuid:*", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
@@ -263,6 +281,9 @@ public class OpenapiService {
     String guidWithRkGenus() throws IOException {
         // get 1 "idxtype:TAXON and parentGuid:* and rank:species" guids
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND parentGuid:* AND rank:\"species\"", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,
@@ -278,6 +299,9 @@ public class OpenapiService {
     String acceptedName() throws IOException {
         // get 1 "idxtype:TAXON and parentGuid:* and rank:species" name
         Op op = QueryParserUtil.parse("idxtype:\"TAXON\" AND parentGuid:* AND rank:\"species\"", null, elasticService::isValidField);
+        if (op == null) {
+            throw new IOException("Failed to parse query for listOfGuids, Elasticsearch index may be empty.");
+        }
         co.elastic.clients.elasticsearch._types.query_dsl.Query queryOp = elasticService.opToQuery(op);
 
         SearchResponse<SearchItemIndex> result = elasticService.queryPointInTimeAfter(null, null, 1,

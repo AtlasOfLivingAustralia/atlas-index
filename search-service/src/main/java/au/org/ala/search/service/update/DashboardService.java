@@ -128,7 +128,7 @@ public class DashboardService {
             logService.log(taskType, "Finished, errors: " + errorCount);
         } catch (IOException e) {
             logService.log(taskType, "Failed to save: " + dataDir + "/dashboard.json, errors:" + (errorCount + 1));
-            log.error("failed to save: {}/dashboard.json", dataDir);
+            log.error("failed to save: {}/dashboard.json", dataDir, e);
         }
 
         return CompletableFuture.completedFuture(true);

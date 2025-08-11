@@ -20,6 +20,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -353,6 +354,7 @@ public class QualityDataService {
         return result;
     }
 
+    @Transactional()
     public boolean delete(Long profileId) {
         synchronized (editLock) {
             try {
@@ -371,6 +373,7 @@ public class QualityDataService {
     }
 
     // Requests are from admin only, so there is a high level of trust in the data
+    @Transactional()
     public QualityProfile save(QualityProfile profile) {
         List<QualityProfile> profiles = this.profiles;
 
@@ -469,11 +472,17 @@ public class QualityDataService {
     }
 
     // fetch the profile by shortName from the database without caching
+    @Transactional(readOnly = true)
     public QualityProfile getProfileNow(String shortName) {
         List<QualityProfile> list = dataQualityRepository.findAllByShortName(shortName);
         if (list.isEmpty()) {
             return null;
         }
         return list.get(0);
+    }
+
+    @Transactional(readOnly = true)
+    public long count() {
+        return dataQualityRepository.count();
     }
 }
