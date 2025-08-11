@@ -19,7 +19,7 @@ import {
 } from '../util.tsx';
 import missingImage from '../../../image/missing-image.png';
 import capitalise from '../../../helpers/Capitalise.ts';
-import { FadeInImage } from '@ala/common-ui';
+import {FadeInImage} from '@ala/common-ui';
 
 export const environmentallayersDefn: GenericViewProps = {
     fq: 'idxtype:LAYER',
@@ -119,11 +119,11 @@ export const environmentallayersDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+                           item,
+                           navigate,
+                           wide,
+                           isMobile,
+                       }: RenderItemParams) => {
         const elements: RenderItemElements = {
             image: (
                 <FadeInImage
@@ -166,60 +166,42 @@ export const environmentallayersDefn: GenericViewProps = {
             clickFn: () =>
                 openUrl(
                     import.meta.env.VITE_SPATIAL_URL +
-                        '?layers=' +
-                        item.guid.split('/').pop()
+                    '?layers=' +
+                    item.guid.split('/').pop()
                 ),
         };
         return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
+            {item, navigate, wide, isMobile},
             elements
         );
     },
 
-    renderTileItemFn: ({ item, isMobile }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile} />,
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
             title: (
                 <>
-                    <span
-                        className={classes.listItemName}
-                        style={{ marginBottom: '8px' }}
-                    >
+                    <span className={classes.listItemName} style={{marginBottom: '8px'}}>
                         {item.name}
                     </span>
                     {item.keywords && (
-                        <span
-                            className={classes.overflowText}
-                            title={item.keywords}
-                        >
+                        <span className={classes.overflowText} title={item.keywords}>
                             {item.keywords}
                         </span>
                     )}
                     {item.source && (
-                        <span
-                            title={item.source}
-                            className={classes.overflowText}
-                        >
+                        <span title={item.source} className={classes.overflowText}>
                             {item.source}
                         </span>
                     )}
                     {item.description && (
-                        <span
-                            style={{ marginTop: '13px' }}
-                            className={classes.listDescription}
-                            title={item.description}
-                        >
+                        <span style={{marginTop: '13px'}} className={classes.listDescription} title={item.description}>
                             {item.description}
                         </span>
                     )}
                 </>
             ),
-            clickFn: () =>
-                openUrl(
-                    import.meta.env.VITE_SPATIAL_URL +
-                        '?layers=' +
-                        item.guid.split('/').pop()
-                ),
+            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

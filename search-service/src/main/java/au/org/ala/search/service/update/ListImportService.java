@@ -140,7 +140,7 @@ public class ListImportService {
                     "iucn_" + listId,
                     (it -> {
                         for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                            if (map.get("key").equals(getListsConservationIUCNStatusField)) {
+                            if (map.get("key").equalsIgnoreCase(getListsConservationIUCNStatusField)) {
                                 return map.get("value");
                             }
                         }

@@ -121,20 +121,11 @@ export const datasetsDefn: GenericViewProps = {
         return renderGenericTileItemFn(isMobile, elements);
     },
 
-    addCustomFacetsFn: ({
-        url,
-        thisFacetFqs,
-        parentData,
-        setCustomFacetData,
-    }: CustomFacetFn) => {
+    addCustomFacetsFn: ({url, thisFacetFqs, parentData, setCustomFacetData,}: CustomFacetFn) => {
         // 1. Add a custom facet for the "Type" of dataset from idxtype and resourceType fields
         var typeFacet = {};
-        var idxtypeFacet: any = Object.values(parentData.facetResults).find(
-            (f: any) => f.fieldName === 'idxtype'
-        );
-        var resourceTypeFacet: any = Object.values(
-            parentData.facetResults
-        ).find((f: any) => f.fieldName === 'resourceType');
+        var idxtypeFacet: any = Object.values(parentData.facetResults).find((f: any) => f.fieldName === 'idxtype');
+        var resourceTypeFacet: any = Object.values(parentData.facetResults).find((f: any) => f.fieldName === 'resourceType');
         var resourceTypeItems: any[] = [];
         if (resourceTypeFacet) {
             resourceTypeFacet.fieldResult.forEach((status: any) => {
@@ -148,9 +139,7 @@ export const datasetsDefn: GenericViewProps = {
                 });
             });
             // sort by label
-            resourceTypeItems.sort((a: any, b: any) => {
-                return a.label.localeCompare(b.label);
-            });
+            resourceTypeItems.sort((a: any, b: any) => {return a.label.localeCompare(b.label);});
         }
         var typeItems: any[] = [];
         if (idxtypeFacet) {
@@ -158,17 +147,14 @@ export const datasetsDefn: GenericViewProps = {
                 var fq = 'idxtype:"' + status.label + '"';
                 typeItems.push({
                     fq: fq,
-                    label:
-                        idxtypeLabels[status.label] || capitalise(status.label),
+                    label: idxtypeLabels[status.label] || capitalise(status.label),
                     count: status.count,
                     depth: 0,
                     selected: thisFacetFqs.includes(fq),
                 });
             });
             // sort by label
-            typeItems.sort((a: any, b: any) => {
-                return a.label.localeCompare(b.label);
-            });
+            typeItems.sort((a: any, b: any) => {return a.label.localeCompare(b.label);});
             // insert resourceType items into typeItems after DATARESOURCE
             var dataResourceIndex = typeItems.findIndex(
                 (item: any) => item.label == idxtypeLabels['DATARESOURCE']

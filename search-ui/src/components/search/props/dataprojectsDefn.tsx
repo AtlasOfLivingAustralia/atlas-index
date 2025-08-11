@@ -20,24 +20,52 @@ import {
 import missingImage from '../../../image/missing-image.png';
 import { FadeInImage } from '@ala/common-ui';
 
+function formatCategory(category: string) {
+    if (category == 'BIOCOLLECT') {
+        return 'Biocollect';
+    } else {
+        return 'DigiVol';
+    }
+}
+
 export const dataprojectsDefn: GenericViewProps = {
     fq: 'idxtype:BIOCOLLECT OR idxtype:DIGIVOL',
 
     sortByDate: true,
 
     facetDefinitions: {
-        projectType: {
+        idxtype: {
             label: 'Type',
             order: 1,
+            parseFacetFn: (facet: any, facetList: any[]) => {
+                // basic facets, with custom label
+                var items: any[] = [];
+                facet.fieldResult.forEach((status: any) => {
+                    var fq = facet.fieldName + ':"' + status.label + '"';
+                    items.push({
+                        fq: fq,
+                        label: formatCategory(status.label),
+                        count: status.count,
+                        depth: 0,
+                    });
+                });
+                if (items.length > 0) {
+                    // sort by label
+                    items.sort((a: any, b: any) => {
+                        return a.label.localeCompare(b.label);
+                    });
+
+                    facetList.push({
+                        name: 'Type',
+                        items: items,
+                        order: 1,
+                    });
+                }
+            },
         },
     },
 
-    renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile,}: RenderItemParams) => {
         const elements: RenderItemElements = {
             image: (
                 <FadeInImage
@@ -82,16 +110,10 @@ export const dataprojectsDefn: GenericViewProps = {
             image: <TileImage image={item.image} isMobile={isMobile} />,
             title: (
                 <>
-                    <span
-                        className={classes.listItemName}
-                        style={{ marginBottom: '13px' }}
-                    >
+                    <span className={classes.listItemName} style={{ marginBottom: '13px' }}>
                         {item.name}
                     </span>
-                    <span
-                        title={item.description}
-                        className={classes.listDescription}
-                    >
+                    <span title={item.description} className={classes.listDescription}>
                         {item.description}
                     </span>
                 </>

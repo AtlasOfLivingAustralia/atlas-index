@@ -30,8 +30,6 @@ export function FadeInImage({missingImage, placeholderDimensions, usePlaceholder
 
     const imgRef = useRef<HTMLImageElement | null>(null);
 
-    console.log(currentHeight, currentWidth, "initial dimensions");
-
     useEffect(() => {
         setLoaded(false);
     }, [props.src]);
@@ -43,7 +41,6 @@ export function FadeInImage({missingImage, placeholderDimensions, usePlaceholder
             setCurrentWidth(rect.width);
             setCurrentHeight(rect.height);
         }
-        console.log("Image loaded:", loaded, "Current dimensions:", currentWidth, currentHeight);
     }, [loaded]);
 
     return <>

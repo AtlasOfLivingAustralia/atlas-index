@@ -4,15 +4,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { JSX, useEffect, useRef, useState } from 'react';
+import {JSX, useEffect, useRef, useState} from 'react';
 import {
     LayersControl,
     MapContainer,
     TileLayer,
     WMSTileLayer,
 } from 'react-leaflet';
-import { LatLng, LayersControlEvent } from 'leaflet';
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import {LatLng, LayersControlEvent} from 'leaflet';
+import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 
 import 'leaflet/dist/leaflet.css';
@@ -20,7 +20,7 @@ import classes from './species.module.css';
 import Legend from './mapLegend';
 import Control from 'react-leaflet-custom-control';
 import FormatName from '../nameUtils/formatName';
-import { faRotateRight } from '@fortawesome/free-solid-svg-icons';
+import {faRotateRight} from '@fortawesome/free-solid-svg-icons';
 import {
     FlaggedAlert,
     FontAwesomeIconLite,
@@ -48,7 +48,7 @@ interface Distribution {
     checked?: boolean;
 }
 
-function MapView({ tab, result }: MapViewProps) {
+function MapView({tab, result}: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(-1);
     const [showOccurrences, setShowOccurrences] = useState(true);
     const [distributions, setDistributions] = useState<Distribution[]>([]);
@@ -151,9 +151,9 @@ function MapView({ tab, result }: MapViewProps) {
                     d.areaName + ', ' + d.dataResourceName ===
                     dist.areaName + ', ' + dist.dataResourceName
                         ? {
-                              ...d,
-                              checked: isVisible,
-                          }
+                            ...d,
+                            checked: isVisible,
+                        }
                         : d
                 );
                 setDistributions(updatedDistributions);
@@ -181,7 +181,7 @@ function MapView({ tab, result }: MapViewProps) {
         {
             name: (
                 <>
-                    Explore and download <br />
+                    Explore and download <br/>
                     occurrence records
                 </>
             ),
@@ -194,7 +194,7 @@ function MapView({ tab, result }: MapViewProps) {
         {
             name: (
                 <>
-                    How to submit <br />
+                    How to submit <br/>
                     observations
                 </>
             ),
@@ -203,7 +203,7 @@ function MapView({ tab, result }: MapViewProps) {
         {
             name: (
                 <>
-                    Receive alerts for <br />
+                    Receive alerts for <br/>
                     new records
                 </>
             ),
@@ -280,7 +280,7 @@ function MapView({ tab, result }: MapViewProps) {
                             .
                         </>
                     }
-                    style={{ marginBottom: '40px' }}
+                    style={{marginBottom: '40px'}}
                 />
             )}
             <InfoBox
@@ -298,12 +298,12 @@ function MapView({ tab, result }: MapViewProps) {
             />
             <div
                 className="d-flex flex-row gap-3"
-                style={{ marginTop: '30px' }}
+                style={{marginTop: '30px'}}
             >
-                <div style={{ display: 'relative', paddingLeft: '5px' }}>
+                <div style={{display: 'relative', paddingLeft: '5px'}}>
                     <span
                         className={classes.refineTitle}
-                        style={{ display: 'block' }}
+                        style={{display: 'block'}}
                     >
                         Refine map
                     </span>
@@ -354,7 +354,7 @@ function MapView({ tab, result }: MapViewProps) {
                                     const updatedDistributions =
                                         distributions.map((d, i) =>
                                             i === idx
-                                                ? { ...d, checked: !d.checked }
+                                                ? {...d, checked: !d.checked}
                                                 : d
                                         );
                                     setDistributions(updatedDistributions);
@@ -365,18 +365,9 @@ function MapView({ tab, result }: MapViewProps) {
                         )}
 
                     {distributions && distributions.length === 0 && (
-                        <span
-                            style={{
-                                fontSize: '0.875rem',
-                                color: 'grey',
-                                display: 'block',
-                            }}
-                        >
+                        <span style={{fontSize: '0.875rem', color: 'grey', display: 'block', marginTop: '15px'}}>
                             No expert distribution maps available for{' '}
-                            <FormatName
-                                name={result?.name}
-                                rankId={result?.rankID}
-                            />
+                            <FormatName name={result?.name} rankId={result?.rankID}/>
                         </span>
                     )}
                 </div>
@@ -388,19 +379,19 @@ function MapView({ tab, result }: MapViewProps) {
                     }}
                 >
                     <span
-                        style={{ marginBottom: '15px', display: 'block' }}
+                        style={{marginBottom: '15px', display: 'block'}}
                         className={classes.refineTitle}
                     >
                         {formatNumber(occurrenceCount)} occurrence records
                     </span>
-                    <div style={{ position: 'relative' }}>
+                    <div style={{position: 'relative'}}>
                         <MapContainer
                             ref={mapRef}
                             center={center}
                             zoom={defaultZoom}
                             scrollWheelZoom={false}
                             worldCopyJump={true}
-                            style={{ height: '530px', borderRadius: '10px' }}
+                            style={{height: '530px', borderRadius: '10px'}}
                             whenReady={() => setMapReady(true)}
                         >
                             {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
@@ -515,10 +506,10 @@ function MapView({ tab, result }: MapViewProps) {
                                         )
                                     }
                                 >
-                                    <div style={{ marginTop: '-1px' }}>
+                                    <div style={{marginTop: '-1px'}}>
                                         <FontAwesomeIconLite
                                             icon={faRotateRight}
-                                            style={{ lineHeight: '10px' }}
+                                            style={{lineHeight: '10px'}}
                                         />
                                     </div>
                                 </button>
@@ -529,14 +520,14 @@ function MapView({ tab, result }: MapViewProps) {
             </div>
             <hr
                 className={classes.hrColour}
-                style={{ marginTop: '30px', marginBottom: '40px' }}
+                style={{marginTop: '30px', marginBottom: '40px'}}
             />
             <span className={classes.speciesDescriptionTitle}>
                 Getting started
             </span>
             <div
                 className="d-flex flex-wrap"
-                style={{ rowGap: '40px', columnGap: '30px', marginTop: '30px' }}
+                style={{rowGap: '40px', columnGap: '30px', marginTop: '30px'}}
             >
                 {onlineResources.map((resource, idx) => (
                     <a

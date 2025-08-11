@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import React, { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import React, {useEffect, useState} from 'react';
+import {Route, Routes} from 'react-router-dom';
 import Species from './views/Species';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
@@ -33,8 +33,8 @@ const App: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([
-        { title: 'Home', href: import.meta.env.VITE_HOME_URL },
-        { title: 'Search', href: '/' },
+        {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+        {title: 'Search', href: '/'},
     ]);
     const [_, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
@@ -87,37 +87,17 @@ const App: React.FC = () => {
                 headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
             />
 
-            <Breadcrumbs breadcrumbs={breadcrumbs} />
+            <Breadcrumbs breadcrumbs={breadcrumbs}/>
 
-            <Banner
-                bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL}
-                scope={import.meta.env.VITE_BANNER_SCOPE}
-            />
+            <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE}/>
 
             <Routes>
-                <Route
-                    path="/species/*"
-                    element={
-                        <Species
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) =>
-                                setBreadcrumbs(crumbs)
-                            }
-                        />
-                    }
-                />
-                <Route
-                    path="/"
-                    element={
-                        <Search
-                            setBreadcrumbs={(crumbs: Breadcrumb[]) =>
-                                setBreadcrumbs(crumbs)
-                            }
-                        />
-                    }
-                />
-                <Route path="*" element={<NotFound />} />
+                <Route path="/species/*"
+                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                <Route path="*" element={<NotFound/>}/>
             </Routes>
-            <div style={{ height: '60px' }} />
+            <div style={{height: '60px'}}/>
 
             <Footer
                 isLoggedIn={isLoggedIn}

@@ -197,6 +197,7 @@
     font-family: 'Roboto';
     color: #212121;
     display: block;
+    overflow-wrap: anywhere;
 }
 
 .hideMobile {
@@ -352,7 +353,9 @@
     border-radius: 10px;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    max-height: 500px;
+    max-width: 500px;
 }
 
 .speciesDescriptionTitle {
@@ -394,38 +397,6 @@
     .refineTitle {
         font-size: 16px;
         line-height: 22px;
-    }
-}
-
-.refineSectionTitle {
-    color: #c44d34 !important;
-
-    /* Desktop/Body/Semibold */
-    font-family: Roboto;
-    font-size: 16px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 24px; /* 150% */
-
-    display: block;
-}
-
-@media (max-width: 768px) {
-    .refineSectionTitle {
-        font-size: 14px;
-        line-height: 20px;
-    }
-}
-
-.refineItem {
-    overflow-x: hidden;
-}
-
-@media (max-width: 768px) {
-    .refineItem {
-        font-size: 12px;
-        line-height: 16px;
-        margin-top: 1px;
     }
 }
 
