@@ -36,7 +36,7 @@ public class UtilController {
     }
 
     @Tag(name = "unsupported")
-    @GetMapping("/trait-count")
+    @GetMapping(path = "/trait-count", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> austraitsCount(
             @RequestParam(name = "taxon") String taxon,
             @RequestParam(name = "APNI_ID", required = false) String id
@@ -49,7 +49,7 @@ public class UtilController {
     }
 
     @Tag(name = "unsupported")
-    @GetMapping("/trait-summary")
+    @GetMapping(path ="/trait-summary", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> austraitsSummary(
             @RequestParam(name = "taxon") String taxon,
             @RequestParam(name = "APNI_ID", required = false) String id

@@ -57,6 +57,10 @@ public class BiocacheApiService {
         map.add("guids", StringUtils.join(guids, ","));
         map.add("separator", ",");
 
+        // Performance: Switch to use an occurrences/search query to retrieve the entire facet and counts for the lft
+        //  field. Then use lsid-left-right.csv to determine the actual counts for the guids.
+        //  e.g. occurrences/search?q=lft:*&facets=lft&pageSize=0&flimit=-1, sort lft, and
+        //  then count the returned facet occurrence value for the lft/rgt range of a given lsid.
         ResponseEntity<Map> response = restTemplate.exchange(
                 biocacheWsUrl + "/occurrences/taxaCount",
                 HttpMethod.POST,
@@ -123,13 +127,22 @@ public class BiocacheApiService {
         return result;
     }
 
-    public String queryOneValue(String q, String[] fqs, String field) throws UnsupportedEncodingException {
+    /**
+     * Image field query that will return up to 3 values for the given field, each for a different occurrence.
+     *
+     * @param q either this or fqs must contain 'images:*'
+     * @param fqs either this or q must contain 'images:*'
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    public String[] queryImages(String q, String[] fqs) throws UnsupportedEncodingException {
+        String field = "images";
         String formattedQ = URLEncoder.encode(q, StandardCharsets.UTF_8);
         StringBuilder formattedFq = new StringBuilder();
         for (String fq : fqs) {
             formattedFq.append("&fq=").append(URLEncoder.encode(fq, StandardCharsets.UTF_8));
         }
-        String url = biocacheWsUrl + "/occurrences/search?q=" + formattedQ + formattedFq + "&pageSize=1&fl=" + field;
+        String url = biocacheWsUrl + "/occurrences/search?q=" + formattedQ + formattedFq + "&pageSize=3&fl=" + field;
         Map resp = webService.get(url, null, ContentType.APPLICATION_JSON, false, false, null);
         if (((Integer) resp.get("statusCode")) != 200) {
             log.error("failed to get biocache response for: {}", url);
@@ -141,6 +154,16 @@ public class BiocacheApiService {
             return null;
         }
 
-        return (String) ((List) ((Map) occurrences.get(0)).get(field)).get(0);
+        // no need to check for nulls because due to the function comment
+        String [] result = new String[occurrences.size()];
+        for (int i = 0; i < occurrences.size(); i++) {
+            Map occurrence = (Map) occurrences.get(i);
+            if (occurrence.containsKey(field)) {
+                List images = (List) occurrence.get(field);
+                result[i] = (String) images.get(0);
+            }
+        }
+
+        return result;
     }
 }

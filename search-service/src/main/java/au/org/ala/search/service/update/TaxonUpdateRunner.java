@@ -157,9 +157,9 @@ public class TaxonUpdateRunner {
         }
 
         // get a list of lft values with an image
-        Set<String> lftWithImage = new HashSet(biocacheApiService.getFacet("images:* AND " + requiredFq, null,"lft"));
+        Set<String> lftWithImage = new HashSet(biocacheApiService.getFacet("images:* AND " + requiredFq, null, "lft"));
         Set<String>[] preferredSets = new Set[preferred.length];
-        for (int i=0;i<preferred.length;i++) {
+        for (int i = 0; i < preferred.length; i++) {
             preferredSets[i] = new HashSet(biocacheApiService.getFacet("images:* AND " + requiredFq, preferred[i], "lft"));
         }
 
@@ -221,12 +221,14 @@ public class TaxonUpdateRunner {
     }
 
     /**
-     * Get the image for a given entity based on its left/right values and the preferred filters and
+     * Get the images for a given entity based on its left/right values and the preferred filters and
      * writes to the lftImageCache with the entity key (guid).
      *
-     * @param entity the entity containing the left/right values in the value
-     * @param preferred the preferred filters to apply in order of priority
-     * @param requiredFqs the required filters to apply to the query
+     * Fetches up to 3 images for unique occurrences.
+     *
+     * @param entity        the entity containing the left/right values in the value
+     * @param preferred     the preferred filters to apply in order of priority
+     * @param requiredFqs   the required filters to apply to the query
      * @param preferredSets the sets of valid left values for each preferred filter
      * @throws UnsupportedEncodingException
      */
@@ -235,17 +237,29 @@ public class TaxonUpdateRunner {
         String[] leftRightArray = leftRight.split(",");
 
         // get the first biocache-service record with an image for the left/right range that matches the first preferred filter
-        for (int i=0;i<preferred.length;i++) {
+        List<String> imagesList = new ArrayList<>();
+        for (int i = 0; i < preferred.length; i++) {
             if (!preferredSets[i].contains(leftRightArray[0])) {
                 continue;
             }
 
-            String images = biocacheApiService.queryOneValue("lft:[" + leftRightArray[0] + " TO " + leftRightArray[1] + "]",
-                    new String[] {"images:*", preferred[i], requiredFqs}, "images");
-            if (StringUtils.isNotEmpty(images)) {
-                lftImageCache.put(entity.getKey(), images);
-                return;
+            String[] images = biocacheApiService.queryImages("lft:[" + leftRightArray[0] + " TO " + leftRightArray[1] + "]",
+                    new String[]{"images:*", preferred[i], requiredFqs});
+            if (images != null) {
+                for (int pos = 0;pos < images.length && imagesList.size() < 3; pos++) {
+                    // need to check for duplicates should preferred queries return the same image
+                    if (!imagesList.contains(images[pos])) {
+                        imagesList.add(images[pos]);
+                    }
+                }
+                if (imagesList.size() >= 3) {
+                    break;
+                }
             }
+        }
+
+        if (!imagesList.isEmpty()) {
+            lftImageCache.put(entity.getKey(), StringUtils.join(imagesList, ","));
         }
     }
 
