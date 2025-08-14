@@ -68,12 +68,10 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         const map = mapRef.current;
 
         function handleOverlayAdd(e: LayersControlEvent) {
-            console.log('handleOverlayAdd', e);
             updateLayerVisibilityState(e, true);
         }
 
         function handleOverlayRemove(e: LayersControlEvent) {
-            console.log('handleOverlayRemove', e);
             updateLayerVisibilityState(e, false);
         }
 
@@ -149,6 +147,9 @@ function MapView({tab, result, isMobile}: MapViewProps) {
     }
 
     function formatNumber(occurrenceCount: any) {
+        if (!occurrenceCount) {
+            return '0';
+        }
         return occurrenceCount.toLocaleString();
     }
 

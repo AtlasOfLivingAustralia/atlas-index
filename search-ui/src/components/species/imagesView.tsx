@@ -23,7 +23,8 @@ interface MediaTypes {
         creator?: string;
         rightsHolder?: string;
         license?: string;
-        imageId: string; height: number; width: number }[];
+        imageId: string; height: number; width: number
+    }[];
     videos: string[];
     sounds: string[];
     license?: string;
@@ -418,15 +419,17 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                       style={{width: '150px', height: '190px', borderRadius: '10px'}}>&nbsp;</span>
                 </span>
         </>) : (<>
-            <span className={classes.refineTitle} style={{display: 'block'}}>Refine occurrences</span>
+            {occurrenceCount != 0 && <>
+                <span className={classes.refineTitle} style={{display: 'block'}}>Refine occurrences</span>
 
-            {refineSection('Media type', itemsForFacet('multimedia'))}
+                {refineSection('Media type', itemsForFacet('multimedia'))}
 
-            {refineSection('Occurrence type', itemsForFacet('basisOfRecord'))}
+                {refineSection('Occurrence type', itemsForFacet('basisOfRecord'))}
 
-            {refineSection('Licence type', itemsForFacet('license'))}
+                {refineSection('Licence type', itemsForFacet('license'))}
 
-            {refineSection('Dataset', itemsForFacet('dataResourceName'))}
+                {refineSection('Dataset', itemsForFacet('dataResourceName'))}
+            </>}
         </>)}
     </>
 
@@ -438,11 +441,11 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                 }
 
                 <div style={{flex: 1}}>
-                    {isMobile && (
+                    {isMobile && occurrenceCount !== 0 && (
                         <div style={{marginBottom: '15px'}}>
                             <button onClick={() => setShowRefineDialog(true)} className={'ala-btn-secondary'}
                                     style={{width: '100%'}}>
-                                Refine results
+                                Refine occurrences
                             </button>
                         </div>
                     )}
@@ -466,7 +469,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 </span>
                             ) : (formatNumber(occurrenceCount))}{' '}
                             occurrences</span>
-                        {!isMobile && <div className="d-flex align-items-center gap-3">
+                        {!isMobile && occurrenceCount !== 0 && <div className="d-flex align-items-center gap-3">
                             <span className={classes.headerLabels}>Sort by</span>
                             <select className={`form-select ${classes.alaSelect}`}
                                     value={sortDir}
@@ -622,7 +625,8 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                             height: 'calc(100vh - 350px)',
                             textAlign: 'center'
                         }}>
-                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`} target="_blank">
+                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
+                               target="_blank">
                                 <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -661,10 +665,12 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                             </a>
                         </div>
                         <div className="d-flex flex-row justify-content-between align-items-center">
-                            <div className="d-flex flex-column" style={{maxWidth: '50%',  overflow: 'auto'}}>
-                                {items[openImageIdx].creator && <span>Rights holder: {items[openImageIdx].rightsHolder}</span>}
+                            <div className="d-flex flex-column" style={{maxWidth: '50%', overflow: 'auto'}}>
+                                {items[openImageIdx].creator &&
+                                    <span>Rights holder: {items[openImageIdx].rightsHolder}</span>}
                                 {/*{items[openImageIdx].license && <span>License: {items[openImageIdx].license}</span>}*/}
-                                {items[openImageIdx].eventDate && <span>Date: {new Date(items[openImageIdx].eventDate).toLocaleDateString()}</span>}
+                                {items[openImageIdx].eventDate &&
+                                    <span>Date: {new Date(items[openImageIdx].eventDate).toLocaleDateString()}</span>}
                                 {items[openImageIdx].sourceName && <span>{items[openImageIdx].sourceName}</span>}
                             </div>
                             <div className="d-flex justify-content-end flex-wrap" style={{
@@ -676,7 +682,8 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                    target="_blank" className="btn ala-btn-primary">
                                     View occurrence details
                                 </a>
-                                <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`} target="_blank"
+                                <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
+                                   target="_blank"
                                    className="btn ala-btn-primary">
                                     View {items[openImageIdx].type} details
                                 </a>

@@ -38,7 +38,6 @@ VITE_LOGO_URL=https://www.ala.org.au/app/uploads/2019/01/logo.png
 VITE_APP_BIE_URL=http://localhost:8081
 
 # static external paths and files for dashboard and vocab view
-VITE_APP_STATIC_URL=http://localhost:8082/static
 VITE_APP_DASHBOARD_DATA_URL=http://localhost:8082/static/dashboard/dashboard.json
 VITE_APP_DASHBOARD_ZIP_URL=http://localhost:8082/static/dashboard/dashboard.zip
 VITE_APP_DASHBOARD_I18N_URL=http://localhost:8082/static/dashboard/dashboardI18n.json

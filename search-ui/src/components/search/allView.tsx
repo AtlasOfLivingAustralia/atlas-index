@@ -225,7 +225,7 @@ function AllView({queryString, setQuery, setTab, isMobile}: ViewProps) {
                         <>
                             <div
                                 className="d-flex justify-content-between"
-                                onClick={() => setTab(group.tabName)}
+                                onClick={() => {window.scrollTo({ top: 0, behavior: 'smooth' }); setTab(Object.keys(searchGroupsTemplate)[index]);}}
                                 style={{
                                     marginBottom: '30px',
                                     marginTop: isMobile ? '30px' : '60px',
