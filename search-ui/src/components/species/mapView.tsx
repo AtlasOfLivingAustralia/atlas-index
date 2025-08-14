@@ -5,28 +5,19 @@
  */
 
 import {JSX, useEffect, useRef, useState} from 'react';
-import {
-    LayersControl,
-    MapContainer,
-    TileLayer,
-    WMSTileLayer,
-} from 'react-leaflet';
+import {LayersControl, MapContainer, TileLayer, WMSTileLayer,} from 'react-leaflet';
 import {LatLng, LayersControlEvent} from 'leaflet';
 import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 
 import 'leaflet/dist/leaflet.css';
+import './map.css';
 import classes from './species.module.css';
 import Legend from './mapLegend';
 import Control from 'react-leaflet-custom-control';
 import FormatName from '../nameUtils/formatName';
 import {faRotateRight} from '@fortawesome/free-solid-svg-icons';
-import {
-    FlaggedAlert,
-    FontAwesomeIconLite,
-    InfoBox,
-    refineSection,
-} from '@ala/common-ui';
+import {FlaggedAlert, FontAwesomeIconLite, InfoBox, refineSection,} from '@ala/common-ui';
 
 interface MapViewProps {
     queryString?: string,

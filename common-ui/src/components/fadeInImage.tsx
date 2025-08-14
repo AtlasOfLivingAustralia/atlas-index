@@ -7,15 +7,16 @@
 import {useState, useEffect, useRef} from "react";
 
 type FadeInImageProps = {
-    missingImage: string;
-    placeholderDimensions?: number[]; // [width, height]
-    usePlaceholder?: boolean; // If true, a placeholder will be shown while the image is loading and fade-in effect is disabled.
-    onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+    missingImage: string,
+    placeholderDimensions?: number[],
+    usePlaceholder?: boolean,
+    onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void,
+    showLoadingSpinner?: boolean
 } & React.ImgHTMLAttributes<HTMLImageElement>;
 
 /**
  * A React component that displays an image with a fade-in effect. This is the default, however it can also
- * display a placeholder with glow while the image is loading. It handles errors by displaying a missing image placeholder.
+ * display a placeholder with glow while the image is loading or a spinner. It handles errors by displaying a missing image placeholder.
  *
  * @param missingImage
  * @param loadingPlaceholderDimensions
@@ -23,7 +24,14 @@ type FadeInImageProps = {
  * @param props
  * @constructor
  */
-export function FadeInImage({missingImage, placeholderDimensions, usePlaceholder, onError, ...props}: FadeInImageProps) {
+export function FadeInImage({
+                                missingImage,
+                                placeholderDimensions,
+                                usePlaceholder,
+                                onError,
+                                showLoadingSpinner,
+                                ...props
+                            }: FadeInImageProps) {
     const [loaded, setLoaded] = useState(false);
     const [currentWidth, setCurrentWidth] = useState<number | undefined>(placeholderDimensions ? placeholderDimensions[0] : undefined);
     const [currentHeight, setCurrentHeight] = useState<number | undefined>(placeholderDimensions ? placeholderDimensions[1] : undefined);
@@ -56,13 +64,30 @@ export function FadeInImage({missingImage, placeholderDimensions, usePlaceholder
         }}>
             <span className="placeholder col-12" style={{height: "100%", display: "block"}}></span>
         </div>}
+        {!loaded && showLoadingSpinner && (
+            <div style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 2
+            }}>
+                <div className="spinner-border text-secondary" style={{fontSize: "16px"}} role="status">
+                    <span className="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        )}
         <img
             ref={imgRef}
             {...props}
             style={{
                 ...props.style,
                 opacity: loaded ? 1 : 0,
-                ...(usePlaceholder ? {} : { transition: "opacity 0.5s ease" })
+                ...(usePlaceholder ? {} : {transition: "opacity 0.5s ease"})
             }}
             onLoad={() => {
                 setLoaded(true);

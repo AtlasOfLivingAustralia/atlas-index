@@ -13,15 +13,7 @@ import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import buildInfo from './buildInfo.json';
 import Search from './views/Search.tsx';
-import {
-    Banner,
-    Breadcrumb,
-    Breadcrumbs,
-    Footer,
-    Header,
-    injectCommonInfo,
-    NotFound,
-} from '@ala/common-ui';
+import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound,} from '@ala/common-ui';
 
 const isLoggedInInitial = document.cookie.includes(
     import.meta.env.VITE_AUTH_COOKIE
@@ -93,11 +85,13 @@ const App: React.FC = () => {
 
             <Routes>
                 <Route path="/species/*"
-                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} isMobile={isMobile}/>}/>
-                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} isMobile={isMobile}/>}/>
+                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                         isMobile={isMobile}/>}/>
+                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                 isMobile={isMobile}/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
-            <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF' }}/>
+            <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
 
             <Footer
                 isLoggedIn={isLoggedIn}

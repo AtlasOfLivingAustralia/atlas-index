@@ -19,12 +19,25 @@ interface MediaViewProps {
 
 interface MediaTypes {
     uuid: string;
-    imageMetadata: { imageId: string; height: number; width: number }[];
+    imageMetadata: {
+        creator?: string;
+        rightsHolder?: string;
+        license?: string;
+        imageId: string; height: number; width: number }[];
     videos: string[];
     sounds: string[];
+    license?: string;
+    eventDate?: string;
+    institutionName?: string;
+    dataResourceName?: string;
 }
 
 interface Items {
+    creator?: string;
+    rightsHolder?: string;
+    license?: string;
+    sourceName?: string;
+    eventDate?: string;
     id: string;
     type: string;
     height: number;
@@ -148,13 +161,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
         fetch(url)
             .then((response) => response.json())
             .then((data) => {
-                const list: {
-                    id: string;
-                    type: string;
-                    height: number;
-                    width: number;
-                    occurrenceId: string;
-                }[] = [];
+                const list: Items[] = [];
                 let fqMultimedia = fqUserTrigged['multimedia'] || [];
                 let includeImages = fqMultimedia.length == 0 || fqMultimedia.includes('multimedia:"Image"');
                 let includeSounds = fqMultimedia.length == 0 || fqMultimedia.includes('multimedia:"Sound"');
@@ -171,10 +178,12 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 occurrenceId: item.uuid,
                                 type: MediaTypeEnum.image,
                                 height: gridHeight,
-                                width:
-                                    gridHeight * aspectRatio > gridWidthTypical
-                                        ? gridWidthTypical
-                                        : gridHeight * aspectRatio,
+                                width: gridHeight * aspectRatio > gridWidthTypical ? gridWidthTypical : gridHeight * aspectRatio,
+                                creator: image.creator,
+                                rightsHolder: image.rightsHolder,
+                                license: image.license || item.license,
+                                sourceName: item.institutionName || item.dataResourceName,
+                                eventDate: item.eventDate
                             });
                         }
                     }
@@ -189,6 +198,9 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 height: gridHeight,
                                 width: gridWidthTypical,
                                 occurrenceId: item.uuid,
+                                license: item.license,
+                                sourceName: item.institutionName || item.dataResourceName,
+                                eventDate: item.eventDate
                             });
                         }
                     }
@@ -203,6 +215,9 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 height: gridHeight,
                                 width: gridWidthTypical,
                                 occurrenceId: item.uuid,
+                                license: item.license,
+                                sourceName: item.institutionName || item.dataResourceName,
+                                eventDate: item.eventDate
                             });
                         }
                     }
@@ -304,6 +319,12 @@ function ImagesView({result, isMobile}: MediaViewProps) {
 
     // Modal event handlers
     function handleOpenModal(idx: number) {
+        if (isMobile) {
+            // open image in a new tab instead of the modal
+            window.open(import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + items[idx].id, '_blank');
+            return;
+        }
+
         setOpenImageIdx(idx);
         setOpened(true);
 
@@ -559,22 +580,12 @@ function ImagesView({result, isMobile}: MediaViewProps) {
 
             {opened && (
                 <div role="dialog" aria-labelledby="dialogTitle" aria-modal="true" className={classes.dialogContainer}
-                     onClick={(e) => {
-                         if (e.target === e.currentTarget) {
-                             setOpened(false);
-                         }
-                     }}>
+                     onClick={(e) => e.target === e.currentTarget && setOpened(false)}>
                     <div className={classes.dialogContent}>
                         <button aria-label="Previous image" className={classes.imageDialogButton}
-                                style={{
-                                    left: '15px',
-                                    cursor: openImageIdx === 0 ? 'not-allowed' : 'pointer',
-                                }}
-                                onClick={() =>
-                                    setOpenImageIdx((idx) => Math.max(0, idx - 1))
-                                }
-                                disabled={openImageIdx === 0}
-                        >&lt;</button>
+                                style={{left: '15px', cursor: openImageIdx === 0 ? 'not-allowed' : 'pointer'}}
+                                onClick={() => setOpenImageIdx((idx) => Math.max(0, idx - 1))}
+                                disabled={openImageIdx === 0}>&lt;</button>
 
                         <button aria-label="Next image" className={classes.imageDialogButton}
                                 onClick={() => {
@@ -588,17 +599,16 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 style={{
                                     right: '15px',
                                     cursor: loading ? 'wait' : (openImageIdx === items.length - 1 ? 'not-allowed' : 'pointer'),
-                                }}>&gt;</button>
+                                }}>
+                            &gt;</button>
 
-                        <div style={{display: 'flex', justifyContent: 'center', height: '30px',}}>
+                        <div style={{display: 'flex', justifyContent: 'center', height: '30px'}}>
                             <span className={classes.refineTitle} id="dialogTitle">
-                                {loading || openImageIdx >= items.length || !result ? ('Loading...') : (
-                                    <>
-                                        {capitalise(items[openImageIdx].type)}{' '}of{' '}
-                                        <FormatName name={result.scientificName} rankId={result.rank}/>{' '}
-                                        ({openImageIdx + 1})
-                                    </>
-                                )}
+                                {loading || openImageIdx >= items.length || !result ? ('Loading...') : (<>
+                                    {capitalise(items[openImageIdx].type)}{' '}of{' '}
+                                    <FormatName name={result.scientificName} rankId={result.rank}/>{' '}
+                                    ({openImageIdx + 1})
+                                </>)}
                             </span>
                         </div>
                         <button className={classes.dialogCloseButton} onClick={() => setOpened(false)}
@@ -609,10 +619,10 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                         <div style={{
                             marginTop: '30px',
                             borderRadius: '10px',
-                            height: 'calc(100vh - 310px)',
+                            height: 'calc(100vh - 350px)',
                             textAlign: 'center'
                         }}>
-                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}>
+                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`} target="_blank">
                                 <div style={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -621,53 +631,56 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 }}>
                                     {items[openImageIdx].type ===
                                         MediaTypeEnum.image && (
-                                            // TODO: Needs some sort of progress indicator, but given the variable image dimensions, maybe pass them through from the API
-                                            <FadeInImage
-                                                src={getImageOriginalUrl(
-                                                    items[openImageIdx].id
-                                                )}
-                                                style={{
-                                                    borderRadius: '10px',
-                                                    maxHeight: '100%',
-                                                    maxWidth: '100%',
-                                                    objectFit: 'contain',
-                                                }}
-                                                missingImage={missingImage}
+                                            <FadeInImage src={getImageOriginalUrl(items[openImageIdx].id)}
+                                                         style={{
+                                                             borderRadius: '10px',
+                                                             maxHeight: '100%',
+                                                             maxWidth: '100%',
+                                                             objectFit: 'contain',
+                                                         }}
+                                                         missingImage={missingImage}
+                                                         showLoadingSpinner={true}
                                             />
                                         )}
-                                    {items[openImageIdx].type ===
-                                        MediaTypeEnum.sound && (
-                                            <audio key={items[openImageIdx].id} controls preload="auto"
-                                                   style={{width: '50vw'}}>
-                                                <source
-                                                    src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}
-                                                    type="audio/mpeg"/>
-                                            </audio>
-                                        )}
-                                    {items[openImageIdx].type ===
-                                        MediaTypeEnum.video && (
-                                            <video key={items[openImageIdx].id} controls preload="false"
-                                                   style={{maxWidth: '100%', maxHeight: '100%', borderRadius: '10px'}}>
-                                                <source
-                                                    src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}/>
-                                            </video>
-                                        )}
+                                    {items[openImageIdx].type === MediaTypeEnum.sound && (
+                                        <audio key={items[openImageIdx].id} controls preload="auto"
+                                               style={{width: '50vw'}}>
+                                            <source
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}
+                                                type="audio/mpeg"/>
+                                        </audio>
+                                    )}
+                                    {items[openImageIdx].type === MediaTypeEnum.video && (
+                                        <video key={items[openImageIdx].id} controls preload="false"
+                                               style={{maxWidth: '100%', maxHeight: '100%', borderRadius: '10px'}}>
+                                            <source
+                                                src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}/>
+                                        </video>
+                                    )}
                                 </div>
                             </a>
                         </div>
-                        <div className="d-flex justify-content-center flex-wrap" style={{
-                            rowGap: '40px',
-                            columnGap: '30px',
-                            marginTop: '30px',
-                        }}>
-                            <a href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/${encodeURIComponent(items[openImageIdx].occurrenceId)}`}
-                               className="btn ala-btn-primary">
-                                View occurrence details
-                            </a>
-                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
-                               className="btn ala-btn-primary">
-                                View {items[openImageIdx].type} details
-                            </a>
+                        <div className="d-flex flex-row justify-content-between align-items-center">
+                            <div className="d-flex flex-column" style={{maxWidth: '50%',  overflow: 'auto'}}>
+                                {items[openImageIdx].creator && <span>Rights holder: {items[openImageIdx].rightsHolder}</span>}
+                                {/*{items[openImageIdx].license && <span>License: {items[openImageIdx].license}</span>}*/}
+                                {items[openImageIdx].eventDate && <span>Date: {new Date(items[openImageIdx].eventDate).toLocaleDateString()}</span>}
+                                {items[openImageIdx].sourceName && <span>{items[openImageIdx].sourceName}</span>}
+                            </div>
+                            <div className="d-flex justify-content-end flex-wrap" style={{
+                                rowGap: '10px',
+                                columnGap: '30px',
+                                marginTop: '30px'
+                            }}>
+                                <a href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/${encodeURIComponent(items[openImageIdx].occurrenceId)}`}
+                                   target="_blank" className="btn ala-btn-primary">
+                                    View occurrence details
+                                </a>
+                                <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`} target="_blank"
+                                   className="btn ala-btn-primary">
+                                    View {items[openImageIdx].type} details
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
