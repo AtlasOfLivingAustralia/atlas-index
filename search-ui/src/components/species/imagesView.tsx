@@ -5,24 +5,16 @@
  */
 
 import {Fragment, useCallback, useEffect, useState} from 'react';
-import {
-    faChevronDown,
-    faFilm,
-    faVolumeUp,
-} from '@fortawesome/free-solid-svg-icons';
+import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
 import classes from './species.module.css';
 import FormatName from '../nameUtils/formatName.tsx';
 import capitalise from '../../helpers/Capitalise.ts';
 import missingImage from '../../image/missing-image.png';
-import {
-    FadeInImage,
-    FontAwesomeIconLite,
-    refineSection,
-    RefineSectionItem,
-} from '@ala/common-ui';
+import {FadeInImage, FontAwesomeIconLite, refineSection, RefineSectionItem,} from '@ala/common-ui';
 
 interface MediaViewProps {
-    result?: Record<PropertyKey, string | number | any>;
+    result?: Record<PropertyKey, string | number | any>,
+    isMobile: boolean
 }
 
 interface MediaTypes {
@@ -103,7 +95,7 @@ const facetFields = [
     'dataResourceName',
 ];
 
-function ImagesView({result}: MediaViewProps) {
+function ImagesView({result, isMobile}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
@@ -112,6 +104,7 @@ function ImagesView({result}: MediaViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [firstFetchDone, setFirstFetchDone] = useState(false);
+    const [showRefineDialog, setShowRefineDialog] = useState(false);
 
     // Control of modal for image details
     const [openImageIdx, setOpenImageIdx] = useState(0);
@@ -368,70 +361,70 @@ function ImagesView({result}: MediaViewProps) {
         }));
     }
 
+    const refineResults = <>
+        {!firstFetchDone ? (<>
+            <span className={`placeholder-glow ${classes.refineTitle}`}>
+                <span className="placeholder col-8"
+                      style={{width: '200px', borderRadius: '10px',}}>&nbsp;</span>
+            </span>
+            <br/>
+
+            <span className={`placeholder-glow ${classes.refineSectionTitle}`}>
+                <span className="placeholder col-8" style={{
+                    width: '100px',
+                    marginTop: '15px',
+                    marginBottom: '10px',
+                    borderRadius: '10px',
+                }}>&nbsp;</span>
+            </span>
+            <br/>
+            <span className={`placeholder-glow ${classes.refineItem}`}>
+                <span className="placeholder col-8"
+                      style={{width: '150px', height: '90px', borderRadius: '10px'}}>&nbsp;</span>
+                </span>
+            <br/>
+            <span className={`placeholder-glow ${classes.refineSectionTitle}`}>
+                <span className="placeholder col-8" style={{
+                    width: '100px',
+                    marginTop: '15px',
+                    marginBottom: '10px',
+                    borderRadius: '10px'
+                }}>&nbsp;</span>
+                </span>
+            <br/>
+            <span className={`placeholder-glow ${classes.refineItem}`}>
+                <span className="placeholder col-8"
+                      style={{width: '150px', height: '190px', borderRadius: '10px'}}>&nbsp;</span>
+                </span>
+        </>) : (<>
+            <span className={classes.refineTitle} style={{display: 'block'}}>Refine occurrences</span>
+
+            {refineSection('Media type', itemsForFacet('multimedia'))}
+
+            {refineSection('Occurrence type', itemsForFacet('basisOfRecord'))}
+
+            {refineSection('Licence type', itemsForFacet('license'))}
+
+            {refineSection('Dataset', itemsForFacet('dataResourceName'))}
+        </>)}
+    </>
+
     return (<>
             <div className="d-flex flex-row gap-3">
-                <div style={{width: '250px'}}>
-                    {!firstFetchDone ? (<>
-                            <span className={`placeholder-glow ${classes.refineTitle}`}>
-                                <span className="placeholder col-8"
-                                      style={{
-                                          width: '200px',
-                                          borderRadius: '10px',
-                                      }}>&nbsp;</span>
-                            </span>
-                        <br/>
-
-                        <span className={`placeholder-glow ${classes.refineSectionTitle}`}>
-                                <span className="placeholder col-8"
-                                      style={{
-                                          width: '100px',
-                                          marginTop: '15px',
-                                          marginBottom: '10px',
-                                          borderRadius: '10px',
-                                      }}>&nbsp;</span>
-                            </span>
-                        <br/>
-                        <span className={`placeholder-glow ${classes.refineItem}`}>
-                                <span className="placeholder col-8"
-                                      style={{
-                                          width: '150px',
-                                          height: '90px',
-                                          borderRadius: '10px',
-                                      }}>&nbsp;</span>
-                            </span>
-                        <br/>
-                        <span className={`placeholder-glow ${classes.refineSectionTitle}`}>
-                                <span className="placeholder col-8"
-                                      style={{
-                                          width: '100px',
-                                          marginTop: '15px',
-                                          marginBottom: '10px',
-                                          borderRadius: '10px',
-                                      }}>&nbsp;</span>
-                            </span>
-                        <br/>
-                        <span className={`placeholder-glow ${classes.refineItem}`}>
-                                <span className="placeholder col-8"
-                                      style={{
-                                          width: '150px',
-                                          height: '190px',
-                                          borderRadius: '10px',
-                                      }}>&nbsp;</span>
-                            </span>
-                    </>) : (<>
-                        <span className={classes.refineTitle} style={{display: 'block'}}>Refine occurrences</span>
-
-                        {refineSection('Media type', itemsForFacet('multimedia'))}
-
-                        {refineSection('Occurrence type', itemsForFacet('basisOfRecord'))}
-
-                        {refineSection('Licence type', itemsForFacet('license'))}
-
-                        {refineSection('Dataset', itemsForFacet('dataResourceName'))}
-                    </>)}
+                {!isMobile && <div style={{width: '250px'}}>
+                    {refineResults}
                 </div>
+                }
 
                 <div style={{flex: 1}}>
+                    {isMobile && (
+                        <div style={{marginBottom: '15px'}}>
+                            <button onClick={() => setShowRefineDialog(true)} className={'ala-btn-secondary'}
+                                    style={{width: '100%'}}>
+                                Refine results
+                            </button>
+                        </div>
+                    )}
                     <div className={'d-flex flex-wrap justify-content-between'} style={{rowGap: '30px'}}>
                         <span className={classes.resultsTitle}>
                             Showing{' '}
@@ -448,14 +441,11 @@ function ImagesView({result}: MediaViewProps) {
                             {loading && page == 0 ? (
                                 <span className="placeholder-glow">
                                     <span className="placeholder col-8"
-                                          style={{
-                                              width: '20px',
-                                              borderRadius: '10px',
-                                          }}>&nbsp;</span>
+                                          style={{width: '20px', borderRadius: '10px'}}>&nbsp;</span>
                                 </span>
                             ) : (formatNumber(occurrenceCount))}{' '}
                             occurrences</span>
-                        <div className="d-flex align-items-center gap-3">
+                        {!isMobile && <div className="d-flex align-items-center gap-3">
                             <span className={classes.headerLabels}>Sort by</span>
                             <select className={`form-select ${classes.alaSelect}`}
                                     value={sortDir}
@@ -466,7 +456,7 @@ function ImagesView({result}: MediaViewProps) {
                                 <option value={'desc'}>Oldest</option>
                                 <option value={'asc'}>Newest</option>
                             </select>
-                        </div>
+                        </div>}
                     </div>
                     <div className={'d-flex flex-row flex-wrap'} style={{gap: '10px', marginTop: '20px'}}>
                         {loading &&
@@ -483,68 +473,45 @@ function ImagesView({result}: MediaViewProps) {
                                     ></span>
                                 </span>
                             ))}
-                        {(!loading || page > 0) &&
-                            items &&
-                            items.map((item, idx) => (
-                                <Fragment key={idx}>
-                                    <div
-                                        style={{
-                                            overflow: 'hidden',
-                                            borderRadius: 10,
-                                            maxWidth: gridWidthTypical,
-                                            height: gridHeight,
-                                        }}
-                                    >
-                                        {item.type === MediaTypeEnum.image && (
-                                            <img
-                                                alt={`Image of ${result?.scientificName} (${idx + 1})`}
-                                                style={{
-                                                    borderRadius: '10px',
-                                                    height: item.height,
-                                                    width: item.width,
-                                                    objectFit: 'cover',
-                                                    transition:
-                                                        'transform 0.3s ease',
-                                                    backgroundColor: '#e2e2e2',
-                                                }}
-                                                src={getImageThumbnailUrl(
-                                                    item.id
-                                                )}
-                                                onMouseOver={(event) => {
-                                                    const target =
-                                                        event.target as HTMLImageElement;
-                                                    target.style.transform =
-                                                        'scale(1.1)';
-                                                }}
-                                                onMouseOut={(event) => {
-                                                    const target =
-                                                        event.target as HTMLImageElement;
-                                                    target.style.transform =
-                                                        'scale(1.0)';
-                                                }}
-                                                onLoad={(event) => {
-                                                    const target =
-                                                        event.target as HTMLImageElement;
-                                                    if (
-                                                        target &&
-                                                        target.complete
-                                                    ) {
-                                                        setLoading(false);
-                                                    }
-                                                }}
-                                                onError={(e) =>
-                                                    handleImageError(idx, e)
-                                                }
-                                                onClick={() =>
-                                                    handleOpenModal(idx)
-                                                }
-                                            />
-                                        )}
-                                        {(item.type === MediaTypeEnum.sound ||
-                                            item.type ===
-                                            MediaTypeEnum.video) && (
-                                            <button
-                                                type="button"
+                        {(!loading || page > 0) && items && items.map((item, idx) => (
+                            <Fragment key={idx}>
+                                <div style={{
+                                    overflow: 'hidden',
+                                    borderRadius: 10,
+                                    maxWidth: gridWidthTypical,
+                                    height: gridHeight
+                                }}>
+                                    {item.type === MediaTypeEnum.image && (
+                                        <img alt={`Image of ${result?.scientificName} (${idx + 1})`}
+                                             style={{
+                                                 borderRadius: '10px',
+                                                 height: item.height,
+                                                 width: item.width,
+                                                 objectFit: 'cover',
+                                                 transition: 'transform 0.3s ease',
+                                                 backgroundColor: '#e2e2e2',
+                                             }}
+                                             src={getImageThumbnailUrl(item.id)}
+                                             onMouseOver={(event) => {
+                                                 const target = event.target as HTMLImageElement;
+                                                 target.style.transform = 'scale(1.1)';
+                                             }}
+                                             onMouseOut={(event) => {
+                                                 const target = event.target as HTMLImageElement;
+                                                 target.style.transform = 'scale(1.0)';
+                                             }}
+                                             onLoad={(event) => {
+                                                 const target = event.target as HTMLImageElement;
+                                                 if (target && target.complete) {
+                                                     setLoading(false);
+                                                 }
+                                             }}
+                                             onError={(e) => handleImageError(idx, e)}
+                                             onClick={() => handleOpenModal(idx)}
+                                        />
+                                    )}
+                                    {(item.type === MediaTypeEnum.sound || item.type === MediaTypeEnum.video) && (
+                                        <button type="button"
                                                 className={`btn btn-outline-secondary ${classes.mediaIconBtn}`}
                                                 style={{
                                                     width: 200,
@@ -553,75 +520,37 @@ function ImagesView({result}: MediaViewProps) {
                                                     whiteSpace: 'normal',
                                                     wordBreak: 'break-word',
                                                 }}
-                                                onClick={() =>
-                                                    handleOpenModal(idx)
-                                                }
-                                            >
-                                                {item.type ===
-                                                    MediaTypeEnum.sound && (
-                                                        <span
-                                                            style={{
-                                                                display:
-                                                                    'inline-flex',
-                                                                alignItems:
-                                                                    'center',
-                                                                gap: 15,
-                                                            }}
-                                                        >
-                                                        <FontAwesomeIconLite
-                                                            icon={faVolumeUp}
-                                                            size="2xl"
-                                                            color="gray"
-                                                            style={{
-                                                                fontSize: 40,
-                                                            }}
-                                                        />
-                                                        Sound file
-                                                    </span>
-                                                    )}
-                                                {item.type ===
-                                                    MediaTypeEnum.video && (
-                                                        <span
-                                                            style={{
-                                                                display:
-                                                                    'inline-flex',
-                                                                alignItems:
-                                                                    'center',
-                                                                gap: 15,
-                                                            }}
-                                                        >
-                                                        <FontAwesomeIconLite
-                                                            icon={faFilm}
-                                                            size="2xl"
-                                                            color="gray"
-                                                            style={{
-                                                                fontSize: 40,
-                                                            }}
-                                                        />
-                                                        Video file
-                                                    </span>
-                                                    )}
-                                            </button>
-                                        )}
-                                    </div>
-                                </Fragment>
-                            ))}
+                                                onClick={() => handleOpenModal(idx)}
+                                        >
+                                            {item.type === MediaTypeEnum.sound && (
+                                                <span style={{display: 'inline-flex', alignItems: 'center', gap: 15}}>
+                                                    <FontAwesomeIconLite icon={faVolumeUp} size="2xl" color="gray"
+                                                                         style={{fontSize: 40}}/>
+                                                    Sound file
+                                                </span>
+                                            )}
+                                            {item.type === MediaTypeEnum.video && (
+                                                <span style={{display: 'inline-flex', alignItems: 'center', gap: 15}}>
+                                                    <FontAwesomeIconLite icon={faFilm} size="2xl" color="gray"
+                                                                         style={{fontSize: 40}}/>
+                                                    Video file
+                                                </span>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+                            </Fragment>
+                        ))}
                     </div>
 
                     {items && items.length > 0 && occurrenceCount > page * pageSize && (
                         <div className="d-flex justify-content-center align-items-center mt-4">
                             <button type="button" className="btn btn-outline-secondary rounded-pill px-5 py-2"
                                     onClick={() => setPage(page + 1)}
-                                    disabled={
-                                        (page + 1) * pageSize >=
-                                        occurrenceCount || loading
-                                    }
+                                    disabled={(page + 1) * pageSize >= occurrenceCount || loading}
                                     aria-label="Load more images"
-                                    style={{
-                                        cursor: loading ? 'wait' : 'pointer',
-                                    }}>
-                                <FontAwesomeIconLite icon={faChevronDown}/>
-                                &nbsp;View more{loading}
+                                    style={{cursor: loading ? 'wait' : 'pointer'}}>
+                                View more{loading}
                             </button>
                         </div>
                     )}
@@ -740,6 +669,44 @@ function ImagesView({result}: MediaViewProps) {
                                 View {items[openImageIdx].type} details
                             </a>
                         </div>
+                    </div>
+                </div>
+            )}
+            {showRefineDialog && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.8)',
+                    zIndex: 10000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+                     onClick={() => setShowRefineDialog(false)}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '5px',
+                        maxWidth: '90vw',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        padding: '15px',
+                        position: 'relative'
+                    }}
+                         onClick={(e) => e.stopPropagation()}>
+                        <button style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '1.5rem'
+                        }}
+                                onClick={() => setShowRefineDialog(false)}
+                                aria-label="Close">&times;</button>
+                        {refineResults}
                     </div>
                 </div>
             )}

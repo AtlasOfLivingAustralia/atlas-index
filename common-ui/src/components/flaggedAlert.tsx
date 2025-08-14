@@ -5,15 +5,18 @@
  */
 
 import FlagIcon from "../icons/flagIcon.tsx";
+import React from "react";
 
 interface InfoBoxProps {
-    content: React.ReactNode;
-    style?: React.CSSProperties;
+    content: React.ReactNode,
+    style?: React.CSSProperties,
+    className?: string
 }
 
-const InfoBox = ({content, style}: InfoBoxProps) => (
-    <div className="d-inline-flex align-items-start" style={{backgroundColor: "#FFC557", padding: "10px", borderRadius: "5px", ...style}}>
-        <FlagIcon />
+const InfoBox = ({content, style, className}: InfoBoxProps) => (
+    <div className={"d-inline-flex align-items-start " + (className ? className :'')}
+         style={{backgroundColor: "#FFC557", padding: "10px", borderRadius: "5px", ...style}}>
+        <FlagIcon/>
         <div style={{marginLeft: "10px", marginRight: "10px"}}>
             {content}
         </div>

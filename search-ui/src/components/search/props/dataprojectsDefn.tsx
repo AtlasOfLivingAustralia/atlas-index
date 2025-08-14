@@ -18,7 +18,7 @@ import {
     TileImage,
 } from '../util.tsx';
 import missingImage from '../../../image/missing-image.png';
-import { FadeInImage } from '@ala/common-ui';
+import {FadeInImage} from '@ala/common-ui';
 
 function formatCategory(category: string) {
     if (category == 'BIOCOLLECT') {
@@ -100,17 +100,17 @@ export const dataprojectsDefn: GenericViewProps = {
             clickFn: () => openUrl(item.guid),
         };
         return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
+            {item, navigate, wide, isMobile},
             elements
         );
     },
 
-    renderTileItemFn: ({ item, isMobile }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile} />,
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
             title: (
                 <>
-                    <span className={classes.listItemName} style={{ marginBottom: '13px' }}>
+                    <span className={classes.listItemName} style={{marginBottom: '13px'}}>
                         {item.name}
                     </span>
                     <span title={item.description} className={classes.listDescription}>

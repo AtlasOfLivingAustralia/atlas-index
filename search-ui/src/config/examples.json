@@ -63,18 +63,18 @@
         ]
     },
     {
-        "tab": "dataprojects",
+        "tab": "projects",
         "examples": [{ "label": "Data project: blitz", "query": "blitz" }]
     },
     {
-        "tab": "environmentallayers",
+        "tab": "layers",
         "examples": [
             { "label": "Spatial layer: Land cover", "query": "Land cover" },
             { "label": "Spatial layer: Climate data", "query": "Climate data" }
         ]
     },
     {
-        "tab": "regionslocalities",
+        "tab": "locations",
         "examples": [
             {
                 "label": "Location: Great Barrier Reef",
@@ -85,10 +85,10 @@
         ]
     },
     {
-        "tab": "alageneralcontent",
+        "tab": "articles",
         "examples": [
             { "label": "General content on ALA", "query": "about ALA" },
-            { "label": "General content on ALA", "query": "citation" },
+            { "label": "Citation information", "query": "citation" },
             {
                 "label": "General content on biodiversity",
                 "query": "biodiversity"

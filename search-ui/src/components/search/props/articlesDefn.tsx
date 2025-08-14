@@ -20,8 +20,8 @@ import {
 import missingImage from '../../../image/missing-image.png';
 import { FadeInImage } from '@ala/common-ui';
 
-export const wordpressDefn: GenericViewProps = {
-    fq: 'idxtype:WORDPRESS',
+export const articlesDefn: GenericViewProps = {
+    fq: 'idxtype:WORDPRESS OR idxtype:KNOWLEDGEBASE',
 
     sortByDate: true,
 

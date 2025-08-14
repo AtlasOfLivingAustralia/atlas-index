@@ -12,16 +12,18 @@ interface InfoBoxProps {
     content: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
+    size?: number;
+    lineHeight?: number;
 }
 
-const InfoBox = ({icon, title, content, className, style}: InfoBoxProps) => (
+const InfoBox = ({icon, title, content, className, style, size = 16, lineHeight = 20}: InfoBoxProps) => (
     <>
         <div className={`d-flex align-items-start ${className ?? ''}`}
             style={{...style}}>
-            <FontAwesomeIcon icon={icon} size={16} style={{ marginTop: "4px" }} />
-            <span className="fw-bold" style={{ fontSize: 16, marginLeft: "10px" }}>{title}</span>
+            <FontAwesomeIcon icon={icon} size={size} style={{ marginTop: "4px" }} />
+            <span className="fw-bold" style={{ fontSize: size, marginLeft: "10px" }}>{title}</span>
         </div>
-        <div style={{fontSize: "16px", lineHeight: "20px", marginTop: "10px", marginBottom: "0px"}}>
+        <div style={{fontSize: size + "px", lineHeight: lineHeight + "px", marginTop: "10px", marginBottom: "0px"}}>
             {content}
         </div>
     </>

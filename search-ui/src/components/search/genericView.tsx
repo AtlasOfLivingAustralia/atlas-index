@@ -478,17 +478,10 @@ function GenericView({queryString, setQuery, props, tab, isMobile,}: GenericProp
                 </div>
 
                 {props.resourceLinks && props.resourceLinks.length > 0 && (
-                    <div
-                        className="d-flex flex-row justify-content-center align-items-center"
-                        style={{marginTop: '60px', gap: '20px'}}
-                    >
+                    <div className="d-flex flex-row justify-content-center align-items-center"
+                         style={{marginTop: '60px', gap: '20px'}}>
                         {props.resourceLinks.map((link, index) => (
-                            <a
-                                key={index}
-                                href={link.url}
-                                target="_blank"
-                                className={'btn ala-btn-primary'}
-                            >
+                            <a key={index} href={link.url} target="_blank" className={'btn ala-btn-primary'}>
                                 {link.label}
                             </a>
                         ))}
@@ -497,43 +490,39 @@ function GenericView({queryString, setQuery, props, tab, isMobile,}: GenericProp
             </div>
 
             {showRefineDialog && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0,0,0,0.8)',
-                        zIndex: 10000,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'rgba(0,0,0,0.8)',
+                    zIndex: 10000,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+                     onClick={() => setShowRefineDialog(false)}>
+                    <div style={{
+                        background: '#fff',
+                        borderRadius: '5px',
+                        maxWidth: '90vw',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                        padding: '15px',
+                        position: 'relative'
                     }}
-                    onClick={() => setShowRefineDialog(false)}
-                >
-                    <div
-                        style={{
-                            background: '#fff',
-                            borderRadius: '5px',
-                            maxWidth: '90vw',
-                            maxHeight: '90vh',
-                            overflowY: 'auto',
-                            padding: '15px',
-                            position: 'relative',
-                        }}
-                        onClick={(e) => e.stopPropagation()}>
+                         onClick={(e) => e.stopPropagation()}>
                         <button style={{
-                                    position: 'absolute',
-                                    top: 8,
-                                    right: 8,
-                                    background: 'none',
-                                    border: 'none',
-                                    fontSize: '1.5rem',
-                                }}
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '1.5rem'
+                        }}
                                 onClick={() => setShowRefineDialog(false)}
-                                aria-label="Close"
-                        >&times;</button>
+                                aria-label="Close">&times;</button>
                         {refineResults}
                     </div>
                 </div>

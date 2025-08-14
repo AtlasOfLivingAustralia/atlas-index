@@ -36,7 +36,7 @@ const App: React.FC = () => {
         {title: 'Home', href: import.meta.env.VITE_HOME_URL},
         {title: 'Search', href: '/'},
     ]);
-    const [_, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
     useEffect(() => {
         const handleResize = () =>
@@ -93,11 +93,11 @@ const App: React.FC = () => {
 
             <Routes>
                 <Route path="/species/*"
-                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} isMobile={isMobile}/>}/>
+                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} isMobile={isMobile}/>}/>
                 <Route path="*" element={<NotFound/>}/>
             </Routes>
-            <div style={{height: '60px'}}/>
+            <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF' }}/>
 
             <Footer
                 isLoggedIn={isLoggedIn}

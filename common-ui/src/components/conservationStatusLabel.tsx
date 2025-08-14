@@ -14,7 +14,7 @@ export type Statuses = {
     };
 };
 
-const conservationStatuses : Statuses = {
+const conservationStatuses: Statuses = {
     EX: {
         label: "Extinct",
         backgroundColour: "#000",
@@ -57,34 +57,34 @@ export type ConservationStatusKey = keyof typeof conservationStatuses;
 interface ConservationStatusProps {
     status: ConservationStatusKey;
     withLabel?: boolean;
+    size?: number;
+    fontSize?: number;
 }
 
-function ConservationStatusLabel({
-                                status,
-                                withLabel,
-                            }: ConservationStatusProps): React.ReactElement {
-    const { label, backgroundColour, textColour } = conservationStatuses[status];
+function ConservationStatusLabel({status, withLabel, size = 40, fontSize = 16}: ConservationStatusProps): React.ReactElement {
+    const {label, backgroundColour, textColour} = conservationStatuses[status];
 
     return (
         <div className="d-flex align-items-start">
             <div
-              style={{
-                width: "2.5em",
-                height: "2.5em",
-                borderRadius: "50%",
-                background: backgroundColour,
-                color: textColour,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: "bold"
-              }}
+                style={{
+                    width: size + "px",
+                    height: size + "px",
+                    borderRadius: "50%",
+                    background: backgroundColour,
+                    color: textColour,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    fontSize: fontSize + "px",
+                }}
             >
-              {status}
+                {status}
             </div>
-            {withLabel && <span style={{ marginLeft: "5px", lineHeight: "2.5em" }}>{label}</span>}
+            {withLabel && <span style={{marginLeft: "5px", lineHeight: size + "px"}}>{label}</span>}
         </div>
     );
 }
 
-export { ConservationStatusLabel, conservationStatuses };
+export {ConservationStatusLabel, conservationStatuses};

@@ -115,7 +115,7 @@ const TileImage = ({
             width={isMobile ? '80px' : '100%'}
             style={{
                 objectFit: image ? 'contain' : 'cover',
-                objectPosition: image ? 'top' : 'inherit',
+                // objectPosition: image ? 'top' : 'inherit',
             }}
             onError={(e) => {
                 (e.target as HTMLImageElement).style.objectFit = 'cover';

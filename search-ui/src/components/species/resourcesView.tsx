@@ -4,13 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { JSX, useEffect, useState } from 'react';
+import {JSX, useEffect, useState} from 'react';
 import FormatName from '../nameUtils/formatName';
 import classes from './species.module.css';
-import { FlaggedAlert } from '@ala/common-ui';
+import {FlaggedAlert} from '@ala/common-ui';
 
 interface MapViewProps {
-    result?: Record<PropertyKey, string | number | any>;
+    result?: Record<PropertyKey, string | number | any>,
+    isMobile: boolean
 }
 
 interface Resource {
@@ -46,7 +47,7 @@ interface BhlResource {
     thumbnail: string;
 }
 
-function ResourcesView({ result }: MapViewProps) {
+function ResourcesView({result, isMobile}: MapViewProps) {
     const [bhl, setBhl] = useState<BhlResource[]>([]);
     const [bhlQuery, setBhlQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -64,56 +65,32 @@ function ResourcesView({ result }: MapViewProps) {
 
         // TODO: add .synonyms to the V2 API
         if (result?.synonyms) {
-            result.synonyms.forEach((synonym: any) => {
-                s.push(synonym.nameString);
-            });
+            result.synonyms.forEach((synonym: any) => s.push(synonym.nameString));
         }
 
         const searchQuery = encodeURIComponent('"' + s.join('" OR "') + '"');
 
         // Generate link for humans
-        setBhlQuery(
-            import.meta.env.VITE_APP_BHL_URL +
-                `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`
-        );
+        setBhlQuery(import.meta.env.VITE_APP_BHL_URL + `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`);
 
-        let url =
-            import.meta.env.VITE_APP_BHL_URL +
-            '/api3' +
-            '?op=PublicationSearch' +
-            '&searchterm=' +
-            searchQuery +
-            '&searchtype=C&page=' +
-            page +
-            '&apikey=' +
-            encodeURIComponent(import.meta.env.VITE_BHL_API_KEY) +
-            '&format=json';
+        let url = import.meta.env.VITE_APP_BHL_URL + '/api3?op=PublicationSearch&searchterm=' + searchQuery + '&searchtype=C&page=' + page + '&apikey=' + encodeURIComponent(import.meta.env.VITE_BHL_API_KEY) + '&format=json';
         setLoading(true);
         setErrorMessage('');
-        fetch(url)
-            .then((response) => response.json())
-            .then((data) => {
-                if (data?.Result) {
-                    setBhl(data.Result);
-                }
-            })
-            .catch((error) => {
-                setErrorMessage('Failed to fetch BHL data - ' + error);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+        fetch(url).then((response) => response.json()).then((data) => {
+            if (data?.Result) {
+                setBhl(data.Result);
+            }
+        }).catch((error) => {
+            setErrorMessage('Failed to fetch BHL data - ' + error);
+        }).finally(() => {
+            setLoading(false);
+        });
 
         // TODO: This is ugly. Make it nice.
         const env = import.meta.env.VITE_MODE; // 'development' or 'production'
-        const importResources =
-            env === 'development'
-                ? import('../../config/onlineResources.test.json')
-                : import('../../config/onlineResources.prod.json');
+        const importResources = env === 'development' ? import('../../config/onlineResources.test.json') : import('../../config/onlineResources.prod.json');
 
-        importResources
-            .then((module) => setOnlineResources(module.default))
-            .catch((error) => console.error('Error loading resources:', error));
+        importResources.then((module) => setOnlineResources(module.default)).catch((error) => console.error('Error loading resources:', error));
     }, [result]);
 
     function isResourceVisible(resource: Resource): boolean {
@@ -125,11 +102,7 @@ function ResourcesView({ result }: MapViewProps) {
                 testsApplied++;
 
                 for (const speciesGroup in result?.speciesGroup) {
-                    if (
-                        resource.rules[key]?.includes(
-                            result?.speciesGroup[speciesGroup]
-                        )
-                    ) {
+                    if (resource.rules[key]?.includes(result?.speciesGroup[speciesGroup])) {
                         testsPassed++;
                         break;
                     }
@@ -140,11 +113,7 @@ function ResourcesView({ result }: MapViewProps) {
                 testsApplied++;
 
                 for (const speciesList in result?.speciesList) {
-                    if (
-                        resource.rules[key]?.includes(
-                            result?.speciesList[speciesList]
-                        )
-                    ) {
+                    if (resource.rules[key]?.includes(result?.speciesList[speciesList])) {
                         testsPassed++;
                         break;
                     }
@@ -172,10 +141,8 @@ function ResourcesView({ result }: MapViewProps) {
         <div>
             <span className={classes.speciesDescriptionTitle}>Literature</span>
 
-            <span
-                className={classes.h4grey}
-                style={{ marginBottom: '30px', marginTop: '30px' }}
-            >
+            <span className={classes.h4grey}
+                  style={{marginBottom: isMobile ? '15px' : '30px', marginTop: isMobile ? '15px' : '30px'}}>
                 Biodiversity Heritage Library (BHL)
             </span>
 
@@ -186,7 +153,7 @@ function ResourcesView({ result }: MapViewProps) {
                         style={{
                             height: 24,
                             display: 'block',
-                            width: '500px',
+                            width: isMobile ? '100%' : '500px',
                             borderRadius: '5px',
                         }}
                     ></span>
@@ -204,230 +171,102 @@ function ResourcesView({ result }: MapViewProps) {
             )}
             {errorMessage && (
                 <FlaggedAlert
-                    content={
-                        <>
-                            <b>Error loading BHL results.</b>
-                            <p>
-                                Report this error by clicking on the{' '}
-                                <b>Need Help?</b> button on the right edge of
-                                the screen.
-                            </p>
-                            <code>{errorMessage}</code>
-                        </>
-                    }
+                    content={<>
+                        <b>Error loading BHL results.</b>
+                        <p>
+                            Report this error by clicking on the{' '}
+                            <b>Need Help?</b> button on the right edge of
+                            the screen.
+                        </p>
+                        <code>{errorMessage}</code>
+                    </>}
                 />
             )}
-            {bhl && bhl.length > 0 && (
-                <>
-                    <span
-                        style={{
-                            fontSize: '16px',
-                            lineHeight: '24px',
-                            fontWeight: 70,
-                        }}
-                    >
-                        Showing {1} to{' '}
-                        {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} for{' '}
-                        <FormatName
-                            name={result?.name}
-                            rankId={result?.rankID}
-                        />
-                        .{' '}
-                        <a
-                            href={bhlQuery}
-                            target="bhl"
-                            className={classes.speciesLink}
-                            style={{
-                                fontSize: '16px',
-                                lineHeight: '24px',
-                                fontWeight: 700,
-                            }}
-                        >
-                            View in BHL
-                        </a>
-                        .
-                    </span>
-                    <table
-                        className="table table-striped align-middle"
-                        style={{
-                            marginTop: '20px',
-                            borderTop: '0.5px solid #212121',
-                            paddingTop: '10px',
-                            paddingBottom: '10px',
-                        }}
-                    >
-                        <tbody>
-                            {bhl.map(
-                                (resource, index) =>
-                                    index < maxBhlSize && (
-                                        <tr key={index}>
-                                            <td
-                                                style={{
-                                                    border: '0px',
-                                                    fontSize: '16px',
-                                                    lineHeight: '24px',
-                                                }}
-                                            >
-                                                {resource.Authors?.length ===
-                                                1 ? (
-                                                    <>
-                                                        {formatAuthor(
-                                                            resource.Authors[0]
-                                                                .Name
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        {resource.Authors?.slice(
-                                                            0,
-                                                            -2
-                                                        )
-                                                            .map((author) =>
-                                                                formatAuthor(
-                                                                    author.Name
-                                                                )
-                                                            )
-                                                            .join(', ')}
-                                                        {resource.Authors
-                                                            ?.length > 1 && (
-                                                            <>
-                                                                {resource
-                                                                    .Authors
-                                                                    ?.length >
-                                                                    2 && ', '}
-                                                                {resource.Authors?.slice(
-                                                                    -2
-                                                                )
-                                                                    .map(
-                                                                        (
-                                                                            author
-                                                                        ) =>
-                                                                            formatAuthor(
-                                                                                author.Name
-                                                                            )
-                                                                    )
-                                                                    .join(
-                                                                        ' and '
-                                                                    )}
-                                                            </>
-                                                        )}
-                                                    </>
-                                                )}
-                                                {resource.Title &&
-                                                    (resource.PartUrl ||
-                                                        resource.ItemUrl) && (
-                                                        <>
-                                                            {resource.Authors
-                                                                ?.length > 0 &&
-                                                                ', '}
-                                                            <span
-                                                                style={{
-                                                                    fontStyle:
-                                                                        resource.ItemUrl
-                                                                            ? 'italic'
-                                                                            : undefined,
-                                                                }}
-                                                            >
-                                                                <a
-                                                                    href={
-                                                                        resource.PartUrl ||
-                                                                        resource.ItemUrl
-                                                                    }
-                                                                    style={{
-                                                                        color: '#003A70',
-                                                                        textDecoration:
-                                                                            'underline',
-                                                                    }}
-                                                                >
-                                                                    '
-                                                                    {
-                                                                        resource.Title
-                                                                    }
-                                                                    '
-                                                                </a>
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                {resource.ContainerTitle && (
-                                                    <>
-                                                        ,{' '}
-                                                        <i>
-                                                            {
-                                                                resource.ContainerTitle
-                                                            }
-                                                        </i>
-                                                    </>
-                                                )}
-                                                {resource.PublisherName && (
-                                                    <>
-                                                        ,{' '}
-                                                        {resource.PublisherName}
-                                                    </>
-                                                )}
-                                                {resource.Volume && (
-                                                    <>
-                                                        ,{' '}
-                                                        <span
-                                                            style={{
-                                                                fontWeight:
-                                                                    'bold',
-                                                            }}
-                                                        >
-                                                            {resource.Volume}
-                                                        </span>
-                                                    </>
-                                                )}
-                                                {resource.Issue && (
-                                                    <>
-                                                        , {resource.Issue}
-                                                        {''}
-                                                    </>
-                                                )}
-                                                {(resource.Date ||
-                                                    resource.PublicationDate) && (
-                                                    <>
-                                                        ,{' '}
-                                                        {resource.Date ||
-                                                            resource.PublicationDate}
-                                                    </>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )
-                            )}
-                        </tbody>
-                    </table>
-                </>
-            )}
+            {bhl && bhl.length > 0 && (<>
+                <span style={{
+                    fontSize: isMobile ? '14px' : '16px',
+                    lineHeight: isMobile ? '20px' : '24px',
+                    fontWeight: 70
+                }}>
+                    Showing {1} to{' '}
+                    {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} for{' '}
+                    <FormatName name={result?.name} rankId={result?.rankID}/>.{' '}
+                    <a href={bhlQuery} target="bhl" className={classes.speciesLink}
+                       style={{
+                           fontSize: isMobile ? '14px' : '16px',
+                           lineHeight: isMobile ? '20px' : '24px',
+                           fontWeight: 700,
+                       }}>
+                        View in BHL
+                    </a>.
+                </span>
+                <table className="table table-striped align-middle" style={{
+                    marginTop: '20px',
+                    borderTop: '0.5px solid #212121',
+                    paddingTop: '10px',
+                    paddingBottom: '10px'
+                }}>
+                    <tbody>
+                    {bhl.map((resource, index) => index < maxBhlSize && (
+                        <tr key={index}>
+                            <td style={{
+                                border: '0px',
+                                fontSize: isMobile ? '14px' : '16px',
+                                lineHeight: isMobile ? '20px' : '24px'
+                            }}>
+                                {resource.Authors?.length === 1 ? (<>
+                                    {formatAuthor(resource.Authors[0].Name)}
+                                </>) : (<>
+                                    {resource.Authors?.slice(0, -2).map((author) => formatAuthor(author.Name)).join(', ')}
+                                    {resource.Authors?.length > 1 && (<>
+                                        {resource.Authors?.length > 2 && ', '}
+                                        {resource.Authors?.slice(-2).map((author) => formatAuthor(author.Name)).join(' and ')}
+                                    </>)}
+                                </>)}
+                                {resource.Title && (resource.PartUrl || resource.ItemUrl) && (<>
+                                    {resource.Authors?.length > 0 && ', '}
+                                    <span style={{fontStyle: resource.ItemUrl ? 'italic' : undefined}}>
+                                        <a href={resource.PartUrl || resource.ItemUrl} style={{
+                                            color: '#003A70',
+                                            textDecoration: 'underline'
+                                        }}>'{resource.Title}'</a>
+                                    </span>
+                                </>)}
+                                {resource.ContainerTitle && (<>,{' '}<i>{resource.ContainerTitle}</i></>)}
+                                {resource.PublisherName && (<>,{' '}{resource.PublisherName}</>)}
+                                {resource.Volume && (<>,{' '}<span
+                                    style={{fontWeight: 'bold'}}>{resource.Volume}</span></>)}
+                                {resource.Issue && (<>, {resource.Issue}{''}</>)}
+                                {(resource.Date || resource.PublicationDate) && (<>,{' '}{resource.Date || resource.PublicationDate}</>)}
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </>)}
             {!loading && !errorMessage && (!bhl || bhl.length === 0) && (
-                <span style={{ fontSize: '16px', lineHeight: '24px' }}>
+                <span style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                     No BHL references found for{' '}
-                    <FormatName name={result?.name} rankId={result?.rankID} />
+                    <FormatName name={result?.name} rankId={result?.rankID}/>
                 </span>
             )}
-            <hr
-                className={classes.hrColour}
-                style={{ marginTop: '30px', marginBottom: '40px' }}
-            />
+            <hr className={classes.hrColour}
+                style={{marginTop: isMobile ? '15px' : '30px', marginBottom: isMobile ? '15px' : '40px'}}/>
 
-            <span className={classes.h3}>Other resources</span>
-            <div
-                className="d-flex flex-wrap"
-                style={{ rowGap: 30, columnGap: 40, marginTop: '30px' }}
-            >
-                {onlineResources.map(
-                    (resource: Resource, idx) =>
-                        isResourceVisible(resource) && (
-                            <a
-                                key={idx}
-                                className="btn ala-btn-primary ala-btn-large"
-                                href={resource.url}
-                            >
-                                {resource.name}
-                            </a>
-                        )
-                )}
+            <span className={classes.speciesDescriptionTitle}>Other resources</span>
+            <div className="d-flex flex-wrap" style={{
+                rowGap: isMobile ? 15 : 30,
+                columnGap: isMobile ? 20 : 40,
+                marginTop: isMobile ? '15px' : '30px'
+            }}>
+                {onlineResources.map((resource: Resource, idx) => isResourceVisible(resource) && (
+                    <a key={idx} className="btn ala-btn-primary ala-btn-large" href={resource.url}
+                       style={{width: isMobile ? '100%' : ''}}>
+                        {resource.name}
+                    </a>
+                ))}
             </div>
+            {isMobile && <div style={{height: '30px'}}/>}
         </div>
     );
 }

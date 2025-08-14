@@ -11,7 +11,8 @@ import classes from './species.module.css';
 import {ConservationStatusLabel, InfoBox} from '@ala/common-ui';
 
 interface MapViewProps {
-    result?: Record<PropertyKey, string | number | any>;
+    result?: Record<PropertyKey, string | number | any>,
+    isMobile: boolean
 }
 
 interface ConservationItem {
@@ -34,7 +35,7 @@ const iucnStatusMapping = {
     'Least Concern': 'LC',
 };
 
-function StatusView({result}: MapViewProps) {
+function StatusView({result, isMobile}: MapViewProps) {
     const [nativeIntroduced, setNativeIntroduced] = useState<NativeIntroducedItem>({});
     const [conservationStatus, setConservationStatus] = useState<Record<string, ConservationItem>>({});
 
@@ -43,13 +44,13 @@ function StatusView({result}: MapViewProps) {
             setNativeIntroduced(JSON.parse(result.nativeIntroduced));
         }
 
-        var listNames = result?.listNames;
+        let listNames = result?.listNames;
 
-        var conservation: { [key: string]: ConservationItem } = {};
+        let conservation: { [key: string]: ConservationItem } = {};
         result && Object.keys(result).map((key) => {
             if (key.startsWith('iucn_')) {
-                var listId = key.replace('iucn_', '').replace('_s', ''); // TODO: remove _s after updating elasticsearch mapping to create a pattern for "iucn_*"
-                var item: ConservationItem = conservation[listId];
+                let listId = key.replace('iucn_', '').replace('_s', '');
+                let item: ConservationItem = conservation[listId];
                 if (!item) {
                     item = {};
                     conservation[listId] = item;
@@ -57,8 +58,8 @@ function StatusView({result}: MapViewProps) {
                 item['iucn'] = iucnStatusMapping[result[key] as keyof typeof iucnStatusMapping];
                 item['name'] = listNames[listId];
             } else if (key.startsWith('conservation_')) {
-                var listId = key.replace('conservation_', '');
-                var item: ConservationItem = conservation[listId];
+                let listId = key.replace('conservation_', '');
+                let item: ConservationItem = conservation[listId];
                 if (!item) {
                     item = {};
                     conservation[listId] = item;
@@ -73,143 +74,137 @@ function StatusView({result}: MapViewProps) {
         }
     }, [result]);
 
-    return (
-        <>
-            <div>
-                {nativeIntroduced &&
-                    Object.keys(nativeIntroduced).length > 0 && (
-                        <>
-                            <span className={classes.speciesDescriptionTitle} style={{marginBottom: '30px'}}>
-                                Native / introduced
-                            </span>
-                            <InfoBox className="mb-2"
-                                     icon={faCircleInfo}
-                                     title="About native / introduced"
-                                     content={
-                                         <>
-                                             This indicates if a species is regarded
-                                             as introduced to Australia, a state, or
-                                             territory. This can also include
-                                             Australian native species which have
-                                             been introduced in areas beyond their
-                                             natural range, e.g a species native to
-                                             NSW introduced to WA.&nbsp;
-                                             <a className={classes.speciesLink}
-                                                style={{
-                                                    fontSize: '16px',
-                                                    lineHeight: '24px',
-                                                }}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    openUrl(import.meta.env.VITE_ALA_NATIVE_INTRODUCED_INFO_URL);
-                                                }}
-                                                target="_blank">
-                                                 Find out more
-                                             </a>
-                                         </>
-                                     }
-                            />
-                            <table className="table table-striped align-middle"
-                                   style={{marginTop: '30px', fontSize: '16px', lineHeight: '24px'}}>
-                                <thead>
-                                <tr>
-                                    <th>Place</th>
-                                    <th>Status</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {Object.keys(nativeIntroduced).sort().map((key, idx) => (
-                                    <tr key={idx}>
-                                        <td>{key}</td>
-                                        <td>{nativeIntroduced[key]}</td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-
-                            {conservationStatus && <>
-                                <div style={{height: '30px'}}/>
-                                <hr/>
-                                <div style={{height: '30px'}}/>
-                            </>
-                            }
-                        </>
-                    )}
-
-                {conservationStatus && Object.keys(conservationStatus).length > 0 && <>
-                    <span className={classes.speciesDescriptionTitle} style={{marginBottom: '30px'}}>
-                        Conservation status</span>
-                    <InfoBox icon={faCircleInfo} title="About the IUCN Equivalent Classes" style={{marginTop: '30px'}}
-                             content={
-                                 <>
-                                     As each state and territory have
-                                     different classifications under their
-                                     threatened species legislation, the
-                                     Atlas of Living Australia have
-                                     interpreted state and territory status
-                                     classes to align to the equivalent
-                                     International Union for Conservation of
-                                     Nature (IUCN) Classes.{' '}
-                                     <a className={classes.speciesLink}
-                                        style={{
-                                            fontSize: '16px',
-                                            lineHeight: '24px',
-                                        }}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            openUrl(import.meta.env.VITE_SDS_INFO_URL);
-                                        }}
-                                        target="_blank">
-                                         Find out more
-                                     </a>
-                                 </>
-                             }
-                    />
-                    <table className="table table-striped align-middle"
-                           style={{marginTop: '30px', fontSize: '16px', lineHeight: '24px'}}>
-                        <thead>
-                        <tr>
-                            <th>Level</th>
-                            <th>Source status</th>
-                            <th>IUCN equivalent class</th>
+    return (<>
+        <div>
+            {nativeIntroduced && Object.keys(nativeIntroduced).length > 0 && (<>
+                <span className={classes.speciesDescriptionTitle} style={{marginBottom: isMobile ? '15px' : '30px'}}>
+                    Native / introduced
+                </span>
+                <InfoBox size={isMobile ? 14 : 16} className="mb-2" icon={faCircleInfo}
+                         title="About native / introduced"
+                         content={<>
+                             This indicates if a species is regarded
+                             as introduced to Australia, a state, or
+                             territory. This can also include
+                             Australian native species which have
+                             been introduced in areas beyond their
+                             natural range, e.g a species native to
+                             NSW introduced to WA.&nbsp;
+                             <a className={classes.speciesLink}
+                                style={{fontSize: isMobile ? '14px' : '16px', lineHeight: '24px'}}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    openUrl(import.meta.env.VITE_ALA_NATIVE_INTRODUCED_INFO_URL);
+                                }} target="_blank">
+                                 Find out more
+                             </a>
+                         </>}
+                />
+                <table className="table table-striped align-middle" style={{
+                    marginTop: isMobile ? '15px' : '30px',
+                    fontSize: isMobile ? '14px' : '16px',
+                    lineHeight: isMobile ? '20px' : '24px'
+                }}>
+                    <thead>
+                    <tr>
+                        <th>Place</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {Object.keys(nativeIntroduced).sort().map((key, idx) => (
+                        <tr key={idx}>
+                            <td>{key}</td>
+                            <td>{nativeIntroduced[key]}</td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        {conservationStatus && Object.keys(conservationStatus).sort().map((key: string, idx: number) => (
-                            <tr key={idx}>
-                                <td>
-                                    {conservationStatus[key].name}
-                                </td>
-                                <td>
-                                    {conservationStatus[key].status}
-                                </td>
-                                <td>
-                                    {conservationStatus[key].iucn && (
-                                        <ConservationStatusLabel status={conservationStatus[key].iucn}/>)}
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                    ))}
+                    </tbody>
+                </table>
 
-                    {/*<div className="row" style={{marginTop: "30px", rowGap: "20px", paddingLeft: "20px", paddingRight: "20px"}}>*/}
-                    {/*  {Object.values(iucnStatusMapping).map((key, idx) =>*/}
-                    {/*      <div key={idx} className={"col-4"}>*/}
-                    {/*        <ConservationStatusLabel status={key as ConservationStatusKey} withLabel />*/}
-                    {/*      </div>*/}
-                    {/*  )}*/}
-                    {/*</div>*/}
-                </>
-                }
+                {conservationStatus && <>
+                    <div style={{height: isMobile ? '15px' : '30px'}}/>
+                    <hr/>
+                    <div style={{height: isMobile ? '15px' : '30px'}}/>
+                </>}
+            </>)}
 
-                {(!nativeIntroduced || Object.keys(nativeIntroduced).length == 0) && (!conservationStatus || Object.keys(conservationStatus).length == 0) && (
-                    <span style={{fontSize: '16px'}}>
-                            No status information available.
-                        </span>
-                )}
-            </div>
-        </>
-    );
+            {conservationStatus && Object.keys(conservationStatus).length > 0 && <>
+                <span className={classes.speciesDescriptionTitle} style={{marginBottom: isMobile ? '15px' : '30px'}}>
+                    Conservation status</span>
+                <InfoBox size={isMobile ? 14 : 16} icon={faCircleInfo} title="About the IUCN Equivalent Classes"
+                         style={{marginTop: isMobile ? '15px' : '30px'}}
+                         content={<>
+                             As each state and territory have
+                             different classifications under their
+                             threatened species legislation, the
+                             Atlas of Living Australia have
+                             interpreted state and territory status
+                             classes to align to the equivalent
+                             International Union for Conservation of
+                             Nature (IUCN) Classes.{' '}
+                             <a className={classes.speciesLink}
+                                style={{
+                                    fontSize: isMobile ? '14px' : '16px',
+                                    lineHeight: '24px',
+                                }}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    openUrl(import.meta.env.VITE_SDS_INFO_URL);
+                                }}
+                                target="_blank">
+                                 Find out more
+                             </a>
+                         </>}
+                />
+                <table className="table table-striped align-middle"
+                       style={{
+                           marginTop: isMobile ? '15px' : '30px',
+                           fontSize: isMobile ? '14px' : '16px',
+                           lineHeight: isMobile ? '20px' : '24px'
+                       }}>
+                    <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Source status</th>
+                        <th>IUCN equivalent class</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {conservationStatus && Object.keys(conservationStatus).sort().map((key: string, idx: number) => (
+                        <tr key={idx}>
+                            <td>
+                                {conservationStatus[key].name}
+                            </td>
+                            <td>
+                                {conservationStatus[key].status}
+                            </td>
+                            <td>
+                                {conservationStatus[key].iucn && (
+                                    <ConservationStatusLabel status={conservationStatus[key].iucn}
+                                                             size={isMobile ? 30 : 40} fontSize={isMobile ? 14 : 16}/>)}
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+
+                {/*<div className="row" style={{marginTop: "30px", rowGap: "20px", paddingLeft: "20px", paddingRight: "20px"}}>*/}
+                {/*  {Object.values(iucnStatusMapping).map((key, idx) =>*/}
+                {/*      <div key={idx} className={"col-4"}>*/}
+                {/*        <ConservationStatusLabel status={key as ConservationStatusKey} withLabel />*/}
+                {/*      </div>*/}
+                {/*  )}*/}
+                {/*</div>*/}
+            </>
+            }
+
+            {(!nativeIntroduced || Object.keys(nativeIntroduced).length == 0) && (!conservationStatus || Object.keys(conservationStatus).length == 0) && (
+                <span style={{fontSize: isMobile ? '14px' : '16px'}}>
+                    No status information available.
+                </span>
+            )}
+        </div>
+    </>);
 }
 
 export default StatusView;
