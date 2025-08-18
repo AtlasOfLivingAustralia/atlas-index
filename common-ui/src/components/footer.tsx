@@ -91,9 +91,7 @@ function Footer({isLoggedIn, loginFn, logoutFn, footerUrl}: FooterProps) {
     }
 
     return <>
-        {externalFooterHtml &&
-            <div ref={footerRef}></div>
-        }
+        {externalFooterHtml && <div ref={footerRef}></div>}
     </>
 }
 

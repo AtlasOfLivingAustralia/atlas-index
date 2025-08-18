@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import FlagIcon from "../icons/flagIcon.tsx";
 import React from "react";
+import FlagIcon from "../icons/flagIcon.tsx";
 
 interface InfoBoxProps {
     content: React.ReactNode,
@@ -14,7 +14,7 @@ interface InfoBoxProps {
 }
 
 const InfoBox = ({content, style, className}: InfoBoxProps) => (
-    <div className={"d-inline-flex align-items-start " + (className ? className :'')}
+    <div className={"d-inline-flex align-items-start " + (className ? className : '')}
          style={{backgroundColor: "#FFC557", padding: "10px", borderRadius: "5px", ...style}}>
         <FlagIcon/>
         <div style={{marginLeft: "10px", marginRight: "10px"}}>

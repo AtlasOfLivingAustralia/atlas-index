@@ -4,20 +4,19 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {FlaggedAlert, FontAwesomeIconLite, InfoBox, refineSection,} from '@ala/common-ui';
+import {faCircleInfo, faRotateRight} from '@fortawesome/free-solid-svg-icons';
+import {LatLng, LayersControlEvent} from 'leaflet';
 import {JSX, useEffect, useRef, useState} from 'react';
 import {LayersControl, MapContainer, TileLayer, WMSTileLayer,} from 'react-leaflet';
-import {LatLng, LayersControlEvent} from 'leaflet';
-import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
+import Control from 'react-leaflet-custom-control';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 
 import 'leaflet/dist/leaflet.css';
 import './map.css';
-import classes from './species.module.css';
-import Legend from './mapLegend';
-import Control from 'react-leaflet-custom-control';
 import FormatName from '../nameUtils/formatName';
-import {faRotateRight} from '@fortawesome/free-solid-svg-icons';
-import {FlaggedAlert, FontAwesomeIconLite, InfoBox, refineSection,} from '@ala/common-ui';
+import Legend from './mapLegend';
+import classes from './species.module.css';
 
 interface MapViewProps {
     queryString?: string,
@@ -58,10 +57,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
     ); // Note the count values are scaled by a factor below
     const recordLayerOpacity = import.meta.env.VITE_MAP_LAYER_OPACITY;
     const defaultZoom = import.meta.env.VITE_MAP_DEFAULT_ZOOM;
-    const center = new LatLng(
-        import.meta.env.VITE_MAP_CENTRE_LAT,
-        import.meta.env.VITE_MAP_CENTRE_LNG
-    );
+    const center = new LatLng(import.meta.env.VITE_MAP_CENTRE_LAT, import.meta.env.VITE_MAP_CENTRE_LNG);
 
     useEffect(() => {
         if (!mapRef.current) return;
@@ -191,9 +187,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         return wmsUrl;
     }
 
-    function generateDistributionMapObj(
-        distributions: Distribution[] | string | null
-    ) {
+    function generateDistributionMapObj(distributions: Distribution[] | string | null) {
         let spatialObjects: Distribution[] = [];
 
         // Utility function to add 'url' and 'checked' attrs to distribution object (state management)
@@ -224,42 +218,38 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         return <></>;
     }
 
-    return (<>
-        {result.sdsStatus && (
-            <FlaggedAlert style={{marginBottom: '40px'}}
-                content={<>
-                    This species is{' '}
-                    <strong>considered sensitive</strong> in at least
-                    one jurisdiction. Some or all occurrence data has
-                    been obfuscated.&nbsp;
-                    <a href={import.meta.env.VITE_SDS_INFO_URL}
-                       style={{textDecoration: 'underline', color: '#228be6'}}>
-                        More info</a>.
-                </>}
-            />
-        )}
+    return <>
+        {result.sdsStatus && <FlaggedAlert
+            style={{marginBottom: '40px'}}
+            content={<>
+                This species is{' '}
+                <strong>considered sensitive</strong> in at least
+                one jurisdiction. Some or all occurrence data has
+                been obfuscated.&nbsp;
+                <a href={import.meta.env.VITE_SDS_INFO_URL}
+                   style={{textDecoration: 'underline', color: '#228be6'}}>
+                    More info</a>.
+            </>}
+        />}
         <InfoBox
             size={isMobile ? 14 : 16}
             lineHeight={20}
             icon={faCircleInfo}
             title="About this map"
-            content={
-                <>
-                    Occurrence records show where a species has been
-                    recorded, and may not show the full extent of its known
-                    distribution. Records may contain some error. Expert
-                    distributions show species distributions modelled by
-                    experts or the coarse known distributions of species.
-                </>
-            }
+            content={<>
+                Occurrence records show where a species has been
+                recorded, and may not show the full extent of its known
+                distribution. Records may contain some error. Expert
+                distributions show species distributions modelled by
+                experts or the coarse known distributions of species.
+            </>}
         />
         <div className="d-flex flex-row gap-3" style={{marginTop: isMobile ? '15px' : '30px'}}>
-            {!isMobile && (
+            {!isMobile &&
                 <div style={{display: 'relative', paddingLeft: '5px'}}>
                 <span className={classes.refineTitle} style={{display: 'block'}}>
                     Refine map
                 </span>
-
                     {refineSection('Occurrence records', [
                         {
                             label: 'Show occurrence records',
@@ -269,44 +259,38 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                         },
                     ])}
 
-                    {distributions &&
-                        distributions.length > 0 &&
-                        refineSection(
-                            'Expert distributions',
-                            distributions.map((dist, idx) => ({
-                                label: (
-                                    <>
-                                        {dist.areaName}
-                                        <span style={{display: 'block', fontStyle: 'italic', cursor: 'default'}}
-                                              onClick={(e) => e.stopPropagation()}>
-                                            provided by&nbsp;
-                                            <a href={dist.dataResourceUid ? `${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}` : '#'}
-                                               style={{color: '#228be6', textDecoration: 'underline'}}>
+                    {distributions && distributions.length > 0 &&
+                        refineSection('Expert distributions', distributions.map((dist, idx) => ({
+                            label: <>
+                                {dist.areaName}
+                                <span style={{display: 'block', fontStyle: 'italic', cursor: 'default'}}
+                                      onClick={(e) => e.stopPropagation()}>
+                                        provided by&nbsp;
+                                    <a href={dist.dataResourceUid ? `${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}` : '#'}
+                                       style={{color: '#228be6', textDecoration: 'underline'}}>
                                             {dist.dataResourceName}
                                         </a>
                                     </span>
-                                    </>
-                                ),
-                                onClick: () => {
-                                    const updatedDistributions = distributions.map((d, i) => i === idx ? {
-                                        ...d,
-                                        checked: !d.checked
-                                    } : d);
-                                    setDistributions(updatedDistributions);
-                                },
-                                isOpen: dist.checked || false,
-                                isDisabled: () => distributions.length === 0,
-                            }))
-                        )}
+                            </>,
+                            onClick: () => {
+                                const updatedDistributions = distributions.map((d, i) => i === idx ? {
+                                    ...d,
+                                    checked: !d.checked
+                                } : d);
+                                setDistributions(updatedDistributions);
+                            },
+                            isOpen: dist.checked || false,
+                            isDisabled: () => distributions.length === 0,
+                        })))
+                    }
 
                     {distributions && distributions.length === 0 && (
                         <span style={{fontSize: '0.875rem', color: 'grey', display: 'block', marginTop: '15px'}}>
-                            No expert distribution maps available for{' '}
+                        No expert distribution maps available for{' '}
                             <FormatName name={result?.name} rankId={result?.rankID}/>
                         </span>
                     )}
-                </div>
-            )}
+                </div>}
             <div style={{height: '100%', width: '100%', borderRadius: '10px'}}>
                 <span style={{marginBottom: '15px', display: 'block'}} className={classes.refineTitle}>
                     {formatNumber(occurrenceCount)} occurrence records
@@ -319,8 +303,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                         scrollWheelZoom={false}
                         worldCopyJump={true}
                         style={{height: '530px', borderRadius: '10px'}}
-                        whenReady={() => setMapReady(true)}
-                    >
+                        whenReady={() => setMapReady(true)}>
                         {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                             <LayersControl position="topright">
                                 <LayersControl.BaseLayer checked name="Minimal">
@@ -371,9 +354,9 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                             </LayersControl>
                         )}
                         <Control prepend position="bottomleft">
-                            {showOccurrences && hexValuesScaled && (
+                            {showOccurrences && hexValuesScaled &&
                                 <Legend fillOpacity={recordLayerOpacity} hexBinValues={hexBinValues}/>
-                            )}
+                            }
                         </Control>
 
                         <Control position="topleft" prepend={false}>
@@ -399,7 +382,8 @@ function MapView({tab, result, isMobile}: MapViewProps) {
             </div>
         </div>
         {!isMobile && <hr className={classes.hrColour} style={{marginTop: '30px', marginBottom: '40px'}}/>}
-        <span className={classes.speciesDescriptionTitle} style={{marginTop: isMobile ? '15px' : '0px'}}>Getting started</span>
+        <span className={classes.speciesDescriptionTitle}
+              style={{marginTop: isMobile ? '15px' : '0px'}}>Getting started</span>
         <div className="d-flex flex-wrap"
              style={{rowGap: isMobile ? '15px' : '40px', columnGap: '30px', marginTop: isMobile ? '15px' : '30px'}}>
             {onlineResources.map((resource, idx) => (
@@ -409,7 +393,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                 </a>
             ))}
         </div>
-    </>);
+    </>;
 }
 
 export default MapView;

@@ -4,18 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    GenericViewProps,
-    RenderItemElements,
-    RenderItemParams,
-} from '../../../api/sources/model.ts';
+import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 import classes from '../search.module.css';
-import {
-    limitDescription,
-    openUrl,
-    renderGenericListItemFn,
-    renderGenericTileItemFn,
-} from '../util.tsx';
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn,} from '../util.tsx';
 
 function formatCategory(category: string) {
     if (category == 'REGION') {
@@ -33,21 +24,11 @@ function openRegionLocality(item: any) {
     if (item.idxtype == 'LOCALITY' && parts.length == 3) {
         var lat = parts[parts.length - 2];
         var lng = parts[parts.length - 1];
-        openUrl(
-            import.meta.env.VITE_BIOCACHE_UI_URL +
-                '/explore/your-area#' +
-                lat +
-                '|' +
-                lng +
-                '|12|ALL_SPECIES'
-        );
+        openUrl(import.meta.env.VITE_BIOCACHE_UI_URL + '/explore/your-area#' + lat + '|' + lng + '|12|ALL_SPECIES');
         return;
     } else {
         // id is of the form "fid-pid", get the pid
-        openUrl(
-            import.meta.env.VITE_REGIONS_URL +
-                `/region?id=${item.id.split('-')[1]}`
-        ); // new regions app
+        openUrl(import.meta.env.VITE_REGIONS_URL + `/region?id=${item.id.split('-')[1]}`); // new regions app
         return;
     }
 }
@@ -93,80 +74,43 @@ export const regionslocalitiesDefn: GenericViewProps = {
         },
     },
 
-    renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile,}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            title: (
-                <>
-                    <span className={classes.listItemName}>{item.name}</span>
-                </>
-            ),
-            extra: (
-                <>
-                    <span className={classes.listItemText}>
-                        {item.fieldName}
-                    </span>
-                    <span className={classes.multilineText}>
-                        Type{' '}
-                        {item.idxtype == 'LOCALITY'
-                            ? 'Locality'
-                            : 'Region / Area'}
-                    </span>
-                </>
-            ),
-            description: (
-                <>
-                    <span
-                        className={classes.listDescription}
-                        title={item.description}
-                    >
-                        {limitDescription(
-                            item.description,
-                            isMobile ? 80 : wide ? 230 : 120
-                        )}
-                    </span>
-                </>
-            ),
+            title: <span className={classes.listItemName}>{item.name}</span>,
+            extra: <>
+                <span className={classes.listItemText}>
+                    {item.fieldName}
+                </span>
+                <span className={classes.multilineText}>
+                    Type{' '}
+                    {item.idxtype == 'LOCALITY' ? 'Locality' : 'Region / Area'}
+                </span>
+            </>,
+            description: <span className={classes.listDescription} title={item.description}>
+                {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
+            </span>,
             clickFn: () => openRegionLocality(item),
         };
-        return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
-            elements
-        );
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({ item, isMobile }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            title: (
-                <>
-                    <span
-                        className={classes.listItemName}
-                        style={{ marginBottom: '8px' }}
-                    >
-                        {item.name}
-                    </span>
-                    <span className={classes.listItemText}>
-                        {item.fieldName}
-                    </span>
-                    <span className={classes.listItemText}>
-                        Type{' '}
-                        {item.idxtype == 'LOCALITY'
-                            ? 'Locality'
-                            : 'Region / Area'}
-                    </span>
-                    <span
-                        style={{ marginTop: '13px' }}
-                        className={classes.listDescription}
-                        title={item.description}
-                    >
-                        {item.description}
-                    </span>
-                </>
-            ),
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: '8px'}}>
+                    {item.name}
+                </span>
+                <span className={classes.listItemText}>
+                    {item.fieldName}
+                </span>
+                <span className={classes.listItemText}>
+                    Type{' '}
+                    {item.idxtype == 'LOCALITY' ? 'Locality' : 'Region / Area'}
+                </span>
+                <span style={{marginTop: '13px'}} className={classes.listDescription} title={item.description}>
+                    {item.description}
+                </span>
+            </>,
             clickFn: () => openRegionLocality(item),
         };
         return renderGenericTileItemFn(isMobile, elements);

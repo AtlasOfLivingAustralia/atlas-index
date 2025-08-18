@@ -4,22 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    GenericViewProps,
-    RenderItemElements,
-    RenderItemParams,
-} from '../../../api/sources/model.ts';
-import classes from '../search.module.css';
-import {
-    limitDescription,
-    openUrl,
-    renderGenericListItemFn,
-    renderGenericTileItemFn,
-    TileImage,
-} from '../util.tsx';
-import missingImage from '../../../image/missing-image.png';
-import capitalise from '../../../helpers/Capitalise.ts';
 import {FadeInImage} from '@ala/common-ui';
+import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
+import capitalise from '../../../helpers/Capitalise.ts';
+import missingImage from '../../../image/missing-image.png';
+import classes from '../search.module.css';
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
 
 export const environmentallayersDefn: GenericViewProps = {
     fq: 'idxtype:LAYER',
@@ -118,89 +108,53 @@ export const environmentallayersDefn: GenericViewProps = {
         },
     },
 
-    renderListItemFn: ({
-                           item,
-                           navigate,
-                           wide,
-                           isMobile,
-                       }: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: (
-                <FadeInImage
-                    className={classes.listItemImage}
-                    src={item.image || missingImage}
-                    missingImage={missingImage}
-                />
-            ),
-            title: (
-                <>
-                    <span className={classes.listItemName}>{item.name}</span>
-                </>
-            ),
-            extra: (
-                <>
-                    <span
-                        className={classes.overflowText}
-                        title={item.keywords}
-                    >
-                        {item.keywords}
-                    </span>
-                    <span className={classes.multilineText} title={item.source}>
-                        {item.source}
-                    </span>
-                </>
-            ),
-            description: (
-                <>
-                    <span
-                        className={classes.listDescription}
-                        title={item.description}
-                    >
-                        {limitDescription(
-                            item.description,
-                            isMobile ? 80 : wide ? 230 : 120
-                        )}
-                    </span>
-                </>
-            ),
-            clickFn: () =>
-                openUrl(
-                    import.meta.env.VITE_SPATIAL_URL +
-                    '?layers=' +
-                    item.guid.split('/').pop()
-                ),
+            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
+                                missingImage={missingImage}/>,
+            title: <span className={classes.listItemName}>{item.name}</span>,
+            extra: <>
+                <span className={classes.overflowText} title={item.keywords}>
+                    {item.keywords}
+                </span>
+                <span className={classes.multilineText} title={item.source}>
+                    {item.source}
+                </span>
+            </>,
+            description: <span className={classes.listDescription} title={item.description}>
+                {limitDescription(
+                    item.description,
+                    isMobile ? 80 : wide ? 230 : 120
+                )}
+            </span>,
+            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
         };
-        return renderGenericListItemFn(
-            {item, navigate, wide, isMobile},
-            elements
-        );
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
             image: <TileImage image={item.image} isMobile={isMobile}/>,
-            title: (
-                <>
-                    <span className={classes.listItemName} style={{marginBottom: '8px'}}>
-                        {item.name}
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: '8px'}}>
+                    {item.name}
+                </span>
+                {item.keywords && (
+                    <span className={classes.overflowText} title={item.keywords}>
+                        {item.keywords}
                     </span>
-                    {item.keywords && (
-                        <span className={classes.overflowText} title={item.keywords}>
-                            {item.keywords}
-                        </span>
-                    )}
-                    {item.source && (
-                        <span title={item.source} className={classes.overflowText}>
-                            {item.source}
-                        </span>
-                    )}
-                    {item.description && (
-                        <span style={{marginTop: '13px'}} className={classes.listDescription} title={item.description}>
-                            {item.description}
-                        </span>
-                    )}
-                </>
-            ),
+                )}
+                {item.source && (
+                    <span title={item.source} className={classes.overflowText}>
+                        {item.source}
+                    </span>
+                )}
+                {item.description && (
+                    <span style={{marginTop: '13px'}} className={classes.listDescription} title={item.description}>
+                        {item.description}
+                    </span>
+                )}
+            </>,
             clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
         };
         return renderGenericTileItemFn(isMobile, elements);

@@ -55,16 +55,10 @@ interface CustomFacetFn {
     setCustomFacetData: any;
 }
 
-interface AutocompleteItem {
-    lsid: string;
-    name: string;
-}
-
 export type {
     TaxonDescription,
     GenericViewProps,
     RenderItemParams,
     CustomFacetFn,
-    AutocompleteItem,
     RenderItemElements,
 };

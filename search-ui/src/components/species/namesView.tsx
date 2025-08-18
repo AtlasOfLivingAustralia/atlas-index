@@ -4,11 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect, useState} from 'react';
+import {InfoBox} from '@ala/common-ui';
 import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import '../../css/nameFormatting.css';
+import {useEffect, useState} from 'react';
 import classes from './species.module.css';
-import {InfoBox} from '@ala/common-ui';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>,
@@ -26,7 +26,7 @@ function NamesView({result, isMobile}: MapViewProps) {
         }
     }, [result]);
 
-    return (<>
+    return <>
         <div>
             <span className={classes.speciesDescriptionTitle}>
                 Scientific names
@@ -64,7 +64,7 @@ function NamesView({result, isMobile}: MapViewProps) {
             </table>
             <div style={{height: isMobile ? '0px' : '30px'}}/>
 
-            {result?.synonymData && (<>
+            {result?.synonymData && <>
                 <table className="table table-striped align-middle"
                        style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                     <thead>
@@ -74,7 +74,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {result.synonymData.sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) => (
+                    {result.synonymData.sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
@@ -102,13 +102,13 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 ) : (<span>{item?.datasetName}</span>)}
                             </td>
                         </tr>
-                    ))}
+                    )}
                     </tbody>
                 </table>
                 <div style={{height: isMobile ? '0px' : '30px'}}/>
-            </>)}
+            </>}
 
-            {result?.variantData && (<>
+            {result?.variantData && <>
                 <table className="table table-striped align-middle"
                        style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                     <thead>
@@ -118,7 +118,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {result.variantData.sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) => (
+                    {result.variantData.sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
@@ -146,13 +146,13 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 ) : (<span>{item?.datasetName}</span>)}
                             </td>
                         </tr>
-                    ))}
+                    )}
                     </tbody>
                 </table>
                 <div style={{height: isMobile ? '0px' : '30px'}}/>
-            </>)}
+            </>}
 
-            {result?.identifierData && (<>
+            {result?.identifierData && <>
                 <table className="table table-striped align-middle"
                        style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                     <thead>
@@ -162,12 +162,11 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {result.identifierData.sort((a: any, b: any) => a.guid.localeCompare(b.guid)).map((item: any, idx: any) => (
+                    {result.identifierData.sort((a: any, b: any) => a.guid.localeCompare(b.guid)).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
-                                    <a href={item?.source}
-                                       style={{textDecoration: 'underline', color: '#003A70'}}>
+                                    <a href={item?.source} style={{textDecoration: 'underline', color: '#003A70'}}>
                                         {item?.guid}
                                     </a>
                                 ) : (
@@ -194,13 +193,13 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 )}
                             </td>
                         </tr>
-                    ))}
+                    )}
                     </tbody>
                 </table>
                 <div style={{height: isMobile ? '0px' : '30px'}}/>
-            </>)}
+            </>}
 
-            {commonNames && commonNames.length > 0 && (<>
+            {commonNames && commonNames.length > 0 && <>
                 <hr/>
                 <div style={{height: isMobile ? '15px' : '30px'}}/>
                 <span className={classes.speciesDescriptionTitle}>
@@ -239,8 +238,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             <td>
                                 {item?.source ? (
                                     <a href={item?.source} style={{
-                                        textDecoration: 'underline',
-                                        color: '#003A70'
+                                        textDecoration: 'underline', color: '#003A70'
                                     }}>{item?.datasetName || 'Link'}</a>
                                 ) : (
                                     <span>{item?.datasetName}</span>
@@ -251,9 +249,9 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tbody>
                 </table>
                 <div style={{height: isMobile ? '0px' : '30px'}}/>
-            </>)}
+            </>}
 
-            {indigenousNames && indigenousNames.length > 0 && (<>
+            {indigenousNames && indigenousNames.length > 0 && <>
                 <hr/>
                 <div style={{height: isMobile ? '15px' : '30px'}}/>
                 <span className={classes.speciesDescriptionTitle}>
@@ -275,8 +273,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                         <a href="https://aiatsis.gov.au" target="_blank"
                            style={{color: '#003A70', textDecoration: 'underline'}}>
                             AIATSIS
-                        </a>
-                        ) information about the language.
+                        </a>) information about the language.
                     </>}
                 />
                 <div style={{height: isMobile ? '15px' : '30px'}}/>
@@ -289,7 +286,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {indigenousNames.sort((a: any, b: any) => a.name.localeCompare(b.name)).map((item: any, idx: any) => (
+                    {indigenousNames.sort((a: any, b: any) => a.name.localeCompare(b.name)).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
@@ -300,32 +297,28 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 )}
                                 {item.nameAccordingTo && (<>
                                     <div style={{height: '10px'}}/>
-                                    <span
-                                        style={{fontStyle: 'italic'}}>According to:{' '}{item.nameAccordingTo}</span>
+                                    <span style={{fontStyle: 'italic'}}>According to:{' '}{item.nameAccordingTo}</span>
                                 </>)}
                                 {item.namePublishedIn && (<>
                                     <div style={{height: '10px'}}/>
-                                    <span
-                                        style={{fontStyle: 'italic'}}>Published in:{' '}{item.namePublishedIn}</span>
+                                    <span style={{fontStyle: 'italic'}}>Published in:{' '}{item.namePublishedIn}</span>
                                 </>)}
                             </td>
                             <td>
                                 {item?.languageURL ? (
-                                    <a href={item?.languageURL} style={{
-                                        color: '#003A70',
-                                        textDecoration: 'underline'
-                                    }}>{item?.languageName || item?.language}</a>
+                                    <a href={item?.languageURL} style={{color: '#003A70', textDecoration: 'underline'}}>
+                                        {item?.languageName || item?.language}</a>
                                 ) : (
                                     <span>{item?.languageName || item?.language}</span>
                                 )}
                             </td>
                         </tr>
-                    ))}
+                    )}
                     </tbody>
                 </table>
-            </>)}
+            </>}
         </div>
-    </>);
+    </>;
 }
 
 export default NamesView;

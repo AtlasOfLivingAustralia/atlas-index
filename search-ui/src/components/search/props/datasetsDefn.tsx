@@ -4,23 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    CustomFacetFn,
-    GenericViewProps,
-    RenderItemElements,
-    RenderItemParams,
-} from '../../../api/sources/model.ts';
-import classes from '../search.module.css';
-import {
-    limitDescription,
-    openUrl,
-    renderGenericListItemFn,
-    renderGenericTileItemFn,
-    TileImage,
-} from '../util.tsx';
-import missingImage from '../../../image/missing-image.png';
+import {FadeInImage, FolderIcon} from '@ala/common-ui';
+import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 import capitalise from '../../../helpers/Capitalise.ts';
-import { FadeInImage, FolderIcon } from '@ala/common-ui';
+import missingImage from '../../../image/missing-image.png';
+import classes from '../search.module.css';
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
 
 const idxtypeLabels: Record<string, string> = {
     DATARESOURCE: 'Data Resource',
@@ -48,74 +37,40 @@ export const datasetsDefn: GenericViewProps = {
     },
 
     renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+                           item,
+                           navigate,
+                           wide,
+                           isMobile,
+                       }: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: (
-                <FadeInImage
-                    className={classes.listItemImage}
-                    src={item.image || missingImage}
-                    missingImage={missingImage}
-                />
-            ),
-            title: (
-                <>
-                    <span className={classes.listItemName}>{item.name}</span>
-                </>
-            ),
-            extra: (
-                <>
-                    <span className={classes.listItemText}>
-                        <FolderIcon /> contains {item.occurrenceCount}{' '}
-                        occurrence records
-                    </span>
-                </>
-            ),
-            description: (
-                <>
-                    <span
-                        title={item.description}
-                        className={classes.listDescription}
-                    >
-                        {limitDescription(
-                            item.description,
-                            isMobile ? 80 : wide ? 230 : 120
-                        )}
-                    </span>
-                </>
-            ),
+            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
+                                missingImage={missingImage}/>,
+            title: <span className={classes.listItemName}>{item.name}</span>,
+            extra: <span className={classes.listItemText}>
+                <FolderIcon/> contains {item.occurrenceCount}{' '}
+                occurrence records
+            </span>,
+            description: <span title={item.description} className={classes.listDescription}>
+                {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
+            </span>,
             clickFn: () => openUrl(item.guid),
         };
-        return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
-            elements
-        );
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({ item, isMobile }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile} />,
-            title: (
-                <>
-                    <span className={classes.listItemName}>{item.name}</span>
-                    <span
-                        style={{ marginTop: '8px', marginBottom: '13px' }}
-                        className={classes.overflowText}
-                    >
-                        <FolderIcon /> contains {item.occurrenceCount}{' '}
-                        occurrence records
-                    </span>
-                    <span
-                        title={item.description}
-                        className={classes.listDescription}
-                    >
-                        {item.description}
-                    </span>
-                </>
-            ),
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+                <span style={{marginTop: '8px', marginBottom: '13px'}} className={classes.overflowText}>
+                    <FolderIcon/> contains {item.occurrenceCount}{' '}
+                    occurrence records
+                </span>
+                <span title={item.description} className={classes.listDescription}>
+                    {item.description}
+                </span>
+            </>,
             clickFn: () => openUrl(item.guid),
         };
         return renderGenericTileItemFn(isMobile, elements);
@@ -139,7 +94,9 @@ export const datasetsDefn: GenericViewProps = {
                 });
             });
             // sort by label
-            resourceTypeItems.sort((a: any, b: any) => {return a.label.localeCompare(b.label);});
+            resourceTypeItems.sort((a: any, b: any) => {
+                return a.label.localeCompare(b.label);
+            });
         }
         var typeItems: any[] = [];
         if (idxtypeFacet) {
@@ -154,17 +111,15 @@ export const datasetsDefn: GenericViewProps = {
                 });
             });
             // sort by label
-            typeItems.sort((a: any, b: any) => {return a.label.localeCompare(b.label);});
+            typeItems.sort((a: any, b: any) => {
+                return a.label.localeCompare(b.label);
+            });
             // insert resourceType items into typeItems after DATARESOURCE
             var dataResourceIndex = typeItems.findIndex(
                 (item: any) => item.label == idxtypeLabels['DATARESOURCE']
             );
             if (dataResourceIndex >= 0) {
-                typeItems.splice(
-                    dataResourceIndex + 1,
-                    0,
-                    ...resourceTypeItems
-                );
+                typeItems.splice(dataResourceIndex + 1, 0, ...resourceTypeItems);
             }
         }
         if (typeItems.length > 0) {
@@ -186,9 +141,7 @@ export const datasetsDefn: GenericViewProps = {
                         label: 'Yes',
                         count: parentData.totalRecords - data.totalRecords,
                         depth: 0,
-                        selected: thisFacetFqs.includes(
-                            '-occurrenceCount:0 AND occurrenceCount:*'
-                        ),
+                        selected: thisFacetFqs.includes('-occurrenceCount:0 AND occurrenceCount:*'),
                     });
                 }
                 if (data.totalRecords > 0) {

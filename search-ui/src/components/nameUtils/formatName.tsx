@@ -11,19 +11,14 @@ interface FormatNameProps {
     rankId: number;
 }
 
-const FormatName: React.FC<FormatNameProps> = ({
-    name,
-    rankId,
-}: FormatNameProps) => {
-    return (
-        <>
-            {rankId && rankId <= 8000 && rankId >= 6000 ? (
-                <span style={{ fontStyle: 'italic' }}>{name}</span>
-            ) : (
-                <span>{name}</span>
-            )}
-        </>
-    );
+const FormatName: React.FC<FormatNameProps> = ({name, rankId}: FormatNameProps) => {
+    return <>
+        {rankId && rankId <= 8000 && rankId >= 6000 ? (
+            <span style={{fontStyle: 'italic'}}>{name}</span>
+        ) : (
+            <span>{name}</span>
+        )}
+    </>;
 };
 
 export default FormatName;

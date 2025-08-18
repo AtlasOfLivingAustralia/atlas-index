@@ -387,9 +387,7 @@ function Header({isLoggedIn, loginFn, logoutFn, headerUrl, namematchingWsUrl, sp
     }
 
     return <>
-        {externalHeaderHtml &&
-            <div ref={headerRef}></div>
-        }
+        {externalHeaderHtml && <div ref={headerRef}></div>}
     </>
 };
 

@@ -4,11 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {ConservationStatusLabel, InfoBox} from '@ala/common-ui';
+import {faCircleInfo} from '@fortawesome/free-solid-svg-icons/faCircleInfo';
 import {useEffect, useState} from 'react';
 import {openUrl} from '../search/util.tsx';
-import {faCircleInfo} from '@fortawesome/free-solid-svg-icons/faCircleInfo';
 import classes from './species.module.css';
-import {ConservationStatusLabel, InfoBox} from '@ala/common-ui';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>,
@@ -25,6 +25,7 @@ interface NativeIntroducedItem {
     [key: string]: string;
 }
 
+// TODO: construct or fetch this mapping from common-ui where it already exists in the ConservationStatusLabel component
 const iucnStatusMapping = {
     Extinct: 'EX',
     'Extinct in the Wild': 'EW',
@@ -74,7 +75,7 @@ function StatusView({result, isMobile}: MapViewProps) {
         }
     }, [result]);
 
-    return (<>
+    return <>
         <div>
             {nativeIntroduced && Object.keys(nativeIntroduced).length > 0 && (<>
                 <span className={classes.speciesDescriptionTitle} style={{marginBottom: isMobile ? '15px' : '30px'}}>
@@ -179,9 +180,10 @@ function StatusView({result, isMobile}: MapViewProps) {
                                 {conservationStatus[key].status}
                             </td>
                             <td>
-                                {conservationStatus[key].iucn && (
+                                {conservationStatus[key].iucn &&
                                     <ConservationStatusLabel status={conservationStatus[key].iucn}
-                                                             size={isMobile ? 30 : 40} fontSize={isMobile ? 14 : 16}/>)}
+                                                             size={isMobile ? 30 : 40} fontSize={isMobile ? 14 : 16}/>
+                                }
                             </td>
                         </tr>
                     ))}
@@ -204,7 +206,7 @@ function StatusView({result, isMobile}: MapViewProps) {
                 </span>
             )}
         </div>
-    </>);
+    </>;
 }
 
 export default StatusView;

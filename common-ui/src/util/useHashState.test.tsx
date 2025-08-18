@@ -15,10 +15,7 @@ describe('useHashState', () => {
         // Mock window.location and window.addEventListener/removeEventListener
         Object.defineProperty(window, 'location', {
             writable: true,
-            value: {
-                ...originalLocation,
-                hash: '',
-            },
+            value: {...originalLocation, hash: '',},
         });
         jest.spyOn(window, 'addEventListener');
         jest.spyOn(window, 'removeEventListener');

@@ -41,7 +41,7 @@ interface BannerProps {
  *
  * @constructor
  */
-const Banner = ({bannerUrl, scope} :BannerProps) => {
+const Banner = ({bannerUrl, scope}: BannerProps) => {
     const [messages, setMessages] = useState<Messages>();
 
     if (!bannerUrl) {

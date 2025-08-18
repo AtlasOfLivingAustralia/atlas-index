@@ -4,9 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {FlaggedAlert} from '@ala/common-ui';
 import {useCallback, useEffect, useState} from 'react';
 import classes from './species.module.css';
-import {FlaggedAlert} from '@ala/common-ui';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>,
@@ -100,7 +100,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
         };
     }, [datasets]);
 
-    return (<>
+    return <>
         {loading && (
             <div className="placeholder-glow">
                 <span className="placeholder"
@@ -114,19 +114,17 @@ function DatasetsView({result, isMobile}: MapViewProps) {
                 }}></span>
             </div>
         )}
-        {errorMessage && (
-            <FlaggedAlert
-                content={<>
-                    <b>Error loading datasets</b>
-                    <p>
-                        Report this error by clicking on the{' '}
-                        <b>Need Help?</b> button on the right edge of
-                        the screen.
-                    </p>
-                    <code>{errorMessage}</code>
-                </>}
-            />
-        )}
+        {errorMessage && <FlaggedAlert
+            content={<>
+                <b>Error loading datasets</b>
+                <p>
+                    Report this error by clicking on the{' '}
+                    <b>Need Help?</b> button on the right edge of
+                    the screen.
+                </p>
+                <code>{errorMessage}</code>
+            </>}
+        />}
         {datasets.length > 0 && (
             <table className="table table-striped"
                    style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
@@ -151,7 +149,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
         {!loading && !errorMessage && datasets.length == 0 && (
             <span>No datasets found</span>
         )}
-    </>);
+    </>;
 }
 
 export default DatasetsView;

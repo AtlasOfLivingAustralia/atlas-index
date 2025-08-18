@@ -22,12 +22,13 @@ const Pagination: React.FC<PaginationProps> = ({
 
     return (
         <div className="d-flex justify-content-center"
-             style={{ marginTop: isMobile ? "30px" : "60px", columnGap: isMobile ? "5px" : "10px" }}>
+             style={{marginTop: isMobile ? "30px" : "60px", columnGap: isMobile ? "5px" : "10px"}}>
             {page > 2 && (
                 <>
                     <button className={classes.paginationButton}
                             onClick={() => onPageChange(0)}
-                    >1</button>
+                    >1
+                    </button>
                     {page > 3 && <div className={classes.paginationSpacer}>...</div>}
                 </>
             )}
@@ -58,7 +59,8 @@ const Pagination: React.FC<PaginationProps> = ({
                     >{maxPage}</button>
                     <button className={`${classes.paginationButton} ${classes.next}`}
                             onClick={() => onPageChange(page + 1)}
-                    >Next</button>
+                    >Next
+                    </button>
                 </>
             )}
         </div>

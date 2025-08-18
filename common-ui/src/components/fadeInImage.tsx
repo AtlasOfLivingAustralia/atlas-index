@@ -39,10 +39,6 @@ export function FadeInImage({
     const imgRef = useRef<HTMLImageElement | null>(null);
 
     useEffect(() => {
-        setLoaded(false);
-    }, [props.src]);
-
-    useEffect(() => {
         if (loaded && imgRef.current) {
             const rect = imgRef.current.getBoundingClientRect();
 
@@ -86,12 +82,9 @@ export function FadeInImage({
             {...props}
             style={{
                 ...props.style,
-                opacity: loaded ? 1 : 0,
-                ...(usePlaceholder ? {} : {transition: "opacity 0.5s ease"})
+                opacity: loaded ? 1 : 0, ...(usePlaceholder ? {} : {transition: "opacity 0.5s ease"})
             }}
-            onLoad={() => {
-                setLoaded(true);
-            }}
+            onLoad={() => setLoaded(true)}
             onError={e => {
                 e.currentTarget.src = missingImage;
                 setLoaded(true);

@@ -4,13 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import React, {useEffect, useState} from 'react';
-import classes from './species.module.css';
-import FormatName from '../nameUtils/formatName.tsx';
-import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
-import {faUpRightFromSquare} from '@fortawesome/free-solid-svg-icons';
-import {faDownload} from '@fortawesome/free-solid-svg-icons';
 import {FlaggedAlert, FontAwesomeIconLite, InfoBox} from '@ala/common-ui';
+import {faCircleInfo, faDownload, faUpRightFromSquare} from '@fortawesome/free-solid-svg-icons';
+import React, {useEffect, useState} from 'react';
+import FormatName from '../nameUtils/formatName.tsx';
+import classes from './species.module.css';
 
 interface MapViewProps {
     result?: Record<PropertyKey, string | number | any>,
@@ -124,7 +122,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
         }
     }
 
-    return (<>
+    return <>
         <div className={`${classes.traitsSectionText} ${classes.layoutGrid} row`}
              style={{marginLeft: 0, marginRight: 0}}>
             <div className={isMobile ? "" : "col-4"}>
@@ -252,12 +250,12 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 </div>
             </div>
             <div className={isMobile ? "" : "col-8"}>
-                {loadingCounts && (
+                {loadingCounts &&
                     <div className="placeholder-glow" style={{height: 80, width: '100%', borderRadius: '5px'}}>
                         <span className="placeholder col-12"
                               style={{height: '100%', display: 'block', borderRadius: '5px'}}></span>
                     </div>
-                )}
+                }
                 {errorMessageCounts && (
                     <FlaggedAlert
                         content={<>
@@ -271,39 +269,39 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         </>}
                     />
                 )}
-                {traitsText && (<>
+                {traitsText && <>
                     {isMobile && <div style={{height: '15px'}}/>}
 
                     {explanation(traitsText, traitsTaxon)}
 
-                    {(traits?.categorical_traits?.length > 0 || traits?.numeric_traits?.length > 0) && (<>
-                            <div className="d-flex gap-3 flex-md-row" style={{marginTop: isMobile ? '15px' : '30px'}}>
-                                <button className="btn ala-btn-secondary d-flex align-items-center gap-2"
-                                        onClick={() => {
-                                            window.open(import.meta.env.VITE_AUSTRAITS_DEFINITIONS, '_blank');
-                                        }}>
-                                    <FontAwesomeIconLite icon={faUpRightFromSquare} size="20"/>
-                                    AusTraits definitions
-                                </button>
-                                <button className="btn ala-btn-secondary d-flex align-items-center gap-2"
-                                        onClick={() => {
-                                            window.open(import.meta.env.VITE_APP_BIE_URL + '/download-taxon-data' + getAusTraitsParam(), '_blank');
-                                        }}>
-                                    <FontAwesomeIconLite icon={faDownload} size="20"/>
-                                    Download CSV
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </>)}
+                    {(traits?.categorical_traits?.length > 0 || traits?.numeric_traits?.length > 0) && <>
+                        <div className="d-flex gap-3 flex-md-row" style={{marginTop: isMobile ? '15px' : '30px'}}>
+                            <button className="btn ala-btn-secondary d-flex align-items-center gap-2"
+                                    onClick={() => {
+                                        window.open(import.meta.env.VITE_AUSTRAITS_DEFINITIONS, '_blank');
+                                    }}>
+                                <FontAwesomeIconLite icon={faUpRightFromSquare} size="20"/>
+                                AusTraits definitions
+                            </button>
+                            <button className="btn ala-btn-secondary d-flex align-items-center gap-2"
+                                    onClick={() => {
+                                        window.open(import.meta.env.VITE_APP_BIE_URL + '/download-taxon-data' + getAusTraitsParam(), '_blank');
+                                    }}>
+                                <FontAwesomeIconLite icon={faDownload} size="20"/>
+                                Download CSV
+                            </button>
+                        </div>
+                    </>
+                    }
+                </>}
 
-                {loadingSummary && (<>
+                {loadingSummary && <>
                     <div className="placeholder-glow">
                         <span className="placeholder col-12"
                               style={{height: 500, width: '100%', borderRadius: '5px', marginTop: '20px'}}></span>
                     </div>
-                </>)}
-                {errorMessageSummary && (
+                </>}
+                {errorMessageSummary &&
                     <FlaggedAlert
                         content={<>
                             <b>Error loading trait data.</b>
@@ -315,13 +313,13 @@ function TraitsView({result, isMobile}: MapViewProps) {
                             <code>{errorMessageSummary}</code>
                         </>}
                     />
-                )}
-                {traits?.categorical_traits?.length > 0 && (<>
+                }
+                {traits?.categorical_traits?.length > 0 && <>
                     <span className={classes.speciesDescriptionTitle}
                           style={{marginTop: isMobile ? '15px' : '60px', marginBottom: isMobile ? '7px' : '30px'}}>
                         Categorical Traits
                     </span>
-                    {hasMoreValues && (<>
+                    {hasMoreValues && <>
                         <span className="fst-italic"
                               style={{...textStyle, marginBottom: isMobile ? '7px' : '30px', display: 'block'}}>
                             * Data sources in AusTraits report
@@ -333,7 +331,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                             whether they are relevant to your
                             project.
                         </span>
-                    </>)}
+                    </>}
                     <table className="table table-striped" style={textStyle}>
                         <thead>
                         <tr>
@@ -342,7 +340,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         </tr>
                         </thead>
                         <tbody>
-                        {traits?.categorical_traits.map((item: Record<string, any>, idx: number) => (
+                        {traits?.categorical_traits.map((item: Record<string, any>, idx: number) =>
                             <tr key={idx}>
                                 <td>
                                     <a className={classes.speciesLink} style={textStyle} href={item.definition}>
@@ -351,11 +349,11 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                 </td>
                                 <td>{item.trait_values}</td>
                             </tr>
-                        ))}
+                        )}
                         </tbody>
                     </table>
-                </>)}
-                {traits?.numeric_traits?.length > 0 && (<>
+                </>}
+                {traits?.numeric_traits?.length > 0 && <>
                     <span className={classes.speciesDescriptionTitle}
                           style={{marginTop: isMobile ? '15px' : '60px', marginBottom: isMobile ? '7px' : '30px'}}>
                         Numerical Traits
@@ -371,7 +369,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         </tr>
                         </thead>
                         <tbody>
-                        {traits?.numeric_traits.map((item: Record<string, any>, idx: number) => (
+                        {traits?.numeric_traits.map((item: Record<string, any>, idx: number) =>
                             <tr key={idx}>
                                 <td>
                                     <a className={classes.speciesLink} style={textStyle}
@@ -392,14 +390,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                     {item.unit}
                                 </td>
                             </tr>
-                        ))}
+                        )}
                         </tbody>
                     </table>
-                </>)}
+                </>}
             </div>
             {isMobile && <div style={{height: '15px'}}/>}
         </div>
-    </>);
+    </>;
 }
 
 export default TraitsView;

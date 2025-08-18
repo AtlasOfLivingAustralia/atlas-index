@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {render, fireEvent, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import DualRangeSlider from './dualRangeSlider.tsx';
 import '@testing-library/jest-dom';
 

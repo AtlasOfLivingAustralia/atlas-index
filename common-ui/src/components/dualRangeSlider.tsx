@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import styles from './dualRangeSlider.module.css';
 
 interface DoubleRangeSliderProps {
@@ -184,7 +184,8 @@ function DoubleRangeSlider({
                     onMouseDown={handleMouseDown}
                     onKeyDown={handleKeyDown}></button>
             {!singleValue &&
-                <button ref={sliderMax} role="slider" aria-label="maximum" aria-valuenow={yearRange[1]} aria-valuemin={min}
+                <button ref={sliderMax} role="slider" aria-label="maximum" aria-valuenow={yearRange[1]}
+                        aria-valuemin={min}
                         aria-valuemax={max} className={styles.sliderMax + " " + styles.sliderBtn} disabled={isDisabled}
                         onMouseDown={handleMouseDown} onKeyDown={handleKeyDown}></button>}
         </div>

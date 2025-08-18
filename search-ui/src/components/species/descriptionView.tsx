@@ -4,12 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import DOMPurify from 'dompurify';
-import classes from './species.module.css';
-import {faChevronDown, faCircleInfo} from '@fortawesome/free-solid-svg-icons';
-import {TaxonDescription} from '../../api/sources/model.ts';
 import {FontAwesomeIconLite, InfoBox} from '@ala/common-ui';
+import {faChevronDown, faCircleInfo} from '@fortawesome/free-solid-svg-icons';
+import DOMPurify from 'dompurify';
 import {useState} from "react";
+import {TaxonDescription} from '../../api/sources/model.ts';
+import classes from './species.module.css';
 
 interface MapViewProps {
     descriptions?: TaxonDescription[],
@@ -34,7 +34,7 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
             />
 
             <div style={{height: isMobile ? '15px' : '30px'}}/>
-            {descriptions === undefined && (
+            {descriptions === undefined &&
                 <div className="placeholder-glow">
                     <span className="placeholder" style={{height: 40, display: 'block', width: '300px'}}></span>
                     <span className="placeholder"
@@ -50,49 +50,48 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
                     <span className="placeholder"
                           style={{height: 32, display: 'block', width: '600px', marginTop: '30px'}}></span>
                 </div>
+            }
+            {descriptions && descriptions.map((description, idx) =>
+                <div key={idx}>
+                    {idx > 0 && <hr style={{
+                        marginTop: isMobile ? '20px' : '40px',
+                        marginBottom: isMobile ? '15px' : '40px'
+                    }}/>}
+                    <span className={classes.speciesDescriptionTitle} onClick={() =>
+                        isMobile && setSectionOpen(prev => ({
+                            ...prev,
+                            [description.name]: !prev[description.name]
+                        }))}>
+                        {description.name}
+                        {isMobile && <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>}
+                    </span>
+                    {(!isMobile || sectionOpen[description.name]) && <>
+                        {description && Object.keys(description).map((key, idx) =>
+                            // if key is not in the list of keys to display, skip
+                            !['name', 'attribution', 'url'].includes(key) && (
+                                <div key={idx} className={classes.speciesSection}
+                                     style={{paddingTop: isMobile ? '15px' : '30px'}}>
+                                    {/* The title 'summary' is present only on wikipedia data and should be suppressed */}
+                                    {'summary' !== key && (
+                                        <span style={{marginBottom: '15px'}}
+                                              className={classes.speciesDescriptionSection}>
+                                            {key}
+                                        </span>
+                                    )}
+                                    {/* Leaving this header 'just in case'. taxon-descriptions does sanitize this content. */}
+                                    <div className={classes.speciesSectionText}
+                                         dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}}
+                                    />
+                                </div>
+                            ))}
+                        <div className="d-flex align-items-center gap-2 mt-3">
+                            <span>Source: </span>
+                            <span
+                                dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description.attribution)}}></span>
+                        </div>
+                    </>}
+                </div>
             )}
-            {descriptions &&
-                descriptions.map((description, idx) => (
-                    <div key={idx}>
-                        {idx > 0 && <hr style={{
-                            marginTop: isMobile ? '20px' : '40px',
-                            marginBottom: isMobile ? '15px' : '40px'
-                        }}/>}
-                        <span className={classes.speciesDescriptionTitle} onClick={() =>
-                            isMobile && setSectionOpen(prev => ({
-                                ...prev,
-                                [description.name]: !prev[description.name]
-                            }))}>
-                            {description.name}
-                            {isMobile && <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>}
-                        </span>
-                        {(!isMobile || sectionOpen[description.name]) && <>
-                            {description && Object.keys(description).map((key, idx) =>
-                                // if key is not in the list of keys to display, skip
-                                !['name', 'attribution', 'url'].includes(key) && (
-                                    <div key={idx} className={classes.speciesSection}
-                                         style={{paddingTop: isMobile ? '15px' : '30px'}}>
-                                        {/* The title 'summary' is present only on wikipedia data and should be suppressed */}
-                                        {'summary' !== key && (
-                                            <span style={{marginBottom: '15px'}}
-                                                  className={classes.speciesDescriptionSection}>
-                                                {key}
-                                            </span>
-                                        )}
-                                        {/* Leaving this header 'just in case'. taxon-descriptions does sanitize this content. */}
-                                        <div className={classes.speciesSectionText}
-                                             dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}}
-                                        />
-                                    </div>
-                                ))}
-                            <div className="d-flex align-items-center gap-2 mt-3">
-                                <span>Source: </span>
-                                <span
-                                    dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description.attribution)}}></span>
-                            </div>
-                        </>}
-                    </div>
-                ))}
             {descriptions && descriptions.length === 0 && (
                 <span>No descriptions found</span>
             )}

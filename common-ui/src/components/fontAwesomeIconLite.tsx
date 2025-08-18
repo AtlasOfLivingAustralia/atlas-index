@@ -11,8 +11,7 @@ const FontAwesomeIconLite = (props: any) => {
                 className={styles.svgInline + (props.className ? " " + props.className : "")}
                 style={{...props.style}}
                 xmlns="http://www.w3.org/2000/svg" viewBox={"0 0 " + props.icon.icon[0] + " " + props.icon.icon[1]}>
-        <path fill="currentColor"
-              d={props.icon.icon[4]}></path>
+        <path fill="currentColor" d={props.icon.icon[4]}></path>
     </svg>
 }
 

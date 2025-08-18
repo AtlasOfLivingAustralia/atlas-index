@@ -61,7 +61,12 @@ interface ConservationStatusProps {
     fontSize?: number;
 }
 
-function ConservationStatusLabel({status, withLabel, size = 40, fontSize = 16}: ConservationStatusProps): React.ReactElement {
+function ConservationStatusLabel({
+                                     status,
+                                     withLabel,
+                                     size = 40,
+                                     fontSize = 16
+                                 }: ConservationStatusProps): React.ReactElement {
     const {label, backgroundColour, textColour} = conservationStatuses[status];
 
     return (

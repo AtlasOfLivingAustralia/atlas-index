@@ -4,10 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 import {render} from '@testing-library/react';
 import FontAwesomeIconLite from './fontAwesomeIconLite.tsx';
 import '@testing-library/jest-dom';
-import {faChevronRight} from '@fortawesome/free-solid-svg-icons/faChevronRight'
 
 describe('FontAwesomeIconLite', () => {
     const mockClassName = 'test-icon';

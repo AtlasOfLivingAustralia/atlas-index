@@ -4,21 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    GenericViewProps,
-    RenderItemElements,
-    RenderItemParams,
-} from '../../../api/sources/model.ts';
-import classes from '../search.module.css';
-import {
-    limitDescription,
-    openUrl,
-    renderGenericListItemFn,
-    renderGenericTileItemFn,
-    TileImage,
-} from '../util.tsx';
+import {FadeInImage} from '@ala/common-ui';
+import {GenericViewProps, RenderItemElements, RenderItemParams} from '../../../api/sources/model.ts';
 import missingImage from '../../../image/missing-image.png';
-import { FadeInImage } from '@ala/common-ui';
+import classes from '../search.module.css';
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from '../util.tsx';
 
 export const articlesDefn: GenericViewProps = {
     fq: 'idxtype:WORDPRESS OR idxtype:KNOWLEDGEBASE',
@@ -32,81 +22,42 @@ export const articlesDefn: GenericViewProps = {
         },
     },
 
-    renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: (
-                <FadeInImage
-                    className={classes.listItemImage}
-                    src={item.image || missingImage}
-                    missingImage={missingImage}
-                />
-            ),
-            title: (
-                <>
-                    <span className={classes.listItemName}>{item.name}</span>
-                </>
-            ),
-            extra: (
-                <>
-                    <span className={classes.overflowText}>
-                        {item.classification1}
-                    </span>
-                </>
-            ),
-            description: (
-                <>
-                    <span
-                        className={classes.listDescription}
-                        title={item.description}
-                    >
-                        {limitDescription(
-                            item.description,
-                            isMobile ? 80 : wide ? 230 : 120
-                        )}
-                    </span>
-                </>
-            ),
+            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
+                                missingImage={missingImage}/>,
+            title: <span className={classes.listItemName}>{item.name}</span>,
+            extra: <span className={classes.overflowText}>{item.classification1}</span>,
+            description: <span className={classes.listDescription} title={item.description}>
+                {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
+            </span>,
             clickFn: () => openUrl(item.guid),
         };
         return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
+            {item, navigate, wide, isMobile},
             elements
         );
     },
 
-    renderTileItemFn: ({ item, isMobile }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile} />,
-            title: (
-                <>
-                    <span
-                        className={classes.listItemName}
-                        style={{ marginBottom: '8px' }}
-                    >
-                        {item.name}
+            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: '8px'}}>
+                    {item.name}
+                </span>
+                {item.classification1 && (
+                    <span className={classes.listItemText}>
+                        {item.classification1}
                     </span>
-                    {item.classification1 && (
-                        <span className={classes.listItemText}>
-                            {item.classification1}
-                        </span>
-                    )}
-                    {item.description && (
-                        <span
-                            style={{ marginTop: '13px' }}
-                            className={classes.listDescription}
-                            title={item.description}
-                        >
-                            {item.description}
-                        </span>
-                    )}
-                </>
-            ),
-            clickFn: () => openUrl(item.guid),
+                )}
+                {item.description && (
+                    <span style={{marginTop: '13px'}} className={classes.listDescription} title={item.description}>
+                        {item.description}
+                    </span>
+                )}
+            </>,
+            clickFn: () => openUrl(item.guid)
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

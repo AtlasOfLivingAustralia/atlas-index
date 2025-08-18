@@ -4,26 +4,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    CustomFacetFn,
-    GenericViewProps,
-    RenderItemElements,
-    RenderItemParams,
-} from '../../../api/sources/model.ts';
-import classes from '../search.module.css';
-import {
-    getImageThumbnailUrl,
-    renderGenericListItemFn,
-    renderGenericTileItemFn,
-    TileImage,
-} from '../util.tsx';
+import {FadeInImage, FolderIcon} from '@ala/common-ui';
+import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 
 import speciesGroupMap from '../../../config/speciesGroupsMap.json';
 import capitalise from '../../../helpers/Capitalise.ts';
 import missingImage from '../../../image/missing-image.png';
 
 import '../../../css/nameFormatting.css';
-import { FadeInImage, FolderIcon } from '@ala/common-ui';
+import classes from '../search.module.css';
+import {getImageThumbnailUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
 
 interface SpeciesGroupMapType {
     [key: string]: {
@@ -230,142 +220,87 @@ export const speciesDefn: GenericViewProps = {
         },
     },
 
-    renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: (
-                <FadeInImage
-                    className={classes.listItemImage}
-                    src={
-                        item.image
-                            ? getImageThumbnailUrl(item.image)
-                            : missingImage
-                    }
-                    missingImage={missingImage}
-                />
-            ),
-            title: (
-                <>
-                    {item.nameFormatted && (
-                        <span
-                            className={classes.listItemName}
-                            dangerouslySetInnerHTML={{
-                                __html: item.nameFormatted,
-                            }}
-                        ></span>
-                    )}
-                    {!item.nameFormatted && (
-                        <span className={classes.listItemName}>
-                            {item.name}
-                        </span>
-                    )}
+            image: <FadeInImage className={classes.listItemImage} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/>,
+            title: <>
+                {item.nameFormatted && (
+                    <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
+                )}
+                {!item.nameFormatted && (
+                    <span className={classes.listItemName}>
+                        {item.name}
+                    </span>
+                )}
+                <span className={classes.overflowText}>
+                    {item.commonNameSingle}
+                </span>
+            </>,
+            extra: <>
+                {item.speciesGroup && (
                     <span className={classes.overflowText}>
-                        {item.commonNameSingle}
+                        {item.speciesGroup.join(', ')}
                     </span>
-                </>
-            ),
-            extra: (
-                <>
-                    {item.speciesGroup && (
-                        <span className={classes.overflowText}>
-                            {item.speciesGroup.join(', ')}
-                        </span>
-                    )}
-                    {item?.data?.rk_kingdom && (
-                        <span className={classes.overflowText}>
-                            Kingdom: {item?.data?.rk_kingdom}
-                        </span>
-                    )}
-                    <span className={classes.listItemText}>
-                        <FolderIcon />{' '}
-                        {item.occurrenceCount ? item.occurrenceCount : 0}{' '}
-                        occurrence records
+                )}
+                {item?.data?.rk_kingdom && (
+                    <span className={classes.overflowText}>
+                        Kingdom: {item?.data?.rk_kingdom}
                     </span>
-                </>
-            ),
-            description: (
-                <>{/*TODO: hero description goes here when it is defined */}</>
-            ),
-            clickFn: () =>
-                navigate(
-                    `/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
-                ),
+                )}
+                <span className={classes.listItemText}>
+                    <FolderIcon/>{' '}
+                    {item.occurrenceCount ? item.occurrenceCount : 0}{' '}
+                    occurrence records
+                </span>
+            </>,
+            description: <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>,
+            clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
         };
-        return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
-            elements
-        );
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({ item, isMobile, navigate }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile, navigate}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: (
-                <TileImage
-                    image={
-                        item.image
-                            ? getImageThumbnailUrl(item.image)
-                            : undefined
-                    }
-                    isMobile={isMobile}
-                />
-            ),
-            title: (
-                <>
-                    {item.nameFormatted && (
-                        <span
-                            className={classes.listItemName}
-                            dangerouslySetInnerHTML={{
-                                __html: item.nameFormatted,
-                            }}
-                        ></span>
-                    )}
-                    {!item.nameFormatted && (
-                        <span className={classes.listItemName}>
-                            {item.name}
-                        </span>
-                    )}
-                    <div style={{ height: '8px' }} />
-                    {item.commonNameSingle && (
-                        <span className={classes.listItemText}>
-                            {item.commonNameSingle}
-                        </span>
-                    )}
-                    {item.speciesGroup && (
-                        <span className={classes.listItemText}>
-                            {item.speciesGroup.join(', ')}
-                        </span>
-                    )}
-                    {item?.data?.rk_kingdom && (
-                        <span className={classes.listItemText}>
-                            Kingdom: {item?.data?.rk_kingdom}
-                        </span>
-                    )}
-                    <span className={classes.listItemText}>
-                        <FolderIcon />{' '}
-                        {item.occurrenceCount ? item.occurrenceCount : 0}{' '}
-                        occurrence records
+            image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} isMobile={isMobile}/>,
+            title: <>
+                {item.nameFormatted && (
+                    <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
+                )}
+                {!item.nameFormatted && (
+                    <span className={classes.listItemName}>
+                        {item.name}
                     </span>
-                    <div style={{ height: '13px' }} />
-                    {/* TODO: hero description goes here when defined */}
-                </>
-            ),
-            clickFn: () =>
-                navigate(
-                    `/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
-                ),
+                )}
+                <div style={{height: '8px'}}/>
+                {item.commonNameSingle && (
+                    <span className={classes.listItemText}>
+                        {item.commonNameSingle}
+                    </span>
+                )}
+                {item.speciesGroup && (
+                    <span className={classes.listItemText}>
+                        {item.speciesGroup.join(', ')}
+                    </span>
+                )}
+                {item?.data?.rk_kingdom && (
+                    <span className={classes.listItemText}>
+                        Kingdom: {item?.data?.rk_kingdom}
+                    </span>
+                )}
+                <span className={classes.listItemText}>
+                <FolderIcon/>{' '}
+                    {item.occurrenceCount ? item.occurrenceCount : 0}{' '}
+                    occurrence records
+                </span>
+                <div style={{height: '13px'}}/>
+                <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
+            </>,
+            clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
         };
         return renderGenericTileItemFn(isMobile, elements);
     },
 
-    addCustomFacetsFn: ({
-        url,
-        thisFacetFqs,
-        setCustomFacetData,
-    }: CustomFacetFn) => {
+    addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
         fetch(url + '&fq=image:*')
             .then((response) => response.json())
             .then((data) => {
@@ -381,27 +316,16 @@ export const speciesDefn: GenericViewProps = {
                     });
                 }
 
-                fetch(
-                    url +
-                        '&fq=speciesList:' +
-                        import.meta.env.VITE_APP_ICONIC_SPECIES_LIST
-                )
+                fetch(url + '&fq=speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.totalRecords > 0) {
                             items.push({
-                                fq:
-                                    'speciesList:' +
-                                    import.meta.env
-                                        .VITE_APP_ICONIC_SPECIES_LIST,
+                                fq: 'speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST,
                                 label: 'Iconic species',
                                 count: data.totalRecords,
                                 depth: 0,
-                                selected: thisFacetFqs.includes(
-                                    'speciesList:' +
-                                        import.meta.env
-                                            .VITE_APP_ICONIC_SPECIES_LIST
-                                ),
+                                selected: thisFacetFqs.includes('speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST),
                             });
                         }
 

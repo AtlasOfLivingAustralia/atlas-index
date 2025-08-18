@@ -19,9 +19,9 @@ interface InfoBoxProps {
 const InfoBox = ({icon, title, content, className, style, size = 16, lineHeight = 20}: InfoBoxProps) => (
     <>
         <div className={`d-flex align-items-start ${className ?? ''}`}
-            style={{...style}}>
-            <FontAwesomeIcon icon={icon} size={size} style={{ marginTop: "4px" }} />
-            <span className="fw-bold" style={{ fontSize: size, marginLeft: "10px" }}>{title}</span>
+             style={{...style}}>
+            <FontAwesomeIcon icon={icon} size={size} style={{marginTop: "4px"}}/>
+            <span className="fw-bold" style={{fontSize: size, marginLeft: "10px"}}>{title}</span>
         </div>
         <div style={{fontSize: size + "px", lineHeight: lineHeight + "px", marginTop: "10px", marginBottom: "0px"}}>
             {content}

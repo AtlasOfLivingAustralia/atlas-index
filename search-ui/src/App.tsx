@@ -4,20 +4,18 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound,} from '@ala/common-ui';
 import React, {useEffect, useState} from 'react';
 import {Route, Routes} from 'react-router-dom';
+import buildInfo from './buildInfo.json';
+import Search from './views/Search.tsx';
 import Species from './views/Species';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import buildInfo from './buildInfo.json';
-import Search from './views/Search.tsx';
-import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound,} from '@ala/common-ui';
 
-const isLoggedInInitial = document.cookie.includes(
-    import.meta.env.VITE_AUTH_COOKIE
-);
+const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
 
 const MOBILE_BREAKPOINT = 768; // Define the breakpoint for mobile view
 
@@ -70,37 +68,35 @@ const App: React.FC = () => {
         return <></>;
     }
 
-    return (
-        <>
-            <Header
-                isLoggedIn={isLoggedIn}
-                logoutFn={handleLogout}
-                loginFn={handleLogin}
-                headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
-            />
+    return <>
+        <Header
+            isLoggedIn={isLoggedIn}
+            logoutFn={handleLogout}
+            loginFn={handleLogin}
+            headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+        />
 
-            <Breadcrumbs breadcrumbs={breadcrumbs}/>
+        <Breadcrumbs breadcrumbs={breadcrumbs}/>
 
-            <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE}/>
+        <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE}/>
 
-            <Routes>
-                <Route path="/species/*"
-                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                         isMobile={isMobile}/>}/>
-                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                                 isMobile={isMobile}/>}/>
-                <Route path="*" element={<NotFound/>}/>
-            </Routes>
-            <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
+        <Routes>
+            <Route path="/species/*"
+                   element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                     isMobile={isMobile}/>}/>
+            <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                             isMobile={isMobile}/>}/>
+            <Route path="*" element={<NotFound/>}/>
+        </Routes>
+        <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
 
-            <Footer
-                isLoggedIn={isLoggedIn}
-                logoutFn={handleLogout}
-                loginFn={handleLogin}
-                footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}
-            />
-        </>
-    );
+        <Footer
+            isLoggedIn={isLoggedIn}
+            logoutFn={handleLogout}
+            loginFn={handleLogin}
+            footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}
+        />
+    </>;
 };
 
 export default App;

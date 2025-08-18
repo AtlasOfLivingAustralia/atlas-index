@@ -4,28 +4,16 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    GenericViewProps,
-    RenderItemElements,
-    RenderItemParams,
-} from '../../../api/sources/model.ts';
+import {FolderIcon} from '@ala/common-ui';
+import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 import classes from '../search.module.css';
-import {
-    limitDescription,
-    openUrl,
-    renderGenericListItemFn,
-    renderGenericTileItemFn,
-} from '../util.tsx';
-import { FolderIcon } from '@ala/common-ui';
+import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn,} from '../util.tsx';
 
 function formatListType(type: string) {
     if (!type) {
         return type;
     }
-    return type
-        .toLowerCase()
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (l) => l.toUpperCase());
+    return type.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
 export const specieslistDefn: GenericViewProps = {
@@ -65,74 +53,41 @@ export const specieslistDefn: GenericViewProps = {
         },
     },
 
-    renderListItemFn: ({
-        item,
-        navigate,
-        wide,
-        isMobile,
-    }: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            title: (
-                <>
-                    <span className={classes.listItemName}>{item.name}</span>
-                    <span className={classes.multilineText}>
-                        {formatListType(item.type)}
-                    </span>
-                </>
-            ),
-            extra: (
-                <>
-                    <span className={classes.multilineText}>
-                        <FolderIcon /> contains {item.itemCount} taxa
-                    </span>
-                </>
-            ),
-            description: (
-                <>
-                    <span
-                        className={classes.listDescription}
-                        title={item.description}
-                    >
-                        {limitDescription(
-                            item.description,
-                            isMobile ? 80 : wide ? 230 : 120
-                        )}
-                    </span>
-                </>
-            ),
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+                <span className={classes.multilineText}>
+                    {formatListType(item.type)}
+                </span>
+            </>,
+            extra: <span className={classes.multilineText}>
+                <FolderIcon/> contains {item.itemCount} taxa
+            </span>,
+            description: <span className={classes.listDescription} title={item.description}>
+                {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
+            </span>,
             clickFn: () => openUrl(item.guid),
         };
-        return renderGenericListItemFn(
-            { item, navigate, wide, isMobile },
-            elements
-        );
+        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
-    renderTileItemFn: ({ item, isMobile }: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            title: (
-                <>
-                    <span
-                        className={classes.listItemName}
-                        style={{ marginBottom: '8px' }}
-                    >
-                        {item.name}
-                    </span>
-                    <span className={classes.listItemText}>
-                        {formatListType(item.type)}
-                    </span>
-                    <span className={classes.listItemText}>
-                        <FolderIcon /> contains {item.itemCount} taxa
-                    </span>
-                    <span
-                        style={{ marginTop: '13px' }}
-                        className={classes.listDescription}
-                        title={item.description}
-                    >
-                        {item.description}
-                    </span>
-                </>
-            ),
+            title: <>
+                <span className={classes.listItemName} style={{marginBottom: '8px'}}>
+                    {item.name}
+                </span>
+                <span className={classes.listItemText}>
+                    {formatListType(item.type)}
+                </span>
+                <span className={classes.listItemText}>
+                    <FolderIcon/> contains {item.itemCount} taxa
+                </span>
+                <span style={{marginTop: '13px'}} className={classes.listDescription} title={item.description}>
+                    {item.description}
+                </span>
+            </>,
             clickFn: () => openUrl(item.guid),
         };
         return renderGenericTileItemFn(isMobile, elements);
