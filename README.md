@@ -16,7 +16,7 @@ It is a work in progress and subject to change.
 |                                          | https://github.com/AtlasOfLivingAustralia/fieldguide (service)                  | 80%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/data-quality-filter-service (service) | 95%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/sandbox (service)                     | 60%      |
-| [search-ui](species-pages)               | https://github.com/AtlasOfLivingAustralia/ala-bie-hub (UI)                      | 85%      |         
+| [search-ui](search-ui)               | https://github.com/AtlasOfLivingAustralia/ala-bie-hub (UI)                      | 85%      |         
 | [dashboard-ui](dashboard-ui)             | https://github.com/AtlasOfLivingAustralia/dashboard (UI)                        | 100%     |
 | [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions                               | 100%     |
 | [admin-ui](admin-ui)                     | Admin UI                                                                        | 80%      |
