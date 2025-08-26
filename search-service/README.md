@@ -36,7 +36,7 @@ docker-compose -f ./docker/docker-compose.yml up
  mvn spring-boot:run
  ```
 
-Open the Swagger UI for REST services at `http://localhost:8080`.
+Open the Swagger UI for REST services at `http://localhost:8081`.
 
 ## Docker hub
 
