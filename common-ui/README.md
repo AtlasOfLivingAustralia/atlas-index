@@ -12,6 +12,7 @@ Set the yarn link. Use the `./link_common_ui.sh` script to link the `common-ui` 
 Or if you prefer to do it manually, follow these steps:
 1. In the `common-ui` directory, run:
 ```bash
+yarn install
 yarn link
 ```
 2. In your `-ui` project directory, run:
