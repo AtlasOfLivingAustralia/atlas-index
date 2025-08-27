@@ -13,7 +13,7 @@ Sandbox will be replaced by a minimal replacement, backed by pipelines instead o
 - New database in existing Cassandra (sandbox)
 - Deploy of biocache-service using these.
 - Deploy of ala-hub using this biocache-service.
-- Basic interaction using of default-ui's sandbox upload/my uploads pages as well as an admin page.
+- Basic interaction using of admin-ui's sandbox upload/my uploads pages as well as an admin page.
 - Basic interaction using spatial-hub.
 
 ## Progress

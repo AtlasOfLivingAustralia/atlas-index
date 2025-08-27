@@ -1,6 +1,6 @@
 # Search and Species Pages
 
-Replacement for the ALA BIE ([`ala-bie-hub`](https://github.com/AtlasOfLivingAustralia/ala-bie-hub)), implemented in React using the [Mantine UI](https://mantine.dev/) library.
+Replacement for the ALA BIE ([`ala-bie-hub`](https://github.com/AtlasOfLivingAustralia/ala-bie-hub)), implemented in React.
 
 ## Getting started
 
@@ -13,11 +13,6 @@ yarn run dev
 
 ```bash
 yarn run build
-```
-
-## Code formatting
-```bash
-yarn prettier --write .
 ```
 
 ## Environment variables

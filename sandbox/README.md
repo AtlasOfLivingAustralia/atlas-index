@@ -9,7 +9,7 @@ A minimal replacement for the existing sandbox, backed by pipelines instead of b
 Requires a locally built shaded pipelines jar. Build using this branch https://github.com/gbif/pipelines/tree/1084-living-atlas.
 
 ## Usage (local environment)
-1. Prepare search-service, default-ui, and dependencies.
+1. Prepare search-service, admin-ui, and dependencies.
 2. Prepare SOLR Cloud (includes Zookeeper) `cd sandbox/solr-docker; docker-compose up -d`.
 3. Prepare files, e.g.
 ```
