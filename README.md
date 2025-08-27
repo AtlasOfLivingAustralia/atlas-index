@@ -51,7 +51,7 @@ To prepare the search-service and other UI requirements for local development, f
 2. (Optional) [Harvest taxon descriptions for search-service and species-pages](taxon-descriptions/README.md)
 3. [Start search-service after setting up Elasticsearch, Mongodb and configuring authentication](search-service/README.md)
 4. [Serve static files for UI pages using static-server](static-server/README.md)
-5. [Start admin-ui and start building the admin index. See the Admin page.](default-ui/README.md)
+5. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
 
 The user UI applications can now be configured and started.
 
