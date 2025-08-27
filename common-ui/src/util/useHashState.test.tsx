@@ -9,24 +9,14 @@ import {act} from 'react';
 import useHashState from './useHashState';
 
 describe('useHashState', () => {
-    const originalLocation = window.location;
-
     beforeEach(() => {
-        // Mock window.location and window.addEventListener/removeEventListener
-        Object.defineProperty(window, 'location', {
-            writable: true,
-            value: {...originalLocation, hash: '',},
-        });
+        window.location.hash = '';
         jest.spyOn(window, 'addEventListener');
         jest.spyOn(window, 'removeEventListener');
     });
 
     afterEach(() => {
-        // Restore original window.location
-        Object.defineProperty(window, 'location', {
-            writable: true,
-            value: originalLocation,
-        });
+        window.location.hash = '';
         jest.restoreAllMocks();
     });
 
@@ -56,7 +46,6 @@ describe('useHashState', () => {
         expect(result.current[0]).toEqual({key: 'value'});
     });
 
-
     it('should stringify and encode JSON values when setHashValue is called with an object', () => {
         const {result} = renderHook(() => useHashState('test', {}));
         act(() => {
@@ -77,7 +66,7 @@ describe('useHashState', () => {
         act(() => {
             result.current[1](undefined);
         });
-        expect(window.location.hash).toBe('#');
+        expect(window.location.hash).toBe('');
     });
 
     it('should remove the hash key when setHashValue is called with null', () => {
@@ -86,7 +75,7 @@ describe('useHashState', () => {
         act(() => {
             result.current[1](null);
         });
-        expect(window.location.hash).toBe('#');
+        expect(window.location.hash).toBe('');
     });
 
     it('should not update the hash if the new value is the same as the current value', () => {
@@ -140,7 +129,7 @@ describe('useHashState', () => {
         act(() => {
             result.current[1]('default');
         });
-        expect(window.location.hash).toBe('#');
+        expect(window.location.hash).toBe('');
     });
 
     it('should be able to modify one hash parameter without changing others', () => {
@@ -149,7 +138,6 @@ describe('useHashState', () => {
         act(() => {
             result.current[1]('changedValue');
         });
-
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         expect(hashParams.get('test')).toBe('changedValue');
         expect(hashParams.get('another')).toBe('anotherValue');
