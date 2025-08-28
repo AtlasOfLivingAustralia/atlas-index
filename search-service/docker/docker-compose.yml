@@ -1,12 +1,16 @@
+---
+# Use an .env with:
+# ARCH=amd64
+# to other arch images
 services:
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.13.0-arm64
+    image: docker.elastic.co/kibana/kibana:8.13.0-${ARCH:-arm64}
     ports:
       - "5601:5601"
     networks:
       - search-network
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0-arm64
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0-${ARCH:-arm64}
     container_name: species-lists-elastic
     environment:
       - node.name=elasticsearch
