@@ -1409,21 +1409,24 @@ public class ElasticService {
 
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery(wq -> wq.functionScore(fs -> fs.query(fsq -> fsq.bool(bq -> {
-                    if (StringUtils.isNotEmpty(idxtype)) {
-                        bq.filter(f -> f.term(t -> t.field("idxtype").value(idxtype)));
-                    }
+                    // Setting to TAXON because it looks like the best option to align with bie-index /suggest
+                    bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+
                     if (StringUtils.isNotEmpty(kingdom)) {
                         bq.filter(f -> f.term(t -> t.field("rk_kingdom").value(kingdom).caseInsensitive(true)));
                     }
-                    // autocomplete for ES, 3 fields; name, scientificName, commonName
-                    bq.must(bqq -> bqq.multiMatch(mm -> mm.query(cleanQ).type(TextQueryType.BoolPrefix)
-                            .fields("name", "name._2gram", "name._3gram",
-                                    "scientificName", "scientificName._2gram", "scientificName._3gram")));
 
-                    // I notice that the bie-index does not autocomplete on the common name field, so leaving these out for now
-                    //"commonName", "commonName._2gram", "commonName._3gram")));
+                    // differs from the bie-index /suggest, hopefully it is close enough for a deprecated API
+                    bq.must(bqq -> bqq.bool(bool -> bool
+                            // boost exact matches significantly, excluding common names
+                            .should(s -> s.matchPhrase(mpp -> mpp.field("exact_text").query(cleanQ).boost(10.0f)))
+                            // prefix matches
+                            .should(s -> s.prefix(p -> p.field("exact_text").value(cleanQ).boost(5.0f)))
+                            // standard prefix matches that includes common names
+                            .should(s -> s.prefix(p -> p.field("auto").value(cleanQ)))
+                    ));
                     return bq;
-                })).functions(fs1 -> fs1.fieldValueFactor(fv -> fv.field("suggestWeight"))))) // used by bie-index /suggest
+                })).functions(fs1 -> fs1.fieldValueFactor(fv -> fv.field("suggestWeight").factor(10.0))))) // used by bie-index /suggest
                 .withMaxResults(rows) // this is used by the legacy /guid/{name} field, and it has a max of 10
                 .withTrackScores(true);
 

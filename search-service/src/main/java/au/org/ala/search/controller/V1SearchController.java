@@ -540,7 +540,7 @@ public class V1SearchController {
     @Operation(
             operationId = SEARCH_AUTO_ID,
             summary = "Autocomplete search",
-            description = "Used to provide a list of scientific and common names that can be used to automatically complete a supplied partial name."
+            description = "Used to provide a list of accepted taxons that can be used to automatically complete a supplied partial name."
     )
     @ApiResponse(description = "Search results", responseCode = "200",
             headers = {
@@ -556,7 +556,7 @@ public class V1SearchController {
                     example = "Mac")
             @RequestParam(name = "q") String q,
             @Parameter(
-                    description = "The index type to limit. One of TAXON, TAXONVARIANT, COMMON, IDENTIFIER, REGION, COLLECTION, INSTITUTION, DATAPROVIDER, DATASET, LOCALITY, WORDPRESS, LAYER, SPECIESLIST, KNOWLEDGEBASE, BIOCOLLECT, DIGIVOL.",
+                    description = "(unused) The index type to limit. One of TAXON, TAXONVARIANT, COMMON, IDENTIFIER, REGION, COLLECTION, INSTITUTION, DATAPROVIDER, DATASET, LOCALITY, WORDPRESS, LAYER, SPECIESLIST, KNOWLEDGEBASE, BIOCOLLECT, DIGIVOL.",
                     example = "TAXON")
             @Nullable @RequestParam(name = "idxType", required = false) String idxType,
             @Parameter(
@@ -568,15 +568,32 @@ public class V1SearchController {
                     example = "10")
             @Nullable @RequestParam(name = "limit", required = false, defaultValue = "10") Integer limit
     ) {
+        // idxType is ignored, see bie-index
+        // only returns accepted taxa, see bie-index
+
         Map<String, Object> payload = new HashMap<>();
 
         List<SearchItemIndex> autoCompleteList = elasticService.autocomplete(q, idxType, kingdom, limit);
 
         List<Map<String, Object>> formatted = new ArrayList<>();
-        for (SearchItemIndex item : autoCompleteList) {
+        for (SearchItemIndex nextItem : autoCompleteList) {
+            SearchItemIndex item = nextItem;
+
+            // fetch the taxonGuid record for idxtype=COMMON, or fetch the guid
+            String guid = item.guid;
+            if (StringUtils.isNotEmpty(item.acceptedConceptID)) {
+                guid = item.acceptedConceptID;
+            } else if (StringUtils.isNotEmpty(item.taxonGuid)) {
+                guid = item.taxonGuid;
+                item = elasticService.getTaxon(item.taxonGuid); // fetch the actual taxon record as it has the needed information
+            }
+
+            String name = StringUtils.isNotEmpty(item.scientificName) ? item.scientificName : item.name;
+
             Map<String, Object> map = new HashMap<>();
-            map.put("guid", StringUtils.isNotEmpty(item.acceptedConceptID) ? item.acceptedConceptID : item.guid);
-            map.put("name", item.scientificName);
+
+            map.put("guid", guid);
+            map.put("name", name);
             map.put("commonName", item.commonNameSingle);
             map.put("rankString", item.rank);
             map.put("rankID", item.rankID);
@@ -584,30 +601,26 @@ public class V1SearchController {
             Set<String> matchedNames = new HashSet<>();
             map.put("matchedNames", matchedNames);
 
-            // TODO: what is this?
-//            if (item.commonName != null) {
-//                for (String name : item.commonName) {
-//                    String str = FormatUtil.getHighlightedName(name, q);
-//                    matchedNames.add(str);
-//                }
-//
-//                map.put("commonNameMatches", new ArrayList<>(matchedNames)); // clone of matchedNames
-//            }
-            map.put("commonNameMatches", Collections.emptyList()); // from bie-index
+            List<String> matchedCommonNamesList = new ArrayList<>();
+            map.put("commonNameMatches", matchedCommonNamesList);
+            if (item.commonName != null) {
+                for (String commonName : item.commonName) {
+                    String str = FormatUtil.getHighlightedName(commonName, q);
+                    if (StringUtils.isNotEmpty(str) && !str.equals(commonName)) {
+                        matchedNames.add(commonName);
+                        matchedCommonNamesList.add(str);
+                    }
+                }
+            }
 
             if (StringUtils.isNotEmpty(item.scientificName)) {
                 String str = FormatUtil.getHighlightedName(item.scientificName, q);
-                map.put("scientificNameMatches", Collections.singletonList(str));
-                matchedNames.add(str);
-            }
-
-            if (StringUtils.isNotEmpty(item.name)) {
-                String str = FormatUtil.getHighlightedName(item.name, q);
-                matchedNames.add(str);
-            }
-
-            if (matchedNames.isEmpty()) {
-                matchedNames.add(item.name);
+                if (StringUtils.isNotEmpty(str) && !str.equals(item.scientificName)) {
+                    map.put("scientificNameMatches", Collections.singletonList(str));
+                    matchedNames.add(item.scientificName);
+                } else {
+                    map.put("scientificNameMatches", Collections.emptyList());
+                }
             }
 
             formatted.add(map);
