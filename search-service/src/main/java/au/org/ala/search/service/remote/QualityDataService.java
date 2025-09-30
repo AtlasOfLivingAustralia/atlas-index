@@ -101,13 +101,17 @@ public class QualityDataService {
             if (profile.getId() != null && profile.getId() > maxId) {
                 maxId = profile.getId();
             }
-            for (QualityCategory category : profile.getCategories()) {
-                if (category.getId() != null && category.getId() > maxId) {
-                    maxId = category.getId();
-                }
-                for (QualityFilter filter : category.getQualityFilters()) {
-                    if (filter.getId() != null && filter.getId() > maxId) {
-                        maxId = filter.getId();
+            if (profile.getCategories() != null) {
+                for (QualityCategory category : profile.getCategories()) {
+                    if (category.getId() != null && category.getId() > maxId) {
+                        maxId = category.getId();
+                    }
+                    if (category.getQualityFilters() != null) {
+                        for (QualityFilter filter : category.getQualityFilters()) {
+                            if (filter.getId() != null && filter.getId() > maxId) {
+                                maxId = filter.getId();
+                            }
+                        }
                     }
                 }
             }

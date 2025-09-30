@@ -73,8 +73,6 @@ public class LeadershipStatus {
     }
 
     private void setupAsLeader() {
-        // TODO: do leadership setup here, queue recovery, etc
-
         // 1. identify and restart any failed tasks
         log.error("Leadership setup goes here");
 

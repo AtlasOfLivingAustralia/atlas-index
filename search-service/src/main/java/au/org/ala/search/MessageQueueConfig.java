@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 @EnableRabbit
 public class MessageQueueConfig {
 
-    @Value("${rabbitmq.exchange.broadcast}") // TODO: change the config variable name to align
+    @Value("${rabbitmq.exchange.broadcast}")
     public String broadcastExchange;
     @Value("${rabbitmq.exchange.direct}")
     public String directExchange;

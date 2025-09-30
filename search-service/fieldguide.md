@@ -12,7 +12,7 @@ Fieldguide grails application is gsp pages on top of a service that generates a 
 ## Progress
 - [x] Create a queue service.
 - [x] Add persistence to the queue service.
-- [ ] Check for consumer failure and add orphaned tasks back into the queue.
+- [x] Check for consumer failure and add orphaned tasks back into the queue.
 - [x] Generate a single PDF from a list of guids using a template.
 - [x] Add a service to add a request to the queue.
 - [x] Add the PDF generator consume from the queue.
