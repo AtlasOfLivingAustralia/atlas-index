@@ -505,6 +505,8 @@ function Regions({ setBreadcrumbs }: RegionsProps) {
                                         <button
                                             className="btn btn-sm btn-default"
                                             onClick={openObject}
+                                            style={{maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
+                                            title={selectedObject.name}
                                         >
                                             {selectedObject.name}
                                         </button>

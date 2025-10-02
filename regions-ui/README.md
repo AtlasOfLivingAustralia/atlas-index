@@ -17,7 +17,7 @@ Built with:
 
 ### Generate regionsList.json from ./public/regions.json
 
-`./public/regions.json` is used to determine the regions that appear on the `/regions` page. It is a list of objects
+`./resources/regions.json` is used to determine the regions that appear on the `/regions` page. It is a list of objects
 with either:
 
 - `label`: label of the contextual layer
