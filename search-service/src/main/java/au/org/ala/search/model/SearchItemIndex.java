@@ -134,6 +134,12 @@ public class SearchItemIndex {
     public String[] speciesList;
     public String vernacularName;
     public String heroDescription;
+    public Long plannedStartDate;
+    public Long plannedEndDate;
+    public String organisationName;
+    public String organisationId;
+    public Long numberOfRecords;
+    public Boolean publicParticipation;
 
     // dynamic field aggregations, for writing only, not sure how to read these back yet
     public Map<String, String> sdsFields;

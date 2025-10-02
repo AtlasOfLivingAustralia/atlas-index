@@ -374,6 +374,24 @@
     },
     "created": {
       "type": "long"
+    },
+    "plannedStartDate": {
+      "type": "long"
+    },
+    "plannedEndDate": {
+      "type": "long"
+    },
+    "organisationName": {
+      "type": "keyword"
+    },
+    "organisationId": {
+      "type": "keyword"
+    },
+    "numberOfRecords": {
+      "type": "long"
+    },
+    "publicParticipation": {
+      "type": "boolean"
     }
   },
   "dynamic_templates": [

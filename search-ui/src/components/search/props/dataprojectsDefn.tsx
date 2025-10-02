@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage} from '@ala/common-ui';
+import {FadeInImage, FolderIcon} from '@ala/common-ui';
 import {GenericViewProps, RenderItemElements, RenderItemParams} from '../../../api/sources/model.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
@@ -16,6 +16,14 @@ function formatCategory(category: string) {
     } else {
         return 'DigiVol';
     }
+}
+
+function formatDate(dateString: string) {
+    if (!dateString) {
+        return 'Ongoing';
+    }
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
 }
 
 export const dataprojectsDefn: GenericViewProps = {
@@ -53,15 +61,33 @@ export const dataprojectsDefn: GenericViewProps = {
                 }
             },
         },
+        organisationName: {
+            label: 'Funding organisation',
+            order: 2
+        },
     },
 
     renderListItemFn: ({item, navigate, wide, isMobile,}: RenderItemParams) => {
         const elements: RenderItemElements = {
             image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
                                 missingImage={missingImage}/>,
-            title: <span className={classes.listItemName}>{item.name}</span>,
+            title: <>
+                <span className={classes.listItemName}>{item.name}</span>
+                <span className={classes.multilineText}>
+                    {formatDate(item.plannedStartDate)} - {formatDate(item.plannedEndDate)}
+                </span>
+            </>,
             extra: <>
-                {/*<Text><FolderIcon color="#637073"/> contains {item.occurrenceCount} records</Text>*/}
+                { item.numberOfRecords > 0 &&
+                    <span className={classes.multilineText}>
+                        <FolderIcon/> contains {item.numberOfRecords} records
+                    </span>
+                }
+                { item.publicParticipation &&
+                    <span className={classes.multilineText}>
+                        &#10003; Open to public participation
+                    </span>
+                }
             </>,
             description: <span title={item.description} className={classes.listDescription}>
                 {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}

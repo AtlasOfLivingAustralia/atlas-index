@@ -155,6 +155,33 @@ public class BiocollectImportService {
         String containsActivity = project.get("containsActivity").toString();
         String dateCreated = (String) project.getOrDefault("dateCreated", null);
         String keywords = (String) project.getOrDefault("keywords", null);
+        String plannedStartDateString = (String) project.getOrDefault("plannedStartDate", null);
+        String plannedEndDateString = (String) project.getOrDefault("plannedEndDate", null);
+        Long plannedStartDate = null;
+        Long plannedEndDate = null;
+        try {
+            if (!StringUtils.isEmpty(plannedStartDateString)) {
+                Date psd = sdf.parse(plannedStartDateString);
+                plannedStartDate = psd.getTime();
+            }
+            if (!StringUtils.isEmpty(plannedEndDateString)) {
+                Date ped = sdf.parse(plannedEndDateString);
+                plannedEndDate = ped.getTime();
+            }
+        } catch (Exception e) {
+            logService.log(taskType, "failed to parse planned start/end date for " + id);
+            return null;
+        }
+        String organisationName = (String) project.getOrDefault("organisationName", null);
+        String organisationId = (String) project.getOrDefault("organisationId", null);
+        Long numberOfRecords = 0L;
+        Object numObj = project.getOrDefault("numberOfRecords", 0);
+        if (numObj instanceof Integer) {
+            numberOfRecords = ((Integer) numObj).longValue();
+        } else if (numObj instanceof Long) {
+            numberOfRecords = (Long) numObj;
+        }
+        Boolean publicParticipation = (Boolean) project.getOrDefault("publicParticipation", false);
         if (StringUtils.isEmpty(projectType)) projectType = null;
         if (StringUtils.isEmpty(image)) image = null;
         if (StringUtils.isEmpty(containsActivity)) containsActivity = null;
@@ -174,6 +201,12 @@ public class BiocollectImportService {
                 .dateCreated(dateCreated)
                 .keywords(keywords)
                 .created(created)
+                .plannedStartDate(plannedStartDate)
+                .plannedEndDate(plannedEndDate)
+                .organisationName(organisationName)
+                .organisationId(organisationId)
+                .numberOfRecords(numberOfRecords)
+                .publicParticipation(publicParticipation)
                 .build();
     }
 }
