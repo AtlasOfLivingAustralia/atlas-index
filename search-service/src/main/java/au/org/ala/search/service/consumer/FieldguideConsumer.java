@@ -18,6 +18,8 @@ import au.org.ala.search.util.InterruptibleResourceResolver;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fop.apps.*;
@@ -26,8 +28,8 @@ import org.apache.fop.configuration.Configuration;
 import org.apache.fop.configuration.DefaultConfigurationBuilder;
 import org.apache.xmlgraphics.io.ResourceResolver;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import javax.xml.transform.Result;
@@ -50,7 +52,7 @@ import java.util.*;
  *  preparation stage, "Generating PDF 1/10" for the FOP processing. Could consider using tracking "Pages rendered" at
  *  the "Generating PDF" stage if not too complex.
  * <p>
- * TODO: maybe use a local cache for all external images (images.ala and biocache-ws.ala) or maybe consider configurable
+ * Performance: maybe use a local cache for all external images (images.ala and biocache-ws.ala) or maybe consider configurable
  *  per-instance throttling on images.and biocache-ws.ala requests
  */
 @Slf4j
@@ -75,21 +77,23 @@ public class FieldguideConsumer {
     @Value("${homeUrl}")
     public String homeUrl;
 
-    @Value("${email.enabled}")
+    @Value("${fieldguide.email.enabled}")
     public boolean emailEnabled;
 
     @Value("${email.from}")
     public String emailFrom;
 
-    @Value("${email.text.success}")
+    @Value("${fieldguide.email.text.success}")
     public String emailTextSuccess;
 
-    @Value("${email.subject.success}")
+    @Value("${fieldguide.email.subject.success}")
     public String emailSubjectSuccess;
-    int maxTaxonHeight = 300;
-    int maxTaxonWidth = 260;
+
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     private String baseUrl;
+
+    int maxTaxonHeight = 300;
+    int maxTaxonWidth = 260;
 
     public FieldguideConsumer(ElasticService elasticService, DownloadFileStoreService downloadFileStoreService, JavaMailSender emailSender) {
         this.elasticService = elasticService;
@@ -297,15 +301,20 @@ public class FieldguideConsumer {
 
         String subject = emailSubjectSuccess.replace("[filename]", item.queueRequest.fieldguideQueueRequest.filename);
 
+        log.info("email enabled: {}, to: {}, from: {}, subject: {}, html: {}", emailEnabled, item.queueRequest.email, emailFrom, subject, content);
+
         if (emailEnabled) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(emailFrom);
-            message.setTo(item.queueRequest.email);
-            message.setSubject(subject);
-            message.setText(content);
-            emailSender.send(message);
-        } else {
-            log.debug("to: {}, from: {}, subject: {}, html: {}", item.queueRequest.email, emailFrom, subject, content);
+            try {
+                MimeMessage mimeMessage = emailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+                helper.setFrom(emailFrom);
+                helper.setTo(item.queueRequest.email);
+                helper.setSubject(subject);
+                helper.setText(content, true);
+                emailSender.send(mimeMessage);
+            } catch (MessagingException e) {
+                log.error("Failed to send fieldguide email for item: {}", item.id, e);
+            }
         }
     }
 }

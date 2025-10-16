@@ -6,6 +6,7 @@
 
 package au.org.ala.search.controller;
 
+import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.dto.FieldguideRequest;
 import au.org.ala.search.model.queue.*;
 import au.org.ala.search.service.AuthService;
@@ -20,7 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -99,7 +100,8 @@ public class V1FieldguideController {
             }
     )
     @SecurityRequirement(name = "JWT")
-    @PostMapping(path = "/v1/fieldguide/generate", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    // excluding "consumes = MediaType.APPLICATION_JSON_VALUE" from PostMapping to make it compatible with the current downloads-plugin
+    @PostMapping(path = "/v1/fieldguide/generate", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FieldguideResponse> offline(
             @org.springframework.web.bind.annotation.RequestBody FieldguideRequest params,
             @Parameter(
@@ -118,44 +120,47 @@ public class V1FieldguideController {
             )
             @RequestParam(name = "file", required = false) String file,
             @AuthenticationPrincipal Principal principal) {
-        String validEmail;
+        String userId = authService.getEmail(principal);
+        String validEmail = authService.getUserId(principal);
         if (validateEmail) {
-            // use logged in user's email
-            validEmail = authService.getEmail(principal);
-
-            // validate against registered user emails
+            // validate against registered user emails when no principal
             if (validEmail == null) {
                 UserDetails userDetails = authService.getUserForEmailAddress(email);
                 if (userDetails != null && !userDetails.getLocked()) {
                     validEmail = userDetails.getEmail();
+                    userId = userDetails.getUserId();
                 }
             }
-        } else {
+        } else if (StringUtils.isEmpty(validEmail)) {
             validEmail = email;
+            userId = "-1"; // anonymous user
         }
 
-        if (validateEmail == null) {
-            return ResponseEntity.badRequest().build();
-        } else {
-            FieldguideQueueRequest fieldguideQueueRequest = FieldguideQueueRequest
-                    .builder()
-                    .filename(file)
-                    .title(params.title)
-                    .id(params.guids.toArray(new String[0]))
-                    .sourceUrl(params.link)
-                    .build();
-            QueueItem queueItem = consumerQueue.add(QueueRequest
-                    .builder()
-                    .email(validEmail)
-                    .fieldguideQueueRequest(fieldguideQueueRequest)
-                    .build(), authService.getUserId(principal));
+        FieldguideQueueRequest fieldguideQueueRequest = FieldguideQueueRequest
+                .builder()
+                .filename(file)
+                .title(params.title)
+                .id(params.guids.toArray(new String[0]))
+                .sourceUrl(params.link)
+                .build();
+        QueueItem queueItem = consumerQueue.add(QueueRequest
+                .builder()
+                .taskType(TaskType.FIELDGUIDE)
+                .email(validEmail)
+                .fieldguideQueueRequest(fieldguideQueueRequest)
+                .build(), userId);
 
-            FieldguideResponse response = new FieldguideResponse(queueItem, baseUrl);
-            if (queueItem.status == StatusCode.ERROR) {
-                return ResponseEntity.badRequest().body(response);
-            }
-            return ResponseEntity.ok().body(response);
+        FieldguideResponse response = new FieldguideResponse(queueItem, baseUrl);
+
+        // update status for the old value
+        if (queueItem.status == StatusCode.QUEUED) {
+            response.setStatus("inQueue");
         }
+
+        if (queueItem.status == StatusCode.ERROR) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok().body(response);
     }
 
     @Operation(
@@ -189,7 +194,13 @@ public class V1FieldguideController {
             @PathVariable(name = "id") String id) {
         QueueItem item = queueDataService.get(UUID.fromString(id));
         if (item != null) {
-            return ResponseEntity.ok(new FieldguideResponse(item, baseUrl));
+            FieldguideResponse response = new FieldguideResponse(item, baseUrl);
+            // update status for the old value
+            if ("queued".equals(response.status)) {
+                response.setStatus("inQueue");
+            }
+
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.notFound().build();
         }

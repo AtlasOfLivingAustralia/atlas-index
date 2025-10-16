@@ -42,9 +42,11 @@
                     </fo:block>
                     <fo:block font-size="12px" margin-top="0.5cm" margin-left="2cm" font-style="italic" font-weight="bold">
                         This PDF was generated on <xsl:value-of select="formattedDate"/>.
-                        <fo:basic-link external-destination="{dataLink}">
-                            <fo:inline text-decoration="underline">View the original search query.</fo:inline>
-                        </fo:basic-link>
+                        <xsl:if test="string(dataLink) != ''">
+                            <fo:basic-link external-destination="{dataLink}">
+                                <fo:inline text-decoration="underline">View the original search query.</fo:inline>
+                            </fo:basic-link>
+                        </xsl:if>
                     </fo:block>
                 </fo:static-content>
 

@@ -209,36 +209,41 @@ public class ConsumerQueue {
      * @return
      */
     public QueueItem add(QueueRequest queueRequest, String userId) {
-        TaskType requestType = queueRequest.taskType;
-        log.info("Adding download request to queue: {}", requestType);
+        try {
+            TaskType requestType = queueRequest.taskType;
+            log.info("Adding download request to queue: {}", requestType);
 
-        // limit the max number of queued requests per user
-        int count = queuePostgresRepository.countByUserIdAndStatus(userId, StatusCode.QUEUED.name());
-        if (count > MAX_USER_QUEUE_SIZE) {
-            String errorMessage = "Too many requests in the queue for user: " + userId + ". Maximum is " + MAX_USER_QUEUE_SIZE;
-            return QueueItem.builder().status(StatusCode.ERROR).statusMessage(errorMessage).build();
+            // limit the max number of queued requests per user
+            int count = queuePostgresRepository.countByUserIdAndStatus(userId, StatusCode.QUEUED.name());
+            if (count > MAX_USER_QUEUE_SIZE) {
+                String errorMessage = "Too many requests in the queue for user: " + userId + ". Maximum is " + MAX_USER_QUEUE_SIZE;
+                return QueueItem.builder().status(StatusCode.ERROR).statusMessage(errorMessage).build();
+            }
+
+            String errorMessage = getValidationError(queueRequest);
+            if (errorMessage != null) {
+                log.info("consumer queue item failed validation: {}", errorMessage);
+                // don't save, just return the error message
+                return QueueItem.builder().status(StatusCode.ERROR).statusMessage(errorMessage).build();
+            }
+
+            sanitize(queueRequest);
+
+            // persist the request in a db
+            Date created = new Date();
+            QueueItem queueItem = queuePostgresRepository.save(QueueItem.builder()
+                    .userId(userId)
+                    .created(created)
+                    .queueRequest(queueRequest)
+                    .status(StatusCode.QUEUED).build());
+            queuePostgresRepository.flush();
+
+            addToQueue(queueItem);
+            return queueItem;
+        } catch (Exception e) {
+            log.error("Error adding request to queue", e);
+            return QueueItem.builder().status(StatusCode.ERROR).statusMessage(e.getMessage()).build();
         }
-
-        String errorMessage = getValidationError(queueRequest);
-        if (errorMessage != null) {
-            // don't save, just return the error message
-            return QueueItem.builder().status(StatusCode.ERROR).statusMessage(errorMessage).build();
-        }
-
-        sanitize(queueRequest);
-
-        // persist the request in a db
-        Date created = new Date();
-        QueueItem queueItem = queuePostgresRepository.save(QueueItem.builder()
-                .userId(userId)
-                .created(created)
-                .queueRequest(queueRequest)
-                .status(StatusCode.QUEUED).build());
-        queuePostgresRepository.flush();
-
-        addToQueue(queueItem);
-
-        return queueItem;
     }
 
     /**
@@ -411,8 +416,11 @@ public class ConsumerQueue {
 
             return null;
         } else if (queueRequest.fieldguideQueueRequest != null) {
+            // filename is optional for fieldguide, generate if missing
             if (StringUtils.isEmpty(queueRequest.fieldguideQueueRequest.filename)) {
-                return "missing filename";
+                queueRequest.fieldguideQueueRequest.filename = "fieldguide-" + System.currentTimeMillis() + ".pdf";
+            } else if (!queueRequest.fieldguideQueueRequest.filename.toLowerCase().endsWith(".pdf")) {
+                queueRequest.fieldguideQueueRequest.filename += ".pdf";
             }
 
             if (StringUtils.isEmpty(queueRequest.fieldguideQueueRequest.title)) {
