@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.internet.MimeMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -35,6 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,6 +47,7 @@ import org.springframework.data.domain.Page;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -99,9 +103,19 @@ public class V2AdminController {
     private final ConfigService configDataService;
     private final UserDataService userDataService;
     private final SitemapFileStoreService sitemapFileStoreService;
+    private final JavaMailSender emailSender;
 
     @Value("${biocache.url}")
     private String biocacheWsUrl;
+
+    @Value("${fieldguide.email.enabled}")
+    public boolean emailEnabled;
+
+    @Value("${email.from}")
+    public String emailFrom;
+
+    @Value("#{'${openapi.servers}'.split(',')[0]}")
+    private String baseUrl;
 
     public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
                              TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
@@ -120,7 +134,7 @@ public class V2AdminController {
                              ElasticService elasticService, DataFileStoreService dataFileStoreService,
                              DownloadFileStoreService downloadFileStoreService, StaticFileStoreService staticFileStoreService,
                              RabbitTemplate rabbitTemplate, TaxonDataService taxonDataService, ConfigService configDataService,
-                             UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService) {
+                             UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService, JavaMailSender emailSender) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -158,6 +172,7 @@ public class V2AdminController {
         this.configDataService = configDataService;
         this.userDataService = userDataService;
         this.sitemapFileStoreService = sitemapFileStoreService;
+        this.emailSender = emailSender;
     }
 
     @SecurityRequirement(name = "JWT")
@@ -647,6 +662,34 @@ public class V2AdminController {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             response.put("biocacheOccurrences", "Failed to execute biocache count query: " + e.getMessage());
+        }
+
+        if (emailEnabled) {
+            try {
+                String hostname = InetAddress.getLocalHost().getHostName();
+                String env = System.getProperty("spring.profiles.active", "default");
+                String version = getClass().getPackage().getImplementationVersion();
+
+                MimeMessage mimeMessage = emailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+                helper.setFrom(emailFrom);
+                helper.setTo(authService.getEmail(principal));
+                helper.setSubject("Test email: " + baseUrl);
+                helper.setText("<h1>Test email</h1>" +
+                                "<ul>" +
+                                "<li>Base URL: " + baseUrl + "</li>" +
+                                "<li>Hostname: " + hostname + "</li>" +
+                                "<li>Environment: " + env + "</li>" +
+                                "<li>Version: " + version + "</li>" +
+                                "</ul>", true);
+                emailSender.send(mimeMessage);
+                response.put("email", "Sent. Check your inbox: " + authService.getEmail(principal));
+            } catch (Exception e) {
+                log.error("Failed to send test email", e);
+                response.put("email", "Exception: " + e.getMessage());
+            }
+        } else {
+            response.put("email", "Disabled in configuration");
         }
 
         return ResponseEntity.ok(response);
