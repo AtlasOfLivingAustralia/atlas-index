@@ -33,6 +33,7 @@ export default defineConfig({
         exclude: ['@ala/common-ui'],
     },
     server: {
+        host: '0.0.0.0',
         fs: {
             allow: ['..'], // allow access to linked packages outside root
         },
