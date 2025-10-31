@@ -1052,7 +1052,7 @@ function Region({
                                                                                     species.label
                                                                                 }
                                                                             </div>
-                                                                            <div
+                                                                            <div data-testid="speciesCount"
                                                                                 style={{
                                                                                     float: 'right',
                                                                                 }}
@@ -1119,7 +1119,7 @@ function Region({
                                             eventKey="chart"
                                             title="Explore by taxonomy"
                                         >
-                                            <div
+                                            <div data-testid={'taxonChartContainer'}
                                                 className={
                                                     'mt-4 ' + styles.pieChart
                                                 }

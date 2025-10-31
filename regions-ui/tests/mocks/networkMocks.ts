@@ -349,9 +349,27 @@ export async function setupNetworkMocks(page: Page, seenUrls: Set<URL> ) {
             seenUrls.add(url);
 
             const facets = url.searchParams.get('facets');
+            const fqs = url.searchParams.getAll('fq');
+            const hasOccurrenceYear = fqs.some(f => f.startsWith('occurrenceYear:'));
 
             var response;
             if (facets === 'species') {
+                // Adjust the species facet counts if occurrenceYear has been set to start from 2024
+                if (hasOccurrenceYear) {
+                    const occurrenceYearFilter = fqs.find(f => f.startsWith('occurrenceYear:'));
+                    const range = occurrenceYearFilter?.split(':')[1]?.replace(/^\[|\]$/g, ''); // removes brackets
+                    const startDate = range?.split(' TO ')[0];
+                    const startsFrom2024 = startDate?.startsWith('2024-01-01');
+                    if (startsFrom2024) {
+                        const fieldResults = g_species['facetResults'][0]['fieldResult'];
+                        var adjustedResults = fieldResults.map(item => ({
+                            ...item,
+                            count: item.count > 0 ? item.count - 1 : item.count,
+                        }));
+                        g_species['facetResults'][0]['fieldResult'] = adjustedResults;
+                    }
+                }
+
                 response = g_species;
             } else if (facets === 'kingdom') {
                 response = g_kingdoms;
