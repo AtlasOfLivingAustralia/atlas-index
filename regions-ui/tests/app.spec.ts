@@ -704,9 +704,32 @@ test('test taxon chart', async ({ page }, testInfo) => {
 
     const chartContainer = page.locator('div[data-testid="taxonChartContainer"]');
     await expect(chartContainer).toBeVisible();
+    const canvas = chartContainer.locator('canvas');
+    await expect(canvas).toBeVisible();
+    const bbox = await canvas.boundingBox();
 
-    const legendItems = page.locator('ul[class*="legend"] li');
-    await expect(legendItems.first()).toContainText('Mammals');
-    await legendItems.nth(0).click(); // if interactive
+    // Clicking on the canvas at center point
+    // Not sure why canvas.click() does not work here
+    const centerX =bbox.x + bbox.width / 2;
+    const centerY =bbox.y + bbox.height / 2;
+    await page.mouse.move(centerX, centerY);
+    //Has to wait for a few seconds otherwise the click is not always detected
+    await page.waitForTimeout(1000);
+    await page.mouse.click(centerX,centerY)
+
+    var previousRankBtn = page.locator('button',{ hasText: 'Previous rank' });
+    var viewRecordsBtn = page.locator('button',{ hasText: 'View records for kingdom Animalia' });
+    await previousRankBtn.scrollIntoViewIfNeeded();
+    await viewRecordsBtn.scrollIntoViewIfNeeded();
+    await expect(previousRankBtn).toBeVisible();
+    await expect(viewRecordsBtn).toBeVisible();
+
+    const [biocachePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        viewRecordsBtn.click(),
+    ]);
+
+    await expect(biocachePage).not.toBeNull();
+    await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
 
 });
