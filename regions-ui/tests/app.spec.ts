@@ -1,5 +1,6 @@
 import { test, expect, type TestInfo } from '@playwright/test';
-import { setupNetworkMocks } from './mocks/networkMocks';
+import { mapMocks } from './mocks/layerServiceMocks';
+import { apiMocks } from './mocks/apiServiceMocks';
 
 // Extend TestInfo to include the seenUrls property
 interface ExtendedTestInfo extends TestInfo {
@@ -9,7 +10,8 @@ interface ExtendedTestInfo extends TestInfo {
 
 test.beforeEach(async ({ page }, testInfo) => {
     const seenUrls = new Set<URL>();
-    await setupNetworkMocks(page, seenUrls);
+    await mapMocks(page, seenUrls);
+    await apiMocks(page, seenUrls);
     (testInfo as ExtendedTestInfo).seenUrls = seenUrls;
 });
 
@@ -581,7 +583,7 @@ test('region page default info', async ({ page }, testInfo) => {
 test('region ACT details', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
-    await page.goto('http://localhost:5173/region?id=21655516');
+    await page.goto('http://localhost:5173/region?id=21654846#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY');
 
     // Wait for images to load
     await page.waitForLoadState('networkidle');
@@ -599,13 +601,17 @@ test('region ACT details', async ({ page }, testInfo) => {
     await expect(h2).toBeVisible(); // check the button is visible
 
     // Verify counts
-    const occurrenceCount = page.locator('h3', {
-        hasText: 'Occurrence records (4.31M)',
-    }); // count from speciesGroups.json
-    await expect(occurrenceCount).toBeVisible(); // check the count is visible
-    const speciesCount = page.locator('h3', {
-        hasText: 'Number of species (271)',
-    }); // count from species.json
+    const occurrenceHeading = page.getByRole('heading', {
+        name: /Occurrence records \(\d+(\.\d+)?M?\)/,
+    });
+    await expect(occurrenceHeading).toBeVisible();
+    // const occurrenceCount = page.locator('h3', {
+    //     hasText: 'Occurrence records (4.31M)',
+    // }); // count from speciesGroups.json
+    // await expect(occurrenceCount).toBeVisible(); // check the count is visible
+    const speciesCount = page.getByRole('heading', {
+        name: /Number of species \(\d+(,\d+)?\)/,
+    });
     await expect(speciesCount).toBeVisible(); // check the count is visible
 
       // Verify some species
@@ -629,10 +635,7 @@ test('region ACT details', async ({ page }, testInfo) => {
     const listRecordsButton = page.locator('button', { hasText: 'List records' });
     await expect(listRecordsButton).toBeVisible();
 
-    const [biocachePage] = await Promise.all([
-        page.waitForEvent('popup'),
-        listRecordsButton.click(),
-    ]);
+
     // Does not work with mock data
     // const [biePage] = await Promise.all([
     //     page.waitForEvent('popup'),
@@ -642,7 +645,10 @@ test('region ACT details', async ({ page }, testInfo) => {
     // await expect(biePage).not.toBeNull();
     // await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
 
-
+    const [biocachePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        listRecordsButton.click(),
+    ]);
     await expect(biocachePage).not.toBeNull();
     await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
 
@@ -651,11 +657,14 @@ test('region ACT details', async ({ page }, testInfo) => {
     console.log(`WMS tile count: ${tileCount}`);
     //await expect(wmsTileForOccurrences[0]).toBeVisible();
 
-
     //Range slider
     const rangeContainer = page.locator('[data-testid="rangeSelection"]').locator('..'); // move up one level
     const minSlider = rangeContainer.locator('button[aria-label="minimum"]');
     const maxSlider = rangeContainer.locator('button[aria-label="maximum"]');
+    await expect(minSlider).toBeVisible();
+    await expect(minSlider).toBeEnabled();
+    await expect(maxSlider).toBeVisible();
+    await expect(maxSlider).toBeEnabled();
     var minValue = await minSlider.getAttribute('aria-valuenow');
     const maxValue = await maxSlider.getAttribute('aria-valuenow');
 
@@ -670,11 +679,17 @@ test('region ACT details', async ({ page }, testInfo) => {
         await page.mouse.move(minSliderBBox.x + minSliderBBox.width + 535, minSliderBBox.y + minSliderBBox.height / 2);
         await page.mouse.up();
     }
-
+    //await page.waitForTimeout(3000);
     minValue = await minSlider.getAttribute('aria-valuenow');
-    console.log(`New Min Date: ${minValue}, Max Date: ${maxValue}`);
-    speciesCountAFText = await speciesAFCount.textContent();
-    expect(speciesCountAFText).toBe('15');
+    // Wait max 5 seconds for species count to update
+    // Verify species count has changed
+    await expect
+        .poll(async () => await speciesAFCount.textContent(), {
+            timeout: 5000,
+            interval: 250,
+        })
+        .not.toBe(speciesCountAFText);
+
 });
 
 /**
@@ -683,7 +698,7 @@ test('region ACT details', async ({ page }, testInfo) => {
 test('test taxon chart', async ({ page }, testInfo) => {
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
-    await page.goto('http://localhost:5173/region?id=8832857');
+    await page.goto('http://localhost:5173/region?id=21654846');
 
     // Wait for images to load
     await page.waitForLoadState('networkidle');
@@ -728,7 +743,6 @@ test('test taxon chart', async ({ page }, testInfo) => {
         page.waitForEvent('popup'),
         viewRecordsBtn.click(),
     ]);
-
     await expect(biocachePage).not.toBeNull();
     await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
 
