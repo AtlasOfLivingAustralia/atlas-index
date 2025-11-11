@@ -1,0 +1,71 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+.headerLogo {
+    background-repeat: no-repeat;
+    background-position:
+            left top,
+            right -10px top -20px;
+    background-size: cover, auto;
+
+    background-image: linear-gradient(to right, rgba(195, 237, 239, 0.19) 0%, rgba(0, 58, 112, 0.19) 100%), url('../image/logo-back-light.svg');
+}
+
+@media (max-width: 768px) {
+    .headerLogo {
+        background-size: cover;
+        background-position: left top;
+        background-image: linear-gradient(to right, rgba(195, 237, 239, 0.19) 0%, rgba(0, 58, 112, 0.19) 100%);
+    }
+}
+
+.resultsTitle {
+    color: #212121;
+
+    /* Desktop/Intro/Reg */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 28px; /* 140% */
+}
+
+.resultsTitleBold {
+    color: #212121;
+
+    /* Desktop/Intro/Reg */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 28px; /* 140% */
+}
+
+.resultsTitleItalic {
+    color: #212121;
+
+    /* Desktop/Intro/Reg */
+    font-family: Roboto;
+    font-size: 20px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 28px; /* 140% */
+}
+
+@media (max-width: 768px) {
+    .resultsTitle {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .resultsTitleItalic {
+        font-size: 16px;
+        line-height: 22px;
+    }
+    .resultsTitleBold {
+        font-size: 16px;
+        line-height: 22px;
+    }
+}

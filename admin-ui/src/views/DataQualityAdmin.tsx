@@ -44,7 +44,7 @@ function DataQualityAdmin({
 
     function fetchProfiles() {
         setLoading(true);
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/dq', {
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
@@ -85,11 +85,6 @@ function DataQualityAdmin({
         reader.readAsText(file);
     }
 
-    // TODO: Add actual validation of the profile.
-    //  - Test biocache-service requests with each filter
-    //  - Test each inverse filter. This will require replicating the logic of the inverse filter construction in
-    //  search-service for use with the override inverse filter is not defined.
-    //  - Test the filter result count + inverse filter result count = total count of records in biocache-service.
     function save(profile: QualityProfile) {
         // double check that the shortName is unique
         if (profiles.some(p => p.shortName === profile.shortName && p.id !== profile.id)) {
@@ -98,7 +93,7 @@ function DataQualityAdmin({
         }
 
         setSaving(true);
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/dq', {
             method: 'POST',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
@@ -194,7 +189,7 @@ function DataQualityAdmin({
             return;
         }
         setSaving(true);
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/dq?id=' + profileItem.id, {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/dq?id=' + profileItem.id, {
                 method: 'DELETE',
                 headers: {Authorization: 'Bearer ' + auth.user?.access_token}
             }

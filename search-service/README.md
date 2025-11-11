@@ -17,7 +17,7 @@ It is a Spring Boot application that provides REST web services for accessing an
     - [Dashboard integration](dashboard.md)
     - [Fieldguide integration](fieldguide.md)
     - [Data Quality Service integration](dataquality.md)
-    - [Sandbox integration](sandbox.md)
+    - [DOI Service integration](doi.md)
 
 ## Getting started
 

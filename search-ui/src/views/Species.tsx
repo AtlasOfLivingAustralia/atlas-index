@@ -97,6 +97,11 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                 } else {
                     fetchDescriptions(data[0]?.guid);
                 }
+
+                // change the browser URL to the guid if path is different due to the service resolving to the accepted guid
+                if (data[0]?.guid && data[0].guid !== queryPath) {
+                    window.history.replaceState({}, '', '/species/' + data[0].guid);
+                }
             }
         }).catch((_) => {
             setResult({});

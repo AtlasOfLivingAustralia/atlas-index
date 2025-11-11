@@ -10,22 +10,14 @@ import {Breadcrumb} from '@ala/common-ui';
 import {useAuth} from "react-oidc-context";
 import {Modal, Tab, Tabs} from "react-bootstrap";
 
-// TODO: Move to external JSON file
-const options = [
-    {
-        label: 'FIELDGUIDE V2',
-        value: 'FIELDGUIDE_V2',
-        path: '/v2/download/fieldguide',
-        defaultJson: '{"filename": "koala-fieldguide.pdf","title": "Koala Fieldguide","sourceUrl": "https://biocache.ala.org.au/occurrences/search?q=koala","id": ["https://biodiversity.org.au/afd/taxa/1e389027-e5b9-48c8-844f-3f7a3c62484c","https://biodiversity.org.au/afd/taxa/88bae719-0e10-480e-ad3d6969e523ce03","https://biodiversity.org.au/afd/taxa/055efa94-ba0b-4f6b-9f44-51d4b9905846","https://www.catalogueoflife.org/data/taxon/6NLJ8","https://biodiversity.org.au/afd/taxa/e9d6fbbd-1505-4073-990a-dc66c930dad6","https://biodiversity.org.au/afd/taxa/4f55b6d6-30e5-41a5-a2e2-ebcccbfbe009","https://id.biodiversity.org.au/node/apni/7690696","https://biodiversity.org.au/afd/taxa/ff2e1bf6-d0b0-4005-957e-a89a66ceee3b"]}'
-    },
-    // { label: 'SANDBOX V2', value: 'SANDBOX_V2', path: '/v2/download/sandbox', defaultJson: '{\n  "taskType": "SANDBOX",\n  "params": {}\n}' },
-    {
-        label: 'SEARCH_DOWNLOAD V2',
-        value: 'SEARCH_DOWNLOAD_V2',
-        path: '/v2/download/search',
-        defaultJson: '{ "q": [ "Koala", "idxtype:TAXON" ], "filename": "koala-taxon-search", "fl": [ "guid", "id", "scientificName", "rank", "rk_kingdom" ]}'
-    },
-];
+type TaskType = {
+    label: string;
+    value: string;
+    path: string;
+    defaultJson: string;
+};
+import optionsJson from '../config/tasks.json' with { type: 'json' };
+const options: TaskType[] = optionsJson as TaskType[];
 
 function Tasks({
                    setBreadcrumbs,
@@ -159,7 +151,7 @@ function Tasks({
     }
 
     function getTaskList(page = taskPage, status = taskStatus, type = taskType, email = taskEmail, userId = taskUserId) {
-        var url = import.meta.env.VITE_APP_BIE_URL + '/v2/admin/tasks?page=' + page;
+        var url = import.meta.env.VITE_APP_BIE_URL + '/admin/tasks?page=' + page;
         if (status) {
             url += '&status=' + encodeURIComponent(status);
         }

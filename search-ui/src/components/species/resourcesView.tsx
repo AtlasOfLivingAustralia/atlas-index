@@ -185,7 +185,7 @@ function ResourcesView({result, isMobile}: MapViewProps) {
             <span style={{
                 fontSize: isMobile ? '14px' : '16px',
                 lineHeight: isMobile ? '20px' : '24px',
-                fontWeight: 70
+                fontWeight: 700
             }}>
                 Showing {1} to{' '}
                 {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} for{' '}

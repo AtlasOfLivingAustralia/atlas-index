@@ -18,12 +18,10 @@ import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
-import au.org.ala.search.service.remote.DownloadFileStoreService;
-import au.org.ala.search.service.remote.ElasticService;
-import au.org.ala.search.service.remote.QueueDataService;
-import au.org.ala.search.service.remote.UserDataService;
+import au.org.ala.search.service.remote.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -72,11 +70,13 @@ public class V2Controller {
     protected final UserDataService userDataService;
     private final ListCache listCache;
     private final QueueDataService queueDataService;
-    @Value("#{'${openapi.servers}'.split(',')[0]}")
-    public String baseUrl;
+    private final SignedUrlService signedUrlService;
     private final BroadcastQueue broadcastQueue;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, BroadcastQueue broadcastQueue) {
+    @Value("#{'${openapi.servers}'.split(',')[0]}")
+    public String baseUrl;
+
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, SignedUrlService signedUrlService, BroadcastQueue broadcastQueue) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -89,6 +89,7 @@ public class V2Controller {
         this.languageService = languageService;
         this.userDataService = userDataService;
         this.queueDataService = queueDataService;
+        this.signedUrlService = signedUrlService;
         this.broadcastQueue = broadcastQueue;
     }
 
@@ -110,7 +111,7 @@ public class V2Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes =  MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = {"/v2/species"}, produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Map>> species(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "The JSON list of guids or scientificNames to search",
@@ -252,7 +253,7 @@ public class V2Controller {
                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
             }
     )
-    @GetMapping(path = "/v2/search", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/v2/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public /*List<SearchItemIndex>*/ Object search(
             @Parameter(
                     description = "Primary search  query for the form field:value e.g. q=rk_genus:Macropus or freee text e.g q=gum",
@@ -362,6 +363,7 @@ public class V2Controller {
     }
 
     @SecurityRequirement(name = "JWT")
+    @SecurityRequirement(name = "openIdConnect")
     @Tag(name = "Download")
     @Operation(
             operationId = DOWNLOAD_FIELDGUIDE,
@@ -491,6 +493,7 @@ public class V2Controller {
     }
 
     @SecurityRequirement(name = "JWT")
+    @SecurityRequirement(name = "openIdConnect")
     @Operation(
             summary = "Create or update a data record",
             description = "Creates, updates or deletes one data record for a user. Updating with null or empty value will delete it.",
@@ -512,7 +515,7 @@ public class V2Controller {
     public ResponseEntity<Void> createOrUpdateUserData(
             @AuthenticationPrincipal Principal principal,
             @RequestBody Map<String, String> userDataRequest
-            ) {
+    ) {
         if (principal == null) {
             return ResponseEntity.status(401).build();
         }
@@ -531,6 +534,7 @@ public class V2Controller {
     }
 
     @SecurityRequirement(name = "JWT")
+    @SecurityRequirement(name = "openIdConnect")
     @Operation(
             summary = "Get user property",
             description = "Get user property by key",
@@ -542,7 +546,7 @@ public class V2Controller {
     @GetMapping("/user/property")
     public ResponseEntity<Map<String, String>> getUserData(
             @AuthenticationPrincipal Principal principal,
-            @RequestParam(name="key") String key) {
+            @RequestParam(name = "key") String key) {
 
         if (principal == null) {
             return ResponseEntity.status(401).build();
@@ -554,5 +558,18 @@ public class V2Controller {
         }
 
         return ResponseEntity.ok(Map.of(key, value));
+    }
+
+    /**
+     * Common endpoint to respond to signed url download requests
+     *
+     * @param id
+     * @return
+     */
+    @Hidden
+    @GetMapping("/v2/signed")
+    public ResponseEntity<InputStreamResource> getSignedDownloadUrl(
+            @RequestParam(name = "id") String id) {
+        return signedUrlService.getSignedUrl(UUID.fromString(id));
     }
 }

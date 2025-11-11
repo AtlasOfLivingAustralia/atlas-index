@@ -237,7 +237,7 @@ function EditIndexedTaxon() {
             return;
         }
 
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
@@ -335,7 +335,7 @@ function EditIndexedTaxon() {
             .filter(it => it.value !== it.original)
             .map(({ original, ...rest }) => rest);
 
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
@@ -399,7 +399,7 @@ function EditIndexedTaxon() {
     }
 
     function saveWikiUrl() {
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
@@ -424,10 +424,9 @@ function EditIndexedTaxon() {
         });
     }
 
-
+    // Saves both the preferred and hidden image values, probably unnecessary to always save both.
     function saveImages() {
-        // set preferred image, then hidden image
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,
@@ -442,9 +441,8 @@ function EditIndexedTaxon() {
                 value: preferredImage,
             }),
         }).then((responsePrefer) => {
-            // TODO: split into 2 functions, one to save hidden images and one to save preferred images
             if (responsePrefer.ok) {
-                fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/set', {
+                fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
                     method: 'POST',
                     headers: {
                         Authorization: 'Bearer ' + auth.user?.access_token,

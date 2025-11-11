@@ -8,6 +8,8 @@ import { Route, Routes } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuth } from 'react-oidc-context';
 import 'bootstrap/dist/css/bootstrap.css';
+import Biocache from "./views/Biocache.tsx";
+import Doi from "./views/Doi.tsx";
 import Home from './views/Home.tsx';
 import AtlasAdmin from './views/AtlasAdmin.tsx';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
@@ -165,46 +167,12 @@ export default function App() {
 
             {isAdmin && (
                 <Routes>
-                    <Route
-                        path="/"
-                        element={
-                            <Home
-                                setBreadcrumbs={(crumbs: Breadcrumb[]) =>
-                                    setBreadcrumbs(crumbs)
-                                }
-                            />
-                        }
-                    />
-                    <Route
-                        path="/search"
-                        element={
-                            <AtlasAdmin
-                                setBreadcrumbs={(crumbs: Breadcrumb[]) =>
-                                    setBreadcrumbs(crumbs)
-                                }
-                            />
-                        }
-                    />
-                    <Route
-                        path="/dq"
-                        element={
-                            <DataQualityAdmin
-                                setBreadcrumbs={(crumbs: Breadcrumb[]) =>
-                                    setBreadcrumbs(crumbs)
-                                }
-                            />
-                        }
-                    />
-                    <Route
-                        path="/tasks"
-                        element={
-                            <Tasks
-                                setBreadcrumbs={(crumbs: Breadcrumb[]) =>
-                                    setBreadcrumbs(crumbs)
-                                }
-                            />
-                        }
-                    />
+                    <Route path="/" element={<Home setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/search" element={<AtlasAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/dq" element={<DataQualityAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/tasks" element={<Tasks setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                    <Route path="/doi" element={<Doi setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} />}/>
+                    <Route path="/biocache" element={<Biocache setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)} />}/>
                 </Routes>
             )}
 

@@ -9,8 +9,8 @@ package au.org.ala.search.model;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.FieldguideRequest;
 import au.org.ala.search.model.quality.QualityProfile;
+import au.org.ala.search.model.queue.DoiQueueRequest;
 import au.org.ala.search.model.queue.QueueCancel;
-import au.org.ala.search.model.queue.SandboxQueueRequest;
 import au.org.ala.search.model.queue.SearchQueueRequest;
 
 /**
@@ -39,12 +39,12 @@ public enum TaskType {
     LISTS("update LIST records and update fields image, hiddenImages_s, preferred, data.conservation_*, data.attributes_* with data from lists.url", TaskType.Category.INGESTION, null, true),
     SITEMAP("generate new sitemap.xml and children and publish to sitemap.path", TaskType.Category.INGESTION, null, true),
     DASHBOARD("update dashboard files used by the dashboard UI", TaskType.Category.INGESTION, null, true),
-    TAXON_DESCRIPTION("import taxon hero descriptions into the search index from data.filestore.path/data.file.descriptions.name", TaskType.Category.INGESTION, null, false),
+    TAXON_DESCRIPTION("import taxon hero descriptions into the search index from postgresql", TaskType.Category.INGESTION, null, false),
     POSTGRES_SYNC("synchronize data from Postgres to the search index. This is for the hidden image, hero image and wiki URL values from the old species list application. Only required if updating the database after a fresh index build.", TaskType.Category.INGESTION, null, true),
 
     FIELDGUIDE("consumer of fieldguide requests", TaskType.Category.CONSUMER, FieldguideRequest.class, false),
     SEARCH_DOWNLOAD("consumer of search download requests", TaskType.Category.CONSUMER, SearchQueueRequest.class, false),
-    SANDBOX("consumer of sandbox ingress request", TaskType.Category.CONSUMER, SandboxQueueRequest.class, false),
+    DOI_REQUEST("process a DOI request", TaskType.Category.IMMEDIATE, DoiQueueRequest.class, false),
 
     // Broadcast
     CACHE_RESET_ALL("reset all caches", TaskType.Category.BROADCAST, null, true),
@@ -72,9 +72,10 @@ public enum TaskType {
     }
 
     public enum Category {
-        INGESTION,
-        CONSUMER,
-        BROADCAST,
-        LEADER_ONLY
+        INGESTION, // data ingestion tasks, only executed on leader or single node deployments
+        CONSUMER, // end user consumer tasks, can be executed on any node, added into a queue
+        BROADCAST, // internal tasks that are broadcast to all nodes
+        LEADER_ONLY, // internal tasks that can only be executed on the leader node
+        IMMEDIATE, // tasks that are executed immediately upon request, not queued
     }
 }

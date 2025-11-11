@@ -26,6 +26,8 @@ import ListIcon from "./icons/listIcon.tsx";
 import TileIcon from "./icons/tileIcon.tsx";
 import useHashState from "./util/useHashState.tsx";
 import {injectCommonInfo} from "./util/utils.tsx";
+import {UserContext, useUser, UserInfo} from "./util/UserContext.tsx";
+import {checkLoginState, handleLogin, handleLogout} from "./util/auth.tsx";
 
 export {
     Banner,
@@ -52,8 +54,13 @@ export {
     useHeight,
     ConservationStatusLabel,
     conservationStatuses,
-    NotFound
+    NotFound,
+    UserContext,
+    useUser,
+    handleLogin,
+    handleLogout,
+    checkLoginState
 };
 
-export type {Breadcrumb, RefineSectionItem, ConservationStatusKey};
+export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo};
 

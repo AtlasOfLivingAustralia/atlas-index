@@ -57,7 +57,10 @@
       "type": "text"
     },
     "linkIdentifier": {
-      "type": "keyword"
+      "type": "keyword",
+      "copy_to": [
+          "exact_text"
+      ]
     },
     "layerId": {
       "type": "keyword"

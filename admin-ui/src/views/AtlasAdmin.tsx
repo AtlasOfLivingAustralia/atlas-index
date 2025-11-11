@@ -89,7 +89,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
         var thisLogSize = requestedLogSize ? requestedLogSize : logSize;
         fetch(
             import.meta.env.VITE_APP_BIE_URL +
-            '/v2/admin/log?pageSize=' +
+            '/admin/log?pageSize=' +
             thisLogSize +
             type,
             {
@@ -134,7 +134,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
     }
 
     function fetchConfig() {
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/config', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/config', {
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token
@@ -190,7 +190,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
         setTaskString('Running ' + updateType + ' update...');
         fetch(
             import.meta.env.VITE_APP_BIE_URL +
-            '/v2/admin/task?type=' +
+            '/admin/task?type=' +
             updateType,
             {
                 method: 'POST',
@@ -211,7 +211,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
             return;
         }
 
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/config', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/config', {
             method: 'POST',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token,

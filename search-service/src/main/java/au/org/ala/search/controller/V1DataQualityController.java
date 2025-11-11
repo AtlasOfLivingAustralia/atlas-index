@@ -14,6 +14,7 @@ import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.util.Views;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -203,7 +204,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories/{categoryId}/filters", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityFilter>> qualityFilters(
             @Parameter(
                     name = "profileId",
@@ -256,7 +256,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories/{categoryId}/filters/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<QualityFilter> qualityFilter(
             @Parameter(
                     name = "profileId",
@@ -317,7 +316,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/getEnabledFiltersByLabel", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<Map<String, String>> getEnabledFiltersByLabel(
             @Parameter(
                     name = "profileName",
@@ -356,7 +354,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/getEnabledQualityFilters", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<Set<String>> getEnabledQualityFilters(
             @Parameter(
                     name = "profileName",
@@ -395,7 +392,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/getGroupedEnabledFilters", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<LinkedHashMap<String, List<QualityFilter>>> getGroupedEnabledFilters(
             @Parameter(
                     name = "profileName",
@@ -434,7 +430,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/findAllEnabledCategories", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityCategory>> findAllEnabledCategories(
             @Parameter(
                     name = "profileName",
@@ -517,7 +512,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/getJoinedQualityFilter", produces = MediaType.TEXT_PLAIN_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<String> getJoinedQualityFilter(
             @Parameter(
                     name = "profileName",
@@ -557,7 +551,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/getInverseCategoryFilter", produces = MediaType.TEXT_PLAIN_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<String> getInverseCategoryFilter(
             @Parameter(
                     name = "qualityCategoryId",
@@ -597,7 +590,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/quality/getAllInverseCategoryFiltersForProfile", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<Map<String, String>> getAllInverseCategoryFiltersForProfile(
             @Parameter(
                     name = "qualityProfileId",
@@ -636,7 +628,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<List<QualityCategory>> categories(
             @Parameter(
                     name = "profileId",
@@ -679,7 +670,6 @@ public class V1DataQualityController {
             }
     )
     @GetMapping(path = "/v1/dq/data-profiles/{profileId}/categories/{categoryId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @JsonView(Views.Api.class)
     public ResponseEntity<QualityCategory> category(
             @Parameter(
                     name = "profileId",
@@ -709,5 +699,132 @@ public class V1DataQualityController {
 
     @JsonIgnoreProperties("metaClass")
     static class GetGroupedEnabledFiltersResponse extends LinkedHashMap<String, List<QualityFilter>> {
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/data-profiles", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
+    public ResponseEntity<List<QualityProfile>> profilesProxy(
+            @RequestParam(required = false, defaultValue = "100") Integer max,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String order,
+            @RequestParam(required = false) Boolean enabled,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String shortName
+    ) {
+        return profiles(max, offset, sort, order, enabled, name, shortName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/data-profiles/{profileId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
+    public ResponseEntity<QualityProfile> profileProxy(
+            @PathVariable String profileId
+    ) {
+        return profile(profileId);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/data-profiles/{profileId}/categories/{categoryId}/filters", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<QualityFilter>> qualityFiltersProxy(
+            @PathVariable String profileId,
+            @PathVariable Long categoryId) {
+        return qualityFilters(profileId, categoryId);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/data-profiles/{profileId}/categories/{categoryId}/filters/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<QualityFilter> qualityFilterProxy(
+            @PathVariable String profileId,
+            @PathVariable Long categoryId,
+            @PathVariable Long id) {
+        return qualityFilter(profileId, categoryId, id);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/getEnabledFiltersByLabel", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> getEnabledFiltersByLabelProxy(
+            @RequestParam(required = false) String profileName) {
+        return getEnabledFiltersByLabel(profileName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/getEnabledQualityFilters", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Set<String>> getEnabledQualityFiltersProxy(
+            @RequestParam(required = false) String profileName) {
+        return getEnabledQualityFilters(profileName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/getGroupedEnabledFilters", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<LinkedHashMap<String, List<QualityFilter>>> getGroupedEnabledFiltersProxy(
+            @RequestParam(required = false) String profileName) {
+        return getGroupedEnabledFilters(profileName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/findAllEnabledCategories", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<QualityCategory>> findAllEnabledCategoriesProxy(
+            @RequestParam(required = false) String profileName) {
+        return findAllEnabledCategories(profileName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/activeProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @JsonView(Views.Api.class)
+    public ResponseEntity<QualityProfile> activeProfileProxy(
+            @RequestParam(required = false) String profileName) {
+        return activeProfile(profileName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/getJoinedQualityFilter", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getJoinedQualityFilterProxy(
+            @RequestParam String profileName) {
+        return getJoinedQualityFilter(profileName);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/getInverseCategoryFilter", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getInverseCategoryFilterProxy(
+            @RequestParam Long qualityCategoryId) {
+        return getInverseCategoryFilter(qualityCategoryId);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/quality/getAllInverseCategoryFiltersForProfile", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> getAllInverseCategoryFiltersForProfileProxy(
+            @RequestParam(required = false) String qualityProfileId) {
+        return getAllInverseCategoryFiltersForProfile(qualityProfileId);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/data-profiles/{profileId}/categories", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<QualityCategory>> categoriesProxy(
+            @PathVariable String profileId) {
+        return categories(profileId);
+    }
+
+    // Proxy endpoints for backward compatibility with biocache-hubs and biocache-service
+    @Hidden
+    @GetMapping(path = "/api/v1/data-profiles/{profileId}/categories/{categoryId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<QualityCategory> categoryProxy(
+            @PathVariable String profileId,
+            @PathVariable Long categoryId) {
+        return category(profileId, categoryId);
     }
 }

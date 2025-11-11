@@ -391,8 +391,8 @@ public class ElasticService {
                     .withQuery(q -> q.terms(t -> t.field("id").terms(ts ->
                             ts.value(existingItems.keySet().stream().map(FieldValue::of).collect(Collectors.toList())))))
                     .build();
-            ByQueryResponse op = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
-            return op.getDeleted();
+            String op = elasticsearchOperations.delete(deleteQuery, IndexCoordinates.of(elasticIndex));
+            return Long.parseLong(op);
         }
         return 0;
     }
@@ -403,8 +403,8 @@ public class ElasticService {
                     .withQuery(q -> q.terms(t -> t.field("id").terms(ts ->
                             ts.value(existingIds.stream().map(FieldValue::of).collect(Collectors.toList())))))
                     .build();
-            ByQueryResponse op = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
-            return op.getDeleted();
+            String op = elasticsearchOperations.delete(deleteQuery, IndexCoordinates.of(elasticIndex));
+            return Long.parseLong(op);
         }
         return 0;
     }
@@ -413,9 +413,9 @@ public class ElasticService {
         Query deleteQuery = new NativeQueryBuilder()
                 .withQuery(q -> q.term(t -> t.field(field).value(value)))
                 .build();
-        ByQueryResponse response = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
+        String response = elasticsearchOperations.delete(deleteQuery, IndexCoordinates.of(elasticIndex));
 
-        log.info("deleting {} found with {}:{}", response.getDeleted(), field, value);
+        log.info("deleting {} found with {}:{}", Long.parseLong(response), field, value);
     }
 
     public long queryCount(String field, String value) {
@@ -1802,7 +1802,8 @@ public class ElasticService {
             } else if (term.field == null) {
                 // dismax? attempting to match
                 return DisMaxQuery.of(dmq -> dmq.queries(
-                        TermQuery.of(tq -> tq.field("exact_text").value(term.value))._toQuery(),
+                        // boost for exact_text is required so that it ranks higher than non-exact matches with higher searchWeight
+                        TermQuery.of(tq -> tq.field("exact_text").value(term.value).boost(10.0f))._toQuery(),
                         MatchQuery.of(mq -> {
                             // default search field for free text search
                             mq.field("all");

@@ -10,6 +10,7 @@ import au.org.ala.search.serializer.QualityProfileSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -37,6 +38,7 @@ public class QualityProfile implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
+    @Builder.Default
     @Column(nullable = false)
     String shortName = "";
 
