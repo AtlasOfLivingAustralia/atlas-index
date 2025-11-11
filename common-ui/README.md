@@ -32,13 +32,22 @@ yarn test
 For consistency, using the following environment variables in the `.env` file:
 
 ```properties
+# header/footer and common assets (retrieved and applied at runtime)
 VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/header.html
 VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.html
 VITE_COMMON_CSS=http://localhost:8082/static/common/common.css
 VITE_COMMON_JS=http://localhost:8082/static/common/common.js
-VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
-VITE_BANNER_SCOPE=app-name
+
+# environment tagging (included in the deployed application header meta info)
 VITE_ENV=local
+
+# banner messages (scope should match the application name and be found in the status.json when fetched at runtime)
+VITE_BANNER_SCOPE=app-name
+VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
+
+# authentication required (search-service instance and the app base URL)
+VITE_APP_API_URL=http://localhost:8081
+VITE_APP_BASE_URL=http://localhost:5173
 ```
 
 ## Typical inclusion in a `-ui` project
@@ -105,4 +114,6 @@ useEffect(() => {
     footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}/>
 ```
 
-5. Include the same dependencies.
+5. Include the same dependencies. Refer to [package.json](./package.json) for the list of dependencies to include in the `-ui` project `package.json` file.
+
+6. When authentication is required, follow the instructions in [AUTH.md](./AUTH.md) to set up authentication utilities and context.

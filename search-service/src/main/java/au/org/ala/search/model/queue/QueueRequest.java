@@ -28,5 +28,5 @@ public class QueueRequest {
 
     public FieldguideQueueRequest fieldguideQueueRequest;
     public SearchQueueRequest searchQueueRequest;
-    public SandboxQueueRequest sandboxQueueRequest;
+    public DoiQueueRequest doiQueueRequest;
 }

@@ -10,18 +10,12 @@ import './menu.css';
 function Menu() {
     return (
         <div className="d-flex flex-column gap-2 mb-3 side-menu">
-            <NavLink to="/" className="menu-link">
-                Home
-            </NavLink>
-            <NavLink to="/search" className="menu-link">
-                Search Index
-            </NavLink>
-            <NavLink to="/dq" className="menu-link">
-                Data Quality
-            </NavLink>
-            <NavLink to="/tasks" className="menu-link">
-                Tasks
-            </NavLink>
+            <NavLink to="/" className="menu-link">Home</NavLink>
+            <NavLink to="/search" className="menu-link">Search Index</NavLink>
+            <NavLink to="/dq" className="menu-link">Data Quality</NavLink>
+            <NavLink to="/tasks" className="menu-link">Tasks</NavLink>
+            <NavLink to="/doi" className="menu-link">DOIs</NavLink>
+            <NavLink to="/biocache" className="menu-link">Biocache</NavLink>
         </div>
     );
 }

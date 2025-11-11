@@ -10,7 +10,6 @@ import au.org.ala.userdetails.UserDetailsClient;
 import au.org.ala.web.UserDetails;
 import au.org.ala.ws.security.profile.AlaUserProfile;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import retrofit2.Response;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -93,5 +93,15 @@ public class AuthService {
         }
 
         return null;
+    }
+
+    public Set<String> getRoles(Principal principal) {
+        if (principal instanceof PreAuthenticatedAuthenticationToken) {
+            return ((AlaUserProfile) ((PreAuthenticatedAuthenticationToken) principal).getPrincipal()).getRoles();
+        } else if (principal instanceof AlaUserProfile) {
+            return ((AlaUserProfile) principal).getRoles();
+        } else {
+            return null;
+        }
     }
 }

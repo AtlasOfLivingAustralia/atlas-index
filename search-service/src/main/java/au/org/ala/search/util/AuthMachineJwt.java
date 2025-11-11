@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-package au.org.ala.search;
+package au.org.ala.search.util;
 
 import au.org.ala.ws.security.client.AlaAuthClient;
 import au.org.ala.ws.security.profile.AlaUserProfile;

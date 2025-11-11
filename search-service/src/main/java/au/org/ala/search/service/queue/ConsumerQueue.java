@@ -11,7 +11,6 @@ import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.queue.*;
 import au.org.ala.search.repo.QueuePostgresRepository;
 import au.org.ala.search.service.consumer.FieldguideConsumer;
-import au.org.ala.search.service.consumer.SandboxConsumer;
 import au.org.ala.search.service.consumer.SearchConsumer;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.QueueDataService;
@@ -77,7 +76,6 @@ public class ConsumerQueue {
     private final ElasticService elasticService;
     private final RabbitTemplate rabbitTemplate;
     private final FieldguideConsumer fieldguideConsumer;
-    private final SandboxConsumer sandboxConsumer;
     private final SearchConsumer searchConsumer;
 
     // Local queues and executors for each user, in use only when RabbitMQ is not enabled.
@@ -92,13 +90,12 @@ public class ConsumerQueue {
     @Value("${standalone.task.queue.concurrency:20}")
     private int standaloneTaskQueueConcurrency; // used when RabbitMQ is not enabled
 
-    public ConsumerQueue(QueuePostgresRepository queuePostgresRepository, QueueDataService queueDataService, ElasticService elasticService, RabbitTemplate rabbitTemplate, FieldguideConsumer fieldguideConsumer, SandboxConsumer sandboxConsumer, SearchConsumer searchConsumer, LeadershipStatus leadershipStatus) {
+    public ConsumerQueue(QueuePostgresRepository queuePostgresRepository, QueueDataService queueDataService, ElasticService elasticService, RabbitTemplate rabbitTemplate, FieldguideConsumer fieldguideConsumer, SearchConsumer searchConsumer, LeadershipStatus leadershipStatus) {
         this.queuePostgresRepository = queuePostgresRepository;
         this.queueDataService = queueDataService;
         this.elasticService = elasticService;
         this.rabbitTemplate = rabbitTemplate;
         this.fieldguideConsumer = fieldguideConsumer;
-        this.sandboxConsumer = sandboxConsumer;
         this.searchConsumer = searchConsumer;
         this.leadershipStatus = leadershipStatus;
     }
@@ -377,7 +374,6 @@ public class ConsumerQueue {
         switch (queueItem.queueRequest.taskType) {
             case SEARCH_DOWNLOAD -> searchConsumer.consume(queueItem);
             case FIELDGUIDE -> fieldguideConsumer.consume(queueItem);
-            case SANDBOX -> sandboxConsumer.consume(queueItem);
             default -> log.error("Unsupported task type: {}", queueItem.queueRequest.taskType);
         }
     }
@@ -395,11 +391,6 @@ public class ConsumerQueue {
     }
 
     private String getValidationError(QueueRequest queueRequest) {
-        if (queueRequest.sandboxQueueRequest != null) {
-            // Future: validate sandboxQueueRequest fields
-            return null;
-        }
-
         if (queueRequest.searchQueueRequest != null) {
             if (StringUtils.isEmpty(queueRequest.searchQueueRequest.filename)) {
                 return "missing filename";

@@ -74,7 +74,7 @@
         <dependency>
             <groupId>au.org.ala</groupId>
             <artifactId>ala-ws-spring-security</artifactId>
-            <version>7.3.0-SNAPSHOT</version>
+            <version>7.3.0-java21</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.ehcache</groupId>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>au.org.ala</groupId>
             <artifactId>ala-ws-security</artifactId>
-            <version>7.3.0-SNAPSHOT</version>
+            <version>7.3.0-java21</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.ehcache</groupId>
@@ -128,6 +128,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-jdbc</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.15.4</version>
@@ -160,7 +164,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.13.0</version>
+            <version>3.19.0</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -274,6 +278,12 @@
             <version>1.20.6</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.20.6</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -286,6 +296,7 @@
                     <include>application.properties</include>
                 </includes>
             </resource>
+            <!-- Include all other resources without filtering -->
             <resource>
                 <filtering>false</filtering>
                 <directory>src/main/resources</directory>

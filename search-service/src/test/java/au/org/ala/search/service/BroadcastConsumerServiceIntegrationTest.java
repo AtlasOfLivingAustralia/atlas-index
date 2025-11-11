@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -32,7 +33,11 @@ public class BroadcastConsumerServiceIntegrationTest {
     @Container
     public static RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:3.9.13-management");
 
-    // TODO: add postgres test container
+    @Container
+    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:17-alpine")
+            .withDatabaseName("search")
+            .withUsername("guest")
+            .withPassword("guest");
 
     @Container
     public static ElasticsearchContainer elasticsearchContainer = new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.13.0")
@@ -48,17 +53,21 @@ public class BroadcastConsumerServiceIntegrationTest {
     private BroadcastQueue broadcastQueue;
 
     @DynamicPropertySource
-    static void rabbitProperties(DynamicPropertyRegistry registry) {
+    static void dynamicProperties(DynamicPropertyRegistry registry) {
         registry.add("rabbitmq.host", rabbitMQContainer::getHost);
         registry.add("rabbitmq.port", rabbitMQContainer::getAmqpPort);
 
         registry.add("elastic.host", elasticsearchContainer::getHttpHostAddress);
+
+        registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        System.out.println("**** JDBC URL: " + postgreSQLContainer.getJdbcUrl());
     }
 
     @BeforeAll
     public static void setUp() {
         rabbitMQContainer.start();
         elasticsearchContainer.start();
+        postgreSQLContainer.start();
     }
 
     @BeforeEach

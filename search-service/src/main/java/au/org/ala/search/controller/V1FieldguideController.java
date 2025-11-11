@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
 import java.security.Principal;
 import java.util.UUID;
 
@@ -100,6 +99,7 @@ public class V1FieldguideController {
             }
     )
     @SecurityRequirement(name = "JWT")
+    @SecurityRequirement(name = "openIdConnect")
     // excluding "consumes = MediaType.APPLICATION_JSON_VALUE" from PostMapping to make it compatible with the current downloads-plugin
     @PostMapping(path = "/v1/fieldguide/generate", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FieldguideResponse> offline(
@@ -188,7 +188,7 @@ public class V1FieldguideController {
                     name = "id",
                     in = PATH,
                     description = "Id of the fieldguide",
-                    schema = @Schema(implementation = Long.class),
+                    schema = @Schema(implementation = String.class),
                     required = true
             )
             @PathVariable(name = "id") String id) {

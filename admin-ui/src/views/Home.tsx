@@ -48,7 +48,7 @@ function Home({
     }, []);
 
     function fetchStats() {
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/info', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/info', {
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token
@@ -65,7 +65,7 @@ function Home({
 
     function doTest() {
         setTestResult({"waiting": true});
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/admin/test', {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/test', {
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + auth.user?.access_token

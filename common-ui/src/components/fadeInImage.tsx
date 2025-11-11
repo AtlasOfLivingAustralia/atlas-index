@@ -79,7 +79,7 @@ export function FadeInImage({
         )}
         <img
             ref={imgRef}
-            {...props}
+            {...((({ popover, ...rest }) => rest)(props))}
             style={{
                 ...props.style,
                 opacity: loaded ? 1 : 0, ...(usePlaceholder ? {} : {transition: "opacity 0.5s ease"})

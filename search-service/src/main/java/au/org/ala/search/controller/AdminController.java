@@ -62,10 +62,11 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Admin API
  */
+@Tag(name = "Admin", description = "Internal use only")
 @Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-public class V2AdminController {
+public class AdminController {
     protected final WordpressImportService wordpressImportService;
     protected final KnowledgebaseImportService knowledgebaseImportService;
     protected final ListImportService listImportService;
@@ -117,24 +118,24 @@ public class V2AdminController {
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     private String baseUrl;
 
-    public V2AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
-                             TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
-                             ListImportService listImportService, AdminService adminService, AllService allService,
-                             CollectionsImportService collectionsImportService,
-                             BiocollectImportService biocollectImportService, LogService logService,
-                             LayerImportService layerImportService, AreaImportService areaImportService,
-                             DashboardService dashboardService, TaskExecutor processExecutor,
-                             TaskExecutor elasticSearchUpdate, AuthService authService,
-                             TaxonUpdateService taxonUpdateService, SitemapService sitemapService,
-                             ConsumerQueue consumerQueue, FieldguideConsumer fieldguideConsumer,
-                             SearchConsumer searchConsumer,
-                             DescriptionsUpdateService descriptionsUpdateService,
-                             QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue,
-                             ConfigService configService, QueueDataService queueDataService,
-                             ElasticService elasticService, DataFileStoreService dataFileStoreService,
-                             DownloadFileStoreService downloadFileStoreService, StaticFileStoreService staticFileStoreService,
-                             RabbitTemplate rabbitTemplate, TaxonDataService taxonDataService, ConfigService configDataService,
-                             UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService, JavaMailSender emailSender) {
+    public AdminController(DwCAImportService dwCAImportService, WordpressImportService wordpressImportService, DigivolImportService digivolImportService,
+                           TaskExecutor blockingExecutor, KnowledgebaseImportService knowledgebaseImportService,
+                           ListImportService listImportService, AdminService adminService, AllService allService,
+                           CollectionsImportService collectionsImportService,
+                           BiocollectImportService biocollectImportService, LogService logService,
+                           LayerImportService layerImportService, AreaImportService areaImportService,
+                           DashboardService dashboardService, TaskExecutor processExecutor,
+                           TaskExecutor elasticSearchUpdate, AuthService authService,
+                           TaxonUpdateService taxonUpdateService, SitemapService sitemapService,
+                           ConsumerQueue consumerQueue, FieldguideConsumer fieldguideConsumer,
+                           SearchConsumer searchConsumer,
+                           DescriptionsUpdateService descriptionsUpdateService,
+                           QualityDataService qualityDataService, BroadcastQueue broadcastQueue, LeaderQueue leaderQueue,
+                           ConfigService configService, QueueDataService queueDataService,
+                           ElasticService elasticService, DataFileStoreService dataFileStoreService,
+                           DownloadFileStoreService downloadFileStoreService, StaticFileStoreService staticFileStoreService,
+                           RabbitTemplate rabbitTemplate, TaxonDataService taxonDataService, ConfigService configDataService,
+                           UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService, JavaMailSender emailSender) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -175,10 +176,10 @@ public class V2AdminController {
         this.emailSender = emailSender;
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Set list backed value")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @PostMapping(path = "/v2/admin/set", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(tags = "Admin", summary = "Set list backed value")
+    @PostMapping(path = "/admin/set", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(@RequestBody SetRequest setValue,
                                         @AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
@@ -194,10 +195,10 @@ public class V2AdminController {
         return ResponseEntity.ok().build();
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Start a task")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @PostMapping(path = "/v2/admin/task", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(tags = "Admin", summary = "Start a task")
+    @PostMapping(path = "/admin/task", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(
             @RequestParam(name = "type") TaskType type,
             @RequestBody(required = false) Map<String, Object> requestBody,
@@ -228,10 +229,10 @@ public class V2AdminController {
         return ResponseEntity.ok("{\"message\": \"task queued, not yet validated\"}");
     }
 
-    @Operation(tags = "ADMIN", summary = "Application events log")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v2/admin/log", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(tags = "Admin", summary = "Application events log")
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @GetMapping(path = "/admin/log", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> log(
             @RequestParam(name = "type", required = false) TaskType type,
             @RequestParam(name = "pageSize", required = false, defaultValue = "1") Integer logPageSize,
@@ -259,10 +260,10 @@ public class V2AdminController {
         return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
     }
 
-    @Operation(tags = "ADMIN", summary = "List data quality profiles")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @SecurityRequirement(name = "JWT")
-    @GetMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(tags = "Admin", summary = "List data quality profiles")
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @GetMapping(path = "/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<QualityProfile>> dqGet(
             @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
             @RequestParam(name = "pageSize", required = false, defaultValue = "10") Integer pageSize,
@@ -276,15 +277,15 @@ public class V2AdminController {
     }
 
     @SneakyThrows
-    @Operation(tags = "ADMIN", summary = "Delete a data quality profile",
+    @Operation(tags = "Admin", summary = "Delete a data quality profile",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Profile deleted successfully"),
                     @ApiResponse(responseCode = "202", description = "Profile deletion is queued (timeout)"),
                     @ApiResponse(responseCode = "500", description = "Profile deletion failed")
             })
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @SecurityRequirement(name = "JWT")
-    @DeleteMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @DeleteMapping(path = "/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> dqDelete(
             @RequestParam(name = "id") Long id,
             @AuthenticationPrincipal Principal principal) {
@@ -320,15 +321,15 @@ public class V2AdminController {
     }
 
     @SneakyThrows
-    @Operation(tags = "ADMIN", summary = "Create or update a data quality profile",
+    @Operation(tags = "Admin", summary = "Create or update a data quality profile",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Profile saved/created successfully"),
                     @ApiResponse(responseCode = "202", description = "Profile save/creation is queued (timeout)"),
                     @ApiResponse(responseCode = "500", description = "Profile save/creation failed")
             })
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @SecurityRequirement(name = "JWT")
-    @PostMapping(path = "/v2/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @PostMapping(path = "/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<QualityProfile> dqPost(
             @RequestBody QualityProfile profile,
             @AuthenticationPrincipal Principal principal) {
@@ -352,10 +353,10 @@ public class V2AdminController {
         return ResponseEntity.ok(newProfile);
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Update one dynamic config value")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @PostMapping(path = "/v2/admin/config", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(tags = "Admin", summary = "Update one dynamic config value")
+    @PostMapping(path = "/admin/config", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> configSet(@RequestBody ConfigData newConfigData,
                                             @AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
@@ -371,10 +372,10 @@ public class V2AdminController {
         return ResponseEntity.ok().build();
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Get all dynamic config values")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @GetMapping(path = "/v2/admin/config", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(tags = "Admin", summary = "Get all dynamic config values")
+    @GetMapping(path = "/admin/config", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ConfigData>> configSet(@AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
@@ -383,10 +384,10 @@ public class V2AdminController {
         return ResponseEntity.ok().body(configService.getAll());
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Search consumer tasks")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @GetMapping(path = "/v2/admin/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(tags = "Admin", summary = "Search consumer tasks")
+    @GetMapping(path = "/admin/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<QueueItem>> tasks(
             @RequestParam(name = "id", required = false) String id,
             @RequestParam(name = "userId", required = false) String userId,
@@ -405,10 +406,10 @@ public class V2AdminController {
         return ResponseEntity.ok(result);
     }
 
-    @SecurityRequirement(name = "JWT")
-    @Operation(tags = "ADMIN", summary = "Cancel a task")
-    @Tag(name = "ADMIN", description = "REST Services for admin")
-    @DeleteMapping(path = "/v2/admin/task")
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(tags = "Admin", summary = "Cancel a task")
+    @DeleteMapping(path = "/admin/task")
     public ResponseEntity<?> cancelTask(
             @RequestParam(name = "id", required = false) Long id,
             @AuthenticationPrincipal Principal principal) {
@@ -427,7 +428,7 @@ public class V2AdminController {
      * @param principal
      * @return
      */
-    @GetMapping(path = "/v2/admin/info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/admin/info", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> dashboard(@AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
@@ -509,7 +510,7 @@ public class V2AdminController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping(path = "/v2/admin/test", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/admin/test", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> testVarious(@AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");

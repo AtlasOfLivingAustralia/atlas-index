@@ -77,7 +77,7 @@ public class BroadcastQueue {
     public void sendMessage(TaskType message, Object payload) {
         if (StringUtils.isNotEmpty(rabbitMqHost)) {
             Map<String, Object> map = Map.of(
-                    "payload", payload,
+                    "payload", payload != null ? payload : "",
                     "message", message.name()
             );
 

@@ -6,6 +6,7 @@
 
 package au.org.ala.search;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -13,13 +14,33 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
+import java.util.List;
+
 @Configuration
 @EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value("#{'${security.cors.origins}'.split(',')}")
+    private List<String> spaCorsOrigins;
+
+    // Enable CORS for all endpoints
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**");
+        // TODO: verify and cleanup CORS settings, noting some controllers also have CORS annotations
+        registry.addMapping("/session")
+                .allowCredentials(true)
+                .allowedOrigins(spaCorsOrigins.toArray(new String[0]))
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .exposedHeaders("x-total-count");
+        registry.addMapping("/v1/doi/doi")
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .exposedHeaders("x-doi-id");
+        registry.addMapping("/**")
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .exposedHeaders("x-total-count", "location");
     }
 
     @Override
