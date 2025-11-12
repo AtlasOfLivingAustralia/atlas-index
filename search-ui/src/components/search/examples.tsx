@@ -14,18 +14,19 @@ import examplesJson from '../../config/examples.json';
 // };
 
 type ExampleProps = {
+    asText: boolean;
     tab: string;
     setQueryAndTab: (query: string, tab: string | undefined) => void;
 };
 
-export function Examples({tab, setQueryAndTab}: ExampleProps): React.ReactElement {
+export function Examples({asText, tab, setQueryAndTab}: ExampleProps): React.ReactElement {
     const [examples, setExamples] = useState<{ label: string; query: string; tab?: string }[]>([]);
 
     useEffect(() => {
         const maxExamplesPerGroup = tab ? 20 : 1;
         var list: any[] = [];
         examplesJson.forEach((group) => {
-            if (!tab || group.tab === tab) {
+            if (!tab || tab == 'all' || group.tab === tab || true) { // always include examples from all tabs
                 // extract maxExamplesPerGroup random examples from this group, and add them to the list
                 const shuffledExamples = group.examples.sort(() => 0.5 - Math.random());
                 const selectedExamples: {
@@ -40,28 +41,30 @@ export function Examples({tab, setQueryAndTab}: ExampleProps): React.ReactElemen
                 list.push(...selectedExamples);
             }
         });
+        // shuffle the final list
+        list = list.sort(() => 0.5 - Math.random());
+        // get top 5
+        list = list.slice(0,5);
+        // sort by query
+        list.sort((a, b) => a.query.localeCompare(b.query));
         setExamples(list);
     }, []);
 
-    return <div style={{maxWidth: 600, margin: '30px auto 0 auto', textAlign: 'center'}}>
-        <p>
-            Use the search bar above to find species, datasets, species
-            lists, data projects, spatial layers, locations, general content
-            and help articles.
-        </p>
-        <br/>
-        <h4>Examples</h4>
-        <div>
-            <ul style={{margin: 'auto', maxWidth: 400, textAlign: 'center', paddingLeft: 0, listStyle: 'none'}}>
-                {examples && examples.map((example, i) => (
-                    <li key={i} style={{marginBottom: 4}}>
-                        <a onClick={() => setQueryAndTab(example.query, example.tab)}
-                           style={{textDecoration: 'underline', color: '#212121', cursor: 'pointer'}}>
-                            {example.label}
-                        </a>
-                    </li>
-                ))}
-            </ul>
-        </div>
-    </div>;
+    return <>
+        {examples && examples.map((example, i) => <>
+            {asText ? <>
+                <a key={i} onClick={() => setQueryAndTab(example.query, example.tab)}
+                   style={{textDecoration: 'underline', color: '#212121', cursor: 'pointer'}}>
+                    {example.query}
+                </a>
+                {i < examples.length - 1 && <>,&nbsp;</>}
+            </> : <>
+                <a key={i} onClick={() => setQueryAndTab(example.query, example.tab)}
+                   className={"btn btn-primary btn-sm me-2 mb-2"}
+                   style={{cursor: 'pointer'}}>
+                    {example.query}
+                </a>
+            </>}
+        </>)}
+    </>
 }

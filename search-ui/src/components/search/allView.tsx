@@ -8,7 +8,6 @@ import {ArrowRightIcon, ListIcon, TileIcon} from '@ala/common-ui';
 import {Fragment, useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {GenericViewProps} from '../../api/sources/model.ts';
-import {Examples} from './examples.tsx';
 import {articlesDefn} from './props/articlesDefn.tsx';
 import {dataprojectsDefn} from './props/dataprojectsDefn.tsx';
 import {datasetsDefn} from './props/datasetsDefn.tsx';
@@ -103,7 +102,7 @@ for (const groupKey in searchGroupsTemplate) {
     }
 }
 
-function AllView({queryString, setQuery, setTab, isMobile}: ViewProps) {
+function AllView({queryString, setTab, isMobile}: ViewProps) {
     const [filter, setFilter] = useState(() => localStorage.getItem('searchView') || 'list');
     const [groups, setGroups] = useState<any[]>([]);
     const [total, setTotal] = useState<number>(0);
@@ -169,9 +168,15 @@ function AllView({queryString, setQuery, setTab, isMobile}: ViewProps) {
         setFilter(filter);
     }
 
-    return <>
-        {total > 0 && <>
-            <div className="d-flex align-items-center flex-wrap gap-2">
+    return <div>
+        {!queryString && total <= 0 &&
+            <div className="d-flex flex-wrap gap-2">
+                <span className={classes.resultsTitle}>
+                    Try searching
+                </span>
+            </div>}
+        {total >= 0 && <>
+            <div className="d-flex flex-wrap gap-2">
                 <span className={classes.resultsTitle}>
                     Showing results for
                 </span>
@@ -180,33 +185,29 @@ function AllView({queryString, setQuery, setTab, isMobile}: ViewProps) {
                 </span>
             </div>
 
-            <div className="d-flex align-items-center gap-3 flex-wrap"
-                 style={{marginTop: isMobile ? '20px' : '30px'}}>
-                <span style={{lineHeight: '36px'}} className={classes.headerLabels}>
-                    View as
-                </span>
-                <button
-                    className={`${filter == 'list' ? classes.activeFilter : classes.disabledFilter} ${classes.alaFilter}`}
-                    onClick={() => saveFilter('list')}>
-                    <ListIcon/>List
-                </button>
-                <button
-                    className={`${filter == 'tiles' ? classes.activeFilter : classes.disabledFilter} ${classes.alaFilter}`}
-                    onClick={() => saveFilter('tiles')}>
-                    <TileIcon/>Tiles
-                </button>
-            </div>
+            { total > 0 &&
+                <div className="d-flex gap-3 flex-wrap"
+                     style={{marginTop: isMobile ? '20px' : '30px'}}>
+                    <span style={{lineHeight: '36px'}} className={classes.headerLabels}>
+                        View as
+                    </span>
+                    <button
+                        className={`${filter == 'list' ? classes.activeFilter : classes.disabledFilter} ${classes.alaFilter}`}
+                        onClick={() => saveFilter('list')}>
+                        <ListIcon/>List
+                    </button>
+                    <button
+                        className={`${filter == 'tiles' ? classes.activeFilter : classes.disabledFilter} ${classes.alaFilter}`}
+                        onClick={() => saveFilter('tiles')}>
+                        <TileIcon/>Tiles
+                    </button>
+                </div>
+            }
         </>}
-        {queryString && total == 0 ? (
-            <span style={{marginTop: '60px', display: 'block'}}>
+        {queryString && total <= 0 &&
+            <span className={classes.resultsTitle} style={{marginTop: '30px'}}>
                 No results found
-            </span>
-        ) : total == -1 && !queryString ? (
-            <Examples tab="" setQueryAndTab={(query: string, tab: string | undefined) => {
-                setQuery(query);
-                setTab(tab || '');
-            }}/>
-        ) : null}
+            </span>}
         {groups.map((group, index) => (
             <Fragment key={index}>
                 {group.count > 0 && <>
@@ -248,7 +249,7 @@ function AllView({queryString, setQuery, setTab, isMobile}: ViewProps) {
                 </>}
             </Fragment>
         ))}
-    </>;
+    </div>;
 }
 
 export {searchGroupsTemplate};

@@ -122,3 +122,12 @@ file `./src/config/speciesGroupsMap.json`. The names-extract tool has informatio
 
 This file is constructed by the `generateBuildInfo.js` script and using `./public/speciesGroups.json`. This is done
 during the dev and build scripts. It is used by the UI to be able to display the species group hierarchy.
+
+### ./src/config/featuredPages.json
+
+This file contains the configuration for the featured pages that appear on the search page, before searching. Each
+entry has the following properties:
+- `title`: The title that appears on the card.
+- `description`: The description that appears on the card.
+- `imageUrl`: The image that appears on the card. Must be hosted externally to the application.
+- `linkUrl`: The URL that the card opens.

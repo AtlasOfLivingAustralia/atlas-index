@@ -4,13 +4,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, FontAwesomeIconLite, useHashState, useHeight,} from '@ala/common-ui';
+import {Breadcrumb, FontAwesomeIconLite, useHashState} from '@ala/common-ui';
 import {faSearch} from '@fortawesome/free-solid-svg-icons';
 import {faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
 import {useQueryState} from 'nuqs';
 import {useEffect, useRef, useState} from 'react';
 import AllView, {searchGroupsTemplate} from '../components/search/allView.tsx';
+import {Examples} from "../components/search/examples.tsx";
 import GenericView from '../components/search/genericView.tsx';
+import LandingPage from "../components/search/landingPage.tsx";
 import classes from '../components/search/search.module.css';
 
 function Search({setBreadcrumbs, isMobile}: {
@@ -22,8 +24,8 @@ function Search({setBreadcrumbs, isMobile}: {
     const [searchInputText, setSearchInputText] = useState<string>('');
     const [query, setQuery] = useQueryState('q');
     const [tab, setTab] = useHashState('tab', 'all');
+    const [landingPage, setLandingPage] = useState(!query);
     const contentRef = useRef(null);
-    const height = useHeight(contentRef); // Get the measured height
 
     useEffect(() => {
         setBreadcrumbs([
@@ -58,11 +60,12 @@ function Search({setBreadcrumbs, isMobile}: {
                         placeholder="Search species, datasets, content and more..."
                         className={classes.searchInput}
                         value={searchInputText}
-                        onChange={(event) => setSearchInputText(event.currentTarget.value)}
+                        onChange={(event) => {setSearchInputText(event.currentTarget.value);}}
                         onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
                             if (event.key === 'Enter') {
                                 setSearchInputText(event.currentTarget.value);
                                 setQuery(event.currentTarget.value);
+                                setLandingPage(false);
                                 event.preventDefault();
                             }
                         }}
@@ -78,11 +81,17 @@ function Search({setBreadcrumbs, isMobile}: {
                             <FontAwesomeIconLite icon={faTimes}/>
                         </button>
                     </div>
-                    <button className={classes.searchButton} onClick={() => setQuery(searchInputText)}>
+                    <button className={classes.searchButton} onClick={() => {setQuery(searchInputText); setLandingPage(false);}}>
                         <FontAwesomeIconLite icon={faSearch}/>
                     </button>
                 </div>
-                {isMobile &&
+                {!isMobile &&
+                    <div className={"d-flex justify-content-center " + classes.searchContainerInfo} >
+                        Try searching for:&nbsp;
+                        <Examples asText={true} tab={tab} setQueryAndTab={(query: string, tab: string | undefined) => {setLandingPage(false); setQuery(query); setTab(tab || 'all'); setSearchInputText(query); setLandingPage(false);}}/>
+                    </div>
+                }
+                {isMobile && !landingPage &&
                     <div className={'d-flex justify-content-center '}>
                         <select className={'form-select ' + classes.mobileSelect} value={tab}
                                 onChange={(event) => handleTabChange(event.target.value)}>
@@ -97,59 +106,65 @@ function Search({setBreadcrumbs, isMobile}: {
                         </select>
                     </div>
                 }
+                {isMobile && <div style={{ height: '20px'}}>&nbsp;</div>}
             </div>
-            {!isMobile &&
-                <div className="d-flex justify-content-center flex-wrap"
-                     style={{
-                         backgroundColor: '#FFFFFF',
-                         marginLeft: '-15px',
-                         marginRight: '-15px',
-                         borderBottom: '1px solid #D9D9D9',
-                     }}>
-                    <div className={`${tab === 'all' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('all')}>
-                        {/*<AllIcon/>*/}
-                        All
-                    </div>
+            {isMobile && landingPage && <div style={{ marginTop: '20px'}}>
+                <div style={{fontFamily: 'Roboto', fontWeight: '600', fontSize: '26px', lineHeight: '32px', color: '#C44D34', textAlign: 'left', marginBottom: '20px'}}>
+                Try searching for</div>
+                <Examples asText={false} tab={tab} setQueryAndTab={(query: string, tab: string | undefined) => {setLandingPage(false); setQuery(query); setTab(tab || 'all'); setSearchInputText(query); setLandingPage(false);}}/>
+            </div>}
+            {!isMobile && !landingPage &&
+                <div style={{borderBottom: '1px solid #D9D9D9', marginLeft: '-15px', marginRight: '-15px'}}>
+                    <div className="d-flex flex-wrap" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}}>
+                        <div className={`${tab === 'all' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                             onClick={() => handleTabChange('all')}>
+                            {/*<AllIcon/>*/}
+                            All
+                        </div>
 
-                    {/*default order after "All"*/}
-                    {Object.entries(searchGroupsTemplate)
-                        .map(([key, group]) =>
-                            <div key={key}
-                                 className={`${tab === key ? classes.activeTab : ''} ${classes.tabButtons}`}
-                                 onClick={() => handleTabChange(key)}>
-                                {group.label}
-                            </div>
-                        )}
+                        {/*default order after "All"*/}
+                        {Object.entries(searchGroupsTemplate)
+                            .map(([key, group]) =>
+                                <div key={key}
+                                     className={`${tab === key ? classes.activeTab : ''} ${classes.tabButtons}`}
+                                     onClick={() => handleTabChange(key)}>
+                                    {group.label}
+                                </div>
+                            )}
+                    </div>
                 </div>
             }
-            <div className="container"
-                 style={{
-                     maxWidth: '1280px',
-                     height: `${height}px`,
-                     overflow: 'hidden',
-                     transition: 'height 0.5s ease-in-out',
-                     minHeight: '500px',
-                 }}>
-                <div ref={contentRef}>
-                    <div style={{height: '30px'}}/>
-                    {tab === 'all' ?
-                        <AllView queryString={query}
-                                 setQuery={updateQuery}
-                                 setTab={setTab}
-                                 isMobile={isMobile}
-                        />
-                        :
-                        <GenericView key={tab}
-                                     queryString={query}
-                                     props={searchGroupsTemplate[tab].defn}
-                                     tab={tab}
-                                     setQuery={updateQuery}
-                                     isMobile={isMobile}
-                        />
-                    }
+            {!landingPage &&
+                <div className="row">
+                    <div className="container"
+                         style={{
+                             maxWidth: '1200px',
+                             overflow: 'hidden',
+                             transition: 'height 0.5s ease-in-out',
+                             minHeight: '500px',
+                         }}>
+                        <div ref={contentRef}>
+                            <div style={{height: '30px'}}/>
+                            {tab === 'all' ?
+                                <AllView queryString={query}
+                                         setQuery={updateQuery}
+                                         setTab={setTab}
+                                         isMobile={isMobile}
+                                />
+                                :
+                                <GenericView key={tab}
+                                             queryString={query}
+                                             props={searchGroupsTemplate[tab].defn}
+                                             tab={tab}
+                                             setQuery={updateQuery}
+                                             isMobile={isMobile}
+                                />
+                            }
+                        </div>
+                    </div>
                 </div>
-            </div>
+            }
+            {landingPage && <LandingPage isMobile={isMobile} /> }
         </div>
     </>;
 }

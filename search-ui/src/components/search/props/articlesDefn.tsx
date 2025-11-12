@@ -61,4 +61,12 @@ export const articlesDefn: GenericViewProps = {
         };
         return renderGenericTileItemFn(isMobile, elements);
     },
+
+    resourceLinks: [
+        {
+            label: 'Support',
+            url: import.meta.env.VITE_APP_KNOWLEDGE_BASE_URL,
+        }
+    ],
+
 };

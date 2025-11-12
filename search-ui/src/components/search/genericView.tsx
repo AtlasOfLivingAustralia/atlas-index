@@ -10,7 +10,6 @@ import {useNavigate} from 'react-router-dom';
 import {GenericViewProps} from '../../api/sources/model.ts';
 
 import capitalise from '../../helpers/Capitalise.ts';
-import {Examples} from './examples.tsx';
 import classes from './search.module.css';
 
 interface GenericProps {
@@ -21,7 +20,7 @@ interface GenericProps {
     isMobile: boolean;
 }
 
-function GenericView({queryString, setQuery, props, tab, isMobile,}: GenericProps) {
+function GenericView({queryString, props, isMobile,}: GenericProps) {
     const [filter, setFilter] = useState<string>(() => localStorage.getItem('searchView') || 'list');
     const [resultData, setResultData] = useState<any[]>([]);
     const [page, setPage] = useState<number>(0);
@@ -338,12 +337,8 @@ function GenericView({queryString, setQuery, props, tab, isMobile,}: GenericProp
             ></div>
         )}
 
-        {!loading && !queryString && (<Examples tab={tab} setQueryAndTab={(query: string) => {
-            setQuery(query);
-        }}/>)}
-
-        <div className="row">
-            {isMobile ? (queryString && (
+        <div className="row" style={{ marginLeft: '0px', marginRight: '0px' }}>
+            {isMobile && maxResults > 0 ? (queryString && (
                 <div style={{marginBottom: '30px'}}>
                     <button onClick={() => setShowRefineDialog(true)} className={'ala-btn-secondary'}
                             style={{width: '100%'}}>
@@ -355,6 +350,11 @@ function GenericView({queryString, setQuery, props, tab, isMobile,}: GenericProp
             )}
             <div className={isMobile ? 'col-12' : 'col-9'}>
                 {loading && <div className="placeholder-glow" style={{height: '28px'}}></div>}
+                {!loading && !queryString && <div>
+                    <span className={classes.resultsTitle}>
+                        Try searching
+                    </span>
+                </div>}
                 {!loading && queryString && (
                     <div className="d-flex align-items-center flex-wrap gap-2">
                         <span className={classes.resultsTitle}>

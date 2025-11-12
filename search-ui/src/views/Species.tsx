@@ -404,14 +404,9 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             </div>
         </div>)}
         {!isMobile && <>
-            <div>
-                <div className="d-flex justify-content-center flex-wrap"
-                     style={{
-                         backgroundColor: '#FFFFFF',
-                         marginLeft: '-15px',
-                         marginRight: '-15px',
-                         borderBottom: '1px solid #D9D9D9',
-                     }}>
+            <div style={{borderBottom: '1px solid #D9D9D9'}}>
+                <div className="d-flex flex-wrap"
+                     style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
                          onClick={() => handleTabChange('map')}>
                         Occurrence map
@@ -450,7 +445,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                     </div>
                 </div>
             </div>
-            <div className="container-lg">
+            <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}} >
                 <div style={{height: '60px'}}/>
                 <div style={{display: tab === 'map' ? 'block' : 'none'}}>
                     <MapView result={result} tab={tab} isMobile={isMobile}/>

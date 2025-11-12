@@ -1,0 +1,74 @@
+[
+  {
+    "title": "Indigenous Ecological Knowledge (IEK)",
+    "url": "https://www.ala.org.au/indigenous-ecological-knowledge/",
+    "description": "Learn about Indigenous Ecological Knowledge (IEK) and its applications.",
+    "imageUrl": "https://static.test.ala.org.au/images/IEK-option2.jpg"
+  },
+  {
+    "title": "IBRA 7 Regions",
+    "url": "https://spatial.ala.org.au/?layers=ibra7_subregions_2024",
+    "description": "Explore the IBRA 7 bioregional framework used in biodiversity studies.",
+    "imageUrl": "https://static.test.ala.org.au/images/IBRA-7-v2.jpg"
+  },
+  {
+    "title": "Galah",
+    "url": "https://galah.ala.org.au",
+    "description": "Discover Galah, the data management tool for biodiversity data.",
+    "imageUrl": "https://static.test.ala.org.au/images/galah.jpg"
+  },
+  {
+    "title": "EPBC Act Species",
+    "url": "https://lists.ala.org.au/speciesListItem/list/dr656",
+    "description": "Information on species listed under the Environment Protection and Biodiversity Conservation Act.",
+    "imageUrl": "https://static.test.ala.org.au/images/EPBC-list.jpg"
+  },
+  {
+    "title": "Citing the Atlas of Living Australia",
+    "url": "https://support.ala.org.au/support/solutions/articles/6000261662-citing-the-ala",
+    "description": "Guidelines on how to properly cite data and resources from the Atlas of Living Australia.",
+    "imageUrl": "https://static.test.ala.org.au/images/citing-the-ala.jpg"
+  },
+  {
+    "title": "Hawksbill Turtle",
+    "url": "/species/https://biodiversity.org.au/afd/taxa/96133221-771a-40d0-8368-ad428a55aaaa",
+    "description": "Learn about the Hawksbill Turtle and conservation efforts.",
+    "imageUrl": "https://static.test.ala.org.au/images/hawksbill-turtle.jpg"
+  },
+  {
+    "title": "Humpback Whale",
+    "url": "/species/https://biodiversity.org.au/afd/taxa/f99d2ad9-23dc-4c67-893e-254fc9c614a6",
+    "description": "Discover information about Humpback Whales and their migration patterns.",
+    "imageUrl": "https://static.test.ala.org.au/images/humpback-whale.jpg"
+  },
+  {
+    "title": "Peacock Spider",
+    "url": "species/https://biodiversity.org.au/afd/taxa/c418c167-484e-4b76-aa68-59c22ed3f9f9",
+    "description": "Explore the fascinating world of Peacock Spiders and their unique behaviors.",
+    "imageUrl": "https://static.test.ala.org.au/images/peacock-spider.jpg"
+  },
+  {
+    "title": "Short-beaked Echidna",
+    "url": "species/https://biodiversity.org.au/afd/taxa/0d4c9c0c-51d3-44e0-a365-fe0f8b791c66",
+    "description": "Learn about the Short-beaked Echidna, one of Australia's unique monotremes.",
+    "imageUrl": "https://static.test.ala.org.au/images/short-beaked-echidna.jpg"
+  },
+  {
+    "title": "Tawny Frogmoth",
+    "url": "species/https://biodiversity.org.au/afd/taxa/8bec5cc6-ac31-4d23-9df3-856034968af9",
+    "description": "Discover the Tawny Frogmoth and its role in the ecosystem.",
+    "imageUrl": "https://static.test.ala.org.au/images/tawny-frogmoth.jpg"
+  },
+  {
+    "title": "Golden Wattle",
+    "url": "species/https://id.biodiversity.org.au/taxon/apni/51436646",
+    "description": "Explore the Golden Wattle, Australia's national floral emblem.",
+    "imageUrl": "https://static.test.ala.org.au/images/golden-wattle.jpg"
+  },
+  {
+    "title": "ALA Year in Review 2024",
+    "url": "https://ala.org.au/publications/atlas-of-living-australia-year-in-review-202324/",
+    "description": "A look back at the Atlas of Living Australia's achievements and milestones in 2024.",
+    "imageUrl": "https://static.test.ala.org.au/images/ALA-year-in-review-2024.jpg"
+  }
+]

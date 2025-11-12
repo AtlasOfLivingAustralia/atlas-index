@@ -92,12 +92,7 @@
             {
                 "label": "General content on biodiversity",
                 "query": "biodiversity"
-            }
-        ]
-    },
-    {
-        "tab": "helparticles",
-        "examples": [
+            },
             {
                 "label": "Help article on using the search bar",
                 "query": "search bar"
