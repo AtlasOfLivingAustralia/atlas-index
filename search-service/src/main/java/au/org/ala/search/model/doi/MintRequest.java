@@ -6,6 +6,7 @@
 
 package au.org.ala.search.model.doi;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
@@ -17,20 +18,28 @@ import java.util.Map;
  */
 @Data
 public class MintRequest {
+    // Provider-specific metadata structure that is sent to the provider.
+    // Everything not sent to the provider is ignored.
+    // The provider is DATACITE. See DataCiteService for usage.
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProviderMetadata {
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Creator {
             public String name;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Title {
             public String title;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Contributor {
             public String name;
             public String type;
         }
 
+        @JsonIgnoreProperties(ignoreUnknown = true)
         public static class Description {
             public String text;
             public String type;

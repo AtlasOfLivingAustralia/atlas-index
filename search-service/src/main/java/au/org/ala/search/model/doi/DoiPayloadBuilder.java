@@ -6,6 +6,7 @@
 
 package au.org.ala.search.model.doi;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -113,7 +114,7 @@ public class DoiPayloadBuilder {
         return this;
     }
 
-    public DoiPayloadBuilder publicationYear(int year) {
+    public DoiPayloadBuilder publicationYear(Integer year) {
         attributes.put("publicationYear", year);
         return this;
     }
@@ -159,6 +160,7 @@ public class DoiPayloadBuilder {
         );
         Map<String, Object> root = Map.of("data", data);
         ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
     }
 

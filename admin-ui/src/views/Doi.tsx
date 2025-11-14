@@ -43,7 +43,7 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
         setLoading(true);
         setDoiList([]);
         // Fetch recent DOIs from the server
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v1/doi?offset=' + (page * pageSize) + '&max=' + pageSize + "&sort=dateCreated&order=desc", {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/v1/doi?offset=' + ((page - 1) * pageSize) + '&max=' + pageSize + "&sort=dateCreated&order=desc", {
             method: 'GET'
         }).then((response) => {
             response.json().then((json) => {
@@ -120,11 +120,20 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
             customLandingPageUrl: values.customLandingPageUrl,
         };
 
+        const formData = new FormData();
+        formData.append('json', new Blob([JSON.stringify(body)], { type: 'application/json' }));
+        if (values.uploadedFile) {
+            formData.append('file', values.uploadedFile);
+        }
+
         try {
             fetch(import.meta.env.VITE_APP_BIE_URL + '/v1/doi', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + auth.user?.access_token },
-                body: JSON.stringify(body)
+                headers: {
+                    Authorization: 'Bearer ' + auth.user?.access_token,
+                    'Accept': 'application/json'
+                },
+                body: formData
             })
             .then(response => response.json().then(result => {
                 if (response.ok) {
@@ -209,8 +218,8 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
                                             </p>
                                             <pre>
 {`{
-  "datasets": []
-  "searchUrl": "..."
+  "datasets": [],
+  "searchUrl": "...",
   "recordCount": "123456"
 }`}
                                             </pre>

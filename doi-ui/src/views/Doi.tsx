@@ -7,7 +7,7 @@
 
 import {Breadcrumb, useUser} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
-import {useNavigate, useParams} from 'react-router-dom';
+import {useLocation, useNavigate} from 'react-router-dom';
 import {DoiData} from '../api/model.tsx';
 import Metadata from '../components/Metadata.tsx';
 import classes from './view.module.css';
@@ -32,8 +32,8 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
     const [data, setData] = useState<null | DoiData>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
-    const params = useParams();
-    const entityUid = doi ?? params.entityUid;
+    const location = useLocation();
+    const entityUid = doi ?? location.pathname.replace(/^\/doi\//, '');
 
     const {userInfo} = useUser();
 

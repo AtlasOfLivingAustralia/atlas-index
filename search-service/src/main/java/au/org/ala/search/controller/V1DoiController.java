@@ -58,7 +58,8 @@ import static io.swagger.v3.oas.annotations.enums.ParameterIn.*;
 @Slf4j
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
-@RequestMapping(path = "/v1/doi", produces = "application/json")
+// /api/doi is for some legacy clients
+@RequestMapping(path = {"/v1/doi", "/api/doi"}, produces = "application/json")
 public class V1DoiController {
 
     public static final String DOI_ID = "doi";
@@ -205,7 +206,7 @@ public class V1DoiController {
             },
             tags = {"DOI"}
     )
-    @RequestMapping(value = "/**", method = RequestMethod.GET)
+    @RequestMapping(value = "/**", method = RequestMethod.GET, produces = "application/json")
     public Object getDoi(
             HttpServletRequest request
     ) {
@@ -403,10 +404,10 @@ public class V1DoiController {
     )
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
-    @PostMapping(path = "/", consumes = {"application/json", "multipart/form-data"})
+    @PostMapping(consumes = {"application/json", "multipart/form-data"}, produces = "application/json")
     public ResponseEntity<?> save(
-            @RequestPart(value = "json", required = false) String mintRequestPart,
             @RequestPart(value = "file", required = false) MultipartFile file,
+            @RequestPart(value = "json", required = false) String mintRequestPart,
             HttpServletRequest request, @AuthenticationPrincipal Principal principal
     ) throws Exception {
         // authorised when ADMIN or has doi/write scope
@@ -417,12 +418,21 @@ public class V1DoiController {
         ObjectMapper mapper = new ObjectMapper();
         MintRequest mintRequest;
 
-        if (mintRequestPart != null) {
-            // For multipart requests, read 'json' part, which may be missing a content type specified
-            mintRequest = mapper.readValue(mintRequestPart, MintRequest.class);
-        } else {
-            // For application/json, read raw body
-            mintRequest = mapper.readValue(request.getInputStream(), MintRequest.class);
+        try {
+            if (mintRequestPart != null) {
+                // For multipart requests, read 'json' part, which may be missing a content type specified
+                mintRequest = mapper.readValue(mintRequestPart, MintRequest.class);
+            } else {
+                // For application/json, read raw body
+                mintRequest = mapper.readValue(request.getInputStream(), MintRequest.class);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error parsing mint request: " + e.getMessage());
+        }
+
+        // legacy translations
+        if (mintRequest.provider == DoiProvider.ALA) {
+            mintRequest.provider = DoiProvider.DATACITE;
         }
 
         // Validate request
@@ -504,11 +514,11 @@ public class V1DoiController {
     @PatchMapping(path = "/**", consumes = "multipart/form-data")
     public ResponseEntity<?> patch(
             @RequestPart(name = "file", required = false) MultipartFile file,
-            @RequestPart(name = "json", required = false) UpdateRequest updateRequest,
+            @RequestPart(name = "json", required = false) String jsonPart,
             HttpServletRequest request,
             @AuthenticationPrincipal Principal principal
     ) {
-        return update(file, updateRequest, request, principal);
+        return update(file, jsonPart, request, principal);
     }
 
     @Operation(
@@ -545,10 +555,10 @@ public class V1DoiController {
     )
     @SecurityRequirement(name = "JWT", scopes = "admin")
     @SecurityRequirement(name = "openIdConnect", scopes = {"doi/write"})
-    @PutMapping(path = "/**", consumes = "multipart/form-data")
+    @PutMapping(path = "/**", consumes = {"multipart/form-data", "application/json"})
     public ResponseEntity<?> update(
             @RequestPart(name = "file", required = false) MultipartFile file,
-            @RequestPart(name = "json", required = false) UpdateRequest updateRequest,
+            @RequestPart(name = "json", required = false) String jsonPart,
             HttpServletRequest request,
             @AuthenticationPrincipal Principal principal
     ) {
@@ -561,6 +571,17 @@ public class V1DoiController {
         String decodedId = URLDecoder.decode(id, StandardCharsets.UTF_8);
 
         try {
+            ObjectMapper mapper = new ObjectMapper();
+            UpdateRequest updateRequest;
+
+            if (jsonPart != null) {
+                // For multipart requests, read 'json' part, which may be missing a content type specified
+                updateRequest = mapper.readValue(jsonPart, UpdateRequest.class);
+            } else {
+                // For application/json, read raw body
+                updateRequest = mapper.readValue(request.getInputStream(), UpdateRequest.class);
+            }
+
             Doi instance = doiService.updateDoi(decodedId, updateRequest, file);
             // Add location header if needed
             return ResponseEntity.ok().body(instance);
@@ -612,14 +633,14 @@ public class V1DoiController {
     )
     @SecurityRequirement(name = "JWT", scopes = "admin")
     @SecurityRequirement(name = "openIdConnect", scopes = {"doi/write"})
-    @PostMapping(path = "/**", consumes = "multipart/form-data")
+    @PostMapping(path = "/**", consumes = {"multipart/form-data", "application/json"})
     public ResponseEntity<?> updateUpload(
             @RequestPart(name = "file", required = false) MultipartFile file,
-            @RequestPart(name = "json", required = false) UpdateRequest updateRequest,
+            @RequestPart(name = "json", required = false) String jsonPart, // due to overloading POST minting method, read as string
             HttpServletRequest request,
             @AuthenticationPrincipal Principal principal
     ) {
-        return update(file, updateRequest, request, principal);
+        return update(file, jsonPart, request, principal);
     }
 
     /**

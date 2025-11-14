@@ -6,8 +6,10 @@
 
 package au.org.ala.search.service.doi;
 
+import au.org.ala.search.model.TaskType;
 import au.org.ala.search.model.doi.DoiPayloadBuilder;
 import au.org.ala.search.model.doi.MintRequest;
+import au.org.ala.search.service.remote.LogService;
 import au.org.ala.search.util.doi.ServiceResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +17,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +31,20 @@ import java.util.*;
 
 /**
  * DataCite DOI Provider Service implementation. Based on doi-service API.
- *
+ * <p>
  * TODO: review for exceptions and if retries are required
  *
  */
 @Slf4j
 @Service
 public class DataCiteService extends DoiProviderService {
+
+    private final LogService logService;
+
+    @Autowired
+    public DataCiteService(LogService logService) {
+        this.logService = logService;
+    }
 
     private String baseUrl;
     private String authHeader;
@@ -65,54 +75,62 @@ public class DataCiteService extends DoiProviderService {
     }
 
     public String generateRequestPayload(String uuid, MintRequest.ProviderMetadata metadata, String landingPageUrl, String doi, Boolean active) throws Exception {
-        // collect creator names
-        List<String> creatorNames = new ArrayList<>();
-        if (metadata.creators != null) {
-            creatorNames.addAll(metadata.creators.stream().map(c -> c.name).toList());
-        }
-        if (metadata.authors != null) {
-            creatorNames.addAll(metadata.authors);
-        }
+        // metadata may be null when when updating existing DOIs
+        List<String> creatorNames = null;
+        List<String> titleNames = null;
+        Integer publicationYear = null;
+        List<String> subjects = null;
+        Map<String, String> types = null;
+        if (metadata != null) {
+            // collect creator names
+            creatorNames = new ArrayList<>();
+            if (metadata.creators != null) {
+                creatorNames.addAll(metadata.creators.stream().map(c -> c.name).toList());
+            }
+            if (metadata.authors != null) {
+                creatorNames.addAll(metadata.authors);
+            }
 
-        // collect title names
-        List<String> titleNames = new ArrayList<>();
-        if (metadata.titles != null) {
-            titleNames.addAll(metadata.titles.stream().map(t -> t.title).toList());
-        }
-        if (StringUtils.isNotEmpty(metadata.title)) {
-            titleNames.add(metadata.title);
-        }
-        if (metadata.subtitle != null) {
-            titleNames.add(metadata.subtitle);
-        }
+            // collect title names
+            titleNames = new ArrayList<>();
+            if (metadata.titles != null) {
+                titleNames.addAll(metadata.titles.stream().map(t -> t.title).toList());
+            }
+            if (StringUtils.isNotEmpty(metadata.title)) {
+                titleNames.add(metadata.title);
+            }
+            if (metadata.subtitle != null) {
+                titleNames.add(metadata.subtitle);
+            }
 
-        int publicationYear = StringUtils.isNotEmpty(metadata.publicationYear) ?
-                Integer.parseInt(metadata.publicationYear) : Calendar.getInstance().get(Calendar.YEAR);
+            publicationYear = StringUtils.isNotEmpty(metadata.publicationYear) ?
+                    Integer.parseInt(metadata.publicationYear) : Calendar.getInstance().get(Calendar.YEAR);
 
-        List<String> subjects = new ArrayList<>();
-        if (metadata.subjects != null) {
-            subjects.addAll(metadata.subjects);
+            subjects = new ArrayList<>();
+            if (metadata.subjects != null) {
+                subjects.addAll(metadata.subjects);
+            }
+
+            types = Map.of(
+                    "resourceType", metadata.resourceText,
+                    "resourceTypeGeneral", DoiPayloadBuilder.ResourceType.fromValue(metadata.resourceType)
+            );
         }
-
-        Map<String, String> types = Map.of(
-                "resourceType", metadata.resourceText,
-                "resourceTypeGeneral", DoiPayloadBuilder.ResourceType.fromValue(metadata.resourceType)
-        );
 
         String json = new DoiPayloadBuilder()
                 .event(active ? DOIStatus.PUBLISH.value : DOIStatus.REGISTER.value)
                 .doi(doi != null ? doi : prefix + "/" + shoulder + "." + uuid)
                 .creators(creatorNames)
                 .titles(titleNames)
-                .publisher(metadata.publisher)
+                .publisher(metadata != null ? metadata.publisher : null)
                 .publicationYear(publicationYear)
                 .subjects(subjects)
-                .contributors(metadata.contributors)
-                .descriptions(metadata.descriptions)
+                .contributors(metadata != null ? metadata.contributors : null)
+                .descriptions(metadata != null ? metadata.descriptions : null)
                 .types(types)
-                .date(metadata.createdDate, "Created")
+                .date(metadata != null ? metadata.createdDate : null, "Created")
                 .language(publicationLang)
-                .rightsList(metadata.rights)
+                .rightsList(metadata != null ? metadata.rights : null)
                 .url(landingPageUrl)
                 .build();
 
@@ -129,7 +147,7 @@ public class DataCiteService extends DoiProviderService {
         String doi = (String) attributesMap.get("doi");
 
         try {
-            createDOI((String) requestPayload);
+            createDOI((String) requestPayload, doi);
             return successResponse(doi);
         } catch (IOException | InterruptedException e) {
             log.error("Exception minting DOI {}, message: {}", doi, e.getMessage(), e);
@@ -176,8 +194,8 @@ public class DataCiteService extends DoiProviderService {
 
     /**
      * Get a DOI by its identifier. Needed when fetching existing DOI details when that doi is not findable.
-     *
-     * TODO: currently not used
+     * <p>
+     * TODO: currently not used, might be helpful as should there be a non-findable DOI due to an error elsewhere.
      *
      * @param doi The DOI identifier (e.g., "10.5072/example-doi")
      * @return JSON response as String
@@ -209,7 +227,7 @@ public class DataCiteService extends DoiProviderService {
      * @throws IOException          if request fails
      * @throws InterruptedException if request is interrupted
      */
-    public String createDOI(String doiJson) throws IOException, InterruptedException {
+    public String createDOI(String doiJson, String doi) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/dois"))
                 .header("Authorization", authHeader)
@@ -217,16 +235,17 @@ public class DataCiteService extends DoiProviderService {
                 .POST(HttpRequest.BodyPublishers.ofString(doiJson))
                 .build();
 
-        log.error("DOI creation request body: {}", doiJson);
+        log.info("DOI creation request body: {}", doiJson);
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() >= 400) {
+        if (response.statusCode() != 201) {
+            logService.log(TaskType.DOI_REQUEST, "Failed to mint DOI with provider. Status: " + response.statusCode() + ", doi: " + doi + ", Body: " + response.body());
             throw new IOException("Failed to create DOI. Status: " + response.statusCode() + ", Body: " + response.body());
         }
 
         // log the response body
-        log.error("DOI creation response body: {}", response.body());
+        log.info("DOI creation response body: {}", response.body());
 
         return response.body();
     }
@@ -248,9 +267,12 @@ public class DataCiteService extends DoiProviderService {
                 .PUT(HttpRequest.BodyPublishers.ofString(doiJson))
                 .build();
 
+        log.info("DOI update request body: {}", doiJson);
+
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() >= 400) {
+        if (response.statusCode() != 200) {
+            logService.log(TaskType.DOI_REQUEST, "Failed to update DOI with provider. Status: " + response.statusCode() + ", doi: " + doi + ", Body: " + response.body());
             throw new IOException("Failed to update DOI. Status: " + response.statusCode() + ", Body: " + response.body());
         }
 

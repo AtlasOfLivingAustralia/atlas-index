@@ -8,6 +8,7 @@ package au.org.ala.search.model.doi;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -81,6 +82,23 @@ public class Doi {
 
     @Column(name = "file_hash")
     private byte[] fileHash;
+
+    // Format byte[] as int[] for JSON serialization to match with legacy output
+    @JsonProperty("fileHash")
+    public int[] getFileHashJson() {
+        if (fileHash == null) {
+            return null;
+        }
+        int[] arr = new int[fileHash.length];
+        for (int i = 0; i < fileHash.length; i++) arr[i] = fileHash[i] & 0xFF;
+        return arr;
+    }
+    @JsonProperty("fileHash")
+    public void setFileHashJson(int[] ints) {
+        byte[] arr = new byte[ints.length];
+        for (int i = 0; i < ints.length; i++) arr[i] = (byte) (ints[i] & 0xFF);
+        this.fileHash = arr;
+    }
 
     @Column(name = "file_size")
     private Long fileSize;

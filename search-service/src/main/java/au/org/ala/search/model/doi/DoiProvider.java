@@ -8,5 +8,6 @@ package au.org.ala.search.model.doi;
 
 public enum DoiProvider {
     ANDS, // deprecated but old data may still reference it
-    DATACITE
+    DATACITE,
+    ALA // same as DATACITE, legacy name
 }

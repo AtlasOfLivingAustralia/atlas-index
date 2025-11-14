@@ -89,7 +89,7 @@ function DoiForm({ onSubmit }: DoiFormProps) {
             customLandingPageUrl: customLandingPageUrl.trim(),
             applicationMetadata: applicationMetadata.trim(),
             fileUrl: fileUrl.trim(),
-            uploadedFile,
+            uploadedFile: uploadedFile,
             providerMetadata: providerMetadata.trim(),
             userId: userId.trim()
         });
@@ -104,7 +104,7 @@ function DoiForm({ onSubmit }: DoiFormProps) {
             isUrl(applicationUrl.trim()) &&
             userId.trim() !== '' &&
             (isUrl(fileUrl.trim()) || uploadedFile !== null) &&
-            (applicationUrl.trim() == '' || isJson(applicationUrl.trim()))
+            (applicationMetadata.trim() == '' || isJson(applicationMetadata.trim()))
         );
     };
 

@@ -119,7 +119,7 @@ public class DoiService {
                 .active(active != null ? active : true)
                 .build();
 
-        entity.setDoi("dummyForValidation"); // temp value for validation
+        entity.setDoi("tmp_" + UUID.randomUUID());
 
         Date now = new Date();
         entity.setDateCreated(now);
@@ -152,8 +152,8 @@ public class DoiService {
     private void saveEntity(Doi entity, MultipartFile file, String fileUrl, UUID uuid, Date now) throws Exception {
         try {
             entity.setLastUpdated(now);
-            entity = doiDataPostgresRepository.save(entity);
 
+            // Only save the file if we have one. Updates may not include a file.
             if (file != null) {
                 File tempFile = File.createTempFile("upload-", file.getOriginalFilename());
                 file.transferTo(tempFile);
@@ -164,6 +164,8 @@ public class DoiService {
                 applyFileAttributes(tempFile, entity);
                 doiFileStoreService.copyToFileStore(tempFile, entity, true);
             }
+
+            doiDataPostgresRepository.save(entity);
         } catch (Exception e) {
             // log and rethrow
             log.error("Error saving DOI entity for UUID {}: {}", uuid, e.getMessage());
@@ -219,6 +221,7 @@ public class DoiService {
         switch (doiProvider) {
             case DoiProvider.ANDS:
                 throw new MissingResourceException("ANDS DOI provider is no longer supported. Perform edits manually.", DoiService.class.getName(), doiProvider.name());
+            case DoiProvider.ALA:
             case DoiProvider.DATACITE:
                 return dataCiteService;
         }
@@ -271,7 +274,7 @@ public class DoiService {
         if (needsUpdate || file != null || updateRequest.getFileUrl() != null) {
             saveEntity(doi, file, updateRequest.getFileUrl(), doi.getUuid(), now);
 
-            if (updateRequest.getCustomLandingPageUrl() != null || updateRequest.getProviderMetadata() != null) {
+            if (updateRequest.getCustomLandingPageUrl() != null || updateRequest.getProviderMetadata() != null || doi.getActive() != null) {
                 getProviderService(doi.getProvider()).updateDoi(doi.getDoi(), doi.getUuid().toString(), updateRequest.getProviderMetadata(), doi.getCustomLandingPageUrl(), doi.getActive());
             }
         }

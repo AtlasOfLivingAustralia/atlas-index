@@ -78,8 +78,8 @@ public abstract class DoiProviderService {
         if (uuid == null || uuid.isEmpty()) {
             throw new IllegalArgumentException("uuid must not be null or empty");
         }
-        if (metadata == null) {
-            throw new IllegalArgumentException("metadata must not be null");
+        if (metadata == null && active == null) {
+            throw new IllegalArgumentException("metadata or active must not be null");
         }
 
         String landingPageUrl;
