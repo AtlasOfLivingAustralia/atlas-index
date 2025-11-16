@@ -93,7 +93,7 @@ public class V2Controller {
         this.broadcastQueue = broadcastQueue;
     }
 
-    @Tag(name = "Search")
+    @Tag(name = "BIE")
     @Operation(
             operationId = SPECIES_ID,
             summary = "Get accepted records for a list of guids and names.",
@@ -240,7 +240,7 @@ public class V2Controller {
         }
     }
 
-    @Tag(name = "Search")
+    @Tag(name = "BIE")
     @Operation(
             operationId = LIST_ID,
             summary = "Search the BIE",
@@ -310,7 +310,7 @@ public class V2Controller {
         }
     }
 
-    @Tag(name = "fields")
+    @Tag(name = "BIE")
     @Operation(
             operationId = "fields",
             summary = "Gets the list of indexed fields"
@@ -327,7 +327,7 @@ public class V2Controller {
         return elasticService.indexFields(true);
     }
 
-    @Tag(name = "Download")
+    @Tag(name = "BIE")
     @Operation(
             operationId = DOWNLOAD_ID,
             summary = "Start a job to create a zipped CSV containing all the records of search result."
@@ -364,7 +364,7 @@ public class V2Controller {
 
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
-    @Tag(name = "Download")
+    @Tag(name = "Fieldguide")
     @Operation(
             operationId = DOWNLOAD_FIELDGUIDE,
             summary = "Start a job to create a PDF fieldguide"
@@ -407,7 +407,7 @@ public class V2Controller {
     @Tag(name = "Download")
     @Operation(
             operationId = "downloadStatus",
-            summary = "Get the status of a job, download the file, or redirect to download the file."
+            summary = "Get the status of a job, download the file, or redirect to download the file. The constructed URL will be provided by other APIs"
     )
     @ApiResponse(description = "Job Status", responseCode = "200",
             headers = {
@@ -430,8 +430,8 @@ public class V2Controller {
             @RequestParam(name = "download", required = false, defaultValue = "false") Boolean download,
             @RequestParam(name = "cancel", required = false, defaultValue = "false") Boolean cancel,
             @AuthenticationPrincipal Principal principal) {
+        // TODO: support au.org.ala.search.model.url SignedUrl when not using S3. See V1DoiController.download for an example.
 
-        // TODO: remove bypass for !download after adding temporary download tokens for a new download endpoint
         String userId = authService.getUserId(principal);
         if (userId == null && !download) {
             return ResponseEntity.status(401).build();
@@ -442,7 +442,6 @@ public class V2Controller {
             return ResponseEntity.notFound().build();
         }
 
-        // TODO: remove bypass for !download after adding temporary download tokens for a new download endpoint
         if (!authService.isAdmin(principal) && (userId == null || !userId.equals(queueItem.userId))
                 && !download && !cancel) {
             return ResponseEntity.status(401).build();
@@ -492,6 +491,7 @@ public class V2Controller {
         return ResponseEntity.ok(new StatusResponse(queueItem, baseUrl + "/v2/download"));
     }
 
+    @Tag(name = "User")
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
     @Operation(
@@ -511,7 +511,7 @@ public class V2Controller {
                     @ApiResponse(responseCode = "401", description = "Unauthorized")
             }
     )
-    @PostMapping("/user/property")
+    @PostMapping("/v2/user/property")
     public ResponseEntity<Void> createOrUpdateUserData(
             @AuthenticationPrincipal Principal principal,
             @RequestBody Map<String, String> userDataRequest
@@ -533,6 +533,7 @@ public class V2Controller {
         return ResponseEntity.ok().build();
     }
 
+    @Tag(name = "User")
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
     @Operation(
@@ -543,7 +544,7 @@ public class V2Controller {
                     @ApiResponse(responseCode = "404", description = "Property not found")
             }
     )
-    @GetMapping("/user/property")
+    @GetMapping("/v2/user/property")
     public ResponseEntity<Map<String, String>> getUserData(
             @AuthenticationPrincipal Principal principal,
             @RequestParam(name = "key") String key) {

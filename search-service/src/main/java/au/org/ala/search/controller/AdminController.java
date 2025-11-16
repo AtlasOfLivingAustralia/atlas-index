@@ -197,7 +197,7 @@ public class AdminController {
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
-    @Operation(tags = "Admin", summary = "Start a task")
+    @Operation(summary = "Start a task")
     @PostMapping(path = "/admin/task", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(
             @RequestParam(name = "type") TaskType type,
@@ -260,7 +260,7 @@ public class AdminController {
         return ResponseEntity.ok(new ObjectMapper().writer().writeValueAsString(response));
     }
 
-    @Operation(tags = "Admin", summary = "List data quality profiles")
+    @Operation(summary = "List data quality profiles")
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
     @GetMapping(path = "/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -277,7 +277,7 @@ public class AdminController {
     }
 
     @SneakyThrows
-    @Operation(tags = "Admin", summary = "Delete a data quality profile",
+    @Operation(summary = "Delete a data quality profile",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Profile deleted successfully"),
                     @ApiResponse(responseCode = "202", description = "Profile deletion is queued (timeout)"),
@@ -321,7 +321,7 @@ public class AdminController {
     }
 
     @SneakyThrows
-    @Operation(tags = "Admin", summary = "Create or update a data quality profile",
+    @Operation(summary = "Create or update a data quality profile",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Profile saved/created successfully"),
                     @ApiResponse(responseCode = "202", description = "Profile save/creation is queued (timeout)"),
@@ -355,7 +355,7 @@ public class AdminController {
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
-    @Operation(tags = "Admin", summary = "Update one dynamic config value")
+    @Operation(summary = "Update one dynamic config value")
     @PostMapping(path = "/admin/config", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> configSet(@RequestBody ConfigData newConfigData,
                                             @AuthenticationPrincipal Principal principal) {
@@ -374,7 +374,7 @@ public class AdminController {
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
-    @Operation(tags = "Admin", summary = "Get all dynamic config values")
+    @Operation(summary = "Get all dynamic config values")
     @GetMapping(path = "/admin/config", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ConfigData>> configSet(@AuthenticationPrincipal Principal principal) {
         if (!authService.isAdmin(principal)) {
@@ -386,7 +386,7 @@ public class AdminController {
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
-    @Operation(tags = "Admin", summary = "Search consumer tasks")
+    @Operation(summary = "Search consumer tasks")
     @GetMapping(path = "/admin/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<QueueItem>> tasks(
             @RequestParam(name = "id", required = false) String id,
@@ -408,7 +408,7 @@ public class AdminController {
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
-    @Operation(tags = "Admin", summary = "Cancel a task")
+    @Operation(summary = "Cancel a task")
     @DeleteMapping(path = "/admin/task")
     public ResponseEntity<?> cancelTask(
             @RequestParam(name = "id", required = false) Long id,

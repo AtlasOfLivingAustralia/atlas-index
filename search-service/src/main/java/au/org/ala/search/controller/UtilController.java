@@ -24,6 +24,8 @@ import java.util.Map;
 /**
  * Utility, non-versioned, API. Subject to change, removal, etc
  */
+@Deprecated
+@Tag(name = "Legacy", description = "Legacy APIs retained for backward compatibility.")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class UtilController {
@@ -34,8 +36,6 @@ public class UtilController {
     public UtilController(WebService webService) {
         this.webService = webService;
     }
-
-    @Tag(name = "unsupported")
     @GetMapping(path = "/trait-count", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> austraitsCount(
             @RequestParam(name = "taxon") String taxon,
@@ -48,7 +48,6 @@ public class UtilController {
         return ResponseEntity.ok(resp.get("resp"));
     }
 
-    @Tag(name = "unsupported")
     @GetMapping(path ="/trait-summary", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> austraitsSummary(
             @RequestParam(name = "taxon") String taxon,
@@ -61,7 +60,6 @@ public class UtilController {
         return ResponseEntity.ok(resp.get("resp"));
     }
 
-    @Tag(name = "unsupported")
     @GetMapping(path = "/download-taxon-data", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<?> austraitsDownload(
             @RequestParam(name = "taxon") String taxon,

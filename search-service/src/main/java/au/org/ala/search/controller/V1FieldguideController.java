@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
@@ -42,6 +43,7 @@ import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
 /**
  * bie-index API services, minus some admin services
  */
+@Tag(name = "Fieldguide", description = "APIs for generating fieldguides")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V1FieldguideController {
@@ -67,7 +69,6 @@ public class V1FieldguideController {
 
     @Operation(
             method = "POST",
-            tags = "fieldguide",
             operationId = "generate",
             summary = "Initiate the generation of a fieldguide",
             description = "Initiate the generation of a fieldguide",
@@ -98,6 +99,7 @@ public class V1FieldguideController {
                     )
             }
     )
+    @Deprecated
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
     // excluding "consumes = MediaType.APPLICATION_JSON_VALUE" from PostMapping to make it compatible with the current downloads-plugin
@@ -165,7 +167,6 @@ public class V1FieldguideController {
 
     @Operation(
             method = "GET",
-            tags = "fieldguide",
             operationId = "status",
             summary = "Show the status of a fieldguide",
             description = "Show the status of a  fieldguide",
@@ -182,6 +183,7 @@ public class V1FieldguideController {
                     )
             }
     )
+    @Deprecated
     @GetMapping(path = "/v1/fieldguide/status/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FieldguideResponse> status(
             @Parameter(
@@ -208,7 +210,6 @@ public class V1FieldguideController {
 
     @Operation(
             method = "GET",
-            tags = "fieldguide",
             operationId = "download",
             summary = "Download a fieldguide",
             description = "Download a fieldguide",
@@ -231,6 +232,7 @@ public class V1FieldguideController {
                     )
             }
     )
+    @Deprecated
     @GetMapping(path = "/v1/fieldguide/download/{downloadId}", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<?> offline(
             @Parameter(

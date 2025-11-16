@@ -17,9 +17,7 @@ import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.util.QueryParserUtil;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -38,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -77,6 +76,12 @@ public class OpenapiService {
 
     @Value("${security.oidc.discovery-uri}")
     private String oidcDiscoveryUri;
+
+    @Value("#{'${openapi.tags.hidden:}'.split(',')}")
+    private List<String> openapiTagsHidden;
+
+    @Value("#{'${openapi.paths.hidden:}'.split(',')}")
+    private List<String> openapiPathsHidden;
 
     public OpenapiService(ElasticService elasticService, DoiDataPostgresRepository doiDataPostgresRepository) {
         this.elasticService = elasticService;
@@ -421,10 +426,47 @@ public class OpenapiService {
             }
         }));
 
-        // convert /** paths to /{id} for openapi
+        // convert /** paths to /{id} for APIs that were matched previously
         pathsToUpdate.forEach(path -> {
             PathItem pathItem = openApi.getPaths().remove(path);
             openApi.getPaths().addPathItem(path.replace("**", "{id}"), pathItem);
         });
+
+        // Filter out empty or blank strings from openapiPathsHidden
+        List<String> filteredPathsHidden = openapiPathsHidden.stream().map(String::trim).filter(s -> !s.isEmpty()).toList();
+
+        // Remove paths that start with any hidden prefix or have tag exact matches
+        openApi.getPaths().keySet().removeIf(path -> filteredPathsHidden.stream().anyMatch(hidden -> path.startsWith(hidden)));
+
+        // Sort paths by key and re-add to OpenAPI
+        Map<String, PathItem> sortedPaths = new TreeMap<>(openApi.getPaths());
+        openApi.setPaths(new io.swagger.v3.oas.models.Paths());
+        sortedPaths.forEach(openApi.getPaths()::addPathItem);
+
+        // add tags that are absent, e.g. annotated on the function not at the controller.
+        Set<String> existingTagNames = openApi.getTags() != null ? openApi.getTags().stream().map(io.swagger.v3.oas.models.tags.Tag::getName).collect(Collectors.toSet()) : new HashSet<>();
+        Set<String> tagsWithPaths = new HashSet<>();
+        openApi.getPaths().forEach((pathKey, path) -> path.readOperationsMap().forEach((opKey, op) -> {
+            if (op.getTags() != null) {
+                op.getTags().forEach(tagName -> {
+                    tagsWithPaths.add(tagName);
+                    if (!existingTagNames.contains(tagName)) {
+                        io.swagger.v3.oas.models.tags.Tag newTag = new io.swagger.v3.oas.models.tags.Tag();
+                        newTag.setName(tagName);
+                        if (openApi.getTags() == null) {
+                            openApi.setTags(new ArrayList<>());
+                        }
+                        openApi.getTags().add(newTag);
+                        existingTagNames.add(tagName);
+                    }
+                });
+            }
+        }));
+
+        // remove tags that have no paths using tagsWithPaths set
+        openApi.setTags(openApi.getTags().stream().filter(tag -> tagsWithPaths.contains(tag.getName()) && !openapiTagsHidden.contains(tag.getName())).toList());
+
+        // sort by tag name
+        openApi.setTags(openApi.getTags().stream().sorted(Comparator.comparing(io.swagger.v3.oas.models.tags.Tag::getName, String.CASE_INSENSITIVE_ORDER)).toList());
     }
 }

@@ -45,6 +45,8 @@ import java.util.*;
 /**
  * bie-index API services, minus some admin services
  */
+@Deprecated
+@Tag(name = "BIE", description = "APIs for the Biodiversity Information Explorer (BIE)")
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class V1SearchController {
@@ -78,7 +80,6 @@ public class V1SearchController {
         this.elasticsearchOperations = elasticsearchOperations;
     }
 
-    @Tag(name = "bulk")
     @Operation(
             summary = "Batch lookup of multiple taxon names",
             operationId = SPECIES_LOOKUP_BULK_ID,
@@ -109,7 +110,6 @@ public class V1SearchController {
         return ResponseEntity.ok(result);
     }
 
-    @Tag(name = "bulk")
     @Operation(
             operationId = SPECIES_GUIDS_BULKLOOKUP_ID,
             summary = "Bulk retrieval of species by identifier(s)",
@@ -134,7 +134,6 @@ public class V1SearchController {
         return ResponseEntity.ok(new SpeciesGuidsBulklookupResponse(elasticService.getTaxa(guidList)));
     }
 
-    @Tag(name = "bulk")
     @Operation(
             operationId = SPECIES_IMAGE_BULK_ID,
             summary = "Get a list of images for a list of taxon identifiers",
@@ -185,7 +184,6 @@ public class V1SearchController {
         return ResponseEntity.ok(result);
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = CHILD_CONCEPTS_ID,
             summary = "Get the child concepts of a taxon with the supplied GUID",
@@ -209,7 +207,6 @@ public class V1SearchController {
         return ResponseEntity.ok(elasticService.getChildConcepts(id, within, unranked));
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = CLASSIFICATION_ID,
             summary = "Get higher classifications of taxon with the supplied GUID",
@@ -241,7 +238,6 @@ public class V1SearchController {
         }
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = GUID_BATCH_ID,
             summary = "Batch lookup of multiple taxon names",
@@ -288,7 +284,6 @@ public class V1SearchController {
         return ResponseEntity.ok(results);
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = GUID_ID,
             summary = "Look up a taxon guid by name",
@@ -315,7 +310,6 @@ public class V1SearchController {
         }
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = IMAGESEARCH_ID,
             summary = "Search for a taxon with images",
@@ -353,7 +347,6 @@ public class V1SearchController {
         return ResponseEntity.ok(result);
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = SPECIES_SHORTPROFILE_ID,
             summary = "Get a short description of a taxon",
@@ -385,7 +378,6 @@ public class V1SearchController {
         }
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = SPECIES_ID,
             summary = "Look up a species by guid for the taxon",
@@ -423,7 +415,6 @@ public class V1SearchController {
         }
     }
 
-    @Tag(name = "rank")
     @Operation(
             operationId = "ranks",
             summary = "Gets a description of the ranks used to classify levels of taxa"
@@ -440,7 +431,6 @@ public class V1SearchController {
         return ResponseEntity.ok(legacyService.getRanks(elasticService.indexFields(false)));
     }
 
-    @Tag(name = "fields")
     @Operation(
             operationId = "fields",
             summary = "Gets the list of indexed fields"
@@ -457,7 +447,6 @@ public class V1SearchController {
         return elasticService.indexFields(true);
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = SEARCH_ID,
             summary = "Search the BIE",
@@ -536,7 +525,6 @@ public class V1SearchController {
         }
     }
 
-    @Tag(name = "Search")
     @Operation(
             operationId = SEARCH_AUTO_ID,
             summary = "Autocomplete search",
@@ -630,7 +618,6 @@ public class V1SearchController {
         return ResponseEntity.ok(payload);
     }
 
-    @Tag(name = "bulk")
     @Operation(
             operationId = DOWNLOAD_ID,
             summary = "Download the results of a species search",

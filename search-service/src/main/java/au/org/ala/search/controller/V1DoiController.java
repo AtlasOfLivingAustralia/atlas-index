@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,8 +58,9 @@ import static io.swagger.v3.oas.annotations.enums.ParameterIn.*;
  */
 @Slf4j
 @RestController
+@Tag(name = "DOI", description = "DOI and metadata APIs")
 @CrossOrigin(origins = "*", maxAge = 3600)
-// /api/doi is for some legacy clients
+// /api/doi is for some legacy clients and is hidden by the OpenapiService customizer
 @RequestMapping(path = {"/v1/doi", "/api/doi"}, produces = "application/json")
 public class V1DoiController {
 
@@ -114,8 +116,7 @@ public class V1DoiController {
                     ),
                     @ApiResponse(responseCode = "404", description = "DOI or UUID not found in this system"),
                     @ApiResponse(responseCode = "302", description = "Redirect to file")
-            },
-            tags = {"DOI"}
+            }
     )
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
@@ -203,8 +204,7 @@ public class V1DoiController {
                             }
                     ),
                     @ApiResponse(responseCode = "404", description = "DOI or UUID not found in this system")
-            },
-            tags = {"DOI"}
+            }
     )
     @RequestMapping(value = "/**", method = RequestMethod.GET, produces = "application/json")
     public Object getDoi(
@@ -253,8 +253,7 @@ public class V1DoiController {
                                     @Header(name = "X-Total-Count", description = "Total count of search results available", schema = @Schema(type = "string"))
                             }
                     )
-            },
-            tags = {"DOI"}
+            }
     )
     @GetMapping
     public ResponseEntity<List<Doi>> listDois(
@@ -399,8 +398,7 @@ public class V1DoiController {
                                     @Header(name = "Access-Control-Allow-Origin", description = "CORS header", schema = @Schema(type = "string"))
                             }
                     )
-            },
-            tags = {"DOI"}
+            }
     )
     @SecurityRequirement(name = "JWT")
     @SecurityRequirement(name = "openIdConnect")
@@ -506,8 +504,7 @@ public class V1DoiController {
                     @ApiResponse(responseCode = "404", description = "DOI or UUID not found in this system"),
                     @ApiResponse(responseCode = "422", description = "If the request body creates an invalid DOI entry"),
                     @ApiResponse(responseCode = "500", description = "There is an error while storing the file or contacting the DOI service")
-            },
-            tags = {"DOI"}
+            }
     )
     @SecurityRequirement(name = "JWT", scopes = "admin")
     @SecurityRequirement(name = "openIdConnect", scopes = {"doi/write"})
@@ -550,8 +547,7 @@ public class V1DoiController {
                     @ApiResponse(responseCode = "404", description = "DOI or UUID not found in this system"),
                     @ApiResponse(responseCode = "422", description = "If the request body creates an invalid DOI entry"),
                     @ApiResponse(responseCode = "500", description = "There is an error while storing the file or contacting the DOI service")
-            },
-            tags = {"DOI"}
+            }
     )
     @SecurityRequirement(name = "JWT", scopes = "admin")
     @SecurityRequirement(name = "openIdConnect", scopes = {"doi/write"})
@@ -628,8 +624,7 @@ public class V1DoiController {
                     @ApiResponse(responseCode = "404", description = "DOI or UUID not found in this system"),
                     @ApiResponse(responseCode = "422", description = "If the request body creates an invalid DOI entry"),
                     @ApiResponse(responseCode = "500", description = "There is an error while storing the file or contacting the DOI service")
-            },
-            tags = {"DOI"}
+            }
     )
     @SecurityRequirement(name = "JWT", scopes = "admin")
     @SecurityRequirement(name = "openIdConnect", scopes = {"doi/write"})
