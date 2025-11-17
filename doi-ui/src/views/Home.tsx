@@ -9,7 +9,6 @@ import {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {DoiData} from '../api/model.tsx';
 import featured from '../config/homeFeatured.json';
-// using static data for now
 import summary from '../config/homeSummary.json';
 import classes from './view.module.css';
 
@@ -130,7 +129,9 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
                             A digital object identifier (DOI) is a unique alphanumeric string assigned by a registration agency (the International DOI Foundation) to identify content and provide a persistent link to its location on the Internet.
                         </span>
                     </div>
-                    <div className='d-flex justify-content-center'>
+
+                    {summary && summary.length > 0 && <>
+                        <div className='d-flex justify-content-center'>
                         <span
                             style={{
                                 fontSize: '32px',
@@ -141,11 +142,9 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
                             }}>
                             Empowering research through open data
                         </span>
-                    </div>
-
-                    {summary && summary.length > 0 &&
+                        </div>
                         <div className='d-flex flex-wrap justify-content-center' style={{marginTop: '40px'}}>
-                            {summary.map((box, idx) => (
+                            {summary.map((box: { value: string; label: string }, idx) => (
                                 <div
                                     key={idx}
                                     style={{
@@ -178,13 +177,13 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
                                 </div>
                             ))}
                         </div>
-                    }
+                    </>}
 
                     <div style={{height: '60px'}}></div>
                 </div>
             </div>
 
-            { featured && featured.length > 0 &&
+            {featured && featured.length > 0 &&
                 <div className='row' style={{maxWidth: '1200px', margin: '0 auto', padding: '0 15px'}}>
                     <div style={{position: 'relative', marginTop: '60px', minHeight: '60px'}}>
                         <span
@@ -213,7 +212,7 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
                         </span>
                     </div>
                     <div className='d-flex flex-wrap justify-content-center' style={{marginTop: '40px'}}>
-                        {featured.map((box, idx) => (
+                        {featured.map((box: { url: string; label: string }, idx) => (
                             <div
                                 key={idx}
                                 style={{
