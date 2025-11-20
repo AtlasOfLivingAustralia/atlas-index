@@ -284,16 +284,19 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                     </>
                 )}
 
-                <div className='d-flex align-items-center flex-wrap gap-2' style={{marginTop: '0px'}}>
-                    <span className={classes.resultsTitle}>Showing</span>
-                    {maxResults > 0 && (
-                        <span className={classes.resultsTitleBold}>
-                            {page * pageSize + 1}-{maxResults < (page + 1) * pageSize ? maxResults : (page + 1) * pageSize}
-                        </span>
-                    )}
-                    {maxResults > 0 && <span className={classes.resultsTitle}>of</span>}
-                    <span className={classes.resultsTitleBold}>{new Intl.NumberFormat('en').format(maxResults)}</span>
-                </div>
+                {maxResults == 0 && !loading && <div className='d-flex justify-content-center' style={{fontSize: '20px'}}>You don’t have any DOI downloads yet.</div>}
+                {maxResults > 0 &&
+                    <div className='d-flex align-items-center flex-wrap gap-2' style={{marginTop: '0px'}}>
+                        <span className={classes.resultsTitle}>Showing</span>
+                        {maxResults > 0 && (
+                            <span className={classes.resultsTitleBold}>
+                                {page * pageSize + 1}-{maxResults < (page + 1) * pageSize ? maxResults : (page + 1) * pageSize}
+                            </span>
+                        )}
+                        {maxResults > 0 && <span className={classes.resultsTitle}>of</span>}
+                        <span className={classes.resultsTitleBold}>{new Intl.NumberFormat('en').format(maxResults)}</span>
+                    </div>
+                }
                 <div style={{marginTop: '30px'}}>
                     {loading && (
                         <div className='placeholder-glow' style={{}}>
@@ -309,59 +312,61 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                         </div>
                     )}
 
-                    {!loading && (
-                        <table className='table table-striped'
-                               style={{fontSize: '20px', lineHeight: '28px', color: '#212121'}}>
-                            <thead style={{fontWeight: 600}}>
-                            <tr>
-                                <th>Title</th>
-                                <th style={{width: '100px'}}>Created</th>
-                                <th style={{width: '120px', textAlign: 'right'}}>Records</th>
-                                <th style={{width: '120px', textAlign: 'right'}}>Datasets</th>
-                            </tr>
-                            </thead>
-                            <tbody style={{cursor: 'pointer'}}>
-                            {recent &&
-                                recent.map((data, idx) => (
-                                    <tr
-                                        key={idx}
-                                        onClick={() => {
-                                            // mobile -> open DOI page directly
-                                            // desktop -> open modal
-                                            if (isMobile) {
-                                                navigate(`/doi/${data.uuid}`);
-                                                window.scrollTo(0, 0);
-                                            } else {
-                                                setSelectedDoi(data.doi);
-                                                setShowDoiModal(true);
-                                            }
-                                        }}
-                                        style={{height: '42px'}}>
-                                        <td
-                                            style={{
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                maxWidth: '400px'
-                                            }}>
-                                            {data.title}
-                                            <br/>
-                                            <span style={{color: '#888', fontSize: '16px'}}>
-                                                    {data.doi}
+                    {!loading && maxResults > 0 && (<>
+                            <table className='table table-striped'
+                                   style={{fontSize: '20px', lineHeight: '28px', color: '#212121'}}>
+                                <thead style={{fontWeight: 600}}>
+                                <tr>
+                                    <th>Title</th>
+                                    <th style={{width: '100px'}}>Created</th>
+                                    <th style={{width: '120px', textAlign: 'right'}}>Records</th>
+                                    <th style={{width: '120px', textAlign: 'right'}}>Datasets</th>
+                                </tr>
+                                </thead>
+                                <tbody style={{cursor: 'pointer'}}>
+                                {recent &&
+                                    recent.map((data, idx) => (
+                                        <tr
+                                            key={idx}
+                                            onClick={() => {
+                                                // mobile -> open DOI page directly
+                                                // desktop -> open modal
+                                                if (isMobile) {
+                                                    navigate(`/doi/${data.uuid}`);
+                                                    window.scrollTo(0, 0);
+                                                } else {
+                                                    setSelectedDoi(data.doi);
+                                                    setShowDoiModal(true);
+                                                }
+                                            }}
+                                            style={{height: '42px'}}>
+                                            <td
+                                                style={{
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    maxWidth: '400px'
+                                                }}>
+                                                {data.title}
                                                 <br/>
-                                                {data.description}
+                                                <span style={{color: '#888', fontSize: '16px'}}>
+                                                    {data.doi}
+                                                    <br/>
+                                                    {data.description}
                                                 </span>
-                                        </td>
-                                        <td>{data.dateCreated ? new Date(data.dateCreated).toLocaleDateString() : ''}</td>
-                                        <td style={{textAlign: 'right'}}>{data.applicationMetadata?.recordCount ? new Intl.NumberFormat().format(Number(data.applicationMetadata?.recordCount)) : ''}</td>
-                                        <td style={{textAlign: 'right'}}>{data.applicationMetadata?.datasets?.length}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                            </td>
+                                            <td>{data.dateCreated ? new Date(data.dateCreated).toLocaleDateString() : ''}</td>
+                                            <td style={{textAlign: 'right'}}>{data.applicationMetadata?.recordCount ? new Intl.NumberFormat().format(Number(data.applicationMetadata?.recordCount)) : ''}</td>
+                                            <td style={{textAlign: 'right'}}>{data.applicationMetadata?.datasets?.length}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <Pagination page={page} maxResults={maxResults} pageSize={pageSize}
+                                        deepPagingMaxPage={deepPagingMaxPage} onPageChange={updatePage}
+                                        isMobile={isMobile}/>
+                        </>
                     )}
-                    <Pagination page={page} maxResults={maxResults} pageSize={pageSize}
-                                deepPagingMaxPage={deepPagingMaxPage} onPageChange={updatePage} isMobile={isMobile}/>
                 </div>
             </div>
             <div style={{height: '60px'}}></div>

@@ -136,17 +136,18 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
         <div className='container-fluid' style={{marginTop: '-47px'}}>
             {!doi && (
                 <div className={classes.headerLogo} style={{marginLeft: '-15px', marginRight: '-15px'}}>
-                    <div style={{float: 'right', marginTop: '12px', marginRight: '40px'}}>
-                        <a
-                            style={{zIndex: '1', position: 'relative'}}
-                            className='btn btn-primary btn-large'
-                            onClick={() => {
-                                navigate('/myDownloads');
-                                window.scrollTo(0, 0);
-                            }}>
-                            My Downloads
-                        </a>
-                    </div>
+                    {!isMobile &&
+                        <div style={{right: '0', marginTop: '12px', marginRight: '40px', zIndex: '1', position: 'absolute'}}>
+                            <a
+                                className='btn btn-primary btn-large'
+                                onClick={() => {
+                                    navigate('/myDownloads');
+                                    window.scrollTo(0, 0);
+                                }}>
+                                My Downloads
+                            </a>
+                        </div>
+                    }
                     <div style={{maxWidth: '1200px', margin: '0 auto', padding: '0 15px'}}>
                         <div className='d-flex justify-content-center'>
                             <div style={{marginTop: '60px', marginBottom: '60px'}}>
@@ -225,13 +226,14 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
                         )}
                     </div>
 
-                    <div className='d-flex justify-content-end'>
+                    <div className='d-flex justify-content-end'
+                         title={!canDownload() ? 'Insufficient permissions': ''}>
                         <div className={'btn btn-primary ms-auto ' + (canDownload() ? '' : 'disabled')}
                              onClick={() => download()}>
                             Download file
                         </div>
                     </div>
-                    <Metadata data={data} isMobile={isMobile}/>
+                    <Metadata data={data} isMobile={isMobile} download={canDownload() ? download : undefined} />
 
                     {data.displayTemplate && (
                         <>

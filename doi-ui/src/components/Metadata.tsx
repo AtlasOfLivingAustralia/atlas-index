@@ -62,7 +62,8 @@ function Metadata({ data, isMobile, download }: MetadataProps) {
                 </tr>
                 <tr>
                     <td>Filename</td>
-                    <td>{data.filename}</td>
+                    <td>{download ? <a href="#" onClick={() => download()}>{data.filename}</a> :
+                        <span style={{ textDecoration: 'underline', cursor: 'default' }} title={"Insufficient permissions"}>{data.filename}</span>}</td>
                 </tr>
                 <tr>
                     <td>Search URL</td>

@@ -157,11 +157,11 @@ public class DoiService {
             if (file != null) {
                 File tempFile = File.createTempFile("upload-", file.getOriginalFilename());
                 file.transferTo(tempFile);
-                applyFileAttributes(tempFile, entity);
+                applyFileAttributes(tempFile, entity, file.getOriginalFilename());
                 doiFileStoreService.copyToFileStore(tempFile, entity, true);
             } else if (fileUrl != null) {
                 File tempFile = fetchRemoteFile(fileUrl);
-                applyFileAttributes(tempFile, entity);
+                applyFileAttributes(tempFile, entity, file.getOriginalFilename());
                 doiFileStoreService.copyToFileStore(tempFile, entity, true);
             }
 
@@ -173,9 +173,8 @@ public class DoiService {
         }
     }
 
-    private void applyFileAttributes(File file, Doi doi) {
+    private void applyFileAttributes(File file, Doi doi, String filename) {
         try {
-            String filename = file.getName();
             String contentType = Files.probeContentType(file.toPath());
             long fileSize = file.length();
             byte[] fileHash = computeSha256(file);

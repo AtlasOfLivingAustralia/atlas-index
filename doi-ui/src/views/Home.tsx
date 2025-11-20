@@ -81,9 +81,9 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
     return (
         <div className='container-fluid' style={{marginTop: '-47px'}}>
             <div className={classes.headerLogo} style={{marginLeft: '-15px', marginRight: '-15px'}}>
-                <div style={{float: 'right', marginTop: '12px', marginRight: '40px'}}>
+                <div style={{right: '0', marginTop: '12px', marginRight: '40px', zIndex: '1', position: 'absolute'}}>
                     <a
-                        style={{zIndex: '1', position: 'relative'}}
+                        style={{}}
                         className='btn btn-primary btn-large'
                         onClick={() => {
                             navigate('/myDownloads');

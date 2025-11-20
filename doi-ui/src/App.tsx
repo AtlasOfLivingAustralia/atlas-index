@@ -86,7 +86,7 @@ export default function App() {
                 {title: 'Home', href: import.meta.env.VITE_HOME_URL},
                 {title: 'ALA DOI Repository', href: '/'},
                 { title: 'Not Found', href: '#' }]);
-        }, [setBreadcrumbs]);
+        }, []);
         return <NotFound />;
     }
 
