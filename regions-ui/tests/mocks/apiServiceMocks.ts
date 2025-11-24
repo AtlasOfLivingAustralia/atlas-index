@@ -18,28 +18,35 @@ const g_speciesGroupsPath = path.resolve(
 const g_speciesGroups = JSON.parse(
     fs.readFileSync(g_speciesGroupsPath, 'utf-8')
 );
+const g_occurrencesPath = path.resolve(__dirname, '../resources/occurrences.json');
+const g_occurrences = JSON.parse(fs.readFileSync(g_occurrencesPath, 'utf-8'));
 
 
 export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
+    /**
+     * NOTES: check if conditions carefully, requests may be intercepted
+     */
     await page.route(
-        '**/biocache-ws*.ala.org.au/ws/occurrences/search**',
+        /https?:\/\/biocache-ws\..*\.ala\.org\.au\/ws\/occurrences\/search.*/,
         async (route) => {
             const url = new URL(route.request().url());
             seenUrls.add(url);
 
             const facets = url.searchParams.get('facets');
             const fqs = url.searchParams.getAll('fq');
+            const searchOccurrences = fqs.some(f=>f.startsWith('species:'))
             const hasOccurrenceYear = fqs.some(f => f.startsWith('occurrenceYear:'));
 
             var response;
             if (facets === 'species') {
-                // Adjust the species facet counts if occurrenceYear has been set to start from 2024
+                // Adjust the species facet counts if occurrenceYear has been set to start after 2024
                 if (hasOccurrenceYear) {
                     const occurrenceYearFilter = fqs.find(f => f.startsWith('occurrenceYear:'));
                     const range = occurrenceYearFilter?.split(':')[1]?.replace(/^\[|\]$/g, ''); // removes brackets
                     const startDate = range?.split(' TO ')[0];
-                    const startsFrom2024 = startDate?.startsWith('2024-01-01');
-                    if (startsFrom2024) {
+                    const year = parseInt(startDate?.substring(0, 4), 10);
+                    const isAfter2024 = year >= 2024;
+                    if (isAfter2024) {
                         const fieldResults = g_species['facetResults'][0]['fieldResult'];
                         var adjustedResults = fieldResults.map(item => ({
                             ...item,
@@ -48,12 +55,13 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
                         g_species['facetResults'][0]['fieldResult'] = adjustedResults;
                     }
                 }
-
                 response = g_species;
             } else if (facets === 'kingdom') {
                 response = g_kingdoms;
             } else if (facets === 'speciesGroup') {
                 response = g_speciesGroups;
+            } else if (searchOccurrences) {
+                response = g_occurrences;
             }
             await route.fulfill({
                 status: 200,
@@ -117,5 +125,32 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
             });
         }
     );
+
+    //BIE species search mockup
+    await page.route(/https?:\/\/bie\..*\/species\/.*/, async route => {
+        const url = new URL(route.request().url());
+        seenUrls.add(url);
+
+        // Extract the part after "/species/"
+        const match = url.pathname.match(/\/species\/([^/]+)/);
+        const uuid = match ? match[1] : 'unknown-uuid';
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                "guid": uuid,
+                "name": "Aaaaba fossicollis (Kerremans, 1903)",
+                "country": "Australia",
+                "kingdom": "Animalia",
+                "phylum": "Arthropoda",
+                "classs": "Insecta",
+                "order": "Coleoptera",
+                "family": "Buprestidae",
+                "genus": "Aaaaba",
+                "occurrenceCount": 62
+            }),
+        });
+    });
 
 }

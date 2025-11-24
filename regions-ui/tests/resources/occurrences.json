@@ -1,0 +1,145 @@
+{
+  "pageSize": 1,
+  "startIndex": 0,
+  "totalRecords": 16,
+  "sort": "score",
+  "dir": "asc",
+  "status": "OK",
+  "occurrences": [
+    {
+      "uuid": "7d03dda8-ae5e-4603-b653-b96ba73ec8a0",
+      "occurrenceID": "https://naturemapr.org/sightings/4462785",
+      "raw_catalogNumber": "4462785",
+      "taxonConceptID": "https://biodiversity.org.au/afd/taxa/1bccbad2-2076-479d-8ae5-b333c998ede9",
+      "eventDate": 1672632780000,
+      "scientificName": "Aaaaba fossicollis",
+      "taxonRank": "species",
+      "taxonRankID": 7000,
+      "country": "Australia",
+      "kingdom": "Animalia",
+      "phylum": "Arthropoda",
+      "classs": "Insecta",
+      "order": "Coleoptera",
+      "family": "Buprestidae",
+      "genus": "Aaaaba",
+      "genusGuid": "https://biodiversity.org.au/afd/taxa/67ca62f6-2094-4cd2-8816-e5d8a8c5f61e",
+      "species": "Aaaaba fossicollis",
+      "speciesGuid": "https://biodiversity.org.au/afd/taxa/1bccbad2-2076-479d-8ae5-b333c998ede9",
+      "stateProvince": "Australian Capital Territory",
+      "decimalLatitude": -35.278524,
+      "decimalLongitude": 149.086923,
+      "year": 2023,
+      "month": "01",
+      "basisOfRecord": "HUMAN_OBSERVATION",
+      "dataProviderUid": "dp3301",
+      "dataProviderName": "NatureMapr",
+      "dataResourceUid": "dr19123",
+      "dataResourceName": "NatureMapr",
+      "assertions": [
+        "MISSING_TAXONRANK",
+        "COUNTRY_DERIVED_FROM_COORDINATES",
+        "GEODETIC_DATUM_ASSUMED_WGS84",
+        "MISSING_GEODETICDATUM",
+        "COORDINATE_UNCERTAINTY_METERS_INVALID",
+        "MISSING_GEOREFERENCE_DATE",
+        "MISSING_GEOREFERENCEDBY",
+        "MISSING_GEOREFERENCEPROTOCOL",
+        "MISSING_GEOREFERENCESOURCES",
+        "MISSING_GEOREFERENCEVERIFICATIONSTATUS",
+        "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT"
+      ],
+      "speciesGroups": [
+        "Animals",
+        "Arthropods",
+        "Insects"
+      ],
+      "spatiallyValid": true,
+      "recordedBy": [
+        "Harrisi"
+      ],
+      "collectors": [
+        "Harrisi"
+      ],
+      "raw_scientificName": "Aaaaba fossicollis",
+      "raw_basisOfRecord": "Human observation",
+      "raw_vernacularName": "Raspberry jewel beetle",
+      "license": "UNSPECIFIED",
+      "geospatialKosher": "true",
+      "latLong": "-35.278524,149.086923",
+      "point1": "-35,149",
+      "point01": "-35.3,149.1",
+      "point001": "-35.28,149.09",
+      "point0001": "-35.279,149.087",
+      "point00001": "-35.2785,149.0869",
+      "collector": [
+        "Harrisi"
+      ],
+      "namesLsid": "Aaaaba fossicollis|https://biodiversity.org.au/afd/taxa/1bccbad2-2076-479d-8ae5-b333c998ede9||Animalia|Buprestidae",
+      "left": 216697,
+      "right": 216697
+    }
+  ],
+  "facetResults": [
+
+  ],
+  "query": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A%22Aaaaba%20fossicollis%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
+  "urlParameters": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A%22Aaaaba%20fossicollis%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
+  "queryTitle": "PSMA States (2016):\"AUSTRALIAN CAPITAL TERRITORY\"",
+  "activeFacetMap": {
+    "species": {
+      "name": "species",
+      "displayName": "Species:*",
+      "value": "*"
+    },
+    "occurrenceYear": {
+      "name": "occurrenceYear",
+      "displayName": "Date (by year):[1850-2025]",
+      "value": "[1850-01-01T00:00:00Z TO 2025-12-31T23:59:59Z]"
+    },
+    "-occurrenceStatus": {
+      "name": "-occurrenceStatus",
+      "displayName": "-Presence/Absence:ABSENT",
+      "value": "absent"
+    },
+    "spatiallyValid": {
+      "name": "spatiallyValid",
+      "displayName": "Spatial validity:Spatially valid",
+      "value": "true"
+    }
+  },
+  "activeFacetObj": {
+    "species": [
+      {
+        "name": "species",
+        "displayName": "Species:\"Aaaaba fossicollis\"",
+        "value": "species:\"Aaaaba fossicollis\""
+      },
+      {
+        "name": "species",
+        "displayName": "Species:*",
+        "value": "species:*"
+      }
+    ],
+    "occurrenceYear": [
+      {
+        "name": "occurrenceYear",
+        "displayName": "Date (by year):[1850-2025]",
+        "value": "occurrenceYear:[1850-01-01T00:00:00Z TO 2025-12-31T23:59:59Z]"
+      }
+    ],
+    "-occurrenceStatus": [
+      {
+        "name": "-occurrenceStatus",
+        "displayName": "-Presence/Absence:ABSENT",
+        "value": "-occurrenceStatus:absent"
+      }
+    ],
+    "spatiallyValid": [
+      {
+        "name": "spatiallyValid",
+        "displayName": "Spatial validity:Spatially valid",
+        "value": "spatiallyValid:true"
+      }
+    ]
+  }
+}

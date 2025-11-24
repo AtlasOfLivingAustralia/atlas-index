@@ -602,15 +602,11 @@ test('region ACT details', async ({ page }, testInfo) => {
 
     // Verify counts
     const occurrenceHeading = page.getByRole('heading', {
-        name: /Occurrence records \(\d+(\.\d+)?M?\)/,
+        name: /Occurrence records \(4.31M\)/,
     });
     await expect(occurrenceHeading).toBeVisible();
-    // const occurrenceCount = page.locator('h3', {
-    //     hasText: 'Occurrence records (4.31M)',
-    // }); // count from speciesGroups.json
-    // await expect(occurrenceCount).toBeVisible(); // check the count is visible
     const speciesCount = page.getByRole('heading', {
-        name: /Number of species \(\d+(,\d+)?\)/,
+        name: /Number of species \(271\)/,
     });
     await expect(speciesCount).toBeVisible(); // check the count is visible
 
@@ -635,26 +631,58 @@ test('region ACT details', async ({ page }, testInfo) => {
     const listRecordsButton = page.locator('button', { hasText: 'List records' });
     await expect(listRecordsButton).toBeVisible();
 
+    const viewRecordsButton = page.locator('button', { hasText: 'View records' });
+    await expect(listRecordsButton).toBeVisible();
 
-    // Does not work with mock data
-    // const [biePage] = await Promise.all([
-    //     page.waitForEvent('popup'),
-    //     speciesProfileButton.click(),
-    // ]);
-    //
-    // await expect(biePage).not.toBeNull();
-    // await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
+    const downloadRecordsButton = page.locator('button', { hasText: 'Download records' });
+    await expect(listRecordsButton).toBeVisible();
+
+    const [biePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        speciesProfileButton.click(),
+    ]);
+
+    //await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
+    await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/1bccbad2-2076-479d-8ae5-b333c998ede9/);
 
     const [biocachePage] = await Promise.all([
         page.waitForEvent('popup'),
         listRecordsButton.click(),
     ]);
     await expect(biocachePage).not.toBeNull();
-    await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
+    //await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
+
+    const biocacheUrl = biocachePage.url();
+    const parsedUrl = new URL(biocacheUrl);
+    expect(parsedUrl.pathname).toBe('/occurrences/search');
+    expect(parsedUrl.searchParams.get('q')).toContain('cl10925:"AUSTRALIAN CAPITAL TERRITORY"');
+    expect(parsedUrl.searchParams.getAll('fq')).toEqual(expect.arrayContaining([
+        'species:"Aaaaba fossicollis"',
+        'species:*',
+        expect.stringContaining('occurrenceYear:[1850-01-01T00:00:00Z TO')
+    ]));
+
+    const [viewBiocachePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        viewRecordsButton.click(),
+    ]);
+    await expect(viewBiocachePage).not.toBeNull();
+    await expect(viewBiocachePage).toHaveURL(/occurrences\/search\?q=.+/);
+
+    const viewBiocacheUrl = viewBiocachePage.url();
+    const parsedviewBiocacheUrl = new URL(viewBiocacheUrl);
+
+    expect(parsedviewBiocacheUrl.pathname).toBe('/occurrences/search');
+    expect(parsedviewBiocacheUrl.searchParams.get('q')).toBe('cl10925:"AUSTRALIAN CAPITAL TERRITORY"');
+    expect(parsedviewBiocacheUrl.searchParams.getAll('fq')).toEqual(expect.arrayContaining([
+        'species:"Aaaaba fossicollis"',
+        'species:*',
+        expect.stringContaining('occurrenceYear:[1850-01-01T00:00:00Z TO')
+    ]));
 
     const wmsTileForOccurrences = page.locator('.leaflet-tile-container img[src*="ALA%3Aoccurrences"]');
     const tileCount = await wmsTileForOccurrences.count();
-    console.log(`WMS tile count: ${tileCount}`);
+    expect(tileCount).toBe(12)
     //await expect(wmsTileForOccurrences[0]).toBeVisible();
 
     //Range slider
@@ -667,29 +695,80 @@ test('region ACT details', async ({ page }, testInfo) => {
     await expect(maxSlider).toBeEnabled();
     var minValue = await minSlider.getAttribute('aria-valuenow');
     const maxValue = await maxSlider.getAttribute('aria-valuenow');
-
-    console.log(`Min Date: ${minValue}, Max Date: ${maxValue}`);
-
+    expect(minValue).toBe('1850');
+    expect(maxValue).toBe(String(new Date().getFullYear()));
     const minSliderBBox = await minSlider.boundingBox();
     const maxSliderBBox = await maxSlider.boundingBox();
 
     if (minSliderBBox && maxSliderBBox) {
-        await minSlider.hover();
-        await page.mouse.down();
-        await page.mouse.move(minSliderBBox.x + minSliderBBox.width + 535, minSliderBBox.y + minSliderBBox.height / 2);
-        await page.mouse.up();
-    }
-    //await page.waitForTimeout(3000);
-    minValue = await minSlider.getAttribute('aria-valuenow');
-    // Wait max 5 seconds for species count to update
-    // Verify species count has changed
-    await expect
-        .poll(async () => await speciesAFCount.textContent(), {
-            timeout: 5000,
-            interval: 250,
-        })
-        .not.toBe(speciesCountAFText);
+        await minSlider.dragTo(maxSlider);
+        const dateRangeText = page.locator('[data-testid="dateRangeSelection"] p');
+        const currentYear = new Date().getFullYear();
+        await expect(dateRangeText).toHaveText(new RegExp(`${currentYear} - ${currentYear}`));
 
+        // A forced click is required for Firefox to trigger the interaction.
+        // In Chrome, it succeeds in headed mode without the force click but fails when running headless.
+        await minSlider.click({force: true});
+
+        const currentSpeciesAFCount = await speciesAFCount.textContent();
+        await expect(currentSpeciesAFCount).not.toBe(speciesCountAFText);
+    }
+});
+
+/**
+ * Test play/stop button on date range slider
+ */
+test('play buttons on date range slider', async ({ page,browserName }, testInfo) => {
+    const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
+
+    await page.goto('http://localhost:5173/region?id=21654846#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY');
+
+    // Wait for images to load
+    await page.waitForLoadState('networkidle');
+
+    // Verify that 3 layers are now visible
+    const leafletLayers = page.locator('div.leaflet-layer');
+    expect(await leafletLayers.count()).toEqual(3); // base layer, this area, species points
+
+    // Verify area name is visible
+    const breadcrumb = page.locator('li', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
+    await expect(breadcrumb).toBeVisible(); // check the breadcrumb is visible
+    const h2 = page.locator('h2', { hasText: 'AUSTRALIAN CAPITAL TERRITORY' });
+    await expect(h2).toBeVisible(); // check the button is visible
+
+    // Verify counts
+    const occurrenceHeading = page.getByRole('heading', {
+        name: /Occurrence records \(4.31M\)/,
+    });
+    await expect(occurrenceHeading).toBeVisible();
+
+    //Range slider
+    const rangeContainer = page.locator('[data-testid="rangeSelection"]').locator('..'); // move up one level
+    const minSlider = rangeContainer.locator('button[aria-label="minimum"]');
+    const maxSlider = rangeContainer.locator('button[aria-label="maximum"]');
+    await expect(minSlider).toBeVisible();
+    await expect(minSlider).toBeEnabled();
+    await expect(maxSlider).toBeVisible();
+    await expect(maxSlider).toBeEnabled();
+    var minValue = await minSlider.getAttribute('aria-valuenow');
+    const maxValue = await maxSlider.getAttribute('aria-valuenow');
+    expect(minValue).toBe('1850');
+    expect(maxValue).toBe(String(new Date().getFullYear()));
+    const minSliderBBox = await minSlider.boundingBox();
+    const maxSliderBBox = await maxSlider.boundingBox();
+
+    if (minSliderBBox && maxSliderBBox) {
+        const playIcon = page.locator('i.bi.bi-play');
+        await playIcon.click();
+        const dateRangeText = page.locator('[data-testid="dateRangeSelection"] p');
+        const ranges = [/1850 - 1860/,/1860 - 1870/, /1870 - 1880/];
+
+        for (const range of ranges) {
+            await expect(dateRangeText).toHaveText(range, { timeout: 2000 });
+        }
+    }
 });
 
 /**
@@ -743,7 +822,30 @@ test('test taxon chart', async ({ page }, testInfo) => {
         page.waitForEvent('popup'),
         viewRecordsBtn.click(),
     ]);
-    await expect(biocachePage).not.toBeNull();
-    await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
 
+    const expectedFacet = 'kingdom:"Animalia"';
+    const hasExpectedFacet = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('fq') === expectedFacet
+    );
+    expect(hasExpectedFacet).toBeTruthy();
+
+    await expect(biocachePage).not.toBeNull();
+    const viewBiocacheUrl = biocachePage.url();
+    const parsedviewBiocacheUrl = new URL(viewBiocacheUrl);
+    expect(parsedviewBiocacheUrl.pathname).toBe('/occurrences/search');
+    expect(parsedviewBiocacheUrl.searchParams.get('q'))
+        .toBe('cl10925:"AUSTRALIAN CAPITAL TERRITORY"');
+
+    expect(parsedviewBiocacheUrl.searchParams.getAll('fq')).toEqual(
+        expect.arrayContaining([
+            'kingdom:"Animalia"',
+            'species:*',
+            expect.stringContaining(
+                'occurrenceYear:[1850-01-01T00:00:00Z'
+            ),
+        ]))
+    await previousRankBtn.click();
+    await page.waitForTimeout(1000);
+    await expect(previousRankBtn).toBeHidden();   // or toBeDetached()
+    await expect(viewRecordsBtn).toBeHidden();
 });
