@@ -167,7 +167,7 @@ function DataQualityAdmin({
                 auth.user?.profile.family_name
             ).trim(),
             contactEmail: auth.user?.profile.email || '',
-            enabled: true,
+            enabled: false,
             isDefault: false,
             categories: [],
             displayOrder: profiles.length,
