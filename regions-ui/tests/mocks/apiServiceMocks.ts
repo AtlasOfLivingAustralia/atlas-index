@@ -34,17 +34,20 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
 
             const facets = url.searchParams.get('facets');
             const fqs = url.searchParams.getAll('fq');
-            const searchOccurrences = fqs.some(f=>f.startsWith('species:'))
+            // Return occurrences when no facets in query
+            const searchOccurrences = fqs.some(f => f.startsWith('species:'));
+            // Only update the record number when query facade
             const hasOccurrenceYear = fqs.some(f => f.startsWith('occurrenceYear:'));
 
             var response;
             if (facets === 'species') {
-                // Adjust the species facet counts if occurrenceYear has been set to start after 2024
+                // Adjust the species facet counts if occurrenceYear has been set to 2024 or after
                 if (hasOccurrenceYear) {
                     const occurrenceYearFilter = fqs.find(f => f.startsWith('occurrenceYear:'));
                     const range = occurrenceYearFilter?.split(':')[1]?.replace(/^\[|\]$/g, ''); // removes brackets
                     const startDate = range?.split(' TO ')[0];
                     const year = parseInt(startDate?.substring(0, 4), 10);
+                    //Simulate record changes for year 2024 and onwards
                     const isAfter2024 = year >= 2024;
                     if (isAfter2024) {
                         const fieldResults = g_species['facetResults'][0]['fieldResult'];
