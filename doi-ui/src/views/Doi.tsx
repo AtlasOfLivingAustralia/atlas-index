@@ -139,7 +139,7 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
                     {!isMobile &&
                         <div style={{right: '0', marginTop: '12px', marginRight: '40px', zIndex: '1', position: 'absolute'}}>
                             <a
-                                className='btn btn-primary btn-large'
+                                className='btn btn-primary'
                                 onClick={() => {
                                     navigate('/myDownloads');
                                     window.scrollTo(0, 0);
