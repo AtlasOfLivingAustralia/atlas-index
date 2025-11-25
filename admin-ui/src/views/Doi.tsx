@@ -7,8 +7,7 @@
 import {useEffect, useState} from 'react';
 import DoiForm from "../components/doi/doiForm.tsx";
 import Menu from '../components/menu.tsx';
-import {Breadcrumb, Pagination} from '@ala/common-ui';
-import {useAuth} from "react-oidc-context";
+import {Breadcrumb, Pagination, useUser} from '@ala/common-ui';
 import {Tab, Tabs} from "react-bootstrap";
 import JsonViewer from '../components/jsonViewer';
 
@@ -26,7 +25,7 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     const [maxResults, setMaxResults] = useState(0);
     const pageSize = 100;
 
-    const auth = useAuth();
+    const {userInfo} = useUser();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -130,7 +129,7 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
             fetch(import.meta.env.VITE_APP_BIE_URL + '/v1/doi', {
                 method: 'POST',
                 headers: {
-                    Authorization: 'Bearer ' + auth.user?.access_token,
+                    Authorization: 'Bearer ' + userInfo?.accessToken,
                     'Accept': 'application/json'
                 },
                 body: formData

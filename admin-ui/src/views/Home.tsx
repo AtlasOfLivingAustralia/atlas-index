@@ -4,10 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {Breadcrumb, useUser} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
 import Menu from '../components/menu.tsx';
-import { Breadcrumb } from '@ala/common-ui';
-import {useAuth} from "react-oidc-context";
 
 const panelStyle = {
     borderRadius: '10px',
@@ -36,7 +35,7 @@ function Home({
     const [stats, setStats] = useState<Stats>({});
     const [testResult, setTestResult] = useState({});
 
-    const auth = useAuth();
+    const {userInfo} = useUser();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -51,7 +50,7 @@ function Home({
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/info', {
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token
+                Authorization: 'Bearer ' + userInfo?.accessToken
             }
         }).then((response) => {
             response.json().then((json) => {
@@ -68,7 +67,7 @@ function Home({
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/test', {
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token
+                Authorization: 'Bearer ' + userInfo?.accessToken
             }
         }).then((response) => {
             response.json().then((json) => {

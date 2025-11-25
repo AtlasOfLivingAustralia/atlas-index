@@ -6,10 +6,8 @@
 
 import {useEffect, useState} from 'react';
 import Menu from '../components/menu.tsx';
-import {Breadcrumb} from '@ala/common-ui';
-import {useAuth} from "react-oidc-context";
+import {Breadcrumb, useUser} from '@ala/common-ui';
 import {Tab, Tabs} from "react-bootstrap";
-
 
 type DownloadStatusDTO = {
     status: string;
@@ -31,7 +29,7 @@ function Biocache({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
     const [tab, setTab] = useState('downloads');
     const [downloads, setDownloads] = useState<DownloadsMap | undefined>(undefined);
 
-    const auth = useAuth();
+    const {userInfo} = useUser();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -47,7 +45,7 @@ function Biocache({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
         fetch(import.meta.env.VITE_APP_BIOCACHE_URL_TMP + '/occurrences/offline/status/all', {
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             }
         }).then((response) => {
@@ -67,7 +65,7 @@ function Biocache({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
             fetch(cancelUrl, {
                 method: 'GET',
                 headers: {
-                    Authorization: 'Bearer ' + auth.user?.access_token,
+                    Authorization: 'Bearer ' + userInfo?.accessToken,
                     'Content-Type': 'application/json',
                 }
             })

@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { QualityFilter } from '../../api/sources/model.ts';
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
+import {QualityFilter} from '../../api/sources/model.ts';
 
 function QualityFilterItem(props: {
     filter: QualityFilter; // clone of the filter to avoid modifying the original object directly

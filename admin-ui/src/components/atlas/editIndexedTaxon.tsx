@@ -4,9 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {useUser} from "@ala/common-ui";
 import {Tab, Tabs} from "react-bootstrap";
 import {useState} from "react";
-import {useAuth} from "react-oidc-context";
 
 import {DescriptionItem} from "../../api/sources/model.tsx";
 
@@ -35,7 +35,7 @@ function EditIndexedTaxon() {
     const [imageStart, setImageStart] = useState(0);
     const [imageViewMode, setImageViewMode] = useState('all');
 
-    const auth = useAuth();
+    const {userInfo} = useUser();
 
     const imagePageSize = 100;
 
@@ -57,7 +57,7 @@ function EditIndexedTaxon() {
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/species', {
             method: 'POST',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify([guid]),
@@ -240,7 +240,7 @@ function EditIndexedTaxon() {
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -338,7 +338,7 @@ function EditIndexedTaxon() {
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -402,7 +402,7 @@ function EditIndexedTaxon() {
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -429,7 +429,7 @@ function EditIndexedTaxon() {
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
             method: 'POST',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -445,7 +445,7 @@ function EditIndexedTaxon() {
                 fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/set', {
                     method: 'POST',
                     headers: {
-                        Authorization: 'Bearer ' + auth.user?.access_token,
+                        Authorization: 'Bearer ' + userInfo?.accessToken,
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({

@@ -4,11 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {Breadcrumb, useUser} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
-import Menu from '../components/menu.tsx';
-import {Breadcrumb} from '@ala/common-ui';
-import {useAuth} from "react-oidc-context";
 import {Modal, Tab, Tabs} from "react-bootstrap";
+import Menu from '../components/menu.tsx';
+import optionsJson from '../config/tasks.json' with {type: 'json'};
 
 type TaskType = {
     label: string;
@@ -16,12 +16,9 @@ type TaskType = {
     path: string;
     defaultJson: string;
 };
-import optionsJson from '../config/tasks.json' with { type: 'json' };
 const options: TaskType[] = optionsJson as TaskType[];
 
-function Tasks({
-                   setBreadcrumbs,
-               }: {
+function Tasks({setBreadcrumbs,}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 }) {
     const [tab, setTab] = useState('run');
@@ -43,7 +40,7 @@ function Tasks({
     const [showModal, setShowModal] = useState(false);
     const [modalTask, setModalTask] = useState<any>(null);
 
-    const auth = useAuth();
+    const {userInfo} = useUser();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -86,7 +83,7 @@ function Tasks({
             {
                 method: 'POST',
                 headers: {
-                    Authorization: 'Bearer ' + auth.user?.access_token,
+                    Authorization: 'Bearer ' + userInfo?.accessToken,
                     'Content-Type': 'application/json',
                 },
                 body: jsonText,
@@ -125,7 +122,7 @@ function Tasks({
         fetch(statusUrl,
             {
                 headers: {
-                    Authorization: 'Bearer ' + auth.user?.access_token
+                    Authorization: 'Bearer ' + userInfo?.accessToken,
                 }
             })
             .then(response => {
@@ -168,7 +165,7 @@ function Tasks({
         fetch(url, {
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             }
         }).then(response => {
@@ -201,7 +198,7 @@ function Tasks({
         fetch(task.cancelUrl, {
             method: 'GET',
             headers: {
-                Authorization: 'Bearer ' + auth.user?.access_token,
+                Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             }
         }).then(response => {

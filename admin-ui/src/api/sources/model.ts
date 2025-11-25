@@ -1,5 +1,3 @@
-import { User } from 'oidc-client-ts';
-
 interface TaskType {
     log: {
         id: string;
@@ -43,14 +41,6 @@ interface AtlasLog {
     tasks: {
         [key: string]: TaskType;
     };
-}
-
-interface ListsUser {
-    user: () => User | null | undefined;
-    userId: () => string;
-    isAdmin: () => boolean;
-    roles: () => string[];
-    isLoading: () => boolean;
 }
 
 interface QualityFilter {
@@ -158,7 +148,6 @@ interface DescriptionItem {
 }
 
 export type {
-    ListsUser,
     AtlasLog,
     TaskType,
     QualityProfile,

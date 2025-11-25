@@ -4,10 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {QualityCategory, QualityProfile} from '../../api/sources/model.ts';
 import {useEffect, useState} from 'react';
-import QualityCategoryItem from './qualityCategoryItem.tsx';
+import {QualityCategory, QualityProfile} from '../../api/sources/model.ts';
 import classes from './quality.module.css';
+import QualityCategoryItem from './qualityCategoryItem.tsx';
 
 function QualityProfileItem(props: {
     profile: QualityProfile;

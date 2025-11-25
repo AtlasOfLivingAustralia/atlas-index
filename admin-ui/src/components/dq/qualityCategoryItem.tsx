@@ -4,10 +4,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {QualityCategory, QualityFilter} from '../../api/sources/model.ts';
 import {useEffect, useState} from 'react';
-import QualityFilterItem from './qualityFilterItem.tsx';
+import {QualityCategory, QualityFilter} from '../../api/sources/model.ts';
 import classes from './quality.module.css';
+import QualityFilterItem from './qualityFilterItem.tsx';
 
 function QualityCategoryItem(props: {
     category: QualityCategory; // clone of the category to avoid modifying the original object directly
