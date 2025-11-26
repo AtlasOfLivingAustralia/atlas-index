@@ -507,6 +507,7 @@ test('hash test - other regions & layer', async ({ page }, testInfo) => {
  * Test region page default info
  */
 test('region page default info', async ({ page }, testInfo) => {
+    test.setTimeout(120000); //Increase timeout for popup windows in headed mode
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173/region?id=8832857');
@@ -581,6 +582,7 @@ test('region page default info', async ({ page }, testInfo) => {
  * Test ACT details
  */
 test('region ACT details', async ({ page }, testInfo) => {
+    test.setTimeout(120000);
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173/region?id=21654846#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY');
