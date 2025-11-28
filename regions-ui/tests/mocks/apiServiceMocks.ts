@@ -26,8 +26,7 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
     /**
      * NOTES: check if conditions carefully, requests may be intercepted
      */
-    await page.route(
-        /https?:\/\/biocache-ws\..*\.ala\.org\.au\/ws\/occurrences\/search.*/,
+    await page.route('**/biocache-ws*.ala.org.au/ws/occurrences/search**',
         async (route) => {
             const url = new URL(route.request().url());
             seenUrls.add(url);

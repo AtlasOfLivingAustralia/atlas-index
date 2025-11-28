@@ -1,6 +1,7 @@
 import { test, expect, type TestInfo } from '@playwright/test';
 import { mapMocks } from './mocks/layerServiceMocks';
 import { apiMocks } from './mocks/apiServiceMocks';
+import {logMissingMocks} from "./mocks/logMissingMocks";
 
 // Extend TestInfo to include the seenUrls property
 interface ExtendedTestInfo extends TestInfo {
@@ -10,6 +11,7 @@ interface ExtendedTestInfo extends TestInfo {
 
 test.beforeEach(async ({ page }, testInfo) => {
     const seenUrls = new Set<URL>();
+    await logMissingMocks(page, seenUrls); // must be first otherwise it will intercept all requests
     await mapMocks(page, seenUrls);
     await apiMocks(page, seenUrls);
     (testInfo as ExtendedTestInfo).seenUrls = seenUrls;

@@ -260,4 +260,75 @@ export async function mapMocks(page: Page, seenUrls: Set<URL> ) {
             });
         }
     });
+
+    await page.route('**/biocache-ws.ala.org.au/ws/ogc/wms/reflect*', async (route) => {
+        const url = new URL(route.request().url());
+        seenUrls.add(url);
+        const params = url.searchParams;
+
+        // Extract query parameters
+        const width = parseInt(params.get('width') || '256', 10);
+        const height = parseInt(params.get('height') || '256', 10);
+        const bbox = params.get('bbox')?.split(',').map(parseFloat); // [minX, minY, maxX, maxY]
+
+        if (!bbox || bbox.length !== 4) {
+            await route.fulfill({
+                status: 400, // Bad Request
+                contentType: 'text/plain',
+                body: 'Invalid or missing bbox parameter',
+            });
+            return;
+        }
+
+        const [minX, minY, maxX, maxY] = bbox;
+
+        // Generate the image dynamically
+        try {
+            const canvas = createCanvas(width, height);
+            const ctx = canvas.getContext('2d');
+
+            // Fill background
+            ctx.fillStyle = '#CCCCCC';
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw border
+            ctx.strokeStyle = '#666666';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, width, height);
+
+            // Set text properties
+            ctx.fillStyle = '#000000';
+            ctx.font = `${Math.min(width, height) / 32}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Draw info in the center
+            let layers = params.get('layers') || 'Unknown Layer';
+            ctx.fillText(`${layers}`, width / 2, height / 2 - 20);
+            ctx.fillText(
+                `${toLon(minX).toFixed(4)}, ${toLat(minY).toFixed(4)}`,
+                width / 2,
+                height / 2 + 10
+            );
+            ctx.fillText(
+                `${toLon(maxX).toFixed(4)}, ${toLat(maxY).toFixed(4)}`,
+                width / 2,
+                height / 2 + 30
+            );
+
+            const buffer = canvas.toBuffer('image/png');
+
+            await route.fulfill({
+                status: 200,
+                contentType: 'image/png',
+                body: buffer,
+            });
+        } catch (error) {
+            await route.fulfill({
+                status: 500, // Internal Server Error
+                contentType: 'text/plain',
+                body: 'Error generating mock WMS image',
+            });
+        }
+    });
 }

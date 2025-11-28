@@ -122,3 +122,16 @@ VITE_DOWNLOAD_URL=https://biocache.ala.org.au/download/options1?targetUri=%2Focc
 #VITE_GOOGLE_MAP_API_KEY={optional}
 VITE_OPENSTREETMAP_ZXY_URL=https://spatial.ala.org.au/osm/{z}/{x}/{y}.png
 ```
+
+## Playwright tests
+Playwright tests are included to verify basic functionality. Running in headless mode by default. To run the tests:
+```bash
+./run-playwright-test.sh [workers, default 10]
+```
+This script will start a local static server to serve common files and the regionsList.json file, then run the tests against a locally running regions-ui instance that is built to use `.env.playwright` for config. 
+- If using a different method, ensure you are using the same config as in `.env.playwright`. See `run-playwright-test.sh` for all environment details.
+- If using playwright ui mode, 
+  - start static-server (after running `run-playwright-test.sh` once to copy the required files)
+  - copy `.env.playwright` to `.env.local`
+  - start in dev mode `yarn run dev` so that any changes to the app apply immediately
+  - then start ui mode `yarn playwright test --ui`, any changes to the tests will apply immediately

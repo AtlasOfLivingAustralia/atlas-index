@@ -47,3 +47,7 @@ trap cleanup EXIT
 # Run Playwright tests
 echo "Running Playwright tests with $thread_count workers..."
 yarn playwright test --workers=$thread_count --reporter=dot
+# Headed mode tests, uncomment the line below to use it
+#yarn playwright test --workers=1 --reporter=dot --headed
+
+
