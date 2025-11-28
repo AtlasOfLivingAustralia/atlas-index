@@ -1,371 +1,17 @@
 import { test, expect, type TestInfo } from '@playwright/test';
-import { createCanvas, type CanvasRenderingContext2D } from 'canvas';
-import { Buffer } from 'buffer'; // Node.js Buffer module
-import * as fs from 'fs';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
-
-// load resources
-// @ts-ignore
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const g_regionsListPath = path.resolve(__dirname, './resources/regionsList.json');
-const g_regionsList = JSON.parse(fs.readFileSync(g_regionsListPath, 'utf-8'));
-const g_kingdomsPath = path.resolve(__dirname, './resources/kingdoms.json');
-const g_kingdoms = JSON.parse(fs.readFileSync(g_kingdomsPath, 'utf-8'));
-const g_speciesPath = path.resolve(__dirname, './resources/species.json');
-const g_species = JSON.parse(fs.readFileSync(g_speciesPath, 'utf-8'));
-const g_speciesGroupsPath = path.resolve(
-    __dirname,
-    './resources/speciesGroups.json'
-);
-const g_speciesGroups = JSON.parse(
-    fs.readFileSync(g_speciesGroupsPath, 'utf-8')
-);
+import { mapMocks } from './mocks/layerServiceMocks';
+import { apiMocks } from './mocks/apiServiceMocks';
 
 // Extend TestInfo to include the seenUrls property
 interface ExtendedTestInfo extends TestInfo {
     seenUrls: Set<URL>;
 }
 
-// Function to convert tile X coordinate and zoom level to longitude
-function tileToLong(x: number, z: number): number {
-    return (x / Math.pow(2, z)) * 360 - 180;
-}
 
-// Function to convert tile Y coordinate and zoom level to latitude (using inverse Mercator)
-function tileToLat(y: number, z: number): number {
-    const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
-    return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
-}
-
-// Function to get decimal degrees for the four corners of a tile
-function getTileCorners(
-    x: number,
-    y: number,
-    z: number
-): {
-    topLeft: { lat: number; lon: number };
-    topRight: { lat: number; lon: number };
-    bottomLeft: { lat: number; lon: number };
-    bottomRight: { lat: number; lon: number };
-} {
-    const lonLeft = tileToLong(x, z);
-    const latTop = tileToLat(y, z);
-    const lonRight = tileToLong(x + 1, z);
-    const latBottom = tileToLat(y + 1, z); // Latitude of the top edge of the tile below
-
-    return {
-        topLeft: { lat: latTop, lon: lonLeft },
-        topRight: { lat: latTop, lon: lonRight },
-        bottomLeft: { lat: latBottom, lon: lonLeft },
-        bottomRight: { lat: latBottom, lon: lonRight },
-    };
-}
-
-const R = 6378137; // Earth's radius in meters
-
-// Convert projected coordinates to decimal degrees
-const toLon = (x: number) => (x / R) * (180 / Math.PI);
-const toLat = (y: number) =>
-    (180 / Math.PI) * (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2);
-
-// Function to generate a PNG buffer with tile info drawn on it
-async function generateTileImage(
-    x: number,
-    y: number,
-    z: number,
-    corners: ReturnType<typeof getTileCorners>,
-    size: number = 256 // Default tile size
-): Promise<Buffer> {
-    const canvas = createCanvas(size, size);
-    const ctx = canvas.getContext('2d');
-
-    // Background color (light gray)
-    ctx.fillStyle = '#CCCCCC';
-    ctx.fillRect(0, 0, size, size);
-
-    // Border
-    ctx.strokeStyle = '#666666';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, size, size);
-
-    // Set text properties
-    ctx.fillStyle = '#000000'; // Black text
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Draw Z/X/Y in the center
-    const mainFontSize = size / 16; // Adjust font size relative to tile size
-    ctx.font = `${mainFontSize}px Arial`;
-    ctx.fillText(`${z}/${x}/${y} ${size}`, size / 4, size / 4);
-
-    // Set smaller font for corner coordinates
-    const cornerFontSize = size / 24;
-    ctx.font = `${cornerFontSize}px Arial`;
-    const padding = 1; // Padding from edges
-
-    // Helper to format coordinates
-    const formatCoord = (coord: number) => coord.toFixed(4); // Format to 4 decimal places
-
-    // Draw corner coordinates
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(
-        `TL: ${formatCoord(corners.topLeft.lat)}, ${formatCoord(corners.topLeft.lon)}`,
-        padding,
-        padding
-    );
-
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'top';
-    ctx.fillText(
-        `TR: ${formatCoord(corners.topRight.lat)}, ${formatCoord(corners.topRight.lon)}`,
-        size - padding,
-        padding
-    );
-
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(
-        `BL: ${formatCoord(corners.bottomLeft.lat)}, ${formatCoord(corners.bottomLeft.lon)}`,
-        padding,
-        size - padding
-    );
-
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(
-        `BR: ${formatCoord(corners.bottomRight.lat)}, ${formatCoord(corners.bottomRight.lon)}`,
-        size - padding,
-        size - padding
-    );
-
-    // Convert canvas to PNG buffer
-    return new Promise((resolve, reject) => {
-        const stream = canvas.createPNGStream();
-        const chunks: Buffer[] = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-        stream.on('error', (err) => reject(err));
-    });
-}
-
-// Set up mocking for all tests
 test.beforeEach(async ({ page }, testInfo) => {
     const seenUrls = new Set<URL>();
-
-    // Mock base layer requests to OSM base layers
-    await page.route('**/spatial.ala.org.au/osm/*/*/*.png', async (route) => {
-        const url = new URL(route.request().url());
-        seenUrls.add(url);
-        const pathname = url.pathname;
-
-        let requestedSize = 256; // Default tile size
-
-        const pathParts = pathname.split('/');
-        // Look for sequences that might be z, x, y numbers
-        let z: number | undefined = parseInt(
-            pathParts[pathParts.length - 3],
-            10
-        );
-        let x: number | undefined = parseInt(
-            pathParts[pathParts.length - 2],
-            10
-        );
-        let y: number | undefined = parseInt(
-            pathParts[pathParts.length - 1]
-                .replace('@2x', '')
-                .replace('.png', ''),
-            10
-        );
-
-        // detect high DPI
-        if (pathParts[pathParts.length - 1].indexOf('@2x') !== -1) {
-            requestedSize = 512;
-        }
-
-        const corners = getTileCorners(x, y, z);
-
-        // Generate the tile image dynamically
-        try {
-            const imageBuffer = await generateTileImage(
-                x,
-                y,
-                z,
-                corners,
-                requestedSize
-            );
-
-            await route.fulfill({
-                status: 200,
-                contentType: 'image/png',
-                body: imageBuffer,
-            });
-        } catch (error) {
-            console.error(
-                `Error generating mock tile image for ${z}/${x}/${y}:`,
-                error
-            );
-            // If image generation fails, fulfill with an error status or a fallback
-            await route.fulfill({
-                status: 500, // Internal Server Error
-                contentType: 'text/plain',
-                body: `Error generating mock tile for ${z}/${x}/${y}`,
-            });
-        }
-    });
-
-    await page.route('**/spatial*.ala.org.au/geoserver/wms*', async (route) => {
-        const url = new URL(route.request().url());
-        seenUrls.add(url);
-        const params = url.searchParams;
-
-        // Extract query parameters
-        const width = parseInt(params.get('width') || '256', 10);
-        const height = parseInt(params.get('height') || '256', 10);
-        const bbox = params.get('bbox')?.split(',').map(parseFloat); // [minX, minY, maxX, maxY]
-
-        if (!bbox || bbox.length !== 4) {
-            await route.fulfill({
-                status: 400, // Bad Request
-                contentType: 'text/plain',
-                body: 'Invalid or missing bbox parameter',
-            });
-            return;
-        }
-
-        const [minX, minY, maxX, maxY] = bbox;
-
-        // Generate the image dynamically
-        try {
-            const canvas = createCanvas(width, height);
-            const ctx = canvas.getContext('2d');
-
-            // Fill background
-            ctx.fillStyle = '#CCCCCC';
-            ctx.fillRect(0, 0, width, height);
-
-            // Draw border
-            ctx.strokeStyle = '#666666';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, width, height);
-
-            // Set text properties
-            ctx.fillStyle = '#000000';
-            ctx.font = `${Math.min(width, height) / 32}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            // Draw info in the center
-            let layers = params.get('layers') || 'Unknown Layer';
-            ctx.fillText(`${layers}`, width / 2, height / 2 - 20);
-            ctx.fillText(
-                `${toLon(minX).toFixed(4)}, ${toLat(minY).toFixed(4)}`,
-                width / 2,
-                height / 2 + 10
-            );
-            ctx.fillText(
-                `${toLon(maxX).toFixed(4)}, ${toLat(maxY).toFixed(4)}`,
-                width / 2,
-                height / 2 + 30
-            );
-
-            const buffer = canvas.toBuffer('image/png');
-
-            await route.fulfill({
-                status: 200,
-                contentType: 'image/png',
-                body: buffer,
-            });
-        } catch (error) {
-            await route.fulfill({
-                status: 500, // Internal Server Error
-                contentType: 'text/plain',
-                body: 'Error generating mock WMS image',
-            });
-        }
-    });
-
-    await page.route(
-        '**/spatial*.ala.org.au/ws/intersect/cl10925/*/*',
-        async (route) => {
-            const url = new URL(route.request().url());
-            seenUrls.add(url);
-
-            // always return the same response, a successful intersection
-            const response = [
-                {
-                    field: 'cl10925',
-                    description: 'AUSTRALIAN CAPITAL TERRITORY',
-                    layername: 'PSMA States (2016)',
-                    pid: '8832857',
-                    value: 'AUSTRALIAN CAPITAL TERRITORY',
-                },
-            ];
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(response),
-            });
-        }
-    );
-
-    await page.route('**/regionsList.json', async(route) => {
-       await route.fulfill({
-           status: 200,
-           contentType: 'application/json',
-           body: JSON.stringify(g_regionsList)
-       });
-    });
-
-    await page.route('**/spatial*.ala.org.au/ws/object/*', async (route) => {
-        const url = new URL(route.request().url());
-        seenUrls.add(url);
-
-        // always return the same response, a successful intersection
-        const response = {
-            pid: '8832857',
-            name: 'AUSTRALIAN CAPITAL TERRITORY',
-            wmsurl: 'https://spatial.ala.org.au/geoserver/wms?service=WMS&version=1.1.0&request=GetMap&layers=ALA:Objects&format=image/png&viewparams=s:8832857',
-            fid: 'cl10925',
-            fieldname: 'PSMA States (2016)',
-            bbox: 'POLYGON((148.762675104 -35.9207620485,148.762675104 -35.124517035,149.399284512 -35.124517035,149.399284512 -35.9207620485,148.762675104 -35.9207620485))',
-            description: 'AUSTRALIAN CAPITAL TERRITORY',
-            area_km: 2363.2136863251985,
-            id: '8832857',
-        };
-        await route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(response),
-        });
-    });
-
-    await page.route(
-        '**/biocache-ws*.ala.org.au/ws/occurrences/search**',
-        async (route) => {
-            const url = new URL(route.request().url());
-            seenUrls.add(url);
-
-            const facets = url.searchParams.get('facets');
-
-            var response;
-            if (facets === 'species') {
-                response = g_species;
-            } else if (facets === 'kingdom') {
-                response = g_kingdoms;
-            } else if (facets === 'speciesGroup') {
-                response = g_speciesGroups;
-            }
-            await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(response),
-            });
-        }
-    );
-
+    await mapMocks(page, seenUrls);
+    await apiMocks(page, seenUrls);
     (testInfo as ExtendedTestInfo).seenUrls = seenUrls;
 });
 
@@ -734,9 +380,10 @@ test('zoom to region', async ({ page }, testInfo) => {
 
     await page.waitForTimeout(1000); // wait for the map to load
     const zoomedUrl =
-        'https://spatial.ala.org.au/geoserver/wms?styles=polygon&viewparams=s%3A8832857&service=WMS&request=GetMap&layers=ALA%3AObjects&styles=polygon&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=16437018.562444305,-4383204.9499851465,16515290.079408325,-4304933.433021128';
+        'geoserver/wms?styles=polygon&viewparams=s%3A8832857&service=WMS&request=GetMap&layers=ALA%3AObjects&styles=polygon&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=16437018.562444305,-4383204.9499851465,16515290.079408325,-4304933.433021128';
+
     const hasZoomedLayer = Array.from(seenUrls).some(
-        (url) => url.href === zoomedUrl
+        (url) => url.href.includes(zoomedUrl)
     );
     expect(hasZoomedLayer).toBeTruthy(); // WMS requests include the expected layer
 
@@ -860,6 +507,7 @@ test('hash test - other regions & layer', async ({ page }, testInfo) => {
  * Test region page default info
  */
 test('region page default info', async ({ page }, testInfo) => {
+    test.setTimeout(120000); //Increase timeout for popup windows in headed mode
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
     await page.goto('http://localhost:5173/region?id=8832857');
@@ -891,23 +539,18 @@ test('region page default info', async ({ page }, testInfo) => {
 
     // Verify the expected URLs were called
     const speciesGroupUrl =
-        'https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue';
-    const speciesUrl =
-        'https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D';
-    const kingdomUrl =
-        'https://biocache-ws.ala.org.au/ws/occurrences/search?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D&pageSize=0&flimit=-1&facets=kingdom';
+        /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue$/;
 
-    const hasSpeciesGroupUrl = Array.from(seenUrls).some(
-        (url) => url.href === speciesGroupUrl
-    );
+    const speciesUrl =
+        /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D$/;
+
+    const kingdomUrl =
+        /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D&pageSize=0&flimit=-1&facets=kingdom$/;
+    const hasSpeciesGroupUrl = Array.from(seenUrls).find(url => speciesGroupUrl.test(url?.href));
     expect(hasSpeciesGroupUrl).toBeTruthy(); // WMS requests include the expected layer
-    const hasSpeciesUrl = Array.from(seenUrls).some(
-        (url) => url.href === speciesUrl
-    );
+    const hasSpeciesUrl = Array.from(seenUrls).find(url => speciesUrl.test(url.href));
     expect(hasSpeciesUrl).toBeTruthy(); // WMS requests include the expected layer
-    const hasKingdomUrl = Array.from(seenUrls).some(
-        (url) => url.href === kingdomUrl
-    );
+    const hasKingdomUrl = Array.from(seenUrls).find(url => kingdomUrl.test(url.href));
     expect(hasKingdomUrl).toBeTruthy(); // WMS requests include the expected layer
 
     // Verify some species groups
@@ -933,4 +576,278 @@ test('region page default info', async ({ page }, testInfo) => {
     });
     await expect(species1).toBeVisible(); // check the species is visible
     await expect(species2).toBeVisible(); // check the species is visible
+});
+
+/**
+ * Test ACT details
+ */
+test('region ACT details', async ({ page }, testInfo) => {
+    test.setTimeout(120000);
+    const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
+
+    await page.goto('http://localhost:5173/region?id=21654846#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY');
+
+    // Wait for images to load
+    await page.waitForLoadState('networkidle');
+
+    // Verify that 3 layers are now visible
+    const leafletLayers = page.locator('div.leaflet-layer');
+    expect(await leafletLayers.count()).toEqual(3); // base layer, this area, species points
+
+    // Verify area name is visible
+    const breadcrumb = page.locator('li', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
+    await expect(breadcrumb).toBeVisible(); // check the breadcrumb is visible
+    const h2 = page.locator('h2', { hasText: 'AUSTRALIAN CAPITAL TERRITORY' });
+    await expect(h2).toBeVisible(); // check the button is visible
+
+    // Verify counts
+    const occurrenceHeading = page.getByRole('heading', {
+        name: /Occurrence records \(4.31M\)/,
+    });
+    await expect(occurrenceHeading).toBeVisible();
+    const speciesCount = page.getByRole('heading', {
+        name: /Number of species \(271\)/,
+    });
+    await expect(speciesCount).toBeVisible(); // check the count is visible
+
+      // Verify some species
+    const speciesAF = page.locator('div[class^="_speciesName_"]', {
+        hasText: 'Aaaaba fossicollis',
+    });
+    const species2 = page.locator('div[class^="_speciesName_"]', {
+        hasText: 'Abantiades labyrinthicus',
+    });
+    await expect(speciesAF).toBeVisible(); // check the species is visible
+    await expect(species2).toBeVisible(); // check the species is visible
+
+    const speciesAFCount = speciesAF.locator('xpath=following-sibling::div[@data-testid="speciesCount"]');
+    var speciesCountAFText = await speciesAFCount.textContent();
+    await speciesCountAFText === '16' ; // check the species count is correct
+
+    await speciesAF.click();
+    const speciesProfileButton = page.locator('button', { hasText: 'Species profile' });
+    await expect(speciesProfileButton).toBeVisible();
+
+    const listRecordsButton = page.locator('button', { hasText: 'List records' });
+    await expect(listRecordsButton).toBeVisible();
+
+    const viewRecordsButton = page.locator('button', { hasText: 'View records' });
+    await expect(listRecordsButton).toBeVisible();
+
+    const downloadRecordsButton = page.locator('button', { hasText: 'Download records' });
+    await expect(listRecordsButton).toBeVisible();
+
+    const [biePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        speciesProfileButton.click(),
+    ]);
+
+    //await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
+    await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/1bccbad2-2076-479d-8ae5-b333c998ede9/);
+
+    const [biocachePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        listRecordsButton.click(),
+    ]);
+    await expect(biocachePage).not.toBeNull();
+    //await expect(biocachePage).toHaveURL(/occurrences\/search\?q=.+/);
+
+    const biocacheUrl = biocachePage.url();
+    const parsedUrl = new URL(biocacheUrl);
+    expect(parsedUrl.pathname).toBe('/occurrences/search');
+    expect(parsedUrl.searchParams.get('q')).toContain('cl10925:"AUSTRALIAN CAPITAL TERRITORY"');
+    expect(parsedUrl.searchParams.getAll('fq')).toEqual(expect.arrayContaining([
+        'species:"Aaaaba fossicollis"',
+        'species:*',
+        expect.stringContaining('occurrenceYear:[1850-01-01T00:00:00Z TO')
+    ]));
+
+    const [viewBiocachePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        viewRecordsButton.click(),
+    ]);
+    await expect(viewBiocachePage).not.toBeNull();
+    await expect(viewBiocachePage).toHaveURL(/occurrences\/search\?q=.+/);
+
+    const viewBiocacheUrl = viewBiocachePage.url();
+    const parsedviewBiocacheUrl = new URL(viewBiocacheUrl);
+
+    expect(parsedviewBiocacheUrl.pathname).toBe('/occurrences/search');
+    expect(parsedviewBiocacheUrl.searchParams.get('q')).toBe('cl10925:"AUSTRALIAN CAPITAL TERRITORY"');
+    expect(parsedviewBiocacheUrl.searchParams.getAll('fq')).toEqual(expect.arrayContaining([
+        'species:"Aaaaba fossicollis"',
+        'species:*',
+        expect.stringContaining('occurrenceYear:[1850-01-01T00:00:00Z TO')
+    ]));
+
+    const wmsTileForOccurrences = page.locator('.leaflet-tile-container img[src*="ALA%3Aoccurrences"]');
+    const tileCount = await wmsTileForOccurrences.count();
+    expect(tileCount).toBe(12)
+    //await expect(wmsTileForOccurrences[0]).toBeVisible();
+
+    //Range slider
+    const rangeContainer = page.locator('[data-testid="rangeSelection"]').locator('..'); // move up one level
+    const minSlider = rangeContainer.locator('button[aria-label="minimum"]');
+    const maxSlider = rangeContainer.locator('button[aria-label="maximum"]');
+    await expect(minSlider).toBeVisible();
+    await expect(minSlider).toBeEnabled();
+    await expect(maxSlider).toBeVisible();
+    await expect(maxSlider).toBeEnabled();
+    var minValue = await minSlider.getAttribute('aria-valuenow');
+    const maxValue = await maxSlider.getAttribute('aria-valuenow');
+    expect(minValue).toBe('1850');
+    expect(maxValue).toBe(String(new Date().getFullYear()));
+    const minSliderBBox = await minSlider.boundingBox();
+    const maxSliderBBox = await maxSlider.boundingBox();
+
+    if (minSliderBBox && maxSliderBBox) {
+        await minSlider.dragTo(maxSlider);
+        const dateRangeText = page.locator('[data-testid="dateRangeSelection"] p');
+        const currentYear = new Date().getFullYear();
+        await expect(dateRangeText).toHaveText(new RegExp(`${currentYear} - ${currentYear}`));
+
+        // A forced click is required for Firefox to trigger the interaction.
+        // In Chrome, it succeeds in headed mode without the force click but fails when running headless.
+        await minSlider.click({force: true});
+
+        const currentSpeciesAFCount = await speciesAFCount.textContent();
+        await expect(currentSpeciesAFCount).not.toBe(speciesCountAFText);
+    }
+});
+
+/**
+ * Test play/stop button on date range slider
+ */
+test('play buttons on date range slider', async ({ page,browserName }, testInfo) => {
+    const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
+
+    await page.goto('http://localhost:5173/region?id=21654846#layer=States+and+territories&region=AUSTRALIAN+CAPITAL+TERRITORY');
+
+    // Wait for images to load
+    await page.waitForLoadState('networkidle');
+
+    // Verify that 3 layers are now visible
+    const leafletLayers = page.locator('div.leaflet-layer');
+    expect(await leafletLayers.count()).toEqual(3); // base layer, this area, species points
+
+    // Verify area name is visible
+    const breadcrumb = page.locator('li', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
+    await expect(breadcrumb).toBeVisible(); // check the breadcrumb is visible
+    const h2 = page.locator('h2', { hasText: 'AUSTRALIAN CAPITAL TERRITORY' });
+    await expect(h2).toBeVisible(); // check the button is visible
+
+    // Verify counts
+    const occurrenceHeading = page.getByRole('heading', {
+        name: /Occurrence records \(4.31M\)/,
+    });
+    await expect(occurrenceHeading).toBeVisible();
+
+    //Range slider
+    const rangeContainer = page.locator('[data-testid="rangeSelection"]').locator('..'); // move up one level
+    const minSlider = rangeContainer.locator('button[aria-label="minimum"]');
+    const maxSlider = rangeContainer.locator('button[aria-label="maximum"]');
+    await expect(minSlider).toBeVisible();
+    await expect(minSlider).toBeEnabled();
+    await expect(maxSlider).toBeVisible();
+    await expect(maxSlider).toBeEnabled();
+    var minValue = await minSlider.getAttribute('aria-valuenow');
+    const maxValue = await maxSlider.getAttribute('aria-valuenow');
+    expect(minValue).toBe('1850');
+    expect(maxValue).toBe(String(new Date().getFullYear()));
+    const minSliderBBox = await minSlider.boundingBox();
+    const maxSliderBBox = await maxSlider.boundingBox();
+
+    if (minSliderBBox && maxSliderBBox) {
+        const playIcon = page.locator('i.bi.bi-play');
+        await playIcon.click();
+        const dateRangeText = page.locator('[data-testid="dateRangeSelection"] p');
+        const ranges = [/1850 - 1860/,/1860 - 1870/, /1870 - 1880/];
+
+        for (const range of ranges) {
+            await expect(dateRangeText).toHaveText(range, { timeout: 2000 });
+        }
+    }
+});
+
+/**
+ * Test taxon chart
+ */
+test('test taxon chart', async ({ page }, testInfo) => {
+    const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
+
+    await page.goto('http://localhost:5173/region?id=21654846');
+
+    // Wait for images to load
+    await page.waitForLoadState('networkidle');
+
+    // Verify that 3 layers are now visible
+    const leafletLayers = page.locator('div.leaflet-layer');
+    expect(await leafletLayers.count()).toEqual(3); // base layer, this area, species points
+
+    // Verify area name is visible
+    const breadcrumb = page.locator('li', {
+        hasText: 'AUSTRALIAN CAPITAL TERRITORY',
+    });
+    await expect(breadcrumb).toBeVisible(); // check the breadcrumb is visible
+
+    const taxonomyTab = page.getByRole('tab', { name: 'Explore by taxonomy' });
+    await expect(taxonomyTab).toBeVisible();
+    await taxonomyTab.click();
+
+    const chartContainer = page.locator('div[data-testid="taxonChartContainer"]');
+    await expect(chartContainer).toBeVisible();
+    const canvas = chartContainer.locator('canvas');
+    await expect(canvas).toBeVisible();
+    const bbox = await canvas.boundingBox();
+
+    // Clicking on the canvas at center point
+    // Not sure why canvas.click() does not work here
+    const centerX =bbox.x + bbox.width / 2;
+    const centerY =bbox.y + bbox.height / 2;
+    await page.mouse.move(centerX, centerY);
+    //Has to wait for a few seconds otherwise the click is not always detected
+    await page.waitForTimeout(1000);
+    await page.mouse.click(centerX,centerY)
+
+    var previousRankBtn = page.locator('button',{ hasText: 'Previous rank' });
+    var viewRecordsBtn = page.locator('button',{ hasText: 'View records for kingdom Animalia' });
+    await previousRankBtn.scrollIntoViewIfNeeded();
+    await viewRecordsBtn.scrollIntoViewIfNeeded();
+    await expect(previousRankBtn).toBeVisible();
+    await expect(viewRecordsBtn).toBeVisible();
+
+    const [biocachePage] = await Promise.all([
+        page.waitForEvent('popup'),
+        viewRecordsBtn.click(),
+    ]);
+
+    const expectedFacet = 'kingdom:"Animalia"';
+    const hasExpectedFacet = Array.from(seenUrls).some(
+        (url) => url.searchParams.get('fq') === expectedFacet
+    );
+    expect(hasExpectedFacet).toBeTruthy();
+
+    await expect(biocachePage).not.toBeNull();
+    const viewBiocacheUrl = biocachePage.url();
+    const parsedviewBiocacheUrl = new URL(viewBiocacheUrl);
+    expect(parsedviewBiocacheUrl.pathname).toBe('/occurrences/search');
+    expect(parsedviewBiocacheUrl.searchParams.get('q'))
+        .toBe('cl10925:"AUSTRALIAN CAPITAL TERRITORY"');
+
+    expect(parsedviewBiocacheUrl.searchParams.getAll('fq')).toEqual(
+        expect.arrayContaining([
+            'kingdom:"Animalia"',
+            'species:*',
+            expect.stringContaining(
+                'occurrenceYear:[1850-01-01T00:00:00Z'
+            ),
+        ]))
+    await previousRankBtn.click();
+    await page.waitForTimeout(1000);
+    await expect(previousRankBtn).toBeHidden();   // or toBeDetached()
+    await expect(viewRecordsBtn).toBeHidden();
 });

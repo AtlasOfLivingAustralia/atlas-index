@@ -771,16 +771,21 @@ function Region({
         // need the taxonId first, do a biocache query to get it. Namematching service could also be used
         const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=${object.fid}:\"${encodeURIComponent(object.name)}\"&fq=species:\"${encodeURIComponent(species.label)}\"${occurrenceFq}${globalFq}${dateFq()}&pageSize=1`;
         fetch(url)
-            .then((response) => response.json())
+            .then((response) => {
+                    return response.json();
+                }
+            )
             .then((data) => {
                 if (data.occurrences && data.occurrences.length > 0) {
                     const taxonId = data.occurrences[0].taxonConceptID;
-
                     window.open(
                         import.meta.env.VITE_SPECIES_PAGE_URL + `${taxonId}`,
                         '_blank'
                     );
                 }
+            })
+            .catch((error) => {
+                  console.error('Error fetching or processing data:', error);
             });
     }
 
@@ -1052,7 +1057,7 @@ function Region({
                                                                                     species.label
                                                                                 }
                                                                             </div>
-                                                                            <div
+                                                                            <div data-testid="speciesCount"
                                                                                 style={{
                                                                                     float: 'right',
                                                                                 }}
@@ -1119,7 +1124,7 @@ function Region({
                                             eventKey="chart"
                                             title="Explore by taxonomy"
                                         >
-                                            <div
+                                            <div data-testid={'taxonChartContainer'}
                                                 className={
                                                     'mt-4 ' + styles.pieChart
                                                 }
@@ -1278,7 +1283,7 @@ function Region({
                                                     }
                                                 ></DualRangeSlider>
 
-                                                <div className="d-flex justify-content-center">
+                                                <div className="d-flex justify-content-center" data-testid="dateRangeSelection">
                                                     <p>
                                                         {yearRange[0]} -{' '}
                                                         {yearRange[1]}

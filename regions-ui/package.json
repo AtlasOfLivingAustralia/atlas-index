@@ -60,7 +60,7 @@
         "jest": "^30.0.3",
         "jest-environment-jsdom": "^30.0.2",
         "jest-transform-css": "^6.0.3",
-        "playwright": "^1.53.1",
+        "playwright": "^1.56.0",
         "postcss": "^8.5.6",
         "prettier": "^3.6.2",
         "ts-jest": "^29.4.0",
