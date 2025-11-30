@@ -308,8 +308,7 @@ Changes not specific to a single service
 - There is different encoding for "nameFormat" due to changes in the external dependendency `StringEscapeUtils`. Tested
   this HTML4 encoding and browsers display the difference in browser decoding.
 - "infoSourceURL" will now be empty when the collectory record is private. e.g. dr2699, dr2700.
-- "classification" may contain new values, or have the same values under a different key. TODO: what does ala-bie-hub do
-  with this?
+- "classification" may contain new values, or have the same values under a different key. 
     - bie-index will display only one `<rank>` or `<rank>Guid` when there are duplicates.
     - search-service will append a numerical suffix. E.g. "informal", "informal1", "informal2".
 - "imageIdentifier" may differ. The total count is similar. The mechanism to extract images from biocache-service has
@@ -350,16 +349,6 @@ Changes not specific to a single service
 
 - No change.
 
-### TODO: finish service comparison
-
-/search
-/imageSearch
-/download
-POST
-/ws/species/guids/bulklookup
-
-COMMON records have no image?
-
 # Additional names data
 
 Language `name` and `uri` information missing from the DwCA names index is done using the default resource
@@ -376,14 +365,3 @@ and [ISO-639 language codes](http://www.sil.org/iso639-3/) (2016-06-01).
   languageCode: { name: "languageName", uri: "languageUri" }
 }
 ```
-
-# Names index rematching
-A general outline of the full rematching process as it relates to updating the search-service is as follows:
-1. Create a new copy of the postgres database. It contains some names matching output that will be rematched.
-2. Create a new instance of search-service. 
-   - Configure for the new names index; e.g. the updated namematching service, lists service, biocache service.
-   - Use a new search-index name and admin-index name to prevent conflicts with the existing search-service.
-   - Use the new postgres database.
-3. Start the new search-service instance and run the task to rebuild the index.
-4. Run the internal rematching task. TODO: implement this admin task,
-5. Manually resolve any issues with the rematching. TODO: implement this admin UI for identifying and resolving issues.

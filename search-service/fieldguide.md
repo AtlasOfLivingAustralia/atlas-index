@@ -1,22 +1,26 @@
 # Fieldguide integration
 
-## Current state
-Fieldguide grails application is gsp pages on top of a service that generates a PDF when given a list of guids and sends an email when done.
+## Details
+API for generating fieldguide PDFs for a list of taxonConceptIDs. Can email a URL to a generated PDF to a user's email address.
+- Using Apache FOP to generate the PDF from a template.
+- Includes admin API to manage fieldguide requests. See admin-ui.
 
-## Future state
-- The same API, versioned as V1
-- A service that will queue PDF requests and send an email when done.
-- A service for admin to view the queue and cancel requests.
-- A service for users to view all of their requests and cancel them.
+## Migration
+Prior downloads are not migrated and will no longer be available. The old emails with URLs to these also contain URLs to recreate previously created PDFs as needed.
 
-## Progress
-- [x] Create a queue service.
-- [x] Add persistence to the queue service.
-- [x] Check for consumer failure and add orphaned tasks back into the queue.
-- [x] Generate a single PDF from a list of guids using a template.
-- [x] Add a service to add a request to the queue.
-- [x] Add the PDF generator consume from the queue.
-- [x] Put the PDF in the correct location.
-- [ ] Send an email when the PDF is ready.
-- [x] Legacy V1 API.
-- [ ] New V2 API.
+## Changes
+No change to the V1 API or the PDF produced.
+
+## Configuration
+Configuration options are in `application.properties`.
+- For fieldguide specific config use the properties `fieldguide.*` e.g. set `fieldguide.email.enabled=true` to send the completion notification email.
+- PDFs are saved to `download.filestore.path`. `application.properties` has details on configuring this and related properties, e.g. `download.s3.*` properties.
+
+## Development
+### PDF Template Customization
+The PDF templates are located in `src/main/resources/templates`. To customize the templates for your deployment or development:
+1. Clone the [templates](src/main/resources/templates) folder to a local directory.
+2. Configure `fieldguide.template.path` in `application.properties` to point to this local directory.
+3. Run the service and use the API to generate a test PDF to verify this is working. e.g generate a fieldguide PDF with admin-ui.
+4. Repeat "edit the template, generate a test PDF" until satisfied.
+

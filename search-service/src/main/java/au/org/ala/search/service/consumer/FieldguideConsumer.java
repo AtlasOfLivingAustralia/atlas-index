@@ -89,6 +89,9 @@ public class FieldguideConsumer {
     @Value("${fieldguide.email.subject.success}")
     public String emailSubjectSuccess;
 
+    @Value("${fieldguide.template.path}")
+    public String templatePath;
+
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     private String baseUrl;
 
@@ -245,16 +248,25 @@ public class FieldguideConsumer {
             String xmlData = xmlMapper.writeValueAsString(data);
 
             // Load template and configuration
-            Source xslt = new StreamSource(getClass().getResourceAsStream("/templates/fieldguide.xsl"));
-            InputStream confStream = getClass().getResourceAsStream("/templates/fop.xconf");
+            Source xslt;
+            InputStream confStream;
             DefaultConfigurationBuilder cfgBuilder = new DefaultConfigurationBuilder();
-            Configuration config = cfgBuilder.build(confStream);
+            Configuration config;
+            URL baseUrl;
 
-            // --- Fieldguide template development section ---
-            // Uncomment the following lines to reload template and config from the file system for live template changes.
-            // Source xslt = new StreamSource(new File("search-service/src/main/resources/templates/fieldguide.xsl"));
-            // InputStream confStream = new FileInputStream("search-service/src/main/resources/templates/fop.xconf");
-            // File pdfFile = new File("/data/fieldguide.pdf"); // static output path
+            if (StringUtils.isNotEmpty(templatePath)) {
+                // Performance: cache by default
+                log.debug("Fieldguide template path: {}", templatePath);
+                xslt = new StreamSource(new File(templatePath + "/fieldguide.xsl"));
+                confStream = new FileInputStream(templatePath + "/fop.xconf");
+                config = cfgBuilder.build(confStream);
+                baseUrl = new File(templatePath).toURI().toURL();
+            } else {
+                xslt = new StreamSource(getClass().getResourceAsStream("/templates/fieldguide.xsl"));
+                confStream = getClass().getResourceAsStream("/templates/fop.xconf");
+                config = cfgBuilder.build(confStream);
+                baseUrl = getClass().getResource("/templates/");
+            }
 
             Source xmlSource = new StreamSource(new StringReader(xmlData));
             OutputStream out = new BufferedOutputStream(new FileOutputStream(pdfFile));
@@ -264,7 +276,6 @@ public class FieldguideConsumer {
             // images as such.
 
             // Set up FOP
-            URL baseUrl = getClass().getResource("/templates/");
             ResourceResolver resolver = new InterruptibleResourceResolver(ResourceResolverFactory.createDefaultResourceResolver());
             FopFactoryBuilder builder = new FopFactoryBuilder(baseUrl.toURI(), resolver).setConfiguration(config);
             FopFactory fopFactory = builder.build();

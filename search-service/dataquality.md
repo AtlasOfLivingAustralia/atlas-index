@@ -1,6 +1,7 @@
 # Data Quality Service integration
 
 ## Details
+Data Quality Service provides APIs to retrieve quality profiles that define sets of filters to apply for biocache-search queries.
 - Admin API to edit the data.
 - Legacy V1 API.
 
