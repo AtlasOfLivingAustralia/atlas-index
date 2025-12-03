@@ -15,6 +15,7 @@ import classes from './view.module.css';
 interface HomeProps {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     isMobile: boolean;
+    breadcrumb: React.ReactNode;
 }
 
 /**
@@ -27,7 +28,7 @@ interface HomeProps {
  * @param setBreadcrumbs
  * @constructor
  */
-function Home({setBreadcrumbs, isMobile}: HomeProps) {
+function Home({setBreadcrumbs, isMobile, breadcrumb}: HomeProps) {
     const [page, setPage] = useState<number>(0);
     const [maxResults, setMaxResults] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
@@ -79,16 +80,11 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
     }
 
     return (
-        <div className='container-fluid' style={{marginTop: '-47px'}}>
+        <div className='container-fluid'>
             <div className={classes.headerLogo} style={{marginLeft: '-15px', marginRight: '-15px'}}>
-                <div style={{right: '0', marginTop: '12px', marginRight: '40px', zIndex: '1', position: 'absolute'}}>
-                    <a
-                        style={{}}
-                        className='btn btn-primary'
-                        onClick={() => {
-                            navigate('/myDownloads');
-                            window.scrollTo(0, 0);
-                        }}>
+                {breadcrumb}
+                <div style={{right: '0', marginRight: (isMobile ? '15px' : '40px'), position: 'absolute'}}>
+                    <a className='btn btn-primary' onClick={() => {navigate('/myDownloads');window.scrollTo(0, 0);}}>
                         My Downloads
                     </a>
                 </div>
@@ -245,23 +241,11 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
                 </div>
             }
 
-            <div className='row' style={{maxWidth: '1200px', margin: '0 auto', padding: '0 15px'}}>
-                <div style={{position: 'relative', marginTop: '60px', minHeight: '60px'}}>
-                    <span
-                        style={{
-                            position: 'absolute',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            color: '#212121',
-                            fontSize: '32px',
-                            lineHeight: '40px',
-                            fontWeight: '600',
-                            textAlign: 'center'
-                        }}>
-                        Recent DOIs
-                    </span>
+            <div className='row' style={{maxWidth: '1200px', margin: '0 auto', padding: (isMobile ? '0' : '0 15px')}}>
+                <div style={{marginTop: (isMobile ? '30px' : '60px'), color: '#212121', fontSize: '32px', lineHeight: '40px', fontWeight: '600', textAlign: 'center'}}>
+                    Recent DOIs
                 </div>
-                <div className='d-flex align-items-center flex-wrap gap-2' style={{marginTop: '20px'}}>
+                <div className='d-flex align-items-center flex-wrap gap-2' style={{marginTop: (isMobile ? '40px' : '20px')}}>
                     <span className={classes.resultsTitle}>Showing</span>
                     {maxResults > 0 && (
                         <span className={classes.resultsTitleBold}>
@@ -287,48 +271,50 @@ function Home({setBreadcrumbs, isMobile}: HomeProps) {
                         </div>
                     )}
                     {!loading && (
-                        <table className='table table-striped'
-                               style={{fontSize: '20px', lineHeight: '28px', color: '#212121'}}>
-                            <thead style={{fontWeight: 600}}>
-                            <tr>
-                                <th>DOI</th>
-                                <th style={{width: '100px'}}>Created</th>
-                                <th style={{width: '120px', textAlign: 'right'}}>Records</th>
-                                <th style={{width: '120px', textAlign: 'right'}}>Datasets</th>
-                            </tr>
-                            </thead>
-                            <tbody style={{cursor: 'pointer'}}>
-                            {recent &&
-                                recent.map((data, idx) => (
-                                    <tr
-                                        key={idx}
-                                        onClick={() => {
-                                            navigate(`/doi/${data.uuid}`);
-                                            window.scrollTo(0, 0);
-                                        }}
-                                        style={{height: '42px'}}>
-                                        <td
-                                            style={{
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                maxWidth: '400px'
-                                            }}>
-                                            {data.title}
-                                            <br/>
-                                            <span style={{color: '#888', fontSize: '16px'}}>
-                                                    {data.doi}
+                        <div style={{overflowX: 'auto', width: '100%'}}>
+                            <table className='table table-striped'
+                                   style={{fontSize: (isMobile ? '16px' : '20px'), lineHeight: (isMobile ? '24px' : '28px'), color: '#212121'}}>
+                                <thead style={{fontWeight: 600}}>
+                                <tr>
+                                    <th>DOI</th>
+                                    <th style={{width: (isMobile ? '' : '100px')}}>Created</th>
+                                    <th style={{width: (isMobile ? '' : '120px'), textAlign: 'right'}}>Records</th>
+                                    <th style={{width: (isMobile ? '' : '120px'), textAlign: 'right'}}>Datasets</th>
+                                </tr>
+                                </thead>
+                                <tbody style={{cursor: 'pointer'}}>
+                                {recent &&
+                                    recent.map((data, idx) => (
+                                        <tr
+                                            key={idx}
+                                            onClick={() => {
+                                                navigate(`/doi/${data.uuid}`);
+                                                window.scrollTo(0, 0);
+                                            }}
+                                            style={{height: '42px'}}>
+                                            <td
+                                                style={{
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    maxWidth: (isMobile ? '' : '400px')
+                                                }}>
+                                                {data.title}
                                                 <br/>
-                                                {data.description}
-                                                </span>
-                                        </td>
-                                        <td>{data.dateCreated ? new Date(data.dateCreated).toLocaleDateString() : ''}</td>
-                                        <td style={{textAlign: 'right'}}>{data.applicationMetadata?.recordCount ? new Intl.NumberFormat().format(Number(data.applicationMetadata?.recordCount)) : ''}</td>
-                                        <td style={{textAlign: 'right'}}>{data.applicationMetadata?.datasets?.length}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                                <span style={{color: '#888', fontSize: '16px'}}>
+                                                        {data.doi}
+                                                    <br/>
+                                                    {data.description}
+                                                    </span>
+                                            </td>
+                                            <td>{data.dateCreated ? new Date(data.dateCreated).toLocaleDateString() : ''}</td>
+                                            <td style={{textAlign: 'right'}}>{data.applicationMetadata?.recordCount ? new Intl.NumberFormat().format(Number(data.applicationMetadata?.recordCount)) : ''}</td>
+                                            <td style={{textAlign: 'right'}}>{data.applicationMetadata?.datasets?.length}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
 
                     <Pagination page={page} maxResults={maxResults} pageSize={pageSize}

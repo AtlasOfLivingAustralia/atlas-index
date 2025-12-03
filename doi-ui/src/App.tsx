@@ -95,14 +95,12 @@ export default function App() {
             <UserContext.Provider value={{ userInfo, setUserInfo }}>
                 <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper} headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} />
 
-                <Breadcrumbs breadcrumbs={breadcrumbs} />
-
                 <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE} />
 
                 <Routes>
-                    <Route path='/' element={<Home setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} />} />
-                    <Route path='/myDownloads' element={<MyDownloads setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} />} />
-                    <Route path='/doi/:entityUid*' element={<Doi setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} />} />
+                    <Route path='/' element={<Home setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />}/>} />
+                    <Route path='/myDownloads' element={<MyDownloads setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />} />} />
+                    <Route path='/doi/:entityUid*' element={<Doi setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />}/>} />
                     <Route path="*" element={<NotFoundWithBreadcrumbs setBreadcrumbs={setBreadcrumbs} />}/>
                 </Routes>
 

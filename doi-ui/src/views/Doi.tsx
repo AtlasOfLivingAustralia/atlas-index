@@ -16,6 +16,7 @@ interface DoiProps {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     isMobile: boolean;
     doi?: string;
+    breadcrumb: React.ReactNode;
 }
 
 /**
@@ -28,7 +29,7 @@ interface DoiProps {
  * @param setBreadcrumbs
  * @constructor
  */
-function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
+function Doi({setBreadcrumbs, isMobile, doi, breadcrumb}: DoiProps) {
     const [data, setData] = useState<null | DoiData>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
@@ -133,21 +134,15 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
     }
 
     return (
-        <div className='container-fluid' style={{marginTop: '-47px'}}>
+        <div className='container-fluid'>
             {!doi && (
                 <div className={classes.headerLogo} style={{marginLeft: '-15px', marginRight: '-15px'}}>
-                    {!isMobile &&
-                        <div style={{right: '0', marginTop: '12px', marginRight: '40px', zIndex: '1', position: 'absolute'}}>
-                            <a
-                                className='btn btn-primary'
-                                onClick={() => {
-                                    navigate('/myDownloads');
-                                    window.scrollTo(0, 0);
-                                }}>
-                                My Downloads
-                            </a>
-                        </div>
-                    }
+                    {breadcrumb}
+                    <div style={{right: '0', marginRight: (isMobile ? '15px' : '40px'), position: 'absolute'}}>
+                        <a className='btn btn-primary' onClick={() => { navigate('/myDownloads'); window.scrollTo(0, 0);}}>
+                            My Downloads
+                        </a>
+                    </div>
                     <div style={{maxWidth: '1200px', margin: '0 auto', padding: '0 15px'}}>
                         <div className='d-flex justify-content-center'>
                             <div style={{marginTop: '60px', marginBottom: '60px'}}>
@@ -183,7 +178,7 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
             )}
             {!loading && data && (
                 <div className='row'
-                     style={{maxWidth: '1200px', margin: '0 auto', padding: '0 15px', marginTop: '60px'}}>
+                     style={{maxWidth: '1200px', margin: '0 auto', padding: (isMobile ? '0 0px' : '0 15px'), marginTop: (isMobile ? '30px' : '60px')}}>
                     <div className='d-flex justify-content-center'>
                         {!loading && data && (
                             <>
@@ -251,13 +246,14 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
                                 className='table table-striped'
                                 style={{
                                     fontSize: isMobile ? '14px' : '16px',
-                                    lineHeight: isMobile ? '20px' : '24px'
+                                    lineHeight: isMobile ? '20px' : '24px',
+                                    width: '100%',
                                 }}>
                                 <thead>
                                 <tr>
-                                    <th style={{minWidth: '200px'}}>Name</th>
+                                    <th style={{minWidth: (isMobile ? '0px' : '200px')}}>Name</th>
                                     <th>Licence</th>
-                                    <th style={{width: '150px', textAlign: 'right'}}>Records</th>
+                                    <th style={{minWidth: (isMobile ? '0px' : '150px'), textAlign: 'right'}}>Records</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -265,9 +261,9 @@ function Doi({setBreadcrumbs, isMobile, doi}: DoiProps) {
                                     data.applicationMetadata.datasets &&
                                     data.applicationMetadata.datasets.map((item: any, idx: number) => (
                                         <tr key={idx}>
-                                            <td>{item.name}</td>
-                                            <td>{item.licence}</td>
-                                            <td style={{textAlign: 'right'}}>{new Intl.NumberFormat().format(Number(item.count))}</td>
+                                            <td style={{ overflowWrap: 'anywhere'}}>{item.name}</td>
+                                            <td style={{ overflowWrap: 'anywhere'}}>{item.licence}</td>
+                                            <td style={{ textAlign: 'right'}}>{new Intl.NumberFormat().format(Number(item.count))}</td>
                                         </tr>
                                     ))}
                                 </tbody>

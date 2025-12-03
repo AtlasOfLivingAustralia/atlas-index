@@ -14,6 +14,7 @@ import classes from './view.module.css';
 interface MyDownloadsProps {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
     isMobile: boolean;
+    breadcrumb: React.ReactNode;
 }
 
 type DownloadStatusDTO = {
@@ -39,7 +40,7 @@ type DownloadsMap = {
  * @param setBreadcrumbs
  * @constructor
  */
-function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
+function MyDownloads({setBreadcrumbs, isMobile, breadcrumb}: MyDownloadsProps) {
     const [page, setPage] = useState<number>(0);
     const [maxResults, setMaxResults] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
@@ -186,8 +187,9 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
     }
 
     return (
-        <div className='container-fluid' style={{marginTop: '-47px'}}>
+        <div className='container-fluid'>
             <div className={classes.headerLogo} style={{marginLeft: '-15px', marginRight: '-15px'}}>
+                {breadcrumb}
                 <div style={{maxWidth: '1200px', margin: '0 auto', padding: '0 40px'}}>
                     <div className='d-flex justify-content-center'>
                         <span
@@ -196,7 +198,7 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                                 lineHeight: '52px',
                                 fontWeight: '600',
                                 textAlign: 'center',
-                                marginTop: '60px',
+                                marginTop: '30px',
                                 marginBottom: '60px'
                             }}>
                             My Downloads
@@ -224,9 +226,9 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div style={{ width: '100%', overflowX: 'auto'}}>
                             <table className='table table-striped'
-                                   style={{fontSize: '20px', lineHeight: '28px', color: '#212121'}}>
+                                   style={{fontSize: (isMobile ? '16px' : '20px'), lineHeight: (isMobile ? '24px' : '28px'), color: '#212121'}}>
                                 <thead style={{fontWeight: 600}}>
                                 <tr>
                                     <th>Email</th>
@@ -313,8 +315,9 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                     )}
 
                     {!loading && maxResults > 0 && (<>
+                        <div style={{ width: '100%', overflowX: 'auto'}}>
                             <table className='table table-striped'
-                                   style={{fontSize: '20px', lineHeight: '28px', color: '#212121'}}>
+                                   style={{fontSize: (isMobile ? '16px' : '20px'), lineHeight: (isMobile ? '24px' : '28px'), color: '#212121'}}>
                                 <thead style={{fontWeight: 600}}>
                                 <tr>
                                     <th>Title</th>
@@ -362,11 +365,11 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                                     ))}
                                 </tbody>
                             </table>
-                            <Pagination page={page} maxResults={maxResults} pageSize={pageSize}
-                                        deepPagingMaxPage={deepPagingMaxPage} onPageChange={updatePage}
-                                        isMobile={isMobile}/>
-                        </>
-                    )}
+                        </div>
+                        <Pagination page={page} maxResults={maxResults} pageSize={pageSize}
+                                    deepPagingMaxPage={deepPagingMaxPage} onPageChange={updatePage}
+                                    isMobile={isMobile}/>
+                    </>)}
                 </div>
             </div>
             <div style={{height: '60px'}}></div>
@@ -422,7 +425,7 @@ function MyDownloads({setBreadcrumbs, isMobile}: MyDownloadsProps) {
                             </button>
                         </div>
                         <Doi doi={selectedDoi} setBreadcrumbs={function (_: Breadcrumb[]): void {
-                        }} isMobile={false}/>
+                        }} isMobile={false} breadcrumb={null}/>
                     </div>
                 </div>
             )}
