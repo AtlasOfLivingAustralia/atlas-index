@@ -107,7 +107,7 @@ test('basis of record, Most Recorded Species, Type Specimens etc', async ({ page
     await expect(page).toHaveTitle(/Dashboard \| Atlas of Living Australia/);
 
     for (const { title, expectedUrl, select} of widgetsWithExtra) {
-        console.log(`Testing widget: ${title}`);
+        //console.log(`Testing widget: ${title}`);
         const regexTitle = new RegExp(title);
         const panel = await findPanelByHeaderRegex(page, regexTitle);
         expect(panel, `Panel not found: ${regexTitle}`).toBeDefined();
@@ -119,17 +119,16 @@ test('basis of record, Most Recorded Species, Type Specimens etc', async ({ page
                 panel,
                 regexUrl
             );
-            console.log(` - Table click passed`);
+            //console.log(` - Table click passed`);
         }
 
         if (select) {
             const selectOptions = select.selectOptions;
             const expectedSelectedValuesInTable = select.expectedSelectedValuesInTable
             await testSelect(page,panel,selectOptions, expectedSelectedValuesInTable)
-            console.log(` - Selection passed`);
+            //console.log(` - Selection passed`);
         }
-
-        console.log(`✔ All passed`);
+        //console.log(`✔ All passed`);
     }
 });
 
