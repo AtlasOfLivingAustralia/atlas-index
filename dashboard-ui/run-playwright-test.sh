@@ -19,10 +19,7 @@ check_port 5173
 set -e
 
 echo "Building the project..."
-yarn run build
-
-#echo "Copy regionsList.json to dist"
-#cp ./tests/resources/regionsList.json ./dist/regionsList.json
+yarn run build:playwright
 
 # Start the app server in the background
 echo "Starting the app server..."
