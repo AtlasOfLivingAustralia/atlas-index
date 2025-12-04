@@ -154,7 +154,6 @@ public class QueryParserUtil {
                 currentOp.andOp = true;
             } else if ("-".equals(token)) {
                 // this should be the pattern '-(' only. When '(' is encountered this is checked in prevToken.
-                continue;
             } else {
                 if (currentTerm.field == null && (":".equals(prevToken) || ":".equals(token))) {
                     // field cannot equal ':' or appear immediately after ':'
