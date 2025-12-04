@@ -69,7 +69,9 @@ public class AuthController {
             return UserInfo.builder().authenticated(false).build();
         }
 
-        UserInfo userInfo = sessionAuthService.getTokenInfo(response, session, secret);
+        // get debug information in the cookie
+        String secretDebug = sessionAuthService.getSecretDebug(request);
+        UserInfo userInfo = sessionAuthService.getTokenInfo(response, session, secret, origin, secretDebug);
         if (userInfo == null) {
             return UserInfo.builder().authenticated(false).build();
         } else {
@@ -99,7 +101,8 @@ public class AuthController {
         }
 
         try {
-            String url = sessionAuthService.getLoginPath(response, session, path, sessionAuthService.getSecret(request));
+            String origin = "login";
+            String url = sessionAuthService.getLoginPath(response, session, path, sessionAuthService.getSecret(request), origin);
             if (url == null) {
                 log.warn("Failed to generate login path");
                 return ResponseEntity.status(500).build();
@@ -124,7 +127,8 @@ public class AuthController {
     ) {
         // return immediately if already logged in. No secret means not logged in.
         String secret = sessionAuthService.getSecret(request);
-        if (StringUtils.isNotEmpty(secret) && sessionAuthService.isSessionLoggedIn(response, session, secret)) {
+        String origin = "callback";
+        if (StringUtils.isNotEmpty(secret) && sessionAuthService.isSessionLoggedIn(response, session, secret, origin)) {
             HttpHeaders headers = new HttpHeaders();
             String returnPath = new String(Base64.getUrlDecoder().decode(state), StandardCharsets.UTF_8);
             headers.add("Location", returnPath);
@@ -133,13 +137,13 @@ public class AuthController {
 
         // create a new secret as this is a new login not a refresh
         try {
-            secret = sessionAuthService.generateAndSetSecret(response);
+            secret = sessionAuthService.generateAndSetSecret(response, origin);
         } catch (NoSuchAlgorithmException e) {
             log.error("Failed to generate session secret", e);
             return ResponseEntity.status(500).build();
         }
 
-        String returnPath = sessionAuthService.validateStateAndGetReturnPath(response, session, secret, code, state);
+        String returnPath = sessionAuthService.validateStateAndGetReturnPath(response, session, secret, code, state, origin);
         if (returnPath == null) {
             log.warn("Possibly invalid or expired state parameter: {}", state);
             return ResponseEntity.status(400).build();

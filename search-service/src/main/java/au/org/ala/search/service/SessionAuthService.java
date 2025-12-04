@@ -42,7 +42,9 @@ import java.util.Map;
 public class SessionAuthService {
 
     private static final String SESSION_SECRET_COOKIE = "session_secret";
+    private static final String SESSION_SECRET_DEBUG_COOKIE = "session_secret_debug";
     public static final String SESSION_AUTH_RESPONSE = "auth_response";
+    private static final String SESSION_AUTH_DEBUG = "token_debug";
     private static final String SESSION_AUTH_ERROR = "auth_error";
     private static final String PKCE_CODE_VERIFIER = "pkce_code_verifier";
     private static final String REDIRECT_PATH = "/callback?client_name=OidcClient"; // aligned with ala-security-project
@@ -95,6 +97,9 @@ public class SessionAuthService {
 
     @Value("${security.cookie.name}")
     private String SESSION_STATUS_COOKIE;
+
+    @Value("${security.cookie.debug}")
+    private boolean sessionCookieDebug;
 
     /**
      * COGNITO: use Cognito logout endpoint and parameters
@@ -303,6 +308,11 @@ public class SessionAuthService {
         // access token expiry time in millis
         savedResponse.put("expires_at", System.currentTimeMillis() + ((Number) tokenResponse.get("expires_in")).longValue() * 1000);
 
+        // debug info
+        if (sessionCookieDebug) {
+            savedResponse.put(SESSION_AUTH_DEBUG, secret.substring(0, 4) + "-" + System.currentTimeMillis());
+        }
+
         session.setAttribute(SESSION_AUTH_RESPONSE, savedResponse);
         session.removeAttribute(SESSION_AUTH_ERROR);
     }
@@ -315,7 +325,7 @@ public class SessionAuthService {
      * @param secret
      * @return UserInfo object with access token details and user info and authenticated=true, or authenticated=false if not logged in
      */
-    public UserInfo getTokenInfo(HttpServletResponse response, HttpSession session, String secret) {
+    public UserInfo getTokenInfo(HttpServletResponse response, HttpSession session, String secret, String origin, String secretDebug) {
         if (StringUtils.isEmpty(secret)) {
             log.warn("Missing session_secret cookie");
             return UserInfo.builder().authenticated(false).error((String) session.getAttribute(SESSION_AUTH_ERROR)).build();
@@ -332,9 +342,15 @@ public class SessionAuthService {
                 // token expired
                 String refreshToken = null;
                 try {
-                    refreshToken = CryptoUtil.decrypt((String) authResponse.get("refresh_token"), secret);
+                    refreshToken = (String) authResponse.get("refresh_token");
+                    if (refreshToken != null) {
+                        refreshToken = CryptoUtil.decrypt(refreshToken, secret);
+                    } else {
+                        log.info("Refresh token missing in session auth response");
+                    }
                 } catch (Exception e) {
-                    log.info("Failed to decrypt refresh token, possible race condition", e);
+                    log.info("Failed to decrypt refresh token, possible race condition; secretDebug: {}, tokenDebug: {}", secretDebug, authResponse.get(SESSION_AUTH_DEBUG), e);
+                    refreshToken = null;
                 }
 
                 if (refreshToken == null) {
@@ -353,7 +369,7 @@ public class SessionAuthService {
                 }
 
                 // rotate the secret
-                secret = generateAndSetSecret(response);
+                secret = generateAndSetSecret(response, origin);
 
                 // save the new tokens to the session
                 newTokens.put("refresh_token", refreshToken);
@@ -366,9 +382,15 @@ public class SessionAuthService {
             // decrypt access token, checking for invalid secret
             String accessToken = null;
             try {
-                accessToken = CryptoUtil.decrypt((String) authResponse.get("access_token"), secret);
+                accessToken = (String) authResponse.get("access_token");
+                if (accessToken != null) {
+                    accessToken = CryptoUtil.decrypt(accessToken, secret);
+                } else {
+                    log.info("Access token missing in session auth response");
+                }
             } catch (Exception e) {
-                log.info("Failed to decrypt access token, possible race condition. Secret: " + secret, e);
+                log.info("Failed to decrypt refresh token, possible race condition; secretDebug: {}, tokenDebug: {}", secretDebug, authResponse.get(SESSION_AUTH_DEBUG), e);
+                accessToken = null;
             }
 
             if (accessToken == null) {
@@ -415,9 +437,9 @@ public class SessionAuthService {
      * @return
      * @throws NoSuchAlgorithmException
      */
-    public String getLoginPath(HttpServletResponse response, HttpSession session, String path, String secret) throws NoSuchAlgorithmException {
+    public String getLoginPath(HttpServletResponse response, HttpSession session, String path, String secret, String origin) throws NoSuchAlgorithmException {
         // return immediately if already logged in. No secret means not logged in.
-        if (StringUtils.isNotEmpty(secret) && isSessionLoggedIn(response, session, secret)) {
+        if (StringUtils.isNotEmpty(secret) && isSessionLoggedIn(response, session, secret, origin)) {
             return path;
         }
 
@@ -443,8 +465,8 @@ public class SessionAuthService {
      * @param secret
      * @return true if logged in
      */
-    public boolean isSessionLoggedIn(HttpServletResponse response, HttpSession session, String secret) {
-        return session.getAttribute(SESSION_AUTH_RESPONSE) != null && getTokenInfo(response, session, secret).isAuthenticated();
+    public boolean isSessionLoggedIn(HttpServletResponse response, HttpSession session, String secret, String origin) {
+        return session.getAttribute(SESSION_AUTH_RESPONSE) != null && getTokenInfo(response, session, origin, secret, origin).isAuthenticated();
     }
 
     /**
@@ -498,11 +520,11 @@ public class SessionAuthService {
      * @param state
      * @return
      */
-    public String validateStateAndGetReturnPath(HttpServletResponse response, HttpSession session, String secret, String code, String state) {
+    public String validateStateAndGetReturnPath(HttpServletResponse response, HttpSession session, String secret, String code, String state, String origin) {
         String returnPath = new String(Base64.getUrlDecoder().decode(state), StandardCharsets.UTF_8);
 
         // check again if already logged in
-        if (isSessionLoggedIn(response, session, secret)) {
+        if (isSessionLoggedIn(response, session, secret, origin)) {
             return returnPath;
         }
 
@@ -579,12 +601,33 @@ public class SessionAuthService {
     }
 
     /**
+     * Get the session secret's debug information from the cookie.
+     *
+     * @param request
+     * @return the secret, or null if not found
+     */
+    public String getSecretDebug(HttpServletRequest request) {
+        String secret = null;
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie cookie : cookies) {
+                if (SESSION_SECRET_DEBUG_COOKIE.equals(cookie.getName())) {
+                    secret = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        return secret;
+    }
+
+    /**
      * Create a new session secret, store in a cookie and return it.
      *
      * @param response
      * @return
      */
-    public String generateAndSetSecret(HttpServletResponse response) throws NoSuchAlgorithmException {
+    public String generateAndSetSecret(HttpServletResponse response, String origin) throws NoSuchAlgorithmException {
         String secret = Base64.getUrlEncoder().withoutPadding().encodeToString(SecureRandom.getInstanceStrong().generateSeed(32));
         Cookie secretCookie = new Cookie(SESSION_SECRET_COOKIE, secret);
         secretCookie.setHttpOnly(true);
@@ -603,6 +646,19 @@ public class SessionAuthService {
         statusCookie.setMaxAge(loginMaxAge * 24 * 60 * 60); // should be at least as long as the refresh token validity
         if (StringUtils.isNotEmpty(cookieDomain)) {
             statusCookie.setDomain(cookieDomain);
+        }
+        response.addCookie(statusCookie);
+
+        // set the debug cookie
+        if (sessionCookieDebug) {
+            Cookie debugCookie = new Cookie(SESSION_SECRET_DEBUG_COOKIE, secret.substring(0, 4) + '-' + System.currentTimeMillis() + '-' + URLEncoder.encode(origin, StandardCharsets.UTF_8));
+            debugCookie.setHttpOnly(false);
+            debugCookie.setPath("/");
+            debugCookie.setMaxAge(loginMaxAge * 24 * 60 * 60);
+            if (StringUtils.isNotEmpty(cookieDomain)) {
+                debugCookie.setDomain(cookieDomain);
+            }
+            response.addCookie(debugCookie);
         }
 
         return secret;
@@ -628,6 +684,19 @@ public class SessionAuthService {
         statusCookie.setMaxAge(0);
         if (StringUtils.isNotEmpty(cookieDomain)) {
             statusCookie.setDomain(cookieDomain);
+        }
+        response.addCookie(statusCookie);
+
+        // remove the debug cookie
+        if (!sessionCookieDebug) {
+            Cookie debugCookie = new Cookie(SESSION_SECRET_DEBUG_COOKIE, "");
+            debugCookie.setHttpOnly(false);
+            debugCookie.setPath("/");
+            debugCookie.setMaxAge(0);
+            if (StringUtils.isNotEmpty(cookieDomain)) {
+                debugCookie.setDomain(cookieDomain);
+            }
+            response.addCookie(debugCookie);
         }
     }
 
@@ -667,7 +736,8 @@ public class SessionAuthService {
             return path;
         }
 
-        UserInfo userInfo = getTokenInfo(response, session, secret);
+        String origin = request.getHeader("Origin");
+        UserInfo userInfo = getTokenInfo(response, session, secret, origin, getSecretDebug(request));
         if (!userInfo.isAuthenticated()) {
             // not logged in, just return the path
             return path;
