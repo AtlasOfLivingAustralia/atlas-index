@@ -78,7 +78,7 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 
                     // Now fetch the provider record
                     if (includeProviderRecord) {
-                        fetch("https://api.test.datacite.org/dois/" + id, {
+                        fetch(import.meta.env.VITE_DATACITE_API_URL + "/dois/" + id, {
                             method: 'GET'
                         }).then((response) => {
                             response.json().then((json) => {

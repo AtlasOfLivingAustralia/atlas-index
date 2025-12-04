@@ -42,7 +42,7 @@ function Biocache({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
 
     function fetchDownloads() {
         setDownloads(undefined);
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL_TMP + '/occurrences/offline/status/all', {
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/offline/status/all', {
             method: 'GET',
             headers: {
                 Authorization: 'Bearer ' + userInfo?.accessToken,
