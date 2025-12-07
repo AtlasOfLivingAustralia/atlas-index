@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {useEffect, useState} from "react";
 
 import {Breadcrumb, useUser} from '@ala/common-ui';
@@ -569,15 +575,15 @@ function Occurrence({setBreadcrumbs}: {
                             </div>
                         )}
                     </div>
-                    {/*<RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} />*/}
+                    <RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} />
 
-                    {/*<OccurrenceAssertions userAssertions={userAssertions} record={record} isCollectionAdmin={isCollectionAdmin} />*/}
+                    <OccurrenceAssertions userAssertions={userAssertions} record={record} isCollectionAdmin={isCollectionAdmin} />
 
-                    {/*<ReferencedPublications record={record}/>*/}
+                    <ReferencedPublications record={record}/>
 
-                    {/*<DataQualityOccurrence record={record} />*/}
+                    <DataQualityOccurrence record={record} />
 
-                    {/*<OutlierFeedback record={record} />*/}
+                    <OutlierFeedback record={record} />
 
                     <Duplication record={record} />
 

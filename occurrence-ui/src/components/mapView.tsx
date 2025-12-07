@@ -1,12 +1,11 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {
-    Circle,
-    FeatureGroup,
-    LayerGroup,
-    LayersControl,
     MapContainer,
-    Marker,
-    Popup,
-    Rectangle,
     TileLayer
 } from 'react-leaflet';
 import { FullscreenControl } from "react-leaflet-fullscreen";
@@ -25,7 +24,7 @@ interface MapViewProps {
     tab?: string
 }
 
-function MapView({queryString, dataQualityInfo, tab}: MapViewProps) {
+function MapView({tab}: MapViewProps) {
 
     const mapRef = useRef(null);
 

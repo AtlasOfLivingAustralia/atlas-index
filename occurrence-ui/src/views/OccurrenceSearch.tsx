@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import {Breadcrumb, useHashState} from "@ala/common-ui";
 import L, {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef} from "react";
