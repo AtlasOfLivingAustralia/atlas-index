@@ -413,9 +413,12 @@ public class DwCADenormaliseImportService {
                 if (variant.namePublishedIn != null) variantItem.put("namePublishedIn", variant.namePublishedIn);
                 if (variant.source != null) variantItem.put("source", variant.source);
 
-                DatasetInfo attribution = cache.attributionMap.getOrDefault(variant.datasetID, null);
-                if (attribution != null && attribution.datasetName != null)
-                    variantItem.put("datasetName", attribution.datasetName);
+                if (variant.datasetID != null) {
+                    DatasetInfo attribution = cache.attributionMap.getOrDefault(variant.datasetID, null);
+                    if (attribution != null && attribution.datasetName != null) {
+                        variantItem.put("datasetName", attribution.datasetName);
+                    }
+                }
                 variantData.add(variantItem);
             }
 
@@ -442,9 +445,12 @@ public class DwCADenormaliseImportService {
                 if (commonName.status != null) vern.put("status", commonName.status);
                 if (commonName.language != null) vern.put("language", commonName.language);
 
-                DatasetInfo attribution = cache.attributionMap.getOrDefault(commonName.datasetID, null);
-                if (attribution != null && attribution.datasetName != null)
-                    vern.put("datasetName", attribution.datasetName);
+                if (commonName.datasetID != null) {
+                    DatasetInfo attribution = cache.attributionMap.getOrDefault(commonName.datasetID, null);
+                    if (attribution != null && attribution.datasetName != null) {
+                        vern.put("datasetName", attribution.datasetName);
+                    }
+                }
 
                 vernacularData.add(vern);
             }
@@ -470,9 +476,12 @@ public class DwCADenormaliseImportService {
                     identifierItem.put("namePublishedIn", identifier.namePublishedIn);
                 if (identifier.source != null) identifierItem.put("source", identifier.source);
 
-                DatasetInfo attribution = cache.attributionMap.getOrDefault(identifier.datasetID, null);
-                if (attribution != null && attribution.datasetName != null)
-                    identifierItem.put("datasetName", attribution.datasetName);
+                if (identifier.datasetID != null) {
+                    DatasetInfo attribution = cache.attributionMap.getOrDefault(identifier.datasetID, null);
+                    if (attribution != null && attribution.datasetName != null) {
+                        identifierItem.put("datasetName", attribution.datasetName);
+                    }
+                }
 
                 identifierData.add(identifierItem);
             }
@@ -508,9 +517,12 @@ public class DwCADenormaliseImportService {
                     if (synonym.namePublishedIn != null) syn.put("namePublishedIn", synonym.namePublishedIn);
                     if (synonym.source != null) syn.put("source", synonym.source);
 
-                    DatasetInfo attribution = cache.attributionMap.getOrDefault(synonym.datasetID, null);
-                    if (attribution != null && attribution.datasetName != null)
-                        syn.put("datasetName", attribution.datasetName);
+                    if (synonym.datasetID != null) {
+                        DatasetInfo attribution = cache.attributionMap.getOrDefault(synonym.datasetID, null);
+                        if (attribution != null && attribution.datasetName != null) {
+                            syn.put("datasetName", attribution.datasetName);
+                        }
+                    }
 
                     synonymData.add(syn);
                 }

@@ -281,7 +281,7 @@ public class DwCAImportRunner {
                         StringUtils.isNotEmpty(language) ? language : commonNameDefaultLanguage);
         vernacularName = capitaliser.capitalise(vernacularName);
 
-        DatasetInfo attribution = attributionMap.getOrDefault(datasetID, null);
+        DatasetInfo attribution = datasetID != null ? attributionMap.getOrDefault(datasetID, null) : null;
 
         String id = UUID.randomUUID().toString();
 
@@ -368,7 +368,7 @@ public class DwCAImportRunner {
         String provenance = core.value(DcTerm.provenance);
         String[] provenanceList = StringUtils.isEmpty(provenance) ? null : provenance.split("\\|");
 
-        DatasetInfo attribution = attributionMap.getOrDefault(datasetID, null);
+        DatasetInfo attribution = datasetID != null ? attributionMap.getOrDefault(datasetID, null) : null;
 
         String id = UUID.randomUUID().toString();
 
@@ -479,7 +479,7 @@ public class DwCAImportRunner {
             }
         }
 
-        DatasetInfo attribution = attributionMap.getOrDefault(datasetID, null);
+        DatasetInfo attribution = datasetID != null ? attributionMap.getOrDefault(datasetID, null) : null;
 
         // fetch the id created when caching
         String id = UUID.randomUUID().toString();
