@@ -370,18 +370,23 @@ public class Merge {
             Element sectionElement = doc.selectFirst("section");
             StringBuilder sb = new StringBuilder();
             if (sectionElement != null) {
-                List<Element> paragraphs = sectionElement.select("p");
-                for (Element paragraph : paragraphs) {
-                    sanitizeHtml(paragraph);
+                sb.append(processSectionElement(sectionElement));
+            }
 
-                    if (!paragraph.text().trim().isEmpty()) {
-                        sb.append(paragraph.html());
-                    }
+            // fallback, next try the 2nd section
+            if (sb.length() == 0) {
+                sectionElement = doc.select("section").size() > 1 ? doc.select("section").get(1) : null;
+                if (sectionElement != null) {
+                    sb.append(processSectionElement(sectionElement));
                 }
             }
 
+            // log if no content found
             if (sb.length() == 0) {
-                return null;
+                if (errorLog != null) {
+                    errorLog.writeNext(new String[]{"no content found", guid, wikipediaUrl + title, genus, family, order, clazz, phylum, kingdom, outputFile.getPath()});
+                }
+                return null; // no content found in the expected structure
             }
 
             Map item = new HashMap();
@@ -415,5 +420,20 @@ public class Merge {
                 list.add(child);
             }
         }
+    }
+
+    String processSectionElement(Element sectionElement) {
+        StringBuilder sb = new StringBuilder();
+
+        List<Element> paragraphs = sectionElement.select("p");
+        for (Element paragraph : paragraphs) {
+            sanitizeHtml(paragraph);
+
+            if (!paragraph.text().trim().isEmpty()) {
+                sb.append(paragraph.html());
+            }
+        }
+
+        return sb.toString();
     }
 }

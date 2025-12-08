@@ -331,7 +331,7 @@ public class FetchData {
 
         // get a list of all previously downloaded files, recursively through directories, one level deep
         Map<String, File> existingFiles = new HashMap<>();
-        File[] files = new File(descriptionsTmp).listFiles();
+        File[] files = new File(descriptionsTmp + "/wikipedia").listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".html")) {
                 existingFiles.put(file.getName().replace(".html", ""), file);
