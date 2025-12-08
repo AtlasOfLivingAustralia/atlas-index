@@ -61,12 +61,16 @@ function StatusView({result, isMobile}: MapViewProps) {
             } else if (key.startsWith('conservation_')) {
                 let listId = key.replace('conservation_', '');
                 let item: ConservationItem = conservation[listId];
-                if (!item) {
-                    item = {};
-                    conservation[listId] = item;
+                let status = result[key];
+                let name = listNames[listId];
+                if (status && name) {
+                    if (!item) {
+                        item = {};
+                        conservation[listId] = item;
+                    }
+                    item['status'] = status;
+                    item['name'] = name;
                 }
-                item['status'] = result[key];
-                item['name'] = listNames[listId];
             }
         });
 
