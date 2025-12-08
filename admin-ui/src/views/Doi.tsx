@@ -21,7 +21,7 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
 
     const [loading, setLoading] = useState(true);
     const [doiList, setDoiList] = useState<any[]>([]);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [maxResults, setMaxResults] = useState(0);
     const pageSize = 100;
 
@@ -42,7 +42,7 @@ function Doi({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void;
         setLoading(true);
         setDoiList([]);
         // Fetch recent DOIs from the server
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v1/doi?offset=' + ((page - 1) * pageSize) + '&max=' + pageSize + "&sort=dateCreated&order=desc", {
+        fetch(import.meta.env.VITE_APP_BIE_URL + '/v1/doi?offset=' + (page * pageSize) + '&max=' + pageSize + "&sort=dateCreated&order=desc", {
             method: 'GET'
         }).then((response) => {
             response.json().then((json) => {
