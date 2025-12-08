@@ -338,6 +338,7 @@ public class SessionAuthService {
         try {
             Map<String, Object> authResponse = (Map<String, Object>) session.getAttribute(SESSION_AUTH_RESPONSE);
             long expiresAt = (Long) authResponse.get("expires_at");
+            boolean refreshed = false; // for debugging
             if (System.currentTimeMillis() > expiresAt - 60000) { // 1 minute offset
                 // token expired
                 String refreshToken = null;
@@ -372,11 +373,16 @@ public class SessionAuthService {
                 secret = generateAndSetSecret(response, origin);
 
                 // save the new tokens to the session
-                newTokens.put("refresh_token", refreshToken);
+                if (!newTokens.containsKey("refresh_token")) {
+                    newTokens.put("refresh_token", refreshToken); // reuse old refresh token if not rotated
+                }
                 saveJWTToSession(newTokens, session, secret);
 
                 // re-read the auth response that is encrypted with the new secret
                 authResponse = (Map<String, Object>) session.getAttribute(SESSION_AUTH_RESPONSE);
+
+                // indicate that a refresh occurred
+                refreshed = true;
             }
 
             // decrypt access token, checking for invalid secret
@@ -389,7 +395,7 @@ public class SessionAuthService {
                     log.info("Access token missing in session auth response");
                 }
             } catch (Exception e) {
-                log.info("Failed to decrypt refresh token, possible race condition; secretDebug: {}, tokenDebug: {}", secretDebug, authResponse.get(SESSION_AUTH_DEBUG), e);
+                log.info("Failed to decrypt refresh token, possible race condition; secretDebug: {}, tokenDebug: {}, wasRefreshed: {}", secretDebug, authResponse.get(SESSION_AUTH_DEBUG), refreshed, e);
                 accessToken = null;
             }
 
