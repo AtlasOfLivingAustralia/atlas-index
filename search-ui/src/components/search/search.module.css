@@ -252,7 +252,7 @@
 .tileNoImage::after {
     content: '';
     position: absolute;
-    bottom: 10px;
+    bottom: 24px;
     left: 0;
     right: 0;
     height: 30px;
