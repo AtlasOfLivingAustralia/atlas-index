@@ -260,6 +260,14 @@
     z-index: 1;
 }
 
+@media (max-width: 768px) {
+    .tile::after,
+    .tileNoImage::after {
+        bottom: 10px;
+    }
+}
+
+
 .tile img {
     border-radius: 10px 10px 0px 0px;
 }
