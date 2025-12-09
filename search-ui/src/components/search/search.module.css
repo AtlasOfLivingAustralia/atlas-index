@@ -568,12 +568,44 @@
     }
 }
 
-.listItemImage {
-    width: 62px;
-    height: 62px;
+.listItemImageDiv {
+    min-width: 62px;
+    min-height: 62px;
+    text-align: center;
+}
+
+.listItemImageRounded {
+    max-width: 62px;
+    max-height: 62px;
     border-radius: 5px;
     object-fit: contain;
     object-position: top;
+    display: inline-block;
+}
+
+.listItemImageCoverRounded {
+    border-radius: 5px;
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
+    object-position: top;
+    display: inline-block;
+}
+
+.listItemImagePlain {
+    max-width: 62px;
+    max-height: 62px;
+    object-fit: contain;
+    object-position: top;
+    display: inline-block;
+}
+
+.listItemImageCover {
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
+    object-position: top;
+    display: inline-block;
 }
 
 .refineResultsBtn {

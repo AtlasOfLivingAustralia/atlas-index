@@ -222,7 +222,7 @@ export const speciesDefn: GenericViewProps = {
 
     renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageCoverRounded} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/></div>,
             title: <>
                 {item.nameFormatted && (
                     <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
@@ -261,7 +261,7 @@ export const speciesDefn: GenericViewProps = {
 
     renderTileItemFn: ({item, isMobile, navigate}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} isMobile={isMobile}/>,
+            image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} fit={'cover'} isMobile={isMobile}/>,
             title: <>
                 {item.nameFormatted && (
                     <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>

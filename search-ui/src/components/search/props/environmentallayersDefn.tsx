@@ -110,8 +110,7 @@ export const environmentallayersDefn: GenericViewProps = {
 
     renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
-                                missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageRounded} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <span className={classes.listItemName}>{item.name}</span>,
             extra: <>
                 <span className={classes.overflowText} title={item.keywords}>
@@ -134,7 +133,7 @@ export const environmentallayersDefn: GenericViewProps = {
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            image: <TileImage image={item.image} fit={'contain'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '8px'}}>
                     {item.name}

@@ -24,8 +24,7 @@ export const articlesDefn: GenericViewProps = {
 
     renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
-                                missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageCoverRounded} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <span className={classes.listItemName}>{item.name}</span>,
             extra: <span className={classes.overflowText}>{item.classification1}</span>,
             description: <span className={classes.listDescription} title={item.description}>
@@ -41,7 +40,7 @@ export const articlesDefn: GenericViewProps = {
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            image: <TileImage image={item.image} fit={'cover'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '8px'}}>
                     {item.name}

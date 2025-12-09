@@ -58,11 +58,12 @@ const renderGenericTileItemFn = (isMobile: boolean, elements: RenderItemElements
     </div>;
 };
 
-const TileImage = ({image, isMobile,}: { image: string | undefined; isMobile: boolean; }) => {
+const TileImage = ({image, fit, isMobile}: { image: string | undefined; fit: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' | undefined; isMobile: boolean; }) => {
+    const objectFit = image ? (fit ? fit : 'contain') : 'cover';
     return <FadeInImage
         height={isMobile ? 100 : 150}
         width={isMobile ? '80px' : '100%'}
-        style={{objectFit: image ? 'contain' : 'cover'}}
+        style={{objectFit: objectFit}}
         onError={(e) => {
             (e.target as HTMLImageElement).style.objectFit = 'cover';
             (e.target as HTMLImageElement).style.objectPosition = 'inherit';

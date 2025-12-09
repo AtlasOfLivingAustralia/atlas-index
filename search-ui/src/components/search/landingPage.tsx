@@ -16,7 +16,7 @@ function LandingPage({isMobile}: { isMobile: boolean }) {
 
     function renderTileItemFn({item, isMobile}: RenderItemParams){
         const elements: RenderItemElements = {
-            image: <TileImage image={item.imageUrl} isMobile={isMobile}/>,
+            image: <TileImage image={item.imageUrl} fit={'cover'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '8px'}}>
                     {item.title}

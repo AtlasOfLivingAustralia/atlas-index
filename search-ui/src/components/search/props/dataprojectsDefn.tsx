@@ -69,8 +69,7 @@ export const dataprojectsDefn: GenericViewProps = {
 
     renderListItemFn: ({item, navigate, wide, isMobile,}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
-                                missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImagePlain} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <>
                 <span className={classes.listItemName}>{item.name}</span>
                 <span className={classes.multilineText}>
@@ -99,7 +98,7 @@ export const dataprojectsDefn: GenericViewProps = {
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            image: <TileImage image={item.image} fit={'contain'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '13px'}}>
                     {item.name}
