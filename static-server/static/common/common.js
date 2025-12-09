@@ -33,8 +33,7 @@
         document.head.appendChild(script);
     }
 
-    // Fathom is not enabled in this environment
-    // loadFathom();
+    loadFathom();
 
     loadFreshdeskWidget();
 })();
