@@ -18,10 +18,11 @@ const manualEventFields = new Set("datasetName,eventID,parentEventID,eventHierar
 const manualTaxonomyFields = new Set("higherClassification,taxonConceptID,scientificName,originalNameUsage,originalNameUsageID,taxonRank,taxonRankID,vernacularName,kingdom,kingdomID,phylum,phylumID,classs,classID,order,orderID,family,familyID,genus,genusID,species,speciesID,specificEpithet,associatedTaxa".split(","));
 const manualLocationFields = new Set("higherGeography,country,stateProvince,lga,locality,ibra,habitat,decimalLatitude,decimalLongitude,geodeticDatum,verbatimCoordinateSystem,verbatimLocality,waterBody,minimumDepthInMeters,maximumDepthInMeters,minimumElevationInMeters,maximumElevationInMeters,island,islandGroup,locationRemarks,fieldNotes,coordinatePrecision,coordinateUncertaintyInMeters,generalisedInMetres,informationWithheld,georeferenceVerificationStatus,georeferenceSources,georeferenceProtocol,georeferencedBy".split(","));
 
-function RecordCore({record, compareRecord, collectionInfo}: {
+function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: {
     record?: RecordResult,
     compareRecord?: CompareResult,
-    collectionInfo?: any
+    collectionInfo?: any,
+    setEventHierarchy: (hierarchy: string | undefined) => void
 }) {
     // tables to display
     const [datasetTable, setDatasetTable] = useState<InfoTableRow[]>([]);
@@ -79,6 +80,7 @@ function RecordCore({record, compareRecord, collectionInfo}: {
                 body: JSON.stringify({query})
             }).then(res => res.json()).then(hierarchyResponse => {
                 let hierarchy = hierarchyResponse?.eventSearch?.documents?.results?.eventTypeHierarchy[0];
+                setEventHierarchy(hierarchy);
                 createEventTable(data, hierarchy);
             });
         } else {
@@ -116,6 +118,7 @@ function RecordCore({record, compareRecord, collectionInfo}: {
                 if (!dwcExcludeFields.has(item.name) && !manualFields.has(item.name)) {
                     let tagBody = '';
                     let original = '';
+                    let originalUrl = undefined;
                     let lookup = intl.formatMessage({id: item.name, defaultMessage: 'DEFAULT_MESSAGE'});
                     if (lookup == 'DEFAULT_MESSAGE') lookup = '';
                     let label = lookup || camelCaseToHuman(item.name) || capitalize(item.name);
@@ -131,11 +134,13 @@ function RecordCore({record, compareRecord, collectionInfo}: {
                             id: 'recordcore.span03',
                             defaultMessage: 'Supplied as'
                         }) + ' "' + item.raw + '"';
+                        originalUrl = item?.raw?.match(/^https?:\/\//) ? item.raw : undefined;
                     }
                     table.push({
                         fieldCode: item.name, fieldName: label,
                         text: tagBody,
-                        original: original
+                        original: original,
+                        originalUrl: originalUrl
                     })
                 }
             }
@@ -182,8 +187,8 @@ function RecordCore({record, compareRecord, collectionInfo}: {
         datasetTable.push({
             fieldCode: "institutionCode", fieldName: "Institution",
             url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.processed?.attribution?.institutionUid}`,
-            text: data?.processed?.attribution?.institutionName || data?.processed?.attribution?.institutionUid,
-            original: data?.processed?.attribution?.institutionName && data?.raw?.occurrence?.institutionCode &&
+            text: data?.processed?.attribution?.institutionName,
+            original: data?.raw?.occurrence?.institutionCode &&
                 intl.formatMessage({
                     id: 'recordcore.span01',
                     defaultMessage: 'Supplied institution code'
@@ -194,7 +199,7 @@ function RecordCore({record, compareRecord, collectionInfo}: {
             fieldCode: "collectionCode", fieldName: "Collection",
             url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.processed?.attribution?.collectionUid}`,
             text: data?.processed?.attribution?.collectionName || collectionInfo?.collectionName || data?.processed?.attribution?.collectionUid,
-            original: data?.processed?.attribution?.collectionName && data?.raw?.occurrence?.collectionCode &&
+            original: data?.raw?.occurrence?.collectionCode &&
                 intl.formatMessage({
                     id: 'recordcore.span02',
                     defaultMessage: 'Supplied collection code'
@@ -203,7 +208,6 @@ function RecordCore({record, compareRecord, collectionInfo}: {
 
         datasetTable.push({
             fieldCode: "catalogNumber", fieldName: "Catalogue Number",
-            url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.processed?.attribution?.collectionUid}`,
             text: data?.processed?.occurrence?.catalogNumber || data?.raw?.occurrence?.catalogNumber,
             original: data?.processed?.occurrence?.catalogNumber && data?.raw?.occurrence?.catalogNumber &&
                 intl.formatMessage({
@@ -220,7 +224,7 @@ function RecordCore({record, compareRecord, collectionInfo}: {
         datasetTable.push({
             fieldCode: "occurrenceID", fieldName: "Occurrence ID",
             text: data?.processed?.occurrence?.occurrenceID || data?.raw?.occurrence?.occurrenceID,
-            url: (data?.processed?.occurrence?.occurrenceID || data?.raw?.occurrence?.occurrenceID)?.match(/^https?:\/\//) && data?.processed?.occurrence?.occurrenceID,
+            url: (data?.processed?.occurrence?.occurrenceID || data?.raw?.occurrence?.occurrenceID)?.match(/^https?:\/\//) && (data?.processed?.occurrence?.occurrenceID || data?.raw?.occurrence?.occurrenceID),
             original: data?.processed?.occurrence?.occurrenceID ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -274,7 +278,7 @@ function RecordCore({record, compareRecord, collectionInfo}: {
         datasetTable.push({
             fieldCode: "userId", fieldName: "User ID",
             text: data?.alaUserName || data?.raw?.occurrence?.recordedBy,
-            original: getLinkForUserId(data?.alaUserName || data?.raw?.occurrence?.recordedBy,
+            url: getLinkForUserId(data?.alaUserName || data?.raw?.occurrence?.recordedBy,
                 data?.raw?.occurrence?.userId, data?.raw?.attribution?.dataResourceUid,
                 data?.raw?.occurrence?.occurrenceID)
         });
@@ -904,16 +908,16 @@ function RecordCore({record, compareRecord, collectionInfo}: {
             <h3><FormattedMessage defaultMessage={'Dataset'} id={'recordcore.occurencedataset.title'}/></h3>
             <table className="occurrenceTable table table-bordered table-striped table-condensed" id="datasetTable">
                 <tbody>
-                    {datasetTable && datasetTable.map((row: InfoTableRow, idx: number) =>
-                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                            text={row.text} url={row.url} original={row.original}
-                                            originalUrl={row.originalUrl}/>
-                    )}
-                    {datasetTableExtra && datasetTableExtra.map((row: InfoTableRow, idx: number) =>
-                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                            text={row.text} url={row.url} original={row.original}
-                                            originalUrl={row.originalUrl}/>
-                    )}
+                {datasetTable && datasetTable.map((row: InfoTableRow, idx: number) =>
+                    <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                        text={row.text} url={row.url} original={row.original}
+                                        originalUrl={row.originalUrl}/>
+                )}
+                {datasetTableExtra && datasetTableExtra.map((row: InfoTableRow, idx: number) =>
+                    <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                        text={row.text} url={row.url} original={row.original}
+                                        originalUrl={row.originalUrl}/>
+                )}
                 </tbody>
             </table>
         </div>
@@ -923,16 +927,16 @@ function RecordCore({record, compareRecord, collectionInfo}: {
                 <h3>Event</h3>
                 <table className="occurrenceTable table table-bordered table-striped table-condensed" id="eventTable">
                     <tbody>
-                        {eventTable && eventTable.map((row: InfoTableRow, idx: number) =>
-                            <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                                text={row.text} url={row.url} original={row.original}
-                                                originalUrl={row.originalUrl}/>
-                        )}
-                        {eventTableExtra && eventTableExtra.map((row: InfoTableRow, idx: number) =>
-                            <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                                text={row.text} url={row.url} original={row.original}
-                                                originalUrl={row.originalUrl}/>
-                        )}
+                    {eventTable && eventTable.map((row: InfoTableRow, idx: number) =>
+                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                            text={row.text} url={row.url} original={row.original}
+                                            originalUrl={row.originalUrl}/>
+                    )}
+                    {eventTableExtra && eventTableExtra.map((row: InfoTableRow, idx: number) =>
+                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                            text={row.text} url={row.url} original={row.original}
+                                            originalUrl={row.originalUrl}/>
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -943,16 +947,16 @@ function RecordCore({record, compareRecord, collectionInfo}: {
                 <h3>Taxonomy</h3>
                 <table className="occurrenceTable table table-bordered table-striped table-condensed" id="taxonomyTable">
                     <tbody>
-                        {taxonomyTable && taxonomyTable.map((row: InfoTableRow, idx: number) =>
-                            <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                                text={row.text} url={row.url} original={row.original}
-                                                originalUrl={row.originalUrl}/>
-                        )}
-                        {taxonomyTableExtra && taxonomyTableExtra.map((row: InfoTableRow, idx: number) =>
-                            <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                                text={row.text} url={row.url} original={row.original}
-                                                originalUrl={row.originalUrl}/>
-                        )}
+                    {taxonomyTable && taxonomyTable.map((row: InfoTableRow, idx: number) =>
+                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                            text={row.text} url={row.url} original={row.original}
+                                            originalUrl={row.originalUrl}/>
+                    )}
+                    {taxonomyTableExtra && taxonomyTableExtra.map((row: InfoTableRow, idx: number) =>
+                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                            text={row.text} url={row.url} original={row.original}
+                                            originalUrl={row.originalUrl}/>
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -963,16 +967,16 @@ function RecordCore({record, compareRecord, collectionInfo}: {
                 <h3>Geospatial</h3>
                 <table className="occurrenceTable table table-bordered table-striped table-condensed" id="geospatialTable">
                     <tbody>
-                        {geospatialTable && geospatialTable.map((row: InfoTableRow, idx: number) =>
-                            <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                                text={row.text} url={row.url} original={row.original}
-                                                originalUrl={row.originalUrl}/>
-                        )}
-                        {geospatialTableExtra && geospatialTableExtra.map((row: InfoTableRow, idx: number) =>
-                            <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                                text={row.text} url={row.url} original={row.original}
-                                                originalUrl={row.originalUrl}/>
-                        )}
+                    {geospatialTable && geospatialTable.map((row: InfoTableRow, idx: number) =>
+                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                            text={row.text} url={row.url} original={row.original}
+                                            originalUrl={row.originalUrl}/>
+                    )}
+                    {geospatialTableExtra && geospatialTableExtra.map((row: InfoTableRow, idx: number) =>
+                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                            text={row.text} url={row.url} original={row.original}
+                                            originalUrl={row.originalUrl}/>
+                    )}
                     </tbody>
                 </table>
             </div>
@@ -983,11 +987,11 @@ function RecordCore({record, compareRecord, collectionInfo}: {
             <table className="occurrenceTable table table-bordered table-striped table-condensed"
                    id="miscellaneousPropertiesTable">
                 <tbody>
-                    {miscTable.map((row: InfoTableRow, idx: number) =>
-                        <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
-                                            text={row.text} url={row.url} original={row.original}
-                                            originalUrl={row.originalUrl}/>
-                    )}
+                {miscTable.map((row: InfoTableRow, idx: number) =>
+                    <OccurrenceTableRow key={idx} fieldCode={row.fieldCode} fieldName={row.fieldName} style={row.style}
+                                        text={row.text} url={row.url} original={row.original}
+                                        originalUrl={row.originalUrl}/>
+                )}
                 </tbody>
             </table>
         </div>

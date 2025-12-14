@@ -42,7 +42,7 @@ export const OccurrenceTableRow: React.FC<OccurrenceTableRowProps> = ({
                                                                       }) => {
     const intl: IntlShape = useIntl();
 
-    if (!text) {
+    if (!text && !original) {
         return null;
     }
 
@@ -61,22 +61,28 @@ export const OccurrenceTableRow: React.FC<OccurrenceTableRowProps> = ({
     let sanitizedText = sanitizeBodyText(plainText);
 
     // do not render empty rows
-    if (!plainText) {
+    if (!plainText && !original) {
         return null;
     }
 
-    return <tr id={fieldCode}>
-        <td className={`dwcLabel ${fieldCode}`}>
-            {formatFieldName(intl, fieldCode, fieldName)}
-        </td>
-        <td className="value" style={style}>
-            {plainUrl ? <a href={plainUrl}>{sanitizedText}</a> :
-                <span dangerouslySetInnerHTML={{__html: sanitizedText}}/>}
-            {original && <><br/>
-                {originalUrl ?
-                    <a href={originalUrl}><span className="originalValue">{original}</span></a> :
-                    <span className="originalValue">{original}</span>}
-            </>}
-        </td>
-    </tr>
+    return (
+        <tr id={fieldCode}>
+            <td className={`dwcLabel ${fieldCode}`}>{formatFieldName(intl, fieldCode, fieldName)}</td>
+            <td className='value' style={style}>
+                {plainUrl ? <a href={plainUrl}>{sanitizedText}</a> : <span dangerouslySetInnerHTML={{ __html: sanitizedText }} />}
+                {original && (
+                    <>
+                        {plainText && <br />}
+                        {originalUrl ? (
+                            <a href={originalUrl}>
+                                <span className='originalValue'>{original}</span>
+                            </a>
+                        ) : (
+                            <span className='originalValue'>{original}</span>
+                        )}
+                    </>
+                )}
+            </td>
+        </tr>
+    );
 };

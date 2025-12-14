@@ -4,17 +4,23 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect, useState} from "react";
+import { faFileCode } from '@fortawesome/free-regular-svg-icons';
+import React, {useEffect, useRef, useState} from "react";
 
-import {Breadcrumb, useUser} from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, useUser } from '@ala/common-ui';
+import { Overlay, Popover } from 'react-bootstrap';
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {RecordResult} from "../api/model.tsx";
 import DataQualityOccurrence from "../components/occurrence/dataQualityOccurrence.tsx";
 import Duplication from "../components/occurrence/duplication.tsx";
+import EnvironmentSampleInfo from '../components/occurrence/environmentalSampleInfo.tsx';
 import OccurrenceAssertions from "../components/occurrence/occurrenceAssertions.tsx";
+import OriginalVsProcessed from '../components/occurrence/originalVsProcessed.tsx';
 import OutlierFeedback from "../components/occurrence/outlierFeedback.tsx";
 import RecordCore from "../components/occurrence/recordCore.tsx";
+import RecordSidebar from '../components/occurrence/recordSidebar.tsx';
 import ReferencedPublications from "../components/occurrence/referencedPublications.tsx";
+import './occurrence.css';
 
 // TODO: move to external config files
 const vernacularName_show = true;
@@ -37,8 +43,11 @@ function Occurrence({setBreadcrumbs}: {
     const [currentOccurrenceIndex, setCurrentOccurrenceIndex] = useState<number | null>(null);
     const [totalRecords, setTotalRecords] = useState(0);
 
+    const [eventHierarchy, setEventHierarchy] = useState<any>(null);
+
     // modals state
     const [showCopyLinkModal, setShowCopyLinkModal] = useState(false);
+    const [showOriginalVsProcessed, setShowOriginalVsProcessed] = useState(false);
 
     const {userInfo} = useUser();
     const navigate = useNavigate();
@@ -180,10 +189,10 @@ function Occurrence({setBreadcrumbs}: {
             setRecord(data);
 
             // extra information for display
-            if (data.record?.processed?.attribution?.collectionUid) {
-                fetchCollectionInfo(data.record?.processed?.attribution?.collectionUid);
-            } else if (data?.record?.raw?.attribution?.dataResourceUid) {
-                fetchDataResourceInfo(data.record?.raw?.attribution?.dataResourceUid);
+            if (data?.processed?.attribution?.collectionUid) {
+                fetchCollectionInfo(data?.processed?.attribution?.collectionUid);
+            } else if (data?.raw?.attribution?.dataResourceUid) {
+                fetchDataResourceInfo(data?.raw?.attribution?.dataResourceUid);
             }
             getUserAssertions(fetchUuid);
 
@@ -274,7 +283,7 @@ function Occurrence({setBreadcrumbs}: {
 
     function fetchCollectionInfo(collectionUid: string) {
         // collectory info
-        fetch(import.meta.env.VITE_COLLECTORY_URL + '/lookup/summary/' + collectionUid, {
+        fetch(import.meta.env.VITE_APP_COLLECTORY_URL + '/lookup/summary/' + collectionUid, {
             method: 'GET'
         }).then(response => response.json())
             .then(data => {
@@ -288,7 +297,7 @@ function Occurrence({setBreadcrumbs}: {
         });
 
         // contact info
-        fetch(import.meta.env.VITE_COLLECTORY_URL + '/ws/collection/' + collectionUid + '/contact.json', {
+        fetch(import.meta.env.VITE_APP_COLLECTORY_URL + '/ws/collection/' + collectionUid + '/contact.json', {
             method: 'GET'
         }).then(response => response.json())
             .then(data => {
@@ -300,7 +309,7 @@ function Occurrence({setBreadcrumbs}: {
 
     function fetchDataResourceInfo(dataResourceUid: string) {
         // contact info
-        fetch(import.meta.env.VITE_COLLECTORY_URL + '/ws/dataResource/' + dataResourceUid + '/contact.json', {
+        fetch(import.meta.env.VITE_APP_COLLECTORY_URL + '/ws/dataResource/' + dataResourceUid + '/contact.json', {
             method: 'GET'
         }).then(response => response.json())
             .then(data => {
@@ -351,8 +360,41 @@ function Occurrence({setBreadcrumbs}: {
         return id;
     }
 
-    function setShowRawProcessedModal() {
-        alert("TODO: show raw vs processed modal");
+    function CopyTooltip({text, children}: { text: string, children: React.ReactNode }) {
+        const [show, setShow] = useState(false);
+        const target = useRef(null);
+
+        return (
+            <>
+                <span ref={target} style={{ cursor: 'pointer' }} onClick={() => {
+                    setShow(true);
+                    setTimeout(() => {setShow(false);}, 3000);
+                }}>
+                    {children}
+                </span>
+                <Overlay target={target.current} show={show} placement='top'>
+                    {props => (
+                        <Popover {...props} style={{ ...props.style }}>
+                            <Popover.Body>
+                                <div>{text}</div>
+                            </Popover.Body>
+                        </Popover>
+                    )}
+                </Overlay>
+            </>
+        );
+    }
+
+    function isUrl(value: string | undefined): boolean {
+        if (!value || !value.startsWith('http://') || !value.startsWith('https://')) {
+            return false;
+        }
+        try {
+            new URL(value);
+            return true;
+        } catch (_) {
+            return false;
+        }
     }
 
     if (!record) {
@@ -360,62 +402,66 @@ function Occurrence({setBreadcrumbs}: {
     }
 
     return (
-        <div className={"container-fluid"}>
-            <div>TEST {JSON.stringify(recordsViewProps, null, 2)}</div>
+        <div className={'container-fluid'} id={'main'}>
+        <div className={'container-fluid'} id={'main-content'}>
             {/*record.raw*/}
             {/*heading bar*/}
-            <div className="recordHeader clearfix" id="headingBar">
-                <div className="side left">
+            <div className='recordHeader clearfix' id='headingBar'>
+                <div className='side left'>
                     {collectionInfo?.collectionLogo && (
-                        <div className="sidebar">
-                            <img src={collectionInfo?.collectionLogo} alt="institution logo" id="institutionLogo"/>
+                        <div className='sidebar'>
+                            <img src={collectionInfo?.collectionLogo} alt='institution logo' id='institutionLogo' />
                         </div>
                     )}
                 </div>
-                <div className="side right">
-                    <div id="jsonLinkZ">
-                        {isCollectionAdmin() && (
-                            <span> - admin</span>
-                        )}
+                <div className='side right'>
+                    <div id='jsonLinkZ'>
+                        {isCollectionAdmin() && <span> - admin</span>}
                         {userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) && (
-                            <div id="clubView">
-                                <span className="label label-danger">
-                                    <i className="glyphicon glyphicon-lock"></i> Club View
+                            <div id='clubView'>
+                                <span className='label label-danger'>
+                                    <i className='glyphicon glyphicon-lock'></i> Club View
                                 </span>
                             </div>
                         )}
                     </div>
-                    <div className="pull-rightZ">
+                    <div className='pull-rightZ'>
                         {recordsViewProps && Object.keys(recordsViewProps).length > 0 && (
                             <>
-                                <span id="previousBtn">
-                                    <a href="#" title="Previous record"
-                                       className={`btn btn-default${isFirstRecord() ? " disabled" : ""}`}
-                                       onClick={() => {
-                                           prevOccurrenceIndex();
-                                       }}>
+                                <span id='previousBtn'>
+                                    <a
+                                        href='#'
+                                        title='Previous record'
+                                        className={`btn btn-default${isFirstRecord() ? ' disabled' : ''}`}
+                                        onClick={() => {
+                                            prevOccurrenceIndex();
+                                        }}>
                                         <span>
-                                            <i className="glyphicon glyphicon-arrow-left" style={{marginBottom: 5}}></i> Previous
+                                            <i className='glyphicon glyphicon-arrow-left' style={{ marginBottom: 5 }}></i> Previous
                                         </span>
                                     </a>
                                 </span>
-                                <span id="nextBtn">
-                                    <a href="#" title="Next record"
-                                       className={`btn btn-default${isLastRecord() ? " disabled" : ""}`}
-                                       onClick={() => {
-                                           nextOccurrence();
-                                       }}>
+                                <span id='nextBtn'>
+                                    <a
+                                        href='#'
+                                        title='Next record'
+                                        className={`btn btn-default${isLastRecord() ? ' disabled' : ''}`}
+                                        onClick={() => {
+                                            nextOccurrence();
+                                        }}>
                                         <span>
-                                            <i className="glyphicon glyphicon-arrow-right"
-                                               style={{marginBottom: 5}}></i> Next
+                                            <i className='glyphicon glyphicon-arrow-right' style={{ marginBottom: 5 }}></i> Next
                                         </span>
                                     </a>
                                 </span>
-                                <span id="backBtn">
-                                    <a href="#" title="Back to search results" className="btn btn-default"
-                                       onClick={() => {
-                                           backToSearch()
-                                       }}>
+                                <span id='backBtn'>
+                                    <a
+                                        href='#'
+                                        title='Back to search results'
+                                        className='btn btn-default'
+                                        onClick={() => {
+                                            backToSearch();
+                                        }}>
                                         Back to search results
                                     </a>
                                 </span>
@@ -423,163 +469,121 @@ function Occurrence({setBreadcrumbs}: {
                         )}
                     </div>
                 </div>
-                <div className="centre">
-                    <h1>
-                        Occurrence record
-                        <span id="recordId">{recordId()}</span>
-                    </h1>
+                <div className='centre'>
+                    <h1>Occurrence record: <span id='recordId'>{recordId()}</span></h1>
                     {record?.raw?.classification && (
-                        <div id="recordHeadingLine2">
-                            <span>{record?.processed?.occurrence?.basisOfRecord || ""}</span>
+                        <div id='recordHeadingLine2'>
+                            <span>{record?.processed?.occurrence?.basisOfRecord || ''}</span>
                             <span> of </span>
                             {record?.processed?.classification?.scientificName ? (
                                 <>
-                                    <i>{record.processed.classification.scientificName}</i>
-                                    {record.processed.classification.scientificNameAuthorship}
+                                    <i>{record.processed.classification.scientificName}</i> {record.processed.classification.scientificNameAuthorship}
                                 </>
                             ) : record?.raw?.classification?.scientificName ? (
                                 <>
-                                    <i>{record.raw.classification.scientificName}</i>
-                                    {record.raw.classification.scientificNameAuthorship}
+                                    <i>{record.raw.classification.scientificName}</i> {record.raw.classification.scientificNameAuthorship}
                                 </>
                             ) : (
                                 <>
-                                    <i>
-                                        {record.raw.classification.genus} {record.raw.classification.specificEpithet}
-                                    </i>
-                                    {record.raw.classification.scientificNameAuthorship}
+                                    <i>{record.raw.classification.genus} {record.raw.classification.specificEpithet}</i> {record.raw.classification.scientificNameAuthorship}
                                 </>
                             )}
-                            {(vernacularName_show && record?.processed?.classification?.vernacularName) && (
-                                <> | {record.processed.classification.vernacularName}</>
-                            )}
-                            {(vernacularName_show && record?.raw?.classification?.vernacularName) && (
-                                <> | {record.raw.classification.vernacularName}</>
-                            )}
+                            {vernacularName_show && record?.processed?.classification?.vernacularName && <> | {record.processed.classification.vernacularName}</>}
+                            {vernacularName_show && record?.raw?.classification?.vernacularName && <> | {record.raw.classification.vernacularName}</>}
                             {(record?.processed?.event?.eventDate || record?.raw?.event?.eventDate) && (
-                                <>
-                                    <span> recorded on </span>
-                                    {record.processed.event?.eventDate || record.raw.event?.eventDate}
-                                </>
+                                <><span> recorded on </span>{record.processed.event?.eventDate || record.raw.event?.eventDate}</>
                             )}
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="row">
-                <div id="record-sidebar" className="col-md-4 scrollspy">
-                    <div>*** TODO: RECORD SIDEBAR ***</div>
-                    {/*<RecordSidebar />*/}
+            <div className='row'>
+                <div id='record-sidebar' className='col-md-4 scrollspy'>
+                    <RecordSidebar record={record} contacts={contacts} userAssertions={userAssertions} eventHierarchy={eventHierarchy}/>
                 </div>
-                <div className="col-md-8">
-                    <div className="text-right">
-                        <a
-                            href={record?.raw?.occurrence?.occurrenceID || "#"}
-                            className="btn btn-default"
-                            role="button"
-                            title="Click to view the original record"
-                            target="_blank"
-                        >
-                            View original record
-                        </a>
-                        <button
-                            className="btn btn-default"
-                            id="showRawProcessed"
-                            role="button"
-                            title="Table showing both original and processed record values"
-                            onClick={() => setShowRawProcessedModal()}
-                        >
-                            <span id="processedVsRawViewSpan" title="">
-                                <i className="glyphicon glyphicon-transfer"></i>
+                <div className='col-md-8'>
+                    <div className='text-end'>
+                        {isUrl(record?.raw?.occurrence?.occurrenceID) && (
+                            <a href={record?.raw?.occurrence?.occurrenceID || '#'} className='btn btn-default' title='Click to view the original record'>
+                                View original record
+                            </a>
+                        )}
+                        <button className='btn btn-default' id='showRawProcessed' title='Table showing both original and processed record values' onClick={() => setShowOriginalVsProcessed(true)}>
+                            <span id='processedVsRawViewSpan' title=''>
+                                <i className='glyphicon glyphicon-transfer'></i>
                                 View original vs processed values
                             </span>
                         </button>
-                        <input id="hidden-uuid" type="hidden" value={uuid}/>
-                        <span
-                            id="copyRecordIdToClipboard-parent"
-                            data-toggle="tooltip"
-                            data-trigger="manual"
-                            data-title={`${uuid} copied!`}
-                        >
+                        <input id='hidden-uuid' type='hidden' value={uuid} />
+                        <CopyTooltip text={`${uuid} copied!`}>
                             <button
-                                className="btn btn-default"
-                                id="copyRecordIdToClipboard"
-                                role="button"
+                                className='btn btn-default'
+                                id='copyRecordIdToClipboard'
                                 title="Copy this record's id to the clipboard"
-                                onClick={() => navigator.clipboard.writeText(uuid || "")}
-                            >
+                                onClick={() => {
+                                    navigator.clipboard.writeText(uuid || '');
+                                }}>
                                 Copy record id
                             </button>
-                        </span>
-                        <a
-                            href="#CopyLink"
-                            data-toggle="modal"
-                            role="button"
-                            className="tooltips btn btn-default copyLink"
-                            data-placement="bottom"
-                            title="Copy API URL"
-                            onClick={() => setShowCopyLinkModal(true)}
-                        >
-                            <i className="fa fa-file-code-o" aria-hidden="true"></i>&nbsp;&nbsp;API
+                        </CopyTooltip>
+                        <a href='#CopyLink' className='tooltips btn btn-default copyLink' onClick={() => setShowCopyLinkModal(true)}>
+                            <FontAwesomeIconLite icon={faFileCode} />
+                            &nbsp;&nbsp;API
                         </a>
                         {showCopyLinkModal && (
-                            <div id="CopyLink" className="modal fade" role="dialog" tabIndex={-1}>
-                                <div className="modal-dialog" role="document">
-                                    <div className="modal-content">
-                                        <div className="modal-header text-left">
-                                            <button
-                                                type="button"
-                                                className="close"
-                                                data-dismiss="modal"
-                                                aria-hidden="true"
-                                                onClick={() => setShowCopyLinkModal(false)}
-                                            >
-                                                ×
-                                            </button>
-                                            <h3>JSON web service API</h3>
-                                        </div>
-                                        <div className="modal-body">
-                                            <div>&nbsp;</div>
-                                            <div>&nbsp;</div>
-                                            <div className="col-sm-12 input-group">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    value={`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`}
-                                                    id="al4rcode"
-                                                    readOnly
-                                                />
-                                                <span className="input-group-btn">
-                                                    <button
-                                                        className="form-control btn btn-default tooltips"
-                                                        id="copy-al4r"
-                                                        data-toggle="tooltip"
-                                                        data-placement="bottom"
-                                                        title="Copy to clipboard"
-                                                        onClick={() =>
-                                                            navigator.clipboard.writeText(
-                                                                `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`
-                                                            )
-                                                        }
-                                                    >
-                                                        Copy URL
-                                                    </button>
-                                                </span>
-                                            </div>
-                                            <div>&nbsp;</div>
-                                            <div>&nbsp;</div>
+                            <div
+                                className='modal-backdrop'
+                                style={{
+                                    position: 'fixed',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100vw',
+                                    height: '100vh',
+                                    background: 'rgba(0,0,0,0.5)',
+                                    zIndex: 1050,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                                onClick={() => setShowCopyLinkModal(false)}>
+                                <div
+                                    className='modal-content'
+                                    style={{
+                                        position: 'relative',
+                                        background: '#fff',
+                                        borderRadius: '8px',
+                                        padding: '15px',
+                                        width: '500px',
+                                        height: '200px',
+                                        overflowY: 'auto'
+                                    }}
+                                    onClick={e => e.stopPropagation()}>
+                                    <div className={'modal-header'}>
+                                        <h3>JSON web service API</h3>
+                                        <button className='btn btn-link' style={{ fontSize: '24px', color: '#212121', textDecoration: 'none', zIndex: 2 }} aria-label='Close' onClick={() => setShowCopyLinkModal(false)}>
+                                            &times;
+                                        </button>
+                                    </div>
+                                    <div className={'modal-body'}>
+                                        <div className='col-sm-12 input-group'>
+                                            <input type='text' className='form-control' value={`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`} id='al4rcode' readOnly />
+                                            <CopyTooltip text={'copied!'}>
+                                                <button className='form-control btn btn-default tooltips input-group-btn' title='Copy to clipboard' onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`)}>
+                                                    Copy URL
+                                                </button>
+                                            </CopyTooltip>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
                     </div>
-                    <RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} />
+                    <RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} setEventHierarchy={setEventHierarchy}/>
 
                     <OccurrenceAssertions userAssertions={userAssertions} record={record} isCollectionAdmin={isCollectionAdmin} />
 
-                    <ReferencedPublications record={record}/>
+                    <ReferencedPublications record={record} />
 
                     <DataQualityOccurrence record={record} />
 
@@ -587,32 +591,37 @@ function Occurrence({setBreadcrumbs}: {
 
                     <Duplication record={record} />
 
-                    {/*TODO: environmentalSampleInfo*/}
+                    <EnvironmentSampleInfo record={record} />
                 </div>
             </div>
 
+            {showOriginalVsProcessed && (
+                <OriginalVsProcessed
+                    compareRecord={compareRecord}
+                    onClose={() => {
+                        setShowOriginalVsProcessed(false);
+                    }}
+                />
+            )}
+
             {/*!record.raw 404*/}
-            <div id="headingBar" className={"mt-5"}>
-                <h1>Record Not Found</h1>
-                <p>The requested record ID "{uuid}" was not found</p>
-            </div>
+            {record && !record.raw && (
+                <div id='headingBar' className={'mt-5'}>
+                    <h1>Record Not Found</h1>
+                    <p>The requested record ID "{uuid}" was not found</p>
+                </div>
+            )}
 
             {/*contacts modal*/}
-
-            {/*sounds js init*/}
 
             {/*userAnnotationTemplate dialog*/}
 
             {/*userVerificationTemplate dialog*/}
 
             {/*verifyRecordModal dialog*/}
-
-            {/*debug info*/}
-            <span>user: {userInfo?.email}, roles: {JSON.stringify(userInfo?.roles)}</span>
-            <pre>{record && JSON.stringify(record, null, 2)}</pre>
         </div>
-    )
-        ;
+        </div>
+    );
 }
 
 export default Occurrence;

@@ -273,6 +273,8 @@ interface ResultItem {
     classification?: ClassificationResult;
     location?: LocationResult;
     miscProperties?: { [key: string]: string };
+    el?: { [key: string]: number };
+    cl?: { [key: string]: string };
 }
 
 interface ReferencedResult {

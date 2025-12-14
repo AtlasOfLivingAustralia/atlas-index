@@ -35,6 +35,10 @@ function OutlierFeedback({record}: { record: RecordResult }) {
         });
     }
 
+    if (!record?.processed?.occurrence?.outlierForLayers || record.processed.occurrence.outlierForLayers.length === 0) {
+        return null;
+    }
+
     return (
         <div id="outlierInformation" className="additionalData">
             <h3><FormattedMessage id={"show.outlierinformation.title"} defaultMessage="Outlier information"/></h3>
