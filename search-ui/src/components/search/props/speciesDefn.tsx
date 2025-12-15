@@ -178,6 +178,7 @@ export const speciesDefn: GenericViewProps = {
                         name: 'Species group',
                         items: speciesGroupList,
                         order: 3,
+                        lessNumber: 10,
                     });
                 }
             },
@@ -255,6 +256,7 @@ export const speciesDefn: GenericViewProps = {
             </>,
             description: <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>,
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
+            url:`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
@@ -296,6 +298,7 @@ export const speciesDefn: GenericViewProps = {
                 <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
             </>,
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
+            url: `/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

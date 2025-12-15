@@ -9,7 +9,7 @@ import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} 
 import capitalise from '../../../helpers/Capitalise.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
-import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
 
 const idxtypeLabels: Record<string, string> = {
     DATARESOURCE: 'Data Resource',
@@ -29,10 +29,12 @@ export const datasetsDefn: GenericViewProps = {
         license: {
             label: 'Licence type',
             order: 3,
+            lessNumber: 5
         },
         state: {
             label: 'State/Territory',
             order: 4,
+            lessNumber: 7
         },
     },
 
@@ -52,7 +54,7 @@ export const datasetsDefn: GenericViewProps = {
             description: <span title={item.description} className={classes.listDescription}>
                 {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
             </span>,
-            clickFn: () => openUrl(item.guid),
+            url: item.guid
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
@@ -70,7 +72,7 @@ export const datasetsDefn: GenericViewProps = {
                     {item.description}
                 </span>
             </>,
-            clickFn: () => openUrl(item.guid),
+            url: item.guid
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

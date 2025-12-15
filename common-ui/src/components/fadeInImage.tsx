@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useState, useEffect, useRef} from "react";
+import {useState, useEffect, useRef, JSX} from "react";
 
 type FadeInImageProps = {
     missingImage: string,
@@ -12,6 +12,7 @@ type FadeInImageProps = {
     usePlaceholder?: boolean,
     onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void,
     showLoadingSpinner?: boolean
+    calcDimensions?: boolean
 } & React.ImgHTMLAttributes<HTMLImageElement>;
 
 /**
@@ -30,22 +31,47 @@ export function FadeInImage({
                                 usePlaceholder,
                                 onError,
                                 showLoadingSpinner,
+                                calcDimensions = true,
                                 ...props
                             }: FadeInImageProps) {
     const [loaded, setLoaded] = useState(false);
     const [currentWidth, setCurrentWidth] = useState<number | undefined>(placeholderDimensions ? placeholderDimensions[0] : undefined);
     const [currentHeight, setCurrentHeight] = useState<number | undefined>(placeholderDimensions ? placeholderDimensions[1] : undefined);
+    const [width, setWidth] = useState(window.innerWidth);
 
     const imgRef = useRef<HTMLImageElement | null>(null);
 
     useEffect(() => {
         if (loaded && imgRef.current) {
+            // TODO: not happy with either this dimension setting or the resize handling as the reason it was added is
+            //  no longer required but other things break when it is removed
             const rect = imgRef.current.getBoundingClientRect();
-
             setCurrentWidth(rect.width);
             setCurrentHeight(rect.height);
+            const handleResize = () => setWidth(window.innerWidth);
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
         }
-    }, [loaded]);
+    }, [loaded, width]);
+
+    function imgContent() : JSX.Element {
+        return <img
+            ref={imgRef}
+            {...((({ popover, ...rest }) => rest)(props))}
+            style={{
+                ...props.style,
+                opacity: loaded ? 1 : 0, ...(usePlaceholder ? {} : {transition: "opacity 0.5s ease"})
+            }}
+            onLoad={() => setLoaded(true)}
+            onError={e => {
+                e.currentTarget.src = missingImage;
+                setLoaded(true);
+                if (onError) {
+                    onError(e);
+                }
+            }}
+        />
+    }
 
     return <>
         {!loaded && usePlaceholder && <div className="placeholder-glow" style={{
@@ -77,22 +103,13 @@ export function FadeInImage({
                 </div>
             </div>
         )}
-        <img
-            ref={imgRef}
-            {...((({ popover, ...rest }) => rest)(props))}
-            style={{
-                ...props.style,
-                opacity: loaded ? 1 : 0, ...(usePlaceholder ? {} : {transition: "opacity 0.5s ease"})
-            }}
-            onLoad={() => setLoaded(true)}
-            onError={e => {
-                e.currentTarget.src = missingImage;
-                setLoaded(true);
-                if (onError) {
-                    onError(e);
-                }
-            }}
-        />
+        {calcDimensions ?
+            <div style={{minWidth: currentWidth, minHeight: currentHeight}}>
+                {imgContent()}
+            </div>
+            :
+            imgContent()
+        }
     </>
 
 }

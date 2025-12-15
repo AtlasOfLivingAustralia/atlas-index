@@ -19,6 +19,16 @@ interface MapViewProps {
 function DescriptionView({descriptions, isMobile}: MapViewProps) {
     const [sectionOpen, setSectionOpen] = useState<Record<string, boolean>>({});
 
+    function getAttributionHtml(description: TaxonDescription): string {
+        if (description.url && description.attribution) {
+            // replace the first found "a tag" href url with the description.attribution (string of html) with description.url
+            let replaced = description.attribution.replace(/<a href=('|")[^'"]*('|")/, `<a href="${description.url}"`);
+            return replaced;
+        } else {
+            return description.attribution;
+        }
+    }
+
     return (
         <div className="descriptionPage">
             <InfoBox
@@ -85,9 +95,8 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
                                 </div>
                             ))}
                         <div className="d-flex align-items-center gap-2 mt-3">
-                            <span>Source: </span>
-                            <span
-                                dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description.attribution)}}></span>
+                            <span>Source:</span>
+                            <span dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(getAttributionHtml(description))}}></span>
                         </div>
                     </>}
                 </div>

@@ -25,7 +25,9 @@ function ClassificationView({result, isMobile}: ViewProps) {
 
     useEffect(() => {
         if (result?.guid) {
-            fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:"' + encodeURIComponent(result.guid) + '"')
+            const pageSize = 10000; // the maximum page size is 10000
+            const fl = 'rank,nameFormatted,guid';
+            fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:"' + encodeURIComponent(result.guid) + '"&fl=' + fl + '&pageSize=' + pageSize)
                 .then((response) => response.json())
                 .then((data) => {
                     if (data?.searchResults) {
@@ -40,7 +42,10 @@ function ClassificationView({result, isMobile}: ViewProps) {
             }).finally(() => {
                 setLoading(false);
             });
+        } else {
+            setChildren([]);
         }
+
         if (result?.rankOrder) {
             let items: Record<PropertyKey, string | number | any>[] = [];
             for (let rank of result.rankOrder.split(',')) {
@@ -48,7 +53,7 @@ function ClassificationView({result, isMobile}: ViewProps) {
                 items = [
                     {
                         rank: rankString,
-                        name: result['rkf_' + rank],
+                        name: result['rk_' + rank], // rkf_ for formatted name, rk_ for plain name
                         guid: result['rkid_' + rank],
                     },
                     ...items,
@@ -60,12 +65,14 @@ function ClassificationView({result, isMobile}: ViewProps) {
                 guid: result.guid,
             });
             setHierarchy(items);
+        } else {
+            setHierarchy([]);
         }
     }, [result]);
 
-    function capitalize(rank: string) {
+    function capitalize(rank?: string) {
         // capitalize first letter
-        return rank.charAt(0).toUpperCase() + rank.slice(1);
+        return !rank ? '' : (rank.charAt(0).toUpperCase() + rank.slice(1));
     }
 
     return <div className="d-flex flex-column">

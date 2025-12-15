@@ -9,7 +9,7 @@ import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../
 import capitalise from '../../../helpers/Capitalise.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
-import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
 
 export const environmentallayersDefn: GenericViewProps = {
     fq: 'idxtype:LAYER',
@@ -126,7 +126,7 @@ export const environmentallayersDefn: GenericViewProps = {
                     isMobile ? 80 : wide ? 230 : 120
                 )}
             </span>,
-            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
+            url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
@@ -154,7 +154,7 @@ export const environmentallayersDefn: GenericViewProps = {
                     </span>
                 )}
             </>,
-            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
+            url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

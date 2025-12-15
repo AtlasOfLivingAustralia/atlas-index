@@ -4,7 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {CheckDisabledIcon, CheckedIcon, CheckIcon, ListIcon, Pagination, TileIcon,} from '@ala/common-ui';
+import {CheckDisabledIcon, CheckedIcon, CheckIcon, FontAwesomeIconLite, ListIcon, Pagination, TileIcon,} from '@ala/common-ui';
+import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {GenericViewProps} from '../../api/sources/model.ts';
@@ -140,10 +141,14 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                                         return a.label.localeCompare(b.label);
                                     });
 
+                                    // remove when label is empty
+                                    items = items.filter((item) => item.label && item.label.trim() !== '');
+
                                     facetList.push({
                                         name: props.facetDefinitions[facet.fieldName].label,
                                         items: items,
                                         order: props.facetDefinitions[facet.fieldName].order,
+                                        lessNumber: props.facetDefinitions[facet.fieldName].lessNumber,
                                     });
                                 }
                             }
@@ -297,24 +302,42 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                         </span>
                         {facet.items && facet.items.map((item: any, index: number) => (
                             <React.Fragment key={index}>
-                                {index > 0 && <div style={{height: '6px',}}/>}
-                                <div className="d-flex align-items-start gap-2"
-                                     style={{
-                                         cursor: !item.selected && item.count == 0 ? 'auto' : 'pointer',
-                                         marginLeft: `${22 * item.depth}px`,
-                                     }}
-                                     onClick={() => {
-                                         item.count > 0 && toggleItem(item);
-                                     }}>
-                                    {!item.selected && item.count > 0 && (<CheckIcon size="16"/>)}
-                                    {!item.selected && item.count == 0 && (<CheckDisabledIcon size="16"/>)}
-                                    {item.selected && (<CheckedIcon size="16"/>)}
-                                    <span className={classes.refineItem}>
-                                        {item.label} ({item.count})
-                                    </span>
-                                </div>
+                                {facet.lessNumber && !facet.more && index >= facet.lessNumber ? null : (<>
+                                    {index > 0 && <div style={{height: '6px',}}/>}
+                                    <div className="d-flex align-items-start gap-2"
+                                         style={{
+                                             cursor: !item.selected && item.count == 0 ? 'auto' : 'pointer',
+                                             marginLeft: `${22 * item.depth}px`,
+                                         }}
+                                         onClick={() => {
+                                             item.count > 0 && toggleItem(item);
+                                         }}>
+                                        {!item.selected && item.count > 0 && (<CheckIcon size="16"/>)}
+                                        {!item.selected && item.count == 0 && (<CheckDisabledIcon size="16"/>)}
+                                        {item.selected && (<CheckedIcon size="16"/>)}
+                                        <span className={classes.refineItem}>
+                                            {item.label} ({item.count})
+                                        </span>
+                                    </div>
+                                </>)}
                             </React.Fragment>
                         ))}
+                        {facet.lessNumber && facet.items.length > facet.lessNumber && (
+                            facet.more ?
+                                <div onClick={() => {facet.more = false;setFacets([...facets]);}} style={{marginTop: '8px', color: '#c44d34'}}>
+                                    <FontAwesomeIconLite icon={faCaretUp} size="14" style={{marginRight: '8px'}}/>
+                                    <span className={classes.refineItem}>
+                                        Show less
+                                    </span>
+                                </div>
+                                :
+                                <div onClick={() => {facet.more = true;setFacets([...facets]);}} style={{marginTop: '8px', color: '#c44d34'}}>
+                                    <FontAwesomeIconLite icon={faCaretDown} size="14" style={{marginRight: '8px'}}/>
+                                    <span className={classes.refineItem}>
+                                        Show more
+                                    </span>
+                                </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -484,8 +507,8 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                 <div style={{
                     background: '#fff',
                     borderRadius: '5px',
-                    maxWidth: '90vw',
-                    maxHeight: '90vh',
+                    width: '90vw',
+                    height: '90vh',
                     overflowY: 'auto',
                     padding: '15px',
                     position: 'relative'
