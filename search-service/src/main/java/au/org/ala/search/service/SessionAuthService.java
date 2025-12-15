@@ -595,11 +595,15 @@ public class SessionAuthService {
         String secret = null;
         jakarta.servlet.http.Cookie[] cookies = request.getCookies();
         if (cookies != null) {
+            int duplicateCount = 0;
             for (jakarta.servlet.http.Cookie cookie : cookies) {
                 if (SESSION_SECRET_COOKIE.equals(cookie.getName())) {
                     secret = cookie.getValue();
-                    break;
+                    duplicateCount++;
                 }
+            }
+            if (sessionCookieDebug && duplicateCount > 1) {
+                log.warn("Multiple {} cookies found: {}", SESSION_SECRET_COOKIE, duplicateCount);
             }
         }
 
