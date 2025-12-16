@@ -272,8 +272,17 @@ public class Merge {
         int row = 0;
         int failedToReadCachedHtml = 0;
         int fileNotFound = 0;
+        int caseVariation = 0;
+        String lastGuid = "";
         while ((nextLine = reader.readNext()) != null) {
             row++;
+
+            // print progress for every 1000 rows
+            if (row % 10000 == 0) {
+                System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " wikipedia row: " + row);
+            } else if (row % 1000 == 0) {
+                System.out.print(".");
+            }
 
             String guid = nextLine[0];
             String wikiTitle = nextLine[1];
@@ -284,7 +293,16 @@ public class Merge {
             String phylum = nextLine[6];
             String kingdom = nextLine[7];
 
-            String filename = URLEncoder.encode(guid);
+            if (guid.equalsIgnoreCase(lastGuid)) {
+                caseVariation++;
+                //System.out.println("case variation for " + guid + ": " + caseVariation + ", " + wikiTitle);
+            } else {
+                caseVariation = 0;
+            }
+            lastGuid = guid;
+
+            // alter the filename with the case variation if needed
+            String filename = URLEncoder.encode(guid) + (caseVariation > 0 ? ("_" + caseVariation) : "");
 
             File file = existingFiles.get(filename);
 
@@ -293,7 +311,7 @@ public class Merge {
                 if (item != null) {
                     taxa.put(guid, item);
                 } else {
-                    failedToReadCachedHtml++;
+                    failedToReadCachedHtml++; // includes case variations
                 }
             } else {
                 System.out.println("file not found: " + filename);
@@ -316,6 +334,22 @@ public class Merge {
 
             // build the link url
             String link = "https://en.wikipedia.org/wiki/" + doc.selectFirst("link[rel=dc:isVersionOf]").attributes().get("href").replaceAll("^.*/", "");
+
+            // check what data is available for any checking. Makes wild assumptions about data quality, but better than nothing.
+            int firstRank = -1; // smallest rank found
+            if (StringUtils.isNotEmpty(genus)) {
+                firstRank = 1;
+            } else if (StringUtils.isNotEmpty(family)) {
+                firstRank = 2;
+            } else if (StringUtils.isNotEmpty(order)) {
+                firstRank = 3;
+            } else if (StringUtils.isNotEmpty(clazz)) {
+                firstRank = 4;
+            } else if (StringUtils.isNotEmpty(phylum)) {
+                firstRank = 5;
+            } else if (StringUtils.isNotEmpty(kingdom)) {
+                firstRank = 6;
+            }
 
             // test for higher taxa
             String text = doc.text().toLowerCase();
@@ -346,8 +380,17 @@ public class Merge {
                 firstMatch = 1;
             }
 
-            // A minimum of 3 higher taxa matches are required, kingdom taxa will have a single match, phylum will have 2.
-            if (found < 3 || (firstMatch == 6 && found < 1) || (firstMatch == 5 && found < 2)) {
+            boolean kingdomKeywordFound = text.contains("kingdom");
+
+            // A minimum of 2 higher taxa matches are required. This means specific checks are required for kingdom, phylum
+
+            // kingdom will be firstRank == -1 and found == 0 and kingdomKeywordFound == true.
+            // The definition of "kingdom" is "no accepted taxon id and no parent taxon id" so it is a given it will match more than expected
+            boolean isKingdom = firstRank == -1 && found == 0 && kingdomKeywordFound;
+            // phylum will be firstRank == 6 and found == 1 and it is also a given it will match more than expected
+            boolean isPhylum = firstRank == 6 && firstMatch == 6 && found == 1;
+
+            if (found < 2 && !(isKingdom || isPhylum)) {
                 if (errorLog != null) {
                     errorLog.writeNext(new String[]{"ambiguous page", guid, wikipediaUrl + title, genus, family, order, clazz, phylum, kingdom, outputFile.getPath()});
                 }
