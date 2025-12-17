@@ -43,15 +43,10 @@ function OutlierFeedback({record}: { record: RecordResult }) {
         <div id="outlierInformation" className="additionalData">
             <h3><FormattedMessage id={"show.outlierinformation.title"} defaultMessage="Outlier information"/></h3>
             <p>
-                <FormattedMessage id={"show.outlierinformation.p01"}
-                                  defaultMessage="This record has been detected as an outlier using the"/>
-                &nbsp;<a
-                href="https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/DETECTED_OUTLIER_JACKKNIFE">
-                <FormattedMessage id={"show.outlierinformation.p.vavigator"}
-                                  defaultMessage={"Reverse Jackknife algorithm"}/>
-            </a>
-                &nbsp;<FormattedMessage id={"show.outlierinformation.p02"} defaultMessage="for the following layers"/>
-                :
+                <FormattedMessage id={"show.outlierinformation.p01"} defaultMessage="This record has been detected as an outlier using the"/>
+                &nbsp;<a href="https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/DETECTED_OUTLIER_JACKKNIFE">
+                    <FormattedMessage id={"show.outlierinformation.p.vavigator"} defaultMessage={"Reverse Jackknife algorithm"}/></a>
+                &nbsp;<FormattedMessage id={"show.outlierinformation.p02"} defaultMessage="for the following layers"/>:
             </p>
             <ul>
                 {metadataForOutlierLayers && metadataForOutlierLayers.map((layerMetadata: any, idx: number) => (
@@ -59,7 +54,7 @@ function OutlierFeedback({record}: { record: RecordResult }) {
                         <a href={`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/layers/view/more/${layerMetadata.name}`}>
                             {layerMetadata.displayname} - {layerMetadata.source}</a><br/>
                         <FormattedMessage id={"show.outlierinformation.each.label01"} defaultMessage={"Notes"}/>
-                        : {layerMetadata.description}<br/>
+                        : {layerMetadata.notes || layerMetadata.description}<br/>
                         <FormattedMessage id={"show.outlierinformation.each.label02"} defaultMessage={"Scale"}/>
                         : {layerMetadata.scale}
                     </li>
@@ -67,9 +62,8 @@ function OutlierFeedback({record}: { record: RecordResult }) {
             </ul>
 
             <div style={{marginTop: "20px"}}>
-                <FormattedMessage id="show.outlierinformation.p.label"
-                                  defaultMessage="More information on the data quality work being undertaken by the Atlas is available here"/>
-                :
+                <p><FormattedMessage id="show.outlierinformation.p.label"
+                                  defaultMessage="More information on the data quality work being undertaken by the Atlas is available here"/>:</p>
                 <ul>
                     <li><a href={import.meta.env.VITE_JACKKNIFE_INFO_URL}>{import.meta.env.VITE_JACKKNIFE_INFO_URL}</a>
                     </li>

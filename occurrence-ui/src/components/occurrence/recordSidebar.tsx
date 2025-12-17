@@ -7,6 +7,7 @@ import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import { Circle, LayersControl, MapContainer, Marker, TileLayer } from 'react-leaflet';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { RecordResult } from '../../api/model.tsx';
+import ContactCuratorModal from '../contactCuratorModal.tsx';
 
 // TODO: move to config
 const skin_useAlaImageService = true;
@@ -14,11 +15,13 @@ const defaultZoom = 5;
 
 function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { record?: RecordResult; contacts?: any; userAssertions?: any; eventHierarchy?: any }) {
     const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(null);
+    const [showContactsModal, setShowContactsModal] = useState(false);
+
     const intl: IntlShape = useIntl();
 
     useEffect(() => {
-        if (record) {
-            setLatLng({lat: record?.processed?.location?.decimalLatitude, lng: record?.processed?.location?.decimalLongitude});
+        if (record && record?.processed?.location?.decimalLatitude && record?.processed?.location?.decimalLongitude) {
+            setLatLng({lat: record.processed.location.decimalLatitude, lng: record.processed.location.decimalLongitude});
         }
     }, [record]);
 
@@ -80,9 +83,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                 role='button'
                 data-toggle='modal'
                 title='report a problem or suggest a correction for this record'
-                onClick={() => {
-                    alert('TODO: flag an issue dialog');
-                }}>
+                onClick={() => {alert('TODO: flag an issue dialog');}}>
                 <FontAwesomeIcon icon={faFlag} /> <FormattedMessage id='show.button.assertionbutton.span' defaultMessage='Flag an issue' />
             </button>
 
@@ -93,15 +94,14 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                     role='button'
                     data-toggle='modal'
                     title='Contact curator for more details on a record'
-                    onClick={() => {
-                        alert('TODO: contact curator dialog');
-                    }}>
+                    onClick={() => setShowContactsModal(true)}
+                    style={{marginLeft: '5px'}}>
                     <FontAwesomeIcon icon={faEnvelope} /> <FormattedMessage id='show.showcontactcurator.span' defaultMessage='Contact curator' />
                 </button>
             )}
 
             <div className=''>
-                <ul id='navBox' className='nav nav-pills nav-stacked flex-column'>
+                <ul id='navBox' className='nav nav-pills nav-stacked flex-column' style={{marginBottom: '10px'}}>
                     <li className='nav-item'>
                         <a href='#occurrenceDataset'>
                             <FormattedMessage id='recordcore.occurencedataset.title' defaultMessage='Dataset' />
@@ -165,23 +165,23 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                                 <AssertionTooltip text={intl.formatMessage({ id: 'assertions.failed', defaultMessage: 'failed' })}>
                                     <FontAwesomeIconLite icon={faTimesCircle} style={{ color: 'red' }} title=' failed' />
                                 </AssertionTooltip>
-                                ,{record.systemAssertions.warning?.length || 0}{' '}
+                                , {record.systemAssertions.warning?.length || 0}{' '}
                                 <AssertionTooltip text={intl.formatMessage({ id: 'assertions.warnings', defaultMessage: 'warnings' })}>
                                     <FontAwesomeIconLite icon={faExclamationCircle} style={{ color: 'orange' }} title=' warning' />
                                 </AssertionTooltip>
-                                ,{record.systemAssertions.passed?.length || 0}{' '}
+                                , {record.systemAssertions.passed?.length || 0}{' '}
                                 <AssertionTooltip text={intl.formatMessage({ id: 'assertions.passed', defaultMessage: 'passed' })}>
                                     <FontAwesomeIconLite icon={faCheckCircle} style={{ color: 'green' }} title=' passed' />
                                 </AssertionTooltip>
-                                ,{record.systemAssertions.missing?.length || 0}{' '}
+                                , {record.systemAssertions.missing?.length || 0}{' '}
                                 <AssertionTooltip text={intl.formatMessage({ id: 'assertions.missing', defaultMessage: 'missing' })}>
                                     <FontAwesomeIconLite icon={faQuestionCircle} style={{ color: 'gray' }} title=' missing' />
                                 </AssertionTooltip>
-                                ,{record.systemAssertions.unchecked?.length || 0}{' '}
+                                , {record.systemAssertions.unchecked?.length || 0}{' '}
                                 <AssertionTooltip text={intl.formatMessage({ id: 'assertions.unchecked', defaultMessage: 'unchecked' })}>
                                     <FontAwesomeIconLite icon={faBan} style={{ color: 'gray' }} title=' unchecked' />
                                 </AssertionTooltip>
-                                ) )
+                                )
                             </a>
                         </li>
                     )}
@@ -232,17 +232,9 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                 </div>
             )}
 
-            {record?.processed?.location?.decimalLongitude && record?.processed?.location?.decimalLatitude && latLng && (
-                <div id='leafletMap' style={{ height: '500px', position: 'relative' }}>
-                    <MapContainer
-                        // ref={mapRef}
-                        center={latLng}
-                        zoom={defaultZoom}
-                        scrollWheelZoom={false}
-                        worldCopyJump={true}
-                        style={{
-                            height: '300px'
-                        }}>
+            {latLng && (
+                <div id='leafletMap' style={{ height: '300px', position: 'relative' }}>
+                    <MapContainer center={latLng} zoom={defaultZoom} scrollWheelZoom={false} worldCopyJump={true} style={{ height: '300px' }}>
                         {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />}
                         {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                             <LayersControl position='topright'>
@@ -308,11 +300,11 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                             <div style={{ marginBottom: '10px' }} key={index}>
                                 {skin_useAlaImageService ? (
                                     <a href={`${import.meta.env.VITE_APP_IMAGE_VIEWER_URL}${image.filePath}`} target='_blank'>
-                                        <img src={image.alternativeFormats.smallImageUrl} style={{ maxWidth: '100%' }} alt='Click to view this image in a large viewer' />
+                                        <img src={image.alternativeFormats?.smallImageUrl} style={{ maxWidth: '100%' }} alt='Click to view this image in a large viewer' />
                                     </a>
                                 ) : (
-                                    <a href={`${image.alternativeFormats.largeImageUrl}`} target='_blank'>
-                                        <img src={`${image.alternativeFormats.smallImageUrl}`} style={{ maxWidth: '100%' }} />
+                                    <a href={`${image.alternativeFormats?.largeImageUrl}`} target='_blank'>
+                                        <img src={`${image.alternativeFormats?.smallImageUrl}`} style={{ maxWidth: '100%' }} />
                                     </a>
                                 )}
                                 <br />
@@ -325,7 +317,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                                             <b>
                                                 <FormattedMessage id='show.sidebar03.cite01' defaultMessage='Photographer' />:
                                             </b>{' '}
-                                            ${image?.metadata?.creator || record?.raw?.occurrence?.photographer}
+                                            {image?.metadata?.creator || record?.raw?.occurrence?.photographer}
                                         </cite>
                                         <br />
                                     </>
@@ -396,7 +388,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                                         <FormattedMessage id='show.sidebardiv.occurrenceimages.navigator01' defaultMessage='View image details' />
                                     </a>
                                 ) : (
-                                    <a href={image.alternativeFormats.imageUrl} target='_blank'>
+                                    <a href={image.alternativeFormats?.imageUrl} target='_blank'>
                                         <FormattedMessage id='show.sidebardiv.occurrenceimages.navigator02' defaultMessage='Original image' />
                                     </a>
                                 )}
@@ -487,6 +479,8 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
             )}
 
             {/*TODO: dialog for flagging an issue*/}
+
+            {showContactsModal && contacts && <ContactCuratorModal contacts={contacts} onClose={() => setShowContactsModal(false)} />}
         </>
     );
 }

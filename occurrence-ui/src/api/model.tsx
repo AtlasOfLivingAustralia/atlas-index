@@ -168,6 +168,9 @@ interface OccurrenceResult {
     fieldNumber?: string;
     samplingProtocol?: string;
     outlierForLayers?: string[];
+    photographer?: string;
+    rightsholder?: string;
+    fieldNotes?: string;
 }
 
 interface ClassificationResult {
@@ -176,6 +179,7 @@ interface ClassificationResult {
     originalNameUsage?: string;
     originalNameUsageID?: string;
     taxonRank?: string;
+    taxonRankID?: number;
     vernacularName?: string;
     kingdom?: string;
     kingdomID?: string;
@@ -217,7 +221,6 @@ interface LocationResult {
     maximumElevationInMeters?: string;
     minimumElevationInMeters?: string;
     locationRemarks?: string;
-    fieldNotes?: string;
     coordinateUncertaintyInMeters?: string;
     coordinatePrecision?: string;
     georeferenceVerificationStatus?: string;
@@ -262,6 +265,7 @@ interface AttributionResult {
     dataProviderUid?: string;
     dataProviderName?: string;
     citation?: string;
+    provenance?: string;
 }
 
 interface ResultItem {
@@ -275,6 +279,7 @@ interface ResultItem {
     miscProperties?: { [key: string]: string };
     el?: { [key: string]: number };
     cl?: { [key: string]: string };
+    lastModifiedTime?: string;
 }
 
 interface ReferencedResult {
@@ -308,6 +313,25 @@ interface SystemAssertionsResult {
     unchecked: SystemAssertion[];
 }
 
+interface MediaFormatsResult {
+    smallImageUrl?: string;
+    largeImageUrl?: string;
+    imageUrl?: string;
+}
+
+interface MediaMetadataResult {
+    creator?: string;
+    rights?: string;
+    rightsHolder?: string;
+    license?: string;
+}
+
+interface MediaResult {
+    alternativeFormats?: MediaFormatsResult;
+    filePath?: string;
+    metadata?: MediaMetadataResult;
+}
+
 interface RecordResult {
     systemAssertions: SystemAssertionsResult;
     processed: ResultItem;
@@ -316,6 +340,8 @@ interface RecordResult {
     sensitive?: string;
     userId?: string;
     referencedPublications: ReferencedResult[];
+    sounds?: MediaResult[];
+    images?: MediaResult[];
 }
 
 type OccurrenceTableRowProps = {

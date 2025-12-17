@@ -7,6 +7,7 @@
 import {useUser} from "@ala/common-ui";
 import {useEffect, useState} from "react";
 import {CompareResult, CompareRow, InfoTableRow, RecordResult} from "../../api/model.tsx";
+import { isUrl } from '../../util/util.tsx';
 import {OccurrenceTableRow} from "./occurrenceRow.tsx";
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -134,11 +135,12 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                             id: 'recordcore.span03',
                             defaultMessage: 'Supplied as'
                         }) + ' "' + item.raw + '"';
-                        originalUrl = item?.raw?.match(/^https?:\/\//) ? item.raw : undefined;
+                        originalUrl = isUrl(item?.raw) ? item.raw : undefined;
                     }
                     table.push({
                         fieldCode: item.name, fieldName: label,
                         text: tagBody,
+                        url: isUrl(tagBody) ? tagBody : undefined,
                         original: original,
                         originalUrl: originalUrl
                     })
@@ -192,7 +194,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                 intl.formatMessage({
                     id: 'recordcore.span01',
                     defaultMessage: 'Supplied institution code'
-                }) + ' ' + data?.raw?.occurrence?.institutionCode
+                }) + ' "' + data?.raw?.occurrence?.institutionCode + '"'
         });
 
         datasetTable.push({
@@ -203,7 +205,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                 intl.formatMessage({
                     id: 'recordcore.span02',
                     defaultMessage: 'Supplied collection code'
-                }) + ' ' + data?.raw?.occurrence?.collectionCode
+                }) + ' "' + data?.raw?.occurrence?.collectionCode + '"'
         });
 
         datasetTable.push({
@@ -245,7 +247,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
-                }) + ' ' + data?.raw?.occurrence?.basisOfRecord + '"' : undefined)
+                }) + ' "' + data?.raw?.occurrence?.basisOfRecord + '"' : undefined)
         });
 
         datasetTable.push({
@@ -263,25 +265,47 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             text: data?.raw?.identification?.identifierRole
         });
 
-        datasetTable.push({
-            fieldCode: "collectorName",
-            fieldName: data?.processed?.occurrence?.basisOfRecord?.includes('specimen') ?
-                intl.formatMessage({id: 'recordcore.collectornamelabel.01', defaultMessage: 'Collectory'}) :
-                data?.processed?.occurrence?.basisOfRecord?.includes('observation') ?
-                    intl.formatMessage({id: 'recordcore.collectornamelabel.02', defaultMessage: 'Observer'}) :
-                    intl.formatMessage({id: 'recordcore.collectornamelabel.03', defaultMessage: 'Collector/Observer'}),
-            text: data?.processed?.occurrence?.recordedBy || data?.processed?.occurrence?.userId,
-            original: intl.formatMessage({id: 'recordcore.span03', defaultMessage: 'Supplied as'}) + ' "' +
-                (data?.raw?.occurrence?.recordedBy || data?.raw?.occurrence?.userId) + '"'
-        });
+        let collectorFieldName;
+        if (data?.processed?.occurrence?.basisOfRecord?.includes('specimen')) {
+            collectorFieldName = intl.formatMessage({id: 'recordcore.collectornamelabel.01', defaultMessage: 'Collector'});
+        } else if (data?.processed?.occurrence?.basisOfRecord?.includes('observation')) {
+            collectorFieldName = intl.formatMessage({id: 'recordcore.collectornamelabel.02', defaultMessage: 'Observer'});
+        } else {
+            collectorFieldName = intl.formatMessage({id: 'recordcore.collectornamelabel.03', defaultMessage: 'Collector/Observer'});
+        }
+        let collectorOccurrenceField;
+        if (data?.raw?.occurrence?.recordedBy) {
+            collectorOccurrenceField = intl.formatMessage({id: 'recordcore.recorededbyfield.01', defaultMessage: 'recordedBy'});
+        } else if (data?.raw?.occurrence?.userId) {
+            collectorOccurrenceField = intl.formatMessage({id: 'recordcore.recorededbyfield.02', defaultMessage: 'userId'});
+        } else {
+            collectorOccurrenceField = 'recordedBy';
+        }
+        const collectorProcessedValue = (data?.processed?.occurrence as any)[collectorOccurrenceField];
+        const collectorRawValue = (data?.raw?.occurrence as any)[collectorOccurrenceField];
+        if (data?.processed?.occurrence && collectorProcessedValue) {
+            datasetTable.push({
+                fieldCode: "collectorName",
+                fieldName: collectorFieldName,
+                text: collectorProcessedValue,
+                original: collectorRawValue && intl.formatMessage({id: 'recordcore.span03', defaultMessage: 'Supplied as'}) + ' "' + collectorRawValue + '"'
+            });
+        } else if (data?.raw?.occurrence && collectorRawValue) {
+            datasetTable.push({
+                fieldCode: "collectorName",
+                fieldName: collectorFieldName,
+                text: collectorRawValue
+            });
+        }
 
-        datasetTable.push({
-            fieldCode: "userId", fieldName: "User ID",
-            text: data?.alaUserName || data?.raw?.occurrence?.recordedBy,
-            url: getLinkForUserId(data?.alaUserName || data?.raw?.occurrence?.recordedBy,
-                data?.raw?.occurrence?.userId, data?.raw?.attribution?.dataResourceUid,
-                data?.raw?.occurrence?.occurrenceID)
-        });
+        if (data?.raw?.occurrence?.userId) {
+            datasetTable.push({
+                fieldCode: 'userId',
+                fieldName: 'User ID',
+                text: data?.alaUserName || data?.raw?.occurrence?.recordedBy,
+                url: getLinkForUserId(data?.alaUserName || data?.raw?.occurrence?.recordedBy, data?.raw?.occurrence?.userId, data?.raw?.attribution?.dataResourceUid, data?.raw?.occurrence?.occurrenceID)
+            });
+        }
 
         datasetTable.push({
             fieldCode: "recordNumber",
@@ -352,17 +376,11 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                 fieldCode: "associatedOccurrences", fieldName: "Inferred Associated Occurrences",
                 text: data?.processed?.occurrence?.duplicationStatus === 'R' ?
                     intl.formatMessage({id: 'recordcore.iao.01', defaultMessage: 'This record has'}) + ' ' +
-                    data?.processed?.occurrence?.associatedOccurrences?.split("|").length +
+                    data?.processed?.occurrence?.associatedOccurrences?.split("|").length + ' ' +
                     intl.formatMessage({id: 'recordcore.iao.01.5', defaultMessage: 'inferred associated occurrences'})
-                    : intl.formatMessage({
-                        id: 'recordcore.iao.02',
-                        defaultMessage: 'The occurrence is associated with a representative record'
-                    }),
+                    : intl.formatMessage({id: 'recordcore.iao.02', defaultMessage: 'The occurrence is associated with a representative record' }),
                 original: intl.formatMessage({id: 'recordcore.iao.03', defaultMessage: 'For more information see'}) +
-                    ' ' + intl.formatMessage({
-                        id: 'recordcore.iao.04',
-                        defaultMessage: 'Inferred associated occurrence details'
-                    }),
+                    ' ' + intl.formatMessage({id: 'recordcore.iao.04', defaultMessage: 'Inferred associated occurrence details' }),
                 originalUrl: "#inferredOccurrenceDetails"
             });
 
@@ -393,7 +411,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             url: data?.processed?.classification?.scientificName ?
                 `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.taxonConceptID}`
                 : undefined,
-            original: (data?.processed?.classification?.scientificName && data?.raw?.classification?.scientificName != data?.raw?.classification?.scientificName) ?
+            original: (data?.processed?.classification?.scientificName && data?.raw?.classification?.scientificName && data?.raw?.classification?.scientificName != data?.processed?.classification?.scientificName) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -406,19 +424,17 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             url: data?.processed?.classification?.originalNameUsageID ?
                 `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.originalNameUsageID}`
                 : undefined,
-            original: (data?.processed?.classification?.originalNameUsage && data?.raw?.classification?.originalNameUsage?.toLowerCase() != data?.raw?.classification?.originalNameUsage?.toLowerCase()) ?
+            original: (data?.processed?.classification?.originalNameUsage && data?.raw?.classification?.originalNameUsage && data?.raw?.classification?.originalNameUsage?.toLowerCase() != data?.processed?.classification?.originalNameUsage?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
                 }) + ' "' + data?.raw?.classification?.originalNameUsage + '"' : undefined
         });
 
-
         taxonomyTable.push({
             fieldCode: "taxonRank", fieldName: "Taxon rank",
-            //text-transform: capitalize;
             text: data?.processed?.classification?.taxonRank || data?.raw?.classification?.taxonRank || "[rank not known]",
-            original: (data?.processed?.classification?.taxonRank && data?.raw?.classification?.taxonRank?.toLowerCase() != data?.raw?.classification?.taxonRank?.toLowerCase()) ?
+            original: (data?.processed?.classification?.taxonRank && data?.raw?.classification?.taxonRank && data?.raw?.classification?.taxonRank?.toLowerCase() != data?.processed?.classification?.taxonRank?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -429,7 +445,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             taxonomyTable.push({
                 fieldCode: "commonName", fieldName: "Common name",
                 text: data?.processed?.classification?.vernacularName || data?.raw?.classification?.vernacularName,
-                original: (data?.processed?.classification?.vernacularName && data?.raw?.classification?.vernacularName?.toLowerCase() != data?.raw?.classification?.vernacularName?.toLowerCase()) ?
+                original: (data?.processed?.classification?.vernacularName && data?.raw?.classification?.vernacularName && data?.raw?.classification?.vernacularName?.toLowerCase() != data?.processed?.classification?.vernacularName?.toLowerCase()) ?
                     intl.formatMessage({
                         id: 'recordcore.span03',
                         defaultMessage: 'Supplied as'
@@ -441,7 +457,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "kingdom", fieldName: "Kingdom",
             text: data?.processed?.classification?.kingdom || data?.raw?.classification?.kingdom,
             url: data?.processed?.classification?.kingdomID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.kingdomID}` : undefined,
-            original: (data?.processed?.classification?.kingdom && data?.raw?.classification?.kingdom?.toLowerCase() != data?.raw?.classification?.kingdom?.toLowerCase()) ?
+            original: (data?.processed?.classification?.kingdom && data?.raw?.classification?.kingdom && data?.raw?.classification?.kingdom?.toLowerCase() != data?.processed?.classification?.kingdom?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -452,7 +468,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "phylum", fieldName: "Phylum",
             text: data?.processed?.classification?.phylum || data?.raw?.classification?.phylum,
             url: data?.processed?.classification?.phylumID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.phylumID}` : undefined,
-            original: (data?.processed?.classification?.phylum && data?.raw?.classification?.phylum?.toLowerCase() != data?.raw?.classification?.phylum?.toLowerCase()) ?
+            original: (data?.processed?.classification?.phylum && data?.raw?.classification?.phylum && data?.raw?.classification?.phylum?.toLowerCase() != data?.processed?.classification?.phylum?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -463,7 +479,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "classs", fieldName: "Class",
             text: data?.processed?.classification?.classs || data?.raw?.classification?.classs,
             url: data?.processed?.classification?.classID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.classID}` : undefined,
-            original: (data?.processed?.classification?.classs && data?.raw?.classification?.classs?.toLowerCase() != data?.raw?.classification?.classs?.toLowerCase()) ?
+            original: (data?.processed?.classification?.classs && data?.raw?.classification?.classs && data?.raw?.classification?.classs?.toLowerCase() != data?.processed?.classification?.classs?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -474,7 +490,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "order", fieldName: "Order",
             text: data?.processed?.classification?.order || data?.raw?.classification?.order,
             url: data?.processed?.classification?.orderID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.orderID}` : undefined,
-            original: (data?.processed?.classification?.order && data?.raw?.classification?.order?.toLowerCase() != data?.raw?.classification?.order?.toLowerCase()) ?
+            original: (data?.processed?.classification?.order && data?.raw?.classification?.order && data?.raw?.classification?.order?.toLowerCase() != data?.processed?.classification?.order?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -485,7 +501,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "family", fieldName: "Family",
             text: data?.processed?.classification?.family || data?.raw?.classification?.family,
             url: data?.processed?.classification?.familyID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.familyID}` : undefined,
-            original: (data?.processed?.classification?.family && data?.raw?.classification?.family?.toLowerCase() != data?.raw?.classification?.family?.toLowerCase()) ?
+            original: (data?.processed?.classification?.family && data?.raw?.classification?.family && data?.raw?.classification?.family?.toLowerCase() != data?.processed?.classification?.family?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -494,9 +510,10 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
         taxonomyTable.push({
             fieldCode: "genus", fieldName: "Genus",
+            style: {fontStyle: 'italic'},
             text: data?.processed?.classification?.genus || data?.raw?.classification?.genus,
             url: data?.processed?.classification?.genusID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.genusID}` : undefined,
-            original: (data?.processed?.classification?.genus && data?.raw?.classification?.genus?.toLowerCase() != data?.raw?.classification?.genus?.toLowerCase()) ?
+            original: (data?.processed?.classification?.genus && data?.raw?.classification?.genus && data?.raw?.classification?.genus?.toLowerCase() != data?.processed?.classification?.genus?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -510,7 +527,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                 (data?.raw?.classification?.specificEpithet && data?.raw?.classification?.genus ?
                     `${data?.raw?.classification?.genus} ${data?.raw?.classification?.specificEpithet}` : undefined),
             url: data?.processed?.classification?.speciesID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.speciesID}` : undefined,
-            original: (data?.processed?.classification?.species && data?.raw?.classification?.species?.toLowerCase() != data?.raw?.classification?.species?.toLowerCase()) ?
+            original: (data?.processed?.classification?.species && data?.raw?.classification?.species && data?.raw?.classification?.species?.toLowerCase() != data?.processed?.classification?.species?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -596,7 +613,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         geospatialTable.push({
             fieldCode: "habitat", fieldName: "Habitat",
             text: data?.processed?.location?.habitat || data?.raw?.location?.habitat,
-            original: data?.raw?.location?.habitat && data?.raw?.location?.habitat != data?.processed?.location?.habitat ?
+            original: data?.processed?.location?.habitat && data?.raw?.location?.habitat && data?.raw?.location?.habitat != data?.processed?.location?.habitat ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -610,7 +627,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         } else {
             latitudeText = data?.processed?.location?.decimalLatitude || data?.raw?.location?.decimalLatitude;
 
-            if (data?.raw?.location?.decimalLatitude && data?.raw?.location?.decimalLatitude != data?.processed?.location?.decimalLatitude) {
+            if (data?.raw?.location?.decimalLatitude && data?.raw?.location?.decimalLatitude !== data?.processed?.location?.decimalLatitude) {
                 originalLatText = intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -630,7 +647,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         } else {
             longitudeText = data?.processed?.location?.decimalLongitude || data?.raw?.location?.decimalLongitude;
 
-            if (data?.raw?.location?.decimalLongitude && data?.raw?.location?.decimalLongitude != data?.processed?.location?.decimalLongitude) {
+            if (data?.raw?.location?.decimalLongitude && data?.raw?.location?.decimalLongitude !== data?.processed?.location?.decimalLongitude) {
                 originalLngText = intl.formatMessage({
                     id: 'recordcore.span03',
                     defaultMessage: 'Supplied as'
@@ -715,7 +732,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
         geospatialTable.push({
             fieldCode: "fieldNotes", fieldName: "Field notes",
-            text: data?.raw?.location?.fieldNotes
+            text: data?.raw?.occurrence?.fieldNotes
         });
 
         if (data?.raw?.location?.decimalLatitude || data?.raw?.location?.decimalLongitude) {
@@ -813,16 +830,23 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             text: data?.raw?.identification?.identificationRemarks
         });
 
+        const eventDateText = getEventDateText(data);
+        let eventDateTextOriginal;
+        if (data?.raw?.event?.eventDate) {
+            eventDateTextOriginal = data.raw.event.eventDate;
+        } else if (data?.raw?.event?.year && data?.raw?.event?.month && data?.raw?.event?.day) {
+            eventDateTextOriginal = "Year: " + data?.raw?.event?.year + ", Month: " + data?.raw?.event?.month + ", Day: " + data?.raw?.event?.day;
+        }
         eventTable.push({
             fieldCode: "occurrenceDate",
             fieldName: data?.processed?.occurrence?.basisOfRecord?.includes('specimen') ?
                 intl.formatMessage({id: 'recordcore.occurrencedatelabel.01', defaultMessage: 'Collecting date'}) :
                 intl.formatMessage({id: 'recordcore.occurrencedatelabel.02', defaultMessage: 'Record date'}),
-            text: getEventDateText(data),
-            original: intl.formatMessage({
+            text: eventDateText,
+            original: (eventDateText != eventDateTextOriginal && eventDateTextOriginal) ? intl.formatMessage({
                 id: 'recordcore.span03',
                 defaultMessage: 'Supplied as'
-            }) + ' "' + (data?.raw?.event?.eventDate || ("Year: " + data?.raw?.event?.year + ", Month: " + data?.raw?.event?.month + ", Day: " + data?.raw?.event?.day)) + '"'
+            }) + ' "' + eventDateTextOriginal + '"' : ''
         });
 
         eventTable.push({
@@ -924,7 +948,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
         {((eventTable && Object.keys(eventTable).length > 0) || (eventTableExtra && Object.keys(eventTableExtra).length > 0)) &&
             <div id="occurrenceEvent">
-                <h3>Event</h3>
+                <h3><FormattedMessage id="recordcore.occurenceevent.title" defaultMessage="Event"/></h3>
                 <table className="occurrenceTable table table-bordered table-striped table-condensed" id="eventTable">
                     <tbody>
                     {eventTable && eventTable.map((row: InfoTableRow, idx: number) =>
@@ -944,7 +968,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
         {((taxonomyTable && Object.keys(taxonomyTable).length > 0) || (taxonomyTableExtra && Object.keys(taxonomyTableExtra).length > 0)) &&
             <div id="occurrenceTaxonomy">
-                <h3>Taxonomy</h3>
+                <h3><FormattedMessage id="recordcore.occurencetaxonomy.title" defaultMessage="Taxonomy"/></h3>
                 <table className="occurrenceTable table table-bordered table-striped table-condensed" id="taxonomyTable">
                     <tbody>
                     {taxonomyTable && taxonomyTable.map((row: InfoTableRow, idx: number) =>
@@ -964,7 +988,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
         {((geospatialTable && Object.keys(geospatialTable).length > 0) || (geospatialTableExtra && Object.keys(geospatialTableExtra).length > 0)) &&
             <div id="occurrenceGeospatial">
-                <h3>Geospatial</h3>
+                <h3><FormattedMessage id="recordcore.occurencegeospatial.title" defaultMessage="Geospatial"/></h3>
                 <table className="occurrenceTable table table-bordered table-striped table-condensed" id="geospatialTable">
                     <tbody>
                     {geospatialTable && geospatialTable.map((row: InfoTableRow, idx: number) =>
@@ -983,7 +1007,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         }
 
         {miscTable && Object.keys(miscTable).length > 0 && <div id="additionalProperties">
-            <h3>Additional properties</h3>
+            <h3><FormattedMessage id="recordcore.div.addtionalproperties.title" defaultMessage="Additional properties"/></h3>
             <table className="occurrenceTable table table-bordered table-striped table-condensed"
                    id="miscellaneousPropertiesTable">
                 <tbody>

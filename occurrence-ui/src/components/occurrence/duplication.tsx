@@ -13,7 +13,7 @@ import dqCodesJson from '../../config/dqCodes.json';
 
 const dqCodes: { [key: string]: DqAssertion } = dqCodesJson;
 
-function Dupication({record}: { record: RecordResult }) {
+function Duplication({record}: { record: RecordResult }) {
     const [duplicateInfo, setDuplicateInfo] = useState<any>(null);
     const [representativeDrName, setRepresentativeDrName] = useState<{[key: string] : string}>({});
     const intl: IntlShape = useIntl();
@@ -85,21 +85,21 @@ function Dupication({record}: { record: RecordResult }) {
         <div id="inferredOccurrenceDetails">
             {/*<a href="#inferredOccurrenceDetails" name="inferredOccurrenceDetails" id="inferredOccurrenceDetails" hidden="true"></a>*/}
             <h3><FormattedMessage id="show.inferredoccurrencedetails.title" defaultMessage="Inferred associated occurrence details"/></h3>
-            <p style={{marginTop:"5px"}}>
+            <div style={{marginTop:"5px"}}>
                 { duplicateInfo.duplicationStatus == 'R' ?
-                    <FormattedMessage id="show.inferredoccurrencedetails.p01" defaultMessage="This record has been identified as the representative occurrence in a group of associated occurrences."/>
+                    <span dangerouslySetInnerHTML={{ __html: intl.formatMessage({ id:"show.inferredoccurrencedetails.p01", defaultMessage:"This record has been identified as the representative occurrence in a group of associated occurrences."}) }}></span>
                     :
-                    <FormattedMessage id="show.inferredoccurrencedetails.p02" defaultMessage="This record is associated with the representative record."/>
+                    <span dangerouslySetInnerHTML={{ __html: intl.formatMessage({ id:"show.inferredoccurrencedetails.p02", defaultMessage:"This record is associated with the representative record."}) }}></span>
                 }
-                <FormattedMessage id="show.inferredoccurrencedetails.p03" defaultMessage="More information about the duplication detection methods and terminology in use is available here"/>:
+                <p><FormattedMessage id="show.inferredoccurrencedetails.p03" defaultMessage="More information about the duplication detection methods and terminology in use is available here"/>:</p>
                 <ul>
                     <li>
                         <a href={import.meta.env.VITE_DUPLICATE_INFO_URL}>{import.meta.env.VITE_DUPLICATE_INFO_URL}</a>
                     </li>
                 </ul>
-            </p>
+            </div>
             {duplicateInfo && duplicateInfo.duplicates && duplicateInfo.duplicates.length > 0 &&
-                <table className="duplicationTable table table-striped table-bordered table-condensed" style={{borderBottom:"none"}}>
+                <table className="duplicationTable table ala-table-striped table-bordered table-condensed" style={{borderBottom:"none"}}>
                     <tbody>
                         <tr className="sectionName">
                             <th colSpan={4}>
@@ -141,8 +141,8 @@ function Dupication({record}: { record: RecordResult }) {
                     </tbody>
                 </table>
             }
-</div>
+        </div>
     );
 }
 
-export default Dupication;
+export default Duplication;

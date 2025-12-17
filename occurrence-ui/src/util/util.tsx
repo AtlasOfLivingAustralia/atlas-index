@@ -16,3 +16,15 @@ export function translate(intl: IntlShape, text: string | number, field: string 
         return intl.formatMessage({id: `${text}`, defaultMessage: text});
     }
 }
+
+export function isUrl(value: string | undefined): boolean {
+    if (!value || !(value.startsWith('http://') || value.startsWith('https://'))) {
+        return false;
+    }
+    try {
+        new URL(value);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}

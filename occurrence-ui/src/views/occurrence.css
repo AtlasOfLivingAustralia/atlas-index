@@ -256,11 +256,20 @@ div#backButton a:hover {
     text-decoration: underline;
 }
 
-tr.sectionName td {
+table tr.sectionName > td, td.sectionName {
     background-color: #E0E0E0 !important;
     color: #222;
     font-weight: bold;
 }
+
+.ala-table-striped > tbody > tr:nth-of-type(even) > * {
+    background-color: #F2F2F2;
+}
+
+.table.ala-table-striped tbody tr.sectionName > * {
+    background-color: #E0E0E0;
+}
+
 
 div.additionalData {
 }
@@ -269,9 +278,11 @@ div.additionalData {
     border: 1px solid #bbb;
     margin-bottom: -1px;
     padding: 9px;
+    background-color: #f5f5f5;
 }
 
-.additionalData table {
+.additionalData table, .additionalData tbody, .additionalData tr, .additionalData td, .additionalData th {
+    background-color: #f5f5f5;
 }
 
 .affix {
@@ -802,4 +813,34 @@ h3 {
 
 .table-condensed>thead>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>tfoot>tr>td {
     padding: 5px;
+}
+
+.btn, .gform_button {
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 400;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    touch-action: manipulation;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.428571429;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.row > * {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+}
+
+.table-bordered {
+    border: 1px solid #999;
 }

@@ -5,6 +5,8 @@
  */
 
 import Modal from "react-bootstrap/esm/Modal";
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import CopyTooltip from './copyTooltip.tsx';
 
 interface ApiModalProps {
     onClose: () => void
@@ -12,6 +14,8 @@ interface ApiModalProps {
 }
 
 function ApiModal({onClose, url}: ApiModalProps) {
+    const intl: IntlShape = useIntl();
+
     function copy() {
         // copy "url" to clipboard
         navigator.clipboard.writeText(url)
@@ -20,15 +24,16 @@ function ApiModal({onClose, url}: ApiModalProps) {
     return <>
         <Modal show={true} onHide={onClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>JSON web service API</Modal.Title>
+                <Modal.Title><FormattedMessage id="list.copylinks.dlg.title" defaultMessage="JSON web service API"/></Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <div className="input-group input-group-sm align-content-end">
-                    <input type="text" className="form-control mt-2" readOnly={true} disabled={true}
-                           value={url}
-                    />
-                    <button className="btn border-black mt-2"
-                            onClick={() => copy()}>Copy URL</button>
+                    <input type="text" className="form-control mt-2" readOnly={true} disabled={true} value={url} />
+                    <button className="btn border-black mt-2" onClick={() => copy()}>
+                        <CopyTooltip text={intl.formatMessage({id: "list.copylinks.tooltip.copytoclipboard", defaultMessage: 'copied!'})}>
+                            <FormattedMessage id="list.copylinks.dlg.copybutton.text" defaultMessage="Copy URL"/>
+                        </CopyTooltip>
+                    </button>
                 </div>
             </Modal.Body>
         </Modal>
@@ -36,40 +41,3 @@ function ApiModal({onClose, url}: ApiModalProps) {
 }
 
 export default ApiModal;
-
-// import React from "react";
-//
-// <div id="CopyLink" className="modal fade" role="dialog"
-//     // tabIndex="-1"
-// >
-//     <div className="modal-dialog" role="document">
-//         <div className="modal-content">
-//             <div className="modal-header">
-//                 <button type="button" className="close" data-dismiss="modal"
-//                         aria-hidden="true">×
-//                 </button>
-//                 <h3>JSON web service API</h3>
-//             </div>
-//             <div className="modal-body">
-//                 <div className="col-sm-12 input-group">
-//                     {/*<input type="text" className="form-control"*/}
-//                     {/*       value={simpleTaxa}*/}
-//                     {/*       onChange={e => setSimpleTaxa(e.target.value)}/>*/}
-//                     {/*<button className="btn btn-primary"*/}
-//                     {/*        onClick={() => simpleSearch()}>Search*/}
-//                     {/*</button>*/}
-//                     <input type="text" className="form-control"
-//                            value="https://biocache-ws.ala.org.au/ws/occurrences/search?q=taxa%3A%22forg%22&amp;qualityProfile=ALA&amp;qc=-_nest_parent_%3A*"
-//                            id="al4rcode"
-//                         // readOnly=""/
-//                     />
-//                     <span className="input-group-btn">
-//                                                         <button className="form-control btn" id="copy-al4r">
-//                                                             Copy URL
-//                                                         </button>
-//                                                     </span>
-//                 </div>
-//             </div>
-//         </div>
-//     </div>
-// </div>

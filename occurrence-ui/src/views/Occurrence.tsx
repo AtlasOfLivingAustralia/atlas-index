@@ -5,22 +5,26 @@
  */
 
 import { faFileCode } from '@fortawesome/free-regular-svg-icons';
-import React, {useEffect, useRef, useState} from "react";
+import { faArrowLeft, faArrowRight, faLock, faRightLeft } from '@fortawesome/free-solid-svg-icons';
+import { JSX, useEffect, useState } from 'react';
 
 import { Breadcrumb, FontAwesomeIconLite, useUser } from '@ala/common-ui';
-import { Overlay, Popover } from 'react-bootstrap';
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {RecordResult} from "../api/model.tsx";
+import ApiModal from '../components/apiModal.tsx';
+import CopyTooltip from '../components/copyTooltip.tsx';
 import DataQualityOccurrence from "../components/occurrence/dataQualityOccurrence.tsx";
 import Duplication from "../components/occurrence/duplication.tsx";
 import EnvironmentSampleInfo from '../components/occurrence/environmentalSampleInfo.tsx';
 import OccurrenceAssertions from "../components/occurrence/occurrenceAssertions.tsx";
-import OriginalVsProcessed from '../components/occurrence/originalVsProcessed.tsx';
+import OriginalVsProcessedModal from '../components/occurrence/originalVsProcessedModal.tsx';
 import OutlierFeedback from "../components/occurrence/outlierFeedback.tsx";
 import RecordCore from "../components/occurrence/recordCore.tsx";
 import RecordSidebar from '../components/occurrence/recordSidebar.tsx';
 import ReferencedPublications from "../components/occurrence/referencedPublications.tsx";
 import './occurrence.css';
+import { isUrl } from '../util/util.tsx';
 
 // TODO: move to external config files
 const vernacularName_show = true;
@@ -51,6 +55,7 @@ function Occurrence({setBreadcrumbs}: {
 
     const {userInfo} = useUser();
     const navigate = useNavigate();
+    const intl: IntlShape = useIntl();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -360,40 +365,11 @@ function Occurrence({setBreadcrumbs}: {
         return id;
     }
 
-    function CopyTooltip({text, children}: { text: string, children: React.ReactNode }) {
-        const [show, setShow] = useState(false);
-        const target = useRef(null);
-
-        return (
-            <>
-                <span ref={target} style={{ cursor: 'pointer' }} onClick={() => {
-                    setShow(true);
-                    setTimeout(() => {setShow(false);}, 3000);
-                }}>
-                    {children}
-                </span>
-                <Overlay target={target.current} show={show} placement='top'>
-                    {props => (
-                        <Popover {...props} style={{ ...props.style }}>
-                            <Popover.Body>
-                                <div>{text}</div>
-                            </Popover.Body>
-                        </Popover>
-                    )}
-                </Overlay>
-            </>
-        );
-    }
-
-    function isUrl(value: string | undefined): boolean {
-        if (!value || !value.startsWith('http://') || !value.startsWith('https://')) {
-            return false;
-        }
-        try {
-            new URL(value);
-            return true;
-        } catch (_) {
-            return false;
+    function formatScientificName(taxonRankID: number | undefined, scientificName: string): JSX.Element {
+        if (taxonRankID && taxonRankID >= 6000) {
+            return <i>{scientificName}</i>;
+        } else {
+            return <>{scientificName}</>;
         }
     }
 
@@ -403,223 +379,162 @@ function Occurrence({setBreadcrumbs}: {
 
     return (
         <div className={'container-fluid'} id={'main'}>
-        <div className={'container-fluid'} id={'main-content'}>
-            {/*record.raw*/}
-            {/*heading bar*/}
-            <div className='recordHeader clearfix' id='headingBar'>
-                <div className='side left'>
-                    {collectionInfo?.collectionLogo && (
-                        <div className='sidebar'>
-                            <img src={collectionInfo?.collectionLogo} alt='institution logo' id='institutionLogo' />
-                        </div>
-                    )}
-                </div>
-                <div className='side right'>
-                    <div id='jsonLinkZ'>
-                        {isCollectionAdmin() && <span> - admin</span>}
-                        {userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) && (
-                            <div id='clubView'>
-                                <span className='label label-danger'>
-                                    <i className='glyphicon glyphicon-lock'></i> Club View
-                                </span>
+            <div className={'container-fluid'} id={'main-content'}>
+                {/*heading bar*/}
+                <div className='recordHeader clearfix' id='headingBar'>
+                    <div className='side left'>
+                        {collectionInfo?.collectionLogo && (
+                            <div className='sidebar'>
+                                <img src={collectionInfo?.collectionLogo} alt='institution logo' id='institutionLogo' />
                             </div>
                         )}
                     </div>
-                    <div className='pull-rightZ'>
-                        {recordsViewProps && Object.keys(recordsViewProps).length > 0 && (
-                            <>
-                                <span id='previousBtn'>
-                                    <a
-                                        href='#'
-                                        title='Previous record'
-                                        className={`btn btn-default${isFirstRecord() ? ' disabled' : ''}`}
-                                        onClick={() => {
-                                            prevOccurrenceIndex();
-                                        }}>
-                                        <span>
-                                            <i className='glyphicon glyphicon-arrow-left' style={{ marginBottom: 5 }}></i> Previous
-                                        </span>
-                                    </a>
-                                </span>
-                                <span id='nextBtn'>
-                                    <a
-                                        href='#'
-                                        title='Next record'
-                                        className={`btn btn-default${isLastRecord() ? ' disabled' : ''}`}
-                                        onClick={() => {
-                                            nextOccurrence();
-                                        }}>
-                                        <span>
-                                            <i className='glyphicon glyphicon-arrow-right' style={{ marginBottom: 5 }}></i> Next
-                                        </span>
-                                    </a>
-                                </span>
-                                <span id='backBtn'>
-                                    <a
-                                        href='#'
-                                        title='Back to search results'
-                                        className='btn btn-default'
-                                        onClick={() => {
-                                            backToSearch();
-                                        }}>
-                                        Back to search results
-                                    </a>
-                                </span>
-                            </>
-                        )}
-                    </div>
-                </div>
-                <div className='centre'>
-                    <h1>Occurrence record: <span id='recordId'>{recordId()}</span></h1>
-                    {record?.raw?.classification && (
-                        <div id='recordHeadingLine2'>
-                            <span>{record?.processed?.occurrence?.basisOfRecord || ''}</span>
-                            <span> of </span>
-                            {record?.processed?.classification?.scientificName ? (
-                                <>
-                                    <i>{record.processed.classification.scientificName}</i> {record.processed.classification.scientificNameAuthorship}
-                                </>
-                            ) : record?.raw?.classification?.scientificName ? (
-                                <>
-                                    <i>{record.raw.classification.scientificName}</i> {record.raw.classification.scientificNameAuthorship}
-                                </>
-                            ) : (
-                                <>
-                                    <i>{record.raw.classification.genus} {record.raw.classification.specificEpithet}</i> {record.raw.classification.scientificNameAuthorship}
-                                </>
-                            )}
-                            {vernacularName_show && record?.processed?.classification?.vernacularName && <> | {record.processed.classification.vernacularName}</>}
-                            {vernacularName_show && record?.raw?.classification?.vernacularName && <> | {record.raw.classification.vernacularName}</>}
-                            {(record?.processed?.event?.eventDate || record?.raw?.event?.eventDate) && (
-                                <><span> recorded on </span>{record.processed.event?.eventDate || record.raw.event?.eventDate}</>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className='row'>
-                <div id='record-sidebar' className='col-md-4 scrollspy'>
-                    <RecordSidebar record={record} contacts={contacts} userAssertions={userAssertions} eventHierarchy={eventHierarchy}/>
-                </div>
-                <div className='col-md-8'>
-                    <div className='text-end'>
-                        {isUrl(record?.raw?.occurrence?.occurrenceID) && (
-                            <a href={record?.raw?.occurrence?.occurrenceID || '#'} className='btn btn-default' title='Click to view the original record'>
-                                View original record
-                            </a>
-                        )}
-                        <button className='btn btn-default' id='showRawProcessed' title='Table showing both original and processed record values' onClick={() => setShowOriginalVsProcessed(true)}>
-                            <span id='processedVsRawViewSpan' title=''>
-                                <i className='glyphicon glyphicon-transfer'></i>
-                                View original vs processed values
-                            </span>
-                        </button>
-                        <input id='hidden-uuid' type='hidden' value={uuid} />
-                        <CopyTooltip text={`${uuid} copied!`}>
-                            <button
-                                className='btn btn-default'
-                                id='copyRecordIdToClipboard'
-                                title="Copy this record's id to the clipboard"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(uuid || '');
-                                }}>
-                                Copy record id
-                            </button>
-                        </CopyTooltip>
-                        <a href='#CopyLink' className='tooltips btn btn-default copyLink' onClick={() => setShowCopyLinkModal(true)}>
-                            <FontAwesomeIconLite icon={faFileCode} />
-                            &nbsp;&nbsp;API
-                        </a>
-                        {showCopyLinkModal && (
-                            <div
-                                className='modal-backdrop'
-                                style={{
-                                    position: 'fixed',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100vw',
-                                    height: '100vh',
-                                    background: 'rgba(0,0,0,0.5)',
-                                    zIndex: 1050,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                                onClick={() => setShowCopyLinkModal(false)}>
-                                <div
-                                    className='modal-content'
-                                    style={{
-                                        position: 'relative',
-                                        background: '#fff',
-                                        borderRadius: '8px',
-                                        padding: '15px',
-                                        width: '500px',
-                                        height: '200px',
-                                        overflowY: 'auto'
-                                    }}
-                                    onClick={e => e.stopPropagation()}>
-                                    <div className={'modal-header'}>
-                                        <h3>JSON web service API</h3>
-                                        <button className='btn btn-link' style={{ fontSize: '24px', color: '#212121', textDecoration: 'none', zIndex: 2 }} aria-label='Close' onClick={() => setShowCopyLinkModal(false)}>
-                                            &times;
-                                        </button>
-                                    </div>
-                                    <div className={'modal-body'}>
-                                        <div className='col-sm-12 input-group'>
-                                            <input type='text' className='form-control' value={`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`} id='al4rcode' readOnly />
-                                            <CopyTooltip text={'copied!'}>
-                                                <button className='form-control btn btn-default tooltips input-group-btn' title='Copy to clipboard' onClick={() => navigator.clipboard.writeText(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`)}>
-                                                    Copy URL
-                                                </button>
-                                            </CopyTooltip>
-                                        </div>
-                                    </div>
+                    <div className='side right'>
+                        <div id='jsonLinkZ'>
+                            {isCollectionAdmin() && <span> - admin</span>}
+                            {userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) && (
+                                <div id='clubView'>
+                                    <span className='label label-danger'>
+                                        <FontAwesomeIconLite icon={faLock}/> <FormattedMessage id="show.clubview.message" defaultMessage="Club View"/>
+                                    </span>
                                 </div>
+                            )}
+                        </div>
+                        <div className='pull-rightZ'>
+                            {recordsViewProps && Object.keys(recordsViewProps).length > 0 && (
+                                <>
+                                    <span id='previousBtn'>
+                                        <button title='Previous record'
+                                            className={`btn btn-default${isFirstRecord() ? ' disabled' : ''}`}
+                                            onClick={() => {prevOccurrenceIndex();}}
+                                            style={{marginRight: '5px'}}>
+                                            <FontAwesomeIconLite icon={faArrowLeft}/> <FormattedMessage id="show.previousbtn.navigator" defaultMessage="Previous"/>
+                                        </button>
+                                    </span>
+                                    <span id='nextBtn'>
+                                        <button title='Next record'
+                                            className={`btn btn-default${isLastRecord() ? ' disabled' : ''}`}
+                                            onClick={() => {nextOccurrence();}}
+                                            style={{marginRight: '5px'}}>
+                                            <FormattedMessage id="show.nextbtn.navigator" defaultMessage="Next"/> <FontAwesomeIconLite icon={faArrowRight}/>
+                                        </button>
+                                    </span>
+                                    <span id='backBtn'>
+                                        <button title='Back to search results' className='btn btn-default'
+                                            onClick={() => {backToSearch();}}>
+                                            <FormattedMessage id="show.backbtn.navigator" defaultMessage="Back to search results"/>
+                                        </button>
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <div className='centre'>
+                        <h1>
+                            <FormattedMessage id="show.headingbar01.title" defaultMessage="Occurrence record"/> <span id='recordId'>{recordId()}</span>
+                        </h1>
+                        {record?.raw?.classification && (
+                            <div id='recordHeadingLine2'>
+                                <FormattedMessage id={"basisOfRecord." + intl.formatMessage({ id: record.processed.occurrence?.basisOfRecord, defaultMessage: record.processed.occurrence?.basisOfRecord})}/>
+                                &nbsp;<FormattedMessage id="show.heading.of" defaultMessage="of"/>&nbsp;
+                                {record?.processed?.classification?.scientificName ? (
+                                    <>
+                                        {formatScientificName(record.processed.classification.taxonRankID, record.processed.classification.scientificName)}
+                                        &nbsp;
+                                        {record.processed.classification.scientificNameAuthorship}
+                                    </>
+                                ) : record?.raw?.classification?.scientificName ? (
+                                    <>
+                                        {formatScientificName(record.raw.classification.taxonRankID, record.raw.classification.scientificName)}
+                                        &nbsp;
+                                        {record.raw.classification.scientificNameAuthorship}
+                                    </>
+                                ) : (
+                                    <>
+                                        <i>{record.raw.classification.genus} {record.raw.classification.specificEpithet}</i>
+                                        {' '}
+                                        {record.raw.classification.scientificNameAuthorship}
+                                    </>
+                                )}
+                                {vernacularName_show && record?.processed?.classification?.vernacularName && <> | {record.processed.classification.vernacularName}</>}
+                                {vernacularName_show && record?.raw?.classification?.vernacularName && <> | {record.raw.classification.vernacularName}</>}
+                                {(record?.processed?.event?.eventDate || record?.raw?.event?.eventDate) && (
+                                    <>
+                                        &nbsp;<FormattedMessage id="show.heading.recordedOn" defaultMessage="recorded on"/>&nbsp;
+                                        {record.processed.event?.eventDate || record.raw.event?.eventDate}
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
-                    <RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} setEventHierarchy={setEventHierarchy}/>
-
-                    <OccurrenceAssertions userAssertions={userAssertions} record={record} isCollectionAdmin={isCollectionAdmin} />
-
-                    <ReferencedPublications record={record} />
-
-                    <DataQualityOccurrence record={record} />
-
-                    <OutlierFeedback record={record} />
-
-                    <Duplication record={record} />
-
-                    <EnvironmentSampleInfo record={record} />
                 </div>
+
+                <div className='row'>
+                    <div id='record-sidebar' className='col-md-4 scrollspy'>
+                        <RecordSidebar record={record} contacts={contacts} userAssertions={userAssertions} eventHierarchy={eventHierarchy} />
+                    </div>
+                    <div className='col-md-8'>
+                        <div className='text-end'>
+                            {isUrl(record?.raw?.occurrence?.occurrenceID) && (
+                                <a href={record?.raw?.occurrence?.occurrenceID || '#'} className='btn btn-default' title='Click to view the original record' style={{ marginRight: '5px' }}>
+                                    {' '}
+                                    <FormattedMessage id="show.sidebar02.viewOriginal" defaultMessage="View original record"/>
+                                </a>
+                            )}
+                            <button className='btn btn-default' id='showRawProcessed' title='Table showing both original and processed record values' onClick={() => setShowOriginalVsProcessed(true)} style={{ marginRight: '5px' }}>
+                                <span id='processedVsRawViewSpan' title=''>
+                                    <FontAwesomeIconLite icon={faRightLeft} /> <FormattedMessage id="show.sidebar02.showrawprocessed.span" defaultMessage="View original vs processed values"/>
+                                </span>
+                            </button>
+                            <input id='hidden-uuid' type='hidden' value={uuid} />
+                            <CopyTooltip text={`${uuid} copied!`}>
+                                <button className='btn btn-default' id='copyRecordIdToClipboard' title="Copy this record's id to the clipboard"
+                                    onClick={() => {navigator.clipboard.writeText(uuid || '');}} style={{ marginRight: '5px' }}>
+                                    <FormattedMessage id="show.sidebar02.copyrecordid" defaultMessage="Copy record id" />
+                                </button>
+                            </CopyTooltip>
+                            <button className='tooltips btn btn-default copyLink' onClick={() => setShowCopyLinkModal(true)}>
+                                <FontAwesomeIconLite icon={faFileCode} /> <FormattedMessage id="list.copylinks" defaultMessage="API"/>
+                            </button>
+                            {showCopyLinkModal && <ApiModal onClose={() => setShowCopyLinkModal(false)} url={`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`} />}
+                        </div>
+                        <RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} setEventHierarchy={setEventHierarchy} />
+
+                        <OccurrenceAssertions userAssertions={userAssertions} record={record} isCollectionAdmin={isCollectionAdmin} />
+
+                        <ReferencedPublications record={record} />
+
+                        <DataQualityOccurrence record={record} />
+
+                        <OutlierFeedback record={record} />
+
+                        <Duplication record={record} />
+
+                        <EnvironmentSampleInfo record={record} />
+                    </div>
+                </div>
+
+                {showOriginalVsProcessed && compareRecord && (
+                    <OriginalVsProcessedModal
+                        compareRecord={compareRecord}
+                        onClose={() => {setShowOriginalVsProcessed(false);}}
+                    />
+                )}
+
+                {/*!record.raw 404*/}
+                {record && !record.raw && (
+                    <div id='headingBar' className={'mt-5'}>
+                        <h1><FormattedMessage id='show.headingbar02.title' defaultMessage='Record Not Found'/></h1>
+                        <p><FormattedMessage id='show.headingbar02.p01' defaultMessage='The requested record ID'/> "{uuid}" <FormattedMessage id='show.headingbar02.p02' defaultMessage='was not found'/></p>
+                    </div>
+                )}
+
+                {/*userAnnotationTemplate dialog*/}
+
+                {/*userVerificationTemplate dialog*/}
+
+                {/*verifyRecordModal dialog*/}
             </div>
-
-            {showOriginalVsProcessed && (
-                <OriginalVsProcessed
-                    compareRecord={compareRecord}
-                    onClose={() => {
-                        setShowOriginalVsProcessed(false);
-                    }}
-                />
-            )}
-
-            {/*!record.raw 404*/}
-            {record && !record.raw && (
-                <div id='headingBar' className={'mt-5'}>
-                    <h1>Record Not Found</h1>
-                    <p>The requested record ID "{uuid}" was not found</p>
-                </div>
-            )}
-
-            {/*contacts modal*/}
-
-            {/*userAnnotationTemplate dialog*/}
-
-            {/*userVerificationTemplate dialog*/}
-
-            {/*verifyRecordModal dialog*/}
-        </div>
         </div>
     );
 }

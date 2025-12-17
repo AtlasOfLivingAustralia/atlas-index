@@ -36,7 +36,8 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
         if (record?.systemAssertions?.failed && Object.keys(record.systemAssertions.failed).length > 0) {
             catList.push({
                 name: 'Failed', items: record.systemAssertions.failed, expanded: true,
-                icon: <><FontAwesomeIconLite icon={faTimesCircle} style={{color: "red"}}/>Failed</>,
+                icon: <><FontAwesomeIconLite icon={faTimesCircle} style={{color: "red"}}/>
+                    <FormattedMessage id="show.tabledataqualityresults.tr01td02" defaultMessage="Failed"/></>,
             });
         }
 
@@ -53,14 +54,8 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
                 name: 'Passed', items: record.systemAssertions.passed, expanded: false,
                 icon: <><FontAwesomeIconLite icon={faCheckCircle} style={{color: "green"}}/>&nbsp;
                     <FormattedMessage id="show.tabledataqualityresults.tr03td02" defaultMessage="Passed"/></>,
-                collapseTitle: intl.formatMessage({
-                        id: "show.tabledataqualityresults.tr04td02",
-                        defaultMessage: "Show/Hide"
-                    }) + ' ' +
-                    record.systemAssertions.passed.length + ' ' + intl.formatMessage({
-                        id: "dataquality.tabledataqualityresults.tr04td02.passed",
-                        defaultMessage: "passed properties"
-                    })
+                collapseTitle: intl.formatMessage({ id: "show.tabledataqualityresults.tr04td02", defaultMessage: "Show/Hide" }) + ' ' +
+                    record.systemAssertions.passed.length + ' ' + intl.formatMessage({ id: "dataquality.tabledataqualityresults.tr04td02.passed", defaultMessage: "passed properties" })
             });
         }
 
@@ -69,14 +64,8 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
                 name: 'Missing', items: record.systemAssertions.missing, expanded: false,
                 icon: <><FontAwesomeIconLite icon={faQuestionCircle}/>&nbsp;
                     <FormattedMessage id="show.tabledataqualityresults.tr05td02" defaultMessage="Missing"/></>,
-                collapseTitle: intl.formatMessage({
-                        id: "show.tabledataqualityresults.tr05td01",
-                        defaultMessage: "Show/Hide"
-                    }) + ' ' +
-                    record.systemAssertions.missing.length + ' ' + intl.formatMessage({
-                        id: "dataquality.tabledataqualityresults.tr04td02.missing",
-                        defaultMessage: "missing properties"
-                    })
+                collapseTitle: intl.formatMessage({ id: "show.tabledataqualityresults.tr05td01", defaultMessage: "Show/Hide" }) + ' ' +
+                    record.systemAssertions.missing.length + ' ' + intl.formatMessage({ id: "dataquality.tabledataqualityresults.tr04td02.missing", defaultMessage: "missing properties" })
             });
         }
 
@@ -87,14 +76,8 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
                     <FormattedMessage id="show.tabledataqualityresults.tr07td02"
                                       defaultMessage="Unchecked (lack of data)"/>
                 </>,
-                collapseTitle: intl.formatMessage({
-                        id: "show.tabledataqualityresults.tr06td02",
-                        defaultMessage: "Show/Hide"
-                    }) + ' ' +
-                    record.systemAssertions.unchecked.length + ' ' + intl.formatMessage({
-                        id: "dataquality.tabledataqualityresults.tr07td02",
-                        defaultMessage: "tests that have not been run"
-                    })
+                collapseTitle: intl.formatMessage({ id: "show.tabledataqualityresults.tr06td02", defaultMessage: "Show/Hide" }) + ' ' +
+                    record.systemAssertions.unchecked.length + ' ' + intl.formatMessage({ id: "dataquality.tabledataqualityresults.tr07td02", defaultMessage: "tests that have not been run" })
             });
         }
 
@@ -141,7 +124,7 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
     }
 
     return (
-        <div id="dataQuality" className="additionalData">
+        <div className="additionalData">
             <h3><FormattedMessage id="show.dataquality.title" defaultMessage="Data quality tests"/></h3>
             <table className="dataQualityResults table table-striped table-bordered table-condensed">
                 <thead>
@@ -150,7 +133,7 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
                         <FormattedMessage id="show.tabledataqualityresultscol01.title" defaultMessage="Test name"/>
                     </td>
                     <td className="dataQualityTestResult">
-                        <FormattedMessage id="show.tabledataqualityresultscol01.title" defaultMessage="Result"/>
+                        <FormattedMessage id="show.tabledataqualityresultscol02.title" defaultMessage="Result"/>
                     </td>
                 </tr>
                 </thead>

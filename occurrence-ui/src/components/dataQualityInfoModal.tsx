@@ -5,8 +5,8 @@
  */
 
 import Modal from "react-bootstrap/esm/Modal";
-import {DataQualityInfo} from "../../api/sources/model.ts";
 import {useEffect, useState} from "react";
+import { DataQualityInfo } from '../api/model.tsx';
 
 interface DataQualityInfoModalProps {
     onClose: () => void,

@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect, useState} from "react";
-import {IntlShape, useIntl} from "react-intl";
+import { useEffect, useState } from 'react';
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {RecordResult} from "../../api/model.tsx";
 
 
@@ -59,7 +59,7 @@ function ReferencedPublications({record}: { record: RecordResult }) {
     return <>
         {publications && publications.length > 0 &&
             <div id="referencedPublications" className="additionalData">
-                <h3>Referenced in publications</h3>
+                <h3><FormattedMessage id='show.referencedPublications.title' defaultMessage='Referenced in publications' /></h3>
             {publications.map((publication: any, idx: number) => (
                 <div className="well well-sm" key={idx}>
                     <h4>
@@ -68,9 +68,9 @@ function ReferencedPublications({record}: { record: RecordResult }) {
                             {publication.name}
                         </a>
                     </h4>
-                    <p className="samp"><span className="badge">DOI</span> ${publication['@id']}</p>
+                    <p className="samp"><span className="badge"><FormattedMessage id='show.referencedPublications.doi.01' defaultMessage='DOI' /></span> ${publication['@id']}</p>
                     <p>{publication.description}</p>
-                    <h5 style={{marginTop:'25px'}}>Version of the data used in the publication</h5>
+                    <h5 style={{marginTop:'25px'}}><FormattedMessage id='show.referencedPublications.doi.01' defaultMessage='Version of the data used in the publication' /></h5>
                     <table className="table">
                         <tbody>
                             { publication.annotation?.scientificName && <tr><td>Scientific name</td><td>{publication.annotation.scientificName}</td></tr>}

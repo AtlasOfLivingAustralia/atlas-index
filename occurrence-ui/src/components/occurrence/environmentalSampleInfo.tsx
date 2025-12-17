@@ -46,14 +46,14 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
                 for (const item of data) {
                     if (item.id in newElLayerInfo) {
                         let newLayer = newElLayerInfo[item.id];
-                        newLayer.units = item.layer.scale;
+                        newLayer.units = item.layer.environmentalvalueunits;
                         newLayer.displayName = item.name;
                         newLayer.name = item.layer.name;
                         newLayer.classification = item.layer.classification1;
                     }
                     if (item.id in newClLayerInfo) {
                         let newLayer = newClLayerInfo[item.id];
-                        newLayer.units = item.layer.scale;
+                        newLayer.units = item.layer.environmentalvalueunits;
                         newLayer.displayName = item.name;
                         newLayer.name = item.layer.name;
                         newLayer.classification = item.layer.classification1;
@@ -106,12 +106,12 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
                 <h3 id='contextualSampleInfo'>
                     <FormattedMessage id='show.outlierinformation.02.title01' defaultMessage='Additional geographic & environmental information' />
                 </h3>
-                <table className='occurrenceTable table table-striped table-bordered table-condensed'>
+                <table className='occurrenceTable table table-bordered table-condensed ala-table-striped'>
                     <tbody>
                         {clLayerInfo.map((item: LayerItem, idx: number) => (
                             <tr key={idx}>
                                 {!item.id ? (
-                                    <td colSpan={2}>{item.displayName}</td>
+                                    <td colSpan={2} className={'sectionName'}><b>{item.displayName}</b></td>
                                 ) : (
                                     <>
                                         <td>
@@ -134,12 +134,12 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
                 <h3 id='environmentalSampleInfo'>
                     <FormattedMessage id='show.outlierinformation.02.title02' defaultMessage='Environmental sampling for this location' />
                 </h3>
-                <table className='occurrenceTable table table-striped table-bordered table-condensed'>
+                <table className='occurrenceTable table table-bordered table-condensed ala-table-striped'>
                     <tbody>
                         {elLayerInfo.map((item: LayerItem, idx: number) => (
                             <tr key={idx}>
                                 {!item.id ? (
-                                    <td colSpan={2}>{item.displayName}</td>
+                                    <td colSpan={2} className={'sectionName'}><b>{item.displayName}</b></td>
                                 ) : (
                                     <>
                                         <td>
