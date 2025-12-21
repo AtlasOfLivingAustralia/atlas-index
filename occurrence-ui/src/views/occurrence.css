@@ -210,8 +210,12 @@ div#userAssertionsDetailsLink > a {
 }
 
 #clubView {
-    color: red;
+    background-color: #dc3545;
+    color: white;
     margin: 10px 0;
+    padding: 5px;
+    border-radius: 5px;
+    font-weight: bold;
 }
 
 #clubView .label {

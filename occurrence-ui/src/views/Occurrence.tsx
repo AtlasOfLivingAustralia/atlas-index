@@ -391,7 +391,6 @@ function Occurrence({setBreadcrumbs}: {
                     </div>
                     <div className='side right'>
                         <div id='jsonLinkZ'>
-                            {isCollectionAdmin() && <span> - admin</span>}
                             {userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) && (
                                 <div id='clubView'>
                                     <span className='label label-danger'>

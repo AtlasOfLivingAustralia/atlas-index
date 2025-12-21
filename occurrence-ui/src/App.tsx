@@ -29,6 +29,7 @@ import '@fontsource/roboto';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import Download from "./views/Download.tsx";
 import ExploreYourArea from "./views/ExploreYourArea.tsx";
 import Occurrence from "./views/Occurrence.tsx";
 import OccurrenceList from "./views/OccurrenceList.tsx";
@@ -105,6 +106,9 @@ export default function App() {
                     <Route path='/occurrences/search' element={<OccurrenceList setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/occurrence/:uuid' element={<Occurrence setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/explore/your-area' element={<ExploreYourArea setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
+                    <Route path='/download/options1' element={<Download setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
+                    {/*<Route path='/download/options2' element={<DownloadCustom setBreadcrumbs={setBreadcrumbs} />} />*/}
+                    {/*<Route path='/download/confirm' element={<DownloadStatus setBreadcrumbs={setBreadcrumbs}  />} />*/}
                     <Route path="*" element={<NotFoundWithBreadcrumbs setBreadcrumbs={setBreadcrumbs} />}/>
                 </Routes>
 

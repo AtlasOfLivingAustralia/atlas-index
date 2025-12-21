@@ -9,6 +9,7 @@ import {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef, useCallback} from "react";
 import '../css/search.css';
 import ReactDOM from "react-dom/client";
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import {SpeciesGroup, SpeciesGroupItem, SpeciesListItem} from "../api/model.tsx";
 import styles from './exploreYourArea.module.css';
@@ -22,6 +23,7 @@ import React from "react";
 
 const globalFq = import.meta.env.VITE_GLOBAL_FQ;
 
+// TODO: use the i18n value "all.species"
 const ALL_SPECIES = 'All Species';
 const speciesGroups: SpeciesGroupItem[] = [
     {
@@ -57,14 +59,11 @@ interface SpeciesGroupFacet {
 
 // defaults
 const center = new LatLng(
-    Number(import.meta.env.VITE_MAP_CENTRE_LAT),
-    Number(import.meta.env.VITE_MAP_CENTRE_LNG)
+    Number(import.meta.env.VITE_EYA_DEFAULT_LAT),
+    Number(import.meta.env.VITE_EYA_DEFAULT_LNG)
 );
 const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
 
-
-// TODO: clicking on the map should open a popup to page through records at that location
-// TODO: column sorting for species list
 function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
     const [locationText, setLocationText] = useState<string>('');
@@ -101,16 +100,11 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
     const popupRootRef = useRef<ReactDOM.Root | null>(null);
     const popupRef = useRef<L.Popup | null>(null);
 
-    const controllerSpeciesListRef = useRef<AbortController>(
-        new AbortController()
-    );
+    const controllerSpeciesListRef = useRef<AbortController>(new AbortController());
     const signalSpeciesList = controllerSpeciesListRef.current.signal;
-
     const mapRef = useRef<L.Map | null>(null);
-
-    const handleMyLocation = useCallback(() => {
-        useMyLocation();
-    }, []);
+    const handleMyLocation = useCallback(() => {useMyLocation();}, []);
+    const intl: IntlShape = useIntl();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -134,6 +128,8 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         } else {
             setLatLng(center);
         }
+
+        // override the initial ALL_SPECIES with intl.formatMessage({id: "all.species", defaultMessage: "All Species"})
     }, []);
 
     useEffect(() => {
@@ -361,6 +357,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
     // Downloading URL for the download UI page. Ignores any species selection and downloads all species in the area for the selected group.
     function getDownloadLink() {
         const searchParams = `?q=speciesGroup:${group == ALL_SPECIES ? '*' : group}&lat=${latLng?.lat}&lon=${latLng?.lng}&radius=${radius}${globalFq}`;
+        {/*TODO: convert to navigate*/}
         return `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/download?searchParams=${encodeURIComponent(searchParams)}&targetUri=/explore/your-area`;
     }
 
@@ -391,80 +388,96 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
     function popupDiv() {
         if (!mapLookupLatLng) {
-            return <div style={{width: "300px", height: "250px"}}>Loading...</div>;
+            return <div style={{width: "300px", height: "250px"}}>{intl.formatMessage({id:"facets.multiplefacets.tabletr01td01", defaultMessage:"loading..."})}</div>;
         }
 
-        return <div style={{width: "300px", wordBreak: 'break-word'}} >
-            <strong>Viewing {mapLookupItemIdx + 1} of {mapLookupOccurrences.length}</strong>
-            <a style={{paddingLeft: '20px', color: '#c44d34'}}
-               href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrences/search?" + mapLookupQueryParams}>View
-                all</a>
-            <br/>
+        const viewing = intl.formatMessage({id: 'search.map.viewing', defaultMessage: 'Viewing'});
+        const of = intl.formatMessage({id: 'search.map.of', defaultMessage: 'of'});
+        const viewAll = intl.formatMessage({id: 'search.map.viewAllRecords', defaultMessage: 'view all records'});
+        const occurrences = intl.formatMessage({id: 'search.map.occurrences', defaultMessage: 'occurrences'});
+        const prev = intl.formatMessage({id: 'search.map.popup.prev', defaultMessage: '&lt; Prev'});
+        const next = intl.formatMessage({id: 'search.map.popup.next', defaultMessage: 'Next &gt;'});
+        const viewRecord = intl.formatMessage({id: 'search.map.popup.viewRecord', defaultMessage: 'View record'});
 
-            {mapLookupOccurrence?.raw?.occurrence?.catalogNumber && <>Catalogue
-                number: {mapLookupOccurrence.raw.occurrence.catalogNumber}<br/></>}
-            {!mapLookupOccurrence?.raw?.occurrence?.catalogNumber && mapLookupOccurrence?.processed?.occurrence?.catalogNumber &&
-                <>Catalogue number: {mapLookupOccurrence.processed.occurrence.catalogNumber}<br/></>}
+        // record labels
+        const catalogNumberLabel = intl.formatMessage({id: 'record.catalogNumber.label'});
+        const recordNumberLabel = intl.formatMessage({id: 'record.recordNumber.label'});
+        const recordFieldNumberLabel = intl.formatMessage({id: 'record.fieldNumber.label'});
+        const recordInstitutionNameLabel = intl.formatMessage({id: 'record.institutionName.label'});
+        const recordDataResourceNameLabel = intl.formatMessage({id: 'record.dataResourceName.label'});
+        const recordCollectionNameLabel = intl.formatMessage({id: 'record.collectionName.label'});
+        const recordRecordedByLabel = intl.formatMessage({id: 'record.recordedBy.label'});
+        const recordEventDateLabel = intl.formatMessage({id: 'record.eventDate.label'});
+        const loading = intl.formatMessage({id: "facets.multiplefacets.tabletr01td01", defaultMessage:"loading..."});
 
-            {mapLookupOccurrence?.raw?.occurrence?.recordNumber && <>Record
-                number: {mapLookupOccurrence.raw.occurrence.recordNumber}<br/></>}
-            {!mapLookupOccurrence?.raw?.occurrence?.recordNumber && mapLookupOccurrence?.raw?.occurrence?.fieldNumber &&
-                <>Field number: {mapLookupOccurrence.raw.occurrence.fieldNumber}<br/></>}
+        return (
+            <div style={{ width: '300px', wordBreak: 'break-word' }}>
+                <strong>
+                    {viewing} {mapLookupItemIdx + 1} {of} {mapLookupOccurrences.length} {occurrences}
+                </strong>
+                {/*TODO: convert to navigate*/}
+                <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrences/search?' + mapLookupQueryParams}>
+                    {viewAll}
+                </a>
+                <br />
 
-            {mapLookupOccurrence?.processed?.attribution?.institutionName && <>Institution: {mapLookupOccurrence.processed.attribution.institutionName}<br/></>}
-            {!mapLookupOccurrence?.processed?.attribution?.institutionName && mapLookupOccurrence?.processed?.attribution?.dataResourceName &&
-                <>Data resource: {mapLookupOccurrence.processed.attribution.dataResourceName}<br/></>}
+                {mapLookupOccurrence?.raw?.occurrence?.catalogNumber && (
+                    <>{catalogNumberLabel}: {mapLookupOccurrence.raw.occurrence.catalogNumber}<br /></>)}
+                {!mapLookupOccurrence?.raw?.occurrence?.catalogNumber && mapLookupOccurrence?.processed?.occurrence?.catalogNumber && (
+                    <>{catalogNumberLabel}: {mapLookupOccurrence.processed.occurrence.catalogNumber}<br /></>)}
+                {mapLookupOccurrence?.raw?.occurrence?.recordNumber && (
+                    <>{recordNumberLabel}: {mapLookupOccurrence.raw.occurrence.recordNumber}<br /></>)}
+                {!mapLookupOccurrence?.raw?.occurrence?.recordNumber && mapLookupOccurrence?.raw?.occurrence?.fieldNumber && (
+                    <>{recordFieldNumberLabel}: {mapLookupOccurrence.raw.occurrence.fieldNumber}<br /></>)}
+                {mapLookupOccurrence?.processed?.attribution?.institutionName && (
+                    <>{recordInstitutionNameLabel}: {mapLookupOccurrence.processed.attribution.institutionName}<br /></>)}
+                {!mapLookupOccurrence?.processed?.attribution?.institutionName && mapLookupOccurrence?.processed?.attribution?.dataResourceName && (
+                    <>{recordDataResourceNameLabel}: {mapLookupOccurrence.processed.attribution.dataResourceName}<br /></>)}
+                {mapLookupOccurrence?.processed?.attribution?.collectionName && (
+                    <>{recordCollectionNameLabel}: {mapLookupOccurrence.processed.attribution.collectionName}<br /></>)}
+                {mapLookupOccurrence?.raw?.classification?.vernacularName && (
+                    <>{mapLookupOccurrence.raw.classification.vernacularName}<br /></>)}
+                {!mapLookupOccurrence?.raw?.classification?.vernacularName && mapLookupOccurrence?.processed?.classification?.vernacularName && (
+                    <>{mapLookupOccurrence.processed.classification.vernacularName}<br /></>)}
+                {mapLookupOccurrence?.processed?.classification?.scientificName && (
+                    <>{mapLookupOccurrence?.processed?.classification?.taxonRankID && mapLookupOccurrence?.processed?.classification?.taxonRankID >= 6000 ? <i>{mapLookupOccurrence.processed.classification.scientificName}</i> : <>{mapLookupOccurrence.processed.classification.scientificName}</>}<br /></>)}
+                {!mapLookupOccurrence?.processed?.classification?.scientificName && mapLookupOccurrence?.raw?.classification?.scientificName && (
+                    <>{mapLookupOccurrence.raw.classification.scientificName}<br /></>)}
+                {mapLookupOccurrence?.raw?.occurrence?.recordedBy && (
+                    <>{recordRecordedByLabel}: {mapLookupOccurrence.raw.occurrence.recordedBy}<br /></>)}
+                {!mapLookupOccurrence?.raw?.occurrence?.recordedBy && mapLookupOccurrence?.processed?.occurrence?.recordedBy && (
+                    <>{recordRecordedByLabel}: {mapLookupOccurrence.processed.occurrence.recordedBy}<br /></>)}
+                {mapLookupOccurrence?.processed?.event?.eventDate && (
+                    <>{recordEventDateLabel}: {mapLookupOccurrence.processed.event.eventDate}<br /></>)}
 
-            {mapLookupOccurrence?.processed?.attribution?.collectionName && <>Collection: {mapLookupOccurrence.processed.attribution.collectionName}<br/></>}
-
-            {mapLookupOccurrence?.raw?.classification?.vernacularName && <>{mapLookupOccurrence.raw.classification.vernacularName}<br/></>}
-            {!mapLookupOccurrence?.raw?.classification?.vernacularName && mapLookupOccurrence?.processed?.classification?.vernacularName &&
-                <>{mapLookupOccurrence.processed.classification.vernacularName}<br/></>}
-
-
-            {mapLookupOccurrence?.processed?.classification?.scientificName && <>{
-                mapLookupOccurrence?.processed?.classification?.taxonRankID && mapLookupOccurrence?.processed?.classification?.taxonRankID >= 6000 ?
-                    <i>{mapLookupOccurrence.processed.classification.scientificName}</i>
-                    :
-                    <>{mapLookupOccurrence.processed.classification.scientificName}</>
-            }<br/></>}
-            {!mapLookupOccurrence?.processed?.classification?.scientificName && mapLookupOccurrence?.raw?.classification?.scientificName && <>{mapLookupOccurrence.raw.classification.scientificName}<br/></>}
-
-
-            {mapLookupOccurrence?.raw?.occurrence?.recordedBy && <>Collector: {mapLookupOccurrence.raw.occurrence.recordedBy}<br/></>}
-            {!mapLookupOccurrence?.raw?.occurrence?.recordedBy && mapLookupOccurrence?.processed?.occurrence?.recordedBy && <>Collector: {mapLookupOccurrence.processed.occurrence.recordedBy}<br/></>}
-
-            {mapLookupOccurrence?.processed?.event?.eventDate && <>Event
-                date: {mapLookupOccurrence.processed.event.eventDate}<br/></>}
-
-            <br/>
-            {mapLookupOccurrence == undefined && <>"Loading..."</>}
-            <div className={"d-flex"}>
-                <a className="btn btn-sm btn-default" style={{
-                    fontSize: '12px',
-                    lineHeight: '14px',
-                    paddingTop: '2px',
-                    textDecoration: 'none',
-                    color: '#000'
-                }}
-                   href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + "/occurrence/" + (mapLookupOccurrence?.processed?.uuid)}>View
-                    record</a>
-                <button
-                    className="btn btn-sm btn-default ms-auto"
-                    style={{fontSize: '12px', lineHeight: '14px', paddingTop: '2px'}}
-                    onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined}
-                    disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}>
-                    &lt; prev
-                </button>
-                <button
-                    className="btn btn-sm btn-default ms-1"
-                    style={{fontSize: '12px', lineHeight: '14px', paddingTop: '2px'}}
-                    onClick={mapLookupItemIdx < mapLookupOccurrences.length - 1 ? nextOccurrence : undefined}
-                    disabled={mapLookupItemIdx === mapLookupOccurrences.length - 1 || mapLookupOccurrences.length <= 1}>
-                    next &gt;
-                </button>
+                <br />
+                {mapLookupOccurrence == undefined && <>{loading}</>}
+                <div className={'d-flex'}>
+                    <a className='btn btn-sm btn-default'
+                        style={{
+                            fontSize: '12px',
+                            lineHeight: '14px',
+                            paddingTop: '2px',
+                            textDecoration: 'none',
+                            color: '#000'
+                        }}
+                       // TODO: convert to navigate
+                        href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrence/' + mapLookupOccurrence?.processed?.uuid}>
+                        {viewRecord}
+                    </a>
+                    <button className='btn btn-sm btn-default ms-auto' style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }} onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined} disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}
+                        dangerouslySetInnerHTML={{ __html: prev }}>
+                    </button>
+                    <button
+                        className='btn btn-sm btn-default ms-1'
+                        style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }}
+                        onClick={mapLookupItemIdx < mapLookupOccurrences.length - 1 ? nextOccurrence : undefined}
+                        disabled={mapLookupItemIdx === mapLookupOccurrences.length - 1 || mapLookupOccurrences.length <= 1}
+                        dangerouslySetInnerHTML={{ __html: next }}>
+                    </button>
+                </div>
             </div>
-        </div>;
+        );
     }
 
     // this is reusable by the occurrenceList, but for now just keep it here
@@ -528,38 +541,39 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
     return <>
         <div id="main" className="container-fluid">
             {/*Hidden icons for map controls, copying the innerHTML for now*/}
-            <div style={{display: 'none'}} id="fa-location-arrow-item"><FontAwesomeIconLite icon={faLocationArrow}
-                                                                                            style={{height: '16px'}}/>
-            </div>
+            <div style={{display: 'none'}} id="fa-location-arrow-item">
+                <FontAwesomeIconLite icon={faLocationArrow} style={{height: '16px'}}/></div>
 
             <div className="container-fluid">
                 <div id="headingBar" className="mt-5">
-                    <h1 className="w-100" id="searchHeader" style={{fontSize: '36px'}}>Explore Your Area</h1>
-                    <div style={{fontSize: '18px', fontWeight: '500'}} className="mt-3">Enter your location or
-                        address:
+                    <h1 className="w-100" id="searchHeader" style={{fontSize: '36px'}}>
+                        <FormattedMessage id="eya.header.title" defaultMessage="Explore Your Area"/>
+                    </h1>
+                    <div style={{fontSize: '18px', fontWeight: '500'}} className="mt-3">
+                        <FormattedMessage id="eya.searchform.label01" defaultMessage="Enter your location or address"/>
                     </div>
 
                     <div className="input-group mt-2" style={{maxWidth: '700px'}}>
-                        <input value={locationText} onChange={(e) => setLocationText(e.target.value)} type="text"
-                               className="form-control"
-                               placeholder="E.g. a street address, place name, postcode or GPS coordinates (as lat, long)"/>
-                        <button className="btn btn-primary" onClick={() => locationSearch()}>Search</button>
+                        <input value={locationText} onChange={(e) => setLocationText(e.target.value)} type="text" className="form-control"
+                               placeholder={intl.formatMessage({id:'eya.searchform.des01', defaultMessage:"E.g. a street address, place name, postcode or GPS coordinates (as lat, long)"})}/>
+                        <button className="btn btn-primary" onClick={() => locationSearch()}>
+                            <FormattedMessage id="eya.searchform.btn01" defaultMessage="Search"/>
+                        </button>
                     </div>
                 </div>
                 <hr/>
                 <div className="container-fluid">
                     <div className="mb-3 row">
                         <div className="col-sm-12 col-md-12 mt-2">
-                            Showing records for: <b>{addressText}</b>
+                            <FormattedMessage id="eya.searchform.label02" defaultMessage="Showing records for"/>: <b>{addressText}</b>
                         </div>
                         <div className="col-sm-12 col-md-12 mt-2">
-                            Display records in a
-                            &nbsp;<select value={radius} onChange={e => setRadius(Number(e.target.value))}
-                                          style={{width: '40px', display: 'inline-block'}}>
+                            <FormattedMessage id="eya.searchformradius.label01" defaultMessage="Display records in a"/>
+                            &nbsp;<select value={radius} onChange={e => setRadius(Number(e.target.value))} style={{width: '40px', display: 'inline-block'}}>
                             <option value={1}>1</option>
                             <option value={5}>5</option>
                             <option value={10}>10</option>
-                        </select>&nbsp;km radius
+                        </select>&nbsp;<FormattedMessage id="eya.searchformradius.label02" defaultMessage="km radius"/>
                         </div>
                     </div>
                 </div>
@@ -570,8 +584,8 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                 <table className={'table'} style={{width: '33%', height: 'fit-content'}}>
                                     <thead>
                                     <tr>
-                                        <th>Group</th>
-                                        <th style={{textAlign: 'right', paddingRight: '20px'}}>Species</th>
+                                        <th><FormattedMessage id="eya.table.01.th01" defaultMessage="Group"/></th>
+                                        <th style={{textAlign: 'right', paddingRight: '20px'}}><FormattedMessage id="eya.table.01.th02" defaultMessage="Species"/></th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -579,47 +593,31 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                         <tr key={idx} style={{padding: '0'}}
                                             className={styles.speciesGroupItem + (itemFiltered.name === group ? ' ' + styles.speciesItemSelected : '')}>
                                             <td onClick={() => isFetchingSpeciesList || setGroup(itemFiltered.name)}
-                                                style={{
-                                                    cursor: isFetchingSpeciesList ? 'wait' : 'pointer',
-                                                    padding: '0',
-                                                    background: 'transparent'
-                                                }}>
-                                                    <span
-                                                        className={styles.speciesItemParent + ' speciesItem' + (itemFiltered.indent > 0 ? ' ms-' + itemFiltered.indent * 2 : '')}
-                                                        style={{backgroundColor: 'transparent'}}>
-                                                        {itemFiltered.name}
-                                                    </span>
+                                                style={{ cursor: isFetchingSpeciesList ? 'wait' : 'pointer', padding: '0', background: 'transparent' }}>
+                                                <span
+                                                    className={styles.speciesItemParent + ' speciesItem' + (itemFiltered.indent > 0 ? ' ms-' + itemFiltered.indent * 2 : '')}
+                                                    style={{backgroundColor: 'transparent'}}>
+                                                    {itemFiltered.name}
+                                                </span>
                                             </td>
-                                            <td style={{
-                                                textAlign: 'right',
-                                                padding: '0 20px 0 0',
-                                                background: 'transparent'
-                                            }}>
+                                            <td style={{ textAlign: 'right', padding: '0 20px 0 0', background: 'transparent' }}>
                                                 {speciesGroupFacet[itemFiltered.name]?.speciesCount}</td>
                                         </tr>
                                     ))}
                                     </tbody>
                                 </table>
-                                <div style={{
-                                    width: '64%',
-                                    height: '500px',
-                                    overflowY: 'auto',
-                                    backgroundColor: '#f2f2f2'
-                                }}>
+                                <div style={{ width: '64%', height: '500px', overflowY: 'auto', backgroundColor: '#f2f2f2' }}>
                                     <table className={'table'} style={{width: '100%'}}>
                                         <thead style={{}}>
                                         <tr style={{}}>
-                                            <th style={{width: "40%", position: 'sticky', top: '0'}}
-                                                className={styles.speciesTableHeader}
-                                                onClick={() => setSpeciesSort('commonName')}>Common Name
+                                            <th style={{width: "40%", position: 'sticky', top: '0'}} className={styles.speciesTableHeader} onClick={() => setSpeciesSort('commonName')}>
+                                                <FormattedMessage id="eya.table.02.th01.a" defaultMessage="Common Name"/>
                                             </th>
-                                            <th style={{width: "40%"}}
-                                                className={styles.speciesTableHeader}
-                                                onClick={() => setSpeciesSort('scientificName')}>Scientific Name
+                                            <th style={{width: "40%"}} className={styles.speciesTableHeader} onClick={() => setSpeciesSort('scientificName')}>
+                                                <FormattedMessage id="eya.table.02.th01" defaultMessage="Scientific Name"/>
                                             </th>
-                                            <th style={{textAlign: 'right', width: "20%", position: 'sticky', top: '0'}}
-                                                className={styles.speciesTableHeader}
-                                                onClick={() => setSpeciesSort('records')}>Records
+                                            <th style={{textAlign: 'right', width: "20%", position: 'sticky', top: '0'}} className={styles.speciesTableHeader} onClick={() => setSpeciesSort('records')}>
+                                                <FormattedMessage id="eya.table.02.th02" defaultMessage="Records"/>
                                             </th>
                                         </tr>
                                         </thead>
@@ -632,16 +630,12 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                         )}
                                         {speciesList && speciesList.length === 0 && (
                                             <tr style={{backgroundColor: 'transparent'}}>
-                                                <td style={{backgroundColor: 'transparent'}} colSpan={3}><p>No species
-                                                    found</p></td>
+                                                <td style={{backgroundColor: 'transparent'}} colSpan={3}><p><FormattedMessage id='eya.nospecies' defaultMessage='No species found'/></p></td>
                                             </tr>
                                         )}
                                         {speciesList && speciesList.sort(speciesSortComparator).map((species, idx) => (
                                             <React.Fragment key={idx}>
-                                                <tr style={{
-                                                    backgroundColor: (species.guid === selectedSpecies ? '#fff' : ''),
-                                                    cursor: 'pointer'
-                                                }}
+                                                <tr style={{ backgroundColor: (species.guid === selectedSpecies ? '#fff' : ''), cursor: 'pointer' }}
                                                     className={styles.speciesItemParent + ' ' + (species.guid === selectedSpecies ? ' ' + styles.speciesItemSelected : '')}
                                                     onClick={() => filterSpecies(species)}>
                                                     {/*className={'d-flex justify-content-between ' + styles.speciesItem}>*/}
@@ -679,12 +673,13 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                                                 <a className="btn btn-default btn-sm ms-3"
                                                                    style={{textDecoration: 'none'}}
                                                                    href={`${import.meta.env.VITE_SPECIES_URL_PREFIX}${species.guid}`}>
-                                                                    Species profile
+                                                                    <FormattedMessage id='eya.speciesprofile' defaultMessage='Species profile'/>
                                                                 </a>
                                                                 <a className="btn btn-default btn-sm ms-3"
                                                                    style={{textDecoration: 'none'}}
+                                                                   // TODO: convert to navigate
                                                                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:"${encodeURIComponent(species.guid)}"${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}>
-                                                                    List records
+                                                                    <FormattedMessage id='eya.listrecords' defaultMessage='List records'/>
                                                                 </a>
                                                             </div>
                                                         </td>
@@ -704,10 +699,11 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                        pointerEvents: (!speciesList || speciesList.length === 0) ? 'none' : 'auto',
                                        opacity: (!speciesList || speciesList.length === 0) ? 0.5 : 1
                                    }}
+                                   // TODO: convert to navigate
                                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?${occurrenceFq}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}
                                    tabIndex={(!speciesList || speciesList.length === 0) ? -1 : 0}
                                    aria-disabled={!speciesList || speciesList.length === 0}>
-                                    View records for&nbsp;{group}
+                                    <FormattedMessage id='eya.searchform.viewrecordsfor' defaultMessage='View records for'/> {group}
                                 </a>
                                 <a className={`btn btn-sm btn-default ms-3${!speciesList || speciesList.length === 0 ? ' disabled' : ''}`}
                                    style={{
@@ -718,7 +714,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                    href={speciesList && speciesList.length > 0 ? getDownloadLink() : undefined}
                                    tabIndex={(!speciesList || speciesList.length === 0) ? -1 : 0}
                                    aria-disabled={!speciesList || speciesList.length === 0}>
-                                    Download records for&nbsp;{group}
+                                    <FormattedMessage id='eya.searchform.downloadrecordsfor' defaultMessage='Download records for'/> {group}
                                 </a>
                             </div>
                         </div>
@@ -800,11 +796,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                             center={latLng}
                                             radius={radius * 1000} // km to meters
                                             pathOptions={{color: '#C44D34', fillOpacity: 0.2}}
-                                            eventHandlers={{
-                                                click: (e) => {
-                                                    mapClick(e)
-                                                }
-                                            }}
+                                            eventHandlers={{ click: (e) => {mapClick(e)} }}
                                         />
                                     </>)}
 
@@ -821,8 +813,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                             />
                                         )}
                                 </MapContainer>
-                                <strong>Tips</strong>: you can fine-tune the location of the area by dragging the blue
-                                marker icon
+                                <strong><FormattedMessage id="eya.maptips.01" defaultMessage="Tip"/></strong>: <FormattedMessage id="eya.maptips.02" defaultMessage="you can fine-tune the location of the area by dragging the blue marker icon"/>
                             </div>
                         </div>
                     </div>

@@ -1,13 +1,13 @@
 import { FontAwesomeIconLite } from '@ala/common-ui';
 import { faBan, faCheckCircle, faEnvelope, faExclamationCircle, faFlag, faQuestionCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useEffect, useRef, useState } from 'react';
-import { Overlay, Popover } from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import { Circle, LayersControl, MapContainer, Marker, TileLayer } from 'react-leaflet';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { RecordResult } from '../../api/model.tsx';
 import ContactCuratorModal from '../contactCuratorModal.tsx';
+import RolloverTooltip from '../rolloverTooltip.tsx';
 
 // TODO: move to config
 const skin_useAlaImageService = true;
@@ -24,28 +24,6 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
             setLatLng({lat: record.processed.location.decimalLatitude, lng: record.processed.location.decimalLongitude});
         }
     }, [record]);
-
-    function AssertionTooltip({ text, children }: { text: string; children: React.ReactNode }) {
-        const [show, setShow] = useState(false);
-        const target = useRef(null);
-
-        return (
-            <>
-                <span ref={target} style={{ cursor: 'pointer' }} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-                    {children}
-                </span>
-                <Overlay target={target.current} show={show} placement='top'>
-                    {props => (
-                        <Popover {...props} style={{ ...props.style }}>
-                            <Popover.Body>
-                                <div>{text}</div>
-                            </Popover.Body>
-                        </Popover>
-                    )}
-                </Overlay>
-            </>
-        );
-    }
 
     function RenderTree({ eventHierarchy }: { eventHierarchy: string[] }) {
         function renderNode(hierarchy: string[]): React.ReactNode {
@@ -162,25 +140,25 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                         <li>
                             <a href='#dataQuality'>
                                 <FormattedMessage id='show.dataquality.title' defaultMessage='Data quality tests' /> ({record.systemAssertions.failed?.length || 0}{' '}
-                                <AssertionTooltip text={intl.formatMessage({ id: 'assertions.failed', defaultMessage: 'failed' })}>
+                                <RolloverTooltip text={intl.formatMessage({ id: 'assertions.failed', defaultMessage: 'failed' })}>
                                     <FontAwesomeIconLite icon={faTimesCircle} style={{ color: 'red' }} title=' failed' />
-                                </AssertionTooltip>
+                                </RolloverTooltip>
                                 , {record.systemAssertions.warning?.length || 0}{' '}
-                                <AssertionTooltip text={intl.formatMessage({ id: 'assertions.warnings', defaultMessage: 'warnings' })}>
+                                <RolloverTooltip text={intl.formatMessage({ id: 'assertions.warnings', defaultMessage: 'warnings' })}>
                                     <FontAwesomeIconLite icon={faExclamationCircle} style={{ color: 'orange' }} title=' warning' />
-                                </AssertionTooltip>
+                                </RolloverTooltip>
                                 , {record.systemAssertions.passed?.length || 0}{' '}
-                                <AssertionTooltip text={intl.formatMessage({ id: 'assertions.passed', defaultMessage: 'passed' })}>
+                                <RolloverTooltip text={intl.formatMessage({ id: 'assertions.passed', defaultMessage: 'passed' })}>
                                     <FontAwesomeIconLite icon={faCheckCircle} style={{ color: 'green' }} title=' passed' />
-                                </AssertionTooltip>
+                                </RolloverTooltip>
                                 , {record.systemAssertions.missing?.length || 0}{' '}
-                                <AssertionTooltip text={intl.formatMessage({ id: 'assertions.missing', defaultMessage: 'missing' })}>
+                                <RolloverTooltip text={intl.formatMessage({ id: 'assertions.missing', defaultMessage: 'missing' })}>
                                     <FontAwesomeIconLite icon={faQuestionCircle} style={{ color: 'gray' }} title=' missing' />
-                                </AssertionTooltip>
+                                </RolloverTooltip>
                                 , {record.systemAssertions.unchecked?.length || 0}{' '}
-                                <AssertionTooltip text={intl.formatMessage({ id: 'assertions.unchecked', defaultMessage: 'unchecked' })}>
+                                <RolloverTooltip text={intl.formatMessage({ id: 'assertions.unchecked', defaultMessage: 'unchecked' })}>
                                     <FontAwesomeIconLite icon={faBan} style={{ color: 'gray' }} title=' unchecked' />
-                                </AssertionTooltip>
+                                </RolloverTooltip>
                                 )
                             </a>
                         </li>

@@ -4,12 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, useHashState} from "@ala/common-ui";
+import { Breadcrumb, FontAwesomeIconLite, useHashState } from '@ala/common-ui';
+import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import L, {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef} from "react";
 import {Tab, Tabs} from "react-bootstrap";
 import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 import '../css/search.css';
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {EditControl} from "react-leaflet-draw";
 import {useNavigate} from "react-router-dom";
 import {AdvancedSearch} from "../api/model.tsx";
@@ -26,6 +28,9 @@ const center = new LatLng(
     Number(import.meta.env.VITE_MAP_CENTRE_LNG)
 );
 const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
+
+// TODO: move to config
+const hubDisplayName = "Search for records in Atlas of Living Australia";
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -79,6 +84,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     const navigate = useNavigate();
     const searchTimeout = useRef<NodeJS.Timeout | null>(null);
     const searchAbort = useRef<AbortController | null>(null);
+    const intl: IntlShape = useIntl();
 
     const mapRef = useRef<L.Map | null>(null);
 
@@ -178,14 +184,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     }
 
     function addWktToMap() {
-        console.log('addWktToMap', spatialWkt);
         if (!spatialWkt || !mapRef.current) return;
 
         // Simple WKT POLYGON parser (assumes valid input)
         const match = spatialWkt.match(/POLYGON\s*\(\(\s*([^)]+)\s*\)\)/i);
         if (!match) {
-            alert('Invalid WKT POLYGON');
-            return;
+            return; // TODO: indicate invalid WKT
         }
         const coords: [number, number][] = match[1].split(',').map(pair => {
             const [lng, lat] = pair.trim().split(/\s+/).map(Number);
@@ -272,10 +276,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         // 2. Set popup content
         const div = document.createElement('div');
         div.innerHTML = `
-            <div>Taxon count: <span id="taxonCount${uniqueId}" class="fw-bold">calculating...</div>
-            <div>Occurrence count: <span id="occurrenceCount${uniqueId}" class="fw-bold">calculating...</span></div>
-            <a href="/occurrences/search?${terms}" style="color: #C44D34 !important;">Search for records in this area</a><br/>
-            <a href="#" id="remove-area-btn" style="color: #C44D34 !important;">Remove this area</a>
+            <div>${intl.formatMessage({id:'advancedsearch.js.map.common.speciescount'})}: <span id="taxonCount${uniqueId}" class="fw-bold">calculating...</div>
+            <div>${intl.formatMessage({id:'advancedsearch.js.map.common.occurrencecount'})}: <span id="occurrenceCount${uniqueId}" class="fw-bold">calculating...</span></div>
+            <a href="/occurrences/search?${terms}" style="color: #C44D34 !important;">${intl.formatMessage({id:'search.map.popup.linkText'})}</a><br/>
+            <a href="#" id="remove-area-btn" style="color: #C44D34 !important;">${intl.formatMessage({id:'search.map.popup.removeText'})}</a>
         `;
 
         // Attach event handler
@@ -319,10 +323,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                 signal: controller.signal
             })
                 .then(res => res.json())
-                .then(data => setTaxaOptions(data || []))
-                .catch(e => {
-                    if (e.name !== "AbortError") console.error(e);
-                });
+                .then(data => setTaxaOptions(data || []));
         }, 300); // 300ms debounce
     }
 
@@ -330,16 +331,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         <div id="main" className="container-fluid">
             <div className="container-fluid">
                 <div id="headingBar" className="">
-                    <h1 className="w-100" id="searchHeader">Search for records in Atlas of Living Australia</h1>
+                    <h1 className="w-100" id="searchHeader">
+                        <FormattedMessage id="home.index.body.title" defaultMessage="Search for records in"/> {hubDisplayName}</h1>
                 </div>
 
-                <Tabs
-                    id="occurrence-tabs"
-                    activeKey={tab}
-                    onSelect={(k) => setTab("" + k)}
-                    className=""
-                >
-                    <Tab eventKey="simple" title="Simple search">
+                <Tabs id="occurrence-tabs" activeKey={tab} onSelect={(k) => setTab("" + k)}>
+                    <Tab eventKey="simple" title={intl.formatMessage({id:'home.index.navigator01', defaultMessage: 'Simple search'})}>
                         <div className="container-fluid">
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-9 col-md-9">
@@ -367,48 +364,45 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                 }
                                             }}
                                         />
-                                        <button className="btn btn-primary" onClick={() => simpleSearch()}>Search
+                                        <button className="btn btn-primary" onClick={() => simpleSearch()}>
+                                            <FormattedMessage id='home.index.simsplesearch.button' defaultMessage='Search' />
                                         </button>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="mb-3 row align-items-center">
-                            <span className="simpleSearchNote">
-                                <b>Note:</b> the simple search attempts to match a known <b>species/taxon</b> - by its scientific name or common name. If there are no name matches, a <b>full text</b> search will be performed on your query
-                            </span>
+                                <span className="simpleSearchNote" dangerouslySetInnerHTML={{ __html: intl.formatMessage({id: 'home.index.simsplesearch.span', defaultMessage: 'Note: the simple search attempts to match a known species/taxon - by its scientific name or common name. If there are no name matches, a full text search will be performed on your query'})}} />
                             </div>
                         </div>
                     </Tab>
-                    <Tab eventKey="advanced" title="Advanced search">
+                    <Tab eventKey="advanced" title={intl.formatMessage({id:'home.index.navigator02', defaultMessage: 'Advanced search'})}>
                         <div className="container-fluid">
                             <div className="mb-3 row mt-2">
-                                <h4>Find records that have</h4>
+                                <h4><FormattedMessage id="advancedsearch.title01" defaultMessage="Find records that have"/></h4>
                                 <div className="mb-3 row align-items-center text-end align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="text">ALL of these words (full
-                                        text)</label>
+                                    <label className="col-md-2 control-label" htmlFor="text">
+                                        <FormattedMessage id="advancedsearch.table01col01.title" defaultMessage="ALL of these words (full text)"/>
+                                    </label>
                                     <div className="col-md-6 ms-2">
-                                        <input type="text" className="dataset form-control"
-                                               value={advancedText}
+                                        <input type="text" className="dataset form-control" value={advancedText}
                                                onChange={e => setAdvancedText(e.target.value)}/>
                                     </div>
                                 </div>
 
-                                <h4>Find records for ANY of the following taxa
-                                    (matched/processed taxon concepts)</h4>
+                                <h4><FormattedMessage id="advancedsearch.title02" defaultMessage="Find records for ANY of the following taxa (matched/processed taxon concepts)"/></h4>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="taxa_1">Species/Taxon</label>
+                                    <label className="col-md-2 control-label" htmlFor="taxa_1"><FormattedMessage id="advancedsearch.table02col01.title" defaultMessage="Species/Taxon"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <input type="text" id="taxa_1" className="name_autocomplete form-control"
-                                               value={advancedTaxa1}
+                                        <input type="text" id="taxa_1" className="name_autocomplete form-control" value={advancedTaxa1}
                                                onChange={e => setAdvancedTaxa1(e.target.value)}/>
                                     </div>
                                 </div>
 
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="taxa_2">Species/Taxon</label>
+                                    <label className="col-md-2 control-label" htmlFor="taxa_2"><FormattedMessage id="advancedsearch.table02col01.title" defaultMessage="Species/Taxon"/></label>
                                     <div className="col-md-6 ms-2">
                                         <input type="text" id="taxa_2" className="name_autocomplete form-control"
                                                value={advancedTaxa2}
@@ -418,7 +412,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
 
                                 <div className="mb-3 row align-items-center text-end" id="taxon_row_3">
-                                    <label className="col-md-2 control-label" htmlFor="taxa_3">Species/Taxon</label>
+                                    <label className="col-md-2 control-label" htmlFor="taxa_3"><FormattedMessage id="advancedsearch.table02col01.title" defaultMessage="Species/Taxon"/></label>
                                     <div className="col-md-6 ms-2">
                                         <input type="text" id="taxa_3" className="name_autocomplete form-control"
                                                value={advancedTaxa3}
@@ -427,7 +421,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end" id="taxon_row_4">
-                                    <label className="col-md-2 control-label" htmlFor="taxa_4">Species/Taxon</label>
+                                    <label className="col-md-2 control-label" htmlFor="taxa_4"><FormattedMessage id="advancedsearch.table02col01.title" defaultMessage="Species/Taxon"/></label>
                                     <div className="col-md-6 ms-2">
                                         <input type="text" id="taxa_4" className="name_autocomplete form-control"
                                                value={advancedTaxa4}
@@ -435,27 +429,23 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     </div>
                                 </div>
 
-                                <h4 className="margin-bottom-half-1">Find records that specify the following fields</h4>
+                                <h4 className="margin-bottom-half-1"><FormattedMessage id="advancedsearch.allfields.title" defaultMessage="Find records that specify the following fields"/></h4>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="raw_taxon_name">Provided
-                                        scientific
-                                        name</label>
+                                    <label className="col-md-2 control-label" htmlFor="raw_taxon_name"><FormattedMessage id="advancedsearch.table03col01.title" defaultMessage="Raw Scientific Name"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <input type="text" id="raw_taxon_name" className="dataset form-control"
-                                               value={advancedRawTaxon}
+                                        <input type="text" id="raw_taxon_name" className="dataset form-control" value={advancedRawTaxon}
                                                onChange={e => setAdvancedRawTaxon(e.target.value)}/>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="species_group">Species
-                                        group</label>
+                                    <label className="col-md-2 control-label" htmlFor="species_group"><FormattedMessage id="advancedsearch.table04col01.title" defaultMessage="Species Group"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="species_group"
                                                 value={advancedSpeciesGroup}
                                                 onChange={e => setAdvancedSpeciesGroup(e.target.value)}>
-                                            <option value="">-- select a species group --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table04col01.option.label" defaultMessage="-- select a species group --"/></option>
                                             {advancedOptions?.speciesGroup && advancedOptions.speciesGroup.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
@@ -464,20 +454,20 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="institution_collection">Institution
-                                        or collection</label>
+                                    <label className="col-md-2 control-label" htmlFor="institution_collection">
+                                        <FormattedMessage id="advancedsearch.table05col01.title" defaultMessage="Institution or Collection"/>
+                                    </label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="institution_collection"
                                                 value={advancedInstitution}
                                                 onChange={e => setAdvancedInstitution(e.target.value)}>
-                                            <option value="">-- select an institution or collection --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table05col01.option01.label" defaultMessage="-- select an institution or collection --"/></option>
                                             {advancedOptions?.institutionUid && advancedOptions.institutionUid.map((institution: any, idx: number) =>
                                                 <optgroup key={idx} label={institution.name}>
-                                                    <option value={institution.fq}>All records
-                                                        from {institution.name}</option>
+                                                    <option value={institution.fq}><FormattedMessage id="advancedsearch.table05col01.option02.label" defaultMessage="All records from"/> {institution.name}</option>
                                                     {advancedOptions?.collectionUid && advancedOptions?.collectionUid.filter(c => c.name.startsWith(institution.name)).map((collection: any, idx: number) =>
-                                                        <option key={idx}
-                                                                value={collection.fq}>{collection.name.substring(institution.name.length) || " Collection"}</option>
+                                                        <option key={idx} value={collection.fq}>{collection.name.substring(institution.name.length) ||
+                                                            (" " + intl.formatMessage({id:"advancedsearch.table05col01.option03.label", defaultMessage:"Collection"}))}</option>
                                                     )}
                                                 </optgroup>
                                             )}
@@ -487,28 +477,26 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="country">Country</label>
+                                    <label className="col-md-2 control-label" htmlFor="country"><FormattedMessage id="advancedsearch.table06col01.title" defaultMessage="Country"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <select className="form-select form-control" id="country"
-                                                value={advancedCountry}
+                                        <select className="form-select form-control" id="country" value={advancedCountry}
                                                 onChange={e => setAdvancedCountry(e.target.value)}>
-                                            <option value="">-- select a country --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table06col01.option.label" defaultMessage="-- select a country --"/></option>
 
                                             {advancedOptions?.country && advancedOptions.country.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
-
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="state">State/Territory</label>
+                                    <label className="col-md-2 control-label" htmlFor="state"><FormattedMessage id="advancedsearch.table06col02.title" defaultMessage="State/Territory"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="state"
                                                 value={advancedState}
                                                 onChange={e => setAdvancedState(e.target.value)}>
-                                            <option value="">-- select a state/territory --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table06col02.option.label" defaultMessage="-- select a state/territory --"/></option>
 
                                             {advancedOptions?.state && advancedOptions.state.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -519,17 +507,15 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
                                 <div className="mb-3 row align-items-center text-end">
                                     <label className="col-md-2 control-label" htmlFor="ibra"><abbr
-                                        title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr> region</label>
+                                        title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr> <FormattedMessage id="advancedsearch.table06col03.title" defaultMessage="region"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <select className="form-select form-control" id="ibra"
-                                                value={advancedIbra}
+                                        <select className="form-select form-control" id="ibra" value={advancedIbra}
                                                 onChange={e => setAdvancedIbra(e.target.value)}>
-                                            <option value="">-- select an IBRA region --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table06col03.option.label" defaultMessage="-- select an IBRA region --"/></option>
 
                                             {advancedOptions?.cl1048 && advancedOptions.cl1048.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
-
                                         </select>
                                     </div>
                                 </div>
@@ -537,76 +523,66 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
                                 <div className="mb-3 row align-items-center text-end">
                                     <label className="col-md-2 control-label" htmlFor="imcra"><abbr
-                                        title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> region</label>
+                                        title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> <FormattedMessage id="advancedsearch.table06col04.title" defaultMessage="region"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <select className="form-select form-control" id="imcra"
-                                                value={advancedImcra}
+                                        <select className="form-select form-control" id="imcra" value={advancedImcra}
                                                 onChange={e => setAdvancedImcra(e.target.value)}>
-                                            <option value="">-- select an IMCRA region --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table06col04.option.label" defaultMessage="-- select an IMCRA region --"/></option>
 
                                             {advancedOptions?.cl21 && advancedOptions.cl21.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
-
                                         </select>
                                     </div>
                                 </div>
 
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="lga">Local Govt. Area</label>
+                                    <label className="col-md-2 control-label" htmlFor="lga"><FormattedMessage id="advancedsearch.table06col05.title" defaultMessage="Local Govt. Area"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <select className="form-select form-control" id="lga"
-                                                value={advancedLga}
+                                        <select className="form-select form-control" id="lga" value={advancedLga}
                                                 onChange={e => setAdvancedLga(e.target.value)}>
-                                            <option value="">-- select local government area--</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table06col05.option.label" defaultMessage="-- select local government area--"/></option>
 
                                             {advancedOptions?.cl959 && advancedOptions.cl959.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
-
                                         </select>
                                     </div>
                                 </div>
 
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="type_status">Type status</label>
+                                    <label className="col-md-2 control-label" htmlFor="type_status"><FormattedMessage id="advancedsearch.table07col01.title" defaultMessage="Type Status"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="type_status"
                                                 value={advancedTypeStatus}
                                                 onChange={e => setAdvancedTypeStatus(e.target.value)}>
-                                            <option value="">-- select a type status --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table07col01.option.label" defaultMessage="-- select a type status --"/></option>
 
                                             {advancedOptions?.typeStatus && advancedOptions.typeStatus.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
-
                                         </select>
-
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="basis_of_record">Basis of
-                                        record</label>
+                                    <label className="col-md-2 control-label" htmlFor="basis_of_record"><FormattedMessage id="advancedsearch.table08col01.title" defaultMessage="Basis of record"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <select className="form-select form-control" id="basis_of_record"
-                                                value={advancedBasisOfRecord}
+                                        <select className="form-select form-control" id="basis_of_record" value={advancedBasisOfRecord}
                                                 onChange={e => setAdvancedBasisOfRecord(e.target.value)}>
-                                            <option value="">-- select a basis of record --</option>
+                                            <option value=""><FormattedMessage id="advancedsearch.table08col01.option.label" defaultMessage="-- select a basis of record --"/></option>
 
                                             {advancedOptions?.basisOfRecord && advancedOptions.basisOfRecord.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
-
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="collector_text">Collector
-                                        name</label>
+                                    <label className="col-md-2 control-label" htmlFor="collector_text"><FormattedMessage id="advancedsearch.collector_text.title" defaultMessage="Collector"/></label>
                                     <div className="col-md-6 ms-2">
                                         <input type="text" id="collector_text" className="dataset form-control"
                                                value={advancedCollector}
@@ -615,7 +591,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="control-label col-md-2">Data Resource</label>
+                                    <label className="control-label col-md-2"><FormattedMessage id="advancedsearch.dataset.col.label" defaultMessage="dataset name"/></label>
                                     <div className="col-md-6 ms-2">
                                         {advancedOptions?.dataResourceUid && <Typeahead
                                             id="dataResource-autocomplete"
@@ -646,68 +622,65 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="catalogue_number">Catalogue
-                                        number</label>
+                                    <label className="col-md-2 control-label" htmlFor="catalogue_number"><FormattedMessage id="advancedsearch.table09col01.title" defaultMessage="Catalogue Number"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <input type="text" id="catalogue_number" className="form-control"
-                                               value={advancedCatalogue}
+                                        <input type="text" id="catalogue_number" className="form-control" value={advancedCatalogue}
                                                onChange={e => setAdvancedCatalogue(e.target.value)}/>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="record_number">Record
-                                        number</label>
+                                    <label className="col-md-2 control-label" htmlFor="record_number"><FormattedMessage id="advancedsearch.table09col02.title" defaultMessage="Record Number"/></label>
                                     <div className="col-md-6 ms-2">
-                                        <input type="text" id="record_number" className="form-control"
-                                               value={advancedRecord}
+                                        <input type="text" id="record_number" className="form-control" value={advancedRecord}
                                                onChange={e => setAdvancedRecord(e.target.value)}/>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="startDate">Begin date</label>
+                                    <label className="col-md-2 control-label" htmlFor="startDate"><FormattedMessage id="advancedsearch.table10col01.title" defaultMessage="Begin Date"/></label>
                                     <div className="col-md-2 ms-2">
-                                        <input type="text" id="startDate" className="form-control"
-                                               value={advancedBeginDate}
+                                        <input type="text" id="startDate" className="form-control" value={advancedBeginDate}
                                                onChange={e => setAdvancedBeginDate(e.target.value)}/>
                                     </div>
                                     <div className="col-md-6 text-start">
-                                        <span className="small ms-2">(YYYY-MM-DD) leave blank for most recent record date</span>
+                                        <span className="small ms-2"><FormattedMessage id="advancedsearch.table10col01.des" defaultMessage="(YYYY-MM-DD) leave blank for earliest record date"/></span>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center text-end">
-                                    <label className="col-md-2 control-label" htmlFor="endDate">End date</label>
+                                    <label className="col-md-2 control-label" htmlFor="endDate"><FormattedMessage id="advancedsearch.table10col02.title" defaultMessage="End Date"/></label>
                                     <div className="col-md-2 ms-2">
                                         <input type="text" id="endDate" className="occurrence_date form-control"
                                                value={advancedEndDate}
                                                onChange={e => setAdvancedEndDate(e.target.value)}/>
                                     </div>
                                     <div className="col-md-6 text-start">
-                                        <span className="small ms-2">(YYYY-MM-DD) leave blank for most recent record date </span>
+                                        <span className="small ms-2"><FormattedMessage id="advancedsearch.table10col02.des" defaultMessage="(YYYY-MM-DD) leave blank for most recent record date"/></span>
                                     </div>
                                 </div>
 
                                 <div className="mb-3 row align-items-center">
                                     <div className="col-md-2 ms-3">
-                                        <button className="btn btn-primary" onClick={() => advancedSearch()}>Search
+                                        <button className="btn btn-primary" onClick={() => advancedSearch()}>
+                                            <FormattedMessage id="advancedsearch.button.submit" defaultMessage="Search"/>
                                         </button>
-                                        <button id="clearAll" className="btn border-black ms-2"
-                                                onClick={() => advancedClear()}>Clear all
+                                        <button id="clearAll" className="btn border-black ms-2" onClick={() => advancedClear()}>
+                                            <FormattedMessage id="advancedsearch.button.clear.all" defaultMessage="Clear all"/>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </Tab>
-                    <Tab eventKey="taxon" title="Batch taxon search">
+                    <Tab eventKey="taxon" title={intl.formatMessage({id:'home.index.navigator03', defaultMessage: 'Batch taxon search'})}>
                         <div className="container-fluid">
                             <div className="mb-3 row align-items-center mt-2">
                                 <div className="col-sm-8">
-                                    <label htmlFor="raw_names" className="fw-bold mb-1">Enter a list of taxon
-                                        names/scientific names, one name
-                                        per line (common names not currently supported).</label>
+                                    <label htmlFor="raw_names" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.taxaupload.des01"
+                                                   defaultMessage="Enter a list of taxon names/scientific names, one name per line (common names not currently supported)."/>
+                                    </label>
                                     <textarea id="raw_names" className="form-control" rows={15} cols={60}
                                               value={taxonText}
                                               onChange={e => setTaxonText(e.target.value)}>
@@ -717,7 +690,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
                             <div className="mb-3 row">
                                 <div className="col-sm-1">
-                                    Search on:
+                                    <FormattedMessage id="home.index.taxaupload.batchRadioPrefix" defaultMessage="Search on:"/>
                                 </div>
 
                                 <div className="col-sm-6">
@@ -726,10 +699,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                checked={taxonMode === "taxa"} className="form-check-input"
                                                onChange={(e) => setTaxonMode(e.target.value)}/>
                                         <label className="form-check-label" htmlFor="batchModeMatched">
-                                            Matched name&nbsp;
-                                            <abbr
-                                                title="Input names will be matched to their accepted scientific name in the ALA taxonomy. Results will include records for known synonyms">
-                                                (via the ALA taxonomy)</abbr>
+                                            <FormattedMessage id="home.index.taxaupload.batchMode.matched.param" defaultMessage="Matched name"/>&nbsp;
+                                            <abbr title={intl.formatMessage({id:'advanced.taxon.tooltip.matched.param', defaultMessage: 'N/A'})}>
+                                                <FontAwesomeIconLite icon={faQuestionCircle}/>
+                                            </abbr>
                                         </label>
                                     </div>
                                     <div className="form-check">
@@ -738,11 +711,9 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                checked={taxonMode === "raw_scientificName"}
                                                onChange={(e) => setTaxonMode(e.target.value)}/>
                                         <label className="form-check-label" htmlFor="batchModeRaw">
-                                            Supplied name&nbsp;
-                                            <abbr
-                                                title="Input names will only match the scientific name supplied in the original occurrence record. Results will NOT include records for known synonyms. Note: searching is case sensitive.">
-                                                (note: is case-sensitive so genus should be
-                                                capitalised)</abbr>
+                                            <FormattedMessage id="home.index.taxaupload.batchMode.provided" defaultMessage="Supplied name"/>&nbsp;
+                                            <abbr title={intl.formatMessage({id:'advanced.taxon.tooltip.supplied', defaultMessage: 'N/A'})}>
+                                                <FontAwesomeIconLite icon={faQuestionCircle}/></abbr>
                                         </label>
                                     </div>
                                 </div>
@@ -750,43 +721,40 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(taxonText, [taxonMode])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(taxonText, [taxonMode])}>
+                                        <FormattedMessage id="home.index.catalogupload.button01" defaultMessage="Search" />
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </Tab>
-                    <Tab eventKey="catalogue" title="Catalog number search">
+                    <Tab eventKey="catalogue" title={intl.formatMessage({id:'home.index.navigator04', defaultMessage: 'Catalogue number search'})}>
                         <div className="container-fluid">
                             <div className="mb-3 row align-items-center mt-2">
                                 <div className="col-sm-8">
-                                    <label htmlFor="catalogue_numbers" className="fw-bold mb-1">Enter a list of
-                                        catalogue numbers (one number per
-                                        line).</label>
+                                    <label htmlFor="catalogue_numbers" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.catalogupload.des01" defaultMessage="Enter a list of catalogue numbers (one number per line)."/>
+                                    </label>
 
-                                    <textarea id="catalogue_numbers" className="form-control" rows={15}
-                                              cols={60}
-                                              value={catalogueText}
+                                    <textarea id="catalogue_numbers" className="form-control" rows={15} cols={60} value={catalogueText}
                                               onChange={e => setCatalogueText(e.target.value)}></textarea>
                                 </div>
                             </div>
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(catalogueText, ["catalogNumber"])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(catalogueText, ["catalogNumber"])}>
+                                        <FormattedMessage id="home.index.catalogupload.button01" defaultMessage="Search"/>
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </Tab>
-                    <Tab eventKey="event" title="Event search">
+                    <Tab eventKey="event" title={intl.formatMessage({id:'home.index.navigator06', defaultMessage: 'Event search'})}>
                         <div className="container-fluid">
                             <div className="mb-3 row align-items-center mt-2">
                                 <div className="col-sm-8">
-                                    <label htmlFor="event_ids" className="fw-bold mb-1">Search across event ID, parent
-                                        event ID, field number and
-                                        dataset / survey name.
+                                    <label htmlFor="event_ids" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.eventsearch.general.des" defaultMessage="Search across event ID, parent event ID, field number and dataset / survey name."/>
                                     </label>
                                 </div>
                             </div>
@@ -794,107 +762,97 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-8">
                                     <label className="fw-bold mb-1">
-                                        Enter a list of terms (one per line).
+                                        <FormattedMessage id="home.index.eventsearch.general.des01" defaultMessage="Enter a list of terms (one per line)."/>
                                     </label>
 
-                                    <textarea id="event_keywords" className="form-control" rows={5}
-                                              cols={60}
-                                              value={eventTerms}
+                                    <textarea id="event_keywords" className="form-control" rows={5} cols={60} value={eventTerms}
                                               onChange={e => setEventTerms(e.target.value)}></textarea>
                                 </div>
                             </div>
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(eventTerms, ["text_eventID", "text_parentEventID", "text_fieldNumber", "text_datasetName"])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(eventTerms, ["text_eventID", "text_parentEventID", "text_fieldNumber", "text_datasetName"])}>
+                                        <FormattedMessage id='button.search' defaultMessage='Search' />
                                     </button>
                                 </div>
                             </div>
 
                             <div className="mb-3 row align-items-center pt-2">
                                 <div className="col-sm-8">
-                                    <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of event IDs (one
-                                        per line).</label>
-                                    <textarea id="event_ids" className="form-control" rows={5}
-                                              cols={60}
-                                              value={eventIds}
+                                    <label htmlFor="event_ids" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.eventsearch.des01" defaultMessage="Enter a list of parent event IDs (one per line)."/>
+                                    </label>
+                                    <textarea id="event_ids" className="form-control" rows={5} cols={60} value={eventIds}
                                               onChange={e => setEventIds(e.target.value)}></textarea>
                                 </div>
                             </div>
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(eventIds, ["text_eventID"])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(eventIds, ["text_eventID"])}>
+                                        <FormattedMessage id='button.search' defaultMessage='Search' />
                                     </button>
                                 </div>
                             </div>
 
                             <div className="mb-3 row align-items-center pt-2">
                                 <div className="col-sm-8">
-                                    <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of parent event IDs
-                                        (one per
-                                        line).</label>
-                                    <textarea id="parent_event_ids" className="form-control" rows={5}
-                                              cols={60}
-                                              value={eventParentIds}
+                                    <label htmlFor="event_ids" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.parenteventsearch.des01" defaultMessage="Enter a list of parent event IDs (one per line)."/>
+                                    </label>
+                                    <textarea id="parent_event_ids" className="form-control" rows={5} cols={60} value={eventParentIds}
                                               onChange={e => setEventParentIds(e.target.value)}></textarea>
                                 </div>
                             </div>
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(eventParentIds, ["text_parentEventID"])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(eventParentIds, ["text_parentEventID"])}>
+                                        <FormattedMessage id='button.search' defaultMessage='Search' />
                                     </button>
                                 </div>
                             </div>
 
                             <div className="mb-3 row align-items-center pt-2">
                                 <div className="col-sm-8">
-                                    <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of field numbers
-                                        (one per line).</label>
-                                    <textarea name="queries" id="field_numbers" className="form-control" rows={5}
-                                              cols={60}
-                                              value={eventFieldNumbers}
+                                    <label htmlFor="event_ids" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.fieldnumbersearch.des01" defaultMessage="Enter a list of field numbers (one per line)."/>
+                                    </label>
+                                    <textarea name="queries" id="field_numbers" className="form-control" rows={5} cols={60} value={eventFieldNumbers}
                                               onChange={e => setEventFieldNumbers(e.target.value)}></textarea>
                                 </div>
                             </div>
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(eventFieldNumbers, ["text_fieldNumber"])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(eventFieldNumbers, ["text_fieldNumber"])}>
+                                        <FormattedMessage id='button.search' defaultMessage='Search' />
                                     </button>
                                 </div>
                             </div>
 
                             <div className="mb-3 row align-items-center pt-2">
                                 <div className="col-sm-8">
-
-                                    <label htmlFor="event_ids" className="fw-bold mb-1">Enter a list of dataset / survey
-                                        names (one per
-                                        line). </label>
-                                    <textarea name="queries" id="dataset_name" className="form-control" rows={5}
-                                              cols={60}
-                                              value={eventNames}
+                                    <label htmlFor="event_ids" className="fw-bold mb-1">
+                                        <FormattedMessage id="home.index.datasetnamesearch.des01" defaultMessage="Enter a list of dataset / survey names (one per line)."/>
+                                    </label>
+                                    <textarea name="queries" id="dataset_name" className="form-control" rows={5} cols={60} value={eventNames}
                                               onChange={e => setEventNames(e.target.value)}></textarea>
                                 </div>
                             </div>
                             <div className="mb-3 row align-items-center">
                                 <div className="col-sm-2">
-                                    <button className="btn btn-primary"
-                                            onClick={() => batchSearch(eventNames, ["text_datasetName"])}>Search
+                                    <button className="btn btn-primary" onClick={() => batchSearch(eventNames, ["text_datasetName"])}>
+                                        <FormattedMessage id='button.search' defaultMessage='Search' />
                                     </button>
                                 </div>
                             </div>
                         </div>
 
                     </Tab>
-                    <Tab eventKey="spatial" title="Spatial search">
+                    <Tab eventKey="spatial" title={intl.formatMessage({id:'home.index.navigator05', defaultMessage: 'Spatial search'})}>
                         <div className="container-fluid">
                             <div className="mb-3 row">
                                 <div className="col-sm-3 col-md-3 pe-3">
                                     <div>
-                                        Select one of the draw tools (polygon, rectangle, circle), draw a shape and
-                                        click the search link that pops up.
+                                        <FormattedMessage id="search.map.helpText" defaultMessage="Select one of the draw tools (polygon, rectangle, circle), draw a shape and click the search link that pops up."/>
                                     </div>
                                     <br/>
 
@@ -912,27 +870,21 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                         }
                                                     }
                                                 }}>
-                                                    Import an existing GIS area
+                                                    <FormattedMessage id="search.map.importToggle" defaultMessage="Import WKT"/>
                                                 </button>
                                             </h2>
 
                                             <div id="importAreaContent" className="accordion-collapse collapse">
                                                 <div className="accordion-body">
-                                                    <p>Import an existing GIS area (currently supported formats: <a
-                                                        href="http://en.wikipedia.org/wiki/Well-known_text"
-                                                        target="_blank">Well Known Text (WKT)</a> POLYGON shape)</p>
-                                                    <p>To search with other spatial file formats (shapefile, KML, etc.),
-                                                        please use the <a href="https://spatial.ala.org.au/">Spatial Portal</a> - via
-                                                        the "Add to Map" ➜ "Areas" menu.
-                                                    </p>
+                                                    <p><span dangerouslySetInnerHTML={{ __html: intl.formatMessage({ id: 'search.map.importText'})}}/></p>
+                                                    <p><span dangerouslySetInnerHTML={{ __html: intl.formatMessage({ id: "search.map.importText.spatialportal"}) }} /></p>
 
-                                                    <p>Copy &amp; paste a WKT POLYGON string and click "Add to map":</p>
+                                                    <p><FormattedMessage id="search.map.wktHelpText" defaultMessage="Optionally, paste a WKT string: "/></p>
                                                     <textarea id="wktInput" style={{height: "280px", width: "95%"}}
-                                                              value={spatialWkt}
-                                                              onChange={e => setSpatialWkt(e.target.value)}></textarea>
+                                                              value={spatialWkt} onChange={e => setSpatialWkt(e.target.value)}></textarea>
                                                     <br/>
                                                     <button className="btn btn-primary btn-sm" id="addWkt" onClick={() => addWktToMap()}>
-                                                        Add to map
+                                                        <FormattedMessage id="search.map.wktButtonText" defaultMessage="Add to map"/>
                                                     </button>
                                                 </div>
                                             </div>
@@ -948,74 +900,24 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                             zoom={defaultZoom}
                                             scrollWheelZoom={false}
                                             worldCopyJump={true}
-                                            style={{
-                                                height: '655px',
-                                                borderRadius: '10px',
-                                            }}
-                                        >
+                                            style={{ height: '655px', borderRadius: '10px', }}>
                                             {!import.meta.env.VITE_GOOGLE_MAP_API_KEY &&
-                                                <TileLayer
-                                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                                    url={
-                                                        import.meta
-                                                            .env
-                                                            .VITE_OPENSTREETMAP_ZXY_URL
-                                                    }
-                                                    zIndex={1}
-                                                />
+                                                <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                    url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />
                                             }
-                                            {import.meta.env
-                                                .VITE_GOOGLE_MAP_API_KEY && (
+                                            {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                                                 <LayersControl position="topright">
-                                                    <LayersControl.BaseLayer
-                                                        checked
-                                                        name="Minimal"
-                                                    >
-                                                        <TileLayer
-                                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                                            url={
-                                                                import.meta
-                                                                    .env
-                                                                    .VITE_OPENSTREETMAP_ZXY_URL
-                                                            }
-                                                            zIndex={1}
-                                                        />
+                                                    <LayersControl.BaseLayer checked name="Minimal">
+                                                        <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />
                                                     </LayersControl.BaseLayer>
                                                     <LayersControl.BaseLayer name="Road">
-                                                        <ReactLeafletGoogleLayer
-                                                            apiKey={
-                                                                import.meta
-                                                                    .env
-                                                                    .VITE_GOOGLE_MAP_API_KEY
-                                                            }
-                                                            type={
-                                                                'roadmap'
-                                                            }
-                                                        />
+                                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
                                                     </LayersControl.BaseLayer>
                                                     <LayersControl.BaseLayer name="Terrain">
-                                                        <ReactLeafletGoogleLayer
-                                                            apiKey={
-                                                                import.meta
-                                                                    .env
-                                                                    .VITE_GOOGLE_MAP_API_KEY
-                                                            }
-                                                            type={
-                                                                'terrain'
-                                                            }
-                                                        />
+                                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
                                                     </LayersControl.BaseLayer>
                                                     <LayersControl.BaseLayer name="Satellite">
-                                                        <ReactLeafletGoogleLayer
-                                                            apiKey={
-                                                                import.meta
-                                                                    .env
-                                                                    .VITE_GOOGLE_MAP_API_KEY
-                                                            }
-                                                            type={
-                                                                'satellite'
-                                                            }
-                                                        />
+                                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
                                                     </LayersControl.BaseLayer>
                                                 </LayersControl>
                                             )}
@@ -1036,7 +938,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                             allowIntersection: false, // Restricts shapes to simple polygons
                                                             drawError: {
                                                                 color: '#e1e100', // Color the shape will turn when intersects
-                                                                message: '<strong>Oh snap!</strong> you can\'t draw that!' // Message that will show when intersect
+                                                                message: '<strong>' + intl.formatMessage({id: 'advancedsearch.js.map.error1'}) + '</strong> ' + intl.formatMessage({id: 'advancedsearch.js.map.error2'}) // Message that will show when intersect
                                                             },
                                                             shapeOptions: {
                                                                 color: '#bada55'

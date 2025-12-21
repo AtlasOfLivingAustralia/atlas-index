@@ -15,7 +15,7 @@ import { NuqsAdapter } from 'nuqs/adapters/react-router';
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
 root.render(
-    // <React.StrictMode>
+    <React.StrictMode>
         <NuqsAdapter>
             <Router>
                 <IntlProvider messages={messages_en} locale='en' defaultLocale='en'>
@@ -23,5 +23,5 @@ root.render(
                 </IntlProvider>
             </Router>
         </NuqsAdapter>
-    // </React.StrictMode>
+    </React.StrictMode>
 );
