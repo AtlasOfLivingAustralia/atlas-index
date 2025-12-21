@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, FontAwesomeIconLite, refineSection, RefineSectionItem,} from '@ala/common-ui';
+import {FadeInImage, FontAwesomeIconLite, RefineSection, RefineSectionItem,} from '@ala/common-ui';
 import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
 import {Fragment, useCallback, useEffect, useState} from 'react';
 import capitalise from '../../helpers/Capitalise.ts';
@@ -422,13 +422,13 @@ function ImagesView({result, isMobile}: MediaViewProps) {
             {occurrenceCount != 0 && <>
                 <span className={classes.refineTitle} style={{display: 'block'}}>Refine occurrences</span>
 
-                {refineSection('Media type', itemsForFacet('multimedia'))}
+                {<RefineSection title='Media type' items={itemsForFacet('multimedia')}/>}
 
-                {refineSection('Occurrence type', itemsForFacet('basisOfRecord'))}
+                {<RefineSection title='Occurrence type' items={itemsForFacet('basisOfRecord')}/>}
 
-                {refineSection('Licence type', itemsForFacet('license'))}
+                {<RefineSection title='Licence type' items={itemsForFacet('license')} lessNumber={5}/>}
 
-                {refineSection('Dataset', itemsForFacet('dataResourceName'))}
+                {<RefineSection title='Dataset' items={itemsForFacet('dataResourceName')} lessNumber={5}/>}
             </>}
         </>)}
     </>
@@ -641,6 +641,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                                          maxWidth: '100%',
                                                          objectFit: 'contain',
                                                      }}
+                                                     calcDimensions={false}
                                                      missingImage={missingImage}
                                                      showLoadingSpinner={true}
                                         />
@@ -708,8 +709,8 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                 <div style={{
                     background: '#fff',
                     borderRadius: '5px',
-                    maxWidth: '90vw',
-                    maxHeight: '90vh',
+                    width: '90vw',
+                    height: '90vh',
                     overflowY: 'auto',
                     padding: '15px',
                     position: 'relative'

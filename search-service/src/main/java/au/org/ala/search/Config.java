@@ -42,9 +42,19 @@ public class Config extends ElasticsearchConfiguration {
     @NotNull
     @Override
     public ClientConfiguration clientConfiguration() {
-        ClientConfiguration.TerminalClientConfigurationBuilder builder = ClientConfiguration.builder()
-                .connectedTo(elasticHost)
-                .withSocketTimeout(elasticTimeout);
+        ClientConfiguration.TerminalClientConfigurationBuilder builder;
+
+        if (elasticHost.startsWith("https://")) {
+            builder = ClientConfiguration.builder()
+                    .connectedTo(elasticHost.substring("https://".length()))
+                    .usingSsl()
+                    .withSocketTimeout(elasticTimeout);
+        } else {
+            builder = ClientConfiguration.builder()
+                    // remove http:// if present
+                    .connectedTo(elasticHost.replace("http://", ""))
+                    .withSocketTimeout(elasticTimeout);
+        }
 
         if (StringUtils.isNotEmpty(elasticUsername) && StringUtils.isNotEmpty(elasticPassword)) {
             builder = builder.withBasicAuth(elasticUsername, elasticPassword);

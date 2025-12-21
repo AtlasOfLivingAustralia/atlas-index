@@ -4,7 +4,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FlaggedAlert, FontAwesomeIconLite, InfoBox, refineSection,} from '@ala/common-ui';
+import {
+    FlaggedAlert,
+    FontAwesomeIconLite,
+    InfoBox,
+    RefineSection
+} from '@ala/common-ui';
 import {faCircleInfo, faRotateRight} from '@fortawesome/free-solid-svg-icons';
 import {LatLng, LayersControlEvent} from 'leaflet';
 import {JSX, useEffect, useRef, useState} from 'react';
@@ -250,17 +255,17 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                 <span className={classes.refineTitle} style={{display: 'block'}}>
                     Refine map
                 </span>
-                    {refineSection('Occurrence records', [
+                    <RefineSection title='Occurrence records' items={[
                         {
                             label: 'Show occurrence records',
                             onClick: () => setShowOccurrences((prev) => !prev),
                             isOpen: showOccurrences,
                             isDisabled: () => false,
                         },
-                    ])}
+                    ]}/>
 
                     {distributions && distributions.length > 0 &&
-                        refineSection('Expert distributions', distributions.map((dist, idx) => ({
+                        <RefineSection title='Expert distributions' items={distributions.map((dist, idx) => ({
                             label: <>
                                 {dist.areaName}
                                 <span style={{display: 'block', fontStyle: 'italic', cursor: 'default'}}
@@ -281,7 +286,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                             },
                             isOpen: dist.checked || false,
                             isDisabled: () => distributions.length === 0,
-                        })))
+                        }))}/>
                     }
 
                     {distributions && distributions.length === 0 && (

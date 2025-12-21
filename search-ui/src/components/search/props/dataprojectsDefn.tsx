@@ -8,7 +8,7 @@ import {FadeInImage, FolderIcon} from '@ala/common-ui';
 import {GenericViewProps, RenderItemElements, RenderItemParams} from '../../../api/sources/model.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
-import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from '../util.tsx';
 
 function formatCategory(category: string) {
     if (category == 'BIOCOLLECT') {
@@ -63,14 +63,14 @@ export const dataprojectsDefn: GenericViewProps = {
         },
         organisationName: {
             label: 'Funding organisation',
-            order: 2
+            order: 2,
+            lessNumber: 7
         },
     },
 
     renderListItemFn: ({item, navigate, wide, isMobile,}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
-                                missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImagePlain} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <>
                 <span className={classes.listItemName}>{item.name}</span>
                 <span className={classes.multilineText}>
@@ -92,14 +92,14 @@ export const dataprojectsDefn: GenericViewProps = {
             description: <span title={item.description} className={classes.listDescription}>
                 {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
             </span>,
-            clickFn: () => openUrl(item.guid),
+            url: item.guid
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            image: <TileImage image={item.image} fit={'contain'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '13px'}}>
                     {item.name}
@@ -108,7 +108,7 @@ export const dataprojectsDefn: GenericViewProps = {
                     {item.description}
                 </span>
             </>,
-            clickFn: () => openUrl(item.guid),
+            url: item.guid
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

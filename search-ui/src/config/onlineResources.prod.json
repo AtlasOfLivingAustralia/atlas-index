@@ -219,57 +219,5 @@
         "name": "Global Biodiversity Information Facility",
         "url": "https://www.gbif.org/",
         "external": true
-    },
-    {
-        "name": "DAFF - Plant Pests and Diseases",
-        "url": "https://www.agriculture.gov.au/biosecurity-trade/pests-diseases-weeds/plant",
-        "external": true,
-        "rules": {
-            "inSpeciesList": ["dr22913"]
-        }
-    },
-    {
-        "name": "Qld Government - Plant Pests and Diseases",
-        "url": "https://www.business.qld.gov.au/industries/farms-fishing-forestry/agriculture/biosecurity/plants",
-        "external": true,
-        "rules": {
-            "inSpeciesGroup": ["Plants"],
-            "inSpeciesList": ["dr22913"]
-        }
-    },
-    {
-        "name": "Qld Government - Invasive Animals",
-        "url": "https://www.business.qld.gov.au/industries/farms-fishing-forestry/agriculture/biosecurity/animals/invasive",
-        "external": true,
-        "rules": {
-            "inSpeciesGroup": ["Animals"],
-            "inSpeciesList": ["dr22913"]
-        }
-    },
-    {
-        "name": "PestSmart",
-        "url": "https://pestsmart.org.au/pest-animals/",
-        "external": true,
-        "rules": {
-            "inSpeciesGroup": ["Animals"],
-            "inSpeciesList": ["dr22913"]
-        }
-    },
-    {
-        "name": "Vic Government - Priority Pest Animals",
-        "url": "https://agriculture.vic.gov.au/biosecurity/pest-animals/priority-pest-animals",
-        "external": true,
-        "rules": {
-            "inSpeciesGroup": ["Animals"],
-            "inSpeciesList": ["dr22913"]
-        }
-    },
-    {
-        "name": "Aust Government - Marine Pests",
-        "url": "https://www.marinepests.gov.au/pests/identify",
-        "external": true,
-        "rules": {
-            "inSpeciesList": ["dr22913"]
-        }
     }
 ]

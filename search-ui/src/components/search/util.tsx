@@ -26,43 +26,43 @@ const getImageThumbnailUrl = (id: string) => {
 
 const renderGenericListItemFn = ({wide, isMobile}: RenderItemParams, elements: RenderItemElements) => {
     const hasImage = elements.image !== undefined && elements.image !== null && elements.image !== '';
-    const screenWidth = window.innerWidth;
 
-    const fistColWidth: string = hasImage && !isMobile ? (wide ? '350px' : '310px') : (isMobile ? screenWidth / 2 + 'px' : (wide ? '442px' : '400px'));
+    const fistColWidth: string = hasImage && !isMobile ? (wide ? '350px' : '310px') : (isMobile ? '50%' : (wide ? '442px' : '400px'));
 
     const thirdColMaxWidth: string = wide ? '700px' : '490px';
-    return <div className={'d-flex align-items-start flex-row gap-4'} style={{cursor: 'pointer'}}
-                onClick={() => elements.clickFn()}>
-        {!isMobile && elements.image}
-        <div style={{width: fistColWidth, flexShrink: 0}}>
-            {elements.title}
-            {elements.extra}
-        </div>
-        {elements.description && (
-            <div style={{minWidth: '100px', maxWidth: thirdColMaxWidth}} className={classes.listDescription}>
-                {elements.description}
+    return <a href={elements.url} style={{ textDecoration: 'none', color: 'inherit' }}
+              onClick={e => {if (elements.clickFn) {e.preventDefault(); elements.clickFn() }}}>
+        <div className={'d-flex align-items-start flex-row gap-4'} style={{cursor: 'pointer'}}>
+            {!isMobile && elements.image}
+            <div style={{width: fistColWidth, flexShrink: 0}}>
+                {elements.title}
+                {elements.extra}
             </div>
-        )}
-    </div>;
+            {elements.description && (
+                <div style={{minWidth: '100px', maxWidth: thirdColMaxWidth}} className={classes.listDescription}>
+                    {elements.description}
+                </div>
+            )}
+        </div></a>;
 };
 
 const renderGenericTileItemFn = (isMobile: boolean, elements: RenderItemElements) => {
     const hasImage = elements.image !== undefined && elements.image !== null && elements.image !== '';
 
-    return <div
-        className={(hasImage ? classes.tile : classes.tileNoImage) + (isMobile ? ' d-flex flex-row align-items-start' : '')}
-        onClick={() => elements.clickFn()}>
-        {hasImage && elements.image}
-
-        <div className={classes.tileContent}>{elements.title}</div>
-    </div>;
+    return <a href={elements.url} style={{ textDecoration: 'none', color: 'inherit' }}
+              onClick={e => {if (elements.clickFn) {e.preventDefault(); elements.clickFn() }}}>
+        <div className={(hasImage ? classes.tile : classes.tileNoImage) + (isMobile ? ' d-flex flex-row align-items-start' : '')}>
+            {hasImage && elements.image}
+            <div className={classes.tileContent}>{elements.title}</div>
+        </div></a>;
 };
 
-const TileImage = ({image, isMobile,}: { image: string | undefined; isMobile: boolean; }) => {
+const TileImage = ({image, fit, isMobile}: { image: string | undefined; fit: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down' | undefined; isMobile: boolean; }) => {
+    const objectFit = image ? (fit ? fit : 'contain') : 'cover';
     return <FadeInImage
         height={isMobile ? 100 : 150}
         width={isMobile ? '80px' : '100%'}
-        style={{objectFit: image ? 'contain' : 'cover'}}
+        style={{objectFit: objectFit}}
         onError={(e) => {
             (e.target as HTMLImageElement).style.objectFit = 'cover';
             (e.target as HTMLImageElement).style.objectPosition = 'inherit';

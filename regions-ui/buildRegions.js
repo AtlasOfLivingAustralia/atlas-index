@@ -103,7 +103,7 @@ function getChildren(fid) {
     var children = [];
     var url = baseSpatialUrl + '/field/' + fid;
     var response = JSON.parse(
-        execSync('curl -s ' + url)
+        execSync('curl -s ' + url, { maxBuffer: 1024 * 1024 * 10 })
             .toString()
             .trim()
     );

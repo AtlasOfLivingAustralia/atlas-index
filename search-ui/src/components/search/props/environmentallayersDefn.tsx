@@ -9,7 +9,7 @@ import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../
 import capitalise from '../../../helpers/Capitalise.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
-import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
 
 export const environmentallayersDefn: GenericViewProps = {
     fq: 'idxtype:LAYER',
@@ -110,8 +110,7 @@ export const environmentallayersDefn: GenericViewProps = {
 
     renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image || missingImage}
-                                missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageRounded} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <span className={classes.listItemName}>{item.name}</span>,
             extra: <>
                 <span className={classes.overflowText} title={item.keywords}>
@@ -127,14 +126,14 @@ export const environmentallayersDefn: GenericViewProps = {
                     isMobile ? 80 : wide ? 230 : 120
                 )}
             </span>,
-            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
+            url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} isMobile={isMobile}/>,
+            image: <TileImage image={item.image} fit={'contain'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '8px'}}>
                     {item.name}
@@ -155,7 +154,7 @@ export const environmentallayersDefn: GenericViewProps = {
                     </span>
                 )}
             </>,
-            clickFn: () => openUrl(import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()),
+            url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

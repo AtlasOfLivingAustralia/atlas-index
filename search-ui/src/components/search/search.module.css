@@ -252,13 +252,21 @@
 .tileNoImage::after {
     content: '';
     position: absolute;
-    bottom: 10px;
+    bottom: 24px;
     left: 0;
     right: 0;
     height: 30px;
     background: linear-gradient(to bottom, rgba(242, 242, 242, 0.5), #f2f2f2);
     z-index: 1;
 }
+
+@media (max-width: 768px) {
+    .tile::after,
+    .tileNoImage::after {
+        bottom: 10px;
+    }
+}
+
 
 .tile img {
     border-radius: 10px 10px 0px 0px;
@@ -568,12 +576,44 @@
     }
 }
 
-.listItemImage {
-    width: 62px;
-    height: 62px;
+.listItemImageDiv {
+    min-width: 62px;
+    min-height: 62px;
+    text-align: center;
+}
+
+.listItemImageRounded {
+    max-width: 62px;
+    max-height: 62px;
     border-radius: 5px;
     object-fit: contain;
     object-position: top;
+    display: inline-block;
+}
+
+.listItemImageCoverRounded {
+    border-radius: 5px;
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
+    object-position: top;
+    display: inline-block;
+}
+
+.listItemImagePlain {
+    max-width: 62px;
+    max-height: 62px;
+    object-fit: contain;
+    object-position: top;
+    display: inline-block;
+}
+
+.listItemImageCover {
+    width: 62px;
+    height: 62px;
+    object-fit: cover;
+    object-position: top;
+    display: inline-block;
 }
 
 .refineResultsBtn {

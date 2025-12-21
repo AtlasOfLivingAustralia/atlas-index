@@ -178,6 +178,7 @@ export const speciesDefn: GenericViewProps = {
                         name: 'Species group',
                         items: speciesGroupList,
                         order: 3,
+                        lessNumber: 10,
                     });
                 }
             },
@@ -222,7 +223,7 @@ export const speciesDefn: GenericViewProps = {
 
     renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <FadeInImage className={classes.listItemImage} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/>,
+            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageCoverRounded} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/></div>,
             title: <>
                 {item.nameFormatted && (
                     <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
@@ -255,13 +256,14 @@ export const speciesDefn: GenericViewProps = {
             </>,
             description: <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>,
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
+            url:`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
 
     renderTileItemFn: ({item, isMobile, navigate}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} isMobile={isMobile}/>,
+            image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} fit={'cover'} isMobile={isMobile}/>,
             title: <>
                 {item.nameFormatted && (
                     <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
@@ -296,6 +298,7 @@ export const speciesDefn: GenericViewProps = {
                 <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
             </>,
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
+            url: `/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

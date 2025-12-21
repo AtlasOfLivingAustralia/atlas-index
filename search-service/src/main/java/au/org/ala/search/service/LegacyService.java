@@ -62,7 +62,7 @@ public class LegacyService {
                     conservationMapping.put(currentField, item);
                 }
             } catch (Exception e) {
-                log.error("Failed to read conservation.mapping.path:{}", conservationMappingPath);
+                log.error("Failed to read conservation.mapping.path:{} {}", conservationMappingPath, e.getMessage(), e);
             }
         }
 

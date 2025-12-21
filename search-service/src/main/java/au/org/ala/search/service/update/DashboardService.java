@@ -457,6 +457,10 @@ public class DashboardService {
                     new Integer[]{getCollection(collectoryUrl + "/ws/dataResource/count/resourceType?public=true").groups.get("document")}));
 
             List<DataResource> dataResources = getDataResourceList(collectoryUrl + "/ws/dataResource");
+
+            // sort by the uid value, removing the first 2 characters (e.g. from dr123) and sorting by the remaining integer value
+            dataResources.sort(Comparator.comparingInt(dr -> Integer.parseInt(dr.uid.substring(2))));
+
             record.mostRecent = new HashMap<>();
             record.mostRecent.put("url", dataResources.getLast().uri);
             record.mostRecent.put("name", dataResources.getLast().name);

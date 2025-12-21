@@ -331,7 +331,7 @@ public class FetchData {
 
         // get a list of all previously downloaded files, recursively through directories, one level deep
         Map<String, File> existingFiles = new HashMap<>();
-        File[] files = new File(descriptionsTmp).listFiles();
+        File[] files = new File(descriptionsTmp + "/wikipedia").listFiles();
         for (File file : files) {
             if (file.getName().endsWith(".html")) {
                 existingFiles.put(file.getName().replace(".html", ""), file);
@@ -355,6 +355,8 @@ public class FetchData {
         String[] nextLine;
         int row = 0;
         int alreadyCached = 0;
+        int caseVariation = 0;
+        String lastGuid = "";
         while ((nextLine = reader.readNext()) != null) {
             row++;
             String guid = nextLine[0];
@@ -366,7 +368,16 @@ public class FetchData {
             String phylum = nextLine[6];
             String kingdom = nextLine[7];
 
-            String filename = URLEncoder.encode(guid);
+            if (guid.equalsIgnoreCase(lastGuid)) {
+                caseVariation++;
+                //System.out.println("case variation for " + guid + ": " + caseVariation + ", " + wikiTitle);
+            } else {
+                caseVariation = 0;
+            }
+            lastGuid = guid;
+
+            // alter the filename with the case variation if needed
+            String filename = URLEncoder.encode(guid) + (caseVariation > 0 ? ("_" + caseVariation) : "");
 
             // if the file already exists, skip
             if (existingFiles.containsKey(filename)) {
@@ -437,8 +448,14 @@ public class FetchData {
                 // find scientific name in wikipedia titles
                 String findName = scientificName.trim().replace(" ", "_");
                 int idx = Collections.binarySearch(titles, findName, String.CASE_INSENSITIVE_ORDER);
-                if (idx >= 0) {
+                // seek to first match if multiple
+                while (idx > 0 && titles.get(idx - 1).equalsIgnoreCase(findName)) {
+                    idx--;
+                }
+                // while found, write to matched file
+                while (idx >= 0 && idx < titles.size() && titles.get(idx).equalsIgnoreCase(findName)) {
                     writer.write(guid + "," + titles.get(idx) + "," + genus + "," + family + "," + order + "," + clazz + "," + phylum + "," + kingdom + "\n");
+                    idx++;
                 }
             }
         }

@@ -43,6 +43,15 @@ Get the accepted names. TODO: use V1 or V2 API service instead of using a SOLR t
 ```shell
    curl "http://localhost:8984/solr/bie/select?fl=guid,scientificName,genus_s,family_s,order_s,class_s,phylum_s,kingdom_s&fq=-acceptedConceptID:*&indent=on&q=idxtype:TAXON&rows=400000&wt=csv" > /data/accepted.csv
 ```
+OR search-service's v1/bie/downloads API
+- Note: the default value in search-service, `application.properties:downloadMaxRows=100000`, is too small for all taxa and an increase is required.
+```shell
+   curl "https://aws-index-dev-2024.dev.ala.org.au/v1/bie/download?q=-acceptedConceptID:*%20AND%20idxtype:TAXON&fields=guid,scientificName,rk_genus,rk_family,rk_order,rk_class,rk_phylum,rk_kingdom" -o /data/accepted25.csv
+```
+- confirm that the number of lines in the file matches the expected number of accepted taxa, e.g.
+```shell
+   wc -l /data/accepted25.csv
+```
 
 ## Build
 

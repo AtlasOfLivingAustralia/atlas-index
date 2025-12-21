@@ -16,6 +16,7 @@ import lombok.Setter;
 public class DataResource {
 
     public String uri;
+    public String uid;
     public String name;
     public String websiteUrl;
     public String creator;

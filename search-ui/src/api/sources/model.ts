@@ -16,6 +16,8 @@ interface GenericViewProps {
             label: string;
             order: number;
             parseFacetFn?: (facet: any, facetList: any[]) => void;
+            lessNumber?: number; // number of facet items to show before "show more" option
+            more?: boolean; // whether to show "show more" option
         };
     };
     sortByDate?: boolean;
@@ -37,7 +39,8 @@ interface RenderItemElements {
     title: React.ReactNode;
     extra?: React.ReactNode;
     description?: React.ReactNode;
-    clickFn: () => void;
+    clickFn?: () => void;
+    url?: string;
 }
 
 interface RenderItemParams {

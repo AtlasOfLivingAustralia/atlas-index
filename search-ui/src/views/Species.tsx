@@ -164,6 +164,10 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         }));
     }
 
+    function anyExpanded() {
+        return Object.values(mobileToggle).some(value => value);
+    }
+
     function toggleExpandAll() {
         let countTrue = Object.values(mobileToggle).filter(value => value).length;
         if (countTrue > 0) {
@@ -301,7 +305,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         </div>}
         {isMobile && (<div>
             <div className={"text-end"} style={{paddingRight: '15px'}} onClick={() => toggleExpandAll()}>
-                Expand all{" "}
+                { anyExpanded() ? 'Collapse all' : 'Expand all'}{" "}
                 <FontAwesomeIconLite icon={faChevronDown}/>
             </div>
             <div className={classes.mobileSection}>

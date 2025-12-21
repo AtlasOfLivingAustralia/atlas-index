@@ -8,7 +8,7 @@ import {useNavigate} from "react-router-dom";
 import {RenderItemElements, RenderItemParams} from "../../api/sources/model.ts";
 import featuredPages from '../../config/featuredPages.json';
 import classes from "./search.module.css";
-import {openUrl, renderGenericTileItemFn, TileImage} from "./util.tsx";
+import {renderGenericTileItemFn, TileImage} from "./util.tsx";
 
 function LandingPage({isMobile}: { isMobile: boolean }) {
 
@@ -16,7 +16,7 @@ function LandingPage({isMobile}: { isMobile: boolean }) {
 
     function renderTileItemFn({item, isMobile}: RenderItemParams){
         const elements: RenderItemElements = {
-            image: <TileImage image={item.imageUrl} isMobile={isMobile}/>,
+            image: <TileImage image={item.imageUrl} fit={'cover'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName} style={{marginBottom: '8px'}}>
                     {item.title}
@@ -27,7 +27,7 @@ function LandingPage({isMobile}: { isMobile: boolean }) {
                     </span>
                 )}
             </>,
-            clickFn: () => openUrl(item.url)
+            url: item.url
         };
         return renderGenericTileItemFn(isMobile, elements);
     };

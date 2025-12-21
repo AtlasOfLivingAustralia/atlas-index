@@ -6,7 +6,7 @@
 
 import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 import classes from '../search.module.css';
-import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn,} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn,} from '../util.tsx';
 
 function formatCategory(category: string) {
     if (category == 'REGION') {
@@ -16,7 +16,7 @@ function formatCategory(category: string) {
     }
 }
 
-function openRegionLocality(item: any) {
+function regionLocalityUrl(item: any) {
     // idxtype:LOCALITY opens expore your area
     // idxtype:REGION opens spatial portal, because regions does not have a landing page for a pid
 
@@ -24,12 +24,10 @@ function openRegionLocality(item: any) {
     if (item.idxtype == 'LOCALITY' && parts.length == 3) {
         var lat = parts[parts.length - 2];
         var lng = parts[parts.length - 1];
-        openUrl(import.meta.env.VITE_BIOCACHE_UI_URL + '/explore/your-area#' + lat + '|' + lng + '|12|ALL_SPECIES');
-        return;
+        return import.meta.env.VITE_BIOCACHE_UI_URL + '/explore/your-area#' + lat + '|' + lng + '|12|ALL_SPECIES';
     } else {
         // id is of the form "fid-pid", get the pid
-        openUrl(import.meta.env.VITE_REGIONS_URL + `/region?id=${item.id.split('-')[1]}`); // new regions app
-        return;
+        return import.meta.env.VITE_REGIONS_URL + `/region?id=${item.id.split('-')[1]}`; // new regions app
     }
 }
 
@@ -89,7 +87,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
             description: <span className={classes.listDescription} title={item.description}>
                 {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
             </span>,
-            clickFn: () => openRegionLocality(item),
+            url: regionLocalityUrl(item)
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
@@ -111,7 +109,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
                     {item.description}
                 </span>
             </>,
-            clickFn: () => openRegionLocality(item),
+            url: regionLocalityUrl(item)
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

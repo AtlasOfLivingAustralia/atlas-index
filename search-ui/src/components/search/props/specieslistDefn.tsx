@@ -7,7 +7,7 @@
 import {FolderIcon} from '@ala/common-ui';
 import {GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 import classes from '../search.module.css';
-import {limitDescription, openUrl, renderGenericListItemFn, renderGenericTileItemFn,} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn,} from '../util.tsx';
 
 function formatListType(type: string) {
     if (!type) {
@@ -67,7 +67,7 @@ export const specieslistDefn: GenericViewProps = {
             description: <span className={classes.listDescription} title={item.description}>
                 {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
             </span>,
-            clickFn: () => openUrl(item.guid),
+            url: item.guid
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
@@ -88,7 +88,7 @@ export const specieslistDefn: GenericViewProps = {
                     {item.description}
                 </span>
             </>,
-            clickFn: () => openUrl(item.guid),
+            url: item.guid
         };
         return renderGenericTileItemFn(isMobile, elements);
     },
