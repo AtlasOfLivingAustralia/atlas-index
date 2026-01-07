@@ -446,22 +446,26 @@ public class OpenapiService {
         // add tags that are absent, e.g. annotated on the function not at the controller.
         Set<String> existingTagNames = openApi.getTags() != null ? openApi.getTags().stream().map(io.swagger.v3.oas.models.tags.Tag::getName).collect(Collectors.toSet()) : new HashSet<>();
         Set<String> tagsWithPaths = new HashSet<>();
-        openApi.getPaths().forEach((pathKey, path) -> path.readOperationsMap().forEach((opKey, op) -> {
-            if (op.getTags() != null) {
-                op.getTags().forEach(tagName -> {
-                    tagsWithPaths.add(tagName);
-                    if (!existingTagNames.contains(tagName)) {
-                        io.swagger.v3.oas.models.tags.Tag newTag = new io.swagger.v3.oas.models.tags.Tag();
-                        newTag.setName(tagName);
-                        if (openApi.getTags() == null) {
-                            openApi.setTags(new ArrayList<>());
-                        }
-                        openApi.getTags().add(newTag);
-                        existingTagNames.add(tagName);
+        openApi.getPaths().forEach((pathKey, path) -> {
+            if (path != null) {
+                path.readOperationsMap().forEach((opKey, op) -> {
+                    if (op.getTags() != null) {
+                        op.getTags().forEach(tagName -> {
+                            tagsWithPaths.add(tagName);
+                            if (!existingTagNames.contains(tagName)) {
+                                io.swagger.v3.oas.models.tags.Tag newTag = new io.swagger.v3.oas.models.tags.Tag();
+                                newTag.setName(tagName);
+                                if (openApi.getTags() == null) {
+                                    openApi.setTags(new ArrayList<>());
+                                }
+                                openApi.getTags().add(newTag);
+                                existingTagNames.add(tagName);
+                            }
+                        });
                     }
                 });
             }
-        }));
+        });
 
         // remove tags that have no paths using tagsWithPaths set
         openApi.setTags(openApi.getTags().stream().filter(tag -> tagsWithPaths.contains(tag.getName()) && !openapiTagsHidden.contains(tag.getName())).toList());
