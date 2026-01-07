@@ -274,6 +274,9 @@ public class ConsumerQueue {
      */
     private boolean consume(QueueItem queueItem, ThreadPoolExecutor executor) {
 
+        // log the entire queueItem
+        log.debug("Consuming queue item: {}", queueItem);
+
         if (StringUtils.isNotEmpty(rabbitMqHost) && !queueItem.status.equals(StatusCode.RUNNING)) {
             int numRunning = queuePostgresRepository.countByUserIdAndStatus(queueItem.userId, StatusCode.RUNNING.name());
 
@@ -300,6 +303,8 @@ public class ConsumerQueue {
 
                 queueDataService.updateStatus(queueItem.id, StatusCode.FINISHED, "");
             } catch (InterruptedException | RuntimeException e) {
+                log.error("Error processing queue item {} id: {}", queueItem.queueRequest.taskType, queueItem.id, e);
+
                 // handle interruption or runtime exceptions that are thrown during a CANCEL request
                 QueueItem currentItem = queueDataService.get(queueItem.id);
                 if (currentItem != null && currentItem.status != StatusCode.CANCELLED) {
@@ -371,10 +376,22 @@ public class ConsumerQueue {
     }
 
     private void runTask(QueueItem queueItem) throws Exception {
-        switch (queueItem.queueRequest.taskType) {
-            case SEARCH_DOWNLOAD -> searchConsumer.consume(queueItem);
-            case FIELDGUIDE -> fieldguideConsumer.consume(queueItem);
-            default -> log.error("Unsupported task type: {}", queueItem.queueRequest.taskType);
+        try {
+            switch (queueItem.queueRequest.taskType) {
+                case SEARCH_DOWNLOAD -> searchConsumer.consume(queueItem);
+                case FIELDGUIDE -> fieldguideConsumer.consume(queueItem);
+                default -> log.error("Unsupported task type: {}", queueItem.queueRequest.taskType);
+            }
+        } catch (InterruptedException | RuntimeException e) {
+            log.warn("Task for queue item {} id: {} was interrupted", queueItem.queueRequest.taskType, queueItem.id);
+            throw e;
+        } catch (Exception e) {
+            // TODO: test this thoroughly
+            log.error("Error running task for queue item {} id: {}", queueItem.queueRequest.taskType, queueItem.id, e);
+            queueItem.status = StatusCode.ERROR;
+            queueItem.statusMessage = e.getMessage();
+            queueDataService.updateStatus(queueItem.id, StatusCode.ERROR, e.getMessage());
+            throw e;
         }
     }
 
@@ -441,6 +458,9 @@ public class ConsumerQueue {
     // consumerQueueListenerContainerFactory sets the concurrency value
     @RabbitListener(queues = TASK_QUEUE, id = TASK_QUEUE, ackMode = "MANUAL", containerFactory = "consumerQueueListenerContainerFactory")
     public void taskListener(Message message, Channel channel) throws IOException {
+        // get the retry count from the message headers to limit retries, in case something goes wrong repeatedly
+        Integer retryCount = (Integer) message.getMessageProperties().getHeaders().getOrDefault("x-retry-count", 0);
+
         // get the id from the message
         UUID id = null;
         try {
@@ -473,17 +493,27 @@ public class ConsumerQueue {
                     (currentQueueItem.status == StatusCode.RUNNING || currentQueueItem.status == StatusCode.QUEUED))) {
                 // not consumed or interruption other than CANCELLED, requeue the message.
                 // e.g. if there is already a running item for the user
-                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true); // requeue}
+                if (retryCount < 3) {
+                    // Increment retry count and requeue with updated header
+                    message.getMessageProperties().getHeaders().put("x-retry-count", retryCount + 1);
+                    channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+                } else {
+                    // Max retries reached, do not requeue
+                    channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, false);
+                    log.warn("Task {} reached max retry count, not requeuing.", id);
+                }
                 return;
             }
 
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         } catch (Exception e) {
+            log.error("Error processing task message: {}", id, e);
+
             // requeue only if required
             boolean requeue = false;
             if (id != null) {
                 QueueItem queueItem = queueDataService.get(id);
-                if (queueItem != null && queueItem.status != StatusCode.CANCELLED && queueItem.status != StatusCode.ERROR) {
+                if (queueItem != null && queueItem.status != StatusCode.CANCELLED && queueItem.status != StatusCode.ERROR && retryCount < 3) {
                     requeue = true;
                 }
             }

@@ -53,9 +53,8 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const [filenameChecklist, setFilenameChecklist] = useState<string>(`checklist-${getDefaultFilenameExt()}`);
     const [filenameFieldguide, setFilenameFieldguide] = useState<string>(`fieldguide-${getDefaultFilenameExt()}`);
     const [downloadFormat, setDownloadFormat] = useState<string>(downloadFormats[0]);
-    // TODO: fix this, rename downloadType > fileFormat and step1Value > downloadType
-    const [downloadType, setDownloadType] = useState<string>(fileTypes[0]);
-    const [step1Value, setStep1Value] = useState<string>('');
+    const [fileType, setFileType] = useState<string>(fileTypes[0]);
+    const [downloadType, setDownloadType] = useState<string>('');
     const [downloadReason, setDownloadReason] = useState<string>('');
     const { searchParams, targetUri } = getQueryParameters();
 
@@ -90,48 +89,50 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
 
     // TODO: All of these should only be forwarding the params to the next page, which will do the POSt/download/etc
     function onNext() {
-        if (!step1Value || !downloadReason) {
+        if (!downloadType || !downloadReason) {
             return;
         }
 
-        if (step1Value === 'records' && downloadFormat == 'custom') {
+        if (downloadType === 'records' && downloadFormat == 'custom') {
             // navigate with all query params to /download/options2, as well as filename, downloadType, downloadReason
             navigate('/download/options2?searchParams=' + encodeURIComponent(searchParams || '') +
                 '&targetUri=' + encodeURIComponent(targetUri || '') +
                 '&filename=' + encodeURIComponent(filename) +
                 '&downloadFormat=' + encodeURIComponent(downloadFormat) +
+                '&fileType=' + encodeURIComponent(fileType) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
                 '&downloadReason=' + encodeURIComponent(downloadReason));
             return
         }
 
-        if (step1Value === 'records') {
-            navigate('/download/status?searchParams=' + encodeURIComponent(searchParams || '') +
+        if (downloadType === 'records') {
+            navigate('/download/confirm?searchParams=' + encodeURIComponent(searchParams || '') +
                 '&targetUri=' + encodeURIComponent(targetUri || '') +
                 '&filename=' + encodeURIComponent(filename) +
-                '&downloadFormat=' + encodeURIComponent(downloadFormat) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
-                '&downloadReason=' + encodeURIComponent(downloadReason));
+                '&downloadReason=' + encodeURIComponent(downloadReason),
+                { state: { fromNavigate: true } });
             return;
         }
 
-        if (step1Value === 'checklist') {
-            navigate('/download/status?searchParams=' + encodeURIComponent(searchParams || '') +
+        if (downloadType === 'checklist') {
+            navigate('/download/confirm?searchParams=' + encodeURIComponent(searchParams || '') +
                 '&targetUri=' + encodeURIComponent(targetUri || '') +
                 '&filename=' + encodeURIComponent(filenameChecklist) +
-                '&downloadFormat=' + encodeURIComponent(downloadFormat) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
-                '&downloadReason=' + encodeURIComponent(downloadReason));
+                '&downloadReason=' + encodeURIComponent(downloadReason),
+                { state: { fromNavigate: true } });
             return;
         }
 
-        if (step1Value === 'fieldguide') {
-            navigate('/download/status?searchParams=' + encodeURIComponent(searchParams || '') +
+        if (downloadType === 'fieldguide') {
+            navigate('/download/confirm?searchParams=' + encodeURIComponent(searchParams || '') +
                 '&targetUri=' + encodeURIComponent(targetUri || '') +
                 '&filename=' + encodeURIComponent(filenameFieldguide) +
                 '&downloadFormat=' + encodeURIComponent(downloadFormat) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
-                '&downloadReason=' + encodeURIComponent(downloadReason));
+                '&downloadReason=' + encodeURIComponent(downloadReason),
+                { state: { fromNavigate: true } });
             return;
         }
     }
@@ -182,7 +183,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                 <p>
                                                     <FormattedMessage id='download.occurrence.records.zip' />
                                                 </p>
-                                                <form className={`form-horizontal collapse-section${step1Value === 'records' ? ' open' : ''}`} style={{ maxHeight: step1Value != 'records' ? '0' : '200px' }}>
+                                                <form className={`form-horizontal collapse-section${downloadType === 'records' ? ' open' : ''}`} style={{ maxHeight: downloadType != 'records' ? '0' : '200px' }}>
                                                     <div className='mb-3 row'>
                                                         <label htmlFor='file' className='col-sm-4 col-form-label text-end'>
                                                             <FormattedMessage id='download.occurrence.records.filename' />
@@ -230,7 +231,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                             {fileTypes.map(ft => (
                                                                 <div>
                                                                     <label style={{ paddingLeft: '0px' }}>
-                                                                        <input type='radio' name='downloadType' id={`downloadType-${ft}`} value={downloadType} checked={downloadType === ft} onChange={() => setDownloadType(ft)} /> <FormattedMessage id={`type.${ft}`} />{' '}
+                                                                        <input type='radio' name='fileType' id={`fileType-${ft}`} value={fileType} checked={fileType === ft} onChange={() => setFileType(ft)} /> <FormattedMessage id={`type.${ft}`} />{' '}
                                                                         <RolloverTooltip html={intl.formatMessage({id: `helpicon.${ft}`, defaultMessage: ''})}
                                                                             hideDelay={1000}>
                                                                             <FontAwesomeIconLite icon={faQuestionCircle} />
@@ -244,8 +245,8 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                             </div>
 
                                             <div className='col-md-3'>
-                                                <button className={'btn w-100 p-2 ' + (step1Value == 'records' ? 'btn-success' : 'btn-default')} onClick={() => setStep1Value('records')}>
-                                                    {step1Value == 'records' ? (
+                                                <button className={'btn w-100 option-btn ' + (downloadType == 'records' ? 'btn-success' : 'btn-white')} onClick={() => setDownloadType('records')}>
+                                                    {downloadType == 'records' ? (
                                                         <>
                                                             <FontAwesomeIconLite icon={faCheck} /> <FormattedMessage id='download.selected' />
                                                         </>
@@ -268,7 +269,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                 <p>
                                                     <FormattedMessage id='download.species.checklist.text' />
                                                 </p>
-                                                <form className={`form-horizontal collapse-section${step1Value === 'checklist' ? ' open' : ''}`}>
+                                                <form className={`form-horizontal collapse-section${downloadType === 'checklist' ? ' open' : ''}`}>
                                                     <div className='mb-3 row'>
                                                         <label htmlFor='file' className='col-sm-4 col-form-label text-end'>
                                                             <FormattedMessage id='download.occurrence.records.filename' />
@@ -282,8 +283,8 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                             </div>
 
                                             <div className='col-md-3'>
-                                                <button className={'btn w-100 p-2 ' + (step1Value == 'checklist' ? 'btn-success' : 'btn-default')} onClick={() => setStep1Value('checklist')}>
-                                                    {step1Value == 'checklist' ? (
+                                                <button className={'btn w-100 option-btn ' + (downloadType == 'checklist' ? 'btn-success' : 'btn-white')} onClick={() => setDownloadType('checklist')}>
+                                                    {downloadType == 'checklist' ? (
                                                         <>
                                                             <FontAwesomeIconLite icon={faCheck} /> <FormattedMessage id='download.selected' />
                                                         </>
@@ -294,7 +295,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                             </div>
                                         </div>
 
-                                        {/*fieldguie download option*/}
+                                        {/*fieldguide download option*/}
                                         <div className='row mt-4'>
                                             <div className='col-md-2'>
                                                 <FontAwesomeIconLite icon={faFilePdf} style={{color: '#DF3034', fontSize: '64px'}}/>
@@ -306,7 +307,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                                 <p>
                                                     <FormattedMessage id='download.species.field.guide.text' />
                                                 </p>
-                                                <form className={`form-horizontal collapse-section${step1Value === 'fieldguide' ? ' open' : ''}`}>
+                                                <form className={`form-horizontal collapse-section${downloadType === 'fieldguide' ? ' open' : ''}`}>
                                                     <div className='mb-3 row'>
                                                         <label htmlFor='file' className='col-sm-4 col-form-label text-end'>
                                                             <FormattedMessage id='download.occurrence.records.filename' />
@@ -320,8 +321,8 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                             </div>
 
                                             <div className='col-md-3'>
-                                                <button className={'btn w-100 p-2 ' + (step1Value == 'fieldguide' ? 'btn-success' : 'btn-default')} onClick={() => setStep1Value('fieldguide')}>
-                                                    {step1Value == 'fieldguide' ? (
+                                                <button className={'btn w-100 option-btn ' + (downloadType == 'fieldguide' ? 'btn-success' : 'btn-white')} onClick={() => setDownloadType('fieldguide')}>
+                                                    {downloadType == 'fieldguide' ? (
                                                         <>
                                                             <FontAwesomeIconLite icon={faCheck} /> <FormattedMessage id='download.selected' />
                                                         </>
@@ -389,7 +390,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                                             </div>
 
                                             <div className='col-md-3'>
-                                                <button className='btn btn-primary w-100 p-2 mt-4' type='button' disabled={!downloadReason || !step1Value}
+                                                <button className='btn btn-primary w-100 option-btn mt-4' type='button' disabled={!downloadReason || !downloadType}
                                                     onClick={() => onNext()}>
                                                     <FormattedMessage id='download.next' /> <FontAwesomeIconLite icon={faChevronRight} />
                                                 </button>

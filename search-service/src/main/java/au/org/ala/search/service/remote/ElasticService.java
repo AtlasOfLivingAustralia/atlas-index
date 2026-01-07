@@ -581,6 +581,10 @@ public class ElasticService {
     }
 
     public SearchItemIndex getTaxon(String q, boolean follow, boolean nameFallback) {
+        if (StringUtils.isEmpty(q)) {
+            return null;
+        }
+
         NativeQueryBuilder query =
                 NativeQuery.builder().withQuery(wq -> wq.bool(bq -> {
                     bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));

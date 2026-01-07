@@ -35,3 +35,47 @@
     margin-top: 1.2em;
     text-transform: none;
 }
+
+.btn.option-btn {
+    font-size: 14px;
+    line-height: 1.5;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 6px;
+}
+
+.btn-success {
+    color: #fff;
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn.btn-white {
+    color: #333;
+    background-color: #fff;
+    border: 1px solid transparent;
+    border-color: #cdcdcd;
+    background-image: none;
+}
+
+.btn.btn-white:focus, .btn.btn-white:hover {
+    background-image: none;
+    background-color: #f9f9f9;
+}
+
+.btn.btn-white:focus,.btn.btn-white.focus {
+    color: #333;
+    background-color: #e6e6e6;
+    border-color: #8c8c8c;
+    text-decoration: none;
+}
+
+.heading-medium-large {
+    border-bottom: inherit;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: .8em;
+    margin-top: 0.3em;
+    text-transform: none;
+}
