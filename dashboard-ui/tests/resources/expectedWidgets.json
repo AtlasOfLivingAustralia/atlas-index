@@ -1,0 +1,181 @@
+[
+  {
+    "title": "Occurrence Records",
+    "content": "150,760,023 records in total."
+  },
+  {
+    "title": "\\d{1,3}(,\\d{3})* Datasets",
+    "table": [
+      "Institutions 1,001",
+      "Collections 205"
+    ]
+  },
+  {
+    "title": "Basis Of Record",
+    "table": [
+      "Human Observation 121.45M",
+      "Preserved Specimen 17.08M"
+    ],
+    "comment": "expectedUrl field is for verify clickable table",
+    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=basisOfRecord:.*$"
+  },
+  {
+    "title": "\\d{1,3}(,\\d{3})* Collections"
+  },
+  {
+    "title": "Records by Date",
+    "table": [
+      "Latest Record 2025-05-28 06:08",
+      "Last Image Added 2025-05-28 06:08"
+    ]
+  },
+  {
+    "title": "National Species Lists",
+    "table": [
+      "Accepted Names 367,184",
+      "Synonyms 367,184"
+    ]
+  },
+  {
+    "title": "\\d{1,3}(,\\d{3})* Spatial Layers",
+    "table": [
+      "Contextual Layers 137",
+      "Environmental/Raster Layers 49"
+    ]
+  },
+  {
+    "title": "Records by State and Territory"
+  },
+  {
+    "title": "Most Recorded Species",
+    "table": [
+      "Gymnorhina tibicen - Australian Magpie 2.22M",
+      "Grallina cyanoleuca - Magpie-lark 1.65M"
+    ],
+    "comment": "expectedUrl field is for verify clickable table, and select field is for dropdown selection",
+    "expectedUrl": "^https?:\\/\\/bie(?:\\.test)?\\.ala\\.org\\.au\\/species\\/https?:\\/\\/biodiversity\\.org\\.au\\/afd\\/taxa\\/[A-Za-z0-9\\-]+$",
+    "select": {
+      "selectOptions": [
+        "All Lifeforms",
+        "Plants",
+        "Animals"
+      ],
+      "expectedSelectedValuesInTable": {
+        "Plants": [
+          "Lycium ferocissimum - African Boxthorn 146,927",
+          "Halodule uninervis - Halodule 144,314"
+        ]
+      }
+    }
+   },
+  {
+    "title": "Type Specimens",
+    "table": [
+      "ALLOLECTOTYPE 1",
+      "ALLOTYPE 2,225"
+    ],
+    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=typeStatus:.*",
+    "select": {
+      "selectOptions": [
+        "All Occurrences",
+        "Occurrences with Images"
+      ],
+      "expectedSelectedValuesInTable": {
+        "Occurrences with Images": [
+          "ALLOTYPE 97",
+          "COTYPE 11"
+        ]
+      }
+    }
+  },
+  {
+    "title": "Biodiversity Heritage Library",
+    "table": [
+      "Pages 63.16M",
+      "Volumes 318,155",
+      "Titles 197,512"
+    ]
+  },
+  {
+    "title": "DigiVol \\(Volunteer Portal\\)",
+    "table": [
+      "Volunteers 16,410",
+      "Expedition Tasks 7.79M",
+      "Expedition Tasks Completed 7.48M"
+    ]
+  },
+  {
+    "title": "Conservation Status",
+    "table": [
+      "Vulnerable 1,755",
+      "Endangered 2,375",
+      "Critically Endangered 1,073"
+    ],
+    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=stateConservation:.*"
+  },
+  {
+    "title": "Records by Data Provider",
+    "table": [
+      "BirdLife Australia 15.13M",
+      "Department of Planning, Industry and Environment representing the State of New South Wales 14.26M"
+    ],
+    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=dataProviderUid:.*"
+  },
+  {
+    "title": "Records by Institution",
+    "table": [
+      "Australian Museum 1.56M",
+      "Royal Botanic Gardens Victoria 1.09M"
+    ],
+    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=institutionUid:.*"
+  },
+  {
+    "title": "Occurrence Tree",
+    "table": [
+      "Animalia - 115.51M",
+      "Plantae - 29.18M",
+      "Fungi - 2.79M"
+    ]
+  },
+  {
+    "title": "Records by Lifeform",
+    "table": [
+      "Algae 1.55M",
+      "Amphibians 1.64M"
+    ],
+    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=speciesGroup:.*"
+  },
+  {
+    "title": "Records and Species by Decade"
+  },
+  {
+    "title": "Usage Statistics",
+    "table": [
+      "Records Downloaded 56.4B",
+      "Number of Downloads 2.43M"
+    ]
+  },
+  {
+    "title": "Occurrence Downloads by Reason",
+    "table": [
+      "Total 2.43M 56.4B",
+      "biosecurity management/planning 11,788 932.58M",
+      "citizen science 22,387 2.05B"
+    ]
+  },
+  {
+    "title": "Occurrence Downloads by User Type",
+    "table": [
+      "Education 150,133 10.47B",
+      "Government 37,868 4.03B",
+      "Other 473,874 29.08B"
+    ]
+  },
+  {
+    "title": "Species Images",
+    "table": [
+      "Total Number of Images 23.26M",
+      "Taxa with Images 100,747"
+    ]
+  }
+]

@@ -539,21 +539,21 @@ test('region page default info', async ({ page }, testInfo) => {
     }); // count from species.json
     await expect(speciesCount).toBeVisible(); // check the count is visible
 
+    let yearRangeEncoded = encodeURIComponent("[1850-01-01T00:00:00Z TO " + new Date().getFullYear() + "-12-31T23:59:59Z]");
+
     // Verify the expected URLs were called
-    const speciesGroupUrl =
-        /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue$/;
+    const speciesGroupUrl = /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue$/;
 
-    const speciesUrl =
-        /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D$/;
+    const speciesUrl = new RegExp(`^https://biocache-ws(\\.[a-z0-9-]+)?\\.ala\\.org\\.au/ws/occurrences/search\\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A\\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A${yearRangeEncoded}$`);
 
-    const kingdomUrl =
-        /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D&pageSize=0&flimit=-1&facets=kingdom$/;
+    const kingdomUrl = new RegExp(`^https://biocache-ws(\\.[a-z0-9-]+)?\\.ala\\.org\\.au/ws/occurrences/search\\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A\\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A${yearRangeEncoded}&pageSize=0&flimit=-1&facets=kingdom$`);
+
     const hasSpeciesGroupUrl = Array.from(seenUrls).find(url => speciesGroupUrl.test(url?.href));
-    expect(hasSpeciesGroupUrl).toBeTruthy(); // WMS requests include the expected layer
+    expect(hasSpeciesGroupUrl).toBeTruthy();
     const hasSpeciesUrl = Array.from(seenUrls).find(url => speciesUrl.test(url.href));
-    expect(hasSpeciesUrl).toBeTruthy(); // WMS requests include the expected layer
+    expect(hasSpeciesUrl).toBeTruthy();
     const hasKingdomUrl = Array.from(seenUrls).find(url => kingdomUrl.test(url.href));
-    expect(hasKingdomUrl).toBeTruthy(); // WMS requests include the expected layer
+    expect(hasKingdomUrl).toBeTruthy();
 
     // Verify some species groups
     const speciesGroup1 = page.locator('div.speciesItem', {

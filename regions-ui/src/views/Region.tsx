@@ -93,6 +93,8 @@ const insertFlatSpeciesGroups = (
 };
 insertFlatSpeciesGroups(Object.values(speciesGroupMapImport), 1);
 
+console.log("debug: speciesGroups =", speciesGroups);
+
 // information about the spatial object that defines the region used on the page
 interface SpatialObject {
     pid: string;
@@ -858,622 +860,268 @@ function Region({
         window.open(url, '_blank');
     }
 
-    return (
-        <>
-            {(occurrenceCount < 0 || speciesCount < 0) && (
-                <div
-                    className={
-                        'd-flex justify-content-center align-items-center ' +
-                        styles.pageLoading
-                    }
-                >
+    return <>
+            {(occurrenceCount < 0 || speciesCount < 0) &&
+                <div className={'d-flex justify-content-center align-items-center ' + styles.pageLoading}>
                     <FontAwesomeIconLite icon={faSpinner} />
                 </div>
-            )}
-            {occurrenceCount >= 0 && speciesCount >= 0 && (
-                <>
-                    {object && (
-                        <Container className="mt-5">
-                            <div className="d-flex justify-content-between">
-                                <h2>{object.name}</h2>
-                                <div>
-                                    <button
-                                        className="btn btn-sm btn-primary"
-                                        onClick={createAlert}
-                                    >
-                                        Alerts
-                                    </button>
-                                </div>
-                            </div>
-                            <h3 className="mt-4">
-                                Occurrence records (
-                                {formatNumber(occurrenceCount)})
-                            </h3>
-                            <h3 className="mt-3">
-                                Number of species ({formatNumber(speciesCount)})
-                            </h3>
+            }
+            {occurrenceCount >= 0 && speciesCount >= 0 && object &&
+                <Container className="mt-5">
+                    <div className="d-flex justify-content-between">
+                        <h2>{object.name}</h2>
+                        <div>
+                            <button className="btn btn-sm btn-primary" onClick={createAlert}>
+                                Alerts
+                            </button>
+                        </div>
+                    </div>
+                    <h3 className="mt-4">Occurrence records ({formatNumber(occurrenceCount)})</h3>
+                    <h3 className="mt-3">Number of species ({formatNumber(speciesCount)})</h3>
 
-                            <div className={styles.regionSections}>
-                                <div className={styles.tabPanel}>
-                                    <Tabs
-                                        defaultActiveKey={tab}
-                                        onSelect={tabChanged}
-                                    >
-                                        <Tab
-                                            eventKey="species"
-                                            title="Explore by species"
-                                        >
-                                            <div
-                                                className={
-                                                    styles.regionPanelGroup
-                                                }
-                                            >
-                                                <div
-                                                    className={
-                                                        'd-flex ' +
-                                                        styles.regionHeader
-                                                    }
-                                                >
-                                                    <div
-                                                        className={
-                                                            styles.regionPanel +
-                                                            ' ' +
-                                                            styles.regionLeft
-                                                        }
-                                                    >
-                                                        Group
-                                                    </div>
-                                                    <div
-                                                        className={
-                                                            styles.regionPanel
-                                                        }
-                                                    >
-                                                        Species
-                                                    </div>
-                                                </div>
+                    <div className={styles.regionSections}>
+                        <div className={styles.tabPanel}>
+                            <Tabs defaultActiveKey={tab} onSelect={tabChanged}>
+                                <Tab eventKey="species" title="Explore by species">
+                                    <div className={styles.regionPanelGroup}>
+                                        <div className={'d-flex ' + styles.regionHeader}>
+                                            <div className={styles.regionPanel + ' ' + styles.regionLeft}>
+                                                Group
+                                            </div>
+                                            <div className={styles.regionPanel}>
+                                                Species
+                                            </div>
+                                        </div>
 
-                                                <div className="d-flex">
-                                                    <div
-                                                        className={
-                                                            styles.regionPanel +
-                                                            ' ' +
-                                                            styles.regionLeft
-                                                        }
-                                                    >
-                                                        {speciesGroupFacet &&
-                                                            speciesGroups
-                                                                .filter(
-                                                                    (item) =>
-                                                                        speciesGroupFacet[
-                                                                            item
-                                                                                .name
-                                                                        ] ||
-                                                                        item.name ===
-                                                                            'All Species'
-                                                                )
-                                                                .map(
-                                                                    (
-                                                                        itemFiltered,
-                                                                        idx
-                                                                    ) => (
-                                                                        <div
-                                                                            key={
-                                                                                idx
-                                                                            }
-                                                                            onClick={() =>
-                                                                                isFetchingSpeciesList ||
-                                                                                filter(
-                                                                                    itemFiltered
-                                                                                )
-                                                                            }
-                                                                            className={
-                                                                                styles.speciesItemParent +
-                                                                                ' speciesItem' +
-                                                                                (itemFiltered.indent >
-                                                                                0
-                                                                                    ? ' ms-' +
-                                                                                      itemFiltered.indent *
-                                                                                          2
-                                                                                    : '') +
-                                                                                (itemFiltered.name ===
-                                                                                group
-                                                                                    ? ' ' +
-                                                                                      styles.speciesItemSelected
-                                                                                    : '')
-                                                                            }
-                                                                            style={{
-                                                                                cursor: isFetchingSpeciesList
-                                                                                    ? 'wait'
-                                                                                    : 'pointer',
-                                                                            }}
-                                                                        >
-                                                                            {
-                                                                                itemFiltered.name
-                                                                            }
-                                                                        </div>
-                                                                    )
-                                                                )}
+                                        <div className="d-flex">
+                                            <div className={styles.regionPanel + ' ' + styles.regionLeft}>
+                                                {speciesGroupFacet && speciesGroups.filter((item) => speciesGroupFacet[item.name] || item.name === 'All Species').map((itemFiltered,idx) => (
+                                                    <div key={idx}
+                                                         onClick={() => isFetchingSpeciesList || filter(itemFiltered)}
+                                                        className={styles.speciesItemParent + ' speciesItem' + (itemFiltered.indent > 0 ? ' ms-' + itemFiltered.indent * 2 : '') +
+                                                            (itemFiltered.name === group ? ' ' + styles.speciesItemSelected : '')}
+                                                        style={{cursor: isFetchingSpeciesList ? 'wait' : 'pointer',}}>
+                                                        {itemFiltered.name}
                                                     </div>
-
-                                                    <div
-                                                        className={
-                                                            styles.regionPanel
-                                                        }
-                                                    >
-                                                        {!speciesList && (
-                                                            <div className="d-flex justify-content-center mt-2">
-                                                                <FontAwesomeIconLite
-                                                                    icon={
-                                                                        faSpinner
-                                                                    }
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        {speciesList &&
-                                                            speciesList.length ===
-                                                                0 && (
-                                                                <p>
-                                                                    No species
-                                                                    found
-                                                                </p>
-                                                            )}
-                                                        {speciesList &&
-                                                            speciesList.map(
-                                                                (
-                                                                    species,
-                                                                    idx
-                                                                ) => (
-                                                                    <div
-                                                                        key={
-                                                                            idx
-                                                                        }
-                                                                        className={
-                                                                            styles.speciesItemParent +
-                                                                            ' ' +
-                                                                            (species.label ===
-                                                                            selectedSpecies
-                                                                                ? ' ' +
-                                                                                  styles.speciesItemSelected
-                                                                                : '')
-                                                                        }
-                                                                    >
-                                                                        <div
-                                                                            onClick={() =>
-                                                                                filterSpecies(
-                                                                                    species
-                                                                                )
-                                                                            }
-                                                                            className={
-                                                                                'd-flex justify-content-between ' +
-                                                                                styles.speciesItem
-                                                                            }
-                                                                        >
-                                                                            <div
-                                                                                className={
-                                                                                    styles.speciesName
-                                                                                }
-                                                                            >
-                                                                                {
-                                                                                    species.label
-                                                                                }
-                                                                            </div>
-                                                                            <div data-testid="speciesCount"
-                                                                                style={{
-                                                                                    float: 'right',
-                                                                                }}
-                                                                            >
-                                                                                {
-                                                                                    species.count
-                                                                                }
-                                                                            </div>
-                                                                        </div>
-                                                                        {species.label ===
-                                                                            selectedSpecies && (
-                                                                            <div className="d-flex pb-2">
-                                                                                <button
-                                                                                    className="btn btn-default btn-sm ms-3"
-                                                                                    onClick={() =>
-                                                                                        openSpeciesPage(
-                                                                                            species
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    Species
-                                                                                    profile
-                                                                                </button>
-                                                                                <button
-                                                                                    className="btn btn-default btn-sm ms-3"
-                                                                                    onClick={() =>
-                                                                                        openBiocacheForSpecies(
-                                                                                            species
-                                                                                        )
-                                                                                    }
-                                                                                >
-                                                                                    List
-                                                                                    records
-                                                                                </button>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )
-                                                            )}
-                                                    </div>
-                                                </div>
+                                                ))}
                                             </div>
 
-                                            <div className="d-flex mt-3">
-                                                <button
-                                                    className="btn btn-sm btn-default"
-                                                    onClick={() =>
-                                                        openBiocacheForSpecies(
-                                                            null
-                                                        )
-                                                    }
-                                                >
-                                                    View records
-                                                </button>
-                                                <button
-                                                    className="btn btn-sm btn-default ms-3"
-                                                    onClick={openDownloadLink}
-                                                >
-                                                    Download records
-                                                </button>
-                                            </div>
-                                        </Tab>
-                                        <Tab
-                                            eventKey="chart"
-                                            title="Explore by taxonomy"
-                                        >
-                                            <div data-testid={'taxonChartContainer'}
-                                                className={
-                                                    'mt-4 ' + styles.pieChart
-                                                }
-                                            >
-                                                {chartData &&
-                                                    chartData.labels &&
-                                                    chartData.labels.length >
-                                                        0 &&
-                                                    PieChart(chartData)}
-                                                {chartData === undefined && (
-                                                    <div className="d-flex justify-content-center">
-                                                        <FontAwesomeIconLite
-                                                            icon={faSpinner}
-                                                        />
+                                            <div className={styles.regionPanel}>
+                                                {!speciesList && (
+                                                    <div className="d-flex justify-content-center mt-2">
+                                                        <FontAwesomeIconLite icon={faSpinner}/>
                                                     </div>
                                                 )}
-                                                {chartData !== undefined &&
-                                                    Object.keys(chartData)
-                                                        .length === 1 && (
-                                                        <div className="d-flex justify-content-center">
-                                                            <p>No data</p>
+                                                {speciesList && speciesList.length === 0 && (<p>No species found</p>)}
+                                                {speciesList && speciesList.map((species, idx) =>
+                                                    <div key={idx} className={styles.speciesItemParent + ' ' + (species.label === selectedSpecies ? ' ' + styles.speciesItemSelected : '')}>
+                                                        <div onClick={() => filterSpecies(species)}
+                                                            className={'d-flex justify-content-between ' + styles.speciesItem}>
+                                                            <div className={styles.speciesName}>
+                                                                {species.label}
+                                                            </div>
+                                                            <div data-testid="speciesCount" style={{float: 'right'}}>
+                                                                {species.count}
+                                                            </div>
                                                         </div>
-                                                    )}
-                                            </div>
-                                            {currentRank > 0 && (
-                                                <div className="d-flex mt-3">
-                                                    <button
-                                                        className="btn btn-sm btn-default"
-                                                        onClick={drillUpChart}
-                                                    >
-                                                        Previous rank
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-default ms-3"
-                                                        onClick={() =>
-                                                            openBiocacheForSpecies(
-                                                                null
-                                                            )
-                                                        }
-                                                    >
-                                                        View records for{' '}
-                                                        {ranks[currentRank - 1]}{' '}
-                                                        {
-                                                            selectedRanks[
-                                                                currentRank - 1
-                                                            ]
-                                                        }
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </Tab>
-                                    </Tabs>
-                                </div>
-                                <div className={styles.mapPanel}>
-                                    <Tabs defaultActiveKey="map">
-                                        <Tab
-                                            eventKey="map"
-                                            title="Time controls and Map"
-                                        >
-                                            <div
-                                                className={
-                                                    'd-flex justify-content-center ' +
-                                                    styles.playerBtns
-                                                }
-                                            >
-                                                <div>
-                                                    {playerState ===
-                                                        'playing' && (
-                                                        <i className="bi bi-play-fill"></i>
-                                                    )}
-                                                    {playerState !==
-                                                        'playing' && (
-                                                        <i
-                                                            className="bi bi-play"
-                                                            onClick={playerPlay}
-                                                        ></i>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    {playerState ===
-                                                        'paused' && (
-                                                        <i className="bi bi-pause-fill"></i>
-                                                    )}
-                                                    {playerState !==
-                                                        'paused' && (
-                                                        <i
-                                                            className="bi bi-pause"
-                                                            onClick={
-                                                                playerPause
-                                                            }
-                                                        ></i>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    {playerState ===
-                                                        'stopped' && (
-                                                        <i className="bi bi-stop-fill"></i>
-                                                    )}
-                                                    {playerState !==
-                                                        'stopped' && (
-                                                        <i
-                                                            className="bi bi-stop"
-                                                            onClick={playerStop}
-                                                        ></i>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <i
-                                                        className="bi bi-arrow-clockwise"
-                                                        onClick={playerReset}
-                                                    ></i>
-                                                </div>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={
-                                                        <Tooltip id="tooltip-top">
-                                                            How to use time
-                                                            controls: drag
-                                                            handles to restrict
-                                                            date or play by
-                                                            decade.
-                                                        </Tooltip>
-                                                    }
-                                                >
-                                                    <p className="fw-bold ms-3">
-                                                        <FontAwesomeIconLite
-                                                            icon={faInfoCircle}
-                                                        />
-                                                    </p>
-                                                </OverlayTrigger>
-                                            </div>
-                                            <div className="mt-2">
-                                                <DualRangeSlider
-                                                    min={EARLIEST_YEAR}
-                                                    max={new Date().getFullYear()}
-                                                    yearRange={yearRange}
-                                                    stepSize={1}
-                                                    onChange={(
-                                                        minVal,
-                                                        maxVal
-                                                    ) => {
-                                                        setYearMin(
-                                                            Math.floor(minVal)
-                                                        );
-                                                        setYearMax(
-                                                            Math.floor(maxVal)
-                                                        );
-                                                        setYearRange([
-                                                            Math.floor(minVal),
-                                                            Math.floor(maxVal),
-                                                        ]);
-                                                    }}
-                                                    onChangeEnd={yearRangeEnd}
-                                                    isDisabled={
-                                                        isFetchingSpeciesList
-                                                    }
-                                                ></DualRangeSlider>
-
-                                                <div className="d-flex justify-content-center" data-testid="dateRangeSelection">
-                                                    <p>
-                                                        {yearRange[0]} -{' '}
-                                                        {yearRange[1]}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="mt-3">
-                                                <MapContainer
-                                                    ref={mapRef}
-                                                    center={center}
-                                                    zoom={defaultZoom}
-                                                    scrollWheelZoom={false}
-                                                    worldCopyJump={true}
-                                                    style={{
-                                                        height: '530px',
-                                                        borderRadius: '10px',
-                                                    }}
-                                                >
-                                                    {!import.meta.env.VITE_GOOGLE_MAP_API_KEY &&
-                                                        <TileLayer
-                                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                                            url={
-                                                                import.meta
-                                                                    .env
-                                                                    .VITE_OPENSTREETMAP_ZXY_URL
-                                                            }
-                                                            zIndex={1}
-                                                        />
-                                                    }
-                                                    {import.meta.env
-                                                        .VITE_GOOGLE_MAP_API_KEY && (
-                                                        <LayersControl position="topright">
-                                                            <LayersControl.BaseLayer
-                                                                checked
-                                                                name="Minimal"
-                                                            >
-                                                                <TileLayer
-                                                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                                                    url={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_OPENSTREETMAP_ZXY_URL
-                                                                    }
-                                                                    zIndex={1}
-                                                                />
-                                                            </LayersControl.BaseLayer>
-                                                            <LayersControl.BaseLayer name="Road">
-                                                                <ReactLeafletGoogleLayer
-                                                                    apiKey={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_GOOGLE_MAP_API_KEY
-                                                                    }
-                                                                    type={
-                                                                        'roadmap'
-                                                                    }
-                                                                />
-                                                            </LayersControl.BaseLayer>
-                                                            <LayersControl.BaseLayer name="Terrain">
-                                                                <ReactLeafletGoogleLayer
-                                                                    apiKey={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_GOOGLE_MAP_API_KEY
-                                                                    }
-                                                                    type={
-                                                                        'terrain'
-                                                                    }
-                                                                />
-                                                            </LayersControl.BaseLayer>
-                                                            <LayersControl.BaseLayer name="Satellite">
-                                                                <ReactLeafletGoogleLayer
-                                                                    apiKey={
-                                                                        import.meta
-                                                                            .env
-                                                                            .VITE_GOOGLE_MAP_API_KEY
-                                                                    }
-                                                                    type={
-                                                                        'satellite'
-                                                                    }
-                                                                />
-                                                            </LayersControl.BaseLayer>
-                                                        </LayersControl>
-                                                    )}
-
-                                                    {object &&
-                                                        showOccurrences &&
-                                                        occurrenceFq !==
-                                                            undefined && (
-                                                            <WMSTileLayer
-                                                                url={getAlaWmsUrl()}
-                                                                layers="ALA:occurrences"
-                                                                format="image/png"
-                                                                transparent={
-                                                                    true
-                                                                }
-                                                                opacity={
-                                                                    occurrenceOpacity /
-                                                                    100.0
-                                                                }
-                                                                attribution="Atlas of Living Australia"
-                                                                zIndex={15}
-                                                            />
+                                                        {species.label === selectedSpecies && (
+                                                            <div className="d-flex pb-2">
+                                                                <button className="btn btn-default btn-sm ms-3" onClick={() => openSpeciesPage(species)}>
+                                                                    Species profile
+                                                                </button>
+                                                                <button className="btn btn-default btn-sm ms-3" onClick={() => openBiocacheForSpecies(species)}>
+                                                                    List records
+                                                                </button>
+                                                            </div>
                                                         )}
-                                                    {object && showObject && (
-                                                        <WMSTileLayer
-                                                            url={`${import.meta.env.VITE_SPATIAL_GEOSERVER_URL}/wms?styles=polygon&viewparams=s%3A${object.pid}`}
-                                                            layers={`ALA:Objects`}
-                                                            format="image/png"
-                                                            styles="polygon"
-                                                            transparent={true}
-                                                            opacity={
-                                                                objectOpacity /
-                                                                100.0
-                                                            }
-                                                            zIndex={11}
-                                                        />
-                                                    )}
-                                                </MapContainer>
-                                                <div className="d-flex mt-3 mb-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={
-                                                            showOccurrences
-                                                        }
-                                                        onChange={(e) =>
-                                                            setShowOccurrences(
-                                                                e.target.checked
-                                                            )
-                                                        }
-                                                    />
-                                                    <div className="ms-2">
-                                                        Occurrences
                                                     </div>
-                                                </div>
-                                                <DualRangeSlider
-                                                    min={0}
-                                                    max={100}
-                                                    yearRange={[
-                                                        occurrenceOpacity,
-                                                    ]}
-                                                    stepSize={1}
-                                                    onChange={(minVal) => {
-                                                        setOccurrenceOpacity(
-                                                            Math.floor(minVal)
-                                                        );
-                                                    }}
-                                                    isDisabled={
-                                                        !showOccurrences
-                                                    }
-                                                    singleValue={true}
-                                                />
-                                                <div className="d-flex mt-3 mb-2">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={showObject}
-                                                        onChange={(e) =>
-                                                            setShowObject(
-                                                                e.target.checked
-                                                            )
-                                                        }
-                                                    />
-                                                    <div className="ms-2">
-                                                        Region
-                                                    </div>
-                                                </div>
-                                                <DualRangeSlider
-                                                    min={0}
-                                                    max={100}
-                                                    yearRange={[objectOpacity]}
-                                                    stepSize={1}
-                                                    onChange={(minVal) => {
-                                                        setObjectOpacity(
-                                                            Math.floor(minVal)
-                                                        );
-                                                    }}
-                                                    isDisabled={!showObject}
-                                                    singleValue={true}
-                                                />
+                                                )}
                                             </div>
-                                        </Tab>
-                                    </Tabs>
-                                </div>
-                            </div>
-                        </Container>
-                    )}
-                </>
-            )}
-        </>
-    );
+                                        </div>
+                                    </div>
+
+                                    <div className="d-flex mt-3">
+                                        <button className="btn btn-sm btn-default" onClick={() => openBiocacheForSpecies(null)}>
+                                            View records
+                                        </button>
+                                        <button className="btn btn-sm btn-default ms-3" onClick={openDownloadLink}>
+                                            Download records
+                                        </button>
+                                    </div>
+                                </Tab>
+                                <Tab eventKey="chart" title="Explore by taxonomy">
+                                    <div data-testid={'taxonChartContainer'} className={'mt-4 ' + styles.pieChart}>
+                                        {chartData && chartData.labels && chartData.labels.length > 0 && PieChart(chartData)}
+                                        {chartData === undefined && (
+                                            <div className="d-flex justify-content-center">
+                                                <FontAwesomeIconLite icon={faSpinner}/>
+                                            </div>
+                                        )}
+                                        {chartData !== undefined && Object.keys(chartData).length === 1 && (
+                                            <div className="d-flex justify-content-center">
+                                                <p>No data</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {currentRank > 0 && (
+                                        <div className="d-flex mt-3">
+                                            <button className="btn btn-sm btn-default" onClick={drillUpChart}>
+                                                Previous rank
+                                            </button>
+                                            <button className="btn btn-sm btn-default ms-3"
+                                                    onClick={() => openBiocacheForSpecies(null)}>
+                                                View records for{' '}
+                                                {ranks[currentRank - 1]}{' '}
+                                                {selectedRanks[currentRank - 1]}
+                                            </button>
+                                        </div>
+                                    )}
+                                </Tab>
+                            </Tabs>
+                        </div>
+                        <div className={styles.mapPanel}>
+                            <Tabs defaultActiveKey="map">
+                                <Tab eventKey="map" title="Time controls and Map">
+                                    <div className={'d-flex justify-content-center ' + styles.playerBtns}>
+                                        <div>
+                                            {playerState === 'playing' && (<i className="bi bi-play-fill"></i>)}
+                                            {playerState !== 'playing' && (<i className="bi bi-play" onClick={playerPlay}></i>)}
+                                        </div>
+                                        <div>
+                                            {playerState === 'paused' && (<i className="bi bi-pause-fill"></i>)}
+                                            {playerState !== 'paused' && (<i className="bi bi-pause" onClick={playerPause}></i>)}
+                                        </div>
+                                        <div>
+                                            {playerState === 'stopped' && (<i className="bi bi-stop-fill"></i>)}
+                                            {playerState !== 'stopped' && (<i className="bi bi-stop" onClick={playerStop}></i>)}
+                                        </div>
+                                        <div>
+                                            <i className="bi bi-arrow-clockwise" onClick={playerReset}></i>
+                                        </div>
+                                        <OverlayTrigger
+                                            placement="top"
+                                            overlay={
+                                                <Tooltip id="tooltip-top">
+                                                    How to use time controls: drag handles to restrict date or play by decade.
+                                                </Tooltip>
+                                            }>
+                                            <p className="fw-bold ms-3">
+                                                <FontAwesomeIconLite icon={faInfoCircle}/>
+                                            </p>
+                                        </OverlayTrigger>
+                                    </div>
+                                    <div className="mt-2">
+                                        <DualRangeSlider
+                                            min={EARLIEST_YEAR}
+                                            max={new Date().getFullYear()}
+                                            yearRange={yearRange}
+                                            stepSize={1}
+                                            onChange={(minVal, maxVal) => {
+                                                setYearMin(Math.floor(minVal));
+                                                setYearMax(Math.floor(maxVal));
+                                                setYearRange([Math.floor(minVal), Math.floor(maxVal),]);
+                                            }}
+                                            onChangeEnd={yearRangeEnd}
+                                            isDisabled={isFetchingSpeciesList}></DualRangeSlider>
+
+                                        <div className="d-flex justify-content-center" data-testid="dateRangeSelection">
+                                            <p>{yearRange[0]} - {yearRange[1]}</p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3">
+                                        <MapContainer
+                                            ref={mapRef}
+                                            center={center}
+                                            zoom={defaultZoom}
+                                            scrollWheelZoom={false}
+                                            worldCopyJump={true}
+                                            style={{height: '530px', borderRadius: '10px'}}>
+                                            {!import.meta.env.VITE_GOOGLE_MAP_API_KEY &&
+                                                <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                    url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1}/>
+                                            }
+                                            {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
+                                                <LayersControl position="topright">
+                                                    <LayersControl.BaseLayer checked name="Minimal">
+                                                        <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                            url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1}/>
+                                                    </LayersControl.BaseLayer>
+                                                    <LayersControl.BaseLayer name="Road">
+                                                        <ReactLeafletGoogleLayer
+                                                            apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+                                                            type={'roadmap'}/>
+                                                    </LayersControl.BaseLayer>
+                                                    <LayersControl.BaseLayer name="Terrain">
+                                                        <ReactLeafletGoogleLayer
+                                                            apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+                                                            type={'terrain'}
+                                                        />
+                                                    </LayersControl.BaseLayer>
+                                                    <LayersControl.BaseLayer name="Satellite">
+                                                        <ReactLeafletGoogleLayer
+                                                            apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
+                                                            type={'satellite'}
+                                                        />
+                                                    </LayersControl.BaseLayer>
+                                                </LayersControl>
+                                            )}
+
+                                            {object && showOccurrences && occurrenceFq !== undefined && (
+                                                <WMSTileLayer
+                                                    url={getAlaWmsUrl()}
+                                                    layers="ALA:occurrences"
+                                                    format="image/png"
+                                                    transparent={true}
+                                                    opacity={occurrenceOpacity / 100.0}
+                                                    attribution="Atlas of Living Australia"
+                                                    zIndex={15}
+                                                />
+                                            )}
+                                            {object && showObject && (
+                                                <WMSTileLayer
+                                                    url={`${import.meta.env.VITE_SPATIAL_GEOSERVER_URL}/wms?styles=polygon&viewparams=s%3A${object.pid}`}
+                                                    layers={`ALA:Objects`}
+                                                    format="image/png"
+                                                    styles="polygon"
+                                                    transparent={true}
+                                                    opacity={objectOpacity / 100.0}
+                                                    zIndex={11}
+                                                />
+                                            )}
+                                        </MapContainer>
+                                        <div className="d-flex mt-3 mb-2">
+                                            <input type="checkbox" checked={showOccurrences}
+                                                onChange={(e) => setShowOccurrences(e.target.checked)}/>
+                                            <div className="ms-2">
+                                                Occurrences
+                                            </div>
+                                        </div>
+                                        <DualRangeSlider
+                                            min={0} max={100} yearRange={[occurrenceOpacity,]} stepSize={1}
+                                            onChange={(minVal) => {setOccurrenceOpacity(Math.floor(minVal));}}
+                                            isDisabled={!showOccurrences}
+                                            singleValue={true}/>
+                                        <div className="d-flex mt-3 mb-2">
+                                            <input type="checkbox" checked={showObject}
+                                                   onChange={(e) => setShowObject(e.target.checked)}/>
+                                            <div className="ms-2">
+                                                Region
+                                            </div>
+                                        </div>
+                                        <DualRangeSlider
+                                            min={0} max={100} yearRange={[objectOpacity]} stepSize={1}
+                                            onChange={(minVal) => {setObjectOpacity(Math.floor(minVal));}}
+                                            isDisabled={!showObject}
+                                            singleValue={true}
+                                        />
+                                    </div>
+                                </Tab>
+                            </Tabs>
+                        </div>
+                    </div>
+                </Container>
+            }
+        </>;
 }
 
 export default Region;

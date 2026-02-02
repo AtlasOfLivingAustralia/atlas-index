@@ -77,3 +77,10 @@ VITE_BANNER_SCOPE=dashboard
 
 VITE_ENV=local
 ```
+## Playwright UI tests
+
+You may need to run ```yarn install``` to update nodejs libs;
+
+And run ``` npx playwright install```. ```npx playwright test --init ``` may not work. It is outdated.
+
+```npx playwright test --ui``` will let you run test with its UI
