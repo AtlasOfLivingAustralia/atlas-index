@@ -469,7 +469,7 @@ public class V1SearchController {
 
             @Parameter(
                     description = "Filters to be applied to the original query. These are additional params of the form fq=INDEXEDFIELD:VALUE.",
-                    example = "{\"imageAvailable:\\\"true\\\"\"}"
+                    example = "image:*"
             )
             @Nullable @RequestParam(name = "fq", required = false) String[] fqs,
 
@@ -640,7 +640,7 @@ public class V1SearchController {
 
             @Parameter(
                     description = "Filters to be applied to the original query. These are additional params of the form fq=INDEXEDFIELD:VALUE.",
-                    example = "{\"imageAvailable:\\\"true\\\"\"}"
+                    example = "image:*"
             )
             @Nullable @RequestParam(name = "fq", required = false) String[] fqs,
 

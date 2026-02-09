@@ -12,6 +12,7 @@ import au.org.ala.search.model.TaskType;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.LogService;
 import io.micrometer.common.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -27,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 public class WordpressImportService {
     private static final TaskType taskType = TaskType.WORDPRESS;
@@ -59,35 +61,41 @@ public class WordpressImportService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        logService.log(taskType, "Starting");
+        try {
+            logService.log(taskType, "Starting");
 
-        List<IndexQuery> buffer = new ArrayList<>();
+            List<IndexQuery> buffer = new ArrayList<>();
 
-        Map<String, Date> existingPages = elasticService.queryItems("idxtype", IndexDocType.WORDPRESS.name());
+            Map<String, Date> existingPages = elasticService.queryItems("idxtype", IndexDocType.WORDPRESS.name());
 
-        Map<String, Date> pages = listPages(existingPages);
+            Map<String, Date> pages = listPages(existingPages);
 
-        int counter = 0;
+            int counter = 0;
 
-        for (Map.Entry<String, Date> page : pages.entrySet()) {
-            SearchItemIndex searchItemIndex = getItemIndex(page.getKey(), page.getValue());
+            for (Map.Entry<String, Date> page : pages.entrySet()) {
+                SearchItemIndex searchItemIndex = getItemIndex(page.getKey(), page.getValue());
 
-            if (searchItemIndex != null) {
-                buffer.add(elasticService.buildIndexQuery(searchItemIndex));
+                if (searchItemIndex != null) {
+                    buffer.add(elasticService.buildIndexQuery(searchItemIndex));
+                }
+
+                if (buffer.size() > 1000) {
+                    counter += elasticService.flushImmediately(buffer);
+
+                    logService.log(taskType, "wordpress import progress: " + counter);
+                }
             }
 
-            if (buffer.size() > 1000) {
-                counter += elasticService.flushImmediately(buffer);
+            counter += elasticService.flushImmediately(buffer);
+            long deleted = elasticService.removeDeletedItems(existingPages);
 
-                logService.log(taskType, "wordpress import progress: " + counter);
-            }
+            logService.log(taskType, "Finished updates: " + counter + ", deleted: " + deleted);
+            return CompletableFuture.completedFuture(true);
+        } catch (Exception e) {
+            logService.log(taskType, "Error during Wordpress import: " + e.getMessage());
+            log.error("Error during Wordpress import: {}", e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
         }
-
-        counter += elasticService.flushImmediately(buffer);
-        long deleted = elasticService.removeDeletedItems(existingPages);
-
-        logService.log(taskType, "Finished updates: " + counter + ", deleted: " + deleted);
-        return CompletableFuture.completedFuture(true);
     }
 
     // removes pages from existingPages as they are found

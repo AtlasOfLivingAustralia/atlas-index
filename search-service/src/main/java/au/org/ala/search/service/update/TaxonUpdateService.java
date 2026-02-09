@@ -47,13 +47,18 @@ public class TaxonUpdateService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        boolean result = updateAccepted() && updateNonAccepted();
+        try {
+            boolean result = updateAccepted() && updateNonAccepted();
 
-        taxonUpdateRunner.clearCache();
+            taxonUpdateRunner.clearCache();
 
-        logService.log(taskType, "Finished, successful:" + result);
-
-        return CompletableFuture.completedFuture(result);
+            logService.log(taskType, "Finished, successful:" + result);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception ex) {
+            logService.log(taskType, "Error there was problem with taxon update: " + ex.getMessage());
+            log.error("There was problem with taxon update: {}", ex.getMessage(), ex);
+            return CompletableFuture.completedFuture(false);
+        }
     }
 
     private boolean updateAccepted() {

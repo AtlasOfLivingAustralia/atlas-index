@@ -86,7 +86,7 @@ public class DescriptionsUpdateService {
             logService.log(taskType, endMsg);
             return CompletableFuture.completedFuture(true);
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.error("Error updating hero descriptions: {}", e.getMessage(), e);
             logService.log(taskType, "Error updating hero descriptions: " + e.getMessage());
             return CompletableFuture.completedFuture(false);
         }

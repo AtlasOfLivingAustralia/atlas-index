@@ -49,25 +49,31 @@ public class CollectionsImportService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        logService.log(taskType, "Starting");
+        try {
+            logService.log(taskType, "Starting");
 
-        int counter = importEntity("dataResource", IndexDocType.DATARESOURCE, biocacheApiService.entityCounts("dataResourceUid"));
+            int counter = importEntity("dataResource", IndexDocType.DATARESOURCE, biocacheApiService.entityCounts("dataResourceUid"));
 
-        // reset datasetMap cache
-        if (elasticService.datasetMap != null) {
-            elasticService.datasetMap.clear();
+            // reset datasetMap cache
+            if (elasticService.datasetMap != null) {
+                elasticService.datasetMap.clear();
+            }
+
+            counter += importEntity("dataProvider", IndexDocType.DATAPROVIDER, biocacheApiService.entityCounts("dataProviderUid"));
+            counter += importEntity("institution", IndexDocType.INSTITUTION, biocacheApiService.entityCounts("institutionUid"));
+            counter += importEntity("collection", IndexDocType.COLLECTION, biocacheApiService.entityCounts("collectionUid"));
+            logService.log(taskType, "Finished updates: " + counter);
+            return CompletableFuture.completedFuture(true).thenApply(
+                    a -> {
+                        collectoryCache.cacheRefresh();
+                        return a;
+                    }
+            );
+        } catch (Exception e) {
+            logService.log(taskType, "Error during collections import: " + e.getMessage());
+            log.error("Error during collections import: {}", e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
         }
-
-        counter += importEntity("dataProvider", IndexDocType.DATAPROVIDER, biocacheApiService.entityCounts("dataProviderUid"));
-        counter += importEntity("institution", IndexDocType.INSTITUTION, biocacheApiService.entityCounts("institutionUid"));
-        counter += importEntity("collection", IndexDocType.COLLECTION, biocacheApiService.entityCounts("collectionUid"));
-        logService.log(taskType, "Finished updates: " + counter);
-        return CompletableFuture.completedFuture(true).thenApply(
-                a -> {
-                    collectoryCache.cacheRefresh();
-                    return a;
-                }
-        );
     }
 
     private int importEntity(String name, IndexDocType type, Map<String, Integer> entityCounts) {

@@ -582,12 +582,16 @@ public class V1DoiController {
             // Add location header if needed
             return ResponseEntity.ok().body(instance);
         } catch (DoiNotFoundException e) {
+            log.error("Error updating DOI " + decodedId, e);
             return ResponseEntity.status(404).body("Not found");
         } catch (DoiUpdateException e) {
+            log.error("Error updating DOI " + decodedId, e);
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (DoiValidationException e) {
+            log.error("Error updating DOI " + decodedId, e);
             return ResponseEntity.unprocessableEntity().body("Validation error");
         } catch (Exception e) {
+            log.error("Error updating DOI " + decodedId, e);
             return ResponseEntity.status(500).body("Internal server error");
         }
     }

@@ -64,18 +64,23 @@ public class SitemapService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        logService.log(taskType, "Start");
-        lastMod = new ArrayList<>();
-        currentLastMod = null;
+        try {
+            logService.log(taskType, "Start");
+            lastMod = new ArrayList<>();
+            currentLastMod = null;
 
-        buildSitemapPages();
-        buildSitemapIndex();
+            buildSitemapPages();
+            buildSitemapIndex();
 
-        removeObsoleteFiles();
+            removeObsoleteFiles();
 
-        logService.log(taskType, "Finished");
-
-        return CompletableFuture.completedFuture(true);
+            logService.log(taskType, "Finished");
+            return CompletableFuture.completedFuture(true);
+        } catch (Exception ex) {
+            logService.log(taskType, "Error failed sitemap: " + ex.getMessage());
+            log.error("failed sitemap: {}", ex.getMessage(), ex);
+            return CompletableFuture.completedFuture(false);
+        }
     }
 
     // write parent sitemap file

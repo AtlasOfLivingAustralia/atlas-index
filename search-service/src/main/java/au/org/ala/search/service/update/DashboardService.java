@@ -112,11 +112,12 @@ public class DashboardService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        logService.log(taskType, "Starting");
-        int errorCount = 0;
         try {
+            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            logService.log(taskType, "Starting");
+            int errorCount = 0;
+
             DashboardData existingData = load();
             errorCount = update(existingData);
 
@@ -126,12 +127,12 @@ public class DashboardService {
             }
 
             logService.log(taskType, "Finished, errors: " + errorCount);
+            return CompletableFuture.completedFuture(true);
         } catch (IOException e) {
-            logService.log(taskType, "Failed to save: " + dataDir + "/dashboard.json, errors:" + (errorCount + 1));
-            log.error("failed to save: {}/dashboard.json", dataDir, e);
+            logService.log(taskType, "Failed to save: " + dataDir + "/dashboard.json: " + e.getMessage());
+            log.error("failed to save: {}/dashboard.json: {}", dataDir, e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
         }
-
-        return CompletableFuture.completedFuture(true);
     }
 
     private DashboardData load() {

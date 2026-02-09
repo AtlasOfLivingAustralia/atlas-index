@@ -49,29 +49,35 @@ public class DigivolImportService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        logService.log(taskType, "Starting");
+        try {
+            logService.log(taskType, "Starting");
 
-        Map<String, Date> existingItems = elasticService.queryItems("idxtype", IndexDocType.DIGIVOL.name());
+            Map<String, Date> existingItems = elasticService.queryItems("idxtype", IndexDocType.DIGIVOL.name());
 
-        List<IndexQuery> buffer = new ArrayList<>();
-        Map<String, SearchItemIndex> items = getList(existingItems);
+            List<IndexQuery> buffer = new ArrayList<>();
+            Map<String, SearchItemIndex> items = getList(existingItems);
 
-        int counter = 0;
+            int counter = 0;
 
-        for (Map.Entry<String, SearchItemIndex> item : items.entrySet()) {
-            buffer.add(elasticService.buildIndexQuery(item.getValue()));
+            for (Map.Entry<String, SearchItemIndex> item : items.entrySet()) {
+                buffer.add(elasticService.buildIndexQuery(item.getValue()));
 
-            if (buffer.size() >= 1000) {
-                counter += elasticService.flushImmediately(buffer);
-                buffer.clear();
-                logService.log(taskType, "digivol import progress: " + counter);
+                if (buffer.size() >= 1000) {
+                    counter += elasticService.flushImmediately(buffer);
+                    buffer.clear();
+                    logService.log(taskType, "digivol import progress: " + counter);
+                }
             }
+
+            counter += elasticService.flushImmediately(buffer);
+
+            logService.log(taskType, "Finished updates: " + counter);
+            return CompletableFuture.completedFuture(true);
+        } catch (Exception e) {
+            logService.log(taskType, "Error during Digivol import: " + e.getMessage());
+            log.error("Error during Digivol import: {}", e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
         }
-
-        counter += elasticService.flushImmediately(buffer);
-
-        logService.log(taskType, "Finished updates: " + counter);
-        return CompletableFuture.completedFuture(true);
     }
 
     /**
