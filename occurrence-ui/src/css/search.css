@@ -829,7 +829,7 @@ span.activeFq, facet-item {
 /*}*/
 span.FieldName {
     font-weight: bold;
-    float:left;
+    /*float:left;*/
 }
 
 .FieldName {

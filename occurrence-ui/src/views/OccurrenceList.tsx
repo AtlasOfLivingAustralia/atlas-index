@@ -12,7 +12,7 @@ import RecordsView from "../components/recordsView.tsx";
 import ResultsReturned from "../components/resultsReturned.tsx";
 import RecordImages from "../components/recordImages.tsx";
 import FacetWell from "../components/facetWell.tsx";
-import {Link} from "react-router-dom";
+import { Link, useNavigate } from 'react-router-dom';
 import {Tab, Tabs} from "react-bootstrap";
 import Charts from "../components/charts.tsx";
 import ApiModal from "../components/apiModal.tsx";
@@ -23,6 +23,8 @@ import {
     parseAsStringLiteral,
     useQueryState
 } from 'nuqs';
+import groupedFacets from "../config/searchGroupedFacets.json";
+import defaultFacets from "../config/defaultFacets.json";
 
 const sortOrder = ['asc', 'desc'] as const
 
@@ -52,9 +54,15 @@ function OccurrenceList({setBreadcrumbs}: {
     // const [disableAllQualityFilters, setDisableAllQualityFilters] = useQueryState('disableAllQualityFilters', parseAsBoolean);
     // const [disableQualityFilter, setDisableQualityFilter] = useQueryState('disableQualityFilter',parseAsNativeArrayOf(parseAsString).withDefault([]));
 
+    const [chartsData, setChartsData] = useState<any>([]);
+
     // facets
-    const [groupedFacets, setGroupedFacets] = useState([])
-    const [facetList, setFacetList] = useState(['kingdom', 'basisOfRecord'])
+    const [facetList, setFacetList] = useState<string[]>(
+        () => {
+            const stored = localStorage.getItem('customFacets');
+            return stored ? JSON.parse(stored) : defaultFacets;
+        }
+    );
 
     // data quality
     const [dataQuality, setDataQuality] = useState<any[]>([])
@@ -69,12 +77,24 @@ function OccurrenceList({setBreadcrumbs}: {
     const [apiModalShow, setApiModalShow] = useState(false);
     const [customizeFilterModalShow, setCustomizeFilterModalShow] = useState(false);
 
+    const navigate = useNavigate();
+
     // get query parameters from URL
     const [queryString, setQueryString] = useState<string>(() => {
         const hash = window.location.href;
         const queryIndex = hash.indexOf('?');
         if (queryIndex !== -1) {
-            return hash.substring(queryIndex);
+            // remove leading part before "?" and any "#..." at the end
+            let qs = hash.substring(queryIndex).split('#')[0];
+
+            // remove the pageSize, sort, dir, start parameters from the query string
+            const urlParams = new URLSearchParams(qs);
+            urlParams.delete('pageSize');
+            urlParams.delete('sort');
+            urlParams.delete('dir');
+            urlParams.delete('order');
+            urlParams.delete('start');
+            return '?' + urlParams.toString();
         }
         return '';
     });
@@ -94,10 +114,9 @@ function OccurrenceList({setBreadcrumbs}: {
     }, []);
 
     useEffect(() => {
-        fetchGroupedFacets();
-
         fetchDataQuality();
 
+        // TODO: i18n or config for breadcrumb titles
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
             {title: 'Default UI', href: '/'},
@@ -238,18 +257,6 @@ function OccurrenceList({setBreadcrumbs}: {
         addParams(newParams, removeParams);
     }
 
-    function fetchGroupedFacets() {
-        if (groupedFacets.length > 0) {
-            return;
-        }
-
-        fetch(import.meta.env.VITE_APP_GROUPED_FACETS_URL, {
-            method: 'GET'
-        }).then(response => response.json()).then(data => {
-            setGroupedFacets(data);
-        })
-    }
-
     function fetchDataQuality() : Promise<QualityProfile[]> {
         if (dataQuality.length > 0) {
             return new Promise((resolve) => resolve(dataQuality));
@@ -260,7 +267,7 @@ function OccurrenceList({setBreadcrumbs}: {
         }).then(response => response.json()).then(async data => {
             // TODO: fetch only the active instead of all
             // fetch all
-            await Promise.all(data.map(profile => fetchDqInverse(profile)));
+            await Promise.all(data.map((profile: QualityProfile) => fetchDqInverse(profile)));
 
             setDataQuality(data);
 
@@ -316,17 +323,11 @@ function OccurrenceList({setBreadcrumbs}: {
     }
 
     function download() {
-        console.log("download")
+        navigate('/download/options1?searchParams=' + encodeURIComponent(queryString));
     }
 
     function api() {
         setApiModalShow(true)
-    }
-
-    function addFq(fq : string) {
-        let term = "&fq=" + fq;
-        setQueryString && setQueryString(queryString + term)
-        window.history.pushState({query: queryString + term}, 'Occurrence Search', queryString + term)
     }
 
     // the first queryString term will not be removed
@@ -338,14 +339,17 @@ function OccurrenceList({setBreadcrumbs}: {
         }
 
         setQueryString && setQueryString(newQuery)
+        // TODO: replace all .pushState with a new URL to this page with updated query parameters
         window.history.pushState({query: newQuery}, 'Occurrence Search', newQuery)
     }
 
     function doQuickSearch() {
         setQueryString && setQueryString(quickSearch)
+        // TODO: replace all .pushState with a new URL to this page with updated query parameters
         window.history.pushState({query: quickSearch}, 'Occurrence Search', quickSearch)
     }
 
+    // TODO: i18n
     return (
         <>
             <div className="container-fluid">
@@ -357,7 +361,7 @@ function OccurrenceList({setBreadcrumbs}: {
 
                         <div id="searchBoxZ" className="text-right col-sm-4 col-md-4">
                             <div id="advancedSearchLink" className="me-0 float-end">
-                                <Link to="/occurrence-search" title="Go to advanced search form">
+                                <Link to="/" title="Go to advanced search form">
                                     <i className="bi bi-gear-fill me-1"></i>Advanced Search</Link>
                             </div>
                             <div className="input-group input-group-sm align-content-end">
@@ -387,9 +391,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                 setFacetList={setFacetList}
                                 groupedFacets={groupedFacets}/>}
 
-                            <FacetWell search={queryString} facetList={facetList} groupedFacets={groupedFacets}
-                                       addFq={addFq}/>
-                            {/*<MultipleFacets />*/}
+                            <FacetWell search={queryString} facetList={facetList} groupedFacets={groupedFacets}/>
 
                         </div>
 
@@ -459,7 +461,13 @@ function OccurrenceList({setBreadcrumbs}: {
                                     <RecordsView results={result}
                                                  pageSize={pageSize} setPageSize={setPageSize}
                                                  sort={sort} setSort={setSort}
-                                                 dir={dir} setDir={v => setDir(typeof v === "function" ? v : (v === "asc" || v === "desc" ? v : "desc"))}
+                                                 dir={dir} setDir={v => {
+                                                     if (typeof v === "function") {
+                                                         setDir((old) => (old === "asc" || old === "desc" ? old : "desc"));
+                                                     } else {
+                                                         setDir(v === "asc" || v === "desc" ? v : "desc");
+                                                     }
+                                                 }}
                                                  page={page} setPage={setPage}
                                                  queryString={queryString}/>
                                 </Tab>
@@ -467,7 +475,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                     <MapView queryString={queryString} dataQualityInfo={dataQualityInfo} tab={tab}/>
                                 </Tab>
                                 <Tab eventKey="charts" title="Charts">
-                                    <Charts search={queryString}/>
+                                    <Charts queryString={queryString} chartsData={chartsData} setChartsData={setChartsData}/>
                                 </Tab>
                                 <Tab eventKey="images" title="Record images">
                                     <RecordImages queryString={queryString} dataQualityInfo={dataQualityInfo}/>

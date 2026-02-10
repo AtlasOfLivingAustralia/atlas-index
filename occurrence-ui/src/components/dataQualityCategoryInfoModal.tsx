@@ -4,8 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
+import Modal from "react-bootstrap/esm/Modal";
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {DataQualityInfo, IndexFields, QualityCategory} from "../api/model.tsx";
 
 interface DataQualityInfoModalProps {
@@ -29,6 +30,8 @@ function DataQualityCategoryInfoModal({
     const [catFilter, setCatFilter] = useState<string>('');
     const [indexedFields, setIndexedFields] = useState<IndexFields>({});
     const [catFields, setCatFields] = useState<string[]>([]);
+
+    const intl: IntlShape = useIntl();
 
     useEffect(() => {
         let isExpanded = (queryString?.includes("disableQualityFilter=" + category.label + "&") ||
@@ -76,12 +79,12 @@ function DataQualityCategoryInfoModal({
     function infoUrl(fq: string) {
         let match = fq.match(/-?assertions:(\w+)/);
         if (match && match.length > 1) {
-            return "https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/" + match[1];
+            return import.meta.env.VITE_APP_DQ_WIKI_URL + match[1];
         }
 
         match = fq.match(/-?(\w+):/);
         if (match && match.length > 1) {
-            return "https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/" + match[1];
+            return import.meta.env.VITE_APP_DQ_WIKI_URL + match[1];
         }
 
         return null;
@@ -144,10 +147,10 @@ function DataQualityCategoryInfoModal({
                 <p id="excluded">
                     {count !== undefined ?
                         <div>
-                            <div>{count} records are excluded by this category</div>
+                            <div>{count} <FormattedMessage id="dq.excluded.count" defaultMessage="records are excluded by this category"/></div>
                             {count > 0 &&
-                                <div onClick={() => showOnly()} className="dqLabel mt-2">View excluded
-                                    records
+                                <div onClick={() => showOnly()} className="dqLabel mt-2">
+                                    <FormattedMessage id="dq.view.excluded" defaultMessage="View excluded records"/>
                                 </div>
                             }
                         </div>
@@ -160,17 +163,18 @@ function DataQualityCategoryInfoModal({
 
                 <p id="filter-value"><b>Filter applied: </b><i>{catFilter}</i></p>
                 {!expanded && count !== undefined && count > 0 && <div
-                    title="Convert this data quality filter into separate filter queries you can include/exclude individually"
-                    onClick={() => expand()} className="dqLabel">Expand and edit filters
+                    title={intl.formatMessage({id:"dq.pop.out", defaultMessage:"Convert this data quality filter into separate filter queries you can include/exclude individually"})}
+                    onClick={() => expand()} className="dqLabel">
+                    <FormattedMessage id="dq.selectmultiple.buttontext.expandfilters" defaultMessage="Expand and edit filters"/>
                 </div>}
 
                 <table
                     className="table cat-table table-bordered table-condensed table-striped mt-4">
                     <tbody>
                     <tr>
-                        <th>Field name</th>
-                        <th>Description</th>
-                        <th>Further information</th>
+                        <th><FormattedMessage id="dq.categoryinfo.dlg.fieldtable.heading.name" defaultMessage="Field name"/></th>
+                        <th><FormattedMessage id="dq.categoryinfo.dlg.fieldtable.heading.description" defaultMessage="Description"/></th>
+                        <th><FormattedMessage id="dq.categoryinfo.dlg.fieldtable.heading.furtherInfo" defaultMessage="Further information"/></th>
                     </tr>
 
                     {/*@ts-ignore*/}
@@ -182,7 +186,9 @@ function DataQualityCategoryInfoModal({
                             <td className="filter-value">
                                 {fieldDescription(name)}</td>
                             <td className="filter-wiki">
-                                <a href={"https://github.com/AtlasOfLivingAustralia/ala-dataquality/wiki/" + name} target="_blank">Link</a>
+                                <a href={import.meta.env.VITE_APP_DQ_WIKI_URL + name} target="_blank">
+                                    <FormattedMessage id="dq.categoryinfo.dlg.fieldtable.value.link" defaultMessage="Link"/>
+                                </a>
                             </td>
                         </tr>
                     )}
@@ -194,9 +200,9 @@ function DataQualityCategoryInfoModal({
                     className="table cat-table table-bordered table-condensed table-striped">
                     <tbody>
                     <tr>
-                        <th>Filter description</th>
-                        <th>Filter value</th>
-                        <th>Further information</th>
+                        <th><FormattedMessage id="dq.profiledetail.filtertable.header.description" defaultMessage="Filter description"/></th>
+                        <th><FormattedMessage id="dq.profiledetail.filtertable.header.value" defaultMessage="Filter value"/></th>
+                        <th><FormattedMessage id="dq.profiledetail.filtertable.header.furtherInfo" defaultMessage="Further information"/></th>
                     </tr>
 
                     {/*@ts-ignore*/}
@@ -209,7 +215,9 @@ function DataQualityCategoryInfoModal({
                                 {filter.filter}</td>
                             <td className="filter-wiki">
                                 {infoUrl(filter.filter) &&
-                                    <a href={infoUrl(filter.filter) || ''} target="_blank">Link</a>}
+                                    <a href={infoUrl(filter.filter) || ''} target="_blank">
+                                        <FormattedMessage id="dq.categoryinfo.dlg.fieldtable.value.link" defaultMessage="Link"/>
+                                    </a>}
                             </td>
                         </tr>
                     )}
@@ -219,10 +227,12 @@ function DataQualityCategoryInfoModal({
             </Modal.Body>
             <Modal.Footer>
                 <div className="d-flex w-100">
-                    <a href="https://support.ala.org.au/support/solutions/articles/6000240256-getting-started-with-the-data-quality-filters"
-                       target="_blank">Learn More</a>
+                    <a href={import.meta.env.VITE_APP_DQ_INFO_URL} target="_blank">
+                        <FormattedMessage id="dq.warning.dataprofile.buttonleft.text" defaultMessage="Learn More"/>
+                    </a>
 
-                    <button className="btn btn-default btn-sm border-black ms-auto" onClick={() => onClose()}>Close
+                    <button className="btn btn-default btn-sm border-black ms-auto" onClick={() => onClose()}>
+                        <FormattedMessage id="dq.categoryinfo.dlg.closebutton.text" defaultMessage="Close"/>
                     </button>
                 </div>
             </Modal.Footer>

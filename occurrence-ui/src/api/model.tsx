@@ -40,11 +40,12 @@ interface FacetItem {
     label: string;
     count: number;
     fq: string;
+    i18nCode: string;
 }
 
 interface Facet {
     label: string;
-    facets: FacetItem [];
+    facets: FacetItem [] | undefined;
 }
 
 interface GroupedFacetData {

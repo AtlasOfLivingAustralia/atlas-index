@@ -7,6 +7,7 @@
 import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
 import {DataQualityInfo, QualityFilter} from "../api/model.tsx";
+import { FormattedMessage } from 'react-intl';
 
 interface DataQualityFiltersProps {
     onClose: () => void,
@@ -131,18 +132,18 @@ function DataQualityFiltersModal({
     return <>
         <Modal show={true} onHide={onClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Filter selection</Modal.Title>
+                <Modal.Title><FormattedMessage id="dq.selectmultiple.header.description" defaultMessage="Filter selection"/></Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <table className="table table-bordered">
                     <thead>
                     <tr>
-                        <th>Categories</th>
-                        <th><input type="checkbox"
-                                   checked={toggleChecked}
+                        <th><FormattedMessage id="dq.selectmultiple.categorytable.header.categories" defaultMessage="Categories"/></th>
+                        <th>
+                            <input type="checkbox" checked={toggleChecked}
                                    onChange={(e) => setToggleChecked(e.target.checked)}
-                            // @ts-ignore
-                                   onClick={(e) => toggleAll(e.target.checked)}/></th>
+                                   onClick={(e) => toggleAll((e.target as HTMLInputElement).checked)}/>
+                        </th>
                     </tr>
                     </thead>
                     <tbody>
@@ -164,8 +165,8 @@ function DataQualityFiltersModal({
                                             cat.expanded = true;
                                             setLocalCategories([...localCategories]);
                                         }}
-                                        className="ms-2 dqLabel">Expand and edit filters</div>}
-                                    {cat.expanded && <div className="ms-2"><i>Expanded</i></div>}
+                                        className="ms-2 dqLabel"><FormattedMessage id="dq.selectmultiple.buttontext.expandfilters" defaultMessage="Expand and edit filters"/></div>}
+                                    {cat.expanded && <div className="ms-2"><i><FormattedMessage id="dq.selectmultiple.text.expanded" defaultMessage="Expanded"/></i></div>}
                                 </div>
                             </td>
                         </tr>
@@ -174,8 +175,11 @@ function DataQualityFiltersModal({
                 </table>
             </Modal.Body>
             <Modal.Footer>
-                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>Cancel</button>
-                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => update()}>Apply
+                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>
+                    <FormattedMessage id="dq.selectmultiple.form.cancel" defaultMessage="Cancel"/>
+                </button>
+                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => update()}>
+                    <FormattedMessage id="dq.selectmultiple.form.submit" defaultMessage="Apply"/>
                 </button>
             </Modal.Footer>
         </Modal>

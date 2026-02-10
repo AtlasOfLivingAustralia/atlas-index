@@ -11,6 +11,7 @@ import RolloverTooltip from '../components/rolloverTooltip.tsx';
 const maxRecords = 50000;
 const downloadFormats = ['dwc', 'legacy', 'custom'];
 const fileTypes = ['csv', 'tsv'];
+// TODO: move to API when building, falling back to config if logger API is not available
 const loggerReasons = [
     { id: 1, name: 'biosecurity management/planning' },
     { id: 11, name: 'citizen science' },

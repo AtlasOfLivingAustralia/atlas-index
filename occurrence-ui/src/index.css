@@ -68,3 +68,9 @@ svg[class~="leaflet-attribution-flag"] {
 .leaflet-bar a {
     text-decoration: none !important;
 }
+
+.modal-title.h4 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}

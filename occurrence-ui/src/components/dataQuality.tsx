@@ -5,12 +5,13 @@
  */
 
 import {useState} from "react";
+import {FormattedMessage, IntlShape, useIntl} from "react-intl";
 import {DataQualityInfo, QualityCategory} from "../api/model.tsx";
+import DataQualityCategoryInfoModal from "./dataQualityCategoryInfoModal.tsx";
+import DataQualityExcluded from "./dataQualityExcluded.tsx";
+import DataQualityFiltersModal from "./dataQualityFiltersModal.tsx";
 import DataQualityInfoModal from "./dataQualityInfoModal.tsx";
 import DataQualitySettingsModal from "./dataQualitySettingsModal.tsx";
-import DataQualityFiltersModal from "./dataQualityFiltersModal.tsx";
-import DataQualityExcluded from "./dataQualityExcluded.tsx";
-import DataQualityCategoryInfoModal from "./dataQualityCategoryInfoModal.tsx";
 
 interface DataQualityProps {
     dataQuality: any[],
@@ -34,6 +35,8 @@ function DataQuality({
     const [showFilters, setShowFilters] = useState(false)
     const [currentCategory, setCurrentCategory] = useState<QualityCategory | undefined>(undefined)
     const [showCategoryInfo, setShowCategoryInfo] = useState(false)
+
+    const intl: IntlShape = useIntl();
 
     function isDqFilterSelected(cat: any) {
         return (dataQualityInfo.selectedFilters === undefined || dataQualityInfo.selectedFilters.includes(cat.label)) &&
@@ -84,13 +87,8 @@ function DataQuality({
         <div id="dataQuality" className="container-fluid activeFilters mb-2">
             <div className="d-flex align-items-center">
                 <div className="no-wrap" onClick={() => setExpanded(!expanded)} style={{cursor: "pointer"}}>
-                    {expanded ?
-                        <i className="bi bi-caret-down-fill"></i>
-                        :
-                        <i className="bi bi-caret-right-fill"></i>
-                    }
-                    &nbsp;<b className="dqLabel">Data
-                    Profile</b>:
+                    {expanded ? <i className="bi bi-caret-down-fill"></i> : <i className="bi bi-caret-right-fill"></i>}
+                    &nbsp;<b className="dqLabel"><FormattedMessage id="quality.filters.group.title" defaultMessage="Data Profile"/></b>:
                 </div>
 
                 <div id="dataQualitySelect" className="form-control border-0">
@@ -98,34 +96,33 @@ function DataQuality({
                             onChange={(e) => {
                                 dataQualityInfo.profile = e.target.value;
                                 dataQualityInfo.selectedFilters = undefined;
-
                                 updateDataQualityInfo({...dataQualityInfo})
                             }}>
                         {dataQuality.map((dq, index) =>
-                            <option key={index} value={dq.shortName} title="Click to switch profile">{dq.name}</option>
+                            <option key={index} value={dq.shortName} title={intl.formatMessage({id:"dq.click.to.switch.profiles", defaultMessage:"Click to switch profile"})}>{dq.name}</option>
                         )}
-                        <option value="disable">Disable data profiles</option>
+                        <option value="disable"><FormattedMessage id="dq.buttontext.disableall" defaultMessage="Disable data profiles"/></option>
                     </select>
                 </div>
 
                 <div className="DQProfileDetailsLink" onClick={() => setShowInfo(true)}>
                     <i className="bi bi-info-circle-fill tooltips dqLabel"
-                       title="Click to view the profile description"></i>
+                       title={intl.formatMessage({id:"dq.profileinfo.button.tooltip", defaultMessage:"Click to view the profile description"})}></i>
                 </div>
 
                 <div className="ms-2">
-                    <i className="bi bi-arrow-counterclockwise tooltips dqLabel" title="Reset filters"
+                    <i className="bi bi-arrow-counterclockwise tooltips dqLabel" title={intl.formatMessage({id: 'quality.filters.resetsearch.tooltip', defaultMessage:"Reset filters"})}
                        onClick={() => resetDq()}></i>
                 </div>
 
                 <div className="ms-2 no-wrap dqLabel" onClick={() => setShowFilters(true)}>
-                    <i className="bi bi-list-check tooltips me-1" title="Enable/Disable multiple filters"></i>
-                    Select filters
+                    <i className="bi bi-list-check tooltips me-1" title={intl.formatMessage({id: "dq.button.filterselection.tooltip"})}></i>
+                    <FormattedMessage id="dq.button.filterselection.text" defaultMessage="Select filters"/>
                 </div>
 
                 <div className="ms-auto no-wrap dqLabel">
-                    <div id="usersettings" title="Data profile settings" onClick={() => setShowSettings(true)}>
-                        <i className="bi bi-gear-fill me-1"></i>Settings
+                    <div id="usersettings" title={intl.formatMessage({id: "dq.profilesettings.button.tooltip", defaultMessage:"Data profile settings"})} onClick={() => setShowSettings(true)}>
+                        <i className="bi bi-gear-fill me-1"></i><FormattedMessage id="dq.profilesettings.button.label" defaultMessage="Settings"/>
                     </div>
                 </div>
 
@@ -153,8 +150,7 @@ function DataQuality({
             <div className="row">
                 {expanded && dataQuality.find(dq => dq.shortName === dataQualityInfo.profile)?.categories.map((cat: QualityCategory, idx: number) =>
                     <div key={idx} className="col-6 d-flex dqFilter">
-                        <div className=""
-                             title={cat.description}>
+                        <div title={cat.description}>
                             {isDqFilterSelected(cat)}
                             {isDqFilterSelected(cat) ?
                                 <i className="bi bi-check-square me-1 dqLabel" onClick={() => removeFilter(cat)}></i>
@@ -165,10 +161,10 @@ function DataQuality({
                         </div>
 
                         <i className="bi bi-info-circle tooltips dqLabel ms-1"
-                           title="Click for more information and actions"
+                           title={intl.formatMessage({id:"dq.categoryinfo.button.tooltip", defaultMessage:"Click for more information and actions"})}
                            onClick={() => showCategoryModal(cat)}></i>
                         {isDqFilterSelected(cat) &&
-                            <div className="ms-1 d-flex" title="Show excluded records">
+                            <div className="ms-1 d-flex" title={intl.formatMessage({id:"dq.inverse.button", defaultMessage:"Show excluded records"})}>
                                 <DataQualityExcluded queryString={queryString} category={cat} addParams={addParams}/>
                             </div>
                         }

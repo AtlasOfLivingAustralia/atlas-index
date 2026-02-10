@@ -5,10 +5,8 @@
  */
 
 import {useEffect, useState} from "react";
+import {FormattedMessage} from "react-intl";
 import {QualityCategory} from "../api/model.tsx";
-
-interface DataQualityExcludedProps {
-}
 
 interface DataQualityExcludedProps {
     queryString: string | undefined,
@@ -39,7 +37,7 @@ function DataQualityExcluded({queryString, category, addParams}: DataQualityExcl
 
     return <>
         {count !== undefined ?
-            <div onClick={() => showOnly()} className={count > 0 ? "dqLabel" : ''}>({count} records excluded)</div>
+            <div onClick={() => showOnly()} className={count > 0 ? "dqLabel" : ''}>({count} <FormattedMessage id="quality.filters.excludeCount" defaultMessage="records excluded" />)</div>
             :
             <div className="spinner-border" role="status">
                 <span className="visually-hidden">...</span>

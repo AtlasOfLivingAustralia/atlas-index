@@ -7,6 +7,7 @@
 import {useUser} from "@ala/common-ui";
 import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {DataQualityInfo} from "../api/model.tsx";
 
 interface DataQualitySettingsProps {
@@ -28,6 +29,8 @@ function DataQualitySettingsModal({
     const [localCategories, setLocalCategories] = useState<any[]>([]);
     const [profile, setProfile] = useState(dataQualityInfo.profile);
     const [showExpanded, setShowExpanded] = useState(dataQualityInfo.expand ? "expanded": "collapsed");
+
+    const intl: IntlShape = useIntl();
 
     useEffect(() => {
         updateLocalCategories();
@@ -82,41 +85,41 @@ function DataQualitySettingsModal({
     }
 
     return <>
-        <Modal show={true} onHide={onClose}>
+        <Modal show={true} onHide={onClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Data profile user settings</Modal.Title>
+                <Modal.Title><FormattedMessage id="dq.prefsettings.dlg.title" defaultMessage="Data profile user settings"/></Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <div className="container-fluid">
-                    <p>Your default profile is applied to searches unless you select another profile from the data
-                        profiles
-                        drop down.</p>
+                    <p><FormattedMessage id="dq.profilesettings.warning.appliedtosearch" defaultMessage="Your default profile is applied to searches unless you select another profile from the data profiles drop down"/></p>
 
                     <div className="row align-items-center ps-0">
-                        <label className="col-md-6 control-label fw-bold" htmlFor="dataQualitySelect">Default profile</label>
+                        <label className="col-md-6 control-label fw-bold" htmlFor="dataQualitySelect">
+                            <FormattedMessage id="dq.profilesettings.label.defaultprofile" defaultMessage="Default profile"/>
+                        </label>
                         <div className="col-md-6">
                             <div id="dataQualitySelect" className="form-control border-0 no-wrap">
                                 <select className="form-select form-select-sm" value={profile}
                                         onChange={(e) => setProfile(e.target.value)}>
                                     {dataQuality.map((dq, index) =>
-                                        <option key={index} value={dq.shortName}
-                                                title="Click to switch profile">{dq.name}</option>
+                                        <option key={index} value={dq.shortName} title={intl.formatMessage({id: "dq.click.to.switch.profiles", defaultMessage:"Click to switch profile"})}>{dq.name}</option>
                                     )}
-                                    <option value="disable">Disable data profiles</option>
+                                    <option value="disable"><FormattedMessage id="dq.buttontext.disableall" defaultMessage="Disable data profiles"/></option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div className="row align-items-center ps-0 mb-2">
-                        <label className="col-md-6 control-label fw-bold" htmlFor="showSelect">Show data profile
-                            details</label>
+                        <label className="col-md-6 control-label fw-bold" htmlFor="showSelect">
+                            <FormattedMessage id="dq.profilesettings.label.showexpend" defaultMessage="Show data profile details"/>
+                        </label>
                         <div className="col-md-6">
                             <div id="showSelect" className="form-control border-0 no-wrap">
                                 <select className="form-select form-select-sm" value={showExpanded}
                                         onChange={(e) => setShowExpanded(e.target.value)}>
-                                    <option value="collapsed">Collapsed</option>
-                                    <option value="expanded">Expanded</option>
+                                    <option value="collapsed"><FormattedMessage id="dq.profilesettings.select.option.collapsed" defaultMessage="Collapsed" /></option>
+                                    <option value="expanded"><FormattedMessage id="dq.profilesettings.select.option.expanded" defaultMessage="Expanded" /></option>
                                 </select>
                             </div>
                         </div>
@@ -139,8 +142,11 @@ function DataQualitySettingsModal({
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>Cancel</button>
-                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => save()}>Save
+                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>
+                    <FormattedMessage id="dq.profilesettings.button.cancel" defaultMessage="Cancel"/>
+                </button>
+                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => save()}>
+                    <FormattedMessage id="dq.profilesettings.button.save" defaultMessage="Save"/>
                 </button>
             </Modal.Footer>
         </Modal>

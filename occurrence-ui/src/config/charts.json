@@ -1,0 +1,37 @@
+[
+  {
+    "type": "pie",
+    "facet": "license",
+    "label": "By license"
+  },
+  {
+    "type": "verticalBar",
+    "facet": "month",
+    "label": "By month"
+  },
+  {
+    "type": "pie",
+    "facet": "genus",
+    "label": "By genus"
+  },
+  {
+    "type": "verticalBar",
+    "facet": "decade",
+    "label": "By decade"
+  },
+  {
+    "type": "pie",
+    "facet": "family",
+    "label": "By family"
+  },
+  {
+    "type": "horizontalBar",
+    "facet": "assertions",
+    "label": "By data assertion"
+  },
+  {
+    "type": "pie",
+    "facet": "typeStatus",
+    "label": "By type status"
+  }
+]

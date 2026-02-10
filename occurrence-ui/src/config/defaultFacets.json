@@ -1,0 +1,16 @@
+[
+  "scientificName",
+  "family",
+  "speciesGroup",
+  "vernacularName",
+  "month",
+  "decade",
+  "state",
+  "basisOfRecord",
+  "multimedia",
+  "occurrenceStatus",
+  "contentTypes",
+  "sensitive",
+  "institutionUid",
+  "dataResourceUid"
+]

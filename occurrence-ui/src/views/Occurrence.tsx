@@ -528,11 +528,11 @@ function Occurrence({setBreadcrumbs}: {
                     </div>
                 )}
 
-                {/*userAnnotationTemplate dialog*/}
+                {/*TODO: userAnnotationTemplate dialog*/}
 
-                {/*userVerificationTemplate dialog*/}
+                {/*TODO: userVerificationTemplate dialog*/}
 
-                {/*verifyRecordModal dialog*/}
+                {/*TODO: verifyRecordModal dialog*/}
             </div>
         </div>
     );

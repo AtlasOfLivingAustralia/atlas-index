@@ -5,6 +5,7 @@
  */
 
 import Modal from "react-bootstrap/Modal";
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 
 interface AlertModalProps {
     onClose: () => void,
@@ -13,6 +14,8 @@ interface AlertModalProps {
 }
 
 function AlertModal({onClose, results, queryString}: AlertModalProps) {
+
+    const intl: IntlShape = useIntl();
 
     function createNewRecordAlert() {
         createAlert('createBiocacheNewRecordsAlert')
@@ -39,32 +42,35 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
         window.location.href = url;
     }
 
-    return <>
-        <Modal show={true} onHide={onClose}>
-            <Modal.Header closeButton>
-                <Modal.Title>Email alerts</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-                <div className="btn border-black"
-                     title="Notify me when new records come online for this search"
-                     onClick={() => createNewRecordAlert()}>
-                    Get email alerts for new <u>records</u>
-                </div>
-                <br/>
+    return (
+        <>
+            <Modal show={true} onHide={onClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        <FormattedMessage id='list.alert.title' defaultMessage='Email alerts' />
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className='btn border-black' title={intl.formatMessage({id: 'list.alert.navigator01.title'})} onClick={() => createNewRecordAlert()}
+                         dangerouslySetInnerHTML={{__html: intl.formatMessage({ id: 'list.alert.navigator01', defaultMessage: "Get email alerts for new records" })}}></div>
+                    <br />
 
-                <div className="btn border-black mt-4"
-                     title="Notify me when new annotations (corrections, comments, etc) come online for this search"
-                     onClick={() => createNewAnnotationsAlert()}>Get email alerts for new <u>annotations</u>
-                </div>
-                <p>&nbsp;</p>
-                <p><a href="https://alerts.ala.org.au/notification/myAlerts">View your current alerts</a></p>
-            </Modal.Body>
-            <Modal.Footer>
-                <button className="btn border-black" onClick={() => onClose()}>Close
-                </button>
-            </Modal.Footer>
-        </Modal>
-    </>
+                    <div className='btn border-black mt-4' title={intl.formatMessage({id: 'list.alert.navigator02.title'})}  onClick={() => createNewAnnotationsAlert()}
+                         dangerouslySetInnerHTML={{__html: intl.formatMessage({ id: 'list.alert.navigator02', defaultMessage: "Get email alerts for new annotations" })}}></div>
+                    <p>&nbsp;</p>
+                    <p>
+                        <a href={import.meta.env.VITE_APP_MY_ALERTS_URL}>
+                            <FormattedMessage id="list.alert.navigator03" defaultMessage="View your current alerts"/></a>
+                    </p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <button className='btn border-black' onClick={() => onClose()}>
+                        <FormattedMessage id="list.alert.button01" defaultMessage="Close"/>
+                    </button>
+                </Modal.Footer>
+            </Modal>
+        </>
+    );
 }
 
 export default AlertModal;

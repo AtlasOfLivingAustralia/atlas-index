@@ -4,25 +4,41 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {FontAwesomeIconLite} from "@ala/common-ui";
+import { faCaretDown, faCaretRight, faList } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from "react";
-import {GroupedFacetData} from "../api/model.tsx";
+import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import {FacetItem} from "../api/model.tsx";
+import MultipleFacets from "./multipleFacets.tsx";
 
 interface FacetWellProps {
     search?: string,
     facetList?: string[],
-    groupedFacets?: any[],
-    addFq: (fq: string) => void
+    groupedFacets?: any[]
 }
 
-function FacetWell({search, facetList, groupedFacets, addFq}: FacetWellProps) {
-    const [groupedFacetData, setGroupedFacetData] = useState<GroupedFacetData>({})
+const flimitValue = 5;
 
-    const fetchController = new AbortController();
+function FacetWell({search, facetList, groupedFacets}: FacetWellProps) {
+    const [groupData, setGroupData] = useState<{ [key: string]: {isOpen: boolean, facets: string[]}}>({});
+    const [facetData, setFacetData] = useState<{ [key: string]: FacetItem []}>({})
+    const [chooseMoreFacet, setChooseMoreFacet] = useState<string | null>(null);
+
+    const intl: IntlShape = useIntl();
 
     useEffect(() => {
-        // setGroupedFacetData({})
         fetchData()
     }, [search, groupedFacets, facetList])
+
+    function lookupIsOpen(groupName: string): boolean {
+        // lookup local storage value
+        let lsKey = "facetGroupOpen_" + groupName;
+        let lsValue = localStorage.getItem(lsKey);
+        if (lsValue === null) {
+            return false; // default to closed
+        }
+        return lsValue === "true";
+    }
 
     function fetchData() {
         if (!groupedFacets || groupedFacets.length == 0) {
@@ -33,7 +49,7 @@ function FacetWell({search, facetList, groupedFacets, addFq}: FacetWellProps) {
             return;
         }
 
-        // remove know fq's from facet list
+        // remove known fq's from facet list
         let flist: string[] = []
         if (facetList) {
             flist = facetList.filter(f => {
@@ -42,42 +58,84 @@ function FacetWell({search, facetList, groupedFacets, addFq}: FacetWellProps) {
             })
         }
 
-        if (flist.length == 0) {
-            setGroupedFacetData({})
-            return;
-        }
+        // build groups of facets to fetch
+        let facetsToFetch: string[] = [];
+        let groups: { [key: string]: {isOpen: boolean, facets: string []}} = {};
+        for (let group of groupedFacets) {
+            for (let f of group.facets) {
+                for (let facet of flist) {
+                    if (f.field === facet) {
+                        groups[group.title] = groups[group.title] || {isOpen: lookupIsOpen(group.title), facets: []};
+                        groups[group.title].facets.push(facet);
 
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + flist?.join(','), {
-            method: 'GET',
-            signal: fetchController.signal
-        }).then(response => response.json())
-            .then(data => {
-            let groups: GroupedFacetData = {}
-            for (let group of groupedFacets) {
-                for (let f of group.facets) {
-                    for (let facet of data.facetResults) {
-                        if (f.field === facet.fieldName) {
-                            groups[group.title] = groups[group.title] || []
-                            groups[group.title].push({label: facet.fieldName, facets: facet.fieldResult})
+                        if (groups[group.title].isOpen) {
+                            facetsToFetch.push(facet);
                         }
                     }
                 }
             }
-            setGroupedFacetData(groups)
-        })
+        }
+        setGroupData(groups)
+        setFacetData({}) // reset counts and lists
+
+        fetchNextFacet(facetsToFetch);
     }
 
-    function filterBy(fq: string) {
-        addFq(fq)
+    function fetchNextFacet(flist: string[]) {
+        if (flist.length == 0) {
+            return;
+        }
+
+        if (search === '') {
+            return;
+        }
+
+        const currentFacet = flist[0];
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count", {
+            method: 'GET'
+        }).then(response => response.json()).then(data => {
+            if (data.facetResults && data.facetResults.length > 0) {
+                let list = data.facetResults[0].fieldResult;
+                setFacetData(prevFacetData => ({...prevFacetData, [currentFacet]: list.filter((item: FacetItem) => !item.fq.endsWith('*'))}));
+            }
+
+            // fetch next
+            fetchNextFacet(flist.slice(1));
+        });
     }
 
     function chooseMore(label: string) {
-        console.log('choose more', label)
+        setChooseMoreFacet(label);
+    }
+
+    function toggleGroupOpen(groupName: string) {
+        let isOpen = !groupData[groupName].isOpen;
+        let lsKey = "facetGroupOpen_" + groupName;
+        localStorage.setItem(lsKey, isOpen ? "true" : "false");
+
+        setGroupData(prevGroupData => ({
+            ...prevGroupData,
+            [groupName]: {
+                ...prevGroupData[groupName],
+                isOpen: isOpen
+            }
+        }));
+
+        // if now open, and no data, fetch
+        if (isOpen) {
+            let facetsToFetch: string[] = [];
+            for (let facet of groupData[groupName].facets) {
+                if (!facetData[facet]) {
+                    facetsToFetch.push(facet);
+                }
+            }
+            fetchNextFacet(facetsToFetch);
+        }
     }
 
     return <>
         <div id="facetWell" className="card card-body bg-light">
-            <h3>Narrow your results</h3>
+            <h3><FormattedMessage id="search.facets.heading" defaultMessage="Refine results"/></h3>
             {/*<div className="sidebar" style={{clear: "both"}}>*/}
             {/*    <div className="facetGroupName" id="heading_data_quality">*/}
             {/*        Data Profile*/}
@@ -170,40 +228,38 @@ function FacetWell({search, facetList, groupedFacets, addFq}: FacetWellProps) {
             {/*<div className="facetsGroup" id="group_Custom" style="display:none;">*/}
             {/*</div>*/}
 
-            {/*<pre>{facetData && JSON.stringify(facetData, null, 2)}</pre>*/}
-
-            {groupedFacetData && Object.keys(groupedFacetData).map((groupName, idx) =>
+            {groupData && Object.keys(groupData).map((groupName, idx) =>
                 <div key={idx}>
-                    <div className="facetGroupName">
-                        <div><i className="bi bi-caret-down-fill"></i>&nbsp;<span>{groupName}</span></div>
+                    <div className="facetGroupName" onClick={() => toggleGroupOpen(groupName)}>
+                        <div><FontAwesomeIconLite icon={groupData[groupName].isOpen ? faCaretDown : faCaretRight} style={{width: '20px'}}/><span>
+                            <FormattedMessage id={"facet.group." + groupName} defaultMessage={groupName}/></span></div>
                     </div>
 
-                    {groupedFacetData[groupName].map((facet, idx) =>
-                        <div key={idx}>
-                            <div className="facetsGroup" id={"group_" + facet.label}>
-                                <h4><span className="FieldName">{facet.label}</span></h4>
+                    {groupData[groupName].isOpen && groupData[groupName].facets.map((facet, idx) =>
+                        <div key={idx} style={{marginLeft: '5px'}}>
+                            <div className="facetsGroup" id={"group_" + facet}>
+                                <h4><span className="FieldName" style={{ marginLeft: '5px'}}><FormattedMessage id={"facet." + facet} defaultMessage={facet}/></span></h4>
                                 <div className="subnavlist nano" style={{clear: "left"}}>
                                     <ul className="facets nano-content">
-                                        {facet.facets.map((item: any, idx) =>
+                                        {Array.isArray(facetData[facet]) ? facetData[facet].map((item: { fq: string; label: string; count: number, i18nCode: string }, idx) =>
                                             <li key={idx}>
-                                                <div className="facet-item"
-                                                     title={"Filter results by " + facet.label}
-                                                     onClick={() => filterBy(item.fq)}>
-                                                    <i className="bi bi-square me-1"></i><span>{item.label} ({item.count})</span>
-                                                </div>
+                                                <a className="facet-item"
+                                                     title={"Filter results by " + item.label}
+                                                      href={'/occurrences/search' + (search || '') + '&fq=' + encodeURIComponent(item.fq)}>
+                                                    <i className="bi bi-square me-1"></i><span><FormattedMessage id={item.i18nCode} defaultMessage={item.label}/> ({intl.formatNumber(item.count)})</span>
+                                                </a>
                                             </li>
-                                        )}
+                                        ) : <div className="spinner-border" style={{width:'14px', height: '14px'}}/>}
                                     </ul>
                                 </div>
 
-
-                                <div className="showHide">
+                                {facetData[facet] && facetData[facet].length >= flimitValue &&
                                     <div className="multipleFacetsLink"
-                                         title="See more options or refine with multiple values"
-                                         onClick={() => chooseMore(facet.label)}>
-                                        <i className="bi bi-list-check"></i> choose more...
+                                         title={intl.formatMessage({id: 'search.facets.see.more.options'})}
+                                         onClick={() => chooseMore(facet)}>
+                                        <FontAwesomeIconLite icon={faList}/> <FormattedMessage id='facets.facetfromgroup.link' defaultMessage='choose more...'/>
                                     </div>
-                                </div>
+                                }
                             </div>
                         </div>
                     )}
@@ -211,6 +267,8 @@ function FacetWell({search, facetList, groupedFacets, addFq}: FacetWellProps) {
             )}
 
         </div>
+
+        { chooseMoreFacet && <MultipleFacets queryString={search || ''} facet={chooseMoreFacet} onClose={() => setChooseMoreFacet(null)}/> }
 
     </>
 }

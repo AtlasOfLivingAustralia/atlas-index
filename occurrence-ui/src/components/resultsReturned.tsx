@@ -11,6 +11,7 @@ interface ResultsReturnedProps {
     queryString?: string
 }
 
+// TODO: i18n
 function ResultsReturned({results, queryString}: ResultsReturnedProps) {
 
     const [count, setCount] = useState<number | undefined>();

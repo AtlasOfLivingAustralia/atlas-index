@@ -31,6 +31,8 @@ interface RecordImagesProps {
     dataQualityInfo?: DataQualityInfo
 }
 
+const pageSize = 20;
+
 function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
 
     const [page, setPage] = useState(0)
@@ -38,11 +40,13 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
     const [image, setImage] = useState<ImageItem | null>(null)
     const [showModal, setShowModal] = useState(false)
     const [loading, setLoading] = useState(false);
+    const [noMoreImages, setNoMoreImages] = useState(false);
 
     useEffect(() => {
         setPage(0)
         setImages([])
         loadImages(0);
+        setNoMoreImages(false);
     }, [queryString, dataQualityInfo]);
 
     function formatDate(date: number) {
@@ -51,7 +55,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
 
     function loadImages(page: number) {
         setLoading(true);
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search?" + queryString + "&pageSize=20&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * 20))
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search?" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize))
             .then(response => response.json())
             .then(data => {
                 setLoading(false);
@@ -61,7 +65,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                         href: "/occurrence/" + el.uuid,
                         thumbnail: el.thumbnailUrl,
                         largeImage: el.largeImageUrl,
-                        url: "https://images.ala.org.au/image/" + el.image,
+                        url: import.meta.env.VITE_APP_IMAGE_SERVICE_URL + "/image/" + el.image,
                         originalUrl: el.imageUrl,
                         id: el.thumbnailUrl,
                         name: (el.raw_scientificName || el.scientificName),
@@ -71,33 +75,30 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                         organization: el.institutionName || el.dataResourceName
                     });
                 }
+                if (newImages.length < pageSize) {
+                    setNoMoreImages(true);
+                }
                 setImages([...images, ...newImages])
             });
     }
 
+    // TODO: i18n
     return <>
         <h3 className="h3Small">Images from occurrence records</h3>
 
         <div id="container">
             {images.map((image, index) =>
-                <div key={index} className="imgCon" onClick={() => {
-                    setImage(image);
-                    setShowModal(true)
-                }}>
+                <div key={index} className="imgCon" onClick={() => {setImage(image); setShowModal(true)}}>
                     <div className="cbLink thumbImage tooltips" rel="thumbs" id="thumb" title="click to enlarge">
                         <img src={image.thumbnail} alt="image thumbnail"/>
 
                         <div className="meta brief">
-                            {image.name}&nbsp;
-                            <br/>
-                            {image.organization}
+                            {image.name}
                         </div>
 
                         <div className="meta detail">
                             {image.name}
-                            <br/>
                             <div dangerouslySetInnerHTML={{__html: 'By: ' + image.collector}}></div>
-                            <br/>
                             Date: {image.eventDate}
                             <br/>
                             {image.organization}
@@ -107,14 +108,14 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
             )}
             <br/>
             {loading && <div className="spinner-border" role="status" style={{height: "20px", width: "20px"}}>
-                <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">Loading...</span>
             </div>}
-            <br/>
-            <button className="btn btn-sm border-black mt-3" onClick={() => {
-                setPage(page + 1);
-                loadImages(page)
-            }}>Show More Images
-            </button>
+            {!loading && !noMoreImages && <>
+                <br/>
+                <button className="btn btn-sm border-black mt-3" onClick={() => {setPage(page + 1);loadImages(page)}}>
+                    Show More Images
+                </button>
+            </>}
         </div>
 
         <Modal show={showModal} size="xl">

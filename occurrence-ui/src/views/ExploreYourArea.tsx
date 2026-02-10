@@ -416,7 +416,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                     {viewing} {mapLookupItemIdx + 1} {of} {mapLookupOccurrences.length} {occurrences}
                 </strong>
                 {/*TODO: convert to navigate*/}
-                <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrences/search?' + mapLookupQueryParams}>
+                <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={'/occurrences/search?' + mapLookupQueryParams}>
                     {viewAll}
                 </a>
                 <br />
@@ -461,8 +461,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                             textDecoration: 'none',
                             color: '#000'
                         }}
-                       // TODO: convert to navigate
-                        href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrence/' + mapLookupOccurrence?.processed?.uuid}>
+                       href={'/occurrence/' + mapLookupOccurrence?.processed?.uuid}>
                         {viewRecord}
                     </a>
                     <button className='btn btn-sm btn-default ms-auto' style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }} onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined} disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}
@@ -491,7 +490,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
         let pointSize = 5;
         let zoomLevel = mapRef.current ? mapRef.current.getZoom() : defaultZoom;
-        let c = 800; // base difference circumference in meters
+        let c = 400; // base difference circumference in meters
         var radius = c / Math.pow(2, zoomLevel);
 
         // Adjust radius based on size, legacy calculation

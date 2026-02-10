@@ -36,6 +36,7 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
             newClLayerInfo[key] = { value: value, name: key, id: key };
         }
 
+        console.log("url", `${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/fields/search`)
         fetch(`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/fields/search`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }

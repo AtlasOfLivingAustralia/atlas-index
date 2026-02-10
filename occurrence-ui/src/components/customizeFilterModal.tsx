@@ -6,6 +6,8 @@
 
 import Modal from "react-bootstrap/esm/Modal";
 import {useState} from "react";
+import {FormattedMessage} from "react-intl";
+import defaultFacets from "../config/defaultFacets.json";
 
 interface ApiModalProps {
     onClose: () => void,
@@ -17,10 +19,13 @@ interface ApiModalProps {
 function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}: ApiModalProps) {
 
     const [localFacetList, setLocalFacetList] = useState(facetList);
-    const defaultFacets = ['kingdom', 'basisOfRecord'];
 
     function update() {
         setFacetList([...localFacetList])
+
+        // save to local storage
+        localStorage.setItem('customFacets', JSON.stringify(localFacetList));
+
         onClose();
     }
 
@@ -29,11 +34,14 @@ function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}:
         onClose();
     }
 
+    console.log("groupedFacets", groupedFacets);
+
     return <>
         <Modal show={true} onHide={onClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Customise filters<span
-                    id="customiseFacetsHint">(scroll to see full list)</span>
+                <Modal.Title>
+                    <FormattedMessage id="list.customisefacetsbutton.div01.title" defaultMessage="Customise filter options"/>
+                    &nbsp;<FormattedMessage id="list.customisefacetsbutton.title.hint" defaultMessage="Scroll to see full list"/>
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
@@ -41,11 +49,11 @@ function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}:
                     {groupedFacets && groupedFacets.map((group: any, idx) =>
                         <div key={idx} className="row">
                             <div className="col-12">
-                                <div className="facetGroupName mb-2">{group.title}</div>
+                                <div className="facetGroupName mb-2"><FormattedMessage id={"facet.group." + group.title} defaultMessage={group.title}/></div>
                             </div>
 
-                            <div className="col-12 ps-1">
-                                <div className="d-flex flex-wrap">
+                            <div className="col-12">
+                                <div className="d-flex flex-wrap" style={{marginLeft: "-10px"}}>
                                     {group.facets.map((facet: any, idx: number) =>
                                         <div key={idx} className="w-50">
                                             <input type="checkbox" name="facets" className="facetOpts"
@@ -58,7 +66,7 @@ function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}:
                                                        }
                                                    }}
                                             />
-                                            &nbsp;{facet.field}
+                                            &nbsp;<FormattedMessage id={"facet." + facet.field} defaultMessage={facet.field}/>
                                         </div>
                                     )}
                                 </div>
@@ -72,11 +80,9 @@ function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}:
             </Modal.Body>
             <Modal.Footer>
                 <button id="resetFacetOptions" className="btn btn-default btn-sm margin-left-5 border-black"
-                        onClick={() => reset()}>Reset to defaults
-                </button>
-                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>Close</button>
-                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => update()}>Update
-                </button>
+                        onClick={() => reset()}><FormattedMessage id="list.facetcheckboxes.button.resetfacetoptions" defaultMessage="Reset to defaults"/></button>
+                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}><FormattedMessage id="list.facetcheckboxes.button.closeFacetoptions" defaultMessage="Close"/></button>
+                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => update()}><FormattedMessage id="list.facetcheckboxes.button.updatefacetoptions" defaultMessage="Update"/></button>
             </Modal.Footer>
         </Modal>
     </>
