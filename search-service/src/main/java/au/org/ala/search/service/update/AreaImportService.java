@@ -57,33 +57,39 @@ public class AreaImportService {
 
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        logService.log(taskType, "Starting");
+        try {
+            logService.log(taskType, "Starting");
 
-        allFields = null;
+            allFields = null;
 
-        // facet query
-        Set<String> existingLayerIds = new HashSet<>(elasticService.queryFacet("idxtype", IndexDocType.REGION.name(), "layerId"));
-        existingLayerIds.addAll(elasticService.queryFacet("idxtype", IndexDocType.LOCALITY.name(), "layerId"));
+            // facet query
+            Set<String> existingLayerIds = new HashSet<>(elasticService.queryFacet("idxtype", IndexDocType.REGION.name(), "layerId"));
+            existingLayerIds.addAll(elasticService.queryFacet("idxtype", IndexDocType.LOCALITY.name(), "layerId"));
 
-        for (String layerId : spatialLayers.split(",")) {
-            if (existingLayerIds.contains(layerId)) {
-                logService.log(taskType, "Skipping already imported layer " + layerId);
-            } else {
-                importLayer(layerId);
+            for (String layerId : spatialLayers.split(",")) {
+                if (existingLayerIds.contains(layerId)) {
+                    logService.log(taskType, "Skipping already imported layer " + layerId);
+                } else {
+                    importLayer(layerId);
+                }
+                existingLayerIds.remove(layerId);
             }
-            existingLayerIds.remove(layerId);
+
+            // delete removed layers
+            for (String layerId : existingLayerIds) {
+                elasticService.queryDelete("layerId", layerId);
+                logService.log(taskType, "Deleted layer: " + layerId);
+            }
+
+            loadDistributions();
+
+            logService.log(taskType, "Finished");
+            return CompletableFuture.completedFuture(true);
+        } catch (Exception e) {
+            logService.log(taskType, "Failed: " + e.getMessage());
+            log.error("Area import failed: {}", e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
         }
-
-        // delete removed layers
-        for (String layerId : existingLayerIds) {
-            elasticService.queryDelete("layerId", layerId);
-            logService.log(taskType, "Deleted layer: " + layerId);
-        }
-
-        loadDistributions();
-
-        logService.log(taskType, "Finished");
-        return CompletableFuture.completedFuture(true);
     }
 
     private void importLayer(String layerId) {
@@ -94,7 +100,13 @@ public class AreaImportService {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        for (String fieldId : listFieldIds(layerId)) {
+        List<String> fields = listFieldIds(layerId);
+        if (fields == null || fields.isEmpty()) {
+            logService.log(taskType, "no fields found for layer " + layerId);
+            return;
+        }
+
+        for (String fieldId : fields) {
             try {
                 logService.log(taskType, "field " + fieldId + " import starting");
 
@@ -197,6 +209,7 @@ public class AreaImportService {
             } catch (IOException e) {
                 logService.log(taskType, "failed to get fields " + spatialUrl + "/fields");
                 log.error("failed to get fields {}/fields", spatialUrl);
+                return null;
             }
         }
 

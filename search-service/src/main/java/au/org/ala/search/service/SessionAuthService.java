@@ -101,6 +101,9 @@ public class SessionAuthService {
     @Value("${security.cookie.debug}")
     private boolean sessionCookieDebug;
 
+    @Value("${security.cookie.rotate}")
+    private boolean rotateSessionCookie;
+
     /**
      * COGNITO: use Cognito logout endpoint and parameters
      * DEFAULT: use the CAS OIDC logout endpoint and parameters
@@ -370,7 +373,9 @@ public class SessionAuthService {
                 }
 
                 // rotate the secret
-                secret = generateAndSetSecret(response, origin);
+                if (rotateSessionCookie) {
+                    secret = generateAndSetSecret(response, origin);
+                }
 
                 // save the new tokens to the session
                 if (!newTokens.containsKey("refresh_token")) {

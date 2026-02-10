@@ -1,0 +1,622 @@
+{
+  "0": {
+    "wiki": "Wiki",
+    "name": "geospatialIssue",
+    "description": "Geospatial issue"
+  },
+  "19": {
+    "wiki": "Wiki",
+    "name": "habitatMismatch",
+    "description": "Habitat incorrect for species"
+  },
+  "20": {
+    "wiki": "Wiki",
+    "name": "detectedOutlier",
+    "description": "Suspected outlier"
+  },
+  "1000": {
+    "wiki": "Wiki",
+    "name": "LOCATION_NOT_SUPPLIED",
+    "description": "no indication of location (coordinates, locality, polygon, location ID, verbatim coordinates) supplied"
+  },
+  "1001": {
+    "wiki": "Wiki",
+    "name": "COORDINATES_CENTRE_OF_STATEPROVINCE",
+    "description": "Coordinates are the exact centre of the state or territory"
+  },
+  "1002": {
+    "wiki": "Wiki",
+    "name": "UNCERTAINTY_IN_PRECISION",
+    "description": "Uncertainty value in precision field"
+  },
+  "1003": {
+    "wiki": "Wiki",
+    "name": "UNCERTAINTY_NOT_SPECIFIED",
+    "description": "Uncertainty was not supplied with the record"
+  },
+  "1004": {
+    "wiki": "Wiki",
+    "name": "STATE_COORDINATE_MISMATCH",
+    "description": "Coordinates dont match the supplied state"
+  },
+  "1005": {
+    "wiki": "Wiki",
+    "name": "UNKNOWN_COUNTRY_NAME",
+    "description": "Unrecognised or unparseable country name"
+  },
+  "1006": {
+    "wiki": "Wiki",
+    "name": "COORDINATES_CENTRE_OF_COUNTRY",
+    "description": "Coordinates are the exact centre of the country"
+  },
+  "1007": {
+    "wiki": "Wiki",
+    "name": "MISSING_GEODETICDATUM",
+    "description": "geodeticDatum not supplied for coordinates"
+  },
+  "1008": {
+    "wiki": "Wiki",
+    "name": "MISSING_GEOREFERENCE_DATE",
+    "description": "GeoreferenceDate not supplied with the record"
+  },
+  "1009": {
+    "wiki": "Wiki",
+    "name": "MISSING_GEOREFERENCEDBY",
+    "description": "GeoreferencedBy not supplied with the record"
+  },
+  "1010": {
+    "wiki": "Wiki",
+    "name": "MISSING_GEOREFERENCEPROTOCOL",
+    "description": "GeoreferenceProtocol not supplied with the record"
+  },
+  "1011": {
+    "wiki": "Wiki",
+    "name": "MISSING_GEOREFERENCESOURCES",
+    "description": "GeoreferenceSources not supplied with the record"
+  },
+  "1012": {
+    "wiki": "Wiki",
+    "name": "MISSING_GEOREFERENCEVERIFICATIONSTATUS",
+    "description": "GeoreferenceVerificationStatus not supplied with the record"
+  },
+  "1013": {
+    "wiki": "Wiki",
+    "name": "MISSING_COLLECTION_DATE",
+    "description": "Collection date field is missing or null"
+  },
+  "1014": {
+    "wiki": "Wiki",
+    "name": "GEOREFERENCE_POST_OCCURRENCE",
+    "description": "The record was georeferenced after recording - not an error but has implications for precision and accuracy. The amount of time may indicate severity? GeoreferenceDate isn't a current DwC field."
+  },
+  "1015": {
+    "wiki": "Wiki",
+    "name": "ID_PRE_OCCURRENCE",
+    "description": "Identification predates the occurrence, possibly incorrect field mapping"
+  },
+  "1016": {
+    "wiki": "Wiki",
+    "name": "FIRST_OF_MONTH",
+    "description": "May indicate the date is only known or recorded to the Month. Flag if there is no precision data. datePrecision is not a curent DwC field"
+  },
+  "1017": {
+    "wiki": "Wiki",
+    "name": "FIRST_OF_YEAR",
+    "description": "May indicate the date is only known or recorded to the Year. Flag if there is no precision data. datePrecision is not a curent DwC field"
+  },
+  "1018": {
+    "wiki": "Wiki",
+    "name": "FIRST_OF_CENTURY",
+    "description": "May indicate the date is only known or recorded to the Century. Flag if there is no precision data. datePrecision is not a curent DwC field"
+  },
+  "1019": {
+    "wiki": "Wiki",
+    "name": "TAXON_AFFINITY_SPECIES",
+    "description": "The scientific name has an aff. marker indicating a like-but-not identification"
+  },
+  "1020": {
+    "wiki": "Wiki",
+    "name": "TAXON_EXCLUDED_ASSOCIATED",
+    "description": "The taxon, while matched, also has an excluded match"
+  },
+  "1021": {
+    "wiki": "Wiki",
+    "name": "TAXON_CONFER_SPECIES",
+    "description": "The scientific name has a cf. marker, indicating uncertain identification"
+  },
+  "1022": {
+    "wiki": "Wiki",
+    "name": "TAXON_EXCLUDED",
+    "description": "The taxon is excluded (should not be found in this location)"
+  },
+  "1023": {
+    "wiki": "Wiki",
+    "name": "TAXON_ERROR",
+    "description": "There has been a generic taxon matching error"
+  },
+  "1024": {
+    "wiki": "Wiki",
+    "name": "TAXON_HOMONYM",
+    "description": "The supplied name and hierarchy is not enough to uniquely determine the name"
+  },
+  "1025": {
+    "wiki": "Wiki",
+    "name": "TAXON_INDETERMINATE_SPECIES",
+    "description": "The supplied name contains an indeterminate species marker and an exact match could not be found"
+  },
+  "1026": {
+    "wiki": "Wiki",
+    "name": "TAXON_MISAPPLIED_MATCHED",
+    "description": "The supplied name has been misapplied to another concept in the past"
+  },
+  "1027": {
+    "wiki": "Wiki",
+    "name": "TAXON_MISAPPLIED",
+    "description": "The supplied name has been misapplied to another concept in the past with no accepted use"
+  },
+  "1028": {
+    "wiki": "Wiki",
+    "name": "TAXON_PARENT_CHILD_SYNONYM",
+    "description": "The supplied name can be matched either onto the parent species or an autonymic subspecies"
+  },
+  "1029": {
+    "wiki": "Wiki",
+    "name": "TAXON_QUESTION_SPECIES",
+    "description": "The supplied name contains a questionable identification marker (?)"
+  },
+  "1030": {
+    "wiki": "Wiki",
+    "name": "TAXON_SPECIES_PLURAL",
+    "description": "The supplied name contains a species plural marker and cannot be accuratey matched onto a single species"
+  },
+  "1031": {
+    "wiki": "Wiki",
+    "name": "MISSING_TAXONRANK",
+    "description": "taxonRank not supplied with the record"
+  },
+  "1032": {
+    "wiki": "Wiki",
+    "name": "NAME_NOT_SUPPLIED",
+    "description": "Neither scientific name or vernacular name were supplied"
+  },
+  "1033": {
+    "wiki": "Wiki",
+    "name": "UNKNOWN_KINGDOM",
+    "description": "Kingdom provided doesn't match a known kingdom e.g. Animalia, Plantae"
+  },
+  "1034": {
+    "wiki": "Wiki",
+    "name": "TAXON_SCOPE_MISMATCH",
+    "description": "The supplied hints do not match the final name match"
+  },
+  "1035": {
+    "wiki": "Wiki",
+    "name": "TAXON_DEFAULT_MATCH",
+    "description": "The ocurrence record was matched to a default value supplied by higher-order elements"
+  },
+  "1036": {
+    "wiki": "Wiki",
+    "name": "INVALID_SCIENTIFIC_NAME",
+    "description": "The scientific name provided is not structured as a valid scientific name. Also catches rank values or values such as \"UNKNOWN\""
+  },
+  "1037": {
+    "wiki": "Wiki",
+    "name": "SENSITIVITY_REPORT_INVALID",
+    "description": "Sensitivity report invalid"
+  },
+  "1038": {
+    "wiki": "Wiki",
+    "name": "SENSITIVITY_REPORT_NOT_LOADABLE",
+    "description": "Sensitivity report not loadable"
+  },
+  "1039": {
+    "wiki": "Wiki",
+    "name": "UNRECOGNISED_COLLECTION_CODE",
+    "description": "Unrecognized collection code"
+  },
+  "1040": {
+    "wiki": "Wiki",
+    "name": "UNRECOGNISED_INSTITUTION_CODE",
+    "description": "Unrecognized institution code"
+  },
+  "2000": {
+    "wiki": "Wiki",
+    "name": "ZERO_COORDINATE",
+    "description": "Latitude and longitude provided are both zero"
+  },
+  "2001": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_OUT_OF_RANGE",
+    "description": "Latitude >90 or <-90 and Longitude >180 or <-180"
+  },
+  "2002": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_INVALID",
+    "description": "Coordinate value is given in some form but unable to interpret it"
+  },
+  "2003": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_ROUNDED",
+    "description": "Original coordinate modified by rounding"
+  },
+  "2004": {
+    "wiki": "Wiki",
+    "name": "GEODETIC_DATUM_INVALID",
+    "description": "Geodetic datum not recognized"
+  },
+  "2005": {
+    "wiki": "Wiki",
+    "name": "GEODETIC_DATUM_ASSUMED_WGS84",
+    "description": "Geodetic datum assumed to be WGS84 (EPSG:4326)"
+  },
+  "2006": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_REPROJECTED",
+    "description": "Decimal latitude and longitude were converted to WGS84"
+  },
+  "2007": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_REPROJECTION_FAILED",
+    "description": "Conversion of provided decimal latitude and longitude to WGS84 failed"
+  },
+  "2008": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_REPROJECTION_SUSPICIOUS",
+    "description": "Indicates successful coordinate reprojection according to provided datum, but which results in a datum shift larger than 0.1 decimal degrees"
+  },
+  "2010": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_PRECISION_INVALID",
+    "description": "Indicates an invalid or very unlikely coordinatePrecision"
+  },
+  "2011": {
+    "wiki": "Wiki",
+    "name": "COORDINATE_UNCERTAINTY_METERS_INVALID",
+    "description": "Indicates an invalid or very unlikely dwc:uncertaintyInMeters"
+  },
+  "2013": {
+    "wiki": "Wiki",
+    "name": "FOOTPRINT_SRS_INVALID",
+    "description": "The Footprint Spatial Reference System given could not be interpreted"
+  },
+  "2014": {
+    "wiki": "Wiki",
+    "name": "FOOTPRINT_WKT_MISMATCH",
+    "description": "The Footprint Well-Known-Text given is a POINT and does not match the decimalLatitude or decimalLongitude"
+  },
+  "2015": {
+    "wiki": "Wiki",
+    "name": "FOOTPRINT_WKT_INVALID",
+    "description": "The Footprint Well-Known-Text given could not be interpreted"
+  },
+  "2016": {
+    "wiki": "Wiki",
+    "name": "COUNTRY_COORDINATE_MISMATCH",
+    "description": "Coordinates outside the range for the reported country"
+  },
+  "2017": {
+    "wiki": "Wiki",
+    "name": "COUNTRY_MISMATCH",
+    "description": "Interpreted country for dwc:country and dwc:countryCode contradict each other"
+  },
+  "2018": {
+    "wiki": "Wiki",
+    "name": "COUNTRY_INVALID",
+    "description": "Uninterpretable country values found"
+  },
+  "2019": {
+    "wiki": "Wiki",
+    "name": "COUNTRY_DERIVED_FROM_COORDINATES",
+    "description": "Country field supplied was empty, but was inferred in processing by the supplied coordinates"
+  },
+  "2020": {
+    "wiki": "Wiki",
+    "name": "CONTINENT_COORDINATE_MISMATCH",
+    "description": "CONTINENT_COORDINATE_MISMATCH"
+  },
+  "2021": {
+    "wiki": "Wiki",
+    "name": "CONTINENT_COUNTRY_MISMATCH",
+    "description": "The interpreted continent and country do not match"
+  },
+  "2022": {
+    "wiki": "Wiki",
+    "name": "CONTINENT_INVALID",
+    "description": "Uninterpretable continent values found"
+  },
+  "2023": {
+    "wiki": "Wiki",
+    "name": "CONTINENT_DERIVED_FROM_COUNTRY",
+    "description": "CONTINENT_DERIVED_FROM_COUNTRY"
+  },
+  "2024": {
+    "wiki": "Wiki",
+    "name": "CONTINENT_DERIVED_FROM_COORDINATES",
+    "description": "The interpreted continent is based on the coordinates, not the verbatim string information"
+  },
+  "2025": {
+    "wiki": "Wiki",
+    "name": "PRESUMED_SWAPPED_COORDINATE",
+    "description": "Latitude and longitude appear to be swapped"
+  },
+  "2026": {
+    "wiki": "Wiki",
+    "name": "PRESUMED_NEGATED_LONGITUDE",
+    "description": "Record appears to be referencing a location in the wrong hemisphere"
+  },
+  "2027": {
+    "wiki": "Wiki",
+    "name": "PRESUMED_NEGATED_LATITUDE",
+    "description": "Record appears to be referencing a location in the wrong hemisphere"
+  },
+  "2028": {
+    "wiki": "Wiki",
+    "name": "RECORDED_DATE_MISMATCH",
+    "description": "The recorded date specified as the eventDate string and the individual year, month, day are contradictory"
+  },
+  "2029": {
+    "wiki": "Wiki",
+    "name": "RECORDED_DATE_INVALID",
+    "description": "A (partial) invalid date is given, such as a non existing date, zero month, etc."
+  },
+  "2030": {
+    "wiki": "Wiki",
+    "name": "RECORDED_DATE_UNLIKELY",
+    "description": "The recorded date is highly unlikely, falling either into the future or representing a very old date before 1600 thus predating modern taxonomy"
+  },
+  "2031": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_FUZZY",
+    "description": "Matching to the taxonomic backbone can only be done using a fuzzy, non exact match."
+  },
+  "2032": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_HIGHERRANK",
+    "description": "Matching to the taxonomic backbone can only be done on a higher rank and not the scientific name"
+  },
+  "2033": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_AGGREGATE",
+    "description": "Matching to the taxonomic backbone can only be done on a species level, but the occurrence was in fact considered a broader species aggregate/complex"
+  },
+  "2034": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED",
+    "description": "TAXON_MATCH_SCIENTIFIC_NAME_ID_IGNORED"
+  },
+  "2035": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED",
+    "description": "TAXON_MATCH_TAXON_CONCEPT_ID_IGNORED"
+  },
+  "2036": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_TAXON_ID_IGNORED",
+    "description": "TAXON_MATCH_TAXON_ID_IGNORED"
+  },
+  "2037": {
+    "wiki": "Wiki",
+    "name": "SCIENTIFIC_NAME_ID_NOT_FOUND",
+    "description": "SCIENTIFIC_NAME_ID_NOT_FOUND"
+  },
+  "2038": {
+    "wiki": "Wiki",
+    "name": "TAXON_CONCEPT_ID_NOT_FOUND",
+    "description": "TAXON_CONCEPT_ID_NOT_FOUND"
+  },
+  "2039": {
+    "wiki": "Wiki",
+    "name": "TAXON_ID_NOT_FOUND",
+    "description": "TAXON_ID_NOT_FOUND"
+  },
+  "2040": {
+    "wiki": "Wiki",
+    "name": "SCIENTIFIC_NAME_AND_ID_INCONSISTENT",
+    "description": "SCIENTIFIC_NAME_AND_ID_INCONSISTENT"
+  },
+  "2041": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_NONE",
+    "description": "Matching to the taxonomic backbone cannot be done cause there was no match at all or severalmatches with too little information to keep them apart (homonyms)."
+  },
+  "2042": {
+    "wiki": "Wiki",
+    "name": "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS",
+    "description": "TAXON_MATCH_NAME_AND_ID_AMBIGUOUS"
+  },
+  "2043": {
+    "wiki": "Wiki",
+    "name": "DEPTH_NOT_METRIC",
+    "description": "Darwin core specifies metres should be used"
+  },
+  "2044": {
+    "wiki": "Wiki",
+    "name": "DEPTH_UNLIKELY",
+    "description": "Depth greater than 10000"
+  },
+  "2045": {
+    "wiki": "Wiki",
+    "name": "DEPTH_MIN_MAX_SWAPPED",
+    "description": "Typically a column mapping issue"
+  },
+  "2046": {
+    "wiki": "Wiki",
+    "name": "DEPTH_NON_NUMERIC",
+    "description": "Should be a numeric value in metres"
+  },
+  "2047": {
+    "wiki": "Wiki",
+    "name": "ELEVATION_UNLIKELY",
+    "description": "Altitude greater than 10000m, or less than -100m"
+  },
+  "2048": {
+    "wiki": "Wiki",
+    "name": "ELEVATION_MIN_MAX_SWAPPED",
+    "description": "Typically a column mapping issue"
+  },
+  "2049": {
+    "wiki": "Wiki",
+    "name": "ELEVATION_NOT_METRIC",
+    "description": "Darwin core specifies metres should be used"
+  },
+  "2050": {
+    "wiki": "Wiki",
+    "name": "ELEVATION_NON_NUMERIC",
+    "description": "Should be a numeric value in metres"
+  },
+  "2051": {
+    "wiki": "Wiki",
+    "name": "MODIFIED_DATE_INVALID",
+    "description": "A (partial) invalid date is given for dc:modified, such as a nonexistent date, zero month, etc"
+  },
+  "2052": {
+    "wiki": "Wiki",
+    "name": "MODIFIED_DATE_UNLIKELY",
+    "description": "The date given for dc:modified is in the future or predates Unix time (1970)"
+  },
+  "2053": {
+    "wiki": "Wiki",
+    "name": "IDENTIFIED_DATE_UNLIKELY",
+    "description": "The date given for dwc:dateIdentified is in the future or before Linnean times (1700)"
+  },
+  "2054": {
+    "wiki": "Wiki",
+    "name": "IDENTIFIED_DATE_INVALID",
+    "description": "The date given for dwc:dateIdentified is invalid and can't be interpreted at all"
+  },
+  "2055": {
+    "wiki": "Wiki",
+    "name": "BASIS_OF_RECORD_INVALID",
+    "description": "Unable to map the supplied basis of record to the vocabulary in use"
+  },
+  "2056": {
+    "wiki": "Wiki",
+    "name": "TYPE_STATUS_INVALID",
+    "description": "Unable to map the supplied type status to the vocabulary in use"
+  },
+  "2057": {
+    "wiki": "Wiki",
+    "name": "MULTIMEDIA_DATE_INVALID",
+    "description": "An invalid date is given for dc:created of a multimedia object"
+  },
+  "2058": {
+    "wiki": "Wiki",
+    "name": "MULTIMEDIA_URI_INVALID",
+    "description": "Multimedia uri invalid"
+  },
+  "2059": {
+    "wiki": "Wiki",
+    "name": "REFERENCES_URI_INVALID",
+    "description": "An invalid URI is given for dc:references"
+  },
+  "2060": {
+    "wiki": "Wiki",
+    "name": "INTERPRETATION_ERROR",
+    "description": "An error occurred during interpretation, leaving the record interpretation incomplete"
+  },
+  "2061": {
+    "wiki": "Wiki",
+    "name": "INDIVIDUAL_COUNT_INVALID",
+    "description": "The individual count value is not a positive integer"
+  },
+  "2062": {
+    "wiki": "Wiki",
+    "name": "INDIVIDUAL_COUNT_CONFLICTS_WITH_OCCURRENCE_STATUS",
+    "description": "Example: individual count value > 0, but occurrence status is absent."
+  },
+  "2063": {
+    "wiki": "Wiki",
+    "name": "OCCURRENCE_STATUS_UNPARSABLE",
+    "description": "An occurrence status value supplied, but it was not a recognised value."
+  },
+  "2064": {
+    "wiki": "Wiki",
+    "name": "OCCURRENCE_STATUS_INFERRED_FROM_INDIVIDUAL_COUNT",
+    "description": "Occurrence status inferred from individual count"
+  },
+  "2065": {
+    "wiki": "Wiki",
+    "name": "OCCURRENCE_STATUS_INFERRED_FROM_BASIS_OF_RECORD",
+    "description": "Occurrence status inferred from basis of record"
+  },
+  "2066": {
+    "wiki": "Wiki",
+    "name": "GEOREFERENCED_DATE_UNLIKELY",
+    "description": "Georeferenced date unlikely"
+  },
+  "2067": {
+    "wiki": "Wiki",
+    "name": "GEOREFERENCED_DATE_INVALID",
+    "description": "The date given for dwc:georeferencedDate is invalid and can't be interpreted at all"
+  },
+  "2068": {
+    "wiki": "Wiki",
+    "name": "AMBIGUOUS_INSTITUTION",
+    "description": "The given institution matches with more than 1 GRSciColl institution"
+  },
+  "2069": {
+    "wiki": "Wiki",
+    "name": "AMBIGUOUS_COLLECTION",
+    "description": "The given collection matches with more than 1 GRSciColl collection."
+  },
+  "2070": {
+    "wiki": "Wiki",
+    "name": "INSTITUTION_MATCH_NONE",
+    "description": "Code not recognised with ALA systems (Collectory)"
+  },
+  "2071": {
+    "wiki": "Wiki",
+    "name": "COLLECTION_MATCH_NONE",
+    "description": "Code not recognised with ALA systems (Collectory)"
+  },
+  "2072": {
+    "wiki": "Wiki",
+    "name": "INSTITUTION_MATCH_FUZZY",
+    "description": "The given institution was fuzzily matched to a GRSciColl institution"
+  },
+  "2073": {
+    "wiki": "Wiki",
+    "name": "COLLECTION_MATCH_FUZZY",
+    "description": "The given collection was fuzzily matched to a GRSciColl collection"
+  },
+  "2074": {
+    "wiki": "Wiki",
+    "name": "INSTITUTION_COLLECTION_MISMATCH",
+    "description": "The collection matched doesn't belong to the institution matched"
+  },
+  "2076": {
+    "wiki": "Wiki",
+    "name": "DIFFERENT_OWNER_INSTITUTION",
+    "description": "The given owner institution is different than the given institution. Therefore we assume it doesn't belong to the institution and we don't link it to the occurrence."
+  },
+  "10000": {
+    "wiki": "Wiki",
+    "name": "taxonomicIssue",
+    "description": "Taxonomic issue"
+  },
+  "10007": {
+    "wiki": "Wiki",
+    "name": "identificationIncorrect",
+    "description": "Taxon misidentified"
+  },
+  "20019": {
+    "wiki": "Wiki",
+    "name": "userAssertionOther",
+    "description": "userAssertionOther"
+  },
+  "20020": {
+    "wiki": "Wiki",
+    "name": "userDuplicateRecord",
+    "description": "userDuplicateRecord"
+  },
+  "20021": {
+    "wiki": "Wiki",
+    "name": "biosecurityIssue",
+    "description": "biosecurityIssue"
+  },
+  "30000": {
+    "wiki": "Wiki",
+    "name": "temporalIssue",
+    "description": "Temporal issue"
+  }
+}

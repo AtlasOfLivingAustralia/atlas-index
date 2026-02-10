@@ -1,0 +1,332 @@
+[
+    {
+        "title": "Taxon",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "scientificName"
+            },
+            {
+                "sort": "index",
+                "field": "raw_scientificName"
+            },
+            {
+                "sort": "index",
+                "field": "subspecies"
+            },
+            {
+                "sort": "index",
+                "field": "species"
+            },
+            {
+                "sort": "index",
+                "field": "genus"
+            },
+            {
+                "sort": "index",
+                "field": "family"
+            },
+            {
+                "sort": "index",
+                "field": "order"
+            },
+            {
+                "sort": "index",
+                "field": "class"
+            },
+            {
+                "sort": "index",
+                "field": "phylum"
+            },
+            {
+                "sort": "index",
+                "field": "kingdom"
+            },
+            {
+                "sort": "count",
+                "field": "rank"
+            },
+            {
+                "sort": "count",
+                "field": "matchType"
+            },
+            {
+                "sort": "index",
+                "field": "speciesGroup"
+            },
+            {
+                "sort": "index",
+                "field": "vernacularName"
+            },
+            {
+                "sort": "count",
+                "field": "speciesSubgroup"
+            }
+        ]
+    },
+    {
+        "title": "Identification",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "identifiedBy"
+            },
+            {
+                "sort": "index",
+                "field": "identificationQualifier"
+            },
+            {
+                "sort": "count",
+                "field": "taxonomicIssues"
+            },
+            {
+                "sort": "index",
+                "field": "typeStatus"
+            },
+            {
+                "sort": "index",
+                "field": "originalNameUsage"
+            },
+            {
+                "sort": "index",
+                "field": "identificationVerificationStatus"
+            }
+        ]
+    },
+    {
+        "title": "Occurrence",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "recordedBy"
+            },
+            {
+                "sort": "count",
+                "field": "raw_sex"
+            },
+            {
+                "sort": "count",
+                "field": "lifeStage"
+            },
+            {
+                "sort": "count",
+                "field": "establishmentMeans"
+            },
+            {
+                "sort": "count",
+                "field": "stateConservation"
+            },
+            {
+                "sort": "count",
+                "field": "countryConservation"
+            }
+        ]
+    },
+    {
+        "title": "Event",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "datasetName"
+            },
+            {
+                "sort": "index",
+                "field": "parentEventID"
+            },
+            {
+                "sort": "index",
+                "field": "fieldNumber"
+            },
+            {
+                "sort": "index",
+                "field": "eventID"
+            },
+            {
+                "sort": "index",
+                "field": "eventHierarchy"
+            },
+            {
+                "sort": "index",
+                "field": "eventTypeHierarchy"
+            },
+            {
+                "sort": "index",
+                "field": "month"
+            },
+            {
+                "sort": "index",
+                "field": "year"
+            },
+            {
+                "sort": "count",
+                "field": "datePrecision"
+            },
+            {
+                "sort": "index",
+                "field": "decade"
+            }
+        ]
+    },
+    {
+        "title": "Publication",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "annotationsUid"
+            }
+        ]
+    },
+    {
+        "title": "Location",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "country"
+            },
+            {
+                "sort": "count",
+                "field": "state"
+            },
+            {
+                "sort": "index",
+                "field": "verbatimElevation"
+            },
+            {
+                "sort": "index",
+                "field": "minimumElevationInMeters"
+            },
+            {
+                "sort": "count",
+                "field": "cl959"
+            },
+            {
+                "sort": "count",
+                "field": "cl1048"
+            },
+            {
+                "sort": "count",
+                "field": "cl1049"
+            },
+            {
+                "sort": "count",
+                "field": "cl966"
+            },
+            {
+                "sort": "count",
+                "field": "cl21"
+            },
+            {
+                "sort": "count",
+                "field": "cl1918"
+            },
+            {
+                "sort": "count",
+                "field": "cl617"
+            },
+            {
+                "sort": "count",
+                "field": "cl620"
+            },
+            {
+                "sort": "index",
+                "field": "coordinateUncertaintyInMeters"
+            },
+            {
+                "sort": "count",
+                "field": "spatiallyValid"
+            },
+            {
+                "sort": "index",
+                "field": "locationID"
+            },
+            {
+                "sort": "count",
+                "field": "cl927"
+            }
+        ]
+    },
+    {
+        "title": "Record",
+        "facets": [
+            {
+                "sort": "index",
+                "field": "basisOfRecord"
+            },
+            {
+                "sort": "count",
+                "field": "multimedia"
+            },
+            {
+                "sort": "index",
+                "field": "occurrenceStatus"
+            },
+            {
+                "sort": "index",
+                "description": "Content types",
+                "field": "contentTypes"
+            }
+        ]
+    },
+    {
+        "title": "Assertions",
+        "facets": [
+            {
+                "sort": "count",
+                "field": "sensitive"
+            },
+            {
+                "sort": "count",
+                "field": "assertions"
+            },
+            {
+                "sort": "count",
+                "field": "outlierLayer"
+            },
+            {
+                "sort": "count",
+                "field": "outlierLayerCount"
+            },
+            {
+                "sort": "count",
+                "field": "userAssertions"
+            },
+            {
+                "sort": "index",
+                "field": "assertionUserId"
+            },
+            {
+                "sort": "count",
+                "field": "duplicateStatus"
+            }
+        ]
+    },
+    {
+        "title": "Attribution",
+        "facets": [
+            {
+                "sort": "count",
+                "field": "license"
+            },
+            {
+                "sort": "count",
+                "field": "userId"
+            },
+            {
+                "sort": "count",
+                "field": "collectionUid"
+            },
+            {
+                "sort": "count",
+                "field": "institutionUid"
+            },
+            {
+                "sort": "count",
+                "field": "dataProviderUid"
+            },
+            {
+                "sort": "count",
+                "field": "dataResourceUid"
+            }
+        ]
+    }
+]

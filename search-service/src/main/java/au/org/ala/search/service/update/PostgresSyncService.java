@@ -103,6 +103,7 @@ public class PostgresSyncService {
             return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
             logService.log(taskType, "Error syncing postgres with elasticsearch: " + e.getMessage());
+            log.error("Error syncing postgres with elasticsearch: {}", e.getMessage(), e);
             return CompletableFuture.completedFuture(false);
         }
     }

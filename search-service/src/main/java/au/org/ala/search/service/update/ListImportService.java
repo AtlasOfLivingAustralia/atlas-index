@@ -88,8 +88,8 @@ public class ListImportService {
     // per list per taxon.
     @Async("processExecutor")
     public CompletableFuture<Boolean> run() {
-        logService.log(taskType, "Starting lists import");
         try {
+            logService.log(taskType, "Starting lists import");
 
             Map<String, Date> existingLists = elasticService.queryItems("idxtype", IndexDocType.SPECIESLIST.name());
 
@@ -374,12 +374,12 @@ public class ListImportService {
                     + ", sds: " + sdsCounter
                     + ", auth lists: " + allListsCounter);
 
+            return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
             logService.log(taskType, "Lists import failed: " + e.getMessage());
             log.error("Lists import failed: {}", e.getMessage(), e);
+            return CompletableFuture.completedFuture(false);
         }
-
-        return CompletableFuture.completedFuture(true);
     }
 
     // removes pages from existingPages as they are found

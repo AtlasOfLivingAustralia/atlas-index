@@ -262,7 +262,7 @@ public class V2Controller {
             @RequestParam(name = "q") String q,
             @Parameter(
                     description = "Filters to be applied to the original query. These are additional params of the form fq=INDEXEDFIELD:VALUE.",
-                    example = "{\"imageAvailable:\\\"true\\\"\"}"
+                    example = "image:*"
             )
             @Nullable @RequestParam(name = "fq", required = false) String[] fqs,
 
