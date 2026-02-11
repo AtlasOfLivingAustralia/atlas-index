@@ -62,6 +62,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
     ); // Note the count values are scaled by a factor below
     const recordLayerOpacity = import.meta.env.VITE_MAP_LAYER_OPACITY;
     const defaultZoom = import.meta.env.VITE_MAP_DEFAULT_ZOOM;
+    const defaultZoomMobile = import.meta.env.VITE_MAP_DEFAULT_ZOOM_MOBILE;
     const center = new LatLng(import.meta.env.VITE_MAP_CENTRE_LAT, import.meta.env.VITE_MAP_CENTRE_LNG);
 
     useEffect(() => {
@@ -96,8 +97,11 @@ function MapView({tab, result, isMobile}: MapViewProps) {
 
     useEffect(() => {
         if (result?.guid) {
-            setOccurrenceCount(result?.occurrenceCount);
-            setShowOccurrences(true); // Workaround to update records layer when taxon changes
+            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=lsid:${encodeURIComponent(result.guid)}${import.meta.env.VITE_GLOBAL_FQ}&pageSize=0`;
+            fetch(url).then((response) => response.json()).then((data) => {
+                setOccurrenceCount(data?.totalRecords);
+                setShowOccurrences(true); // Workaround to update records layer when taxon changes
+            });
 
             if (result.distributions) {
                 generateDistributionMapObj(result?.distributions);
@@ -167,11 +171,11 @@ function MapView({tab, result, isMobile}: MapViewProps) {
     const onlineResources: OnlineResource[] = [
         {
             name: (<>Explore and download occurrence records</>),
-            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}`,
+            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`,
         },
         {
             name: 'Advanced mapping',
-            url: `${import.meta.env.VITE_SPATIAL_URL}?q=lsid:${encodeURIComponent(result?.guid)}`,
+            url: `${import.meta.env.VITE_SPATIAL_URL}?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`,
         },
         {
             name: (<>How to submit observations</>),
@@ -188,7 +192,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
             return '';
         }
         const hexBinParam = hexBinValues.join(',').replace(/,$/, '');
-        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${encodeURIComponent(result.guid)}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:${hexBinParam}`;
+        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${encodeURIComponent(result.guid)}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:${hexBinParam}${import.meta.env.VITE_GLOBAL_FQ}`;
         return wmsUrl;
     }
 
@@ -304,7 +308,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                     <MapContainer
                         ref={mapRef}
                         center={center}
-                        zoom={defaultZoom}
+                        zoom={isMobile ? defaultZoomMobile : defaultZoom}
                         scrollWheelZoom={false}
                         worldCopyJump={true}
                         style={{height: '530px', borderRadius: '10px'}}
@@ -376,7 +380,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                                     backgroundClip: 'padding-box',
                                 }}
                                 aria-label="Reset map"
-                                onClick={() => mapRef.current && mapRef.current.setView(center, defaultZoom)}>
+                                onClick={() => mapRef.current && mapRef.current.setView(center, isMobile ? defaultZoomMobile : defaultZoom)}>
                                 <div style={{marginTop: '-1px'}}>
                                     <FontAwesomeIconLite icon={faRotateRight} style={{lineHeight: '10px'}}/>
                                 </div>

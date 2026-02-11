@@ -6,7 +6,7 @@
 
 import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound,} from '@ala/common-ui';
 import React, {useEffect, useState} from 'react';
-import {Route, Routes} from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
 import Search from './views/Search.tsx';
 import Species from './views/Species';
@@ -18,6 +18,14 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
 
 const MOBILE_BREAKPOINT = 768; // Define the breakpoint for mobile view
+
+const SearchRedirect: React.FC = () => {
+    const location = useLocation();
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q');
+    const to = q ? `/?q=${encodeURIComponent(q)}` : '/';
+    return <Navigate to={to} replace />;
+};
 
 const App: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
@@ -87,6 +95,9 @@ const App: React.FC = () => {
             <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
                                              isMobile={isMobile}/>}/>
             <Route path="*" element={<NotFound/>}/>
+
+            {/* Deprecated legacy routes */}
+            <Route path="/search" element={<SearchRedirect />} />
         </Routes>
         <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
 

@@ -289,17 +289,15 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                         Refine results
                     </span>
                 {(facetLoading || customFacetLoading) && (
-                    <div
-                        className="placeholder-glow mt-3"
-                        style={{height: '100px'}}
-                    ></div>
+                    <div className="placeholder-glow mt-3" style={{height: '100px'}}></div>
                 )}
                 {!facetLoading && !customFacetLoading && [...facets, ...customFacetData].sort((a, b) => a.order - b.order).map((facet: any, index: number) => (
                     <div key={index}>
-                        <span className={classes.refineSectionTitle}
-                              style={{marginTop: '15px', marginBottom: '10px'}}>
-                            {facet.name}
-                        </span>
+                        {facet.items && facet.items.length > 0 &&
+                            <span className={classes.refineSectionTitle} style={{marginTop: '15px', marginBottom: '10px'}}>
+                                {facet.name}
+                            </span>
+                        }
                         {facet.items && facet.items.map((item: any, index: number) => (
                             <React.Fragment key={index}>
                                 {facet.lessNumber && !facet.more && index >= facet.lessNumber ? null : (<>

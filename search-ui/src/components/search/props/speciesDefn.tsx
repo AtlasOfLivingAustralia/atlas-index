@@ -226,10 +226,11 @@ export const speciesDefn: GenericViewProps = {
             image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageCoverRounded} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/></div>,
             title: <>
                 {item.nameFormatted && (
-                    <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
+                    <span className={classes.listItemName} style={{fontStyle: item.idxtype == 'COMMON' ? 'normal' : 'italic'}}
+                          dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
                 )}
                 {!item.nameFormatted && (
-                    <span className={classes.listItemName}>
+                    <span className={classes.listItemName} style={{fontStyle: item.idxtype == 'COMMON' ? 'normal' : 'italic'}}>
                         {item.name}
                     </span>
                 )}
@@ -266,10 +267,11 @@ export const speciesDefn: GenericViewProps = {
             image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} fit={'cover'} isMobile={isMobile}/>,
             title: <>
                 {item.nameFormatted && (
-                    <span className={classes.listItemName} dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
+                    <span className={classes.listItemName} style={{fontStyle: item.idxtype == 'COMMON' ? 'normal' : 'italic'}}
+                          dangerouslySetInnerHTML={{__html: item.nameFormatted}}></span>
                 )}
                 {!item.nameFormatted && (
-                    <span className={classes.listItemName}>
+                    <span className={classes.listItemName} style={{fontStyle: item.idxtype == 'COMMON' ? 'normal' : 'italic'}}>
                         {item.name}
                     </span>
                 )}

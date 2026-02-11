@@ -4,10 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, FlaggedAlert, FontAwesomeIconLite} from '@ala/common-ui';
+import {
+    Breadcrumb,
+    FlaggedAlert,
+    FontAwesomeIconLite,
+    useHashState,
+} from '@ala/common-ui';
 import {faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify';
-import {useQueryState} from 'nuqs';
 import {useEffect, useState} from 'react';
 import {useParams} from 'react-router-dom';
 import {TaxonDescription} from '../api/sources/model.ts';
@@ -27,7 +31,7 @@ import TraitsView from '../components/species/traitsView.tsx';
 import capitalizeFirstLetter from '../helpers/Capitalise.ts';
 
 function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
-    const [tab, setTab] = useQueryState('tab', {defaultValue: 'map'});
+    const [tab, setTab] = useHashState('tab', 'map');
     const [result, setResult] = useState<Record<PropertyKey, string | number | any>>({});
     const [descriptions, setDescriptions] = useState<TaxonDescription[]>([]);
     const [dataFetched, setDataFetched] = useState(false);
@@ -52,7 +56,11 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
     }, [result]);
 
     useEffect(() => {
-        const request = queryPath ? [queryPath] : []; // needs to be an array for POST API
+        let request = queryPath ? [queryPath] : []; // needs to be an array for POST API
+
+        // fix external URL sanitization of :// in the path parameter
+        request = request.map(item => item.replace(/https?:\/(?!\/)/g, match => match + '/'));
+
         setDataFetched(false);
         setResult({});
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/species', {
@@ -199,9 +207,15 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                 paddingBottom: isMobile ? '15px' : '60px',
             }}>
                 <div style={{width: isMobile ? '100%' : '50%'}}>
-                    <span className={classes.speciesHeaderName}>
-                        <FormatName name={result.name} rankId={result.rankID}/>
-                    </span>
+                    {result.nameFormatted ?
+                        <span className={classes.speciesHeaderName}
+                              dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(result.nameFormatted)}}>
+                        </span>
+                        :
+                        <span className={classes.speciesHeaderName}>
+                            <FormatName name={result.name} rankId={result.rankID}/>
+                        </span>
+                    }
                     <span className={classes.speciesHeaderRank} style={{marginTop: '5px', marginBottom: '25px'}}>
                         {capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}
                     </span>

@@ -162,7 +162,15 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {result.identifierData.sort((a: any, b: any) => a.guid.localeCompare(b.guid)).map((item: any, idx: any) =>
+                    {/* Remove duplicates based on potentially displayed information and links */}
+                    {result.identifierData.filter((item: any, index: number, self: any[]) =>
+                            index === self.findIndex((t: any) =>
+                                t.guid === item.guid &&
+                                t.nameAccordingTo === item.nameAccordingTo &&
+                                t.namePublishedIn === item.namePublishedIn &&
+                                t.datasetName === item.datasetName
+                            )
+                    ).sort((a: any, b: any) => a.guid.localeCompare(b.guid)).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
@@ -170,7 +178,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                                         {item?.guid}
                                     </a>
                                 ) : (
-                                    <span>{item.guid}</span>
+                                    <span style={{overflowWrap: 'anywhere', wordBreak: 'break-word'}}>{item.guid}</span>
                                 )}
                                 {item.nameAccordingTo && (<>
                                     <div style={{height: '10px'}}/>
@@ -215,7 +223,15 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {commonNames.sort((a: any, b: any) => a.name.localeCompare(b.name)).map((item: any, idx: any) => (
+                    {/* Remove duplicates based on potentially displayed information and links */}
+                    {commonNames.filter((item: any, index: number, self: any[]) =>
+                            index === self.findIndex((t: any) =>
+                                t.name === item.name &&
+                                t.nameAccordingTo === item.nameAccordingTo &&
+                                t.namePublishedIn === item.namePublishedIn &&
+                                t.datasetName === item.datasetName
+                            )
+                    ).sort((a: any, b: any) => a.name.localeCompare(b.name)).map((item: any, idx: any) => (
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (

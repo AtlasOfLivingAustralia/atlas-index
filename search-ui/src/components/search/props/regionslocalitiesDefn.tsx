@@ -67,7 +67,7 @@ export const regionslocalitiesDefn: GenericViewProps = {
             },
         },
         fieldName: {
-            label: 'Source',
+            label: 'Locality/Region Type',
             order: 2,
         },
     },

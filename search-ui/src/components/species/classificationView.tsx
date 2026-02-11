@@ -31,7 +31,8 @@ function ClassificationView({result, isMobile}: ViewProps) {
                 .then((response) => response.json())
                 .then((data) => {
                     if (data?.searchResults) {
-                        data.searchResults.sort((a: any, b: any) => a.nameComplete < b.nameComplete ? -1 : a.nameComplete > b.nameComplete ? 1 : 0);
+                        // sort by the field that is displayed, note that nameFormatted might have issues since it is raw HTML
+                        data.searchResults.sort((a: any, b: any) => a.nameFormatted < b.nameFormatted ? -1 : a.nameFormatted > b.nameFormatted ? 1 : 0);
                         setChildren(data.searchResults);
                     } else if (data?.status != 200 && data?.error) {
                         // Not sure why a 404 will end up here instead of the catch

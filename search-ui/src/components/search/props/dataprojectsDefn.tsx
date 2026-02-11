@@ -12,9 +12,9 @@ import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, Tile
 
 function formatCategory(category: string) {
     if (category == 'BIOCOLLECT') {
-        return 'Biocollect';
+        return 'Field Data Collection';
     } else {
-        return 'DigiVol';
+        return 'Digitisation Projects';
     }
 }
 
