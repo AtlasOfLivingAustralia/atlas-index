@@ -4,12 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, FolderIcon} from '@ala/common-ui';
+import {FolderIcon} from '@ala/common-ui';
 import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 import capitalise from '../../../helpers/Capitalise.ts';
-import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
-import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, TileImage,} from '../util.tsx';
+import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn} from '../util.tsx';
 
 const idxtypeLabels: Record<string, string> = {
     DATARESOURCE: 'Data Resource',
@@ -45,7 +44,7 @@ export const datasetsDefn: GenericViewProps = {
                            isMobile,
                        }: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImagePlain} src={item.image || missingImage} missingImage={missingImage}/></div>,
+            // image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImagePlain} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <span className={classes.listItemName}>{item.name}</span>,
             extra: <span className={classes.listItemText}>
                 <FolderIcon/> contains {item.occurrenceCount}{' '}
@@ -61,7 +60,7 @@ export const datasetsDefn: GenericViewProps = {
 
     renderTileItemFn: ({item, isMobile}: RenderItemParams) => {
         const elements: RenderItemElements = {
-            image: <TileImage image={item.image} fit={'contain'} isMobile={isMobile}/>,
+            // image: <TileImage image={item.image} fit={'contain'} isMobile={isMobile}/>,
             title: <>
                 <span className={classes.listItemName}>{item.name}</span>
                 <span style={{marginTop: '8px', marginBottom: '13px'}} className={classes.overflowText}>

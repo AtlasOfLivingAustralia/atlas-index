@@ -5,7 +5,12 @@
  */
 
 import {FadeInImage, FolderIcon} from '@ala/common-ui';
-import {GenericViewProps, RenderItemElements, RenderItemParams} from '../../../api/sources/model.ts';
+import {
+    CustomFacetFn,
+    GenericViewProps,
+    RenderItemElements,
+    RenderItemParams,
+} from '../../../api/sources/model.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
 import {limitDescription, renderGenericListItemFn, renderGenericTileItemFn, TileImage} from '../util.tsx';
@@ -123,4 +128,39 @@ export const dataprojectsDefn: GenericViewProps = {
             url: import.meta.env.VITE_APP_DIGIVOL_URL,
         },
     ],
+
+    addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
+        // 1. Add "Contains records" facet, for filtering data projects with and without occurrence records
+        fetch(url + '&fq=-numberOfRecords:0 AND numberOfRecords:*&rows=0') // TODO: support range queries in /v2/search
+            .then((response) => response.json())
+            .then((data) => {
+                var items = [];
+                if (data.totalRecords > 0) {
+                    items.push({
+                        fq: '-numberOfRecords:0 AND numberOfRecords:*', // TODO: support range queries in /v2/search
+                        label: 'Yes',
+                        count: data.totalRecords,
+                        depth: 0,
+                        selected: thisFacetFqs.includes('-numberOfRecords:0 AND numberOfRecords:*'),
+                    });
+                }
+                if (items.length > 0) {
+                    setCustomFacetData([
+                        {
+                            name: 'Contains records',
+                            items: items,
+                            order: 3,
+                        }
+                    ]);
+                } else {
+                    setCustomFacetData([
+                        {
+                            name: 'Contains records',
+                            items: [],
+                            order: 3,
+                        }
+                    ]);
+                }
+            });
+    },
 };

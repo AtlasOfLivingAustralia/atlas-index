@@ -293,11 +293,10 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                 )}
                 {!facetLoading && !customFacetLoading && [...facets, ...customFacetData].sort((a, b) => a.order - b.order).map((facet: any, index: number) => (
                     <div key={index}>
-                        {facet.items && facet.items.length > 0 &&
-                            <span className={classes.refineSectionTitle} style={{marginTop: '15px', marginBottom: '10px'}}>
-                                {facet.name}
-                            </span>
-                        }
+                        <span className={classes.refineSectionTitle} style={{marginTop: '15px', marginBottom: '10px'}}>
+                            {facet.name}
+                        </span>
+                        {facet.items && facet.items.length === 0 && <span style={{ fontStyle: 'italic'}}>Not supplied</span>}
                         {facet.items && facet.items.map((item: any, index: number) => (
                             <React.Fragment key={index}>
                                 {facet.lessNumber && !facet.more && index >= facet.lessNumber ? null : (<>

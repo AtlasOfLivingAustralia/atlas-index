@@ -126,7 +126,8 @@ export const environmentallayersDefn: GenericViewProps = {
                     isMobile ? 80 : wide ? 230 : 120
                 )}
             </span>,
-            url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
+            //url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
+            url: import.meta.env.VITE_SPATIAL_URL + '/ws/layers/view/more/' + item.guid.split('/').pop()
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
     },
@@ -154,7 +155,8 @@ export const environmentallayersDefn: GenericViewProps = {
                     </span>
                 )}
             </>,
-            url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
+            //url: import.meta.env.VITE_SPATIAL_URL + '?layers=' + item.guid.split('/').pop()
+            url: import.meta.env.VITE_SPATIAL_URL + '/ws/layers/view/more/' + item.guid.split('/').pop()
         };
         return renderGenericTileItemFn(isMobile, elements);
     },

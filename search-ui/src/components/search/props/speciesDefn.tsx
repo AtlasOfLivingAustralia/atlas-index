@@ -240,8 +240,8 @@ export const speciesDefn: GenericViewProps = {
             </>,
             extra: <>
                 {item.speciesGroup && (
-                    <span className={classes.overflowText}>
-                        {item.speciesGroup.join(', ')}
+                    <span className={classes.listItemText} title={[...item.speciesGroup].reverse().join(', ')}>
+                        {[...item.speciesGroup].reverse().join(', ')}
                     </span>
                 )}
                 {item?.data?.rk_kingdom && (
@@ -283,7 +283,7 @@ export const speciesDefn: GenericViewProps = {
                 )}
                 {item.speciesGroup && (
                     <span className={classes.listItemText}>
-                        {item.speciesGroup.join(', ')}
+                        {[...item.speciesGroup].reverse().join(', ')}
                     </span>
                 )}
                 {item?.data?.rk_kingdom && (

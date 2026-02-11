@@ -26,6 +26,11 @@ function Search({setBreadcrumbs, isMobile}: {
     const [tab, setTab] = useHashState('tab', 'all');
     const [landingPage, setLandingPage] = useState(!query);
     const contentRef = useRef(null);
+    const [autoCompleteResults, setAutoCompleteResults] = useState<Array<{name: string}>>([]);
+    const [showAutoComplete, setShowAutoComplete] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const debounceTimerRef = useRef<number | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         setBreadcrumbs([
@@ -35,6 +40,87 @@ function Search({setBreadcrumbs, isMobile}: {
 
         setSearchInputText(query || '');
     }, []);
+
+    const fetchAutoComplete = async (searchText: string) => {
+        if (searchText.trim().length < 3) {
+            setAutoCompleteResults([]);
+            setShowAutoComplete(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_APP_BIE_URL}/v1/bie/search/auto?limit=20&q=${encodeURIComponent(searchText)}`
+            );
+            const data = await response.json();
+
+            // build list of unique names from autoCompleteList, ignoring case
+            const seen = new Set<string>();
+            const uniqueResults = [];
+            for (const item of data.autoCompleteList || []) {
+                const lowerName = item.name.toLowerCase();
+                if (!seen.has(lowerName)) {
+                    seen.add(lowerName);
+                    uniqueResults.push(item);
+                }
+            }
+
+            setAutoCompleteResults(uniqueResults || []);
+            setShowAutoComplete(true);
+            setActiveIndex(-1);
+        } catch (error) {
+            console.error('Autocomplete fetch error:', error);
+            setAutoCompleteResults([]);
+            setShowAutoComplete(false);
+        }
+    };
+
+    const handleInputChange = (value: string) => {
+        setSearchInputText(value);
+
+        // Clear existing timer
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+
+        // Set new timer for debounced fetch
+        debounceTimerRef.current = window.setTimeout(() => {
+            fetchAutoComplete(value);
+        }, 300);
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setActiveIndex(prev =>
+                prev < autoCompleteResults.length - 1 ? prev + 1 : prev
+            );
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setActiveIndex(prev => prev > 0 ? prev - 1 : -1);
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            if (activeIndex >= 0 && autoCompleteResults[activeIndex]) {
+                selectAutoComplete(autoCompleteResults[activeIndex].name);
+            } else {
+                setSearchInputText(event.currentTarget.value);
+                setQuery(event.currentTarget.value);
+                setLandingPage(false);
+                setShowAutoComplete(false);
+            }
+        } else if (event.key === 'Escape') {
+            setShowAutoComplete(false);
+            setActiveIndex(-1);
+        }
+    };
+
+    const selectAutoComplete = (name: string) => {
+        setSearchInputText(name);
+        setQuery(name);
+        setLandingPage(false);
+        setShowAutoComplete(false);
+        setActiveIndex(-1);
+    };
 
     const handleTabChange = (value: string | null) => {
         const tabsTab = value || '';
@@ -57,19 +143,57 @@ function Search({setBreadcrumbs, isMobile}: {
                 </div>
                 <div className={'d-flex justify-content-center ' + classes.searchContainer}>
                     <input
+                        ref={inputRef}
                         placeholder="Search species, datasets, content and more..."
                         className={classes.searchInput}
                         value={searchInputText}
-                        onChange={(event) => {setSearchInputText(event.currentTarget.value);}}
-                        onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
-                            if (event.key === 'Enter') {
-                                setSearchInputText(event.currentTarget.value);
-                                setQuery(event.currentTarget.value);
-                                setLandingPage(false);
-                                event.preventDefault();
+                        onChange={(event) => handleInputChange(event.currentTarget.value)}
+                        onKeyDown={handleKeyDown}
+                        onBlur={() => {
+                            // Delay hiding to allow click events to register
+                            setTimeout(() => setShowAutoComplete(false), 200);
+                        }}
+                        onFocus={() => {
+                            if (autoCompleteResults.length > 0) {
+                                setShowAutoComplete(true);
                             }
                         }}
                     />
+                    {showAutoComplete && autoCompleteResults.length > 0 && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: inputRef && inputRef.current ? inputRef.current.getBoundingClientRect().left : 0,
+                            backgroundColor: 'white',
+                            border: '1px solid black',
+                            maxHeight: '600px',
+                            overflowY: 'auto',
+                            zIndex: 1000,
+                            marginTop: '2px',
+                            minWidth: '200px',
+                            width: 'auto',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {autoCompleteResults.map((item, index) => (
+                                <div
+                                    key={index}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        selectAutoComplete(item.name);
+                                    }}
+                                    onMouseEnter={() => setActiveIndex(index)}
+                                    style={{
+                                        padding: '8px 12px',
+                                        cursor: 'pointer',
+                                        backgroundColor: activeIndex === index ? '#f0f0f0' : 'white',
+                                        transition: 'background-color 0.1s'
+                                    }}
+                                >
+                                    {item.name}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     <div style={{marginLeft: '-14px', marginTop: '12px', zIndex: '100', cursor: 'pointer'}}>
                         <button type="button" className="btn btn-link p-0"
                                 style={{marginLeft: '-30px', color: 'black'}}
@@ -77,11 +201,12 @@ function Search({setBreadcrumbs, isMobile}: {
                                 onClick={() => {
                                     setSearchInputText('');
                                     setQuery('');
+                                    setShowAutoComplete(false);
                                 }}>
                             <FontAwesomeIconLite icon={faTimes}/>
                         </button>
                     </div>
-                    <button className={classes.searchButton} onClick={() => {setQuery(searchInputText); setLandingPage(false);}}>
+                    <button className={classes.searchButton} onClick={() => {setQuery(searchInputText); setLandingPage(false); setShowAutoComplete(false);}}>
                         <FontAwesomeIconLite icon={faSearch}/>
                     </button>
                 </div>
