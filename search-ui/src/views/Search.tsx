@@ -58,10 +58,12 @@ function Search({setBreadcrumbs, isMobile}: {
             const seen = new Set<string>();
             const uniqueResults = [];
             for (const item of data.autoCompleteList || []) {
-                const lowerName = item.name.toLowerCase();
-                if (!seen.has(lowerName)) {
-                    seen.add(lowerName);
-                    uniqueResults.push(item);
+                if (item.matchedNames && item.matchedNames[0]) {
+                    const lowerName = item.matchedNames[0].toLowerCase();
+                    if (!seen.has(lowerName)) {
+                        seen.add(lowerName);
+                        uniqueResults.push({ name: item.matchedNames[0] });
+                    }
                 }
             }
 
@@ -152,11 +154,6 @@ function Search({setBreadcrumbs, isMobile}: {
                         onBlur={() => {
                             // Delay hiding to allow click events to register
                             setTimeout(() => setShowAutoComplete(false), 200);
-                        }}
-                        onFocus={() => {
-                            if (autoCompleteResults.length > 0) {
-                                setShowAutoComplete(true);
-                            }
                         }}
                     />
                     {showAutoComplete && autoCompleteResults.length > 0 && (

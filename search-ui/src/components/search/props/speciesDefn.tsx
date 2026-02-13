@@ -113,7 +113,7 @@ function addForGroup(
     depth: number
 ) {
     if (items[group.name]) {
-        var fq = 'speciesGroup:"' + group.name + '"'; // TODO: escape for double quotes in group.name
+        let fq = 'speciesGroup:"' + group.name.replace(/"/g, '\\"') + '"';
         speciesGroupList.push({
             fq: fq,
             label: group.name,
@@ -130,8 +130,56 @@ function addForGroup(
     }
 }
 
+function matchInfo(item: any, searchTerm: string) {
+    if (item.idxtype != 'TAXON') {
+        return "Matches this " + item.idxtype.toLowerCase()
+    }
+
+    if (item.scientificName && item.scientificName.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return "Name match";
+    }
+
+    // check each of the array fields, commonName, additionalNames, nameVariant, additionalNames_m_s
+    const fieldsToCheck = [{
+        name: 'commonName',
+        prefix: 'Matched common name'
+    }, {
+        name: 'additionalIdentifiers',
+        prefix: 'Matched identifier'
+    }, {
+        name: 'nameVariant',
+        prefix: 'Matched variant'
+    }, {
+        // Other taxon records that have this record as the acceptedConceptId, e.g. synonym. We could extract the
+        // specific type of match from "item.synonymData" field but that seems like too much effort for this first
+        // attempt at improving the species search result.
+        name: 'additionalNames_m_s',
+        prefix: 'Matched synonym'
+    }];
+
+    for (const field of fieldsToCheck) {
+        if (item[field.name]) {
+            if (Array.isArray(item[field.name])) {
+                for (const value of item[field.name]) {
+                    if (value.toLowerCase().includes(searchTerm.toLowerCase())) {
+                        return field.prefix + ' ' + value; // matches one of the fields
+                    }
+                }
+            } else if (item[field.name].toLowerCase().includes(searchTerm.toLowerCase())) {
+                // None of the initial fields are single value, but this may be used in the future
+                return field.prefix + ' ' + item[field.name]; // not ambiguous, matches one of the fields
+            }
+        }
+    }
+
+    // Not checking the other ES fields hit by /v2/search (e.g. name, acronym, id, etc).
+    // This will also catch partial and fuzzy matches
+    return "Partial match";
+}
+
 export const speciesDefn: GenericViewProps = {
-    fq: 'idxtype:TAXON OR idxtype:COMMON',
+    //fq: 'idxtype:TAXON OR idxtype:COMMON',
+    fq: 'idxtype:TAXON AND -acceptedConceptID:*',
 
     facetDefinitions: {
         status: {
@@ -221,7 +269,7 @@ export const speciesDefn: GenericViewProps = {
         },
     },
 
-    renderListItemFn: ({item, navigate, wide, isMobile}: RenderItemParams) => {
+    renderListItemFn: ({item, navigate, wide, isMobile, searchTerm}: RenderItemParams) => {
         const elements: RenderItemElements = {
             image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageCoverRounded} src={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : missingImage} missingImage={missingImage}/></div>,
             title: <>
@@ -237,6 +285,11 @@ export const speciesDefn: GenericViewProps = {
                 <span className={classes.overflowText}>
                     {item.commonNameSingle}
                 </span>
+                {matchInfo(item, searchTerm || '') != null &&
+                    <span className={classes.overflowText} style={{fontStyle: 'italic', color: '#EB9D07'}}>
+                        {matchInfo(item, searchTerm || '')}
+                    </span>
+                }
             </>,
             extra: <>
                 {item.speciesGroup && (
@@ -259,10 +312,10 @@ export const speciesDefn: GenericViewProps = {
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
             url:`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
-        return renderGenericListItemFn({item, navigate, wide, isMobile}, elements);
+        return renderGenericListItemFn({item, navigate, wide, isMobile, searchTerm}, elements);
     },
 
-    renderTileItemFn: ({item, isMobile, navigate}: RenderItemParams) => {
+    renderTileItemFn: ({item, isMobile, navigate, searchTerm}: RenderItemParams) => {
         const elements: RenderItemElements = {
             image: <TileImage image={item.image ? getImageThumbnailUrl(item.image.split(',')[0]) : undefined} fit={'cover'} isMobile={isMobile}/>,
             title: <>
@@ -281,6 +334,11 @@ export const speciesDefn: GenericViewProps = {
                         {item.commonNameSingle}
                     </span>
                 )}
+                {matchInfo(item, searchTerm || '') != null &&
+                    <span className={classes.listItemText} style={{fontStyle: 'italic', color: '#EB9D07'}}>
+                        {matchInfo(item, searchTerm || '')}
+                    </span>
+                }
                 {item.speciesGroup && (
                     <span className={classes.listItemText}>
                         {[...item.speciesGroup].reverse().join(', ')}

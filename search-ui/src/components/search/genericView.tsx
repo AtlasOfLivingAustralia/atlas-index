@@ -438,7 +438,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                     {filter == 'list' &&
                         resultData.map((item: any, index: number) => (
                             <React.Fragment key={index}>
-                                {props.renderListItemFn({item, navigate, wide: false, isMobile,})}
+                                {props.renderListItemFn({item, navigate, wide: false, isMobile, searchTerm: queryString})}
                                 <hr style={{marginTop: '15px'}}/>
                             </React.Fragment>
                         ))}
@@ -457,7 +457,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                                          paddingTop: isMobile ? '15px' : '20px',
                                          paddingBottom: isMobile ? '0px' : '20px',
                                      }}>
-                                    {props.renderTileItemFn({item, navigate, wide: false, isMobile,})}
+                                    {props.renderTileItemFn({item, navigate, wide: false, isMobile, searchTerm: queryString})}
                                 </div>
                             ))}
                         </div>

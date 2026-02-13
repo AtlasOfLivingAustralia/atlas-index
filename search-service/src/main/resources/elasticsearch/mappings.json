@@ -78,10 +78,18 @@
       "type": "float"
     },
     "additionalIdentifiers": {
-      "type": "keyword"
+      "type": "keyword",
+      "copy_to": [
+        "all",
+        "exact_text"
+      ]
     },
     "additionalNames_m_s": {
-      "type": "keyword"
+      "type": "keyword",
+      "copy_to": [
+        "all",
+        "exact_text"
+      ]
     },
     "taxonomicStatus": {
       "type": "keyword"
@@ -272,14 +280,12 @@
       },
       "copy_to": [
         "all",
-        "auto"
+        "auto",
+        "exact_text"
       ]
     },
     "speciesGroup": {
-      "type": "keyword",
-      "copy_to": [
-        "all"
-      ]
+      "type": "keyword"
     },
     "speciesList": {
       "type": "keyword"
@@ -370,7 +376,11 @@
       "type": "keyword"
     },
     "nameVariant": {
-      "type": "keyword"
+      "type": "keyword",
+      "copy_to": [
+        "all",
+        "exact_text"
+      ]
     },
     "modified": {
       "type": "long"

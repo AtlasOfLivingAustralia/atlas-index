@@ -29,8 +29,8 @@ interface GenericViewProps {
         parentData,
         setCustomFacetData,
     }: CustomFacetFn) => void;
-    renderListItemFn: ({ item, navigate, wide }: RenderItemParams) => any;
-    renderTileItemFn: ({ item, navigate, wide }: RenderItemParams) => any;
+    renderListItemFn: ({ item, navigate, wide, searchTerm }: RenderItemParams) => any;
+    renderTileItemFn: ({ item, navigate, wide, searchTerm }: RenderItemParams) => any;
     resourceLinks?: { url: string; label: string }[];
 }
 
@@ -48,6 +48,7 @@ interface RenderItemParams {
     navigate: NavigateFunction;
     wide: boolean;
     isMobile: boolean;
+    searchTerm?: string | null; // used for highlighting search term in the description
 }
 
 interface CustomFacetFn {

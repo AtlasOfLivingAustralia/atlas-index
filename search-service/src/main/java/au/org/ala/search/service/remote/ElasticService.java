@@ -1808,17 +1808,26 @@ public class ElasticService {
                 return DisMaxQuery.of(dmq -> dmq.queries(
                         // boost for exact_text is required so that it ranks higher than non-exact matches with higher searchWeight
                         TermQuery.of(tq -> tq.field("exact_text").value(term.value).boost(10.0f))._toQuery(),
+                        PrefixQuery.of(pq -> pq.field("exact_text").value(term.value).boost(5.0f))._toQuery(),
                         MatchQuery.of(mq -> {
                             // default search field for free text search
                             mq.field("all");
                             mq.query(term.value);
+                            mq.operator(Operator.And);
+                            return mq;
+                        })._toQuery(),
+                        MatchQuery.of(mq -> {
+                            // default search field for free text search
+                            mq.field("all");
+                            mq.query(term.value);
+                            mq.boost(0.2f); // whole word matches are lower priority
                             return mq;
                         })._toQuery(),
                         MatchQuery.of(mq -> {
                             // default search field for free text search
                             mq.field("description");
                             mq.query(term.value);
-                            mq.boost(0.2f);
+                            mq.boost(0.1f); // description matches are lower priority than "all" field matches
                             return mq;
                         })._toQuery()
                 ).tieBreaker(0.0))._toQuery();

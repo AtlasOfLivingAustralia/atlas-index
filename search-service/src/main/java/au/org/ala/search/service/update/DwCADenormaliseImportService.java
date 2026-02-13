@@ -466,7 +466,7 @@ public class DwCADenormaliseImportService {
 
             // convert identifiers to JSON String for storage (not indexed)
             List<Map<String, String>> identifierData = new ArrayList<>();
-            // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into synonymData
+            // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID into identifierData
             for (DenormalIdentifier identifier : identifiers) {
                 Map<String, String> identifierItem = new HashMap<>();
                 identifierItem.put("guid", identifier.guid);
