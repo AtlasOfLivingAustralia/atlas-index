@@ -320,6 +320,9 @@
     "isThreatened": {
       "type": "boolean"
     },
+    "hasIekName": {
+      "type": "boolean"
+    },
     "region": {
       "type": "keyword"
     },

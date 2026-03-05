@@ -29,6 +29,9 @@ public class AuthService {
     @Value("#{'${security.admin.role}'.split(',')}")
     private List<String> adminRoles;
 
+    @Value("#{'${logger.permitted.ips:}'.split(',')}")
+    private List<String> permittedIps;
+
     public AuthService(UserDetailsClient userDetailsClient) {
         this.userDetailsClient = userDetailsClient;
     }
@@ -103,5 +106,21 @@ public class AuthService {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Returns true if the given IP address is in the configured permitted IPs list.
+     * The list is set via the {@code logger.permitted.ips} property (comma-delimited).
+     */
+    public boolean isPermittedIp(String ip) {
+        if (ip == null || ip.isBlank()) return false;
+        if (permittedIps == null) return false;
+        for (String permitted : permittedIps) {
+            String trimmed = permitted.trim();
+            if (!trimmed.isEmpty() && trimmed.equals(ip.trim())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -56,7 +56,8 @@ public enum TaskType {
 
     // Leader only tasks
     DATA_QUALITY_DELETE("delete data quality item", TaskType.Category.LEADER_ONLY, QualityProfile.class, false),
-    DATA_QUALITY_SAVE("save/update data quality item", TaskType.Category.LEADER_ONLY, QualityProfile.class, false)
+    DATA_QUALITY_SAVE("save/update data quality item", TaskType.Category.LEADER_ONLY, QualityProfile.class, false),
+    LOGGER_UPDATE_SUMMARY_TABLES("update summary tables for logger", TaskType.Category.LEADER_ONLY, null, true)
     ;
 
     public final String description;

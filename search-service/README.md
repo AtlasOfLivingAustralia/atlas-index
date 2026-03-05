@@ -18,6 +18,7 @@ It is a Spring Boot application that provides REST web services for accessing an
     - [Fieldguide integration](fieldguide.md)
     - [Data Quality Service integration](dataquality.md)
     - [DOI Service integration](doi.md)
+    - [Logger Service integration](logger.md)
 
 ## Getting started
 

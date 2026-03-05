@@ -140,6 +140,7 @@ public class SearchItemIndex {
     public String organisationId;
     public Long numberOfRecords;
     public Boolean publicParticipation;
+    public Boolean hasIekName;
 
     // dynamic field aggregations, for writing only, not sure how to read these back yet
     public Map<String, String> sdsFields;

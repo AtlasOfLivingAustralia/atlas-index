@@ -54,6 +54,7 @@ public class SchedulerService {
     private final SitemapService sitemapService;
     private final DashboardService dashboardService;
     private final ListImportService listImportService;
+    private final LoggerUpdateService loggerUpdateService;
 
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
     private final Map<TaskType, ScheduledFuture<?>> scheduledTasks = new EnumMap<>(TaskType.class);
@@ -64,7 +65,8 @@ public class SchedulerService {
                             BiocollectImportService biocollectImportService, CollectionsImportService collectionsImportService,
                             KnowledgebaseImportService knowledgebaseImportService, LayerImportService layerImportService,
                             WordpressImportService wordpressImportService, SitemapService sitemapService,
-                            DashboardService dashboardService, ListImportService listImportService) {
+                            DashboardService dashboardService, ListImportService listImportService,
+                            LoggerUpdateService loggerUpdateService) {
         this.configService = configService;
         this.leadershipStatus = leadershipStatus;
         this.allService = allService;
@@ -80,6 +82,7 @@ public class SchedulerService {
         this.layerImportService = layerImportService;
         this.wordpressImportService = wordpressImportService;
         this.sitemapService = sitemapService;
+        this.loggerUpdateService = loggerUpdateService;
 
         taskScheduler.setPoolSize((int) Arrays.stream(TaskType.values()).filter(it -> it.schedulable).count());
         taskScheduler.initialize();
@@ -111,8 +114,9 @@ public class SchedulerService {
             scheduledTask.cancel(false); // don't interrupt if running
         }
 
-        if (task.category == TaskType.Category.INGESTION && !leadershipStatus.isLeader()) {
-            return; // do not schedule ingestion tasks if this is not the leader
+        if ((task.category == TaskType.Category.INGESTION || task.category == TaskType.Category.LEADER_ONLY)
+                && !leadershipStatus.isLeader()) {
+            return; // do not schedule ingestion or leader-only tasks if this is not the leader
         }
 
         // listen for changes to the cron expression config
@@ -164,6 +168,7 @@ public class SchedulerService {
                 case DASHBOARD -> reschedule(task, dashboardService::run);
                 case CACHE_RESET_ALL, CACHE_RESET_COLLECTORY, CACHE_RESET_LISTS, CACHE_RESET_DATA_QUALITY ->
                         reschedule(task, () -> broadcastQueue.sendMessage(task, null));
+                case LOGGER_UPDATE_SUMMARY_TABLES -> reschedule(task, loggerUpdateService::run);
             }
         }
     }

@@ -7,11 +7,13 @@
 package au.org.ala.search;
 
 import au.org.ala.search.service.queue.LeaderQueue;
+import au.org.ala.search.service.SchedulerService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
@@ -29,12 +31,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LeadershipStatus {
 
     private final RabbitListenerEndpointRegistry registry;
+    private final SchedulerService schedulerService;
 
     @Value("${rabbitmq.host:}")
     private String rabbitMqHost;
 
-    public LeadershipStatus(RabbitListenerEndpointRegistry registry) {
+    public LeadershipStatus(RabbitListenerEndpointRegistry registry, @Lazy SchedulerService schedulerService) {
         this.registry = registry;
+        this.schedulerService = schedulerService;
     }
 
     private final AtomicBoolean isLeader = new AtomicBoolean(System.getenv("KUBERNETES_SERVICE_HOST") == null);
@@ -55,6 +59,7 @@ public class LeadershipStatus {
 
         if (!wasLeader) {
             setupAsLeader();
+            schedulerService.initSchedules();
         }
 
         log.info("Leadership granted: {}", event.getRole());
@@ -64,6 +69,7 @@ public class LeadershipStatus {
     public void handleOnRevokedEvent(OnRevokedEvent event) {
         isLeader.set(false);
         log.info("Leadership revoked: {}", event.getRole());
+        schedulerService.initSchedules();
 
         registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).stop();
     }

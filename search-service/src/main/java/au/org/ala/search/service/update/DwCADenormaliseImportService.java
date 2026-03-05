@@ -437,6 +437,7 @@ public class DwCADenormaliseImportService {
             item.commonNameSingle = namesServiceCommonName != null ? namesServiceCommonName : commonNames[0].name;
 
             List<Map<String, String>> vernacularData = new ArrayList<>();
+            boolean hasIekName = false;
             // copy scientificName, nameAccordingTo, namePublishedIn, source, datasetID, status into vernacularData
             for (DenormalVernacular commonName : commonNames) {
                 Map<String, String> vern = new HashMap<>();
@@ -452,7 +453,15 @@ public class DwCADenormaliseImportService {
                     }
                 }
 
+                if ("traditionalKnowledge".equalsIgnoreCase(commonName.status) || "indigenousKnowledge".equalsIgnoreCase(commonName.status)) {
+                    hasIekName = true;
+                }
+
                 vernacularData.add(vern);
+            }
+
+            if (hasIekName) {
+                item.hasIekName = true;
             }
 
             try {
