@@ -44,7 +44,7 @@ interface Distribution {
 }
 
 function MapView({tab, result, isMobile}: MapViewProps) {
-    const [occurrenceCount, setOccurrenceCount] = useState(-1);
+    const [occurrenceCount, setOccurrenceCount] = useState(result?.occurrenceCount || -1);
     const [showOccurrences, setShowOccurrences] = useState(true);
     const [distributions, setDistributions] = useState<Distribution[]>([]);
     const [hexValuesScaled, setHexValuesScaled] = useState(false);
@@ -298,7 +298,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                 </div>}
             <div style={{height: '100%', width: '100%', borderRadius: '10px'}}>
                 <span style={{marginBottom: '15px', display: 'block'}} className={classes.refineTitle}>
-                    {formatNumber(occurrenceCount)} occurrence records
+                    {occurrenceCount >= 0 ? formatNumber(occurrenceCount) : '...'} occurrence records
                 </span>
                 <div style={{position: 'relative'}}>
                     <MapContainer
