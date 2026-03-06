@@ -986,6 +986,11 @@ public class DashboardService {
             errorCount += addSpeciesTable(record, "bacteria", "Bacteria");
             errorCount += addSpeciesTable(record, "fungi", "Fungi");
 
+            // return if any of the tables failed to update, to avoid showing partial data
+            if (errorCount > 0) {
+                return errorCount;
+            }
+
             dashboardData.data.put("species", record);
             return errorCount;
         } catch (Exception e) {
