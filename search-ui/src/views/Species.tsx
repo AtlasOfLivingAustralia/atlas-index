@@ -210,7 +210,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                     <span className={classes.speciesHeaderName}>
                         <FormatName name={result.name} rankId={result.rankID}/>
                     </span>
-                    <span className={classes.speciesHeaderRank} style={{marginBottom: '25px'}}>
+                    <span className={classes.speciesHeaderRank} style={{marginTop: '5px', marginBottom: '25px'}}>
                         {capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}{result.speciesGroup && <>, {result.speciesGroup[0]}</>}
                     </span>
 
