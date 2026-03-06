@@ -15,6 +15,8 @@ import au.org.ala.search.service.AuthService;
 import au.org.ala.search.service.LanguageService;
 import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.auth.WebService;
+import au.org.ala.search.service.remote.BannerService;
+import au.org.ala.search.util.HttpCacheHeaders;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
@@ -72,11 +74,13 @@ public class V2Controller {
     private final QueueDataService queueDataService;
     private final SignedUrlService signedUrlService;
     private final BroadcastQueue broadcastQueue;
+    private final BannerService bannerService;
+    private final HttpCacheHeaders httpCacheHeaders;
 
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     public String baseUrl;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, SignedUrlService signedUrlService, BroadcastQueue broadcastQueue) {
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, SignedUrlService signedUrlService, BroadcastQueue broadcastQueue, BannerService bannerService, HttpCacheHeaders httpCacheHeaders) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -91,6 +95,8 @@ public class V2Controller {
         this.queueDataService = queueDataService;
         this.signedUrlService = signedUrlService;
         this.broadcastQueue = broadcastQueue;
+        this.bannerService = bannerService;
+        this.httpCacheHeaders = httpCacheHeaders;
     }
 
     @Tag(name = "BIE")
@@ -559,6 +565,20 @@ public class V2Controller {
         }
 
         return ResponseEntity.ok(Map.of(key, value));
+    }
+
+    // Future: can be changed to sync to a filestore, to reduce app traffic
+    @Tag(name = "General")
+    @Operation(
+            summary = "Get banner messages",
+            description = "Returns the current banner message for each UI section. An empty message means no active banner.",
+            responses = @ApiResponse(responseCode = "200", description = "Banner messages per section")
+    )
+    @GetMapping(path = "/v2/banner", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> getBanner() {
+        return ResponseEntity.ok()
+                .headers(httpCacheHeaders.forName("banner"))
+                .body(bannerService.getAll());
     }
 
     /**

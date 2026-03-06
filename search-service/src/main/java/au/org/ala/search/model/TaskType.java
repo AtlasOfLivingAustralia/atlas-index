@@ -51,6 +51,7 @@ public enum TaskType {
     CACHE_RESET_COLLECTORY("reset collectory caches", TaskType.Category.BROADCAST, null, true),
     CACHE_RESET_LISTS("reset lists caches", TaskType.Category.BROADCAST, null, true),
     CACHE_RESET_DATA_QUALITY("reset data quality caches", TaskType.Category.BROADCAST, null, true),
+    CACHE_RESET_BANNER_MESSAGES("reset banner message cache", TaskType.Category.BROADCAST, null, true),
     CONFIG_CHANGE("broadcast dynamic config change to all nodes", TaskType.Category.BROADCAST, ConfigData.class, true),
     CANCEL_CONSUMER("cancel a consumer task", TaskType.Category.BROADCAST, QueueCancel.class, false),
 

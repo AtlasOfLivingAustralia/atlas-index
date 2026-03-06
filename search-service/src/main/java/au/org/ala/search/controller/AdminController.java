@@ -8,6 +8,7 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.banner.BannerRequest;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.IndexedField;
 import au.org.ala.search.model.dto.SetRequest;
@@ -105,6 +106,7 @@ public class AdminController {
     private final UserDataService userDataService;
     private final SitemapFileStoreService sitemapFileStoreService;
     private final JavaMailSender emailSender;
+    private final BannerService bannerService;
 
     @Value("${biocache.url}")
     private String biocacheWsUrl;
@@ -135,7 +137,8 @@ public class AdminController {
                            ElasticService elasticService, DataFileStoreService dataFileStoreService,
                            DownloadFileStoreService downloadFileStoreService, StaticFileStoreService staticFileStoreService,
                            RabbitTemplate rabbitTemplate, TaxonDataService taxonDataService, ConfigService configDataService,
-                           UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService, JavaMailSender emailSender) {
+                           UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService,
+                           JavaMailSender emailSender, BannerService bannerService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -174,6 +177,7 @@ public class AdminController {
         this.userDataService = userDataService;
         this.sitemapFileStoreService = sitemapFileStoreService;
         this.emailSender = emailSender;
+        this.bannerService = bannerService;
     }
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
@@ -382,6 +386,26 @@ public class AdminController {
         }
 
         return ResponseEntity.ok().body(configService.getAll());
+    }
+
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(summary = "Update a banner message",
+            description = "Creates or updates a banner entry for the given UI section. Set message to an empty string to clear the banner.")
+    @PostMapping(path = "/admin/banner", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> bannerUpdate(@RequestBody BannerRequest request,
+                                             @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+
+        try {
+            bannerService.save(request.getSection(), request.getMessage(), request.getSeverity());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})

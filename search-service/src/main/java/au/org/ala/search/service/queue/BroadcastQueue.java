@@ -11,6 +11,7 @@ import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.queue.QueueCancel;
 import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
+import au.org.ala.search.service.remote.BannerService;
 import au.org.ala.search.service.remote.ConfigService;
 import au.org.ala.search.service.remote.QualityDataService;
 import au.org.ala.search.service.remote.LogService;
@@ -47,6 +48,7 @@ public class BroadcastQueue {
     private final QualityDataService qualityDataService;
     private final ConfigService configService;
     private final ConsumerQueue consumerQueue;
+    private final BannerService bannerService;
     @Value("${rabbitmq.exchange.broadcast}")
     private String broadcastExchange;
     @Value("${rabbitmq.host:}")
@@ -54,7 +56,7 @@ public class BroadcastQueue {
 
     private final ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
 
-    public BroadcastQueue(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, ConfigService configService, ConsumerQueue consumerQueue) {
+    public BroadcastQueue(CollectoryCache collectoryCache, ListCache listCache, RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, ConfigService configService, ConsumerQueue consumerQueue, BannerService bannerService) {
         this.collectoryCache = collectoryCache;
         this.listCache = listCache;
         this.rabbitTemplate = rabbitTemplate;
@@ -67,6 +69,7 @@ public class BroadcastQueue {
         SimpleDateFormat customDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
         smileObjectMapper.setDateFormat(customDateFormat);
         this.configService = configService;
+        this.bannerService = bannerService;
     }
 
     /**
@@ -121,12 +124,15 @@ public class BroadcastQueue {
             collectoryCache.cacheRefresh();
             listCache.cacheRefresh();
             qualityDataService.cacheRefresh();
+            bannerService.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_COLLECTORY.name())) {
             collectoryCache.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_LISTS.name())) {
             listCache.cacheRefresh();
         } else if (message.equals(TaskType.CACHE_RESET_DATA_QUALITY.name())) {
             qualityDataService.cacheRefresh();
+        } else if (message.equals(TaskType.CACHE_RESET_BANNER_MESSAGES.name())) {
+            bannerService.cacheRefresh();
         } else if (message.equals(TaskType.CONFIG_CHANGE.name())) {
             try {
                 // Parse payload to ConfigData

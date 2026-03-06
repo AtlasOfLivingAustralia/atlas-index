@@ -16,6 +16,7 @@ function Menu() {
             <NavLink to="/tasks" className="menu-link">Tasks</NavLink>
             <NavLink to="/doi" className="menu-link">DOIs</NavLink>
             <NavLink to="/biocache" className="menu-link">Biocache</NavLink>
+            <NavLink to="/banners" className="menu-link">Banner Messages</NavLink>
         </div>
     );
 }

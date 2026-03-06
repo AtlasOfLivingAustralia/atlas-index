@@ -33,6 +33,7 @@ import '@fontsource/roboto/700.css';
 import Doi from "./views/Doi.tsx";
 import Home from './views/Home.tsx';
 import Tasks from "./views/Tasks.tsx";
+import BannerMessages from "./views/BannerMessages.tsx";
 
 export default function App() {
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
@@ -102,6 +103,8 @@ export default function App() {
                                element={<Doi setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                         <Route path="/biocache"
                                element={<Biocache setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/banners"
+                               element={<BannerMessages setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     </Routes>
                 ) : (
                     <div style={{display: 'flex', height: '100vh', justifyContent: 'center', marginTop: '60px'}}>

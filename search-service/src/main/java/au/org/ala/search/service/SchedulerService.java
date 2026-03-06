@@ -166,7 +166,7 @@ public class SchedulerService {
                 case LISTS -> reschedule(task, listImportService::run);
                 case SITEMAP -> reschedule(task, sitemapService::run);
                 case DASHBOARD -> reschedule(task, dashboardService::run);
-                case CACHE_RESET_ALL, CACHE_RESET_COLLECTORY, CACHE_RESET_LISTS, CACHE_RESET_DATA_QUALITY ->
+                case CACHE_RESET_ALL, CACHE_RESET_COLLECTORY, CACHE_RESET_LISTS, CACHE_RESET_DATA_QUALITY, CACHE_RESET_BANNER_MESSAGES ->
                         reschedule(task, () -> broadcastQueue.sendMessage(task, null));
                 case LOGGER_UPDATE_SUMMARY_TABLES -> reschedule(task, loggerUpdateService::run);
             }
