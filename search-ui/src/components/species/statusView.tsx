@@ -184,9 +184,11 @@ function StatusView({result, isMobile}: MapViewProps) {
                                 {conservationStatus[key].status}
                             </td>
                             <td>
-                                {conservationStatus[key].iucn &&
-                                    <ConservationStatusLabel status={conservationStatus[key].iucn}
+                                {conservationStatus[key].iucn ?
+                                    <ConservationStatusLabel status={conservationStatus[key].iucn} withLabel={true}
                                                              size={isMobile ? 30 : 40} fontSize={isMobile ? 14 : 16}/>
+                                    :
+                                    'Not assessed'
                                 }
                             </td>
                         </tr>

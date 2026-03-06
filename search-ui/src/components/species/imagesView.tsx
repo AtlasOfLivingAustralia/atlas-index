@@ -233,6 +233,11 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                 }
 
                 setFirstFetchDone(true);
+
+                // immediately fetch next page when there might be a problem in either biocache-service or images producing an empty list
+                if (list.length === 0 && data.totalRecords > 0) {
+                    setPage(page + 1);
+                }
             })
             .catch((_) => {
                 setLoading(false);
@@ -476,8 +481,8 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                     setSortDir(e.target.value as 'desc' | 'asc');
                                     setPage(0);
                                 }}>
-                            <option value={'desc'}>Oldest</option>
-                            <option value={'asc'}>Newest</option>
+                            <option value={'asc'}>Oldest</option>
+                            <option value={'desc'}>Newest</option>
                         </select>
                     </div>}
                 </div>
@@ -566,7 +571,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                     ))}
                 </div>
 
-                {items && items.length > 0 && occurrenceCount > page * pageSize && (
+                {items && occurrenceCount > page * pageSize && (
                     <div className="d-flex justify-content-center align-items-center mt-4">
                         <button type="button" className="btn btn-outline-secondary rounded-pill px-5 py-2"
                                 onClick={() => setPage(page + 1)}

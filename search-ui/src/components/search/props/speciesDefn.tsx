@@ -132,11 +132,11 @@ function addForGroup(
 
 function matchInfo(item: any, searchTerm: string) {
     if (item.idxtype != 'TAXON') {
-        return "Matches this " + item.idxtype.toLowerCase()
+        return null; //"Matches this " + item.idxtype.toLowerCase()
     }
 
     if (item.scientificName && item.scientificName.toLowerCase().includes(searchTerm.toLowerCase())) {
-        return "Name match";
+        return null; //"Name match";
     }
 
     // check each of the array fields, commonName, additionalNames, nameVariant, additionalNames_m_s
@@ -184,7 +184,7 @@ export const speciesDefn: GenericViewProps = {
     facetDefinitions: {
         status: {
             label: 'Names', // redundant, this is overridden below
-            order: 2,
+            order: 3,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // looking for status == 'traditionalKnowledge' only
                 facet.fieldResult.forEach((status: any) => {
@@ -200,7 +200,7 @@ export const speciesDefn: GenericViewProps = {
                                     depth: 0,
                                 },
                             ],
-                            order: 2,
+                            order: 3,
                         });
                     }
                 });
@@ -208,7 +208,7 @@ export const speciesDefn: GenericViewProps = {
         },
         speciesGroup: {
             label: 'Species group', // redundant, this is overridden below
-            order: 3,
+            order: 4,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // put result in a map, then iterate over the speciesGroupsMap so the output is of the correct structure
                 var items: { [key: string]: number } = {};
@@ -225,7 +225,7 @@ export const speciesDefn: GenericViewProps = {
                     facetList.push({
                         name: 'Species group',
                         items: speciesGroupList,
-                        order: 3,
+                        order: 4,
                         lessNumber: 10,
                     });
                 }
@@ -233,11 +233,11 @@ export const speciesDefn: GenericViewProps = {
         },
         taxonomicStatus: {
             label: 'Taxonomic status',
-            order: 4,
+            order: 5,
         },
         rank: {
             label: 'Taxonomic rank', // redundant, this is overridden below
-            order: 5,
+            order: 6,
             parseFacetFn: (facet: any, facetList: any[]) => {
                 // basic facets, with custom sort
                 var items: any[] = [];
@@ -285,11 +285,6 @@ export const speciesDefn: GenericViewProps = {
                 <span className={classes.overflowText}>
                     {item.commonNameSingle}
                 </span>
-                {matchInfo(item, searchTerm || '') != null &&
-                    <span className={classes.overflowText} style={{fontStyle: 'italic', color: '#EB9D07'}}>
-                        {matchInfo(item, searchTerm || '')}
-                    </span>
-                }
             </>,
             extra: <>
                 {item.speciesGroup && (
@@ -308,7 +303,14 @@ export const speciesDefn: GenericViewProps = {
                     occurrence records
                 </span>
             </>,
-            description: <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>,
+            description: <>
+                {matchInfo(item, searchTerm || '') != null &&
+                    <span className={classes.overflowText} style={{fontStyle: 'italic', color: '#212121', paddingBottom: '5px'}}>
+                        {matchInfo(item, searchTerm || '')}
+                    </span>
+                }
+                <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
+            </>,
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
             url:`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
@@ -334,11 +336,6 @@ export const speciesDefn: GenericViewProps = {
                         {item.commonNameSingle}
                     </span>
                 )}
-                {matchInfo(item, searchTerm || '') != null &&
-                    <span className={classes.listItemText} style={{fontStyle: 'italic', color: '#EB9D07'}}>
-                        {matchInfo(item, searchTerm || '')}
-                    </span>
-                }
                 {item.speciesGroup && (
                     <span className={classes.listItemText}>
                         {[...item.speciesGroup].reverse().join(', ')}
@@ -355,6 +352,11 @@ export const speciesDefn: GenericViewProps = {
                     occurrence records
                 </span>
                 <div style={{height: '13px'}}/>
+                {matchInfo(item, searchTerm || '') != null &&
+                    <span className={classes.listItemText} style={{fontStyle: 'italic', color: '#212121'}}>
+                        {matchInfo(item, searchTerm || '')}
+                    </span>
+                }
                 <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
             </>,
             clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
@@ -367,7 +369,7 @@ export const speciesDefn: GenericViewProps = {
         fetch(url + '&fq=image:*')
             .then((response) => response.json())
             .then((data) => {
-                var items: any[] = [];
+                let items: any[] = [];
 
                 if (data.totalRecords > 0) {
                     items.push({
@@ -392,17 +394,38 @@ export const speciesDefn: GenericViewProps = {
                             });
                         }
 
-                        if (items.length > 0) {
-                            setCustomFacetData([
-                                {
-                                    name: 'Type',
-                                    items: items,
-                                    order: 1,
-                                },
-                            ]);
-                        } else {
-                            setCustomFacetData([]);
-                        }
+                        fetch(url + '&fq=hasIekName:*')
+                            .then((response) => response.json())
+                            .then((data) => {
+                                let iekItems: any[] = [];
+
+                                if (data.totalRecords > 0) {
+                                    iekItems.push({
+                                        fq: 'hasIekName:*',
+                                        label: 'Indigenous Ecological Knowledge name',
+                                        count: data.totalRecords,
+                                        depth: 0,
+                                        selected: thisFacetFqs.includes('hasIekName:*'),
+                                    });
+                                }
+
+                                if (items.length > 0) {
+                                    setCustomFacetData([
+                                        {
+                                            name: 'Type',
+                                            items: items,
+                                            order: 1,
+                                        },
+                                        {
+                                            name: 'Names',
+                                            items: iekItems,
+                                            order: 2,
+                                        },
+                                    ]);
+                                } else {
+                                    setCustomFacetData([]);
+                                }
+                            });
                     });
             });
     },

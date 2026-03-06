@@ -6,11 +6,10 @@
 
 import {
     FlaggedAlert,
-    FontAwesomeIconLite,
     InfoBox,
     RefineSection
 } from '@ala/common-ui';
-import {faCircleInfo, faRotateRight} from '@fortawesome/free-solid-svg-icons';
+import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import {LatLng, LayersControlEvent} from 'leaflet';
 import {JSX, useEffect, useRef, useState} from 'react';
 import {LayersControl, MapContainer, TileLayer, WMSTileLayer,} from 'react-leaflet';
@@ -259,17 +258,14 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                 <span className={classes.refineTitle} style={{display: 'block'}}>
                     Refine map
                 </span>
-                    <RefineSection title='Occurrence records' items={[
+                    <RefineSection title='Layers' items={[
                         {
-                            label: 'Show occurrence records',
+                            label: 'Occurrence records',
                             onClick: () => setShowOccurrences((prev) => !prev),
                             isOpen: showOccurrences,
                             isDisabled: () => false,
                         },
-                    ]}/>
-
-                    {distributions && distributions.length > 0 &&
-                        <RefineSection title='Expert distributions' items={distributions.map((dist, idx) => ({
+                        ...distributions.map((dist, idx) => ({
                             label: <>
                                 {dist.areaName}
                                 <span style={{display: 'block', fontStyle: 'italic', cursor: 'default'}}
@@ -290,8 +286,8 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                             },
                             isOpen: dist.checked || false,
                             isDisabled: () => distributions.length === 0,
-                        }))}/>
-                    }
+                        }))
+                    ]}/>
 
                     {distributions && distributions.length === 0 && (
                         <span style={{fontSize: '0.875rem', color: 'grey', display: 'block', marginTop: '15px'}}>
@@ -312,7 +308,14 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                         scrollWheelZoom={false}
                         worldCopyJump={true}
                         style={{height: '530px', borderRadius: '10px'}}
-                        whenReady={() => setMapReady(true)}>
+                        whenReady={() => setMapReady(true)}
+                        dragging={false}
+                        doubleClickZoom={false}
+                        touchZoom={false}
+                        boxZoom={false}
+                        keyboard={false}
+                        zoomControl={false}
+                    >
                         {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                             <LayersControl position="topright">
                                 <LayersControl.BaseLayer checked name="Minimal">
@@ -368,24 +371,24 @@ function MapView({tab, result, isMobile}: MapViewProps) {
                             }
                         </Control>
 
-                        <Control position="topleft" prepend={false}>
-                            <button
-                                style={{
-                                    width: '34px',
-                                    height: '36px',
-                                    lineHeight: '34px',
-                                    backgroundColor: '#FFF',
-                                    border: '2px solid rgba(0, 0, 0, 0.2)',
-                                    borderRadius: '4px',
-                                    backgroundClip: 'padding-box',
-                                }}
-                                aria-label="Reset map"
-                                onClick={() => mapRef.current && mapRef.current.setView(center, isMobile ? defaultZoomMobile : defaultZoom)}>
-                                <div style={{marginTop: '-1px'}}>
-                                    <FontAwesomeIconLite icon={faRotateRight} style={{lineHeight: '10px'}}/>
-                                </div>
-                            </button>
-                        </Control>
+                        {/*<Control position="topleft" prepend={false}>*/}
+                        {/*    <button*/}
+                        {/*        style={{*/}
+                        {/*            width: '34px',*/}
+                        {/*            height: '36px',*/}
+                        {/*            lineHeight: '34px',*/}
+                        {/*            backgroundColor: '#FFF',*/}
+                        {/*            border: '2px solid rgba(0, 0, 0, 0.2)',*/}
+                        {/*            borderRadius: '4px',*/}
+                        {/*            backgroundClip: 'padding-box',*/}
+                        {/*        }}*/}
+                        {/*        aria-label="Reset map"*/}
+                        {/*        onClick={() => mapRef.current && mapRef.current.setView(center, isMobile ? defaultZoomMobile : defaultZoom)}>*/}
+                        {/*        <div style={{marginTop: '-1px'}}>*/}
+                        {/*            <FontAwesomeIconLite icon={faRotateRight} style={{lineHeight: '10px'}}/>*/}
+                        {/*        </div>*/}
+                        {/*    </button>*/}
+                        {/*</Control>*/}
                     </MapContainer>
                 </div>
             </div>

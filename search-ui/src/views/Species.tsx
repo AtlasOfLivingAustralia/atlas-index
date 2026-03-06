@@ -207,17 +207,11 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                 paddingBottom: isMobile ? '15px' : '60px',
             }}>
                 <div style={{width: isMobile ? '100%' : '50%'}}>
-                    {result.nameFormatted ?
-                        <span className={classes.speciesHeaderName}
-                              dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(result.nameFormatted)}}>
-                        </span>
-                        :
-                        <span className={classes.speciesHeaderName}>
-                            <FormatName name={result.name} rankId={result.rankID}/>
-                        </span>
-                    }
-                    <span className={classes.speciesHeaderRank} style={{marginTop: '5px', marginBottom: '25px'}}>
-                        {capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}
+                    <span className={classes.speciesHeaderName}>
+                        <FormatName name={result.name} rankId={result.rankID}/>
+                    </span>
+                    <span className={classes.speciesHeaderRank} style={{marginBottom: '25px'}}>
+                        {capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}{result.speciesGroup && <>, {result.speciesGroup[0]}</>}
                     </span>
 
                     {result.commonNameSingle &&
@@ -225,6 +219,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                             {result.commonNameSingle}
                         </span>
                     }
+
                     {/* include first 2 IEK names if available */}
                     {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
                         idx < 2 && <span className={classes.speciesHeaderVernacular}
@@ -324,7 +319,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('map')}>
-                    Occurrence map
+                    Occurrences
                     <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/></div>
                 {mobileToggle['map'] &&
                     <div className={classes.mobileSectionContent}>
@@ -427,7 +422,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                      style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
                          onClick={() => handleTabChange('map')}>
-                        Occurrence map
+                        Occurrences
                     </div>
                     <div className={`${tab === 'classification' ? classes.activeTab : ''} ${classes.tabButtons}`}
                          onClick={() => handleTabChange('classification')}>
