@@ -161,6 +161,10 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
                     &lt;a&gt;, &lt;b&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;i&gt;, &lt;u&gt;,
                     &lt;span&gt;, &lt;br&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;ol&gt;, &lt;li&gt;, &lt;small&gt;.
                 </p>
+                <p className="text-muted mb-4">
+                    Caching is applied to banner messages, so changes may take 15 (the default) minutes or so to
+                    appear in the UI without clearing client caches.
+                </p>
 
                 {fetchError && (
                     <div className="alert alert-danger">{fetchError}</div>
