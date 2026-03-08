@@ -8,6 +8,7 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.model.IndexDocType;
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.audit.AuditEntry;
 import au.org.ala.search.model.banner.BannerRequest;
 import au.org.ala.search.model.config.ConfigData;
 import au.org.ala.search.model.dto.IndexedField;
@@ -25,10 +26,12 @@ import au.org.ala.search.service.remote.*;
 import au.org.ala.search.service.update.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -107,6 +110,7 @@ public class AdminController {
     private final SitemapFileStoreService sitemapFileStoreService;
     private final JavaMailSender emailSender;
     private final BannerService bannerService;
+    private final AuditService auditService;
 
     @Value("${biocache.url}")
     private String biocacheWsUrl;
@@ -138,7 +142,7 @@ public class AdminController {
                            DownloadFileStoreService downloadFileStoreService, StaticFileStoreService staticFileStoreService,
                            RabbitTemplate rabbitTemplate, TaxonDataService taxonDataService, ConfigService configDataService,
                            UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService,
-                           JavaMailSender emailSender, BannerService bannerService) {
+                           JavaMailSender emailSender, BannerService bannerService, AuditService auditService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -178,6 +182,7 @@ public class AdminController {
         this.sitemapFileStoreService = sitemapFileStoreService;
         this.emailSender = emailSender;
         this.bannerService = bannerService;
+        this.auditService = auditService;
     }
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
@@ -292,7 +297,8 @@ public class AdminController {
     @DeleteMapping(path = "/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> dqDelete(
             @RequestParam(name = "id") Long id,
-            @AuthenticationPrincipal Principal principal) {
+            @AuthenticationPrincipal Principal principal,
+            HttpServletRequest request) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
@@ -305,7 +311,8 @@ public class AdminController {
 
         // A basic wait for the cache to be cleared after the deletion
         CountDownLatch latch = qualityDataService.getCacheRefreshLatch();
-        Map<String, String> response = leaderQueue.sendRpcMessage(TaskType.DATA_QUALITY_DELETE, QualityProfile.builder().id(id).build());
+        Map<String, String> response = leaderQueue.sendRpcMessage(TaskType.DATA_QUALITY_DELETE,
+                QualityProfile.builder().id(id).actor(authService.getActor(principal, resolveIp(request), request.getHeader("User-Agent"))).build());
         if (response == null || response.get("status").equals("error")) {
             return ResponseEntity.status(500).body("{\"message\": \"Profile deletion failed\"}");
         } else if (response.get("status").equals("timeout")) {
@@ -336,12 +343,14 @@ public class AdminController {
     @PostMapping(path = "/admin/dq", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<QualityProfile> dqPost(
             @RequestBody QualityProfile profile,
-            @AuthenticationPrincipal Principal principal) {
+            @AuthenticationPrincipal Principal principal,
+            HttpServletRequest request) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
 
-        Map<String, String> response = leaderQueue.sendRpcMessage(TaskType.DATA_QUALITY_SAVE, profile);
+        Map<String, String> response = leaderQueue.sendRpcMessage(TaskType.DATA_QUALITY_SAVE,
+                profile.toBuilder().actor(authService.getActor(principal, resolveIp(request), request.getHeader("User-Agent"))).build());
         if (response == null || response.get("status").equals("error")) {
             return ResponseEntity.status(500).build();
         } else if (response.get("status").equals("timeout")) {
@@ -362,13 +371,14 @@ public class AdminController {
     @Operation(summary = "Update one dynamic config value")
     @PostMapping(path = "/admin/config", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> configSet(@RequestBody ConfigData newConfigData,
-                                            @AuthenticationPrincipal Principal principal) {
+                                            @AuthenticationPrincipal Principal principal,
+                                            HttpServletRequest request) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
 
         try {
-            configService.save(newConfigData);
+            configService.save(newConfigData, authService.getActor(principal, resolveIp(request), request.getHeader("User-Agent")));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"message\": \"Failed to save config data: " + e.getMessage() + "\"}");
         }
@@ -394,18 +404,47 @@ public class AdminController {
             description = "Creates or updates a banner entry for the given UI section. Set message to an empty string to clear the banner.")
     @PostMapping(path = "/admin/banner", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> bannerUpdate(@RequestBody BannerRequest request,
-                                             @AuthenticationPrincipal Principal principal) {
+                                             @AuthenticationPrincipal Principal principal,
+                                             HttpServletRequest httpRequest) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
 
         try {
-            bannerService.save(request.getSection(), request.getMessage(), request.getSeverity());
+            bannerService.save(request.getSection(), request.getMessage(), request.getSeverity(),
+                    authService.getActor(principal, resolveIp(httpRequest), httpRequest.getHeader("User-Agent")));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(summary = "Query admin audit history",
+            description = "Returns a paged list of audit entries for config, banner and data-quality changes. Always sorted most-recent first.")
+    @GetMapping(path = "/admin/audit", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<AuditEntry>> auditHistory(
+            @Parameter(description = "Filter by entity table: config, banner, dq")
+            @RequestParam(required = false) String entityTable,
+            @Parameter(description = "Filter by exact entity id (config key, banner section, dq profile id)")
+            @RequestParam(required = false) String entityId,
+            @Parameter(description = "Partial, case-insensitive filter on entity name")
+            @RequestParam(required = false) String entityName,
+            @Parameter(description = "Partial, case-insensitive filter on actor")
+            @RequestParam(required = false) String actor,
+            @Parameter(description = "Filter by exact action: UPDATE or DELETE")
+            @RequestParam(required = false) String action,
+            @Parameter(description = "Zero-based page index", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size (max 200)", example = "20")
+            @RequestParam(defaultValue = "20") int pageSize,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+        return ResponseEntity.ok(auditService.search(entityTable, entityId, entityName, actor, action, page, pageSize));
     }
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
@@ -724,5 +763,14 @@ public class AdminController {
         return rabbitTemplate.execute(channel ->
                 "size=" + channel.queueDeclarePassive(queueName).getMessageCount() + ", " +
                         "consumers=" + channel.queueDeclarePassive(queueName).getConsumerCount() + ", ");
+    }
+
+    /** Extracts the real client IP, preferring the first value of X-Forwarded-For. */
+    private static String resolveIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

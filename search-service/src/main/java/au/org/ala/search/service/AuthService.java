@@ -109,6 +109,31 @@ public class AuthService {
     }
 
     /**
+     * Returns a display name for the actor performing an action.
+     * For human admins this is their userId.
+     * For machine clients (no userId) it returns "{ip} ({userAgent})" truncated to 255 chars.
+     */
+    public String getActor(Principal principal, String ip, String userAgent) {
+        String userId = getUserId(principal);
+        if (userId != null && !userId.isBlank()) {
+            return userId;
+        }
+        // machine client — identify by ip + user-agent
+        String ua = userAgent != null ? userAgent.trim() : "unknown";
+        String ipStr = ip != null ? ip.trim() : "unknown";
+        String actor = ipStr + " (" + ua + ")";
+        if (actor.length() > 255) {
+            actor = actor.substring(0, 255);
+        }
+        return actor;
+    }
+
+    /** Convenience overload when IP/user-agent are not available. */
+    public String getActor(Principal principal) {
+        return getActor(principal, null, null);
+    }
+
+    /**
      * Returns true if the given IP address is in the configured permitted IPs list.
      * The list is set via the {@code logger.permitted.ips} property (comma-delimited).
      */

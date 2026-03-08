@@ -192,7 +192,7 @@ public class LeaderQueue {
                 log.error("Quality profile ID is required for deletion.");
                 return false;
             }
-            qualityDataService.delete(qualityProfile.getId());
+            qualityDataService.delete(qualityProfile.getId(), qualityProfile.getActor());
         } else if (message.equals(TaskType.DATA_QUALITY_SAVE.name())) {
             if (qualityProfile == null) {
                 log.error("Quality profile is required for saving.");

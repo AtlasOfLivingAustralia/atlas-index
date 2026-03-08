@@ -31,12 +31,14 @@ public class BannerService {
     private List<String> defaultSections;
 
     private final BannerPostgresRepository bannerPostgresRepository;
+    private final AuditService auditService;
 
     /** In-memory cache of the last built response map. Null until first load. */
     private final AtomicReference<Map<String, Object>> cache = new AtomicReference<>();
 
-    public BannerService(BannerPostgresRepository bannerPostgresRepository) {
+    public BannerService(BannerPostgresRepository bannerPostgresRepository, AuditService auditService) {
         this.bannerPostgresRepository = bannerPostgresRepository;
+        this.auditService = auditService;
     }
 
     @PostConstruct
@@ -110,7 +112,7 @@ public class BannerService {
      * instances also refresh their caches.
      */
     @Transactional
-    public void save(String section, String message, String severity) {
+    public void save(String section, String message, String severity, String actor) {
         if (section == null || section.isBlank()) {
             throw new IllegalArgumentException("section is required");
         }
@@ -121,12 +123,22 @@ public class BannerService {
             severity = "INFO";
         }
 
-        BannerEntry entry = bannerPostgresRepository.findById(section).orElse(new BannerEntry());
+        BannerEntry existing = bannerPostgresRepository.findById(section).orElse(null);
+        BannerEntry entry = existing != null ? existing : new BannerEntry();
+
+        // Build diff before mutating
+        Map<String, Object> diff = AuditService.merge(
+                AuditService.diff("message",  existing != null ? existing.getMessage()  : null, message),
+                AuditService.diff("severity", existing != null ? existing.getSeverity() : null, severity));
+
         entry.setSection(section);
         entry.setMessage(message);
         entry.setSeverity(severity.toUpperCase());
         entry.setUpdated(OffsetDateTime.now());
         bannerPostgresRepository.save(entry);
+
+        // Audit
+        auditService.record(AuditService.TABLE_BANNER, section, section, actor, AuditService.ACTION_UPDATE, diff);
 
         // refresh local cache immediately so this instance is up-to-date
         cacheRefresh();

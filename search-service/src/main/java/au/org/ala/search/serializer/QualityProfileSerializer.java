@@ -54,6 +54,9 @@ public class QualityProfileSerializer extends StdSerializer<QualityProfile> {
                 jsonGenerator.writeNumberField("dateCreated", qp.getDateCreated().getTime());
             if (qp.getLastUpdated() != null)
                 jsonGenerator.writeNumberField("lastUpdated", qp.getLastUpdated().getTime());
+            // actor is a transient field used to carry the audit identity through the RabbitMQ RPC
+            if (qp.getActor() != null)
+                jsonGenerator.writeStringField("actor", qp.getActor());
         }
 
         jsonGenerator.writeEndObject();

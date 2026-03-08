@@ -9,6 +9,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import {IntlProvider} from 'react-intl';
 import {BrowserRouter as Router} from 'react-router-dom';
+import {NuqsAdapter} from 'nuqs/adapters/react-router';
 import App from './App';
 import messages_en from './translations/en.json';
 
@@ -20,9 +21,11 @@ const root = ReactDOM.createRoot(
 root.render(
     <React.StrictMode>
         <Router>
+            <NuqsAdapter>
             <IntlProvider messages={messages_en} locale="en" defaultLocale="en">
                 <App/>
             </IntlProvider>
+            </NuqsAdapter>
         </Router>
     </React.StrictMode>
 );

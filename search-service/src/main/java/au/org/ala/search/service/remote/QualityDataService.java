@@ -46,16 +46,19 @@ public class QualityDataService {
     protected final DataQualityPostgresRepository dataQualityRepository;
     protected final CacheManager cacheManager;
     protected final StaticFileStoreService staticFileStoreService;
+    protected final AuditService auditService;
     final Object editLock = new Object();
     final private AtomicLong uniqueId = new AtomicLong(1);
     @Getter
     volatile List<QualityProfile> profiles;
     private CountDownLatch cacheRefreshLatch = new CountDownLatch(0);
 
-    public QualityDataService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager, StaticFileStoreService staticFileStoreService) {
+    public QualityDataService(DataQualityPostgresRepository dataQualityRepository, CacheManager cacheManager,
+                               StaticFileStoreService staticFileStoreService, AuditService auditService) {
         this.dataQualityRepository = dataQualityRepository;
         this.cacheManager = cacheManager;
         this.staticFileStoreService = staticFileStoreService;
+        this.auditService = auditService;
     }
 
     private Long nextId() {
@@ -359,13 +362,21 @@ public class QualityDataService {
     }
 
     @Transactional()
-    public boolean delete(Long profileId) {
+    public boolean delete(Long profileId, String actor) {
         synchronized (editLock) {
             try {
+                // Capture name and full profile before deletion for audit
+                QualityProfile existing = profiles.stream()
+                        .filter(p -> profileId.equals(p.getId())).findFirst().orElse(null);
+                String shortName = existing != null ? existing.getShortName() : String.valueOf(profileId);
+
                 dataQualityRepository.deleteById(profileId);
 
-                cacheRefresh();
+                auditService.record(AuditService.TABLE_DQ, String.valueOf(profileId), shortName,
+                        actor != null ? actor : "system", AuditService.ACTION_DELETE,
+                        auditService.diffObjects(existing, null));
 
+                cacheRefresh();
                 exportProfiles();
 
                 return true;
@@ -454,7 +465,22 @@ public class QualityDataService {
             }
 
             try {
+                // capture whether this is create or update for the audit action
+                boolean isNew = profile.getId() == null || profiles.stream().noneMatch(p -> profile.getId().equals(p.getId()));
+                String actor = profile.getActor() != null ? profile.getActor() : "system";
+
+                // Snapshot the before-state for the diff (null for new profiles)
+                QualityProfile before = isNew ? null : profiles.stream()
+                        .filter(p -> profile.getId().equals(p.getId())).findFirst().orElse(null);
+
                 QualityProfile savedProfile = dataQualityRepository.save(profile);
+
+                auditService.record(AuditService.TABLE_DQ,
+                        String.valueOf(savedProfile.getId()),
+                        savedProfile.getShortName(),
+                        actor,
+                        AuditService.ACTION_UPDATE,
+                        auditService.diffObjects(before, savedProfile));
 
                 cacheRefresh();
 

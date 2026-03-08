@@ -29,15 +29,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConfigService {
     private final ConfigDataPostgresRepository configDataPostgresRepository;
     private final ResourceLoader resourceLoader;
+    private final AuditService auditService;
     private final Map<String, Set<ConfigChangeListener>> listeners = new ConcurrentHashMap<>();
     private final Map<String, Set<ConfigValidationListener>> validationListeners = new ConcurrentHashMap<>();
 
     @Value("${dynamic-config-defaults.path}")
     private String dynamicConfigDefaultsPath;
 
-    public ConfigService(ConfigDataPostgresRepository configDataPostgresRepository, ResourceLoader resourceLoader) {
+    public ConfigService(ConfigDataPostgresRepository configDataPostgresRepository,
+                         ResourceLoader resourceLoader,
+                         AuditService auditService) {
         this.configDataPostgresRepository = configDataPostgresRepository;
         this.resourceLoader = resourceLoader;
+        this.auditService = auditService;
     }
 
     @PostConstruct
@@ -81,13 +85,16 @@ public class ConfigService {
 
     // throws a description of the error if the config data is not valid
     @Transactional()
-    public void save(ConfigData configData) {
+    public void save(ConfigData configData, String actor) {
         // Enforce mandatory fields and non-empty data fields
         if (StringUtils.isEmpty(configData.id) || StringUtils.isEmpty(configData.value)) {
             throw new IllegalArgumentException("Config data must contain an 'id' and 'value'.");
         }
 
         ConfigData prevConfigData = get(configData.id);
+
+        // get the diff before the save
+        Map<String, Object> diff = auditService.diff("value", prevConfigData != null ? prevConfigData.value : null, configData.value);
 
         // compare with previous config data for "value" changes
         if (prevConfigData != null) {
@@ -108,16 +115,31 @@ public class ConfigService {
         configData.setUpdated(new Date());
         configDataPostgresRepository.save(configData);
 
+        // Audit
+        auditService.record(
+                AuditService.TABLE_CONFIG,
+                configData.id,
+                configData.id,
+                actor,
+                AuditService.ACTION_UPDATE,
+                diff);
+
         // Broadcast the change, for any node that listens for config changes
         try {
             if (BroadcastQueue.getInstance() != null) {
-                BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData); // new config data is in the db
+                BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData);
             } else {
                 log.warn("BroadcastService is not initialized, cannot broadcast config change for {}", configData.id);
             }
         } catch (Exception e) {
             log.error("Failed to broadcast config change for {}: {}", configData.id, e.getMessage(), e);
         }
+    }
+
+    /** Convenience overload without actor (used internally / on startup). */
+    @Transactional()
+    public void save(ConfigData configData) {
+        save(configData, "system");
     }
 
     public void registerListener(String key, ConfigChangeListener listener, ConfigValidationListener validation) {

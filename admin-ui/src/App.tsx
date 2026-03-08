@@ -34,6 +34,7 @@ import Doi from "./views/Doi.tsx";
 import Home from './views/Home.tsx';
 import Tasks from "./views/Tasks.tsx";
 import BannerMessages from "./views/BannerMessages.tsx";
+import AuditHistory from "./views/AuditHistory.tsx";
 
 export default function App() {
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
@@ -105,6 +106,8 @@ export default function App() {
                                element={<Biocache setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                         <Route path="/banners"
                                element={<BannerMessages setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/audit"
+                               element={<AuditHistory setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     </Routes>
                 ) : (
                     <div style={{display: 'flex', height: '100vh', justifyContent: 'center', marginTop: '60px'}}>

@@ -9,6 +9,7 @@ package au.org.ala.search.model.quality;
 import au.org.ala.search.serializer.QualityProfileSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,7 @@ import java.util.List;
  * For schema see resources/flyway/
  */
 @NoArgsConstructor
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 @Jacksonized
 @Data
 @JsonSerialize(using = QualityProfileSerializer.class)
@@ -56,4 +57,8 @@ public class QualityProfile implements Serializable {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb", nullable = false)
     List<QualityCategory> categories;
+    /** Transient — not persisted. Carries the actor identity through the leader RPC for audit logging. */
+    @Transient
+    @Schema(hidden = true)
+    String actor;
 }

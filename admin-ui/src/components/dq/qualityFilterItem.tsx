@@ -87,21 +87,23 @@ function QualityFilterItem(props: {
                         onChange={() => setEnabled(!filterItem.enabled)}
                         className={"me-1"}
                     ></input>
-                    (id: {filterItem.id})
+                    ({filterItem.id > 1_000_000 ? 'new' : 'id: ' + filterItem.id})
                 </td>
                 <td>
-                    <input
-                        type="text"
+                    <textarea
+                        rows={3}
                         value={filterItem.filter}
                         className="w-100"
+                        style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}
                         onChange={(e) => setFilter(e.target.value)}
                     />
                 </td>
                 <td>
-                    <input
-                        type="text"
+                    <textarea
+                        rows={3}
                         value={filterItem.inverseFilter}
                         className="w-100"
+                        style={{wordBreak: 'break-all', overflowWrap: 'anywhere'}}
                         onChange={(e) => setInverseFilter(e.target.value)}
                     />
                 </td>

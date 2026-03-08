@@ -82,6 +82,20 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             return;
         }
 
+        // Deep-clone and substitute 0 for any temporary ids (Date.now() > 1,000,000)
+        // so the backend allocates real ids for new categories and filters.
+        const profileToSave: QualityProfile = JSON.parse(JSON.stringify(profile));
+        if (profileToSave.categories) {
+            for (const category of profileToSave.categories) {
+                if (category.id > 1_000_000) category.id = 0;
+                if (category.qualityFilters) {
+                    for (const filter of category.qualityFilters) {
+                        if (filter.id > 1_000_000) filter.id = 0;
+                    }
+                }
+            }
+        }
+
         setSaving(true);
         fetch(import.meta.env.VITE_APP_BIE_URL + '/admin/dq', {
             method: 'POST',
@@ -89,7 +103,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                 Authorization: 'Bearer ' + userInfo?.accessToken,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(profile),
+            body: JSON.stringify(profileToSave),
         }).then((response) => {
             if (response.status === 200) {
                 // reload all profiles

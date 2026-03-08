@@ -8,6 +8,7 @@ import {useEffect, useState} from 'react';
 import {QualityCategory, QualityProfile} from '../../api/sources/model.ts';
 import classes from './quality.module.css';
 import QualityCategoryItem from './qualityCategoryItem.tsx';
+import { useNavigate } from 'react-router-dom';
 
 function QualityProfileItem(props: {
     profile: QualityProfile;
@@ -16,6 +17,7 @@ function QualityProfileItem(props: {
 }) {
     const [profile, setProfile] = useState<QualityProfile>(props.profile);
     const [profileDirty, setProfileDirty] = useState<boolean>(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         setProfile(props.profile);
@@ -25,7 +27,7 @@ function QualityProfileItem(props: {
     function addCategory() {
         if (profile) {
             profile.categories.push({
-                id: 0,
+                id: Date.now(),
                 enabled: true,
                 name: 'New Category',
                 label: 'new-category',
@@ -116,10 +118,10 @@ function QualityProfileItem(props: {
                     <tr>
                         <td>Name (id: {profile.id})</td>
                         <td>
-                            <input
-                                type="text"
+                            <textarea
                                 value={profile.name}
                                 className="w-50"
+                                rows={1}
                                 onChange={(e) => updateName(e.target.value)}
                                 maxLength={255}
                             />
@@ -189,6 +191,12 @@ function QualityProfileItem(props: {
                                     disabled={!profileDirty}
                                 >
                                     Save Changes
+                                </button>
+                                <button
+                                    className="btn border-black ms-1"
+                                    onClick={() => navigate(`/audit?entityTable=dq&entityId=${profile.id}`)}
+                                >
+                                    History
                                 </button>
                                 <span className={"ms-2 mt-2"}
                                       style={{verticalAlign: "bottom"}}>Last saved {profile.lastUpdated ? new Date(profile.lastUpdated).toLocaleString() : "never"}</span>

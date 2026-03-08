@@ -4,6 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {FontAwesomeIconLite} from "@ala/common-ui";
+import { faCaretDown, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from 'react';
 import {QualityCategory, QualityFilter} from '../../api/sources/model.ts';
 import classes from './quality.module.css';
@@ -18,14 +20,15 @@ function QualityCategoryItem(props: {
     deleteCategory: (category: QualityCategory) => void;
 }) {
     const [category, setCategory] = useState<QualityCategory>(props.category);
+    const [collapsed, setCollapsed] = useState<boolean>(true);
 
     useEffect(() => {
         setCategory(props.category);
     }, [props.category]);
 
     function addFilter(category: any) {
-        let filter: QualityFilter = {
-            id: 0,
+        const filter: QualityFilter = {
+            id: Date.now(),
             enabled: true,
             filter: 'enter a new filter',
             inverseFilter: '',
@@ -131,19 +134,23 @@ function QualityCategoryItem(props: {
     }
 
     return (
-        <div className={"border-2 shadow " + classes.itemBg}>
-            <table className={"table table-sm table-borderless"}>
+        <div className={"border-2 " + classes.itemBg}>
+            <table className={"table table-sm table-borderless"} style={{marginBottom: '0px'}}>
                 <tbody>
                 <tr>
                     <td colSpan={2} style={{backgroundColor: '#e9e9e9'}}>
                         <div className={"d-flex align-items-center"}>
+                            <div onClick={() => setCollapsed(!collapsed)} style={{cursor: 'pointer', width: '30px'}}>
+                                {collapsed ? <FontAwesomeIconLite icon={faCaretRight} style={{height: '20px', width: '20px'}}/> : <FontAwesomeIconLite icon={faCaretDown} style={{height: '20px', width: '20px'}}/>}
+                            </div>
+
                             <input
                                 type="checkbox"
                                 checked={category.enabled}
                                 onChange={() => setEnabled(!category.enabled)}
                                 className={"ms-2 me-1"}
                             ></input>{' '}
-                            (id: {category.id})
+                            ({category.id > 1_000_000 ? 'new' : 'id: ' + category.id})
                             <div className={"ms-3"}>
                             label:
                             <input
@@ -174,93 +181,95 @@ function QualityCategoryItem(props: {
                         </div>
                     </td>
                 </tr>
-                <tr>
-                    <td className={"ps-3 fw-bold pt-3"}>Description</td>
-                    <td>
-                            <textarea className={"mt-3"}
-                                value={category.description}
-                                rows={3}
-                                cols={50}
-                                onChange={(e) => setDescription(e.target.value)}
-                            ></textarea>
-                    </td>
-                </tr>
-                <tr>
-                    <td className={"ps-3 w-25 fw-bold"}>Inverse filter (manual override when API incorrect)</td>
-                    <td>
-                        { category.qualityFilters && category.qualityFilters.find(f => f.filter.includes('(')) &&
-                            <span className={"text-danger"}>
-                                <i className="bi bi-exclamation-triangle-fill me-1"></i>
-                                This category contains filters with parentheses, which may cause issues with inverse filtering.
-                                Set the inverse filter manually.
-                            </span>
-                        }
-                        <input
-                            type="text"
-                            value={category.inverseFilter}
-                            className="w-100"
-                            onChange={(e) =>
-                                setInverseFilter(e.target.value)
+                { !collapsed && <>
+                    <tr>
+                        <td className={"ps-3 fw-bold pt-3"}>Description</td>
+                        <td>
+                                <textarea className={"mt-3"}
+                                    value={category.description}
+                                    rows={3}
+                                    cols={50}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                ></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td className={"ps-3 w-25 fw-bold"}>Inverse filter (manual override when API incorrect)</td>
+                        <td>
+                            { category.qualityFilters && category.qualityFilters.find(f => f.filter.includes('(')) &&
+                                <span className={"text-danger"}>
+                                    <i className="bi bi-exclamation-triangle-fill me-1"></i>
+                                    This category contains filters with parentheses, which may cause issues with inverse filtering.
+                                    Set the inverse filter manually.
+                                </span>
                             }
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td className={"ps-3"} colSpan={2}>
-                        <hr/>
-                        <h4 className={"mt-2 mb-2"}>Filters</h4>
-                        <table className="table table-sm table-borderless">
-                            <thead>
-                            <tr>
-                                <th>enabled</th>
-                                <th>filter</th>
-                                <th>inverse filter (manual override when API incorrect)</th>
-                                <th>description</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {category.qualityFilters && category.qualityFilters.slice().sort((a, b) => a.id - b.id).map(
-                                (filter, idx) => (
-                                    <QualityFilterItem
-                                        key={idx}
-                                        filter={filter}
-                                        actualFilter={
-                                            props.actualCategory?.qualityFilters
-                                                ? props.actualCategory.qualityFilters.find(
-                                                    (it) =>
-                                                        it.displayOrder ==
-                                                        filter.displayOrder
-                                                )
-                                                : undefined
-                                        }
-                                        setProfileDirty={
-                                            props.setProfileDirty
-                                        }
-                                        resetInverseFilter={
-                                            resetInverseFilter
-                                        }
-                                        deleteFilterItem={
-                                            deleteFilterItem
-                                        }
-                                    />
-                                )
-                            )}
+                            <input
+                                type="text"
+                                value={category.inverseFilter}
+                                className="w-100"
+                                onChange={(e) =>
+                                    setInverseFilter(e.target.value)
+                                }
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td className={"ps-3"} colSpan={2}>
+                            <hr/>
+                            <h4 className={"mt-2 mb-2"}>Filters</h4>
+                            <table className="table table-sm table-borderless">
+                                <thead>
+                                <tr>
+                                    <th>enabled</th>
+                                    <th>filter</th>
+                                    <th>inverse filter (manual override when API incorrect)</th>
+                                    <th>description</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {category.qualityFilters && category.qualityFilters.slice().sort((a, b) => a.id - b.id).map(
+                                    (filter, idx) => (
+                                        <QualityFilterItem
+                                            key={idx}
+                                            filter={filter}
+                                            actualFilter={
+                                                props.actualCategory?.qualityFilters
+                                                    ? props.actualCategory.qualityFilters.find(
+                                                        (it) =>
+                                                            it.displayOrder ==
+                                                            filter.displayOrder
+                                                    )
+                                                    : undefined
+                                            }
+                                            setProfileDirty={
+                                                props.setProfileDirty
+                                            }
+                                            resetInverseFilter={
+                                                resetInverseFilter
+                                            }
+                                            deleteFilterItem={
+                                                deleteFilterItem
+                                            }
+                                        />
+                                    )
+                                )}
 
-                            <tr>
-                                <td colSpan={2}>
-                                    <button
-                                        className="btn border-black ms-1"
-                                        onClick={() => addFilter(category)}
-                                    >
-                                        Add filter
-                                    </button>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
+                                <tr>
+                                    <td colSpan={2}>
+                                        <button
+                                            className="btn border-black ms-1"
+                                            onClick={() => addFilter(category)}
+                                        >
+                                            Add filter
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </>}
                 </tbody>
             </table>
         </div>
