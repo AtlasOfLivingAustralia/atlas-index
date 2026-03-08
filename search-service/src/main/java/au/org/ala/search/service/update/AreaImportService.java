@@ -92,7 +92,7 @@ public class AreaImportService {
         }
     }
 
-    private void importLayer(String layerId) {
+    private void importLayer(String layerId) throws Exception {
         logService.log(taskType, "layer " + layerId + " import starting");
 
         List<IndexQuery> buffer = new ArrayList<>();
@@ -101,7 +101,10 @@ public class AreaImportService {
         ObjectMapper objectMapper = new ObjectMapper();
 
         List<String> fields = listFieldIds(layerId);
-        if (fields == null || fields.isEmpty()) {
+        if (fields == null) {
+            throw new Exception("failed to get fields for layer " + layerId);
+        }
+        if (fields.isEmpty()) {
             logService.log(taskType, "no fields found for layer " + layerId);
             return;
         }
@@ -199,6 +202,7 @@ public class AreaImportService {
         logService.log(taskType, "layer " + layerId + " import finished: " + counter);
     }
 
+    // returns null when there was an IO Exception, otherwise returns an empty list if there are no fields for the layer
     private List<String> listFieldIds(String layerId) {
         List<String> fields = new ArrayList<>();
 
@@ -362,6 +366,9 @@ public class AreaImportService {
             for (Map.Entry<String, String[]> entry : existingItems.entrySet()) {
                 String guid = entry.getValue()[2]; // [2] is guid
                 if (updatedLsids.contains(guid)) {
+                    if (guid == null) {
+                        continue; // no guid so no taxon update required
+                    }
                     String id = elasticService.queryTaxonId(guid);
                     if (id != null) {
                         Document doc = Document.create();
@@ -378,7 +385,7 @@ public class AreaImportService {
 
         } catch (Exception e) {
             logService.log(taskType, "failed to get distributions " + spatialUrl + "/distributions");
-            log.error("failed to get distributions {}/distributions", spatialUrl);
+            log.error("failed to get distributions {}/distributions", spatialUrl, e);
         }
     }
 }

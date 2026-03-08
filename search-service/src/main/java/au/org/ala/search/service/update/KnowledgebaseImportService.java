@@ -157,7 +157,7 @@ public class KnowledgebaseImportService {
                     .description(body)
                     .modified(lastmod)
                     .classification(aggregatedClassification)
-                    .classification1(category1)
+                    .classification1(category1 == null ? null : new String[]{category1})
                     .classification2(category2)
                     .created(lastmod)
                     .build();

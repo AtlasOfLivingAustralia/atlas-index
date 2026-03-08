@@ -195,6 +195,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
         ).then((response) => {
             response.json().then((json) => {
                 setTaskString(JSON.stringify(json, null, 2));
+                openLog(updateType);
             });
         });
     }
@@ -293,7 +294,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
                                     value={logFilter}
                             >
                                 <option value={defaultTaskFilter}>{defaultTaskFilter}</option>
-                                {Object.keys(tasks).map((type, index) => (
+                                {Object.keys(tasks).sort().map((type, index) => (
                                     <option key={index}>{type}</option>
                                 ))}
                             </select>

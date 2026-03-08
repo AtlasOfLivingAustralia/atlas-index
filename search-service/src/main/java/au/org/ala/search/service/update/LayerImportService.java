@@ -83,89 +83,84 @@ public class LayerImportService {
     private Map<String, SearchItemIndex> getLayers(Map<String, Date> existingLists) {
         Map<String, SearchItemIndex> updateList = new HashMap<>();
 
-        try {
-            ResponseEntity<List> response =
-                    restTemplate.exchange(spatialUrl + "/layers", HttpMethod.GET, null, List.class);
+        ResponseEntity<List> response =
+                restTemplate.exchange(spatialUrl + "/layers", HttpMethod.GET, null, List.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                List<Map<String, Object>> layers = response.getBody();
+        if (response.getStatusCode() == HttpStatus.OK) {
+            List<Map<String, Object>> layers = response.getBody();
 
-                logService.log(taskType, "found " + layers.size() + " layers");
+            logService.log(taskType, "found " + layers.size() + " layers");
 
-                for (Map<String, Object> layer : layers) {
-                    String name = (String) layer.get("name");
-                    String url = spatialUrl + layerPath + name;
-                    String displayName = (String) layer.get("displayname");
-                    Boolean enabled = (Boolean) layer.getOrDefault("enabled", false);
+            for (Map<String, Object> layer : layers) {
+                String name = (String) layer.get("name");
+                String url = spatialUrl + layerPath + name;
+                String displayName = (String) layer.get("displayname");
+                Boolean enabled = (Boolean) layer.getOrDefault("enabled", false);
 
-                    String notes = (String) layer.getOrDefault("notes", null);
-                    String description = (String) layer.getOrDefault("description", null);
-                    String body =
-                            notes == null
-                                    ? description
-                                    : (description == null
-                                    ? notes
-                                    : (description.length() > notes.length() ? description : notes));
+                String notes = (String) layer.getOrDefault("notes", null);
+                String description = (String) layer.getOrDefault("description", null);
+                String body =
+                        notes == null
+                                ? description
+                                : (description == null
+                                ? notes
+                                : (description.length() > notes.length() ? description : notes));
 
-                    String classification1 = (String) layer.getOrDefault("classification1", null);
-                    String classification2 = (String) layer.getOrDefault("classification2", null);
-                    String keywords = (String) layer.getOrDefault("keywords", null);
-                    String domain = (String) layer.getOrDefault("domain", null);
-                    String type = (String) layer.getOrDefault("type", null);
-                    String source = (String) layer.getOrDefault("source", null);
+                String classification1 = (String) layer.getOrDefault("classification1", null);
+                String classification2 = (String) layer.getOrDefault("classification2", null);
+                String keywords = (String) layer.getOrDefault("keywords", null);
+                String domain = (String) layer.getOrDefault("domain", null);
+                String type = (String) layer.getOrDefault("type", null);
+                String source = (String) layer.getOrDefault("source", null);
 
-                    Long added = (Long) layer.get("dt_added");
-                    Date created = added != null ? new Date((Long) layer.get("dt_added")) : null;
+                Long added = (Long) layer.get("dt_added");
+                Date created = added != null ? new Date((Long) layer.get("dt_added")) : null;
 
-                    String aggregatedClassification = classification1 + (StringUtils.isNotEmpty(classification2) ? "|" + classification2 : "");
+                String aggregatedClassification = classification1 + (StringUtils.isNotEmpty(classification2) ? "|" + classification2 : "");
 
-                    if (!enabled) {
-                        continue;
-                    }
-
-                    // compare with the current indexed item because there is no last modified date property
-                    SearchItemIndex stored = elasticService.getDocument(url);
-
-                    if (stored == null
-                            || !stored.getId().equals(url)
-                            || !stored.getGuid().equals(url)
-                            || !stored.getName().equals(displayName)
-                            || !stringEquals(stored.getDescription(), body)
-                            || !stringEquals(stored.getClassification1(), classification1)
-                            || !stringEquals(stored.getClassification2(), classification2)
-                            || !stringEquals(stored.getKeywords(), keywords)
-                            || !stringEquals(stored.getDomain(), domain)
-                            || !stringEquals(stored.getType(), type)
-                            || !stringEquals(stored.getSource(), source)
-                    ) {
-                        updateList.put(
-                                url,
-                                SearchItemIndex.builder()
-                                        .id(url)
-                                        .guid(url)
-                                        .idxtype(IndexDocType.LAYER.name())
-                                        .name(displayName)
-                                        .description(body)
-                                        .modified(new Date())
-                                        .classification1(classification1)
-                                        .classification2(classification2)
-                                        .classification(aggregatedClassification)
-                                        .keywords(keywords)
-                                        .domain(domain)
-                                        .type(type)
-                                        .source(source)
-                                        .image(spatialUrl + "/layer/img/" + name + ".jpg")
-                                        .created(created)
-                                        .build());
-                    }
-
-                    // remove this list from existingLists so that existingLists will only contain lists deleted
-                    existingLists.remove(url);
+                if (!enabled) {
+                    continue;
                 }
+
+                // compare with the current indexed item because there is no last modified date property
+                SearchItemIndex stored = elasticService.getDocument(url);
+
+                if (stored == null
+                        || !stored.getId().equals(url)
+                        || !stored.getGuid().equals(url)
+                        || !stored.getName().equals(displayName)
+                        || !stringEquals(stored.getDescription(), body)
+                        || !arrayEquals(stored.getClassification1(), classification1 == null ? null : new String[]{classification1})
+                        || !stringEquals(stored.getClassification2(), classification2)
+                        || !stringEquals(stored.getKeywords(), keywords)
+                        || !stringEquals(stored.getDomain(), domain)
+                        || !stringEquals(stored.getType(), type)
+                        || !stringEquals(stored.getSource(), source)
+                ) {
+                    updateList.put(
+                            url,
+                            SearchItemIndex.builder()
+                                    .id(url)
+                                    .guid(url)
+                                    .idxtype(IndexDocType.LAYER.name())
+                                    .name(displayName)
+                                    .description(body)
+                                    .modified(new Date())
+                                    .classification1(classification1 == null ? null : new String[]{classification1})
+                                    .classification2(classification2)
+                                    .classification(aggregatedClassification)
+                                    .keywords(keywords)
+                                    .domain(domain)
+                                    .type(type)
+                                    .source(source)
+                                    .image(spatialUrl + "/layer/img/" + name + ".jpg")
+                                    .created(created)
+                                    .build());
+                }
+
+                // remove this list from existingLists so that existingLists will only contain lists deleted
+                existingLists.remove(url);
             }
-        } catch (Exception e) {
-            logService.log(taskType, "Error failed to get layers: " + e.getMessage());
-            log.error(e.getMessage(), e);
         }
         return updateList;
     }
@@ -175,5 +170,20 @@ public class LayerImportService {
             return a == null && b == null;
         }
         return a.equals(b);
+    }
+
+    private boolean arrayEquals(String[] a, String[] b) {
+        if (a == null || b == null) {
+            return a == null && b == null;
+        }
+        if (a.length != b.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (!Objects.equals(a[i], b[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 }

@@ -156,11 +156,21 @@ public class WordpressImportService {
             String fullUrl = url + contentOnlyParams;
             Document document = Jsoup.connect(fullUrl).timeout(timeout).get();
 
+            // skip that are not an article
+            if (document.select("meta[property=og:type][content=article]").isEmpty()) {
+                return null;
+            }
+
             // extract the category from the first meta property article:section
-            String category1 = "Other";
+            List<String> category1 = new ArrayList<>();
             Elements catElement = document.select("meta[property=article:section]");
             if (!catElement.isEmpty()) {
-                category1 = catElement.get(0).attr("content");
+                for (Element element : catElement) {
+                    category1.add(element.attr("content"));
+                }
+            }
+            if (category1.isEmpty()) {
+                category1 = Collections.singletonList("Uncategorised");
             }
 
             // some summary/landing pages do not work with `content-only=1`, so we don't want to index them
@@ -184,7 +194,7 @@ public class WordpressImportService {
                     .name(title)
                     .description(main)
                     .modified(lastmod)
-                    .classification1(category1)
+                    .classification1(category1 == null ? null : category1.toArray(new String[0]))
                     .image(image)
                     .created(lastmod)
                     .build();

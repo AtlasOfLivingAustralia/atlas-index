@@ -26,7 +26,7 @@ export const articlesDefn: GenericViewProps = {
         const elements: RenderItemElements = {
             image: <div className={classes.listItemImageDiv}><FadeInImage className={classes.listItemImageCoverRounded} src={item.image || missingImage} missingImage={missingImage}/></div>,
             title: <span className={classes.listItemName}>{item.name}</span>,
-            extra: <span className={classes.overflowText}>{item.classification1}</span>,
+            extra: <span className={classes.overflowText}>{Array.isArray(item.classification1) ? item.classification1.join(', ') : item.classification1}</span>,
             description: <span className={classes.listDescription} title={item.description}>
                 {limitDescription(item.description, isMobile ? 80 : wide ? 230 : 120)}
             </span>,

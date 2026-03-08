@@ -112,31 +112,27 @@ public class CollectionsImportService {
         int batchSize = 100;
         List<String> batchIds = new ArrayList<>();
 
-        try {
-            ResponseEntity<List> response = restTemplate.exchange(collectionsUrl + "/ws/" + entityName, HttpMethod.GET, null, List.class);
+        ResponseEntity<List> response = restTemplate.exchange(collectionsUrl + "/ws/" + entityName, HttpMethod.GET, null, List.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                List<Map<String, String>> entities = (List<Map<String, String>>) response.getBody();
+        if (response.getStatusCode() == HttpStatus.OK) {
+            List<Map<String, String>> entities = (List<Map<String, String>>) response.getBody();
 
-                for (Map<String, String> entity : entities) {
-                    String uid = entity.get("uid");
-                    batchIds.add(uid);
+            for (Map<String, String> entity : entities) {
+                String uid = entity.get("uid");
+                batchIds.add(uid);
 
-                    if (batchIds.size() == batchSize) {
-                        getEntityBatch(updateList, existingLists, entityName, type, batchIds, entityCounts);
-                        batchIds.clear();
-                    }
+                if (batchIds.size() == batchSize) {
+                    getEntityBatch(updateList, existingLists, entityName, type, batchIds, entityCounts);
+                    batchIds.clear();
                 }
             }
-
-            if (!batchIds.isEmpty()) {
-                getEntityBatch(updateList, existingLists, entityName, type, batchIds, entityCounts);
-                batchIds.clear();
-            }
-        } catch (Exception e) {
-            logService.log(taskType, "Error getting entities: " + entityName);
-            log.error(e.getMessage(), e);
         }
+
+        if (!batchIds.isEmpty()) {
+            getEntityBatch(updateList, existingLists, entityName, type, batchIds, entityCounts);
+            batchIds.clear();
+        }
+
         return updateList;
     }
 

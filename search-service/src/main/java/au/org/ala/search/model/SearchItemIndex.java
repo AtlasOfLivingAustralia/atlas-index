@@ -91,7 +91,7 @@ public class SearchItemIndex {
     public String acceptedConceptID;
     public String nameType;
     public String classification; // classification1 + "|" + classification2 for faceting
-    public String classification1;
+    public String[] classification1;
     public String classification2;
     public String domain;
     public String type;

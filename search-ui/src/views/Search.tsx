@@ -102,6 +102,10 @@ function Search({setBreadcrumbs, isMobile}: {
             setActiveIndex(prev => prev > 0 ? prev - 1 : -1);
         } else if (event.key === 'Enter') {
             event.preventDefault();
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+            }
             if (activeIndex >= 0 && autoCompleteResults[activeIndex]) {
                 selectAutoComplete(autoCompleteResults[activeIndex].name);
             } else {
@@ -203,8 +207,15 @@ function Search({setBreadcrumbs, isMobile}: {
                             <FontAwesomeIconLite icon={faTimes}/>
                         </button>
                     </div>
-                    <button className={classes.searchButton} onClick={() => {setQuery(searchInputText); setLandingPage(false); setShowAutoComplete(false);}}>
-                        <FontAwesomeIconLite icon={faSearch}/>
+                    <button className={classes.searchButton} onClick={() => {
+                        if (debounceTimerRef.current) {
+                            clearTimeout(debounceTimerRef.current);
+                            debounceTimerRef.current = null;
+                        }
+                        setQuery(searchInputText);
+                        setLandingPage(false);
+                        setShowAutoComplete(false);
+                    }}>                        <FontAwesomeIconLite icon={faSearch}/>
                     </button>
                 </div>
                 {!isMobile &&
