@@ -311,7 +311,7 @@ export const speciesDefn: GenericViewProps = {
                 }
                 <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
             </>,
-            clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
+            clickFn: () => {window.scrollTo(0, 0); navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`)},
             url:`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
         return renderGenericListItemFn({item, navigate, wide, isMobile, searchTerm}, elements);
@@ -359,7 +359,7 @@ export const speciesDefn: GenericViewProps = {
                 }
                 <span className={classes.listItemText} dangerouslySetInnerHTML={{__html: item.heroDescription}}></span>
             </>,
-            clickFn: () => navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`),
+            clickFn: () => {window.scrollTo(0, 0); navigate(`/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`)},
             url: `/species/${item.idxtype == 'TAXON' ? item.guid : item.taxonGuid}`
         };
         return renderGenericTileItemFn(isMobile, elements);

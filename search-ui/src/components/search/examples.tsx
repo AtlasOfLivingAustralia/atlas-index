@@ -51,20 +51,24 @@ export function Examples({asText, tab, setQueryAndTab}: ExampleProps): React.Rea
     }, []);
 
     return <>
-        {examples && examples.map((example, i) => <>
-            {asText ? <>
-                <a key={i} onClick={() => setQueryAndTab(example.query, example.tab)}
-                   style={{textDecoration: 'underline', color: '#212121', cursor: 'pointer'}}>
-                    {example.query}
-                </a>
-                {i < examples.length - 1 && <>,&nbsp;</>}
-            </> : <>
-                <a key={i} onClick={() => setQueryAndTab(example.query, example.tab)}
-                   className={"btn btn-primary btn-sm me-2 mb-2"}
-                   style={{cursor: 'pointer'}}>
-                    {example.query}
-                </a>
-            </>}
-        </>)}
+        {examples && examples.map((example, i) => (
+            <React.Fragment key={i}>
+                {asText ? (
+                    <>
+                        <a onClick={() => setQueryAndTab(example.query, example.tab)}
+                           style={{textDecoration: 'underline', color: '#212121', cursor: 'pointer'}}>
+                            {example.query}
+                        </a>
+                        {i < examples.length - 1 && <>,&nbsp;</>}
+                    </>
+                ) : (
+                    <a onClick={() => setQueryAndTab(example.query, example.tab)}
+                       className={"btn btn-primary btn-sm me-2 mb-2"}
+                       style={{cursor: 'pointer'}}>
+                        {example.query}
+                    </a>
+                )}
+            </React.Fragment>
+        ))}
     </>
 }

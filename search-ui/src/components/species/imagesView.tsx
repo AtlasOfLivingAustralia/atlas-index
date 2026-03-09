@@ -235,7 +235,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                 setFirstFetchDone(true);
 
                 // immediately fetch next page when there might be a problem in either biocache-service or images producing an empty list
-                if (list.length === 0 && data.totalRecords > 0) {
+                if (list.length === 0 && data.totalRecords > 0 && pageSize * (page + 1) < data.totalRecords) {
                     setPage(page + 1);
                 }
             })
