@@ -17,7 +17,9 @@ function Menu() {
             <NavLink to="/doi" className="menu-link">DOIs</NavLink>
             <NavLink to="/biocache" className="menu-link">Biocache</NavLink>
             <NavLink to="/banners" className="menu-link">Banner Messages</NavLink>
+            <NavLink to="/scaffold" className="menu-link">Reference Tables</NavLink>
             <NavLink to="/audit" className="menu-link">Audit History</NavLink>
+
         </div>
     );
 }

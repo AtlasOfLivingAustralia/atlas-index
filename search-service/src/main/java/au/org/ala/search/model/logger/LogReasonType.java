@@ -33,8 +33,17 @@ public class LogReasonType {
     @Column(name = "default_order")
     private Integer defaultOrder;
 
-    @JsonProperty("deprecated")
-    @Column(name = "is_deprecated")
-    private boolean isDeprecated;
-}
+    @JsonIgnore
+    @Column(name = "is_deprecated", columnDefinition = "smallint")
+    private Short isDeprecated;
 
+    @JsonProperty("deprecated")
+    public boolean isDeprecated() {
+        return isDeprecated != null && isDeprecated != 0;
+    }
+
+    @JsonProperty("deprecated")
+    public void setDeprecated(boolean deprecated) {
+        this.isDeprecated = deprecated ? (short) 1 : (short) 0;
+    }
+}

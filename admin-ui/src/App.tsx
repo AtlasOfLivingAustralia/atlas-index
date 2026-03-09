@@ -35,6 +35,7 @@ import Home from './views/Home.tsx';
 import Tasks from "./views/Tasks.tsx";
 import BannerMessages from "./views/BannerMessages.tsx";
 import AuditHistory from "./views/AuditHistory.tsx";
+import ScaffoldAdmin from "./views/ScaffoldAdmin.tsx";
 
 export default function App() {
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
@@ -108,6 +109,8 @@ export default function App() {
                                element={<BannerMessages setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                         <Route path="/audit"
                                element={<AuditHistory setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/scaffold"
+                               element={<ScaffoldAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     </Routes>
                 ) : (
                     <div style={{display: 'flex', height: '100vh', justifyContent: 'center', marginTop: '60px'}}>

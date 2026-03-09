@@ -138,7 +138,8 @@ public class BannerService {
         bannerPostgresRepository.save(entry);
 
         // Audit
-        auditService.record(AuditService.TABLE_BANNER, section, section, actor, AuditService.ACTION_UPDATE, diff);
+        auditService.record(AuditService.TABLE_BANNER, section, section, actor,
+                existing == null ? AuditService.ACTION_CREATE : AuditService.ACTION_UPDATE, diff);
 
         // refresh local cache immediately so this instance is up-to-date
         cacheRefresh();

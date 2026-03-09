@@ -35,6 +35,7 @@ public class AuditService {
     public static final String TABLE_BANNER = "banner";
     public static final String TABLE_DQ     = "dq";
 
+    public static final String ACTION_CREATE = "CREATE";
     public static final String ACTION_UPDATE = "UPDATE";
     public static final String ACTION_DELETE = "DELETE";
 
@@ -59,7 +60,7 @@ public class AuditService {
      * @param entityId    primary key / identifier of the changed record
      * @param entityName  human-readable display name (may equal entityId)
      * @param actor       user id, email, or scope name
-     * @param action      ACTION_UPDATE or ACTION_DELETE
+     * @param action      ACTION_CREATE, ACTION_UPDATE or ACTION_DELETE
      * @param diff        map of changed fields; each value is a {@code {"from":…,"to":…}} map
      */
     @Transactional

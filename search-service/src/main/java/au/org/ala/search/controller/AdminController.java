@@ -111,6 +111,7 @@ public class AdminController {
     private final JavaMailSender emailSender;
     private final BannerService bannerService;
     private final AuditService auditService;
+    private final ScaffoldService scaffoldService;
 
     @Value("${biocache.url}")
     private String biocacheWsUrl;
@@ -142,7 +143,8 @@ public class AdminController {
                            DownloadFileStoreService downloadFileStoreService, StaticFileStoreService staticFileStoreService,
                            RabbitTemplate rabbitTemplate, TaxonDataService taxonDataService, ConfigService configDataService,
                            UserDataService userDataService, SitemapFileStoreService sitemapFileStoreService,
-                           JavaMailSender emailSender, BannerService bannerService, AuditService auditService) {
+                           JavaMailSender emailSender, BannerService bannerService, AuditService auditService,
+                           ScaffoldService scaffoldService) {
         this.dwCAImportService = dwCAImportService;
         this.wordpressImportService = wordpressImportService;
         this.digivolImportService = digivolImportService;
@@ -183,6 +185,7 @@ public class AdminController {
         this.emailSender = emailSender;
         this.bannerService = bannerService;
         this.auditService = auditService;
+        this.scaffoldService = scaffoldService;
     }
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
@@ -418,6 +421,78 @@ public class AdminController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(summary = "List available scaffold tables or get a paged result for a specific table",
+            description = "Without ?table returns [{table, label}]. With ?table returns {schema, content, totalElements, totalPages, number, size}.")
+    @GetMapping(path = "/admin/scaffold", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> scaffoldGet(
+            @Parameter(description = "Table name, e.g. log_event_type. Omit to list all tables.")
+            @RequestParam(required = false) String table,
+            @Parameter(description = "Zero-based page index", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Page size", example = "50")
+            @RequestParam(defaultValue = "50") int size,
+            @AuthenticationPrincipal Principal principal) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+        if (table == null || table.isBlank()) {
+            return ResponseEntity.ok(scaffoldService.listTables());
+        }
+        try {
+            return ResponseEntity.ok(scaffoldService.getPage(table, page, size));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(summary = "Create or update a row in a scaffold table",
+            description = "Body fields must match the table schema. Include 'id' to update an existing row; omit (or set null) to insert.")
+    @PostMapping(path = "/admin/scaffold", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> scaffoldUpsert(
+            @Parameter(description = "Table name, e.g. log_event_type")
+            @RequestParam String table,
+            @RequestBody Map<String, Object> body,
+            @AuthenticationPrincipal Principal principal,
+            HttpServletRequest httpRequest) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+        try {
+            Object saved = scaffoldService.upsert(table, body,
+                    authService.getActor(principal, resolveIp(httpRequest), httpRequest.getHeader("User-Agent")));
+            return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @SecurityRequirement(name = "JWT", scopes = {"admin"})
+    @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
+    @Operation(summary = "Delete a row from a scaffold table")
+    @DeleteMapping(path = "/admin/scaffold", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> scaffoldDelete(
+            @Parameter(description = "Table name, e.g. log_event_type")
+            @RequestParam String table,
+            @Parameter(description = "Row id to delete")
+            @RequestParam int id,
+            @AuthenticationPrincipal Principal principal,
+            HttpServletRequest httpRequest) {
+        if (!authService.isAdmin(principal)) {
+            throw new AccessDeniedException("Not authorised");
+        }
+        try {
+            scaffoldService.delete(table, id,
+                    authService.getActor(principal, resolveIp(httpRequest), httpRequest.getHeader("User-Agent")));
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @SecurityRequirement(name = "JWT", scopes = {"admin"})

@@ -40,6 +40,7 @@ const TABLE_OPTIONS = [
 const ACTION_CLASS: Record<string, string> = {
     UPDATE: 'badge bg-primary',
     DELETE: 'badge bg-danger',
+    CREATE: 'badge bg-success',
 };
 
 // ---- component --------------------------------------------------------------
@@ -160,14 +161,23 @@ function AuditHistory({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[])
                     {Object.entries(obj).map(([field, change]: [string, any]) => (
                         <tr key={field}>
                             <td className="font-monospace">{field}</td>
-                            <td className="text-danger font-monospace"
-                                style={{maxWidth: '300px', wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}>
-                                {renderValue(change.from)}
-                            </td>
-                            <td className="text-success font-monospace"
-                                style={{maxWidth: '300px', wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}>
-                                {renderValue(change.to)}
-                            </td>
+                            {change !== null && typeof change === 'object' && ('from' in change || 'to' in change) ? (
+                                <>
+                                    <td className="text-danger font-monospace"
+                                        style={{maxWidth: '300px', wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}>
+                                        {renderValue(change.from)}
+                                    </td>
+                                    <td className="text-success font-monospace"
+                                        style={{maxWidth: '300px', wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}>
+                                        {renderValue(change.to)}
+                                    </td>
+                                </>
+                            ) : (
+                                <td colSpan={2} className="font-monospace"
+                                    style={{maxWidth: '600px', wordBreak: 'break-all', whiteSpace: 'pre-wrap'}}>
+                                    {renderValue(change)}
+                                </td>
+                            )}
                         </tr>
                     ))}
                     </tbody>
@@ -220,8 +230,9 @@ function AuditHistory({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[])
                                 value={action}
                                 onChange={e => { setAction(e.target.value); fetchAudit(0, {action: e.target.value}); }}>
                             <option value={''}>All</option>
-                            <option value={'UPDATE'}>UPDATE</option>
+                            <option value={'CREATE'}>CREATE</option>
                             <option value={'DELETE'}>DELETE</option>
+                            <option value={'UPDATE'}>UPDATE</option>
                         </select>
                     </div>
                     <div className="d-flex gap-1 align-items-end">

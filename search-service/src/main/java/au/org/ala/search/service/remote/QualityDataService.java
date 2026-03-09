@@ -479,7 +479,7 @@ public class QualityDataService {
                         String.valueOf(savedProfile.getId()),
                         savedProfile.getShortName(),
                         actor,
-                        AuditService.ACTION_UPDATE,
+                        isNew ? AuditService.ACTION_CREATE : AuditService.ACTION_UPDATE,
                         auditService.diffObjects(before, savedProfile));
 
                 cacheRefresh();
