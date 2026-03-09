@@ -7,6 +7,7 @@
 package au.org.ala.search.repo;
 
 import au.org.ala.search.model.taxon.TaxonData;
+import au.org.ala.search.model.taxon.TaxonDataId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -19,7 +20,7 @@ import java.util.List;
  *
  * This is intended for use by TaxonDataService only.
  */
-public interface TaxonDataPostgresRepository extends JpaRepository<TaxonData, String> {
+public interface TaxonDataPostgresRepository extends JpaRepository<TaxonData, TaxonDataId> {
     @Query(value = "SELECT value FROM taxon_data WHERE taxon_concept_id = :taxonConceptId AND key = :key", nativeQuery = true)
     String getByTaxonConceptIdAndKey(String taxonConceptId, String key);
 

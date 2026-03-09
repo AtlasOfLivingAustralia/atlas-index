@@ -31,9 +31,10 @@ import java.util.*;
 @Service
 public class AuditService {
 
-    public static final String TABLE_CONFIG = "config";
-    public static final String TABLE_BANNER = "banner";
-    public static final String TABLE_DQ     = "dq";
+    public static final String TABLE_CONFIG     = "config";
+    public static final String TABLE_BANNER     = "banner";
+    public static final String TABLE_DQ         = "dq";
+    public static final String TABLE_TAXON_DATA = "taxon_data";
 
     public static final String ACTION_CREATE = "CREATE";
     public static final String ACTION_UPDATE = "UPDATE";

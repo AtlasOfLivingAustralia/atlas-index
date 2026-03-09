@@ -42,6 +42,11 @@ interface PageResult {
 
 const PAGE_SIZE = 50;
 
+function rowId(schema: Schema, row: Record<string, any>): string {
+    const pkFields = schema.fields.filter(f => f.primaryKey);
+    return pkFields.map(f => String(row[f.name] ?? '')).join(':');
+}
+
 function emptyRow(schema: Schema): Record<string, any> {
     const row: Record<string, any> = {};
     for (const f of schema.fields) {
@@ -97,7 +102,7 @@ function ScaffoldAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]
     const [saving, setSaving] = useState(false);
 
     // delete confirm
-    const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
         setBreadcrumbs([
@@ -179,7 +184,7 @@ function ScaffoldAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]
             .finally(() => setSaving(false));
     }
 
-    function confirmDelete(id: number) {
+    function confirmDelete(id: string) {
         setDeleteId(id);
     }
 
@@ -274,7 +279,7 @@ function ScaffoldAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]
                                             <button className="btn btn-outline-secondary btn-sm me-1" onClick={() => startEdit(row)}>
                                                 <i className="bi bi-pencil"/>
                                             </button>
-                                            <button className="btn btn-outline-danger btn-sm" onClick={() => confirmDelete(row['id'])}>
+                                            <button className="btn btn-outline-danger btn-sm" onClick={() => confirmDelete(rowId(schema, row))}>
                                                 <i className="bi bi-trash"/>
                                             </button>
                                         </td>

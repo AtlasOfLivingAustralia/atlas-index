@@ -40,7 +40,7 @@ public enum TaskType {
     SITEMAP("generate new sitemap.xml and children and publish to sitemap.path", TaskType.Category.INGESTION, null, true),
     DASHBOARD("update dashboard files used by the dashboard UI", TaskType.Category.INGESTION, null, true),
     TAXON_DESCRIPTION("import taxon hero descriptions into the search index from hero-descriptions.json as configured", TaskType.Category.INGESTION, null, false),
-    POSTGRES_SYNC("synchronize data from Postgres to the search index. This is for the hidden image, hero image and wiki URL values from the old species list application. Only required if updating the database after a fresh index build.", TaskType.Category.INGESTION, null, true),
+    POSTGRES_SYNC("synchronize data from Postgres to the search index. This is for the hidden image, hero image and wiki URL values from the old species list application as well as new hero description and description overrides. Only required if updating the database after a fresh index build and after a update to static description files by taxon-descriptions.", TaskType.Category.INGESTION, null, true),
 
     FIELDGUIDE("consumer of fieldguide requests", TaskType.Category.CONSUMER, FieldguideRequest.class, false),
     SEARCH_DOWNLOAD("consumer of search download requests", TaskType.Category.CONSUMER, SearchQueueRequest.class, false),

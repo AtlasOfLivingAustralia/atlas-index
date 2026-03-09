@@ -39,7 +39,8 @@ public class PostgresSyncService {
     private final LogService logService;
     private final TaxonDataService taxonDataService;
 
-    public PostgresSyncService(ElasticService elasticService, LogService logService,TaxonDataService taxonDataService) {
+    public PostgresSyncService(ElasticService elasticService, LogService logService,
+                               TaxonDataService taxonDataService) {
         this.elasticService = elasticService;
         this.logService = logService;
         this.taxonDataService = taxonDataService;
@@ -58,7 +59,8 @@ public class PostgresSyncService {
             for (String field : new String[] {
                     ListBackedFields.HIDDEN.field,
                     ListBackedFields.IMAGE.field,
-                    ListBackedFields.WIKI.field }) {
+                    ListBackedFields.WIKI.field,
+                    ListBackedFields.HERO_DESCRIPTION.field }) {
                 int count = 0;
                 List<TaxonData> toWrite = taxonDataService.findAllByKey(field);
                 for (TaxonData td : toWrite) {
@@ -97,6 +99,23 @@ public class PostgresSyncService {
 
             if (!updates.isEmpty()) {
                 elasticService.update(new ArrayList<>(updates));
+            }
+
+            // descriptions: update the taxon description file store for each override stored in taxon_data.
+            // MAY not write a file if no existing description file is found for the taxon.
+            {
+                int count = 0;
+                int skipped = 0;
+                List<TaxonData> descRecords = taxonDataService.findAllByKey(ListBackedFields.DESCRIPTIONS.field);
+                for (TaxonData td : descRecords) {
+                    if (StringUtils.isEmpty(td.getValue()) || StringUtils.isEmpty(td.getTaxonConceptId())) {
+                        skipped++;
+                        continue;
+                    }
+                    boolean written = taxonDataService.updateDescriptions(td.getTaxonConceptId(), td.getValue());
+                    if (written) count++; else skipped++;
+                }
+                logService.log(taskType, "Descriptions: " + count + " file(s) written, " + skipped + " skipped (no existing file or empty value).");
             }
 
             logService.log(taskType, endMsg);

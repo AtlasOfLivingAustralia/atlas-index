@@ -193,12 +193,14 @@ public class AdminController {
     @Operation(tags = "Admin", summary = "Set list backed value")
     @PostMapping(path = "/admin/set", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(@RequestBody SetRequest setValue,
-                                        @AuthenticationPrincipal Principal principal) {
+                                        @AuthenticationPrincipal Principal principal,
+                                        HttpServletRequest httpRequest) {
         if (!authService.isAdmin(principal)) {
             throw new AccessDeniedException("Not authorised");
         }
 
-        boolean successful = adminService.setValue(setValue);
+        String actor = authService.getActor(principal, resolveIp(httpRequest), httpRequest.getHeader("User-Agent"));
+        boolean successful = adminService.setValue(setValue, actor);
 
         if (!successful) {
             return ResponseEntity.internalServerError().build();
@@ -479,8 +481,8 @@ public class AdminController {
     public ResponseEntity<Object> scaffoldDelete(
             @Parameter(description = "Table name, e.g. log_event_type")
             @RequestParam String table,
-            @Parameter(description = "Row id to delete")
-            @RequestParam int id,
+            @Parameter(description = "Row id to delete (integer for simple PK, or 'val1:val2' for composite PK)")
+            @RequestParam String id,
             @AuthenticationPrincipal Principal principal,
             HttpServletRequest httpRequest) {
         if (!authService.isAdmin(principal)) {
@@ -638,6 +640,9 @@ public class AdminController {
             tableCounts.put("dqprofile", qualityDataService.count());
             tableCounts.put("queue", queueDataService.count());
             tableCounts.put("userdata", userDataService.count());
+            tableCounts.put("log_event_type", scaffoldService.count("log_event_type"));
+            tableCounts.put("log_reason_type", scaffoldService.count("log_reason_type"));
+            tableCounts.put("log_source_type", scaffoldService.count("log_source_type"));
 
             response.put("tables", tableCounts);
         } catch (Exception e) {
