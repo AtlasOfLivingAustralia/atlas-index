@@ -121,8 +121,16 @@ function AllView({queryString, setTab, isMobile}: ViewProps) {
         }
 
         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) + '&facets=idxtype&pageSize=0')
-            .then((response) => response.json())
+            .then((response) => {
+                if (!response.ok) {
+                    setTotal(0);
+                    setGroups([]);
+                    return null;
+                }
+                return response.json();
+            })
             .then((data) => {
+                if (!data) return;
                 // copy template and reset counts
                 let searchGroups: SearchGroupType = {};
                 for (const groupKey in searchGroupsTemplate) {
@@ -143,8 +151,12 @@ function AllView({queryString, setTab, isMobile}: ViewProps) {
                 Object.values(searchGroups).forEach((group: any) => {
                     if (group.count > 0) {
                         fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) + '&pageSize=4&fq=' + encodeURIComponent(group.fq || ''))
-                            .then((response) => response.json())
+                            .then((response) => {
+                                if (!response.ok) return null;
+                                return response.json();
+                            })
                             .then((data) => {
+                                if (!data) return;
                                 if (data?.searchResults) {
                                     var list: any[] = [];
                                     data.searchResults.forEach((result: any) => {
@@ -205,9 +217,9 @@ function AllView({queryString, setTab, isMobile}: ViewProps) {
             }
         </>}
         {queryString && total <= 0 &&
-            <span className={classes.resultsTitle} style={{marginTop: '30px'}}>
+            <div className={classes.resultsTitle} style={{marginTop: '30px'}}>
                 No results found
-            </span>}
+            </div>}
         {groups.map((group, index) => (
             <Fragment key={index}>
                 {group.count > 0 && <>

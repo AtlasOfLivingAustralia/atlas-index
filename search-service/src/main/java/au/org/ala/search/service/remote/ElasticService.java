@@ -1649,9 +1649,6 @@ public class ElasticService {
         allFqs.add("-idxtype:TAXONVARIANT");
 
         Op op = QueryParserUtil.parse(q, allFqs.toArray(new String[0]), this::isValidField);
-        if (op == null) {
-            throw new Exception("Invalid query");
-        }
 
         // generate tmpFile, includes empty columns
         File tmpFile = File.createTempFile("download", "csv");
@@ -1804,6 +1801,13 @@ public class ElasticService {
             if (term.op != null) {
                 return opToQuery(term.op);
             } else if (term.field == null) {
+                if (isWildcardValue(term.value)) {
+                    // wildcard free-text: search across exact_text and all
+                    return DisMaxQuery.of(dmq -> dmq.queries(
+                            WildcardQuery.of(wq -> wq.field("exact_text").value(term.value).boost(10.0f))._toQuery(),
+                            WildcardQuery.of(wq -> wq.field("all").value(term.value))._toQuery()
+                    ).tieBreaker(0.0))._toQuery();
+                }
                 // dismax? attempting to match
                 return DisMaxQuery.of(dmq -> dmq.queries(
                         // boost for exact_text is required so that it ranks higher than non-exact matches with higher searchWeight
@@ -1833,6 +1837,25 @@ public class ElasticService {
                 ).tieBreaker(0.0))._toQuery();
             } else if ("*".equals(term.value)) {
                 return ExistsQuery.of(eq -> eq.field(term.field))._toQuery();
+            } else if (isWildcardValue(term.value)) {
+                return WildcardQuery.of(wq -> wq.field(term.field).value(term.value))._toQuery();
+            } else if (term.rangeFrom != null || term.rangeTo != null) {
+                final String from = term.rangeFrom;
+                final String to = term.rangeTo;
+                final boolean fromInc = term.fromInclusive;
+                final boolean toInc = term.toInclusive;
+                return RangeQuery.of(rq -> {
+                    rq.field(term.field);
+                    if (from != null && !"*".equals(from)) {
+                        if (fromInc) rq.gte(JsonData.of(from));
+                        else rq.gt(JsonData.of(from));
+                    }
+                    if (to != null && !"*".equals(to)) {
+                        if (toInc) rq.lte(JsonData.of(to));
+                        else rq.lt(JsonData.of(to));
+                    }
+                    return rq;
+                })._toQuery();
             } else {
                 if (isKeywordField(term.field)) {
                     return TermQuery.of(tq -> tq.field(term.field).value(term.value))._toQuery();
@@ -1856,6 +1879,14 @@ public class ElasticService {
     }
 
     /**
+     * Returns true if the value contains Lucene wildcard characters (* or ?) but is not a bare * (handled by ExistsQuery).
+     */
+    private boolean isWildcardValue(String value) {
+        if (value == null) return false;
+        return value.contains("*") || value.contains("?");
+    }
+
+    /**
      * This is the legacy search service so the output is just a Map<String, Object> with the fields that are needed.
      */
     public Map<String, Object> searchLegacy(String q, String[] fqs, int page, int pageSize, String sort, String dir, String facets) {
@@ -1872,9 +1903,6 @@ public class ElasticService {
             newFqs = new String[]{"-idxtype:IDENTIFIER", "-idxtype:TAXONVARIANT"};
         }
         Op op = QueryParserUtil.parse(q, newFqs, this::isValidField);
-        if (op == null) {
-            return null;
-        }
 
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery((wq1 -> wq1.functionScore(fs -> fs.query(opToQuery(op))
@@ -1934,9 +1962,6 @@ public class ElasticService {
         PageRequest pageRequest = PageRequest.of(page, Math.max(1, pageSize));
 
         Op op = QueryParserUtil.parse(q, fqs, this::isValidField);
-        if (op == null) {
-            return null;
-        }
 
         NativeQueryBuilder query = NativeQuery.builder()
                 .withQuery((wq1 -> wq1.functionScore(fs -> fs.query(opToQuery(op))

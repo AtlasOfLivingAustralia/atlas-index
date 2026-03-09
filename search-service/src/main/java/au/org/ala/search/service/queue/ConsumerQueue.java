@@ -414,8 +414,12 @@ public class ConsumerQueue {
             }
 
             for (String q : queueRequest.searchQueueRequest.q) {
-                if (StringUtils.isNotEmpty(q) && !QueryParserUtil.isValid(q, elasticService::isValidField)) {
-                    return "invalid query";
+                if (StringUtils.isNotEmpty(q)) {
+                    try {
+                        QueryParserUtil.parse(q, elasticService::isValidField);
+                    } catch (Exception e) {
+                        return "invalid query: " + q;
+                    }
                 }
 
                 // Future: validate searchQueueRequest.fl by comparing with ES index fields

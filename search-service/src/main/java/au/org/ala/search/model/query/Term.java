@@ -16,4 +16,9 @@ public class Term {
     public boolean negate = false;
     public String field;
     public String value;
+    // range support
+    public String rangeFrom;
+    public String rangeTo;
+    public boolean fromInclusive;
+    public boolean toInclusive;
 }

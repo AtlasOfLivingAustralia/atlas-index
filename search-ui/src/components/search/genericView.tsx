@@ -100,7 +100,10 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
             (thisFacetFqs.length > 0 ? '&fq=' + thisFacetFqs.map((fq) => encodeURIComponent(fq)).join('&fq=') : '') + // the 'drill down' does not update the facets section
             '&pageSize=' + pageSize + '&fq=' + encodeURIComponent(props.fq) + '&page=' + thisPage + thisSortValue;
 
-        fetch(url).then((response) => response.json()).then((data) => {
+        fetch(url).then((response) => {
+            if (!response.ok) throw new Error(response.statusText);
+            return response.json();
+        }).then((data) => {
             setMaxResults(data.totalRecords);
 
             if (data.searchResults) {

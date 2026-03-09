@@ -30,11 +30,17 @@ import java.util.StringTokenizer;
  *   where term is
  *     value
  *     field:value
+ *     field:rangeValue
  *     -field:value
+ *     -field:rangeValue
  *   where value is
  *     string
  *     "string"
- *     [value TO value] // TODO: add support for both parsing and the query build for range queries
+ *   where rangeValue is
+ *     [string TO string]
+ *     {string TO string}
+ *     [string TO string}
+ *     {string TO string]
  * </pre>
  */
 public class QueryParserUtil {
@@ -44,41 +50,36 @@ public class QueryParserUtil {
         parentOp.andOp = true;
 
         if (StringUtils.isNotEmpty(q)) {
-            if (!addToOp(parentOp, q, validField)) {
-                return null;
-            }
+            addToOp(parentOp, q, validField);
         }
 
         if (fqs != null) {
             for (String fq : fqs) {
                 if (StringUtils.isNotEmpty(fq)) {
-                    if (!addToOp(parentOp, fq, validField)) {
-                        return null;
-                    }
+                    addToOp(parentOp, fq, validField);
                 }
             }
         }
 
         if (parentOp.terms.isEmpty()) {
-            return null;
+            throw new QueryParseException("Query produced no terms: '" + q + "'");
         }
 
         return parentOp;
     }
 
-    static private boolean addToOp(Op parentOp, String q, ValidField validField) {
+    static private void addToOp(Op parentOp, String q, ValidField validField) {
         Op currentOp = parse(q, validField);
-        if (currentOp != null) {
-            if (currentOp.terms.size() == 1) {
-                // add term to be ANDed
-                parentOp.terms.add(currentOp.terms.get(0));
-            } else {
-                Term t = new Term();
-                t.op = currentOp;
-                parentOp.terms.add(t);
-            }
+        if (currentOp.terms.isEmpty()) {
+            throw new QueryParseException("Query produced no terms: '" + q + "'");
+        } else if (currentOp.terms.size() == 1) {
+            // add term to be ANDed
+            parentOp.terms.add(currentOp.terms.get(0));
+        } else {
+            Term t = new Term();
+            t.op = currentOp;
+            parentOp.terms.add(t);
         }
-        return currentOp != null;
     }
 
     static public Op parse(String input, ValidField validField) {
@@ -95,13 +96,14 @@ public class QueryParserUtil {
         String prevToken = null;
         Term currentTerm = new Term();
         String currentString = null;
+        int rangeState = -1; // -1=not range, 0=from, 1=TO keyword, 2=to
         while (tokenizer.hasMoreTokens()) {
             String token = tokenizer.nextToken();
             if (isSingleValue) {
                 // append everything
                 if (":".equals(token)) {
                     // the presence of a ':' means this is not a valid isSingleValue
-                    return null;
+                    throw new QueryParseException("'" + currentTerm.value + "' is not a valid field name");
                 }
                 currentTerm.value += token;
             } else if (inString) {
@@ -129,7 +131,7 @@ public class QueryParserUtil {
             } else if (")".equals(token)) {
                 // push current op to parent
                 if (inBracket == 0) {
-                    return null;
+                    throw new QueryParseException("Unexpected ')' without matching '('");
                 }
                 inBracket--;
                 Term newTerm = new Term();
@@ -142,26 +144,45 @@ public class QueryParserUtil {
                 continue;
             } else if ("OR".equals(token)) {
                 if (":".equals(prevToken) || currentTerm.field != null || currentTerm.value != null) {
-                    // cannot have AND after an invalid term
-                    return null;
+                    throw new QueryParseException("Unexpected 'OR' after incomplete term");
                 }
                 currentOp.andOp = false;
             } else if ("AND".equals(token)) {
                 if (":".equals(prevToken) || currentTerm.field != null || currentTerm.value != null) {
-                    // cannot have AND after an invalid term
-                    return null;
+                    throw new QueryParseException("Unexpected 'AND' after incomplete term");
                 }
                 currentOp.andOp = true;
             } else if ("-".equals(token)) {
                 // this should be the pattern '-(' only. When '(' is encountered this is checked in prevToken.
+            } else if (rangeState >= 0) {
+                if (rangeState == 1) {
+                    // expecting 'TO'
+                    if (!"TO".equalsIgnoreCase(token)) {
+                        throw new QueryParseException("Expected 'TO' in range expression for field '" + currentTerm.field + "', got '" + token + "'");
+                    }
+                    rangeState = 2;
+                } else {
+                    // reading 'to' value — may end with ] or }
+                    if (token.endsWith("]")) {
+                        currentTerm.toInclusive = true;
+                    } else if (token.endsWith("}")) {
+                        currentTerm.toInclusive = false;
+                    } else {
+                        throw new QueryParseException("Range expression for field '" + currentTerm.field + "' missing closing ']' or '}'");
+                    }
+                    currentTerm.rangeTo = token.substring(0, token.length() - 1);
+
+                    rangeState = -1; // end of range
+                    currentOp.terms.add(currentTerm);
+                    currentTerm = new Term();
+                }
             } else {
                 if (currentTerm.field == null && (":".equals(prevToken) || ":".equals(token))) {
-                    // field cannot equal ':' or appear immediately after ':'
-                    return null;
+                    throw new QueryParseException("Unexpected ':' without a preceding field name");
                 } else if (currentTerm.field == null) {
                     if (currentTerm.value != null) {
                         // this is an instance of allowSingleValue:true and an invalid field copied to the value
-                        return null;
+                        throw new QueryParseException("Unexpected token '" + token + "' after value '" + currentTerm.value + "'");
                     }
                     if (token.startsWith("-")) {
                         currentTerm.negate = true;
@@ -177,19 +198,25 @@ public class QueryParserUtil {
                         currentOp.terms.add(currentTerm);
                     }
                 } else if (!":".equals(token) && ":".equals(prevToken)) { // ':' must appear before a value
-                    currentTerm.value = token;
-                    currentOp.terms.add(currentTerm);
-                    currentTerm = new Term();
+                    if (token.startsWith("[") || token.startsWith("{")) {
+                        // start of a range value
+                        currentTerm.fromInclusive = token.startsWith("[");
+                        String fromPart = token.substring(1);
+                        if (!fromPart.isEmpty()) {
+                            currentTerm.rangeFrom = fromPart;
+                            rangeState = 1;
+                        } else {
+                            throw new QueryParseException("Empty 'from' value in range expression for field '" + currentTerm.field + "'");
+                        }
+                    } else {
+                        currentTerm.value = token;
+                        currentOp.terms.add(currentTerm);
+                        currentTerm = new Term();
+                    }
                 }
             }
             prevToken = token;
         }
         return parentOp;
-    }
-
-    static public boolean isValid(String query, ValidField validField) {
-        Op op = parse(query, validField);
-
-        return op != null;
     }
 }

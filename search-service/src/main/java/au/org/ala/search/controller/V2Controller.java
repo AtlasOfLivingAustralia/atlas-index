@@ -21,6 +21,7 @@ import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
 import au.org.ala.search.service.remote.*;
+import au.org.ala.search.util.QueryParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -307,7 +308,12 @@ public class V2Controller {
                     example = "guid,name,idxtype"
             )
             @Nullable @RequestParam(name = "fl", required = false) String[] fl) {
-        Map<String, Object> result = elasticService.search(q, fqs, page, pageSize, sort, dir, facets, fl);
+        Map<String, Object> result;
+        try {
+            result = elasticService.search(q, fqs, page, pageSize, sort, dir, facets, fl);
+        } catch (QueryParseException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid query", "message", e.getMessage()));
+        }
         if (result == null) {
             // Most likely it is a badly formed query
             return ResponseEntity.badRequest().build();
