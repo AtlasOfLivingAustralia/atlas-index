@@ -234,7 +234,6 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                     if (response.status === 404) {
                         setLoadStatus('no results');
                     } else {
-                        console.log(response);
                         setLoadStatus('error');
                     }
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -277,6 +276,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
 
                 let newImages: ImageData[] = [];
                 data.occurrences.forEach((occ: any) => {
+                    if (!occ.imageMetadata) return; // skip without image metadata (biocache probably failed to get this from images-service)
                     for (let img of occ.imageMetadata) {
                         newImages.push({
                             uuid: occ.uuid,
@@ -308,8 +308,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                 setImages((prevImages) => [...prevImages, ...newImages]);
                 setLoadStatus('done');
             })
-            .catch((e) => {
-                console.error('Error fetching data:', e);
+            .catch(() => {
                 setLoadStatus('error');
             });
     };
@@ -759,8 +758,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                 <div className="col-md-9 ps-4 pe-4">
                     {loadStatus === 'done' && (
                         <div className="alert alert-info">
-                            <strong>{images.length}</strong> image(s) loaded
-                            from <strong>{totalRecords}</strong> records
+                            <strong>{images.length}</strong> image(s) loaded from <strong>{offset}</strong> of <strong>{totalRecords}</strong> records
                         </div>
                     )}
                     {loadStatus === 'no results' && (
