@@ -50,7 +50,7 @@ function Home({setBreadcrumbs, isMobile, breadcrumb}: HomeProps) {
     function fetchData(newPage?: number) {
         const thisPage = newPage !== undefined ? newPage : page;
 
-        const url = import.meta.env.VITE_APP_DOI_URL + `/doi?max=${pageSize}&offset=${thisPage * pageSize}&sort=dateMinted&order=desc`;
+        const url = import.meta.env.VITE_APP_DOI_URL + `/doi?max=${pageSize}&offset=${thisPage * pageSize}&sort=dateMinted&order=desc&activeStatus=active`;
         fetch(url, {
             method: 'GET',
             headers: {

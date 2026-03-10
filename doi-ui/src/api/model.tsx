@@ -16,9 +16,11 @@ interface DoiData {
     };
     dateCreated?: string;
     doi: string;
+    active?: boolean;
     displayTemplate?: boolean;
     applicationMetadata?: {
         recordCount: number;
+        searchUrl?: string;
         datasets: {
             name: string;
             licence: string;

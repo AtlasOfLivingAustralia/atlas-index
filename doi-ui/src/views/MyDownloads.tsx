@@ -120,7 +120,7 @@ function MyDownloads({setBreadcrumbs, isMobile, breadcrumb}: MyDownloadsProps) {
 
         setLoading(true);
 
-        const url = import.meta.env.VITE_APP_DOI_URL + `/doi?max=${pageSize}&offset=${pageToFetch * pageSize}&sort=dateCreated&order=desc&userId=${userInfo?.userId}`;
+        const url = import.meta.env.VITE_APP_DOI_URL + `/doi?max=${pageSize}&offset=${pageToFetch * pageSize}&sort=dateCreated&order=desc&userId=${userInfo?.userId}&activeStatus=active`;
         fetch(url, {
             method: 'GET',
             headers: {

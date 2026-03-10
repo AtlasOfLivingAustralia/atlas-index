@@ -5,7 +5,7 @@
  */
 
 
-import {Breadcrumb, useUser} from '@ala/common-ui';
+import {Breadcrumb, handleLogin, useUser} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {DoiData} from '../api/model.tsx';
@@ -88,16 +88,27 @@ function Doi({setBreadcrumbs, isMobile, doi, breadcrumb}: DoiProps) {
     }
 
     function canDownload() {
-        if (!userInfo || !userInfo.roles || !data?.filename) return false;
+        if (!data?.filename) return false;
+        if (!userInfo?.authenticated) return false;
 
         // UI toggle only, backend will also enforce
         // Permitted when user is admin or all authorisedRoles are met
         const accessRoles: string[] = data?.authorisedRoles || [];
         if (accessRoles.length > 0) {
-            const hasAccess = userInfo.roles.includes(import.meta.env.VITE_APP_ROLE_ADMIN) || accessRoles.every(role => userInfo.roles?.includes(role));
-            if (!hasAccess) return false;
+            return userInfo.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) || accessRoles.every(role => userInfo.roles?.includes(role));
         }
         return true;
+    }
+
+    function downloadUnavailableReason(): string | null {
+        if (!data?.filename) return 'file not available';
+        if (!userInfo?.authenticated) return 'not logged in';
+        const accessRoles: string[] = data?.authorisedRoles || [];
+        if (accessRoles.length > 0) {
+            const hasAccess = userInfo.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) || accessRoles.every(role => userInfo.roles?.includes(role));
+            if (!hasAccess) return 'insufficient permissions';
+        }
+        return null;
     }
 
     function download() {
@@ -179,6 +190,24 @@ function Doi({setBreadcrumbs, isMobile, doi, breadcrumb}: DoiProps) {
             {!loading && data && (
                 <div className='row'
                      style={{maxWidth: '1200px', margin: '0 auto', padding: (isMobile ? '0 0px' : '0 15px'), marginTop: (isMobile ? '30px' : '60px')}}>
+                    {data.active === false && (
+                        <div style={{
+                            background: '#ffc107',
+                            color: '#212121',
+                            fontWeight: 700,
+                            fontSize: '20px',
+                            lineHeight: '28px',
+                            padding: '16px 24px',
+                            borderRadius: '6px',
+                            marginBottom: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px'
+                        }}>
+                            <span style={{fontSize: '24px'}}>⚠</span>
+                            Unpublished — this DOI is not publicly listed
+                        </div>
+                    )}
                     <div className='d-flex justify-content-center'>
                         {!loading && data && (
                             <>
@@ -221,12 +250,30 @@ function Doi({setBreadcrumbs, isMobile, doi, breadcrumb}: DoiProps) {
                         )}
                     </div>
 
-                    <div className='d-flex justify-content-end'
-                         title={!canDownload() ? 'Insufficient permissions': ''}>
-                        <div className={'btn btn-primary ms-auto ' + (canDownload() ? '' : 'disabled')}
-                             onClick={() => download()}>
-                            Download file
-                        </div>
+                    <div className='d-flex justify-content-end align-items-center' style={{gap: '16px', flexWrap: 'wrap'}}>
+                        {canDownload() ? (
+                            <div className='btn btn-primary' onClick={() => download()}>
+                                Download file
+                            </div>
+                        ) : (
+                            <span style={{color: '#6c757d', fontSize: '14px'}}>
+                                {downloadUnavailableReason() === 'not logged in' && (
+                                    <>You must <a href='#' onClick={(e) => { e.preventDefault(); handleLogin(import.meta.env.VITE_APP_API_URL); }}>log in</a> to download this file</>
+                                )}
+                                {downloadUnavailableReason() === 'insufficient permissions' && (
+                                    <>
+                                        Insufficient permissions to download this file
+                                        {data?.applicationMetadata?.searchUrl && <> — <a href={data.applicationMetadata.searchUrl}>visit the search and initiate a new download</a></>}
+                                    </>
+                                )}
+                                {downloadUnavailableReason() === 'file not available' && (
+                                    <>
+                                        File not available
+                                        {data?.applicationMetadata?.searchUrl && <> — <a href={data.applicationMetadata.searchUrl}>visit the search and initiate a new download</a></>}
+                                    </>
+                                )}
+                            </span>
+                        )}
                     </div>
                     <Metadata data={data} isMobile={isMobile} download={canDownload() ? download : undefined} />
 
