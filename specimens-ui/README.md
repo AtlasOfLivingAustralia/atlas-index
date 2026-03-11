@@ -10,6 +10,8 @@ The list of collections to include in the specimens UI are defined in `./public/
 process, this file is used to generate a `./src/api/sources/collections.json` by fetching the collection metadata from
 `.env.production:VITE_APP_COLLECTIONS_URL` and based on the `collections.json` file.
 
+Make sure the folder `./src/api/sources/` exists before running the build process, otherwise the build will fail.
+
 The `./src/api/sources/collections.json` file is not rebuilt if it already exists, so if you change the
 `./public/collections.json` file, you also need to delete `./src/api/sources/collections.json`.
 
@@ -27,6 +29,11 @@ node buildCollections.js
 ```
 
 ### Install dependencies and run the development server
+
+In your `-ui` project directory, run:
+```bash
+yarn link @ala/common-ui
+```
 
 ```bash
 yarn install

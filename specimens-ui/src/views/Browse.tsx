@@ -625,8 +625,18 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                             <h3>Taxonomy</h3>
                             <ul style={{ marginLeft: 0, marginBottom: 0 }}>
                                 {taxonomyHierarchy.map((level, i) => (
-                                    <li key={i}>
-                                        <span style={{ fontWeight: 'bold', marginLeft: ranks.indexOf(level?.displayRank?.toLowerCase()) * 10 + 'px',}}>
+                                    <li key={i} className={'test-taxon-rank'}>
+                                        <span
+                                            style={{
+                                                fontWeight: 'bold',
+                                                marginLeft:
+                                                    ranks.indexOf(
+                                                        level?.displayRank?.toLowerCase()
+                                                    ) *
+                                                        10 +
+                                                    'px',
+                                            }}
+                                        >
                                             {level.displayRank}
                                         </span>
                                         :&nbsp;
@@ -677,7 +687,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                         {facets
                             .filter((it) => facetsToShow.includes(it.fieldName))
                             .map((facet, i) => (
-                                <div key={i}>
+                                <div key={i} className={'test-' + facetNames[facet.fieldName]+'-facet'}>
                                     <h3
                                         style={{
                                             marginBottom: '5px',
@@ -720,8 +730,8 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                 </div>
                 <div className="col-md-9 ps-4 pe-4">
                     {loadStatus === 'done' && (
-                        <div className="alert alert-info">
-                            <strong>{images.length}</strong> image(s) loaded from <strong>{offset + pageSize}</strong> of <strong>{totalRecords}</strong> records
+                        <div className="alert alert-info test-images-summary">
+                            <strong>{images.length}</strong> image(s) loaded from <strong>{offset + pageSize}</strong> of <strong className={'test-total-records'}>{totalRecords}</strong> records
                         </div>
                     )}
                     {loadStatus === 'no results' && (
@@ -739,7 +749,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                             The search timed out.
                         </div>
                     )}
-                    <div ref={imageContainerRef}>
+                    <div ref={imageContainerRef} className={'test-images-container'}>
                         {images.map((img, idx) => (
                             <div className="imgCon" key={idx}>
                                 <a href={img.largeImageViewerUrl}>
@@ -802,7 +812,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                         {offset + pageSize < totalRecords &&
                             loadStatus !== 'loading' && (
                                 <span
-                                    className="btn clickable"
+                                    className="btn clickable test-show-more"
                                     onClick={onShowMoreResults}
                                 >
                                     Show more results
