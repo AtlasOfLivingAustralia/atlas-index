@@ -10,7 +10,7 @@ import {Breadcrumb, useUser} from '@ala/common-ui';
 
 // ---- types ------------------------------------------------------------------
 
-type Severity = 'INFO' | 'WARNING' | 'ERROR';
+type Severity = 'INFO' | 'WARNING' | 'DANGER';
 
 interface BannerEntry {
     message: string;
@@ -45,12 +45,12 @@ function validateHtml(value: string): string | null {
     return null;
 }
 
-const SEVERITY_OPTIONS: Severity[] = ['INFO', 'WARNING', 'ERROR'];
+const SEVERITY_OPTIONS: Severity[] = ['INFO', 'WARNING', 'DANGER'];
 
 const SEVERITY_CLASS: Record<Severity, string> = {
     INFO: 'alert-info',
     WARNING: 'alert-warning',
-    ERROR: 'alert-danger',
+    DANGER: 'alert-danger',
 };
 
 // ---- component --------------------------------------------------------------
