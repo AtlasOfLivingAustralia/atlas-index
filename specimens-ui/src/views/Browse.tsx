@@ -626,55 +626,18 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                             <ul style={{ marginLeft: 0, marginBottom: 0 }}>
                                 {taxonomyHierarchy.map((level, i) => (
                                     <li key={i}>
-                                        <span
-                                            style={{
-                                                fontWeight: 'bold',
-                                                marginLeft:
-                                                    ranks.indexOf(
-                                                        level?.displayRank?.toLowerCase()
-                                                    ) *
-                                                        10 +
-                                                    'px',
-                                            }}
-                                        >
+                                        <span style={{ fontWeight: 'bold', marginLeft: ranks.indexOf(level?.displayRank?.toLowerCase()) * 10 + 'px',}}>
                                             {level.displayRank}
                                         </span>
                                         :&nbsp;
-                                        <span
-                                            className={
-                                                (
-                                                    taxonomyCurrentRank.values ||
-                                                    ''
-                                                ).length > 0 ||
-                                                i < taxonomyHierarchy.length - 1
-                                                    ? 'clickable'
-                                                    : ''
-                                            }
-                                            onClick={() =>
-                                                removeLowerRanks(
-                                                    level.displayRank
-                                                )
-                                            }
-                                        >
+                                        <span className={i > taxonomyHierarchy.length - 1 ? 'clickable' : ''}
+                                            onClick={() => i <= taxonomyHierarchy.length - 1 || removeLowerRanks(level.displayRank)}>
                                             {level.name}
                                         </span>
                                     </li>
                                 ))}
                                 <li>
-                                    <span
-                                        style={{
-                                            fontWeight: 'bold',
-                                            marginLeft:
-                                                ranks.indexOf(
-                                                    (
-                                                        taxonomyCurrentRank?.currentRankLabel ||
-                                                        ''
-                                                    ).toLowerCase()
-                                                ) *
-                                                    10 +
-                                                'px',
-                                        }}
-                                    >
+                                    <span style={{fontWeight: 'bold', marginLeft: ranks.indexOf((taxonomyCurrentRank?.currentRankLabel || '').toLowerCase()) * 10 + 'px'}}>
                                         {taxonomyCurrentRank.currentRankLabel}
                                     </span>
                                     <ul>
@@ -758,7 +721,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                 <div className="col-md-9 ps-4 pe-4">
                     {loadStatus === 'done' && (
                         <div className="alert alert-info">
-                            <strong>{images.length}</strong> image(s) loaded from <strong>{offset}</strong> of <strong>{totalRecords}</strong> records
+                            <strong>{images.length}</strong> image(s) loaded from <strong>{offset + pageSize}</strong> of <strong>{totalRecords}</strong> records
                         </div>
                     )}
                     {loadStatus === 'no results' && (
