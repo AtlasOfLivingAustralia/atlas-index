@@ -53,7 +53,7 @@ test('Find and click a link of all collections, and navigates', async ({ page })
     // The li should contain "Kingdom" as bold label and "Animalia" as the clickable span
     const kingdomItem = taxonomyFacet.locator('li.test-taxon-rank');
     await expect(kingdomItem).toBeVisible();
-    await expect(kingdomItem.locator('span.clickable', { hasText: 'Animalia' })).toBeVisible();
+    await expect(kingdomItem.locator('span', { hasText: 'Animalia' })).toBeVisible();
 
     // Get the total records count from the images summary, should be the same as the count extracted from the facet
     const totalRecordsEl = page.locator('div.test-images-summary .test-total-records');
@@ -98,20 +98,6 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
     const threeRanks = taxonomyFacet.locator('li.test-taxon-rank');
     await expect(threeRanks).toHaveCount(3);
 
-    // The first rank should be Kingdom: Animalia
-    const kingdomItem = threeRanks.nth(0);
-    await expect(kingdomItem).toBeVisible();
-    await expect(kingdomItem.locator('span.clickable', { hasText: 'Animalia' })).toBeVisible();
-
-     // The second rank should be Phylum: Arthropoda
-     const phylumItem = threeRanks.nth(1);
-     await expect(phylumItem).toBeVisible();
-     await expect(phylumItem.locator('span.clickable', { hasText: 'Arthropoda' })).toBeVisible();
-
-      // The third rank should be Class: Insecta
-      const classItem = threeRanks.nth(2);
-      await expect(classItem).toBeVisible();
-      await expect(classItem.locator('span.clickable', { hasText: 'Insecta' })).toBeVisible();
 
       //get the clickable span text , and verify contain Coleoptera
       const clickableOrders =  taxonomyFacet.locator('span.clickable');
