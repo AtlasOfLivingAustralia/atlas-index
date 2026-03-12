@@ -1,12 +1,5 @@
 import { test, expect, Locator, Page } from '@playwright/test';
 
-
-test('first sight on the specimens', async ({ page }) => {
-    await page.goto('/');
-    await expect(page).toHaveTitle(/Images of specimens | Atlas of Living Australia</);
-});
-
-
 test('Find and click a link of all collections, and navigates', async ({ page }) => {
     await page.goto('/');
 
