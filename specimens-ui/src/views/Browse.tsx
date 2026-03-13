@@ -731,7 +731,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                 <div className="col-md-9 ps-4 pe-4">
                     {loadStatus === 'done' && (
                         <div className="alert alert-info test-images-summary">
-                            <strong>{images.length}</strong> image(s) loaded from <strong>{offset + pageSize}</strong> of <strong className={'test-total-records'}>{totalRecords}</strong> records
+                            <strong>{images.length}</strong> image(s) loaded from <strong>{Math.min(offset + images.length, totalRecords)}</strong> of <strong className={'test-total-records'}>{totalRecords}</strong> records
                         </div>
                     )}
                     {loadStatus === 'no results' && (
