@@ -51,19 +51,19 @@ test('Find and click a link of all collections, and navigates', async ({ page })
 
     // after clicking "Animalia", the taxon rank items should be visible under the taxonomy facet
     // The li should contain "Kingdom" as bold label and "Animalia" as the clickable span
-    const kingdomItem = taxonomyFacet.locator('li.test-taxon-rank');
+    const kingdomItem = taxonomyFacet.locator('li.taxon-rank');
     await expect(kingdomItem).toBeVisible();
     await expect(kingdomItem.locator('span', { hasText: 'Animalia' })).toBeVisible();
 
     // Get the total records count from the images summary, should be the same as the count extracted from the facet
-    const totalRecordsEl = page.locator('div.test-images-summary .test-total-records');
+    const totalRecordsEl = page.locator('div.images-summary .total-records');
     await expect(totalRecordsEl).toBeVisible();
     const totalRecordsText = await totalRecordsEl.innerText();
     const totalRecords = parseInt(totalRecordsText.replace(/,/g, ''), 10);
     console.log(`Total images for Animalia: ${totalRecords}`);
     expect(totalRecords).toBe(countOfAnimalia)
 
-    const imagesEl = page.locator('div.test-images-container')
+    const imagesEl = page.locator('div.images-container')
     await expect(imagesEl).toBeVisible();
     const images = imagesEl.locator('.imgCon');
     await expect(images.first()).toBeVisible();
@@ -95,31 +95,31 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
     const taxonomyFacet = page.locator('div#taxonomyFacet');
     await expect(taxonomyFacet).toHaveCount(1);
 
-    const threeRanks = taxonomyFacet.locator('li.test-taxon-rank');
+    const threeRanks = taxonomyFacet.locator('li.taxon-rank');
     await expect(threeRanks).toHaveCount(3);
 
 
-      //get the clickable span text , and verify contain Coleoptera
-      const clickableOrders =  taxonomyFacet.locator('span.clickable');
-      await expect(clickableOrders.first()).toBeVisible();
-      const orderCount = await clickableOrders.count();
-      expect(orderCount).toBeGreaterThan(0);
+    //get the clickable span text , and verify contain Coleoptera
+    const clickableOrders =  taxonomyFacet.locator('span.clickable');
+    await expect(clickableOrders.first()).toBeVisible();
+    const orderCount = await clickableOrders.count();
+    expect(orderCount).toBeGreaterThan(0);
 
-      // Check at least one of the clickable spans contain "Coleoptera"
-      let foundColeoptera = false;
-      for (let i = 0; i < orderCount; i++) {
+    // Check at least one of the clickable spans contain "Coleoptera"
+    let foundColeoptera = false;
+    for (let i = 0; i < orderCount; i++) {
         const text = await clickableOrders.nth(i).innerText();
         if (text.includes('Coleoptera')) {
           foundColeoptera = true;
           break;
         }
-      }
-      expect(foundColeoptera).toBeTruthy();
+    }
+    expect(foundColeoptera).toBeTruthy();
 
-      // find all counts in parentheses in the clickable spans, and verify they are all greater than 0
-      // and sum up the counts and verify the total is greater than 1000
-      let totalCount = 0;
-      for (let i = 0; i < orderCount; i++) {
+    // find all counts in parentheses in the clickable spans, and verify they are all greater than 0
+    // and sum up the counts and verify the total is greater than 1000
+    let totalCount = 0;
+    for (let i = 0; i < orderCount; i++) {
         const text = await clickableOrders.nth(i).innerText();
         const countMatch = text.match(/\((\d+)\)/);
         if (countMatch) {
@@ -127,19 +127,19 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
             expect(count).toBeGreaterThan(0);
             totalCount += count;
         }
-      }
+    }
 
-      console.log(`Total count of images : ${totalCount}`);
+    console.log(`Total count of images : ${totalCount}`);
 
     // Get the total records count from the images summary, should be the same as the count extracted from the facet
-    const totalRecordsEl = page.locator('div.test-images-summary .test-total-records');
+    const totalRecordsEl = page.locator('div.images-summary .total-records');
     await expect(totalRecordsEl).toBeVisible();
     const totalRecordsText = await totalRecordsEl.innerText();
     const totalRecords = parseInt(totalRecordsText.replace(/,/g, ''), 10);
     console.log(`Total images for Animalia: ${totalRecords}`);
     expect(totalRecords).toBe(totalCount)
 
-    const imagesEl = page.locator('div.test-images-container')
+    const imagesEl = page.locator('div.images-container')
     await expect(imagesEl).toBeVisible();
     let images = imagesEl.locator('.imgCon');
     await expect(images.first()).toBeVisible();
@@ -152,7 +152,7 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
     }
     // Test show more button if total count is greater than 100, click it and verify more images are loaded
     if (totalCount > 100) {
-        const showMoreButton = page.locator('.btn.test-show-more');
+        const showMoreButton = page.locator('.btn.show-more');
         const showMoreCount = await showMoreButton.count();
         expect(showMoreCount).toBeGreaterThan(0);
         if (showMoreCount > 0) {
@@ -174,7 +174,7 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
 
     //Taxon DONE
     //Start Type
-    const typesFacet = page.locator('div.test-Types-facet');
+    const typesFacet = page.locator('div.typeStatus-facet');
     await expect(typesFacet).toHaveCount(1);
 
     const clickableTypes =  typesFacet.locator('span.clickable');
@@ -207,7 +207,7 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
         await holotypeClickable.scrollIntoViewIfNeeded();
         await holotypeClickable.click();
 
-        const filteredTotalRecordsEl = page.locator('div.test-images-summary .test-total-records');
+        const filteredTotalRecordsEl = page.locator('div.images-summary .total-records');
         await expect(filteredTotalRecordsEl).toBeVisible();
         const filteredTotalRecordsText = await filteredTotalRecordsEl.innerText();
         const filteredTotalRecords = parseInt(filteredTotalRecordsText.replace(/,/g, ''), 10);
