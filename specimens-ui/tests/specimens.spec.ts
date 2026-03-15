@@ -13,8 +13,11 @@ test('Find and click a link of all collections, and navigates', async ({ page })
     const browseLink = page.getByText('To view images from all collections,').locator('..').locator('a[href*="/browse"]');
     await expect(browseLink).toBeVisible();
 
-    // Click the link to navigate to the browse page
-    await browseLink.click();
+    // Click the link to navigate to the browse page and wait for the browse URL to be loaded
+    await Promise.all([
+        page.waitForURL(/\/browse/),
+        browseLink.click(),
+    ]);
     const taxonomyFacet = page.locator('div#taxonomyFacet');
     await expect(taxonomyFacet).toHaveCount(1);
 
