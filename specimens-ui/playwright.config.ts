@@ -43,7 +43,7 @@ export default defineConfig({
         viewport: { width: 1920, height: 1080 }
       },
     },
-  /*  {
+    {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'],
         viewport: { width: 1920, height: 1080 }
@@ -56,7 +56,7 @@ export default defineConfig({
       },
     },
 
-    /!* Test against branded browsers. *!/
+    /* Test against branded browsers. */
     {
       name: 'Microsoft Edge',
       use: { ...devices['Desktop Edge'], channel: 'msedge',
@@ -68,7 +68,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], channel: 'chrome',
         viewport: { width: 1920, height: 1080 }
       },
-    },*/
+    },
   ],
 
   /* Run your local dev server before starting the tests */
