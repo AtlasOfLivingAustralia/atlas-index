@@ -32,6 +32,7 @@ import '@fontsource/roboto/700.css';
 import Download from "./views/Download.tsx";
 import DownloadStatus from "./views/DownloadStatus.tsx";
 import ExploreYourArea from "./views/ExploreYourArea.tsx";
+import Fields from "./views/Fields.tsx";
 import Occurrence from "./views/Occurrence.tsx";
 import OccurrenceList from "./views/OccurrenceList.tsx";
 import OccurrenceSearch from "./views/OccurrenceSearch.tsx";
@@ -102,6 +103,8 @@ export default function App() {
 
                 <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE} />
 
+                <div style={{ marginTop: '20px'}}/>
+
                 <Routes>
                     <Route path='/' element={<OccurrenceSearch setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/occurrences/search' element={<OccurrenceList setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
@@ -110,6 +113,7 @@ export default function App() {
                     <Route path='/download/options1' element={<Download setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     {/*<Route path='/download/options2' element={<DownloadPage2 setBreadcrumbs={setBreadcrumbs} />} />*/}
                     <Route path='/download/confirm' element={<DownloadStatus setBreadcrumbs={setBreadcrumbs}  />} />
+                    <Route path='/fields' element={<Fields setBreadcrumbs={setBreadcrumbs} />} />
                     <Route path="*" element={<NotFoundWithBreadcrumbs setBreadcrumbs={setBreadcrumbs} />}/>
                 </Routes>
 

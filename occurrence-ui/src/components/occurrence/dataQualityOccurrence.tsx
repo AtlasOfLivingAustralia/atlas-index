@@ -124,7 +124,7 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
     }
 
     return (
-        <div className="additionalData">
+        <div id="dataQualityInfo" className="additionalData">
             <h3><FormattedMessage id="show.dataquality.title" defaultMessage="Data quality tests"/></h3>
             <table className="dataQualityResults table table-striped table-bordered table-condensed">
                 <thead>

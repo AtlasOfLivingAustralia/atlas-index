@@ -89,14 +89,20 @@ interface QualityProfile {
 
 interface FieldInfo {
     name: string,
-    description: string,
-    dataType: string,
-    indexed: boolean,
-    stored: boolean,
-    multiValued: boolean,
-    info: string,
-    dwcTerm: string,
-    category: string
+    jsonName?: string,
+    downloadName?: string,
+    description?: string,
+    downloadDescription?: string,
+    dataType?: string,
+    indexed?: boolean,
+    stored?: boolean,
+    multiValued?: boolean,
+    i18nValues?: boolean,
+    info?: string,
+    infoUrl?: string,
+    dwcTerm?: string,
+    classs?: string,
+    category?: string
 }
 
 interface IndexFields {

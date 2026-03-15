@@ -215,7 +215,7 @@ function RecordsView({
                                     )}
 
                                     <span className='resultsLabel'>
-                                        <Link to={`/occurrences/${result.uuid}`}>View record</Link>
+                                        <Link to={`/occurrence/${result.uuid}`}>View record</Link>
                                     </span>
                                 </p>
                             </div>

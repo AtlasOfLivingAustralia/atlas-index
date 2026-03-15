@@ -58,12 +58,6 @@ function Occurrence({setBreadcrumbs}: {
     const intl: IntlShape = useIntl();
 
     useEffect(() => {
-        setBreadcrumbs([
-            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Occurrence records', href: '/'},
-            {title: 'Occurrence', href: '/occurrence'},
-        ]);
-
         fetchOccurrence();
     }, []);
 
@@ -81,6 +75,18 @@ function Occurrence({setBreadcrumbs}: {
 
         fetchPageIds();
     }, [recordsViewProps]);
+
+    useEffect(() => {
+        updateBreadcrumb();
+    }, [record]);
+
+    function updateBreadcrumb() {
+        setBreadcrumbs([
+            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+            {title: 'Occurrence records', href: '/'},
+            {title: 'Record: ' + recordId(), href: '/occurrence'},
+        ]);
+    }
 
     const fetchPageIds = async () => {
         const indexJson = await fetch(
@@ -202,6 +208,8 @@ function Occurrence({setBreadcrumbs}: {
             getUserAssertions(fetchUuid);
 
             getCompareRecordInfo(fetchUuid);
+
+            updateBreadcrumb();
         } catch (error) {
             // TODO: 404 or other error to display
             console.error(error);

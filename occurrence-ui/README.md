@@ -46,11 +46,7 @@ VITE_ENV=local
 # other services
 VITE_APP_BIOCACHE_URL=https://biocache-ws.ala.org.au/ws
 VITE_APP_BASE_URL=http://localhost:5173
-VITE_APP_DOI_UI_URL=http://localhost:5173
 VITE_APP_API_URL=http://localhost:8081
-VITE_APP_DOI_URL=http://localhost:8081/v1
-VITE_APP_DOI_RESOLVER=https://api.test.datacite.org/
-VITE_APP_ROLE_ADMIN=ROLE_ADMIN
 
 # minimal header and footer urls
 VITE_CONTACT_URL=https://www.ala.org.au/contact-us/

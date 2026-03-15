@@ -39,7 +39,7 @@ function DataQualityExcluded({queryString, category, addParams}: DataQualityExcl
         {count !== undefined ?
             <div onClick={() => showOnly()} className={count > 0 ? "dqLabel" : ''}>({count} <FormattedMessage id="quality.filters.excludeCount" defaultMessage="records excluded" />)</div>
             :
-            <div className="spinner-border" role="status">
+            <div className="spinner-border" role="status" style={{width: "1.5em", height: "1.5em"}}>
                 <span className="visually-hidden">...</span>
             </div>
         }

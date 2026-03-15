@@ -1,8 +1,8 @@
 /* header colour */
-#breadcrumb {
-    background-color: transparent !important;
-    border: none !important;
-}
+/*#breadcrumb {*/
+/*    background-color: transparent !important;*/
+/*    border: none !important;*/
+/*}*/
 
 .btn.ala-btn-primary {
     position: relative;
@@ -73,4 +73,50 @@ svg[class~="leaflet-attribution-flag"] {
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: 18px;
+}
+
+.query-text-truncated {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 4.5em;
+    line-height: 1.5em;
+    width: 100%;
+}
+
+.query-text-expanded {
+    display: block;
+    max-height: none;
+    width: 100%;
+}
+
+
+.query-toggle {
+    cursor: pointer;
+    white-space: nowrap;
+    margin-left: 5px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.query-toggle:hover {
+    text-decoration: none;
+}
+
+.query-toggle i {
+    transition: transform 0.2s ease;
+}
+
+.btn-sm {
+    padding: 4px 8px !important;
+    /*font-size: 12px !important;*/
+    line-height: 1.5 !important;
+    /*border-radius: 3px !important;*/
+}
+
+.activeFilters {
+    border: 1px #999 solid;
+    border-radius: 4px;
 }

@@ -138,7 +138,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
 
                     {record.systemAssertions && record.processed?.attribution?.provenance !== 'Draft' && (
                         <li>
-                            <a href='#dataQuality'>
+                            <a href='#dataQualityInfo'>
                                 <FormattedMessage id='show.dataquality.title' defaultMessage='Data quality tests' /> ({record.systemAssertions.failed?.length || 0}{' '}
                                 <RolloverTooltip text={intl.formatMessage({ id: 'assertions.failed', defaultMessage: 'failed' })}>
                                     <FontAwesomeIconLite icon={faTimesCircle} style={{ color: 'red' }} title=' failed' />

@@ -4,7 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useEffect, useState} from "react";
+import { useEffect, useRef, useState } from 'react';
+import TaxonDropdown from "./taxonDropdown.tsx";
 
 interface ResultsReturnedProps {
     results?: {},
@@ -14,7 +15,22 @@ interface ResultsReturnedProps {
 // TODO: i18n
 function ResultsReturned({results, queryString}: ResultsReturnedProps) {
 
+    const [expanded, setExpanded] = useState(false);
+    const [showToggle, setShowToggle] = useState(false);
     const [count, setCount] = useState<number | undefined>();
+
+    const queryRef = useRef<HTMLSpanElement>(null);
+
+    useEffect(() => {
+        // Temporarily force truncated class to measure natural overflow, then restore
+        if (queryRef.current) {
+            const el = queryRef.current;
+            const prev = el.className;
+            el.className = 'query-text-truncated';
+            setShowToggle(el.scrollHeight > el.clientHeight);
+            el.className = prev;
+        }
+    }, [results]);
 
     useEffect(() => {
         setCount(undefined);
@@ -32,20 +48,52 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
         }
     }
 
+    function toggleExpanded(e: React.MouseEvent<HTMLAnchorElement>) {
+        e.preventDefault();
+        if (expanded) {
+            setExpanded(false);
+            setTimeout(() => {
+                if (queryRef.current) {
+                    const rect = queryRef.current.getBoundingClientRect();
+                    const inView = rect.top >= 0 && rect.top < window.innerHeight;
+                    if (!inView) {
+                        queryRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                }
+            }, 0);
+        } else {
+            setExpanded(true);
+        }
+    }
+
     return <>
-        <span id="returnedText">
+        <div id="returnedText" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0 4px' }}>
             {/*@ts-ignore*/}
-            <strong>{results && new Intl.NumberFormat().format(results.totalRecords)}</strong>
-            <span>&nbsp;records returned</span>
-            {count && <>
-                <span>&nbsp;of&nbsp;</span>
-                {/*@ts-ignore*/}
-                <strong>{new Intl.NumberFormat().format(count)}</strong>
-            </>}
-            <span>&nbsp;for&nbsp;</span>
-            {/*@ts-ignore*/}
-            <strong dangerouslySetInnerHTML={{__html: results && results.queryTitle}}></strong>
-        </span>
+            {!results?.totalRecords
+                ? <div className="spinner-border" role="status" style={{width: "1em", height: "1em"}}><span className="visually-hidden">...</span></div>
+                : <strong>{results && new Intl.NumberFormat().format(results.totalRecords)}</strong>
+            }
+            <span>records returned</span>
+            {count === undefined
+                ? <><span>of</span><div className="spinner-border spinner-border-sm" role="status" style={{width: "1em", height: "1em"}}><span className="visually-hidden">...</span></div></>
+                : <><span>of</span>{/*@ts-ignore*/}<strong>{new Intl.NumberFormat().format(count)}</strong></>
+            }
+            <span>for</span>
+            <span className="queryDisplay" id="queryDisplayContainer" style={{ flex: '1 1 auto', minWidth: 0 }}>
+                <strong>
+                    <span id="queryDisplayText" className={`query-text-${expanded ? "expanded" : "truncated"}`} ref={queryRef}>
+                        <TaxonDropdown htmlContent={results && results.queryTitle}/>
+                    </span>
+                </strong>
+                {showToggle &&
+                    <a href="#" id="queryDisplayToggle" className="query-toggle" style={{marginLeft: '-5px', textDecoration: 'none'}}
+                        onClick={e => toggleExpanded(e)}>
+                        {expanded ? <i className="bi bi-caret-up-fill"></i> : <i className="bi bi-caret-right-fill"></i>}
+                        <span className="toggle-text">{expanded ? "Show less" : "Show more"}</span>
+                    </a>
+                }
+            </span>
+        </div>
     </>
 }
 

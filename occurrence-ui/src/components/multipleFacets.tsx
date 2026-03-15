@@ -56,8 +56,7 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
 
 
     function fetchData() {
-        // TODO: add a maxFlimit, e.g. 1000, insted of -1. prevent virtual paging beyond this, and re-fetch after a sort
-        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=-1&pageSize=0';
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0';
 
         fetch(url, {
             method: 'GET',
@@ -185,6 +184,13 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                                                     <td style={{ textAlign: 'right', borderRightStyle: 'none' }}>{intl.formatNumber(item.count)}</td>
                                                 </tr>
                                             ))}
+                                        {maxResults == import.meta.env.VITE_FLIMIT_MAX && <tr>
+                                            <td colSpan={3} style={{ textAlign: 'center' }}>
+                                                    <span ref={observerRef}>
+                                                        <FormattedMessage id='facets.limitReached' defaultMessage='More items not shown' />
+                                                    </span>
+                                            </td>
+                                        </tr>}
                                         {facetItems.length >= maxResults &&
                                             <tr>
                                                 <td colSpan={3} style={{ textAlign: 'center' }}>

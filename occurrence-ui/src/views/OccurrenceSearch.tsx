@@ -30,7 +30,7 @@ const center = new LatLng(
 const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
 
 // TODO: move to config
-const hubDisplayName = "Search for records in Atlas of Living Australia";
+const hubDisplayName = import.meta.env.VITE_HUB_NAME;
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
@@ -319,7 +319,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             const controller = new AbortController();
             searchAbort.current = controller;
 
-            fetch(`https://namematching-ws.ala.org.au/api/autocomplete?q=${encodeURIComponent(query)}`, {
+            fetch(`${import.meta.env.NAMEMATCHING_URL}/api/autocomplete?q=${encodeURIComponent(query)}`, {
                 signal: controller.signal
             })
                 .then(res => res.json())

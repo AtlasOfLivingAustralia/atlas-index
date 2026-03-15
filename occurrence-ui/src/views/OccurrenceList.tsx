@@ -18,6 +18,7 @@ import Charts from "../components/charts.tsx";
 import ApiModal from "../components/apiModal.tsx";
 import CustomizeFilterModal from "../components/customizeFilterModal.tsx";
 import DataQuality from "../components/dataQuality.tsx";
+import ActiveFilters from "../components/activeFilters.tsx";
 import {
     parseAsInteger,
     parseAsStringLiteral,
@@ -119,8 +120,8 @@ function OccurrenceList({setBreadcrumbs}: {
         // TODO: i18n or config for breadcrumb titles
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Default UI', href: '/'},
-            {title: 'Occurrence List', href: '/occurrence-list'},
+            {title: 'Occurrence records', href: '/'},
+            {title: 'Search results', href: '/occurrence-list'},
         ]);
     }, []);
 
@@ -343,6 +344,37 @@ function OccurrenceList({setBreadcrumbs}: {
         window.history.pushState({query: newQuery}, 'Occurrence Search', newQuery)
     }
 
+    function removeFq(fq: string) {
+        const params = new URLSearchParams(queryString.startsWith('?') ? queryString.substring(1) : queryString);
+        if (fq === 'wkt') {
+            params.delete('wkt');
+        } else if (fq === 'radius') {
+            params.delete('radius');
+            params.delete('lat');
+            params.delete('lon');
+        } else {
+            // delete only the matching fq value, leaving others intact
+            const remaining = params.getAll('fq').filter(f => f !== fq);
+            params.delete('fq');
+            remaining.forEach(f => params.append('fq', f));
+        }
+        const newQuery = '?' + params.toString();
+        setQueryString && setQueryString(newQuery);
+        window.history.pushState({query: newQuery}, 'Occurrence Search', newQuery);
+    }
+
+    function clearAllFq() {
+        const params = new URLSearchParams(queryString.startsWith('?') ? queryString.substring(1) : queryString);
+        params.delete('fq');
+        params.delete('wkt');
+        params.delete('radius');
+        params.delete('lat');
+        params.delete('lon');
+        const newQuery = '?' + params.toString();
+        setQueryString && setQueryString(newQuery);
+        window.history.pushState({query: newQuery}, 'Occurrence Search', newQuery);
+    }
+
     function doQuickSearch() {
         setQueryString && setQueryString(quickSearch)
         // TODO: replace all .pushState with a new URL to this page with updated query parameters
@@ -391,29 +423,29 @@ function OccurrenceList({setBreadcrumbs}: {
                                 setFacetList={setFacetList}
                                 groupedFacets={groupedFacets}/>}
 
-                            <FacetWell search={queryString} facetList={facetList} groupedFacets={groupedFacets}/>
-
+                            <FacetWell search={queryString} facetList={facetList} groupedFacets={groupedFacets}
+                                       dataQuality={dataQuality} dataQualityInfo={dataQualityInfo}
+                                       updateDataQualityInfo={updateDataQualityInfo} addParams={addParams}/>
                         </div>
 
                         <div className="col-sm-9 col-md-9">
-                            <div id="download-button-area" className="float-end">
-                                <div id="downloads" className="btn btn-primary btn-sm" title="Download all 100 records"
-                                     onClick={() => download()}>
-                                    <i className="bi bi-download me-1"></i>Download
+                            <div className="row g-0 align-items-start mb-3">
+                                <div className="col">
+                                    <ResultsReturned results={result} queryString={queryString}/>
                                 </div>
-                                <div id="downloads" className="btn btn-sm border-black ms-1"
-                                     title="Click to view the URL for the JSON version of this search request"
-                                     onClick={() => api()}>
-                                    <i className="bi bi-file-code me-1"></i>API
+                                <div id="download-button-area" className="col-auto pe-0">
+                                    <div id="downloads" className="btn btn-primary btn-sm" title="Download all 100 records"
+                                         onClick={() => download()}>
+                                        <i className="bi bi-download me-1"></i>Download
+                                    </div>
+                                    <div id="downloads" className="btn btn-sm border-black ms-1"
+                                         title="Click to view the URL for the JSON version of this search request"
+                                         onClick={() => api()}>
+                                        <i className="bi bi-file-code me-1"></i>API
+                                    </div>
+                                    {apiModalShow && <ApiModal onClose={() => setApiModalShow(false)}
+                                                               url={import.meta.env.VITE_OIDC_REDIRECT_URL + '#/occurrence-list?' + queryString}/>}
                                 </div>
-
-                                {apiModalShow && <ApiModal onClose={() => setApiModalShow(false)}
-                                                           url={import.meta.env.VITE_OIDC_REDIRECT_URL + '#/occurrence-list?' + queryString}/>}
-                            </div>
-
-                            <div style={{height: "40px"}}>
-                                <ResultsReturned results={result}
-                                                 queryString={queryString}/>
                             </div>
 
                             <DataQuality dataQuality={dataQuality}
@@ -422,41 +454,13 @@ function OccurrenceList({setBreadcrumbs}: {
                                          queryString={queryString}
                                          addParams={addParams}/>
 
-                            {/*<div className="btn-group hide" id="template">*/}
-                            {/*    <a className="btn btn-default btn-sm" href="" id="taxa_" title="view species page"*/}
-                            {/*       target="BIE">placeholder</a>*/}
-                            {/*    <button className="btn dropdown-toggle btn-default btn-sm" data-toggle="dropdown"*/}
-                            {/*            title="click for more info on this query">*/}
-                            {/*        <span className="caret"></span>*/}
-                            {/*    </button>*/}
+                            <ActiveFilters
+                                queryString={queryString}
+                                onRemove={removeFq}
+                                onClearAll={clearAllFq}
+                            />
 
-                            {/*    <div className="dropdown-menu" aria-labelledby="taxa_">*/}
-                            {/*        <div className="taxaMenuContent">*/}
-                            {/*            The search results include records for synonyms and child taxa of*/}
-                            {/*            <b className="nameString">placeholder</b> (<span*/}
-                            {/*            className="speciesPageLink">link placeholder</span>).*/}
-
-                            {/*            <form name="raw_taxon_search" className="rawTaxonSearch"*/}
-                            {/*                  action="/occurrences/search/taxa" method="POST">*/}
-                            {/*                <div className="refineTaxaSearch">*/}
-                            {/*                    The result set contains records provided under the following names:*/}
-                            {/*                    <input type="submit"*/}
-                            {/*                           className="btn  btn-default btn-sm rawTaxonSumbit"*/}
-                            {/*                           value="Refine search"*/}
-                            {/*                           title="Restrict results to the selected names"/>*/}
-
-                            {/*                    <div className="rawTaxaList">placeholder taxa list</div>*/}
-                            {/*                </div>*/}
-                            {/*            </form>*/}
-                            {/*        </div>*/}
-                            {/*    </div>*/}
-                            {/*</div>*/}
-
-                            <Tabs
-                                id="result-tabs"
-                                activeKey={tab}
-                                onSelect={(k) => setTab(k || '')}
-                            >
+                            <Tabs id="result-tabs" activeKey={tab} onSelect={(k) => setTab(k || '')}>
                                 <Tab eventKey="records" title="Records">
                                     <RecordsView results={result}
                                                  pageSize={pageSize} setPageSize={setPageSize}
@@ -483,11 +487,6 @@ function OccurrenceList({setBreadcrumbs}: {
                             </Tabs>
                         </div>
                     </div>
-
-
-                    {/*<ImageModal />*/}
-
-
                 </div>
             </div>
         </>

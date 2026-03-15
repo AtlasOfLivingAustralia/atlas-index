@@ -8,23 +8,68 @@ import {FontAwesomeIconLite} from "@ala/common-ui";
 import { faCaretDown, faCaretRight, faList } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from "react";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import {FacetItem} from "../api/model.tsx";
+import {DataQualityInfo, FacetItem, QualityCategory, QualityProfile} from "../api/model.tsx";
 import MultipleFacets from "./multipleFacets.tsx";
+import DataQualityFiltersModal from "./dataQualityFiltersModal.tsx";
 
 interface FacetWellProps {
     search?: string,
     facetList?: string[],
-    groupedFacets?: any[]
+    groupedFacets?: any[],
+    dataQuality?: QualityProfile[],
+    dataQualityInfo?: DataQualityInfo,
+    updateDataQualityInfo?: (dataQualityInfo: DataQualityInfo) => void,
+    addParams?: (fqs: string[], removeFqs: string[]) => void
 }
 
 const flimitValue = 5;
 
-function FacetWell({search, facetList, groupedFacets}: FacetWellProps) {
+function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityInfo, updateDataQualityInfo, addParams}: FacetWellProps) {
     const [groupData, setGroupData] = useState<{ [key: string]: {isOpen: boolean, facets: string[]}}>({});
     const [facetData, setFacetData] = useState<{ [key: string]: FacetItem []}>({})
     const [chooseMoreFacet, setChooseMoreFacet] = useState<string | null>(null);
+    const [dqOpen, setDqOpen] = useState(() => {
+        const stored = localStorage.getItem('facetGroupOpen_dataProfile');
+        return stored === null ? false : stored === 'true';
+    });
+    const [dqCounts, setDqCounts] = useState<{ [label: string]: number | undefined }>({});
+    const [showFilters, setShowFilters] = useState(false);
 
     const intl: IntlShape = useIntl();
+
+    // DQ helpers
+    const activeProfile = dataQuality?.find(dq => dq.shortName === dataQualityInfo?.profile);
+
+    function isDqFilterSelected(cat: QualityCategory): boolean {
+        return (dataQualityInfo?.selectedFilters === undefined || dataQualityInfo.selectedFilters.includes(cat.label)) &&
+            !(search?.includes("disableQualityFilter=" + cat.label + "&") ||
+                search?.endsWith("disableQualityFilter=" + cat.label));
+    }
+
+    function toggleDqFilter(cat: QualityCategory) {
+        if (!updateDataQualityInfo || !dataQualityInfo) return;
+        const selected = dataQualityInfo.selectedFilters || [];
+        if (isDqFilterSelected(cat)) {
+            updateDataQualityInfo({ ...dataQualityInfo, selectedFilters: selected.filter(f => f !== cat.label) });
+        } else {
+            updateDataQualityInfo({ ...dataQualityInfo, selectedFilters: [...selected, cat.label] });
+        }
+    }
+
+    useEffect(() => {
+        if (!activeProfile || !search) return;
+        const newCounts: { [label: string]: number | undefined } = {};
+        activeProfile.categories.forEach(cat => { newCounts[cat.label] = undefined; });
+        setDqCounts(newCounts);
+
+        activeProfile.categories.forEach(cat => {
+            if (!cat.inverseFilter) return;
+            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + search + "&disableAllQualityFilters=true&fq=" + cat.inverseFilter)
+                .then(r => r.json())
+                .then(data => setDqCounts(prev => ({ ...prev, [cat.label]: data.totalRecords })))
+                .catch(() => setDqCounts(prev => ({ ...prev, [cat.label]: 0 })));
+        });
+    }, [search, dataQualityInfo?.profile]);
 
     useEffect(() => {
         fetchData()
@@ -136,97 +181,54 @@ function FacetWell({search, facetList, groupedFacets}: FacetWellProps) {
     return <>
         <div id="facetWell" className="card card-body bg-light">
             <h3><FormattedMessage id="search.facets.heading" defaultMessage="Refine results"/></h3>
-            {/*<div className="sidebar" style={{clear: "both"}}>*/}
-            {/*    <div className="facetGroupName" id="heading_data_quality">*/}
-            {/*        Data Profile*/}
-            {/*    </div>*/}
-            {/*<div className="facetsGroup" id="group_data_quality">*/}
-            {/*    <h4><span className="FieldName">Categories</span></h4>*/}
-            {/*    <div className="subnavlist nano" style={{clear: "left"}}>*/}
-            {/*        <ul className="facets nano-content dq-categories">*/}
-            {/*            <li>*/}
-            {/*                <a href="/occurrence/search?q=taxa%3A%22forg%22&amp;qualityProfile=ALA&amp;disableQualityFilter=spatially-suspect">*/}
-            {/*                    <span className="fa fa-check-square-o">&nbsp;</span><span*/}
-            {/*                    className="tooltips"*/}
-            {/*                    title="Exclude records with a spatially suspect flag.">Exclude spatially suspect records</span>&nbsp;*/}
-            {/*                    <span className="exclude-count-facet"*/}
-            {/*                          data-category="spatially-suspect"></span>*/}
-            {/*                </a>*/}
 
-            {/*                &nbsp;*/}
-            {/*                <span>*/}
-            {/*                    <a href="#DQCategoryDetails" className="DQCategoryDetailsLink"*/}
-            {/*                       data-profilename="ALA General"*/}
-            {/*                       data-dqcategoryname="Exclude spatially suspect records"*/}
-            {/*                       data-categorylabel="spatially-suspect"*/}
-            {/*                       data-fq="-spatiallyValid:&quot;false&quot;"*/}
-            {/*                       data-description="[&quot;Exclude all records where spatial validity is \&quot;false\&quot;&quot;]"*/}
-            {/*                       data-translation="{&quot;false&quot;:&quot;Spatially suspect&quot;}"*/}
-            {/*                       data-disabled="false"*/}
-            {/*                       data-inverse-filter="/occurrence/search?q=taxa%3A%22forg%22&amp;qualityProfile=ALA&amp;disableAllQualityFilters=true&amp;fq=spatiallyValid%3A%22false%22"*/}
-            {/*                       data-filters="[&quot;-spatiallyValid:\&quot;false\&quot;&quot;]"*/}
-            {/*                       data-dqcategorydescription="Exclude records with a spatially suspect flag."*/}
-            {/*                       data-toggle="modal" role="button"><i className="fa fa-info-circle tooltips"*/}
-            {/*                                                            title="Click for more information and actions"></i>*/}
-            {/*                        &nbsp;*/}
-            {/*                        <span className="facet-count">*/}
-            {/*                        <i className="fa fa-circle-o-notch fa-spin exclude-loader"></i>*/}
-            {/*                        </span>*/}
-            {/*                    </a>*/}
+            {/* Data Profile section */}
+            {dataQuality && dataQuality.length > 0 && dataQualityInfo?.profile !== 'disable' && activeProfile && <>
+                <div className="facetGroupName" onClick={() => {
+                    const next = !dqOpen;
+                    localStorage.setItem('facetGroupOpen_dataProfile', String(next));
+                    setDqOpen(next);
+                }} style={{ cursor: 'pointer' }}>
+                    <div>
+                        <FontAwesomeIconLite icon={dqOpen ? faCaretDown : faCaretRight} style={{width: '20px'}}/>
+                        <span><FormattedMessage id="quality.filters.group.title" defaultMessage="Data Profile"/></span>
+                    </div>
+                </div>
 
-            {/*                </span>*/}
-            {/*            </li>*/}
+                {dqOpen && <div style={{ marginLeft: '5px' }}>
+                    <div className="facetsGroup">
+                        <h4><span className="FieldName" style={{ marginLeft: '5px' }}>
+                            <FormattedMessage id="facet.group.dq.categories" defaultMessage="Categories"/>
+                        </span></h4>
+                        <ul className="facets">
+                            {activeProfile.categories.map((cat: QualityCategory, idx: number) => {
+                                const selected = isDqFilterSelected(cat);
+                                const count = dqCounts[cat.label];
+                                return (
+                                    <li key={idx} style={{ cursor: 'pointer' }} onClick={() => toggleDqFilter(cat)}>
+                                        <span title={cat.description} className="facet-item">
+                                            <i className={`bi ${selected ? 'bi-check-square' : 'bi-square'} me-1`}></i>
+                                            <span>{cat.name}</span>
+                                            {count !== undefined
+                                                ? <span className="ms-1">({selected ? '-' + intl.formatNumber(count) : '0'})</span>
+                                                : <span className="spinner-border ms-1" role="status" style={{ width: '0.8em', height: '0.8em', borderWidth: '0.1em' }}/>
+                                            }
+                                        </span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </div>
+                </div>}
 
-
-            {/*            <li>*/}
-
-
-            {/*                <a href="/occurrence/search?q=taxa%3A%22forg%22&amp;qualityProfile=ALA&amp;disableQualityFilter=dates-post-1700">*/}
-            {/*                    <span className="fa fa-check-square-o">&nbsp;</span><span*/}
-            {/*                    className="tooltips"*/}
-            {/*                    title="Exclude records with event date pre 1700">Exclude records pre 1700</span>&nbsp;*/}
-            {/*                    <span className="exclude-count-facet"*/}
-            {/*                          data-category="dates-post-1700"></span>*/}
-            {/*                </a>*/}
-
-            {/*                &nbsp;*/}
-            {/*                <span>*/}
-            {/*                    <a href="#DQCategoryDetails" className="DQCategoryDetailsLink"*/}
-            {/*                       data-profilename="ALA General" data-dqcategoryname="Exclude records pre 1700"*/}
-            {/*                       data-categorylabel="dates-post-1700" data-fq="-year:[* TO 1700]"*/}
-            {/*                       data-description="[&quot;Exclude all records where year is prior to 1700&quot;]"*/}
-            {/*                       data-translation="" data-disabled="false"*/}
-            {/*                       data-inverse-filter="/occurrence/search?q=taxa%3A%22forg%22&amp;qualityProfile=ALA&amp;disableAllQualityFilters=true&amp;fq=year%3A%5B*+TO+1700%5D"*/}
-            {/*                       data-filters="[&quot;-year:[* TO 1700]&quot;]"*/}
-            {/*                       data-dqcategorydescription="Exclude records with event date pre 1700"*/}
-            {/*                       data-toggle="modal" role="button"><i className="fa fa-info-circle tooltips"*/}
-            {/*                                                            title="Click for more information and actions"></i>*/}
-            {/*                        &nbsp;*/}
-            {/*                        <span className="facet-count">*/}
-            {/*                        <i className="fa fa-circle-o-notch fa-spin exclude-loader"></i>*/}
-            {/*                        </span>*/}
-            {/*                    </a>*/}
-
-            {/*                </span>*/}
-            {/*            </li>*/}
-
-            {/*        </ul>*/}
-            {/*    </div>*/}
-
-            {/*    <a href="#DQManageFilters" className="multipleFiltersLink" data-toggle="modal"*/}
-            {/*       role="button" title="Enable/Disable multiple filters"><span*/}
-            {/*        className="glyphicon glyphicon-hand-right"*/}
-            {/*        aria-hidden="true"></span>&nbsp;Select filters</a>*/}
-
-            {/*</div>*/}
-
-
-            {/*<div className="facetGroupName" id="heading_Custom">*/}
-            {/*    <a href="#" className="showHideFacetGroup" data-name="Custom"><span*/}
-            {/*        className="caret right-caret"></span> Custom</a>*/}
-            {/*</div>*/}
-            {/*<div className="facetsGroup" id="group_Custom" style="display:none;">*/}
-            {/*</div>*/}
+                {showFilters && addParams && dataQualityInfo && updateDataQualityInfo && <DataQualityFiltersModal
+                    onClose={() => setShowFilters(false)}
+                    queryString={search}
+                    dataQualityInfo={dataQualityInfo}
+                    updateDataQualityInfo={updateDataQualityInfo}
+                    dataQuality={dataQuality}
+                    addParams={addParams}/>}
+            </>}
 
             {groupData && Object.keys(groupData).map((groupName, idx) =>
                 <div key={idx}>

@@ -421,7 +421,7 @@ function MapView({ queryString, tab }: MapViewProps) {
     }
 
     function handleColourChange(colourBy: string) {
-        setColourBy(colourBy);
+        setColourBy(colourBy || '-1');
         setShowOccurrences(false);
         setTimeout(() => {
             setShowOccurrences(true);
