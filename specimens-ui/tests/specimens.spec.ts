@@ -64,9 +64,9 @@ test('Find and click a link of all collections, and navigates', async ({ page })
     const totalRecordsText = await totalRecordsEl.innerText();
     const totalRecords = parseInt(totalRecordsText.replace(/,/g, ''), 10);
     console.log(`Total images for Animalia: ${totalRecords}`);
-    expect(totalRecords).toBe(countOfAnimalia)
+    expect(totalRecords).toBe(countOfAnimalia);
 
-    const imagesEl = page.locator('div.images-container')
+    const imagesEl = page.locator('div.images-container');
     await expect(imagesEl).toBeVisible();
     const images = imagesEl.locator('.imgCon');
     await expect(images.first()).toBeVisible();
