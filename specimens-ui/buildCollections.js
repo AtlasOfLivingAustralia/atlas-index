@@ -1,7 +1,7 @@
 import { writeFileSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { createHash } from 'crypto';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 
 // The location of the resource configuration file (URL or local path)
 const resourceConfigurationUrl = './resources/collections.json';
@@ -12,7 +12,15 @@ const resourceMappings = [
     { prefix: 'co', path: 'collection' },
     { prefix: 'dr', path: 'dataResource' },
 ];
-const resourcesFile = './src/api/sources/collections.json';
+
+
+const sourcesDir = './src/api/sources';
+const resourcesFile = `${sourcesDir}/collections.json`;
+
+if (!existsSync(sourcesDir)) {
+    mkdirSync(sourcesDir, { recursive: true });
+}
+
 // The list of resource metadata for each resource that is displayed
 let resources = [];
 
