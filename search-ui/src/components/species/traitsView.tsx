@@ -323,6 +323,8 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                             a.click();
                                             document.body.removeChild(a);
                                             URL.revokeObjectURL(url);
+                                        }).catch(() => {
+                                            alert('Download failed');
                                         });
                                     }}>
                                 <FontAwesomeIconLite icon={faDownload} size="20"/>

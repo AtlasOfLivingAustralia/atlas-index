@@ -271,6 +271,7 @@ public class TraitsFetcher {
                     }
                 } else {
                     skipped.incrementAndGet();
+                    hasCount = true; // required to fetch the other files, should they be missing
                 }
 
                 // --- summary.json ---
