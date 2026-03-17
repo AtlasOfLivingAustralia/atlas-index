@@ -10,6 +10,7 @@
         <module>search-service</module>
         <module>search-test</module>
         <module>taxon-descriptions</module>
+        <module>taxon-traits</module>
     </modules>
 
     <groupId>au.org.ala</groupId>

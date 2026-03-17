@@ -22,10 +22,24 @@ function TraitsView({result, isMobile}: MapViewProps) {
     const [traits, setTraits] = useState<Record<PropertyKey, string | number | any>>({});
     const [loadingCounts, setLoadingCounts] = useState(false);
     const [errorMessageCounts, setErrorMessageCounts] = useState('');
+    const [noTraitsData, setNoTraitsData] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [errorMessageSummary, setErrorMessageSummary] = useState('');
 
     const textStyle = {fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}
+
+    function getTraitsPath(ext: string): string {
+        if (!result) return ''; // should never trigger
+
+        // doubly encoded; once for the file name, once for the CDN/server that translates URL encoding to file name
+        const lsidEncoded = encodeURIComponent(encodeURIComponent(result.guid));
+        const last2 = lsidEncoded.substring(lsidEncoded.length - 2);
+        return import.meta.env.VITE_TAXON_TRAITS_URL + '/austraits/' + last2 + '/' + lsidEncoded + ext;
+    }
+
+    function sanitizeFilename(name: string): string {
+        return name.replace(/[/\\?%*:|"<>]/g, '_').trim();
+    }
 
     useEffect(() => {
         if (!result?.guid) {
@@ -34,13 +48,18 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
         setLoadingCounts(true);
         setErrorMessageCounts('');
+        setNoTraitsData(false);
+        setTraitsText('');
+        setTraitsTaxon('');
 
-        const countUrl = import.meta.env.VITE_APP_BIE_URL + '/trait-count' + getAusTraitsParam();
-        fetch(countUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        }).then((response) => response.json()).then((data) => {
+        const countUrl = getTraitsPath('_count.json');
+        fetch(countUrl).then((response) => {
+            if (!response.ok) {
+                setNoTraitsData(true);
+                return null;
+            }
+            return response.json();
+        }).then((data) => {
             if (data && data.length > 0) {
                 setTraitsTaxon(data[0].taxon);
                 setTraitsText(data[0].explanation);
@@ -56,12 +75,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
         setLoadingSummary(true);
         setErrorMessageSummary('');
 
-        const summaryUrl = import.meta.env.VITE_APP_BIE_URL + '/trait-summary' + getAusTraitsParam();
-        fetch(summaryUrl, {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        }).then((response) => response.json()).then((data) => {
+        const summaryUrl = getTraitsPath('_summary.json');
+        fetch(summaryUrl).then((response) => {
+            if (!response.ok) {
+                return null;
+            }
+            return response.json();
+        }).then((data) => {
+            if (!data) return;
             let hasMore = false;
             if (data?.categorical_traits) {
                 data.categorical_traits.forEach((item: Record<string, any>) => {
@@ -114,13 +135,6 @@ function TraitsView({result, isMobile}: MapViewProps) {
         );
     }
 
-    function getAusTraitsParam() {
-        if (result?.name) {
-            return ('?taxon=' + encodeURIComponent(result.name) + (result.guid.includes('apni') ? '&APNI_ID=' + encodeURIComponent(result.guid.split('/')[result.guid.split('/').length - 1]) : ''));
-        } else {
-            return '';
-        }
-    }
 
     return <>
         <div className={`${classes.traitsSectionText} ${classes.layoutGrid} row`}
@@ -269,6 +283,16 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         </>}
                     />
                 )}
+                {noTraitsData && !loadingCounts && (
+                    <span style={textStyle}>
+                        There is currently no data for the taxon name you searched for in the AusTraits database.
+                        Search for another species name or access the entire database at{' '}
+                        <a className={classes.speciesLink} style={textStyle} target="_blank"
+                           href="https://doi.org/10.5281/zenodo.10156222">
+                            doi.org/10.5281/zenodo.10156222
+                        </a>
+                    </span>
+                )}
                 {traitsText && <>
                     {isMobile && <div style={{height: '15px'}}/>}
 
@@ -285,7 +309,21 @@ function TraitsView({result, isMobile}: MapViewProps) {
                             </button>
                             <button className="btn ala-btn-secondary d-flex align-items-center gap-2"
                                     onClick={() => {
-                                        window.open(import.meta.env.VITE_APP_BIE_URL + '/download-taxon-data' + getAusTraitsParam(), '_blank');
+                                        const csvUrl = getTraitsPath('_data.csv');
+                                        const filename = sanitizeFilename(result?.name || 'traits') + '.csv';
+                                        fetch(csvUrl).then((response) => {
+                                            if (!response.ok) throw new Error('HTTP ' + response.status);
+                                            return response.blob();
+                                        }).then((blob) => {
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement('a');
+                                            a.href = url;
+                                            a.download = filename;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+                                            URL.revokeObjectURL(url);
+                                        });
                                     }}>
                                 <FontAwesomeIconLite icon={faDownload} size="20"/>
                                 Download CSV
