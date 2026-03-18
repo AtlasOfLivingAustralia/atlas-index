@@ -1,0 +1,86 @@
+{
+  "pageSize": 100,
+  "startIndex": 0,
+  "totalRecords": 1250,
+  "sort": "score",
+  "dir": "asc",
+  "status": "OK",
+  "facetResults": [
+    {
+      "fieldName": "typeStatus",
+      "fieldResult": [
+        {
+          "label": "HOLOTYPE",
+          "count": 1250,
+          "fq": "typeStatus:\"HOLOTYPE\""
+        }
+      ]
+    },
+    {
+      "fieldName": "raw_sex",
+      "fieldResult": [
+        {
+          "label": "Male",
+          "count": 600,
+          "fq": "raw_sex:\"Male\""
+        },
+        {
+          "label": "Female",
+          "count": 650,
+          "fq": "raw_sex:\"Female\""
+        }
+      ]
+    },
+    {
+      "fieldName": "order",
+      "fieldResult": [
+        {
+          "label": "Coleoptera",
+          "count": 850,
+          "fq": "order:\"Coleoptera\""
+        },
+        {
+          "label": "Hymenoptera",
+          "count": 300,
+          "fq": "order:\"Hymenoptera\""
+        },
+        {
+          "label": "Diptera",
+          "count": 100,
+          "fq": "order:\"Diptera\""
+        }
+      ]
+    }
+  ],
+  "occurrences": [
+    {
+      "uuid": "specimen-holotype-001",
+      "collectionUid": "co56",
+      "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+      "institutionName": "South Australian Museum",
+      "dataProviderName": "South Australian Museum",
+      "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+      "scientificName": "Aaaaba fossicollis",
+      "vernacularName": "Jewel Beetle",
+      "typeStatus": "HOLOTYPE",
+      "taxonRank": "species",
+      "kingdom": "Animalia",
+      "phylum": "Arthropoda",
+      "classs": "Insecta",
+      "order": "Coleoptera",
+      "family": "Buprestidae",
+      "genus": "Aaaaba",
+      "species": "Aaaaba fossicollis",
+      "imageMetadata": [
+        {
+          "imageId": "img-holotype-001",
+          "thumbWidth": 400,
+          "thumbHeight": 300,
+          "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-holotype-001",
+          "rightsHolder": "South Australian Museum",
+          "license": "CC BY 4.0"
+        }
+      ]
+    }
+  ]
+}

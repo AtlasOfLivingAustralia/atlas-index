@@ -1,4 +1,11 @@
 import { test, expect, Locator, Page } from '@playwright/test';
+import { imageMocks } from './mocks/imageServiceMocks';
+
+const pageSize = Number(process.env.VITE_PAGE_SIZE ?? 100);
+test.beforeEach(async ({ page }) => {
+    const seenUrls = new Set<URL>();
+    await imageMocks(page, seenUrls);
+});
 
 test('Find and click a link of all collections, and navigates', async ({ page }) => {
     await page.goto('/');
@@ -148,13 +155,13 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
     await expect(images.first()).toBeVisible();
     let imagesCount = await images.count();
     console.log(`${imagesCount} are displayed`);
-    if (totalCount > 100) {
-        expect(imagesCount).toBe(100);
+    if (totalCount > pageSize) {
+        expect(imagesCount).toBe(pageSize);
     } else {
         expect(imagesCount).toBeGreaterThan(0);
     }
     // Test show more button if total count is greater than 100, click it and verify more images are loaded
-    if (totalCount > 100) {
+    if (totalCount > pageSize) {
         const showMoreButton = page.locator('.btn.show-more');
         const showMoreCount = await showMoreButton.count();
         expect(showMoreCount).toBeGreaterThan(0);
@@ -165,7 +172,7 @@ test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail
             // wait until more than 100 images are in the DOM (new batch appended)
             await expect(async () => {
                 const count = await imagesEl.locator('.imgCon').count();
-                expect(count).toBeGreaterThan(100);
+                expect(count).toBeGreaterThan(pageSize);
             }).toPass();
         }
     }

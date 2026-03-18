@@ -21,7 +21,7 @@ set -e
 echo "Building the project..."
 yarn run build:playwright
 
-echo "Copy regionsList.json to dist"
+echo "Copy collections.json to dist"
 cp ./tests/resources/collections.json ./dist/collections.json
 
 # Start the app server in the background

@@ -1,0 +1,53 @@
+{
+  "pageSize": 100,
+  "startIndex": 0,
+  "totalRecords": 25000,
+  "status": "OK",
+  "facetResults": [
+    {
+      "fieldName": "family",
+      "fieldResult": [
+        {
+          "label": "Buprestidae",
+          "count": 15000,
+          "fq": "family:\"Buprestidae\""
+        },
+        {
+          "label": "Curculionidae",
+          "count": 5000,
+          "fq": "family:\"Curculionidae\""
+        },
+        {
+          "label": "Carabidae",
+          "count": 5000,
+          "fq": "family:\"Carabidae\""
+        }
+      ]
+    }
+  ],
+  "occurrences": [
+    {
+      "uuid": "specimen-co56-col-001",
+      "collectionUid": "co56",
+      "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+      "institutionName": "South Australian Museum",
+      "scientificName": "Castiarina sp.",
+      "taxonRank": "species",
+      "kingdom": "Animalia",
+      "phylum": "Arthropoda",
+      "classs": "Insecta",
+      "order": "Coleoptera",
+      "family": "Buprestidae",
+      "imageMetadata": [
+        {
+          "imageId": "img-co56-col-001",
+          "thumbWidth": 400,
+          "thumbHeight": 300,
+          "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-co56-col-001",
+          "rightsHolder": "South Australian Museum",
+          "license": "CC BY 4.0"
+        }
+      ]
+    }
+  ]
+}

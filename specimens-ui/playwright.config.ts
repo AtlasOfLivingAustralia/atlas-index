@@ -1,12 +1,18 @@
 import { defineConfig, devices } from '@playwright/test';
+// @ts-ignore
+import dotenv from 'dotenv';
+// @ts-ignore
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// @ts-ignore
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '.env.playwright') });
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -43,7 +49,7 @@ export default defineConfig({
         viewport: { width: 1920, height: 1080 }
       },
     },
-/*    {
+    {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'],
         viewport: { width: 1920, height: 1080 }
@@ -56,7 +62,7 @@ export default defineConfig({
       },
     },
 
-    /!* Test against branded browsers. *!/
+    /* Test against branded browsers. */
     {
       name: 'Microsoft Edge',
       use: { ...devices['Desktop Edge'], channel: 'msedge',
@@ -68,7 +74,7 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], channel: 'chrome',
         viewport: { width: 1920, height: 1080 }
       },
-    },*/
+    },
   ],
 
   /* Run your local dev server before starting the tests */

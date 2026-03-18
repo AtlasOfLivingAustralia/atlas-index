@@ -1,0 +1,74 @@
+{
+  "pageSize": 100,
+  "startIndex": 0,
+  "totalRecords": 45678,
+  "sort": "score",
+  "dir": "asc",
+  "status": "OK",
+  "facetResults": [
+    {
+      "fieldName": "typeStatus",
+      "fieldResult": [
+        {
+          "label": "HOLOTYPE",
+          "count": 1250,
+          "fq": "typeStatus:\"HOLOTYPE\""
+        },
+        {
+          "label": "PARATYPE",
+          "count": 820,
+          "fq": "typeStatus:\"PARATYPE\""
+        }
+      ]
+    },
+    {
+      "fieldName": "raw_sex",
+      "fieldResult": [
+        {
+          "label": "Male",
+          "count": 22000,
+          "fq": "raw_sex:\"Male\""
+        },
+        {
+          "label": "Female",
+          "count": 21000,
+          "fq": "raw_sex:\"Female\""
+        }
+      ]
+    },
+    {
+      "fieldName": "phylum",
+      "fieldResult": [
+        {
+          "label": "Arthropoda",
+          "count": 45678,
+          "fq": "phylum:\"Arthropoda\""
+        }
+      ]
+    }
+  ],
+  "occurrences": [
+    {
+      "uuid": "specimen-co56-phylum-001",
+      "collectionUid": "co56",
+      "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+      "institutionName": "South Australian Museum",
+      "dataProviderName": "South Australian Museum",
+      "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+      "scientificName": "Arthropoda sp.",
+      "taxonRank": "phylum",
+      "kingdom": "Animalia",
+      "phylum": "Arthropoda",
+      "imageMetadata": [
+        {
+          "imageId": "img-co56-phylum-001",
+          "thumbWidth": 400,
+          "thumbHeight": 300,
+          "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-co56-phylum-001",
+          "rightsHolder": "South Australian Museum",
+          "license": "CC BY 4.0"
+        }
+      ]
+    }
+  ]
+}

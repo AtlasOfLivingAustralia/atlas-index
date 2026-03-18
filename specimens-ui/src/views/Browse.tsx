@@ -92,29 +92,33 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
     const imageContainerRef = useRef<HTMLDivElement | null>(null);
 
     const ranks = [
-            'kingdom',
-            'phylum',
-            'class',
-            'order',
-            'family',
-            'genus',
-            'species',
-        ],
-        facetNames: Record<string, string> = {
-            typeStatus: 'Types',
-            raw_sex: 'Sex',
-            family: 'Family',
-            order: 'Order',
-            class: 'Class',
-            kingdom: 'Kingdom',
-            phylum: 'Phylum',
-            genus: 'Genus',
-            species: 'Species',
-        },
-        facetsToShow = ['typeStatus', 'raw_sex'],
-        baseQuery =
-            '?q=multimedia:Image&im=true&fl=id,collectionName,institution,dataProviderName,dataResourceName,images,typeStatus,scientificName,raw_scientificName,vernacularName',
-        pageSize = 100;
+        'kingdom',
+        'phylum',
+        'class',
+        'order',
+        'family',
+        'genus',
+        'species',
+    ];
+
+    const facetNames: Record<string, string> = {
+        typeStatus: 'Types',
+        raw_sex: 'Sex',
+        family: 'Family',
+        order: 'Order',
+        class: 'Class',
+        kingdom: 'Kingdom',
+        phylum: 'Phylum',
+        genus: 'Genus',
+        species: 'Species',
+    };
+
+    const facetsToShow = ['typeStatus', 'raw_sex'];
+
+    const baseQuery =
+        '?q=multimedia:Image&im=true&fl=id,collectionName,institution,dataProviderName,dataResourceName,images,typeStatus,scientificName,raw_scientificName,vernacularName';
+
+    const pageSize = Number(import.meta.env.VITE_PAGE_SIZE ?? 100);
 
     useEffect(() => {
         setBreadcrumbs([
