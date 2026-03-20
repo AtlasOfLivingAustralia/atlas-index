@@ -8,7 +8,7 @@ import React from "react";
 import LsidDropdown from "./lsidDropdown.tsx";
 
 interface TaxonDropdownProps {
-    htmlContent: string;
+    htmlContent?: string;
 }
 
 // Matches <span ...> where the attributes contain both class="...lsid..." and id="..."

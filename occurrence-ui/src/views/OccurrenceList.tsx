@@ -6,7 +6,8 @@
 
 import {Breadcrumb, useUser} from "@ala/common-ui";
 import {useEffect, useState} from "react";
-import {DataQualityInfo, QualityProfile} from "../api/model.tsx";
+import { FormattedMessage, useIntl } from 'react-intl';
+import { DataQualityInfo, OccurrenceListResult, QualityProfile } from '../api/model.tsx';
 import MapView from "../components/mapView.tsx";
 import RecordsView from "../components/recordsView.tsx";
 import ResultsReturned from "../components/resultsReturned.tsx";
@@ -28,7 +29,6 @@ import groupedFacets from "../config/searchGroupedFacets.json";
 import defaultFacets from "../config/defaultFacets.json";
 
 const sortOrder = ['asc', 'desc'] as const
-
 function OccurrenceList({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
@@ -46,7 +46,7 @@ function OccurrenceList({setBreadcrumbs}: {
     // const [fq, setFq] = useQueryState('fq', parseAsNativeArrayOf(parseAsString).withDefault([]));
 
     //const [lastSearch, setLastSearch] = useState('');
-    const [result, setResult] = useState({});
+    const [result, setResult] = useState<OccurrenceListResult>({ occurrences: [], totalRecords: 0 });
     const [pageSize, setPageSize] = useQueryState('pageSize', parseAsInteger.withDefault(20));
     const [sort, setSort] = useQueryState('sort', { defaultValue: 'first_loaded_date'});
     const [dir, setDir] = useQueryState('order', parseAsStringLiteral(sortOrder).withDefault('desc'));
@@ -71,7 +71,7 @@ function OccurrenceList({setBreadcrumbs}: {
         profile: 'disable',
         unfilteredCount: undefined,
         selectedFilters: undefined,
-        expand: true
+        expand: false
     })
 
     // modals
@@ -79,6 +79,7 @@ function OccurrenceList({setBreadcrumbs}: {
     const [customizeFilterModalShow, setCustomizeFilterModalShow] = useState(false);
 
     const navigate = useNavigate();
+    const intl = useIntl();
 
     // get query parameters from URL
     const [queryString, setQueryString] = useState<string>(() => {
@@ -115,9 +116,8 @@ function OccurrenceList({setBreadcrumbs}: {
     }, []);
 
     useEffect(() => {
-        fetchDataQuality();
+        fetchDataQuality().then(dqList => loadDqProfile(dqList));
 
-        // TODO: i18n or config for breadcrumb titles
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
             {title: 'Occurrence records', href: '/'},
@@ -127,17 +127,26 @@ function OccurrenceList({setBreadcrumbs}: {
 
     useEffect(() => {
         fetchIndex();
-        fetchDataQuality().then(dqList => loadDqProfile(dqList));
     }, [pageSize, sort, dir, page, queryString]);
 
     function loadDqProfile(dqList: QualityProfile []) {
-        // TODO: Today, dataQualityInfo must align with queryString. This is a problem because both dataQualityInfo and
-        //  queryString are used by the dataQuality components and update functions.
-        // 1. Change all usage of queryString to dataQualityInfo for dataQuality components.
-        // 2. Update all other usage of queryString to append non-parameterized dataQualityInfo settings.
-        // 3. All functions that update the queryString based on changes to dataQualityInfo must be updated.
         if (!userInfo?.authenticated) {
-            // TODO: load from local storage
+            const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + ".dqUserProfile");
+            if (stored) {
+                const data = JSON.parse(stored);
+                dataQualityInfo.profile = data.disableAll ? 'disable' : data.dataProfile;
+                dataQualityInfo.selectedFilters = [];
+                for (let dq of dqList) {
+                    if (dq.shortName === dataQualityInfo.profile) {
+                        for (let cat of dq.categories) {
+                            if (!data.disabledItems.includes(cat.label)) {
+                                dataQualityInfo.selectedFilters.push(cat.name);
+                            }
+                        }
+                    }
+                }
+                dataQualityInfo.expand = data.expand;
+            }
 
             updateAndSaveDataQualityInfoWithQueryString(dqList);
         } else {
@@ -205,7 +214,29 @@ function OccurrenceList({setBreadcrumbs}: {
 
             dataQualityInfo.selectedFilters = filters;
         } else {
+            // No DQ params in URL — apply the default profile unless one was already
+            // resolved from user preferences (stored/fetched). Fall back to env default.
+            if (dataQualityInfo.profile === 'disable') {
+                dataQualityInfo.profile = import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE || 'ALA';
+            }
             dataQualityInfo.selectedFilters = initDqFilters(dqList, dataQualityInfo.profile);
+
+            // Inject the default DQ params into queryString so all sub-components see them
+            const defaultParams: string[] = ['qualityProfile=' + dataQualityInfo.profile];
+            for (let dq of dqList) {
+                if (dq.shortName === dataQualityInfo.profile) {
+                    for (let cat of dq.categories) {
+                        if (dataQualityInfo.selectedFilters !== undefined && !dataQualityInfo.selectedFilters.includes(cat.label)) {
+                            defaultParams.push('disableQualityFilter=' + cat.label);
+                        }
+                    }
+                }
+            }
+            const base = queryString && queryString !== '?' ? queryString : '?';
+            const newQuery = base + (base.endsWith('?') ? '' : '&') + defaultParams.join('&');
+
+            // Reload page. setQueryString is not flowing to all components as expected
+            window.location.replace(newQuery);
         }
 
         setDataQualityInfo(dataQualityInfo)
@@ -236,6 +267,7 @@ function OccurrenceList({setBreadcrumbs}: {
             newParams.push("disableAllQualityFilters=true")
         }
 
+
         // add all dataQuality category labels to newParams
         for (let dq of dataQuality) {
             if (dq.shortName === dataQualityInfo.profile) {
@@ -259,21 +291,25 @@ function OccurrenceList({setBreadcrumbs}: {
     }
 
     function fetchDataQuality() : Promise<QualityProfile[]> {
-        if (dataQuality.length > 0) {
-            return new Promise((resolve) => resolve(dataQuality));
+        const cacheKey = import.meta.env.VITE_APP_NAME + '.dqProfiles';
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+            const data = JSON.parse(cached) as QualityProfile[];
+            setDataQuality(data);
+            return Promise.resolve(data);
         }
 
         return fetch(import.meta.env.VITE_APP_DATA_QUALITY_URL, {
             method: 'GET'
         }).then(response => response.json()).then(async data => {
-            // TODO: fetch only the active instead of all
-            // fetch all
+            // fetch all, could also make a change that only retrieves the active profile
             await Promise.all(data.map((profile: QualityProfile) => fetchDqInverse(profile)));
 
+            sessionStorage.setItem(cacheKey, JSON.stringify(data));
             setDataQuality(data);
 
-            return new Promise((resolve) => resolve(data));
-        })
+            return data as QualityProfile[];
+        });
     }
 
     function fetchDqInverse(profile: QualityProfile) {
@@ -315,7 +351,7 @@ function OccurrenceList({setBreadcrumbs}: {
             method: 'GET'
         }).then(response => response.json());
 
-        // setIndexString(JSON.stringify(indexJson, null, 2))
+
         setResult(indexJson)
     }
 
@@ -339,9 +375,8 @@ function OccurrenceList({setBreadcrumbs}: {
             newQuery = newQuery.replace('&' + f, "")
         }
 
-        setQueryString && setQueryString(newQuery)
-        // TODO: replace all .pushState with a new URL to this page with updated query parameters
-        window.history.pushState({query: newQuery}, 'Occurrence Search', newQuery)
+        // Reload page. setQueryString is not flowing to all components as expected
+        window.location.replace(newQuery);
     }
 
     function removeFq(fq: string) {
@@ -376,32 +411,30 @@ function OccurrenceList({setBreadcrumbs}: {
     }
 
     function doQuickSearch() {
-        setQueryString && setQueryString(quickSearch)
-        // TODO: replace all .pushState with a new URL to this page with updated query parameters
-        window.history.pushState({query: quickSearch}, 'Occurrence Search', quickSearch)
+        // Reload page. setQueryString is not flowing to all components as expected
+        window.location.replace(quickSearch);
     }
 
-    // TODO: i18n
     return (
         <>
             <div className="container-fluid">
                 <div className="container-fluid" id="main-content">
                     <div id="listHeader" className="row justify-content-between">
                         <div className="col-sm-5 col-md-5">
-                            <h1>Occurrence records</h1>
+                            <h1><FormattedMessage id={'search.heading.list'} defaultMessage={'Occurrence records'}/> </h1>
                         </div>
 
                         <div id="searchBoxZ" className="text-right col-sm-4 col-md-4">
                             <div id="advancedSearchLink" className="me-0 float-end">
-                                <Link to="/" title="Go to advanced search form">
-                                    <i className="bi bi-gear-fill me-1"></i>Advanced Search</Link>
+                                <Link to="/" title={intl.formatMessage({id: 'list.advancedsearchlink.tooltip', defaultMessage: "Go to advanced search form"})}>
+                                    <i className="bi bi-gear-fill me-1"></i><FormattedMessage id='list.advancedsearchlink.navigator' defaultMessage={'Advanced search'}/> </Link>
                             </div>
                             <div className="input-group input-group-sm align-content-end">
                                 <input type="text" className="form-control mt-2"
                                        value={quickSearch} onChange={(e) => setQuickSearch(e.target.value)}
                                 />
                                 <button className="btn border-black mt-2"
-                                        onClick={() => doQuickSearch()}>Quick Search
+                                        onClick={() => doQuickSearch()}><FormattedMessage id={'list.advancedsearchlink.button.label'} defaultMessage={'Quick saerch'}/>
                                 </button>
                             </div>
                         </div>
@@ -411,9 +444,9 @@ function OccurrenceList({setBreadcrumbs}: {
                         <div className="col-md-3 col-sm-3">
                             <div style={{marginBottom: "10px"}}>
                                 <div className="btn tooltips border-black btn-sm"
-                                     title="Customise the contents of this column"
+                                     title={intl.formatMessage({id:'search.filter.customise.title', defaultMessage:"Customise the contents of this column"})}
                                      onClick={() => openCustomizeFilters()}>
-                                    <i className="bi bi-gear-fill me-1"></i>Customise filters
+                                    <i className="bi bi-gear-fill me-1"></i><FormattedMessage id={'search.filter.customise'} defaultMessage={'Customise filters'}/>
                                 </div>
                             </div>
 
@@ -434,12 +467,13 @@ function OccurrenceList({setBreadcrumbs}: {
                                     <ResultsReturned results={result} queryString={queryString}/>
                                 </div>
                                 <div id="download-button-area" className="col-auto pe-0">
-                                    <div id="downloads" className="btn btn-primary btn-sm" title="Download all 100 records"
+                                    <div id="downloads" className="btn btn-primary btn-sm"
+                                         title={intl.formatMessage({id:'list.downloads.navigator.title', defaultMessage:"Download all {recordCount} records"}, {recordCount: result.totalRecords})}
                                          onClick={() => download()}>
-                                        <i className="bi bi-download me-1"></i>Download
+                                        <i className="bi bi-download me-1"></i><FormattedMessage id={'list.downloads.navigator'} defaultMessage={'Download'}/>
                                     </div>
                                     <div id="downloads" className="btn btn-sm border-black ms-1"
-                                         title="Click to view the URL for the JSON version of this search request"
+                                         title={intl.formatMessage({id: 'list.copylinks.dlg.copybutton.title', defaultMessage: "Click to view the URL for the JSON version of this search request"})}
                                          onClick={() => api()}>
                                         <i className="bi bi-file-code me-1"></i>API
                                     </div>
@@ -461,7 +495,7 @@ function OccurrenceList({setBreadcrumbs}: {
                             />
 
                             <Tabs id="result-tabs" activeKey={tab} onSelect={(k) => setTab(k || '')}>
-                                <Tab eventKey="records" title="Records">
+                                <Tab eventKey="records" title={intl.formatMessage({id: 'list.link.t1', defaultMessage: "Records"})}>
                                     <RecordsView results={result}
                                                  pageSize={pageSize} setPageSize={setPageSize}
                                                  sort={sort} setSort={setSort}
@@ -475,13 +509,13 @@ function OccurrenceList({setBreadcrumbs}: {
                                                  page={page} setPage={setPage}
                                                  queryString={queryString}/>
                                 </Tab>
-                                <Tab eventKey="map" title="Map">
+                                <Tab eventKey="map" title={intl.formatMessage({id: 'list.link.t2', defaultMessage: "Map"})}>
                                     <MapView queryString={queryString} dataQualityInfo={dataQualityInfo} tab={tab}/>
                                 </Tab>
-                                <Tab eventKey="charts" title="Charts">
+                                <Tab eventKey="charts" title={intl.formatMessage({id: 'list.link.t3', defaultMessage: "Charts"})}>
                                     <Charts queryString={queryString} chartsData={chartsData} setChartsData={setChartsData}/>
                                 </Tab>
-                                <Tab eventKey="images" title="Record images">
+                                <Tab eventKey="images" title={intl.formatMessage({id: 'list.link.t5', defaultMessage: "Record images"})}>
                                     <RecordImages queryString={queryString} dataQualityInfo={dataQualityInfo}/>
                                 </Tab>
                             </Tabs>

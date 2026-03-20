@@ -8,11 +8,13 @@ import { useEffect, useRef, useState } from 'react';
 import TaxonDropdown from "./taxonDropdown.tsx";
 
 interface ResultsReturnedProps {
-    results?: {},
-    queryString?: string
+    results?: {
+        totalRecords?: number;
+        queryTitle?: string;
+    };
+    queryString?: string;
 }
 
-// TODO: i18n
 function ResultsReturned({results, queryString}: ResultsReturnedProps) {
 
     const [expanded, setExpanded] = useState(false);
@@ -68,7 +70,6 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
 
     return <>
         <div id="returnedText" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0 4px' }}>
-            {/*@ts-ignore*/}
             {!results?.totalRecords
                 ? <div className="spinner-border" role="status" style={{width: "1em", height: "1em"}}><span className="visually-hidden">...</span></div>
                 : <strong>{results && new Intl.NumberFormat().format(results.totalRecords)}</strong>
@@ -76,7 +77,7 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
             <span>records returned</span>
             {count === undefined
                 ? <><span>of</span><div className="spinner-border spinner-border-sm" role="status" style={{width: "1em", height: "1em"}}><span className="visually-hidden">...</span></div></>
-                : <><span>of</span>{/*@ts-ignore*/}<strong>{new Intl.NumberFormat().format(count)}</strong></>
+                : <><span>of</span><strong>{new Intl.NumberFormat().format(count)}</strong></>
             }
             <span>for</span>
             <span className="queryDisplay" id="queryDisplayContainer" style={{ flex: '1 1 auto', minWidth: 0 }}>

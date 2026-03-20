@@ -11,13 +11,12 @@ import { isUrl } from '../../util/util.tsx';
 import {OccurrenceTableRow} from "./occurrenceRow.tsx";
 import {FormattedMessage, useIntl} from 'react-intl';
 
-// TODO: move to external config files
-const vernacularName_show = true;
-const dwcExcludeFields = new Set("dataHubUid,dataProviderUid,institutionUid,year,month,day,modified,left,right,provenance,taxonID,preferredFlag,outlierForLayers,speciesGroups,associatedMedia,images,userQualityAssertion,speciesHabitats,duplicationType,taxonomicIssues,subspeciesID,nameMatchMetric,sounds,verbatimAssociatedMedia,datasetName,fieldNumber,samplingProtocol".split(","));
-const manualDatasetFields = new Set("dataProviderUid,dataProviderName,dataProviderName,dataResourceUid,dataResourceName,dataResourceName,institutionUid,institutionName,institutionName,institutionCode,collectionUid,collectionName,collectionName,collectionCode,catalogNumber,otherCatalogNumbers,occurrenceID,citation,recordUuid,basisOfRecord,preparations,identifiedBy,identifierRole,recordedBy,userId,recordNumber,typeStatus,identificationQualifier,reproductiveCondition,sex,behavior,individualCount,lifeStage,rights,occurrenceDetails,duplicationStatus,associatedOccurrences".split(","));
-const manualEventFields = new Set("datasetName,eventID,parentEventID,eventHierarchy,fieldNumber,identificationRemarks,eventDate,samplingProtocol,".split(","));
-const manualTaxonomyFields = new Set("higherClassification,taxonConceptID,scientificName,originalNameUsage,originalNameUsageID,taxonRank,taxonRankID,vernacularName,kingdom,kingdomID,phylum,phylumID,classs,classID,order,orderID,family,familyID,genus,genusID,species,speciesID,specificEpithet,associatedTaxa".split(","));
-const manualLocationFields = new Set("higherGeography,country,stateProvince,lga,locality,ibra,habitat,decimalLatitude,decimalLongitude,geodeticDatum,verbatimCoordinateSystem,verbatimLocality,waterBody,minimumDepthInMeters,maximumDepthInMeters,minimumElevationInMeters,maximumElevationInMeters,island,islandGroup,locationRemarks,fieldNotes,coordinatePrecision,coordinateUncertaintyInMeters,generalisedInMetres,informationWithheld,georeferenceVerificationStatus,georeferenceSources,georeferenceProtocol,georeferencedBy".split(","));
+const vernacularName_show = import.meta.env.VITE_RECORD_VERNACULAR_NAME_SHOW !== 'false';
+const dwcExcludeFields = new Set((import.meta.env.VITE_RECORD_DWC_EXCLUDE_FIELDS as string).split(","));
+const manualDatasetFields = new Set((import.meta.env.VITE_RECORD_MANUAL_DATASET_FIELDS as string).split(","));
+const manualEventFields = new Set((import.meta.env.VITE_RECORD_MANUAL_EVENT_FIELDS as string).split(","));
+const manualTaxonomyFields = new Set((import.meta.env.VITE_RECORD_MANUAL_TAXONOMY_FIELDS as string).split(","));
+const manualLocationFields = new Set((import.meta.env.VITE_RECORD_MANUAL_LOCATION_FIELDS as string).split(","));
 
 function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: {
     record?: RecordResult,

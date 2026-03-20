@@ -26,8 +26,7 @@ import ReferencedPublications from "../components/occurrence/referencedPublicati
 import './occurrence.css';
 import { isUrl } from '../util/util.tsx';
 
-// TODO: move to external config files
-const vernacularName_show = true;
+const vernacularName_show = import.meta.env.VITE_RECORD_VERNACULAR_NAME_SHOW !== 'false';
 
 function Occurrence({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
@@ -212,7 +211,6 @@ function Occurrence({setBreadcrumbs}: {
             updateBreadcrumb();
         } catch (error) {
             // TODO: 404 or other error to display
-            console.error(error);
             setRecord(undefined);
         }
     }

@@ -29,7 +29,10 @@ function DataQuality({
                          updateDataQualityInfo
                      }: DataQualityProps) {
 
-    const [expanded, setExpanded] = useState(dataQualityInfo.expand)
+    const [expanded, setExpanded] = useState<boolean>(() => {
+        const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + '.dqExpanded');
+        return stored !== null ? stored === 'true' : dataQualityInfo.expand;
+    })
     const [showInfo, setShowInfo] = useState(false)
     const [showSettings, setShowSettings] = useState(false)
     const [showFilters, setShowFilters] = useState(false)
@@ -86,7 +89,11 @@ function DataQuality({
     return <> {dataQuality.length > 0 && <>
         <div id="dataQuality" className="container-fluid activeFilters mb-2">
             <div className="d-flex align-items-center">
-                <div className="no-wrap" onClick={() => setExpanded(!expanded)} style={{cursor: "pointer"}}>
+                <div className="no-wrap" onClick={() => {
+                    const next = !expanded;
+                    setExpanded(next);
+                    localStorage.setItem(import.meta.env.VITE_APP_NAME + '.dqExpanded', String(next));
+                }} style={{cursor: "pointer"}}>
                     {expanded ? <i className="bi bi-caret-down-fill"></i> : <i className="bi bi-caret-right-fill"></i>}
                     &nbsp;<b className="dqLabel"><FormattedMessage id="quality.filters.group.title" defaultMessage="Data Profile"/></b>:
                 </div>
@@ -98,7 +105,7 @@ function DataQuality({
                                 dataQualityInfo.selectedFilters = undefined;
                                 updateDataQualityInfo({...dataQualityInfo})
                             }}>
-                        {dataQuality.map((dq, index) =>
+                        {dataQuality.sort((a, b) => a.name.localeCompare(b.name)).map((dq, index) =>
                             <option key={index} value={dq.shortName} title={intl.formatMessage({id:"dq.click.to.switch.profiles", defaultMessage:"Click to switch profile"})}>{dq.name}</option>
                         )}
                         <option value="disable"><FormattedMessage id="dq.buttontext.disableall" defaultMessage="Disable data profiles"/></option>

@@ -4,13 +4,14 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FormattedMessage} from "react-intl";
+import { FormattedMessage, useIntl } from 'react-intl';
 import {Link, useNavigate} from "react-router-dom";
 import {useState} from "react";
+import { OccurrenceListResult } from '../api/model.tsx';
 import AlertModal from "./alertModal.tsx";
 
 interface RecordsViewProps {
-    results: {},
+    results: OccurrenceListResult,
     pageSize: number,
     setPageSize: (pageSize: number) => void,
     sort: string,
@@ -38,6 +39,8 @@ function RecordsView({
     const navigate = useNavigate();
     const [showAlerts, setShowAlerts] = useState(false);
 
+    const intl = useIntl();
+
     function formatDate(date: number) {
         let d = new Date(date);
         let month = '' + (d.getMonth() + 1);
@@ -54,20 +57,19 @@ function RecordsView({
         navigate("/occurrence/" + id, { state: { recordsViewProps: { pageSize, sort, dir, page, queryString } } });
     }
 
-    // TODO: i18n
     return (
         <>
             <div id='searchControls' className='row align-items-center'>
                 <div className='col-sm-4 col-md-4'>
-                    <button className='btn border-black btn-sm' title='Get email alerts for this search' onClick={() => setShowAlerts(true)}>
-                        <i className='bi bi-bell-fill me-1'></i>Alerts
+                    <button className='btn border-black btn-sm' title={intl.formatMessage({id:'list.alerts.navigator.title', defaultMessage: 'Get email alerts for this search'})} onClick={() => setShowAlerts(true)}>
+                        <i className='bi bi-bell-fill me-1'></i><FormattedMessage id={'list.alerts.navigator'} defaultMessage={'Alerts'}/>
                     </button>
                 </div>
 
                 <div id='sortWidgets' className='col-sm-8 col-md-8'>
                     <div className='d-flex'>
                         <span className='ms-auto'></span>
-                        <span className='hidden-sm'>per&nbsp;</span>page:
+                        <span className='hidden-sm'><FormattedMessage id="list.sortwidgets.span01" defaultMessage="per"/></span><FormattedMessage id="list.sortwidgets.span02" defaultMessage="page"/>:
                         <select id='per-page' name='per-page' className='input-small me-2 ms-1' value={pageSize} onChange={e => setPageSize(parseInt(e.target.value) || 20)}>
                             <option value='10'>10</option>
                             <option value='20'>20</option>
@@ -116,7 +118,6 @@ function RecordsView({
             <div id='results' className='row mt-3'>
                 <div className='col-sm-12 col-md-12'>
                     <div id='resultsContainer'>
-                        {/*@ts-ignore*/}
                         {results.occurrences && results.occurrences.map((result: any, idx) => (
                             <div key={idx} id={result.uuid} onClick={() => openOccurrence(result.uuid)}>
                                 <p className='rowA'>
@@ -175,7 +176,7 @@ function RecordsView({
                                 <p className='rowB'>
                                     {result.institutionName && (
                                         <span className='resultValue me-2'>
-                                            <span className='resultsLabel'>
+                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
                                                 <FormattedMessage id='record.institutionName.label' />:
                                             </span>
                                             {result.institutionName}
@@ -183,7 +184,7 @@ function RecordsView({
                                     )}
                                     {result.collectionName && (
                                         <span className='resultValue me-2'>
-                                            <span className='resultsLabel'>
+                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
                                                 <FormattedMessage id='record.collectionName.label' />:
                                             </span>
                                             {result.collectionName}
@@ -191,7 +192,7 @@ function RecordsView({
                                     )}
                                     {!result.collectionName && result.dataResourceName && (
                                         <span className='resultValue me-2'>
-                                            <span className='resultsLabel'>
+                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
                                                 <FormattedMessage id='record.dataResourceName.label' />:
                                             </span>
                                             {result.dataResourceName}
@@ -207,7 +208,7 @@ function RecordsView({
                                     )}
                                     {result.raw_catalogNumber && (
                                         <span className='resultValue me-2'>
-                                            <span className='resultsLabel'>
+                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
                                                 <FormattedMessage id='record.catalogNumber.label' />
                                             </span>
                                             {(result.raw_collectionCode ? result.raw_collectionCode + ':' : '') + result.raw_catalogNumber}
@@ -215,7 +216,7 @@ function RecordsView({
                                     )}
 
                                     <span className='resultsLabel'>
-                                        <Link to={`/occurrence/${result.uuid}`}>View record</Link>
+                                        <Link to={`/occurrence/${result.uuid}`}><FormattedMessage id={'record.view.record'} defaultMessage={'View record'}/></Link>
                                     </span>
                                 </p>
                             </div>
@@ -229,7 +230,7 @@ function RecordsView({
                     <div className='d-flex justify-content-center'>
                         {page > 1 && (
                             <button className='btn border-black btn-sm ms-1' onClick={() => setPage(page - 1)}>
-                                <i className='bi bi-chevron-double-left' style={{ fontSize: '11px' }}></i> Previous
+                                <i className='bi bi-chevron-double-left' style={{ fontSize: '11px' }}></i> <FormattedMessage id={'show.previousbtn.navigator'} defaultMessage={'Previous'}/>
                             </button>
                         )}
 
@@ -237,12 +238,9 @@ function RecordsView({
                             1
                         </button>
 
-                        {/*@ts-ignore*/}
                         {Array.from(Array(9).keys()).map(idx => {
                             // rendering from page-4 to page +4
                             let lowerBound = Math.max(2, page - 4);
-                            // let upperBound = Math.min(20, page + 4)
-                            // @ts-ignore
                             let maxPages = Math.ceil(results.totalRecords / pageSize);
                             let p = lowerBound + idx;
                             if (p <= 20 && p <= maxPages) {
@@ -259,13 +257,11 @@ function RecordsView({
                             }
                         })}
 
-                        {/*@ts-ignore*/}
                         {page * pageSize < results.totalRecords && Math.min(20, page + 4) < Math.ceil(results.totalRecords / pageSize) && <button className='btn border-black btn-sm ms-1'>..</button>}
 
-                        {/*@ts-ignore*/}
                         {page * pageSize < results.totalRecords && page < 20 && (
                             <button className='btn border-black btn-sm ms-1' onClick={() => setPage(page + 1)}>
-                                Next <i className='bi bi-chevron-double-right' style={{ fontSize: '11px' }}></i>
+                                <FormattedMessage id={'show.nextbtn.navigator'} defaultMessage={'Next'}/> <i className='bi bi-chevron-double-right' style={{ fontSize: '11px' }}></i>
                             </button>
                         )}
                     </div>

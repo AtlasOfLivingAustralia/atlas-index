@@ -5,18 +5,17 @@ import { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape, useIntl} from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-// TODO: move to config
-const mintDoi = false;
-const sendEmail = false;
-const sourceTypeId = 2004; // hubs download
-const qaDefault = 'none';
-const statusCheckInterval = 10000; // 10 seconds
-const maxFieldguideSpecies = 1000;
+const mintDoi = import.meta.env.VITE_DOWNLOAD_MINT_DOI === 'true';
+const sendEmail = import.meta.env.VITE_DOWNLOAD_SEND_EMAIL === 'true';
+const sourceTypeId = Number(import.meta.env.VITE_DOWNLOAD_SOURCE_TYPE_ID); // hubs download
+const qaDefault = import.meta.env.VITE_DOWNLOAD_QA_DEFAULT;
+const statusCheckInterval = Number(import.meta.env.VITE_DOWNLOAD_STATUS_CHECK_INTERVAL); // ms
+const maxFieldguideSpecies = Number(import.meta.env.VITE_DOWNLOAD_MAX_FIELDGUIDE_SPECIES);
 // for downloadFormat == 'legacy'
-const fieldsDefault = 'id,catalogNumber,taxonConceptID,raw_scientificName,raw_vernacularName,scientificName,taxonRank,vernacularName,kingdom,phylum,class,order,family,genus,species,subspecies,dataResourceUid,dateResourceName,institutionUid,institutionName,collectionUid,collectionName,license,institutionCode,collectionCode,raw_locality,raw_decimalLatitude,raw_decimalLongitude,raw_geodeticDatum,decimalLatitude,decimalLongitude,coordinatePrecision,coordinateUncertaintyInMeters,country,stateProvince,cl959,cl21,cl1048,minimumElevationInMeters,maximumElevationInMeters,minimumDepthInMeters,maximumDepthInMeters,individualCount,recordedBy,year,month,day,eventDate,verbatim_eventDate,raw_basisOfRecord,basisOfRecord,occurrenceStatus,raw_sex,preparations,informationWithheld,dataGeneralizations,outlierLayers,spatiallyValid';
-const fieldsExtra = '';
+const fieldsDefault = import.meta.env.VITE_DOWNLOAD_FIELDS_DEFAULT;
+const fieldsExtra = import.meta.env.VITE_DOWNLOAD_FIELDS_EXTRA;
 // for downloadFormat == 'dwc'
-const dwcExtraFields = 'dataResourceUid,dataResourceName,images,raw_recordedBy';
+const dwcExtraFields = import.meta.env.VITE_DOWNLOAD_DWC_EXTRA_FIELDS;
 
 function getQueryParameters() {
     const { search } = useLocation();
@@ -48,6 +47,14 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
     const intl: IntlShape = useIntl();
     const location = useLocation();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        setBreadcrumbs([
+            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
+            {title: 'Occurrence records', href: '/'},
+            {title: 'Download status', href: '/'},
+        ]);
+    }, []);
 
     useEffect(() => {
         if (!searchParams) {

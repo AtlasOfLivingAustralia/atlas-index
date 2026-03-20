@@ -20,10 +20,25 @@ import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
 import {faLocationArrow} from '@fortawesome/free-solid-svg-icons/faLocationArrow';
 import L from "leaflet";
 import React from "react";
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix Leaflet's broken default marker icon paths when bundled with Vite
+const defaultMarkerIcon = new L.Icon({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    tooltipAnchor: [16, -28],
+    shadowSize: [41, 41],
+});
 
 const globalFq = import.meta.env.VITE_GLOBAL_FQ;
+const SPECIES_PAGE_SIZE: number = Number(import.meta.env.VITE_EYA_SPECIES_PAGE_SIZE) || 1000;
 
-// TODO: use the i18n value "all.species"
 const ALL_SPECIES = 'All Species';
 const speciesGroups: SpeciesGroupItem[] = [
     {
@@ -137,6 +152,15 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         fetchSpeciesList();
         filterSpecies(null);
     }, [group, latLng, radius]);
+
+    // When sort changes: re-fetch from API only if the list was truncated (in-memory sort would be wrong
+    // for a partial dataset). If all results fit in memory, just let the comparator handle it.
+    useEffect(() => {
+        if (speciesList && speciesList.length >= SPECIES_PAGE_SIZE) {
+            fetchSpeciesList();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [speciesSort]);
 
     // update ref, for use by timeout that otherwise uses the old scope
     useEffect(() => {
@@ -299,23 +323,23 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         setIsFetchingSpeciesList(true); // show spinner
         setSpeciesList(undefined); // show empty list
 
+        // Map UI sort to the API sort parameter
+        const apiSort = speciesSort === 'records' ? 'count' : speciesSort;
+
         // query biocache-service
         const groupParam = group === ALL_SPECIES ? 'ALL_SPECIES' : encodeURIComponent(group);
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=count&pageSize=-1${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`;
         fetch(url, {signal: signalSpeciesList})
             .then((response) => response.json())
             .then((data) => {
                 if (data) {
                     setSpeciesList(data);
                 } else {
-                    // indicate no data is available (replace nulls with empty values)
                     setSpeciesList([]);
                 }
-                // indicate that loading is finished
                 setIsFetchingSpeciesList(false);
             })
             .catch((error) => {
-                // cleanly handle error
                 if (error.name !== 'AbortError') {
                     setSpeciesList([]);
                 }
@@ -357,8 +381,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
     // Downloading URL for the download UI page. Ignores any species selection and downloads all species in the area for the selected group.
     function getDownloadLink() {
         const searchParams = `?q=speciesGroup:${group == ALL_SPECIES ? '*' : group}&lat=${latLng?.lat}&lon=${latLng?.lng}&radius=${radius}${globalFq}`;
-        {/*TODO: convert to navigate*/}
-        return `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/download?searchParams=${encodeURIComponent(searchParams)}&targetUri=/explore/your-area`;
+        return `/download?searchParams=${encodeURIComponent(searchParams)}&targetUri=/explore/your-area`;
     }
 
     function speciesSortComparator(a: SpeciesListItem, b: SpeciesListItem): number {
@@ -415,7 +438,6 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                 <strong>
                     {viewing} {mapLookupItemIdx + 1} {of} {mapLookupOccurrences.length} {occurrences}
                 </strong>
-                {/*TODO: convert to navigate*/}
                 <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={'/occurrences/search?' + mapLookupQueryParams}>
                     {viewAll}
                 </a>
@@ -634,6 +656,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                         )}
                                         {speciesList && speciesList.sort(speciesSortComparator).map((species, idx) => (
                                             <React.Fragment key={idx}>
+                                                {/* ...existing species rows... */}
                                                 <tr style={{ backgroundColor: (species.guid === selectedSpecies ? '#fff' : ''), cursor: 'pointer' }}
                                                     className={styles.speciesItemParent + ' ' + (species.guid === selectedSpecies ? ' ' + styles.speciesItemSelected : '')}
                                                     onClick={() => filterSpecies(species)}>
@@ -676,7 +699,6 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                                                 </a>
                                                                 <a className="btn btn-default btn-sm ms-3"
                                                                    style={{textDecoration: 'none'}}
-                                                                   // TODO: convert to navigate
                                                                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:"${encodeURIComponent(species.guid)}"${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}>
                                                                     <FormattedMessage id='eya.listrecords' defaultMessage='List records'/>
                                                                 </a>
@@ -685,6 +707,23 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                                     </tr>
                                                 )}
                                             </React.Fragment>)
+                                        )}
+                                        {speciesList && speciesList.length >= SPECIES_PAGE_SIZE && (
+                                            <tr style={{backgroundColor: 'transparent'}}>
+                                                <td colSpan={3} style={{
+                                                    backgroundColor: 'transparent',
+                                                    textAlign: 'center',
+                                                    padding: '6px 8px',
+                                                    fontStyle: 'italic',
+                                                    color: '#666'
+                                                }}>
+                                                    <FormattedMessage
+                                                        id='eya.specieslimit'
+                                                        defaultMessage='Display limit of {limit} reached.'
+                                                        values={{limit: SPECIES_PAGE_SIZE}}
+                                                    />
+                                                </td>
+                                            </tr>
                                         )}
                                         </tbody>
                                     </table>
@@ -698,8 +737,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                        pointerEvents: (!speciesList || speciesList.length === 0) ? 'none' : 'auto',
                                        opacity: (!speciesList || speciesList.length === 0) ? 0.5 : 1
                                    }}
-                                   // TODO: convert to navigate
-                                   href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?${occurrenceFq}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}
+                                   href={`/occurrences/search?${occurrenceFq}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}
                                    tabIndex={(!speciesList || speciesList.length === 0) ? -1 : 0}
                                    aria-disabled={!speciesList || speciesList.length === 0}>
                                     <FormattedMessage id='eya.searchform.viewrecordsfor' defaultMessage='View records for'/> {group}
@@ -782,6 +820,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                     {latLng && (<>
                                         <Marker
                                             position={latLng}
+                                            icon={defaultMarkerIcon}
                                             draggable={true}
                                             eventHandlers={{
                                                 dragend: (e) => {

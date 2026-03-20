@@ -8,6 +8,9 @@ import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
 import {QualityCategory} from "../api/model.tsx";
 
+// In-memory cache: lost on page refresh, not shared across tabs
+const countCache = new Map<string, number>();
+
 interface DataQualityExcludedProps {
     queryString: string | undefined,
     category: QualityCategory,
@@ -19,17 +22,22 @@ function DataQualityExcluded({queryString, category, addParams}: DataQualityExcl
     const [count, setCount] = useState<number | undefined>();
 
     useEffect(() => {
-        updateCount();
-    }, [queryString]);
+        if (!queryString || !category?.inverseFilter) return;
 
-    function updateCount() {
-        if (queryString && category) {
-            let thisQueryString = queryString + "&disableAllQualityFilters=true&fq=" + category.inverseFilter;
-
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString, {}).then(response => response.json())
-                .then(data => setCount(data.totalRecords));
+        const cacheKey = queryString + ':' + category.inverseFilter;
+        if (countCache.has(cacheKey)) {
+            setCount(countCache.get(cacheKey));
+            return;
         }
-    }
+
+        const thisQueryString = queryString + "&disableAllQualityFilters=true&fq=" + category.inverseFilter;
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString)
+            .then(response => response.json())
+            .then(data => {
+                countCache.set(cacheKey, data.totalRecords);
+                setCount(data.totalRecords);
+            });
+    }, [queryString, category?.inverseFilter]);
 
     function showOnly() {
         addParams(["disableAllQualityFilters=true", "fq=" + category.inverseFilter], []);

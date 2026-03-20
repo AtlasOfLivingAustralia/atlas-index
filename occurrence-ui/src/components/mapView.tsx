@@ -23,16 +23,15 @@ import defaultMapFacets from "../config/defaultMapFacets.json";
 import MapLegendControls from "./mapLegendControls.tsx";
 import TopRightControl from "./TopRightControl.tsx";
 
-// TODO: move to config
-const org = 'ALA';
+const org = import.meta.env.VITE_MAP_ORG;
 const center = new LatLng(
     Number(import.meta.env.VITE_MAP_CENTRE_LAT),
     Number(import.meta.env.VITE_MAP_CENTRE_LNG)
 );
 const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
-const defaultOpacity = 0.8;
-const defaultPointSize = 5;
-const defaultColour = 'df4a21';
+const defaultOpacity = Number(import.meta.env.VITE_MAP_DEFAULT_OPACITY);
+const defaultPointSize = Number(import.meta.env.VITE_MAP_DEFAULT_POINT_SIZE);
+const defaultColour = import.meta.env.VITE_MAP_DEFAULT_COLOUR;
 
 // Component to handle map click events
 function MapClickHandler({ onClick }: { onClick: (e: LeafletMouseEvent) => void }) {
@@ -76,9 +75,7 @@ function MapView({ queryString, tab }: MapViewProps) {
 
     // Render popup content when mapLookupOccurrence changes
     useEffect(() => {
-        console.log('mapLookupOccurrence changed', mapLookupOccurrence, mapLookupLatLng, mapRef.current);
         if (!mapLookupOccurrence || !mapRef.current || !mapLookupLatLng) return;
-        console.log('rendering popup for occurrence at ', mapLookupLatLng);
 
         if (!popupRootRef.current) {
             const container = document.createElement("div");
@@ -111,7 +108,6 @@ function MapView({ queryString, tab }: MapViewProps) {
     useEffect(() => {
         if (tab === 'map') {
             setTimeout(() => {
-                // @ts-ignore
                 mapRef.current?.invalidateSize(false);
             }, 300); // Adjust timeout to tab transition
         }
@@ -128,17 +124,6 @@ function MapView({ queryString, tab }: MapViewProps) {
                 url.searchParams.append(key, value);
             });
         }
-
-        // TODO: write it correctly to pass data quality info
-        // add data quality filters
-        // if (dataQualityInfo) {
-        //     dataQualityInfo.disabledQualityFilters.forEach(filter => {
-        //         url.searchParams.append("disableQualityFilter", filter);
-        //     });
-        //     if (dataQualityInfo.disableAllQualityFilters) {
-        //         url.searchParams.append("disableAllQualityFilters", "true");
-        //     }
-        // }
         return url.toString();
     }
 
@@ -167,7 +152,6 @@ function MapView({ queryString, tab }: MapViewProps) {
             fetch(url, {
                 method: 'GET'
             }).then(response => response.json()).then((data) => {
-                console.log('fetched occurrence', data);
                 setMapLookupOccurrence(data);
             });
         }
@@ -202,7 +186,6 @@ function MapView({ queryString, tab }: MapViewProps) {
                 <strong>
                     {viewing} {mapLookupItemIdx + 1} {of} {mapLookupOccurrences.length} {occurrences}
                 </strong>
-                {/*TODO: convert to navigate*/}
                 <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={'/occurrences/search' + queryString + '&' + mapLookupQueryParams}>
                     {viewAll}
                 </a>
@@ -290,12 +273,12 @@ function MapView({ queryString, tab }: MapViewProps) {
         L.popup().setLatLng(e.latlng).setContent(div).openOn(mapRef.current!);
 
         // 3. Fetch counts
-        const resp1 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/search?${terms}&facet=false&pageSize=0`);
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${terms}&facet=false&pageSize=0`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/facets?${terms}&facets=scientificName`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${terms}&facets=scientificName`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
@@ -340,7 +323,6 @@ function MapView({ queryString, tab }: MapViewProps) {
         } else if (colourBy === 'grid') {
             style = 'colormode:grid';
             let sz = 2 ** (9 - Math.max(pointSize, 2));
-            console.log('grid size: ' + sz + ' for point size: ' + pointSize);
             extra = '&GRIDDETAIL=' + sz;
         } else {
             style = 'colormode%3A' + colourBy;
@@ -351,13 +333,11 @@ function MapView({ queryString, tab }: MapViewProps) {
             extra += hiddenFacets.map(facet => `&HQ=${encodeURIComponent(facet)}`).join('');
         }
 
-        // TODO: add dq params
         return `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect${queryString}&ENV=${style}%3Bname%3Acircle%3Bsize%3A${pointSize}%3Bopacity%3A1&OUTLINE=${outline}${extra}`;
     }
 
     function getLegendImgUrl() {
         if (colourBy === 'grid') {
-            // TODO: add dq params
             return `${import.meta.env.VITE_APP_BIOCACHE_URL}/density/legend${queryString}`;
         }
 
@@ -365,7 +345,6 @@ function MapView({ queryString, tab }: MapViewProps) {
     }
 
     function mapClick(e: LeafletMouseEvent) {
-        console.log('map clicked', e.latlng);
         if (!queryString) {
             return;
         }
@@ -383,7 +362,6 @@ function MapView({ queryString, tab }: MapViewProps) {
         var radius = c / Math.pow(2, zoomLevel);
 
         // Adjust radius based on size, legacy calculation
-        // TODO: use a better approach
         if (pointSize >= 5 && pointSize < 8) {
             radius *= 2;
         }
@@ -403,7 +381,6 @@ function MapView({ queryString, tab }: MapViewProps) {
             method: 'GET'
         }).then(response => response.json()).then((data) => {
 
-            console.log('map lookup data', data);
             //setMapLookupCount(data.count);
             setMapLookupOccurrences(data.occurrences);
 
@@ -414,7 +391,6 @@ function MapView({ queryString, tab }: MapViewProps) {
             if (data.count == 0) {
                 return;
             }
-            console.log('fetching occurrence  ' + data.count);
         }).finally(() => {
             setMapLookupInProgress(false);
         })
@@ -431,7 +407,6 @@ function MapView({ queryString, tab }: MapViewProps) {
             setHiddenFacets([]);
             setLegendFacets([]);
         } else {
-            // TODO: add dq params
             let url = new URL(import.meta.env.VITE_APP_BIOCACHE_URL + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy));
             fetch(url.toString(), {
                 method: 'GET',
@@ -441,7 +416,6 @@ function MapView({ queryString, tab }: MapViewProps) {
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log('data', data);
                     let facets: any[] = [];
                     for (let item of data) {
                         facets.push(item);

@@ -7,26 +7,28 @@
 // Much of the DOI response is unstructured. Only define the fields we need.
 import {CSSProperties} from "react";
 
-interface DoiData {
-    title: string;
-    description: string;
+interface Occurrence {
     uuid: string;
-    authorisedRoles?: string[];
-    filename?: string;
-    providerMetadata?: {
-        title?: string;
-    };
-    dateCreated?: string;
-    doi: string;
-    displayTemplate?: boolean;
-    applicationMetadata?: {
-        recordCount: number;
-        datasets: {
-            name: string;
-            licence: string;
-            count: number;
-        }[];
-    };
+    taxonRank?: string;
+    scientificName?: string;
+    raw_scientificName?: string;
+    vernacularName?: string;
+    raw_vernacularName?: string;
+    eventDate?: number;
+    year?: number;
+    stateProvince?: string;
+    country?: string;
+    institutionName?: string;
+    collectionName?: string;
+    dataResourceName?: string;
+    basisOfRecord?: string;
+    raw_catalogNumber?: string;
+    raw_collectionCode?: string;
+}
+
+interface OccurrenceListResult {
+    occurrences: Occurrence[];
+    totalRecords: number;
 }
 
 interface DataQualityInfo {
@@ -74,16 +76,16 @@ interface QualityCategory {
 
 interface QualityProfile {
     id: number;
-    name: string
-    shortName: string
-    description: string
-    contactName: string
-    contactEmail: string
-    enabled: boolean
-    isDefault: boolean
-    displayOrder: number
-    dateCreated: Date | undefined
-    lastUpdated: Date | undefined
+    name: string;
+    shortName: string;
+    description: string;
+    contactName: string;
+    contactEmail: string;
+    enabled: boolean;
+    isDefault: boolean;
+    displayOrder: number;
+    dateCreated: Date | undefined;
+    lastUpdated: Date | undefined;
     categories: QualityCategory[];
 }
 
@@ -377,7 +379,6 @@ type CompareResult = {
 }
 
 export type {
-    DoiData,
     DataQualityInfo,
     FacetItem,
     Facet,
@@ -406,5 +407,7 @@ export type {
     AttributionResult,
     ReferencedResult,
     DqAssertion,
-    SystemAssertion
+    SystemAssertion,
+    Occurrence,
+    OccurrenceListResult
 };

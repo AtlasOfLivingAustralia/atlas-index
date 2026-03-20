@@ -6,6 +6,7 @@
 
 import {useEffect, useState} from "react";
 import {Modal} from "react-bootstrap";
+import {FormattedMessage} from "react-intl";
 import {DataQualityInfo} from "../api/model.tsx";
 
 
@@ -82,15 +83,14 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
             });
     }
 
-    // TODO: i18n
     return <>
-        <h3 className="h3Small">Images from occurrence records</h3>
+        <h3 className="h3Small"><FormattedMessage id={'list.speciesgallerycontrols.recordimages.title'} defaultMessage={'Images from occurrence records'}/></h3>
 
         <div id="container">
             {images.map((image, index) =>
                 <div key={index} className="imgCon" onClick={() => {setImage(image); setShowModal(true)}}>
                     <div className="cbLink thumbImage tooltips" rel="thumbs" id="thumb" title="click to enlarge">
-                        <img src={image.thumbnail} alt="image thumbnail"/>
+                        <img src={image.thumbnail} alt={image.name + " image thumbnail"}/>
 
                         <div className="meta brief">
                             {image.name}
@@ -108,12 +108,12 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
             )}
             <br/>
             {loading && <div className="spinner-border" role="status" style={{height: "20px", width: "20px"}}>
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden"><FormattedMessage id="list.speciesgallerycontrols.imagesgrid" defaultMessage="loading images"/>...</span>
             </div>}
             {!loading && !noMoreImages && <>
                 <br/>
                 <button className="btn btn-sm border-black mt-3" onClick={() => {setPage(page + 1);loadImages(page)}}>
-                    Show More Images
+                    <FormattedMessage id="list.speciesgallerycontrols.loadmoreimages.button" defaultMessage="Show more images"/>
                 </button>
             </>}
         </div>

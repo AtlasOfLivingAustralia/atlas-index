@@ -7,17 +7,15 @@
 import { Breadcrumb, FontAwesomeIconLite, useHashState } from '@ala/common-ui';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import L, {LatLng, LeafletMouseEvent} from "leaflet";
-import {useEffect, useState, useRef} from "react";
+import {useEffect, useState, useRef, useCallback} from "react";
 import {Tab, Tabs} from "react-bootstrap";
 import {Menu, MenuItem, Typeahead} from "react-bootstrap-typeahead";
 import '../css/search.css';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {EditControl} from "react-leaflet-draw";
 import {useNavigate} from "react-router-dom";
-import {AdvancedSearch} from "../api/model.tsx";
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 
-import advancedSearchJson from '../config/advancedSearch.json';
 import {FeatureGroup, LayersControl, MapContainer, TileLayer} from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css'
@@ -29,13 +27,31 @@ const center = new LatLng(
 );
 const defaultZoom = Number(import.meta.env.VITE_MAP_DEFAULT_ZOOM);
 
-// TODO: move to config
 const hubDisplayName = import.meta.env.VITE_HUB_NAME;
 
 function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void; }) {
 
     const [tab, setTab] = useHashState('tab', 'simple');
-    const [advancedOptions, setAdvancedOptions] = useState<AdvancedSearch>();
+
+    // Per-facet cache: undefined = not yet fetched, null = loading, Fq[] = loaded
+    const [advancedOptions, setAdvancedOptions] = useState<Record<string, {name: string; fq: string}[] | null | undefined>>({});
+
+    const fetchFacet = useCallback((facet: string) => {
+        setAdvancedOptions(prev => {
+            if (prev[facet] !== undefined) return prev; // already loading or loaded
+            return { ...prev, [facet]: null }; // mark as loading
+        });
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1`;
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const facetResult = data?.facetResults?.find((fr: any) => fr.fieldName === facet);
+                const values = facetResult
+                    ? facetResult.fieldResult.map((fr: any) => ({ name: fr.label, fq: fr.fq }))
+                    : [];
+                setAdvancedOptions(prev => ({ ...prev, [facet]: values }));
+            });
+    }, []);
 
     // simple search
     const [simpleTaxa, setSimpleTaxa] = useState('');
@@ -93,21 +109,11 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
             {title: 'Occurrence records', href: '/'},
         ]);
-
-        // TODO: using a compiled src file, but it should be a remote file loaded on demand
-        setAdvancedOptions(
-            Object.fromEntries(
-                Object.entries(advancedSearchJson).map(([key, arr]) => [
-                    key, Array.isArray(arr) ? arr.map((item: any) => ({...item, href: item.href ?? ""})) : arr
-                ])
-            ) as AdvancedSearch
-        );
     }, []);
 
     useEffect(() => {
         if (tab === 'spatial') {
             setTimeout(() => {
-                // @ts-ignore
                 mapRef.current?.invalidateSize(false);
             }, 300); // Adjust timeout to tab transition
         }
@@ -319,7 +325,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             const controller = new AbortController();
             searchAbort.current = controller;
 
-            fetch(`${import.meta.env.NAMEMATCHING_URL}/api/autocomplete?q=${encodeURIComponent(query)}`, {
+            fetch(`${import.meta.env.VITE_NAMEMATCHING_URL}/api/autocomplete?q=${encodeURIComponent(query)}`, {
                 signal: controller.signal
             })
                 .then(res => res.json())
@@ -444,8 +450,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="species_group"
                                                 value={advancedSpeciesGroup}
+                                                onFocus={() => fetchFacet('speciesGroup')}
                                                 onChange={e => setAdvancedSpeciesGroup(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table04col01.option.label" defaultMessage="-- select a species group --"/></option>
+                                            {advancedOptions?.speciesGroup === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
                                             {advancedOptions?.speciesGroup && advancedOptions.speciesGroup.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
                                             )}
@@ -460,8 +468,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="institution_collection"
                                                 value={advancedInstitution}
+                                                onFocus={() => { fetchFacet('institutionUid'); fetchFacet('collectionUid'); }}
                                                 onChange={e => setAdvancedInstitution(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table05col01.option01.label" defaultMessage="-- select an institution or collection --"/></option>
+                                            {advancedOptions?.institutionUid === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
                                             {advancedOptions?.institutionUid && advancedOptions.institutionUid.map((institution: any, idx: number) =>
                                                 <optgroup key={idx} label={institution.name}>
                                                     <option value={institution.fq}><FormattedMessage id="advancedsearch.table05col01.option02.label" defaultMessage="All records from"/> {institution.name}</option>
@@ -480,8 +490,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <label className="col-md-2 control-label" htmlFor="country"><FormattedMessage id="advancedsearch.table06col01.title" defaultMessage="Country"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="country" value={advancedCountry}
+                                                onFocus={() => fetchFacet('country')}
                                                 onChange={e => setAdvancedCountry(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table06col01.option.label" defaultMessage="-- select a country --"/></option>
+                                            {advancedOptions?.country === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.country && advancedOptions.country.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -495,8 +507,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="state"
                                                 value={advancedState}
+                                                onFocus={() => fetchFacet('state')}
                                                 onChange={e => setAdvancedState(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table06col02.option.label" defaultMessage="-- select a state/territory --"/></option>
+                                            {advancedOptions?.state === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.state && advancedOptions.state.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -510,8 +524,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                         title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr> <FormattedMessage id="advancedsearch.table06col03.title" defaultMessage="region"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="ibra" value={advancedIbra}
+                                                onFocus={() => fetchFacet('cl1048')}
                                                 onChange={e => setAdvancedIbra(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table06col03.option.label" defaultMessage="-- select an IBRA region --"/></option>
+                                            {advancedOptions?.cl1048 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.cl1048 && advancedOptions.cl1048.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -526,8 +542,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                         title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> <FormattedMessage id="advancedsearch.table06col04.title" defaultMessage="region"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="imcra" value={advancedImcra}
+                                                onFocus={() => fetchFacet('cl21')}
                                                 onChange={e => setAdvancedImcra(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table06col04.option.label" defaultMessage="-- select an IMCRA region --"/></option>
+                                            {advancedOptions?.cl21 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.cl21 && advancedOptions.cl21.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -541,8 +559,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <label className="col-md-2 control-label" htmlFor="lga"><FormattedMessage id="advancedsearch.table06col05.title" defaultMessage="Local Govt. Area"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="lga" value={advancedLga}
+                                                onFocus={() => fetchFacet('cl959')}
                                                 onChange={e => setAdvancedLga(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table06col05.option.label" defaultMessage="-- select local government area--"/></option>
+                                            {advancedOptions?.cl959 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.cl959 && advancedOptions.cl959.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -557,8 +577,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="type_status"
                                                 value={advancedTypeStatus}
+                                                onFocus={() => fetchFacet('typeStatus')}
                                                 onChange={e => setAdvancedTypeStatus(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table07col01.option.label" defaultMessage="-- select a type status --"/></option>
+                                            {advancedOptions?.typeStatus === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.typeStatus && advancedOptions.typeStatus.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -571,8 +593,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                     <label className="col-md-2 control-label" htmlFor="basis_of_record"><FormattedMessage id="advancedsearch.table08col01.title" defaultMessage="Basis of record"/></label>
                                     <div className="col-md-6 ms-2">
                                         <select className="form-select form-control" id="basis_of_record" value={advancedBasisOfRecord}
+                                                onFocus={() => fetchFacet('basisOfRecord')}
                                                 onChange={e => setAdvancedBasisOfRecord(e.target.value)}>
                                             <option value=""><FormattedMessage id="advancedsearch.table08col01.option.label" defaultMessage="-- select a basis of record --"/></option>
+                                            {advancedOptions?.basisOfRecord === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
 
                                             {advancedOptions?.basisOfRecord && advancedOptions.basisOfRecord.map((item: any, idx: number) =>
                                                 <option key={idx} value={item.fq}>{item.name}</option>
@@ -593,11 +617,13 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 <div className="mb-3 row align-items-center text-end">
                                     <label className="control-label col-md-2"><FormattedMessage id="advancedsearch.dataset.col.label" defaultMessage="dataset name"/></label>
                                     <div className="col-md-6 ms-2">
-                                        {advancedOptions?.dataResourceUid && <Typeahead
+                                        <Typeahead
                                             id="dataResource-autocomplete"
                                             labelKey="name"
-                                            options={advancedOptions.dataResourceUid}
+                                            options={advancedOptions?.dataResourceUid ?? []}
+                                            isLoading={advancedOptions?.dataResourceUid === null}
                                             selected={advancedDataResource}
+                                            onFocus={() => fetchFacet('dataResourceUid')}
                                             onChange={(selected) => {
                                                 setAdvancedDataResource(selected)
                                             }}
@@ -610,14 +636,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                                             position={index}
                                                             // Override href with the current route so clicking on an item does not change the route and the page does not scroll.
                                                             href={"javascript:"}>
-                                                            {/* @ts-ignore */}
-                                                            {result.name}
+                                                            {typeof result === 'string' ? result : result.name}
                                                         </MenuItem>
                                                     ))}
                                                 </Menu>
                                             )}
                                         />
-                                        }
                                     </div>
                                 </div>
 

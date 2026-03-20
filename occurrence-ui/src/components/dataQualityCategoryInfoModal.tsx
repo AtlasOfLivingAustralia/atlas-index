@@ -177,7 +177,6 @@ function DataQualityCategoryInfoModal({
                         <th><FormattedMessage id="dq.categoryinfo.dlg.fieldtable.heading.furtherInfo" defaultMessage="Further information"/></th>
                     </tr>
 
-                    {/*@ts-ignore*/}
                     {catFields.map((name, idx) =>
                         <tr key={idx}>
                             <td className="filter-description">
@@ -205,7 +204,6 @@ function DataQualityCategoryInfoModal({
                         <th><FormattedMessage id="dq.profiledetail.filtertable.header.furtherInfo" defaultMessage="Further information"/></th>
                     </tr>
 
-                    {/*@ts-ignore*/}
                     {category.qualityFilters.map((filter, idx) =>
                         <tr key={idx}>
                             <td className="filter-description">

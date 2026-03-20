@@ -211,11 +211,10 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                 <p
                     style={{ paddingBottom: '10px' }}
                     dangerouslySetInnerHTML={{
-                        // @ts-ignore
                         __html: (
                             (intl.messages['downloads.fields.intro'] as string) ??
                             'This table provides information on the occurrence record field types and mappings between search terms, JSON output terms, download headers, readable names, descriptions, Darwin Core (DwC) terms and classes, as well as other miscellaneous attributes.'
-                        ).replaceAll('{biocacheLink}', `<a href="${import.meta.env.VITE_APP_BIOCACHE_URL}">${import.meta.env.VITE_APP_BIOCACHE_URL}</a>`)
+                        ).replace(/\{biocacheLink\}/g, `<a href="${import.meta.env.VITE_APP_BIOCACHE_URL}">${import.meta.env.VITE_APP_BIOCACHE_URL}</a>`)
                     }}></p>
 
                 {/* Filter buttons */}

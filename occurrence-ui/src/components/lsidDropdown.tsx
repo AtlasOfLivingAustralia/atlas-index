@@ -6,6 +6,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FormattedMessage, useIntl } from 'react-intl';
 
 interface LsidDropdownProps {
     lsid: string;
@@ -42,6 +43,8 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
     const bieUrl = import.meta.env.VITE_APP_BIE_URL;
     const contextPath = import.meta.env.VITE_APP_CONTEXT_PATH ?? '';
     const speciesPageUri = `${bieUrl}/species/${lsid}`;
+
+    const intl = useIntl();
 
     function fetchData() {
         if (data || loading) return;
@@ -111,24 +114,24 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
             onClick={e => e.stopPropagation()}
         >
             <div className="taxaMenuContent" style={{ padding: "8px 16px" }}>
-                The search results include records for synonyms and child taxa of&nbsp;
+                <FormattedMessage id={'list.resultsreturned.div01.des01'} defaultMessage={'list.resultsreturned.div01.des01'}/>&nbsp;
                 <b className="nameString">{nameString}</b>&nbsp;
                 (<span className="speciesPageLink">
-                    <a href={speciesPageUri} title="View species page" target="BIE">species page</a>
+                    <a href={speciesPageUri} title="View species page" target="BIE"><FormattedMessage id={'search.species.view.desc"'} defaultMessage={'view species page'}/></a>
                 </span>).
                 <div className="refineTaxaSearch" id={`refineTaxaSearch_${index}`}>
                     <div style={{ marginBottom: '6px' }}>
-                        The result set contains records provided under the following names:
+                        <FormattedMessage id={'list.resultsreturned.form.des01'} defaultMessage={'The result set contains records provided under the following names'}/>:
                     </div>
                     <button
                         id={`rawTaxonSumbit_${index}`}
                         className="btn btn-sm btn-default rawTaxonSumbit mb-2"
-                        title="Restrict results to checked names"
+                        title={intl.formatMessage({id: 'list.resultsreturned.restrict.results', defaultMessage: 'Restrict results to the selected names'})}
                         disabled={!anyChecked}
                         onClick={handleRefine}
                         type="button"
                     >
-                        Refine search
+                        <FormattedMessage id={'list.resultsreturned.form.button01'} defaultMessage={'Refine search'}/>
                     </button>
                     <div className="rawTaxaList">
                         {loading

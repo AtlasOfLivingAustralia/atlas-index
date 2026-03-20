@@ -9,9 +9,8 @@ import { RecordResult } from '../../api/model.tsx';
 import ContactCuratorModal from '../contactCuratorModal.tsx';
 import RolloverTooltip from '../rolloverTooltip.tsx';
 
-// TODO: move to config
-const skin_useAlaImageService = true;
-const defaultZoom = 5;
+const skin_useAlaImageService = import.meta.env.VITE_USE_ALA_IMAGE_SERVICE === 'true';
+const defaultZoom = Number(import.meta.env.VITE_DEFAULT_MAP_ZOOM) || 5;
 
 function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { record?: RecordResult; contacts?: any; userAssertions?: any; eventHierarchy?: any }) {
     const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(null);
@@ -43,7 +42,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
     }
 
     function sanitize(input: string): string {
-        console.log("TODO: sanitize input");
+        // TODO: sanitize
         const div = document.createElement('div');
         div.textContent = input;
         return div.innerHTML;

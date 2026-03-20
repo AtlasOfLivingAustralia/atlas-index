@@ -7,28 +7,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import './download.css';
 import RolloverTooltip from '../components/rolloverTooltip.tsx';
 
-// TODO: move to config
-const maxRecords = 50000;
-const downloadFormats = ['dwc', 'legacy', 'custom'];
-const fileTypes = ['csv', 'tsv'];
-// TODO: move to API when building, falling back to config if logger API is not available
-const loggerReasons = [
-    { id: 1, name: 'biosecurity management/planning' },
-    { id: 11, name: 'citizen science' },
-    { id: 5, name: 'collection management' },
-    { id: 0, name: 'conservation management/planning' },
-    { id: 7, name: 'ecological research' },
-    { id: 3, name: 'education' },
-    { id: 2, name: 'environmental assessment' },
-    { id: 12, name: 'restoration/remediation' },
-    { id: 4, name: 'scientific research' },
-    { id: 8, name: 'systematic research/taxonomy' },
-    { id: 13, name: 'species modelling' },
-    { id: 6, name: 'other' },
-    { id: 10, name: 'testing' }
-];
-const termsOfUseUrl = 'https://www.ala.org.au/terms-of-use/#TOUusingcontent';
-const orgNameLong = 'Atlas of Living Australia';
+const maxRecords = Number(import.meta.env.VITE_DOWNLOAD_MAX_RECORDS);
+const downloadFormats = (import.meta.env.VITE_DOWNLOAD_FORMATS as string).split(',');
+const fileTypes = (import.meta.env.VITE_DOWNLOAD_FILE_TYPES as string).split(',');
+const loggerReasons: { id: number; name: string }[] = JSON.parse(import.meta.env.VITE_DOWNLOAD_LOGGER_REASONS);
+const termsOfUseUrl = import.meta.env.VITE_TERMS_OF_USE_URL;
+const orgNameLong = import.meta.env.VITE_HUB_NAME;
 
 // TODO: also support the query parameters spatial sends
 function getQueryParameters() {
@@ -63,11 +47,10 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const navigate = useNavigate();
 
     useEffect(() => {
-        // TODO: all the breadcrumbs are wrong, fix them
         setBreadcrumbs([
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
             {title: 'Occurrence records', href: '/'},
-            {title: 'Occurrence', href: '/occurrence'},
+            {title: 'Download', href: '/'},
         ]);
 
         fetchTotalRecords();

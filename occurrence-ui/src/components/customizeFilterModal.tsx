@@ -34,8 +34,6 @@ function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}:
         onClose();
     }
 
-    console.log("groupedFacets", groupedFacets);
-
     return <>
         <Modal show={true} onHide={onClose} size="lg">
             <Modal.Header closeButton>

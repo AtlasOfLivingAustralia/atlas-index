@@ -27,7 +27,6 @@ function formatFieldName(intl: IntlShape, fieldCode?: string, fieldName?: string
 
 function sanitizeBodyText(text: string) {
     // TODO: implement
-    // console.log("// TODO: implement sanitizeBodyText");
     return text;
 }
 

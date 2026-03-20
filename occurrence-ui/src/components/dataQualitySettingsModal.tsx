@@ -28,7 +28,11 @@ function DataQualitySettingsModal({
 
     const [localCategories, setLocalCategories] = useState<any[]>([]);
     const [profile, setProfile] = useState(dataQualityInfo.profile);
-    const [showExpanded, setShowExpanded] = useState(dataQualityInfo.expand ? "expanded": "collapsed");
+    const [showExpanded, setShowExpanded] = useState(() => {
+        const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + '.dqExpanded');
+        const isExpanded = stored !== null ? stored === 'true' : dataQualityInfo.expand;
+        return isExpanded ? 'expanded' : 'collapsed';
+    });
 
     const intl: IntlShape = useIntl();
 
@@ -60,8 +64,16 @@ function DataQualitySettingsModal({
     function save() {
         let disabledItems :string[] = localCategories.filter(cat => !cat.selected).map(cat => cat.label);
 
+        // Persist expand preference for the toggle in dataQuality.tsx
+        localStorage.setItem(import.meta.env.VITE_APP_NAME + '.dqExpanded', String(showExpanded === 'expanded'));
+
         if (!userInfo?.authenticated) {
-            // TODO: save to local storage
+            localStorage.setItem(import.meta.env.VITE_APP_NAME + ".dqUserProfile", JSON.stringify({
+                expand: showExpanded,
+                disableAll: profile === "disable",
+                disabledItems: disabledItems,
+                dataProfile: profile === "disable" ? null : profile
+            }));
         } else {
             const data = new URLSearchParams();
             data.append("name", import.meta.env.VITE_APP_NAME + ".dqUserProfile" );

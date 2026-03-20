@@ -37,35 +37,6 @@ function MapLayerControls({
     const [outlineChecked, setOutlineChecked] = useState<boolean>(defaultOutline);
     const [colourByValue, setColourByValue] = useState<string>(defaultColourBy);
 
-    // TODO: do this directly without intlValues memo
-    const intlValues = useMemo(() => {
-        return {
-            colourBy: intl.formatMessage({
-                id: 'map.maplayercontrols.tr01td01.label',
-                defaultMessage: 'Colour by',
-            }),
-            pointColour: intl.formatMessage({
-                id: 'map.maplayercontrols.tr01td01.option01',
-                defaultMessage: 'Points - default colour',
-            }),
-            grid: intl.formatMessage({
-                id: 'map.maplayercontrols.tr01td01.option02',
-                defaultMessage: 'Record density grid',
-            }),
-            size: intl.formatMessage({
-                id: 'map.maplayercontrols.tr01td02.label',
-                defaultMessage: 'Size',
-            }),
-            opacity: intl.formatMessage({
-                id: 'map.maplayercontrols.tr01td03.label',
-                defaultMessage: 'Opacity',
-            }),
-            outline: intl.formatMessage({
-                id: 'map.maplayercontrols.tr01td04.label',
-                defaultMessage: 'Outline',
-            }),
-        };
-    }, [intl]);
 
     const formattedFacets = useMemo(() => {
         return (facets || []).map((facet) => ({
@@ -87,7 +58,7 @@ function MapLayerControls({
             onTouchStart={(e) => e.stopPropagation()}
         >
             <div>
-                <label htmlFor="colourBySelect">{intlValues['colourBy']}:&nbsp;</label>
+                <label htmlFor="colourBySelect">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td01.label', defaultMessage: 'Colour by' })}:&nbsp;</label>
                 <select
                     id="colourBySelect"
                     value={colourByValue}
@@ -96,8 +67,8 @@ function MapLayerControls({
                         onColourChange(e.target.value);
                     }}
                 >
-                    <option value="">{intlValues['pointColour']}</option>
-                    <option value="grid">{intlValues['grid']}</option>
+                    <option value="">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td01.option01', defaultMessage: 'Points - default colour' })}</option>
+                    <option value="grid">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td01.option02', defaultMessage: 'Record density grid' })}</option>
                     <option disabled>————————————</option>
                     {formattedFacets.map((facet) => (
                         <option key={facet.key} value={facet.key}>
@@ -108,7 +79,7 @@ function MapLayerControls({
             </div>
 
             <div>
-                <label htmlFor="sizeslider">{intlValues['size']}:</label>
+                <label htmlFor="sizeslider">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td02.label', defaultMessage: 'Size' })}:</label>
                 <span id="sizeslider-val">{sizeValue}</span>
                 <input
                     id="sizeslider"
@@ -126,7 +97,7 @@ function MapLayerControls({
             </div>
 
             <div>
-                <label htmlFor="opacityslider">{intlValues['opacity']}:</label>
+                <label htmlFor="opacityslider">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td03.label', defaultMessage: 'Opacity' })}:</label>
                 <span id="opacityslider-val">{opacityValue.toFixed(1)}</span>
                 <input
                     id="opacityslider"
@@ -145,7 +116,7 @@ function MapLayerControls({
             </div>
 
             <div>
-                <label htmlFor="outlineDots">{intlValues['outline']}:</label>
+                <label htmlFor="outlineDots">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td04.label', defaultMessage: 'Outline' })}:</label>
                 <input
                     id="outlineDots"
                     type="checkbox"

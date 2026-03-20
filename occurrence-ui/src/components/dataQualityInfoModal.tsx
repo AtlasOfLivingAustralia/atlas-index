@@ -7,7 +7,8 @@
 import {useEffect, useState} from "react";
 import Modal from "react-bootstrap/esm/Modal";
 import {FormattedMessage} from "react-intl";
-import {DataQualityInfo} from '../api/model.tsx';
+import { DataQualityInfo, QualityProfile } from '../api/model.tsx';
+import React from 'react';
 
 interface DataQualityInfoModalProps {
     onClose: () => void,
@@ -17,7 +18,7 @@ interface DataQualityInfoModalProps {
 
 function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQualityInfoModalProps) {
 
-    const [data, setData] = useState({});
+    const [data, setData] = useState<QualityProfile | undefined>(undefined);
 
     useEffect(() => {
         for (let dq of dataQuality) {
@@ -50,23 +51,23 @@ function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQuali
                     <tbody>
                     <tr>
                         <td><FormattedMessage id="dq.profiledetail.profiletable.header.profilename" defaultMessage="Profile name"/></td>
-                        <td>{data.name}</td>
+                        <td>{data?.name}</td>
                     </tr>
                     <tr>
                         <td><FormattedMessage id="dq.profiledetail.profiletable.header.profileshortname" defaultMessage="Profile short name"/></td>
-                        <td>{data.shortName}</td>
+                        <td>{data?.shortName}</td>
                     </tr>
                     <tr>
                         <td><FormattedMessage id="dq.profiledetail.profiletable.header.profiledescription" defaultMessage="Profile description"/></td>
-                        <td>{data.description}</td>
+                        <td>{data?.description}</td>
                     </tr>
                     <tr>
                         <td><FormattedMessage id="dq.profiledetail.profiletable.header.owner" defaultMessage="Owner"/></td>
-                        <td>{data.contactName}</td>
+                        <td>{data?.contactName}</td>
                     </tr>
                     <tr>
                         <td><FormattedMessage id="dq.profiledetail.profiletable.header.contact" defaultMessage="Contact"/></td>
-                        <td><a target="_blank" href={"mailto: " + data.contactEmail}>{data.contactEmail}</a>
+                        <td><a target="_blank" href={"mailto: " + (data?.contactEmail)}>{data?.contactEmail}</a>
                         </td>
                     </tr>
                     </tbody>
@@ -74,7 +75,7 @@ function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQuali
 
                 <h4 className="dqH4"><FormattedMessage id="dq.profiledetail.categorylabel" defaultMessage="Filter categories"/>:</h4>
 
-                {data.categories && data.categories.map((cat, idx) => <>
+                {data?.categories && data.categories.map((cat, idx) => <React.Fragment key={idx}>
                     <div className="dqCategory">
                         <b>{cat.name}</b><br/>
                         <div className="dqCategoryDesc">{cat.description}</div>
@@ -88,7 +89,6 @@ function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQuali
                             <th><FormattedMessage id="dq.profiledetail.filtertable.header.furtherInfo" defaultMessage="Further information"/></th>
                         </tr>
 
-                        {/*@ts-ignore*/}
                         {cat.qualityFilters.map((filter, idx) =>
                             <tr key={idx}>
                                 <td className="filter-description">
@@ -107,7 +107,7 @@ function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQuali
                         </tbody>
                     </table>
 
-                </>)}
+                </React.Fragment>)}
 
             </Modal.Body>
             <Modal.Footer>
