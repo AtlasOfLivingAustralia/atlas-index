@@ -24,6 +24,28 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
+// Singleton promise for loading the Google Maps JS API.
+// Poll every 100 ms until window.google.maps.Geocoder is available.
+// react-leaflet-google-layer loads the Maps JS API when the map renders; we just wait for it.
+function waitForGeocoder(maxWaitMs = 10000): Promise<void> {
+    return new Promise((resolve, reject) => {
+        if (typeof (window as any).google?.maps?.Geocoder === 'function') {
+            resolve();
+            return;
+        }
+        const start = Date.now();
+        const interval = setInterval(() => {
+            if (typeof (window as any).google?.maps?.Geocoder === 'function') {
+                clearInterval(interval);
+                resolve();
+            } else if (Date.now() - start >= maxWaitMs) {
+                clearInterval(interval);
+                reject(new Error('Google Maps Geocoder did not load in time'));
+            }
+        }, 100);
+    });
+}
+
 // Fix Leaflet's broken default marker icon paths when bundled with Vite
 const defaultMarkerIcon = new L.Icon({
     iconUrl: markerIcon,
@@ -38,6 +60,7 @@ const defaultMarkerIcon = new L.Icon({
 
 const globalFq = import.meta.env.VITE_GLOBAL_FQ;
 const SPECIES_PAGE_SIZE: number = Number(import.meta.env.VITE_EYA_SPECIES_PAGE_SIZE) || 1000;
+
 
 const ALL_SPECIES = 'All Species';
 const speciesGroups: SpeciesGroupItem[] = [
@@ -168,11 +191,35 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
     }, [occurrenceFq]);
 
     useEffect(() => {
-        setAddressText(latLng?.lat.toFixed(4) + ", " + latLng?.lng.toFixed(4));
+        if (!latLng) return;
         zoomToLocation();
         redrawMap();
-        setLatLngText(latLng ? `${latLng.lat},${latLng.lng}` : '');
+        setLatLngText(`${latLng.lat},${latLng.lng}`);
+        reverseGeocode(latLng);
     }, [latLng, radius]);
+
+    function reverseGeocode(latlng: LatLng) {
+        // Show coordinates immediately as a fallback while the geocoder loads
+        const coordFallback = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+        if (!import.meta.env.VITE_GOOGLE_MAP_API_KEY) {
+            setAddressText(coordFallback);
+            return;
+        }
+        setAddressText(coordFallback);
+        waitForGeocoder()
+            .then(() => {
+                const geocoder = new (window as any).google.maps.Geocoder();
+                geocoder.geocode({ location: { lat: latlng.lat, lng: latlng.lng } }, (results: any, status: any) => {
+                    if (status === 'OK' && results && results.length > 0) {
+                        setAddressText(results[0].formatted_address);
+                    }
+                    // on failure keep the coordinate fallback already set above
+                });
+            })
+            .catch(() => {
+                // keep the coordinate fallback already set above
+            });
+    }
 
     useEffect(() => {
         if (!mapRef.current) return;
@@ -364,24 +411,38 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
             return;
         }
 
-        // do a search using google geocoding API
-        const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationText)}&key=${import.meta.env.VITE_GOOGLE_MAP_API_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
-        if (data.status === 'OK' && data.results.length > 0) {
-            const result = data.results[0];
-            const location = result.geometry.location;
-            setLatLng(new LatLng(location.lat, location.lng));
-            setAddressText(result.formatted_address);
-        } else {
-            alert('Location not found, please try again.');
+        if (!import.meta.env.VITE_GOOGLE_MAP_API_KEY) {
+            alert('Geocoding is not configured. Please set VITE_GOOGLE_MAP_API_KEY.');
+            return;
+        }
+
+        await googleMapsGeocode(locationText);
+    }
+
+    async function googleMapsGeocode(address: string) {
+        // Use the Google Maps JS API Geocoder — works with browser/referer-restricted keys,
+        // unlike the Geocoding REST API which requires an unrestricted or IP-restricted key.
+        try {
+            await waitForGeocoder();
+            const geocoder = new (window as any).google.maps.Geocoder();
+            geocoder.geocode({ address }, (results: any, status: any) => {
+                if (status === 'OK' && results && results.length > 0) {
+                    const location = results[0].geometry.location;
+                    setLatLng(new LatLng(location.lat(), location.lng()));
+                    setAddressText(results[0].formatted_address);
+                } else {
+                    alert('Location not found, please try again.');
+                }
+            });
+        } catch {
+            alert('Could not load geocoding service, please try again.');
         }
     }
 
     // Downloading URL for the download UI page. Ignores any species selection and downloads all species in the area for the selected group.
     function getDownloadLink() {
         const searchParams = `?q=speciesGroup:${group == ALL_SPECIES ? '*' : group}&lat=${latLng?.lat}&lon=${latLng?.lng}&radius=${radius}${globalFq}`;
-        return `/download?searchParams=${encodeURIComponent(searchParams)}&targetUri=/explore/your-area`;
+        return `/download/options1?searchParams=${encodeURIComponent(searchParams)}&targetUri=/explore/your-area`;
     }
 
     function speciesSortComparator(a: SpeciesListItem, b: SpeciesListItem): number {
