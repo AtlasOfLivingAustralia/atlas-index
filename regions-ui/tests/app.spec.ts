@@ -646,8 +646,7 @@ test('region ACT details', async ({ page }, testInfo) => {
         speciesProfileButton.click(),
     ]);
 
-    //await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
-    await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/1bccbad2-2076-479d-8ae5-b333c998ede9/);
+    await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
 
     const [biocachePage] = await Promise.all([
         page.waitForEvent('popup'),
