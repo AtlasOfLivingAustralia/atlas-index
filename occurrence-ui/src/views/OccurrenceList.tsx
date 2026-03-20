@@ -13,7 +13,7 @@ import RecordsView from "../components/recordsView.tsx";
 import ResultsReturned from "../components/resultsReturned.tsx";
 import RecordImages from "../components/recordImages.tsx";
 import FacetWell from "../components/facetWell.tsx";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {Tab, Tabs} from "react-bootstrap";
 import Charts from "../components/charts.tsx";
 import ApiModal from "../components/apiModal.tsx";
@@ -80,42 +80,33 @@ function OccurrenceList({setBreadcrumbs}: {
 
     const navigate = useNavigate();
     const intl = useIntl();
+    const location = useLocation();
 
-    // get query parameters from URL
+    // Derive queryString from React Router's location so it updates on every
+    // client-side navigation (including navigate() calls from OccurrenceSearch).
     const [queryString, setQueryString] = useState<string>(() => {
-        const hash = window.location.href;
-        const queryIndex = hash.indexOf('?');
-        if (queryIndex !== -1) {
-            // remove leading part before "?" and any "#..." at the end
-            let qs = hash.substring(queryIndex).split('#')[0];
-
-            // remove the pageSize, sort, dir, start parameters from the query string
-            const urlParams = new URLSearchParams(qs);
-            urlParams.delete('pageSize');
-            urlParams.delete('sort');
-            urlParams.delete('dir');
-            urlParams.delete('order');
-            urlParams.delete('start');
-            return '?' + urlParams.toString();
-        }
-        return '';
+        const qs = location.search;
+        if (!qs) return '';
+        const urlParams = new URLSearchParams(qs.startsWith('?') ? qs.substring(1) : qs);
+        urlParams.delete('pageSize');
+        urlParams.delete('sort');
+        urlParams.delete('dir');
+        urlParams.delete('order');
+        urlParams.delete('start');
+        return '?' + urlParams.toString();
     });
 
+    // Re-sync queryString (and reload DQ profile) whenever the URL changes.
     useEffect(() => {
-        const onPopState = () => {
-            const hash = window.location.href;
-            const queryIndex = hash.indexOf('?');
-            if (queryIndex !== -1) {
-                setQueryString(hash.substring(queryIndex));
-            } else {
-                setQueryString('');
-            }
-        };
-        window.addEventListener('popstate', onPopState);
-        return () => window.removeEventListener('popstate', onPopState);
-    }, []);
-
-    useEffect(() => {
+        const qs = location.search;
+        const urlParams = new URLSearchParams(qs.startsWith('?') ? qs.substring(1) : qs);
+        urlParams.delete('pageSize');
+        urlParams.delete('sort');
+        urlParams.delete('dir');
+        urlParams.delete('order');
+        urlParams.delete('start');
+        const next = '?' + urlParams.toString();
+        setQueryString(next);
         fetchDataQuality().then(dqList => loadDqProfile(dqList));
 
         setBreadcrumbs([
@@ -123,7 +114,7 @@ function OccurrenceList({setBreadcrumbs}: {
             {title: 'Occurrence records', href: '/'},
             {title: 'Search results', href: '/occurrence-list'},
         ]);
-    }, []);
+    }, [location.search]);
 
     useEffect(() => {
         fetchIndex();
