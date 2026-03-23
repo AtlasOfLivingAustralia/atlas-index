@@ -583,7 +583,11 @@ test('region page default info', async ({ page }, testInfo) => {
 /**
  * Test ACT details
  */
-test('region ACT details', async ({ page }, testInfo) => {
+test('region ACT details', async ({ page, context }, testInfo) => {
+    await context.route(/https?:\/\/bie\..*\/species\/.*/, async route => {
+        await route.fulfill({ status: 200, contentType: 'text/html', body: '<html lang="en"></html>' });
+    });
+
     test.setTimeout(120000);
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 
@@ -646,7 +650,8 @@ test('region ACT details', async ({ page }, testInfo) => {
         speciesProfileButton.click(),
     ]);
 
-    await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
+    //await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/[0-9a-fA-F\-]{36}/);
+    await expect(biePage).toHaveURL(/species\/https:\/\/biodiversity\.org\.au\/afd\/taxa\/1bccbad2-2076-479d-8ae5-b333c998ede9/);
 
     const [biocachePage] = await Promise.all([
         page.waitForEvent('popup'),

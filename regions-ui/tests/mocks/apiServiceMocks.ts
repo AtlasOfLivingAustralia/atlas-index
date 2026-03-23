@@ -127,7 +127,6 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
             });
         }
     );
-
     //BIE species search mockup
     await page.route(/https?:\/\/bie\..*\/species\/.*/, async route => {
         const url = new URL(route.request().url());
