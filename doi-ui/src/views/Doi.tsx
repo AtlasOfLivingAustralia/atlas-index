@@ -258,18 +258,18 @@ function Doi({setBreadcrumbs, isMobile, doi, breadcrumb}: DoiProps) {
                         ) : (
                             <span style={{color: '#6c757d', fontSize: '14px'}}>
                                 {downloadUnavailableReason() === 'not logged in' && (
-                                    <>You must <a href='#' onClick={(e) => { e.preventDefault(); handleLogin(import.meta.env.VITE_APP_API_URL); }}>log in</a> to download this file</>
+                                    <>Please <a href='#' onClick={(e) => { e.preventDefault(); handleLogin(import.meta.env.VITE_APP_API_URL); }}>log in</a> to download this file</>
                                 )}
                                 {downloadUnavailableReason() === 'insufficient permissions' && (
                                     <>
                                         Insufficient permissions to download this file
-                                        {data?.applicationMetadata?.searchUrl && <> — <a href={data.applicationMetadata.searchUrl}>visit the search and initiate a new download</a></>}
+                                        {data?.applicationMetadata?.searchUrl && <>. <a href={data.applicationMetadata.searchUrl}>Start a new search and download</a></>}
                                     </>
                                 )}
                                 {downloadUnavailableReason() === 'file not available' && (
                                     <>
-                                        File not available
-                                        {data?.applicationMetadata?.searchUrl && <> — <a href={data.applicationMetadata.searchUrl}>visit the search and initiate a new download</a></>}
+                                        This file is no longer available
+                                        {data?.applicationMetadata?.searchUrl && <>. <a href={data.applicationMetadata.searchUrl}>Start a new search and download</a></>}
                                     </>
                                 )}
                             </span>
