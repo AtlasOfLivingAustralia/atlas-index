@@ -79,8 +79,12 @@ public class DashboardService {
 
     @Value("${bhl.url}")
     private String bhlUrl;
+    @Value("${bhl.getstats.url}")
+    private String bhlGetStatsUrl;
     @Value("${bhl.image.url}")
     private String bhlImageUrl;
+    @Value("${bhl.apikey}")
+    private String bhlApikey;
 
     @Value("${digivol.url}")
     private String digivolUrl;
@@ -476,19 +480,37 @@ public class DashboardService {
     }
 
     private int addBhl(DashboardData dashboardData) {
-        if (StringUtils.isEmpty(bhlUrl)) {
-            logService.log(taskType, "skipping bhl");
+        if (StringUtils.isEmpty(bhlGetStatsUrl) || StringUtils.isEmpty(bhlApikey)) {
+            logService.log(taskType, "skipping bhl (bhlGetStatsUrl or bhlApikey not configured)");
             return 0;
         }
         try {
             logService.log(taskType, "updating bhl");
-            String html = IOUtils.toString(URI.create(bhlUrl), StandardCharsets.UTF_8);
-            int startidx = html.indexOf("onlinestats");
-            String[] block = html.substring(startidx, startidx + 500).replaceAll(",", "").split("<strong>");
 
-            int titles = Integer.parseInt(block[1].substring(0, block[1].indexOf("<")));
-            int volumes = Integer.parseInt(block[2].substring(0, block[2].indexOf("<")));
-            int pages = Integer.parseInt(block[3].substring(0, block[3].indexOf("<")));
+            String url = bhlGetStatsUrl.replace("<apikey>", bhlApikey);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) URI.create(url).toURL().openConnection();
+            conn.setConnectTimeout(120_000); // 2 minute timeout
+            conn.setReadTimeout(120_000);    // 2 minute timeout
+
+            javax.xml.parsers.DocumentBuilderFactory dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            javax.xml.parsers.DocumentBuilder db = dbf.newDocumentBuilder();
+            org.w3c.dom.Document doc;
+            try (java.io.InputStream is = conn.getInputStream()) {
+                doc = db.parse(is);
+            }
+
+            String status = doc.getElementsByTagName("Status").item(0).getTextContent();
+            if (!"ok".equalsIgnoreCase(status)) {
+                String errorMsg = doc.getElementsByTagName("ErrorMessage").item(0).getTextContent();
+                logService.log(taskType, "failed to update bhl: API status=" + status + " error=" + errorMsg);
+                log.error("failed to update bhl: API status={} error={}", status, errorMsg);
+                return 1;
+            }
+
+            int titles = Integer.parseInt(doc.getElementsByTagName("TitleCount").item(0).getTextContent());
+            int items  = Integer.parseInt(doc.getElementsByTagName("ItemCount").item(0).getTextContent());
+            int pages  = Integer.parseInt(doc.getElementsByTagName("PageCount").item(0).getTextContent());
 
             Record record = new Record();
             Table table = new Table();
@@ -500,8 +522,8 @@ public class DashboardService {
             record.url = bhlUrl;
             record.imageUrl = bhlImageUrl;
 
-            table.rows.add(new TableRow("pages", null, new Integer[]{pages}));
-            table.rows.add(new TableRow("volumes", null, new Integer[]{volumes}));
+            table.rows.add(new TableRow("pages",  null, new Integer[]{pages}));
+            table.rows.add(new TableRow("volumes",  null, new Integer[]{items}));
             table.rows.add(new TableRow("titles", null, new Integer[]{titles}));
 
             dashboardData.data.put("bhl", record);
