@@ -6,10 +6,12 @@
     "scripts": {
         "dev": "node ../common-ui/generateBuildInfo.js && vite",
         "dev:playwright": "node ../common-ui/generateBuildInfo.js && vite --mode playwright",
+        "prebuild": "yarn run test:playwright",
         "build": "node ../common-ui/generateBuildInfo.js && tsc && node buildCollections.js && vite build",
         "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && vite build --mode playwright",
         "preview": "vite preview",
-        "test": "jest"
+        "test": "jest",
+        "test:playwright": "./run-playwright-test.sh"
     },
     "dependencies": {
         "@ala/common-ui": "file:../common-ui",

@@ -48,6 +48,8 @@ yarn link @ala/common-ui
 
 ```bash
 yarn install
+
+yarn playwright install
 ```
 
 ### Step 3: Build Collections Data
@@ -68,9 +70,12 @@ The application will be available at `http://localhost:5173` (or the port specif
 
 To create a production-ready build:
 
+(for Playwright tests, see [Testing](#testing))
+
 ```bash
 yarn install
 yarn test
+yarn run prebuild
 yarn run build
 ```
 
@@ -203,7 +208,7 @@ If changes to `./public/collections.json` are not reflected:
 If you encounter issues with the `@ala/common-ui` package:
 
 1. Ensure the package is properly built in the `common-ui` directory
-2. Re-link the package:
+2. Re-link the package, make sure @ala/common-ui is pre-registered in the common-ui directory:
    ```bash
    yarn link @ala/common-ui
    ```
