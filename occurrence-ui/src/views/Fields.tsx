@@ -7,6 +7,7 @@
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import { Breadcrumb } from '@ala/common-ui';
+import { useQueryState } from 'nuqs';
 
 interface FieldInfo {
     name: string;
@@ -43,10 +44,19 @@ const FILTER_PRESETS: { labelId: string; defaultLabel: string; value: string }[]
 function matchesFilter(field: FieldInfo, filter: string): boolean {
     if (!filter) return true;
 
-    const colonIdx = filter.indexOf(':');
+    // Decode %7c to | so links from CustomDownload work whether URL-encoded or not
+    const decoded = filter.replace(/%7c/gi, '|');
+
+    // pipe-separated OR list — exact match against field.name
+    if (decoded.includes('|')) {
+        const parts = decoded.split('|').map(p => p.toLowerCase());
+        return parts.includes((field.name || '').toLowerCase());
+    }
+
+    const colonIdx = decoded.indexOf(':');
     if (colonIdx > -1) {
-        const key = filter.substring(0, colonIdx) as keyof FieldInfo;
-        let pattern = filter.substring(colonIdx + 1);
+        const key = decoded.substring(0, colonIdx) as keyof FieldInfo;
+        let pattern = decoded.substring(colonIdx + 1);
         if (!pattern.startsWith('^')) pattern = '^' + pattern;
         const fieldValue = field[key];
         if (key === 'indexed') {
@@ -63,7 +73,7 @@ function matchesFilter(field: FieldInfo, filter: string): boolean {
     }
 
     // plain text search across all text fields
-    const lower = filter.toLowerCase();
+    const lower = decoded.toLowerCase();
     return (
         (field.name || '').toLowerCase().includes(lower) ||
         (field.jsonName || '').toLowerCase().includes(lower) ||
@@ -98,8 +108,8 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const [filterInput, setFilterInput] = useState('');
-    const [appliedFilter, setAppliedFilter] = useState('');
+    const [appliedFilter, setAppliedFilter] = useQueryState('filter', { defaultValue: '' });
+    const [filterInput, setFilterInput] = useState(appliedFilter);
 
     const [sortKey, setSortKey] = useState<SortKey>('name');
     const [sortOrder, setSortOrder] = useState<SortOrder>('ASC');
@@ -141,6 +151,12 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
     const pageFields = filteredAndSorted.slice(startIdx, startIdx + pageSize);
     const start = total === 0 ? 0 : startIdx + 1;
     const end = Math.min(startIdx + pageSize, total);
+
+    // Keep the text box in sync when the URL param changes (e.g. on first load or back/forward)
+    useEffect(() => {
+        setFilterInput(appliedFilter);
+        setPage(1);
+    }, [appliedFilter]);
 
     function applyFilter(value: string) {
         setAppliedFilter(value);

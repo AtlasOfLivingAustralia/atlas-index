@@ -69,7 +69,7 @@ function RecordsView({
                 <div id='sortWidgets' className='col-sm-8 col-md-8'>
                     <div className='d-flex'>
                         <span className='ms-auto'></span>
-                        <span className='hidden-sm'><FormattedMessage id="list.sortwidgets.span01" defaultMessage="per"/></span><FormattedMessage id="list.sortwidgets.span02" defaultMessage="page"/>:
+                        <span className='hidden-sm'><FormattedMessage id="list.sortwidgets.span01" defaultMessage="per"/></span>&nbsp;<FormattedMessage id="list.sortwidgets.span02" defaultMessage="page"/>:
                         <select id='per-page' name='per-page' className='input-small me-2 ms-1' value={pageSize} onChange={e => setPageSize(parseInt(e.target.value) || 20)}>
                             <option value='10'>10</option>
                             <option value='20'>20</option>

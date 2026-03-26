@@ -13,6 +13,9 @@ function RolloverTooltip({ text, html, hideDelay, children }: { text?: string; h
     const target = useRef(null);
 
     function handleMouseEnter() {
+        if (!text && !html) {
+            return;
+        }
         hoveredRef.current = true;
         setShow(true);
     }
@@ -37,7 +40,7 @@ function RolloverTooltip({ text, html, hideDelay, children }: { text?: string; h
                 {props => (
                     <Popover {...props} style={{ ...props.style }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
                         <Popover.Body>
-                            <div>
+                            <div style={{ fontSize: '14px' }}>
                                 {text}
                                 {html && <div dangerouslySetInnerHTML={{ __html: html || '' }}></div>}
                             </div>

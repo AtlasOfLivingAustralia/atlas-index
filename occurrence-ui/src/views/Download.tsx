@@ -1,4 +1,4 @@
-import { Breadcrumb, FontAwesomeIconLite } from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, handleLogin, useUser } from '@ala/common-ui';
 import { faFilePdf, faListAlt } from '@fortawesome/free-regular-svg-icons';
 import { faCheck, faChevronRight, faQuestionCircle, faTable, faTags } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
@@ -20,7 +20,10 @@ function getQueryParameters() {
     const params = new URLSearchParams(search);
     return {
         searchParams: params.get('searchParams'),
-        targetUri: params.get('targetUri')
+        targetUri: params.get('targetUri'),
+        layers: params.get('layers'),
+        customHeader: params.get('customHeader'),
+        layersServiceUrl: params.get('layersServiceUrl')
     };
 }
 
@@ -41,10 +44,19 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     const [fileType, setFileType] = useState<string>(fileTypes[0]);
     const [downloadType, setDownloadType] = useState<string>('');
     const [downloadReason, setDownloadReason] = useState<string>('');
-    const { searchParams, targetUri } = getQueryParameters();
+    const { searchParams, targetUri, layers, layersServiceUrl, customHeader } = getQueryParameters();
 
     const intl: IntlShape = useIntl();
     const navigate = useNavigate();
+    const { userInfo } = useUser();
+
+    // Redirect unauthenticated users to the login page.
+    // handleLogin() uses the current window.location.href as the return path.
+    useEffect(() => {
+        if (userInfo !== null && !userInfo.authenticated) {
+            handleLogin(import.meta.env.VITE_APP_API_URL);
+        }
+    }, [userInfo]);
 
     useEffect(() => {
         setBreadcrumbs([
@@ -61,7 +73,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             return;
         }
 
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${searchParams}&pageSize=0`, {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         })
@@ -85,7 +97,10 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                 '&downloadFormat=' + encodeURIComponent(downloadFormat) +
                 '&fileType=' + encodeURIComponent(fileType) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
-                '&downloadReason=' + encodeURIComponent(downloadReason));
+                '&downloadReason=' + encodeURIComponent(downloadReason)) +
+                (layers ? '&layers=' + encodeURIComponent(layers) : '') +
+                (customHeader ? '&customHeader=' + encodeURIComponent(customHeader) : '') +
+                (layersServiceUrl ? '&layersServiceUrl=' + encodeURIComponent(layersServiceUrl) : '');
             return
         }
 
@@ -94,7 +109,10 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                 '&targetUri=' + encodeURIComponent(targetUri || '') +
                 '&filename=' + encodeURIComponent(filename) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
-                '&downloadReason=' + encodeURIComponent(downloadReason),
+                '&downloadReason=' + encodeURIComponent(downloadReason) +
+                (layers ? '&layers=' + encodeURIComponent(layers) : '') +
+                (customHeader ? '&customHeader=' + encodeURIComponent(customHeader) : '') +
+                (layersServiceUrl ? '&layersServiceUrl=' + encodeURIComponent(layersServiceUrl) : ''),
                 { state: { fromNavigate: true } });
             return;
         }
@@ -119,6 +137,15 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                 { state: { fromNavigate: true } });
             return;
         }
+    }
+
+    // return nothing when not yet logged in
+    if (!userInfo?.authenticated) {
+        return (
+            <div className='container-fluid' id='main'>
+                ...
+            </div>
+        );
     }
 
     return (

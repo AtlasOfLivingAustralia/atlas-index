@@ -120,3 +120,7 @@ svg[class~="leaflet-attribution-flag"] {
     border: 1px #999 solid;
     border-radius: 4px;
 }
+
+.popover {
+    font-family: inherit;
+}

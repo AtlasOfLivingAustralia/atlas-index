@@ -1,0 +1,18 @@
+.download-custom-selected {
+    color: #3c763d !important;
+    background-color: #dff0d8 !important;
+}
+
+.download-custom-selected:hover, .download-custom-selected.disabled:hover {
+    background-color: #d0e9c6 !important;
+}
+
+.download-custom-item {
+    padding: 15px 0 !important;
+    cursor: pointer !important;
+}
+
+.download-custom-item.disabled {
+    cursor: not-allowed !important;
+    pointer-events: all !important;
+}

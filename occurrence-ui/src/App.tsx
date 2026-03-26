@@ -29,6 +29,7 @@ import '@fontsource/roboto';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+import CustomDownload from "./views/CustomDownload.tsx";
 import Download from "./views/Download.tsx";
 import DownloadStatus from "./views/DownloadStatus.tsx";
 import ExploreYourArea from "./views/ExploreYourArea.tsx";
@@ -111,6 +112,7 @@ export default function App() {
                     <Route path='/occurrence/:uuid' element={<Occurrence setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/explore/your-area' element={<ExploreYourArea setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/download/options1' element={<Download setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
+                    <Route path='/download/options2' element={<CustomDownload setBreadcrumbs={setBreadcrumbs} />} />
                     {/*<Route path='/download/options2' element={<DownloadPage2 setBreadcrumbs={setBreadcrumbs} />} />*/}
                     <Route path='/download/confirm' element={<DownloadStatus setBreadcrumbs={setBreadcrumbs}  />} />
                     <Route path='/fields' element={<Fields setBreadcrumbs={setBreadcrumbs} />} />

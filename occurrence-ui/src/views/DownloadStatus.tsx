@@ -16,6 +16,7 @@ const fieldsDefault = import.meta.env.VITE_DOWNLOAD_FIELDS_DEFAULT;
 const fieldsExtra = import.meta.env.VITE_DOWNLOAD_FIELDS_EXTRA;
 // for downloadFormat == 'dwc'
 const dwcExtraFields = import.meta.env.VITE_DOWNLOAD_DWC_EXTRA_FIELDS;
+const dwcDownloadIncludeRaw = import.meta.env.VITE_DOWNLOAD_DWC_INCLUDE_RAW === 'true';
 
 function getQueryParameters() {
     const { search } = useLocation();
@@ -29,6 +30,10 @@ function getQueryParameters() {
         downloadType: params.get('downloadType'),
         downloadReason: params.get('downloadReason'),
         customFields: params.get('customFields'),
+        customClasses: params.get('customClasses'),
+        layers: params.get('layers'),
+        customHeader: params.get('customHeader'),
+        layersServiceUrl: params.get('layersServiceUrl')
     };
 }
 
@@ -42,7 +47,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
     const [lead, setLead] = useState<string>('');
     const [showProgress, setShowProgress] = useState<boolean>(true);
 
-    const { searchParams, filename, downloadFormat, fileType, downloadType, downloadReason, customFields } = getQueryParameters();
+    const { searchParams, filename, downloadFormat, fileType, downloadType, downloadReason, customClasses, layers, customHeader, layersServiceUrl } = getQueryParameters();
     const {userInfo} = useUser();
     const intl: IntlShape = useIntl();
     const location = useLocation();
@@ -162,15 +167,17 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
         const requestEmailParam = sendEmail ? `&emailNotify=true` : `&emailNotify=false`;
         let dwcHeadersParam = `&dwcHeaders=false`;
         const mintDoiParam = mintDoi ? `&mintDoi=true` : `&mintDoi=false`;
-        const qaParam = `&qa=${qaDefault}`;
+        let qaParam = `&qa=${qaDefault}`;
         const fileParam = `&file=${filename}`;
         let fieldsParam = '';
-        let extraParam = fieldsExtra ? `&extra=${fieldsExtra}` : ''; // downloadFormat == 'legacy'
+        let extraParam = fieldsExtra ? `&extra=${fieldsExtra}` : ''; // downloadFormat == 'legacy' only
+        const spatialLayerParams = customHeader && layersServiceUrl ? `&customHeader=${encodeURIComponent(customHeader)}&layersServiceUrl=${encodeURIComponent(layersServiceUrl)}` : '';
+
 
         // always put fields into a future as downloadFormat may be 'dwc' or 'custom'
         let fieldsFuture: Promise<string> = Promise.resolve(fieldsDefault); // default for downloadFormat == 'legacy'
 
-        // update for downloadFormat == 'dwc'
+        // update for downloadFormat == 'dwc' or 'custom'
         if (downloadFormat !== 'legacy') {
             extraParam = '';
             dwcHeadersParam = `&dwcHeaders=true`;
@@ -179,15 +186,92 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
                 .then(response => response.json())
                 .then((allFields: any[]) => {
                     if (downloadFormat === 'dwc') {
-                        // include all DWC terms plus extra fields
-                        const dwcTerms = allFields.filter(field => !!field.dwcTerm).map(field => field.name);
+                        // include all DWC terms plus extra fields, and optional raw_
+                        const dwcTerms = allFields.filter(field => !!field.dwcTerm && (dwcDownloadIncludeRaw || !field.name.startsWith('raw_'))).map(field => field.name);
                         const extraFields = dwcExtraFields ? ',' + dwcExtraFields : '';
                         return dwcTerms.join(',') + extraFields;
                     } else { // downloadFormat === 'custom'
-                        // TODO: include custom fields as specified by the download/options2 page
-                        return customFields || '';
+                        const classes = (customClasses || '').split(',').filter(Boolean);
+
+                        // TODO: CustomDownload.tsx has hardcoded this, when it is moved externally, use that version
+                        //  there is also some overlap with Fields.tsx, the filter for el/cl for example
+                        const configFields: Record<string, string[]> = {
+                            conservationStatus: ['aust_conservation', 'state_conservation'],
+                            otherTraits: ['species_group', 'species_subgroup'],
+                        };
+
+                        // DwC class group keys (mirrors grailsApplication.config.downloads.customSections.darwinCore)
+                        const darwinCoreClasses = [
+                            'recordLevelTerms', 'occurrence', 'organism', 'materialSampleSpecimen',
+                            'event', 'location', 'identification', 'taxon', 'measurementOrFact',
+                            'geologicalContext', 'resourceRelationship',
+                        ];
+
+                        // Map DwC group key -> dwcClass value used in /index/fields classs property
+                        const groupKeyToClass: Record<string, string> = {
+                            recordLevelTerms: 'Record',
+                            occurrence: 'Occurrence',
+                            organism: 'Organism',
+                            materialSampleSpecimen: 'MaterialSample',
+                            event: 'Event',
+                            location: 'Location',
+                            identification: 'Identification',
+                            taxon: 'Taxon',
+                            measurementOrFact: 'MeasurementOrFact',
+                            geologicalContext: 'GeologicalContext',
+                            resourceRelationship: 'ResourceRelationship',
+                        };
+
+                        const customFieldsList: string[] = dwcExtraFields ? dwcExtraFields.split(',') : [];
+                        let qaOverride = '';
+                        let includeMisc = false;
+                        const extraList: string[] = [];
+
+                        for (const cls of classes) {
+                            if (darwinCoreClasses.includes(cls)) {
+                                // Resolve fields for this DwC class from the already-fetched allFields
+                                const dwcClass = groupKeyToClass[cls];
+                                const matched = allFields
+                                    .filter(f => (f.classs || '').toLowerCase() === dwcClass.toLowerCase())
+                                    .map(f => f.name);
+                                customFieldsList.push(...matched);
+                            } else if (configFields[cls]) {
+                                customFieldsList.push(...configFields[cls]);
+                            } else if (cls === 'qualityAssertions') {
+                                qaOverride = 'includeall';
+                            } else if (cls === 'miscellaneousFields') {
+                                includeMisc = true;
+                            } else if (cls === 'selectedLayers') {
+                                // already added to extra by spatial-hub
+                            } else if (cls === 'environmentalLayers') {
+                                const matched = allFields.filter(f => /^el\d/i.test(f.name)).map(f => f.name);
+                                customFieldsList.push(...matched);
+                            } else if (cls === 'contextualLayers') {
+                                const matched = allFields.filter(f => /^cl\d/i.test(f.name)).map(f => f.name);
+                                customFieldsList.push(...matched);
+                            } else if (/^dr\d+/.test(cls)) {
+                                extraList.push(cls);
+                            } else {
+                                console.warn('Custom field class not recognised:', cls);
+                            }
+                        }
+
+                        if (qaOverride) qaParam = `&qa=${qaOverride}`;
+                        if (extraList.length) extraParam = `&extra=${extraList.join(',')}`;
+                        if (includeMisc) extraParam += '&includeMisc=true';
+
+                        return customFieldsList.filter(f => f).join(',');
                     }
                 });
+        }
+
+        // append layers to extra
+        if (layers) {
+            if (extraParam) {
+                extraParam += layers ? ',' + layers : '';
+            } else {
+                extraParam = `&extra=${layers}`;
+            }
         }
 
          // wait for future to complete, needed when downloadFormat === 'dwc'
@@ -197,20 +281,22 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
                 fieldsParam = `&fields=${fields}`;
             }
 
-            // This should be a POST, but only URL params are supported for now
-            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}`;
-            fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
-                .then(response => response.json())
-                .then(json => {
-                    setJson(json);
-                    if (json?.statusUrl) {
-                        reloadStatus(json.statusUrl);
-                    }
-                })
-                .catch(error => {
-                    setError(error);
-                    setShowProgress(false);
-                });
+            // TODO: This should be a POST, but only URL params are supported for now
+            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}`;
+            console.log("download URL sent to biocache", url);
+            alert("URL that would be sent: " + url);
+            // fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
+            //     .then(response => response.json())
+            //     .then(json => {
+            //         setJson(json);
+            //         if (json?.statusUrl) {
+            //             reloadStatus(json.statusUrl);
+            //         }
+            //     })
+            //     .catch(error => {
+            //         setError(error);
+            //         setShowProgress(false);
+            //     });
         });
     }
 
