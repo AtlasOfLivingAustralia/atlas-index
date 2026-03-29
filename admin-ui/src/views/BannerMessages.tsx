@@ -165,6 +165,9 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
                     Caching is applied to banner messages, so changes may take 15 (the default) minutes or so to
                     appear in the UI without clearing client caches.
                 </p>
+                <p className="text-muted mb-4">
+                    You can view the actual status.json response returned by the service <a href={import.meta.env.VITE_APP_BIE_URL + '/v2/banner'}>here</a>.
+                </p>
 
                 {fetchError && (
                     <div className="alert alert-danger">{fetchError}</div>

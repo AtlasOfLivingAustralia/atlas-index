@@ -229,16 +229,14 @@ function QualityCategoryItem(props: {
                                 </thead>
                                 <tbody>
                                 {category.qualityFilters && category.qualityFilters.slice().sort((a, b) => a.id - b.id).map(
-                                    (filter, idx) => (
+                                    (filter) => (
                                         <QualityFilterItem
-                                            key={idx}
+                                            key={filter.id}
                                             filter={filter}
                                             actualFilter={
                                                 props.actualCategory?.qualityFilters
                                                     ? props.actualCategory.qualityFilters.find(
-                                                        (it) =>
-                                                            it.displayOrder ==
-                                                            filter.displayOrder
+                                                        (it) => it.id === filter.id
                                                     )
                                                     : undefined
                                             }

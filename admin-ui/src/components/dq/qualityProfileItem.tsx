@@ -47,13 +47,13 @@ function QualityProfileItem(props: {
         if (profile) {
             // update display
             profile.categories = profile.categories.filter(
-                (c) => c.displayOrder != category.displayOrder
+                (c) => c.id !== category.id
             );
             setProfile({...profile});
 
             // update parent
             props.profile.categories = props.profile.categories.filter(
-                (c) => c.displayOrder != category.displayOrder
+                (c) => c.id !== category.id
             );
             setProfileDirty(true);
         }
@@ -207,7 +207,7 @@ function QualityProfileItem(props: {
                                  style={{backgroundColor: "#e9e9e9", border: "1px solid"}}>
                                 <ul>
                                     {profile.categories.slice().sort((a, b) => a.id - b.id).map((category) =>
-                                        <li key={category.displayOrder}>
+                                        <li key={category.id}>
                                             <span>{category.label}</span>
                                             <span style={{
                                                 color: '#c7254e',
@@ -220,14 +220,12 @@ function QualityProfileItem(props: {
                             <hr/>
                             <h4>Categories</h4>
                             <div className="d-flex flex-column">
-                                {profile.categories.slice().sort((a, b) => a.id - b.id).map((category, idx) => (
+                                {profile.categories.slice().sort((a, b) => a.id - b.id).map((category) => (
                                     <QualityCategoryItem
-                                        key={idx}
+                                        key={category.id}
                                         category={category}
                                         actualCategory={props.profile.categories.find(
-                                            (it) =>
-                                                it.displayOrder ==
-                                                category.displayOrder
+                                            (it) => it.id === category.id
                                         )}
                                         setProfileDirty={setProfileDirty}
                                         deleteCategory={deleteCategory}
