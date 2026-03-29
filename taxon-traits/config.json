@@ -1,6 +1,6 @@
 {
   "austraitsUrl": "http://localhost:8000",
-  "acceptedCsv": "/data/search-service/data/accepted.csv",
+  "acceptedCsv": "/data/search-service/data/accepted25.csv",
   "traitsDir": "/data/search-service/data/taxon-traits",
   "traitsThreads": 10,
   "kingdomFilter": "Plantae"

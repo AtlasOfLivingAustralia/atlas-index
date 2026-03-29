@@ -11,6 +11,7 @@
         <module>search-test</module>
         <module>taxon-descriptions</module>
         <module>taxon-traits</module>
+        <module>taxon-bhl</module>
     </modules>
 
     <groupId>au.org.ala</groupId>

@@ -92,3 +92,7 @@ Re-running the tool will skip all already-downloaded files and continue with any
 Successfully tested with 10 threads, with austraits data version 7.0.0, austraits-api 
 [this commit](https://github.com/traitecoevo/austraits-api/commit/c9c936c7c471317c48abd7fdd15e26d324467916), locally. 
 Runtime approximately 1hr.
+
+## Deployment
+
+Make it accessible publicly and configure the base URL in search-ui config.

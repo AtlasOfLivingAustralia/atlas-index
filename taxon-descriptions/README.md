@@ -213,3 +213,10 @@ The output file will be a JSON file containing the hero descriptions for each ta
   "https%3A%2F%2Fid.biodiversity.org.au%2Fnode%2Fapni%2F2892310": "<p>Spreading to sprawling low shrub 20-30 (-50?) cm tall. Branchlets strongly angular.",
 }
 ```
+
+## Deployment
+
+Make the description files public and configure the base URL in search-ui config.
+
+Make the hero descriptions file available to search-service, update search-service config, and run the associated import
+task.
