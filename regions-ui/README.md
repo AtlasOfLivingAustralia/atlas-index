@@ -15,9 +15,6 @@ Built with:
 
 ## Getting started
 
-### static-server
-This app depends on a static server to serve common header, footer, css and js files as well as the `regionsList.json`
-
 ### Generate regionsList.json from ./public/regions.json
 
 `./resources/regions.json` is used to determine the regions that appear on the `/regions` page. It is a list of objects
@@ -31,7 +28,6 @@ with either:
     - `label`: label of the contextual layer
     - `fid`: layer's field id
 
-
 #### Production
 
 `yarn run build` makes use of `.env.production:VITE_SPATIAL_WS_URL` and `./resources/regions.json` to add a hashed
@@ -39,13 +35,13 @@ with either:
 
 Delete the `regionsList*.json` files in the project directory to trigger a rebuild.
 
-#### ALA environment
+### ALA environment
 
 Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) configuration and deployment information.
 
-#### Local development
-1, Start a static server, see [static-server](../static-server/README.md).
-2, Refer to the `common-ui` README for instructions on how to serve common header, footer, css and js files.
+### Local development
+1. Start a static server, see [static-server](../static-server/README.md).
+2. Link the `common-ui` package. Refer to the [common-ui README](../common-ui/README.md) for instructions.
 
 Run `buildRegions.js` to produce a `regionsList.json` file.
 
@@ -72,7 +68,6 @@ yarn run dev
 
 ```bash
 yarn install
-yarn add -D playwright
 yarn playwright install --with-deps
 yarn test
 ./run-playwright-test.sh

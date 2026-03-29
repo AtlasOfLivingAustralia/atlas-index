@@ -1,0 +1,167 @@
+{
+    "pageSize": 100,
+    "startIndex": 0,
+    "totalRecords": 8453030,
+    "sort": "score",
+    "dir": "asc",
+    "status": "OK",
+    "facetResults": [
+        {
+            "fieldName": "typeStatus",
+            "fieldResult": [
+                {
+                    "label": "HOLOTYPE",
+                    "count": 12500,
+                    "fq": "typeStatus:\"HOLOTYPE\""
+                },
+                {
+                    "label": "PARATYPE",
+                    "count": 8200,
+                    "fq": "typeStatus:\"PARATYPE\""
+                },
+                {
+                    "label": "SYNTYPE",
+                    "count": 3400,
+                    "fq": "typeStatus:\"SYNTYPE\""
+                }
+            ]
+        },
+        {
+            "fieldName": "raw_sex",
+            "fieldResult": [
+                {
+                    "label": "Male",
+                    "count": 425000,
+                    "fq": "raw_sex:\"Male\""
+                },
+                {
+                    "label": "Female",
+                    "count": 398000,
+                    "fq": "raw_sex:\"Female\""
+                },
+                {
+                    "label": "Not supplied",
+                    "count": 7630030,
+                    "fq": "-raw_sex:*"
+                }
+            ]
+        },
+        {
+            "fieldName": "kingdom",
+            "fieldResult": [
+                {
+                    "label": "Animalia",
+                    "count": 8453030,
+                    "fq": "kingdom:\"Animalia\""
+                },
+                {
+                    "label": "Plantae",
+                    "count": 1245678,
+                    "fq": "kingdom:\"Plantae\""
+                },
+                {
+                    "label": "Fungi",
+                    "count": 245890,
+                    "fq": "kingdom:\"Fungi\""
+                }
+            ]
+        }
+    ],
+    "occurrences": [
+        {
+            "uuid": "specimen-001",
+            "collectionUid": "co56",
+            "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "institutionName": "South Australian Museum",
+            "dataProviderName": "South Australian Museum",
+            "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "scientificName": "Aaaaba fossicollis",
+            "raw_scientificName": "Aaaaba fossicollis (Kerremans, 1903)",
+            "vernacularName": "Jewel Beetle",
+            "typeStatus": "HOLOTYPE",
+            "taxonRank": "species",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "order": "Coleoptera",
+            "family": "Buprestidae",
+            "genus": "Aaaaba",
+            "species": "Aaaaba fossicollis",
+            "imageMetadata": [
+                {
+                    "imageId": "img-001",
+                    "thumbWidth": 400,
+                    "thumbHeight": 300,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-001",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        },
+        {
+            "uuid": "specimen-002",
+            "collectionUid": "co56",
+            "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "institutionName": "South Australian Museum",
+            "dataProviderName": "South Australian Museum",
+            "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "scientificName": "Apis mellifera",
+            "vernacularName": "European Honey Bee",
+            "taxonRank": "species",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "order": "Hymenoptera",
+            "family": "Apidae",
+            "genus": "Apis",
+            "species": "Apis mellifera",
+            "imageMetadata": [
+                {
+                    "imageId": "img-002",
+                    "thumbWidth": 350,
+                    "thumbHeight": 280,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-002",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY 4.0"
+                },
+                {
+                    "imageId": "img-002b",
+                    "thumbWidth": 400,
+                    "thumbHeight": 320,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-002b",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        },
+        {
+            "uuid": "specimen-003",
+            "collectionUid": "co56",
+            "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "institutionName": "South Australian Museum",
+            "dataProviderName": "South Australian Museum",
+            "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "scientificName": "Chrysochroa fulgidissima",
+            "vernacularName": "Rainbow Jewel Beetle",
+            "typeStatus": "PARATYPE",
+            "taxonRank": "species",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "order": "Coleoptera",
+            "family": "Buprestidae",
+            "genus": "Chrysochroa",
+            "species": "Chrysochroa fulgidissima",
+            "imageMetadata": [
+                {
+                    "imageId": "img-003",
+                    "thumbWidth": 380,
+                    "thumbHeight": 290,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-003",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY-NC 4.0"
+                }
+            ]
+        }
+    ]
+}

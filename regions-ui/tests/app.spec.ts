@@ -201,10 +201,10 @@ test('accordion-interactivity', async ({ page }, testInfo) => {
  * - the reset map button after the zoom
  */
 test('regions map controls', async ({ page }, testInfo) => {
-    if (testInfo.project.name === 'firefox') {
+    if (testInfo.project.name === 'firefox' || testInfo.project.name === 'webkit') {
         test.skip(
             true,
-            'Skipping this assertion for Firefox due to page.route not firing as expected for previously seen URLs'
+            'Skipping this assertion for Firefox and WebKit due to page.route not firing as expected for previously seen URLs'
         );
     }
 
@@ -583,7 +583,11 @@ test('region page default info', async ({ page }, testInfo) => {
 /**
  * Test ACT details
  */
-test('region ACT details', async ({ page }, testInfo) => {
+test('region ACT details', async ({ page, context }, testInfo) => {
+    await context.route(/https?:\/\/bie\..*\/species\/.*/, async route => {
+        await route.fulfill({ status: 200, contentType: 'text/html', body: '<html lang="en"></html>' });
+    });
+
     test.setTimeout(120000);
     const seenUrls = (testInfo as ExtendedTestInfo).seenUrls;
 

@@ -1,0 +1,110 @@
+{
+    "pageSize": 100,
+    "startIndex": 0,
+    "totalRecords": 45678,
+    "sort": "score",
+    "dir": "asc",
+    "status": "OK",
+    "facetResults": [
+        {
+            "fieldName": "typeStatus",
+            "fieldResult": [
+                {
+                    "label": "HOLOTYPE",
+                    "count": 1250,
+                    "fq": "typeStatus:\"HOLOTYPE\""
+                },
+                {
+                    "label": "PARATYPE",
+                    "count": 820,
+                    "fq": "typeStatus:\"PARATYPE\""
+                }
+            ]
+        },
+        {
+            "fieldName": "raw_sex",
+            "fieldResult": [
+                {
+                    "label": "Male",
+                    "count": 22000,
+                    "fq": "raw_sex:\"Male\""
+                },
+                {
+                    "label": "Female",
+                    "count": 21000,
+                    "fq": "raw_sex:\"Female\""
+                }
+            ]
+        },
+        {
+            "fieldName": "order",
+            "fieldResult": [
+                {
+                    "label": "Coleoptera",
+                    "count": 25000,
+                    "fq": "order:\"Coleoptera\""
+                },
+                {
+                    "label": "Hymenoptera",
+                    "count": 12000,
+                    "fq": "order:\"Hymenoptera\""
+                },
+                {
+                    "label": "Diptera",
+                    "count": 8678,
+                    "fq": "order:\"Diptera\""
+                }
+            ]
+        }
+    ],
+    "occurrences": [
+        {
+            "uuid": "specimen-co56-001",
+            "collectionUid": "co56",
+            "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "institutionName": "South Australian Museum",
+            "dataProviderName": "South Australian Museum",
+            "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "scientificName": "Coleoptera sp.",
+            "taxonRank": "order",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "order": "Coleoptera",
+            "imageMetadata": [
+                {
+                    "imageId": "img-co56-001",
+                    "thumbWidth": 400,
+                    "thumbHeight": 300,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-co56-001",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        },
+        {
+            "uuid": "specimen-co56-002",
+            "collectionUid": "co56",
+            "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "institutionName": "South Australian Museum",
+            "dataProviderName": "South Australian Museum",
+            "dataResourceName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "scientificName": "Hymenoptera sp.",
+            "taxonRank": "order",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "order": "Hymenoptera",
+            "imageMetadata": [
+                {
+                    "imageId": "img-co56-002",
+                    "thumbWidth": 380,
+                    "thumbHeight": 290,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-co56-002",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        }
+    ]
+}

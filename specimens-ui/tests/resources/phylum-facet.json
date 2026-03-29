@@ -1,0 +1,129 @@
+{
+    "pageSize": 100,
+    "startIndex": 0,
+    "totalRecords": 8453030,
+    "sort": "score",
+    "dir": "asc",
+    "status": "OK",
+    "facetResults": [
+        {
+            "fieldName": "typeStatus",
+            "fieldResult": [
+                {
+                    "label": "HOLOTYPE",
+                    "count": 12500,
+                    "fq": "typeStatus:\"HOLOTYPE\""
+                },
+                {
+                    "label": "PARATYPE",
+                    "count": 8200,
+                    "fq": "typeStatus:\"PARATYPE\""
+                }
+            ]
+        },
+        {
+            "fieldName": "raw_sex",
+            "fieldResult": [
+                {
+                    "label": "Male",
+                    "count": 425000,
+                    "fq": "raw_sex:\"Male\""
+                },
+                {
+                    "label": "Female",
+                    "count": 398000,
+                    "fq": "raw_sex:\"Female\""
+                }
+            ]
+        },
+        {
+            "fieldName": "phylum",
+            "fieldResult": [
+                {
+                    "label": "Arthropoda",
+                    "count": 7200000,
+                    "fq": "phylum:\"Arthropoda\""
+                },
+                {
+                    "label": "Chordata",
+                    "count": 853030,
+                    "fq": "phylum:\"Chordata\""
+                },
+                {
+                    "label": "Mollusca",
+                    "count": 400000,
+                    "fq": "phylum:\"Mollusca\""
+                }
+            ]
+        }
+    ],
+    "occurrences": [
+        {
+            "uuid": "animalia-specimen-001",
+            "collectionUid": "co13",
+            "collectionName": "Australian National Insect Collection",
+            "institutionName": "Commonwealth Scientific and Industrial Research Organisation",
+            "dataProviderName": "CSIRO",
+            "dataResourceName": "Australian National Insect Collection",
+            "scientificName": "Arthropoda sp.",
+            "taxonRank": "phylum",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "imageMetadata": [
+                {
+                    "imageId": "img-animalia-001",
+                    "thumbWidth": 400,
+                    "thumbHeight": 300,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-animalia-001",
+                    "rightsHolder": "CSIRO",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        },
+        {
+            "uuid": "animalia-specimen-002",
+            "collectionUid": "co13",
+            "collectionName": "Australian National Insect Collection",
+            "institutionName": "Commonwealth Scientific and Industrial Research Organisation",
+            "dataProviderName": "CSIRO",
+            "dataResourceName": "Australian National Insect Collection",
+            "scientificName": "Insecta sp.",
+            "taxonRank": "class",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "imageMetadata": [
+                {
+                    "imageId": "img-animalia-002",
+                    "thumbWidth": 380,
+                    "thumbHeight": 290,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-animalia-002",
+                    "rightsHolder": "CSIRO",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        },
+        {
+            "uuid": "animalia-specimen-003",
+            "collectionUid": "co120",
+            "collectionName": "Museums Victoria Ornithology Collection",
+            "institutionName": "Museums Victoria",
+            "dataProviderName": "Museums Victoria",
+            "dataResourceName": "Museums Victoria Ornithology Collection",
+            "scientificName": "Chordata sp.",
+            "taxonRank": "phylum",
+            "kingdom": "Animalia",
+            "phylum": "Chordata",
+            "imageMetadata": [
+                {
+                    "imageId": "img-animalia-003",
+                    "thumbWidth": 420,
+                    "thumbHeight": 310,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-animalia-003",
+                    "rightsHolder": "Museums Victoria",
+                    "license": "CC BY-NC 4.0"
+                }
+            ]
+        }
+    ]
+}
