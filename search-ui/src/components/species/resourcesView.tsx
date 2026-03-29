@@ -60,7 +60,6 @@ function ResourcesView({result, isMobile}: MapViewProps) {
             return;
         }
 
-        let page = 1;
         let s = [result.name];
 
         // TODO: add .synonyms to the V2 API
@@ -73,12 +72,23 @@ function ResourcesView({result, isMobile}: MapViewProps) {
         // Generate link for humans
         setBhlQuery(import.meta.env.VITE_APP_BHL_URL + `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`);
 
-        let url = import.meta.env.VITE_APP_BHL_URL + '/api3?op=PublicationSearch&searchterm=' + searchQuery + '&searchtype=C&page=' + page + '&apikey=' + encodeURIComponent(import.meta.env.VITE_BHL_API_KEY) + '&format=json';
+        // Fetch pre-built BHL results from the static taxon-bhl directory, see taxon-bhl tool
+        const guidEncoded = encodeURIComponent(encodeURIComponent(result.guid));
+        const last2 = guidEncoded.substring(guidEncoded.length - 2);
+        const bhlFileUrl = import.meta.env.VITE_TAXON_BHL_URL + '/' + last2 + '/' + guidEncoded + '.json';
+
         setLoading(true);
         setErrorMessage('');
-        fetch(url).then((response) => response.json()).then((data) => {
-            if (data?.Result) {
-                setBhl(data.Result);
+        fetch(bhlFileUrl).then((response) => {
+            if (!response.ok) {
+                // No BHL data pre-built for this taxon — treat as empty
+                setBhl([]);
+                return null;
+            }
+            return response.json();
+        }).then((data) => {
+            if (Array.isArray(data)) {
+                setBhl(data);
             }
         }).catch((error) => {
             setErrorMessage('Failed to fetch BHL data - ' + error);

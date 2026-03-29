@@ -59,8 +59,8 @@ VITE_PROFILE_USERID=cognito:username
 # Admin role is 'ROLE_ADMIN' (OIDC) or 'admin' (Cognito)
 VITE_ADMIN_ROLE=admin
 
-# API key for the BHL API
-VITE_BHL_API_KEY=
+# Base URL to output of taxon-bhl tool
+VITE_TAXON_BHL_URL=https://static.test.ala.org.au/taxon-bhl
 
 # URLs for various ALA services
 VITE_APP_BIOCACHE_UI_URL=https://biocache.ala.org.au
