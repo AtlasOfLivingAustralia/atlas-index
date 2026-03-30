@@ -84,7 +84,7 @@ function DataQualitySettingsModal({
                 dataProfile: profile === "disable" ? null : profile}));
             data.append("alaId", userInfo?.userId || "guest");
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property", {
+            fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property?key=dq", {
                 method: 'POST',
                 body: data,
                 headers: {

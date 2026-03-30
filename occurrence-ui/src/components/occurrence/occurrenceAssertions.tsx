@@ -4,9 +4,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import {useUser} from "@ala/common-ui";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { useState } from 'react';
 import {RecordResult} from "../../api/model.tsx";
 import {translate} from "../../util/util.tsx";
+import VerifyRecordModal from './verifyRecordModal.tsx';
+import FlagIssueModal from './flagIssueModal.tsx';
 
 function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
     userAssertions: any[],
@@ -14,7 +18,53 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
     isCollectionAdmin: () => boolean
 }) {
 
+    const [verifyAssertion, setVerifyAssertion] = useState<any>(null);
+    const [verifyPrefill, setVerifyPrefill] = useState<{ status: string; comment: string; verificationUuid: string } | undefined>(undefined);
+    const [editAssertion, setEditAssertion] = useState<any>(null);
+
     const intl: IntlShape = useIntl();
+    const {userInfo} = useUser();
+
+    function deleteAssertion(assertion: any) {
+        if (!window.confirm(intl.formatMessage({ id: 'show.deleteannotation.confirm', defaultMessage: 'Are you sure you want to delete this flagged issue?' }))) {
+            return;
+        }
+
+        deleteItem(assertion);
+    }
+
+    function deleteVerification(assertion: any) {
+        if (!window.confirm(intl.formatMessage({ id: 'show.deleteverification.confirm', defaultMessage: 'Are you sure you want to delete this verification?' }))) {
+            return;
+        }
+
+        deleteItem(assertion);
+    }
+
+
+    function deleteItem(assertion: any) {
+
+        const params = new URLSearchParams({
+            recordUuid: assertion.referenceRowKey,
+            assertionUuid: assertion.uuid,
+        });
+
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/assertions/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': 'Bearer ' + userInfo?.accessToken,
+            },
+            body: params.toString(),
+        })
+            .then(r => {
+                if (!r.ok) throw new Error('submit failed: ' + r.status);
+                window.location.reload();
+            })
+            .catch(err => {
+                alert(intl.formatMessage({ id: 'show.verifyrecord.error', defaultMessage: 'Error deleting verification: ' }) + err.message);
+            });
+    }
 
     // TODO: finish this component
     return <>
@@ -99,37 +149,30 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
                                     {/*<p className="hide issueCode">{assertion.issueCode}</p>*/}
                                     {/*<p className="hide issueComment">{assertion.comment (duplicate)}</p>*/}
                                     {/*<p className="hide userDisplayName">{assertion.userDisplayName}</p>*/}
-                                    <p className="created small">Date created: {new Date(assertion.created).toLocaleString('en-CA', {hour12: false}).replace(',', '')}</p>
+                                    <div className="created small mb-2">Date created: {new Date(assertion.created).toLocaleString('en-CA', {hour12: false}).replace(',', '')}</div>
                                     {/*query_assertion_uuid is deprecated*/}
-                                    {assertion.userId === record.userId &&
-                                        <p className="deleteAnnotation">
-                                            <a className="editAnnotationButton btn btn-danger" href="#"
-                                               onClick={() => alert('TODO')}>
+                                    {(!assertion.verified || assertion.verified.length == 0) && assertion.userId === userInfo?.userId &&
+                                        <div className="deleteAnnotation mb-2">
+                                            <button className="editAnnotationButton btn btn-danger"
+                                               onClick={() => setEditAssertion(assertion)}>
                                                 <FormattedMessage id="show.userannotationtemplate.p05.navigator" defaultMessage="Edit"/>
-                                                {/* TODO: progress indicator */}
-                                                {/*<span className="editAssertionSubmitProgress" style={{display: "none"}}>*/}
-                                                {/*    <img src="/indicator.gif" alt="indicator icon"/>*/}
-                                                {/*</span>*/}
-                                            </a>
-                                            <a className="deleteAnnotationButton btn btn-danger" href="#"
-                                               onClick={() => alert('TODO')}>
+                                            </button>
+                                            <button className="deleteAnnotationButton btn btn-danger ms-1"
+                                               onClick={() => deleteAssertion(assertion)}>
                                                 <FormattedMessage id="show.userannotationtemplate.p02.navigator" defaultMessage="Delete this annotation"/>
-                                                {/* TODO: progress indicator */}
-                                                {/*<span className="deleteAssertionSubmitProgress" style={{display: "none"}}>*/}
-                                                {/*    <img src="/indicator.gif" alt="indicator icon"/>*/}
-                                                {/*</span>*/}
-                                            </a>
-                                        </p>
+                                            </button>
+                                        </div>
                                     }
-                                    {isCollectionAdmin() && (
+                                    {(!assertion.verified || assertion.verified.length == 0) && isCollectionAdmin() && (
                                         <p className="verifyAnnotation">
-                                            <a className="verifyAnnotationButton btn btn-default" href="#verifyRecordModal" onClick={() => alert('TODO')}>
+                                            <a className="verifyAnnotationButton btn btn-default" href="#"
+                                               onClick={(e) => { e.preventDefault(); setVerifyPrefill(undefined); setVerifyAssertion(assertion); }}>
                                                 <i className="glyphicon glyphicon-thumbs-up"></i> &nbsp;
                                                 <FormattedMessage id="show.userannotationtemplate.p03.navigator" defaultMessage="Verify this annotation"/>
                                             </a>
                                         </p>
                                     )}
-                                    {assertion.verified &&
+                                    {assertion.verified && assertion.verified.length > 0 &&
                                         <table className="table verifications">
                                             <thead>
                                             <tr>
@@ -151,14 +194,17 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
                                                     </td>
                                                     <td className="deleteVerification">
                                                         {isCollectionAdmin() && <>
-                                                            <a className="editVerificationButton btn btn-danger"
-                                                               style={{textAlign: "right"}} href="#">
+                                                            <button className="editVerificationButton btn btn-danger"
+                                                               style={{textAlign: "right"}} onClick={() => {
+                                                                   setVerifyPrefill({ status: verified.qaStatus, comment: verified.comment, verificationUuid: verified.uuid });
+                                                                   setVerifyAssertion(assertion);
+                                                               }}>
                                                                 <FormattedMessage id="show.userannotationtemplate.p06.navigator" defaultMessage="Edit"/>
-                                                            </a>
-                                                            <a className="deleteVerificationButton btn btn-danger"
-                                                               style={{textAlign: "right"}} href="#">
+                                                            </button>
+                                                            <button className="deleteVerificationButton btn btn-danger ms-1"
+                                                               style={{textAlign: "right"}} onClick={() => deleteVerification(verified)}>
                                                                 <FormattedMessage id="show.userannotationtemplate.p04.navigator" defaultMessage="Delete this verification"/>
-                                                            </a>
+                                                            </button>
                                                         </>}
                                                     </td>
                                                 </tr>
@@ -180,6 +226,25 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
                 </ul>
             </div>
         }
+        {editAssertion && (
+            <FlagIssueModal
+                record={record}
+                editAssertionId={editAssertion.uuid}
+                editIssueCode={editAssertion.code}
+                editComment={editAssertion.comment}
+                onClose={() => setEditAssertion(null)}
+                onSubmitted={() => { setEditAssertion(null); window.location.reload(); }}
+            />
+        )}
+        {verifyAssertion && (
+            <VerifyRecordModal
+                record={record}
+                assertion={verifyAssertion}
+                prefill={verifyPrefill}
+                onClose={() => { setVerifyAssertion(null); setVerifyPrefill(undefined); }}
+                onVerified={() => { setVerifyAssertion(null); setVerifyPrefill(undefined); window.location.reload(); }}
+            />
+        )}
     </>
 }
 

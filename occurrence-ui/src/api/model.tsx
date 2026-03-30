@@ -289,6 +289,8 @@ interface ResultItem {
     el?: { [key: string]: number };
     cl?: { [key: string]: string };
     lastModifiedTime?: string;
+    geospatiallyKosher?: boolean;
+    taxonomicallyKosher?: boolean;
 }
 
 interface ReferencedResult {

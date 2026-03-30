@@ -533,12 +533,6 @@ function Occurrence({setBreadcrumbs}: {
                         <p><FormattedMessage id='show.headingbar02.p01' defaultMessage='The requested record ID'/> "{uuid}" <FormattedMessage id='show.headingbar02.p02' defaultMessage='was not found'/></p>
                     </div>
                 )}
-
-                {/*TODO: userAnnotationTemplate dialog*/}
-
-                {/*TODO: userVerificationTemplate dialog*/}
-
-                {/*TODO: verifyRecordModal dialog*/}
             </div>
         </div>
     );

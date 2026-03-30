@@ -62,11 +62,8 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
     function getEventInfo(data: RecordResult) {
         // no events service
         if (!import.meta.env.VITE_APP_EVENTS_ENABLED) {
-            if (!data?.raw?.event?.eventID || !data?.processed?.attribution?.dataResourceUid) {
-                return undefined;
-            } else {
-                createEventTable(data, undefined);
-            }
+            createEventTable(data, undefined);
+            return;
         }
 
         // events service enabled
@@ -79,7 +76,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                 },
                 body: JSON.stringify({query})
             }).then(res => res.json()).then(hierarchyResponse => {
-                let hierarchy = hierarchyResponse?.eventSearch?.documents?.results?.eventTypeHierarchy[0];
+                let hierarchy = hierarchyResponse?.data?.eventSearch?.documents?.results[0]?.eventTypeHierarchy;
                 setEventHierarchy(hierarchy);
                 createEventTable(data, hierarchy);
             });

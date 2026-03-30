@@ -124,3 +124,8 @@ svg[class~="leaflet-attribution-flag"] {
 .popover {
     font-family: inherit;
 }
+
+#issueForm label {
+    width: 85px;
+    font-weight: 700;
+}

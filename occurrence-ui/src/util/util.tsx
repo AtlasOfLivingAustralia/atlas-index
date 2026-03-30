@@ -1,5 +1,8 @@
 import {IntlShape} from "react-intl";
 
+// Characters that are either HTML or ICU message syntax — not safe to use as a message ID or default message
+const UNSAFE_TEXT_RE = /[<>{}']/;
+
 export function translate(intl: IntlShape, text: string | number, field: string | undefined): string {
     if (!text) {
         return '';
@@ -7,6 +10,12 @@ export function translate(intl: IntlShape, text: string | number, field: string 
 
     // if text is not a string, convert to string
     text = '' + text;
+
+    // If the value contains HTML tags or ICU-unsafe characters, return it verbatim — attempting
+    // to pass it through formatMessage would cause a FORMAT_ERROR in the ICU parser.
+    if (UNSAFE_TEXT_RE.test(text)) {
+        return text;
+    }
 
     if (field) {
         return intl.formatMessage({id: `${field}.${text}`,

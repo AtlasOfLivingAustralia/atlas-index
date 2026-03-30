@@ -17,6 +17,39 @@ interface LayerItem {
     classification?: string;
 }
 
+// Future: need to manage client side caching more reliably, e.g. with a proper caching library.
+// cache spatial's /fields/search request for 1 day
+const FIELDS_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const FIELDS_CACHE_KEY = 'spatialFieldsSearch';
+
+interface FieldsCache {
+    timestamp: number;
+    data: any[];
+}
+
+function getCachedFields(): any[] | null {
+    try {
+        const raw = localStorage.getItem(FIELDS_CACHE_KEY);
+        if (!raw) return null;
+        const cached: FieldsCache = JSON.parse(raw);
+        if (Date.now() - cached.timestamp < FIELDS_CACHE_TTL_MS) {
+            return cached.data;
+        }
+    } catch {
+        // ignore parse errors
+    }
+    return null;
+}
+
+function setCachedFields(data: any[]): void {
+    try {
+        const entry: FieldsCache = { timestamp: Date.now(), data };
+        localStorage.setItem(FIELDS_CACHE_KEY, JSON.stringify(entry));
+    } catch {
+        // ignore storage errors (e.g. quota exceeded)
+    }
+}
+
 function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
     const [clLayerInfo, setClLayerInfo] = useState<LayerItem[]>([]);
     const [elLayerInfo, setElLayerInfo] = useState<LayerItem[]>([]);
@@ -36,68 +69,76 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
             newClLayerInfo[key] = { value: value, name: key, id: key };
         }
 
-        fetch(`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/fields/search`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        })
-            .then(response => response.json())
-            .then(data => {
-                // merge in additional layer info
-                for (const item of data) {
-                    if (item.id in newElLayerInfo) {
-                        let newLayer = newElLayerInfo[item.id];
-                        newLayer.units = item.layer.environmentalvalueunits;
-                        newLayer.displayName = item.name;
-                        newLayer.name = item.layer.name;
-                        newLayer.classification = item.layer.classification1;
-                    }
-                    if (item.id in newClLayerInfo) {
-                        let newLayer = newClLayerInfo[item.id];
-                        newLayer.units = item.layer.environmentalvalueunits;
-                        newLayer.displayName = item.name;
-                        newLayer.name = item.layer.name;
-                        newLayer.classification = item.layer.classification1;
-                    }
+        const cached = getCachedFields();
+        const dataPromise: Promise<any[]> = cached
+            ? Promise.resolve(cached)
+            : fetch(`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/fields/search`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    setCachedFields(data);
+                    return data;
+                });
+
+        dataPromise.then(data => {
+            // merge in additional layer info
+            for (const item of data) {
+                if (item.id in newElLayerInfo) {
+                    let newLayer = newElLayerInfo[item.id];
+                    newLayer.units = item.layer.environmentalvalueunits;
+                    newLayer.displayName = item.name;
+                    newLayer.name = item.layer.name;
+                    newLayer.classification = item.layer.classification1;
                 }
+                if (item.id in newClLayerInfo) {
+                    let newLayer = newClLayerInfo[item.id];
+                    newLayer.units = item.layer.environmentalvalueunits;
+                    newLayer.displayName = item.name;
+                    newLayer.name = item.layer.name;
+                    newLayer.classification = item.layer.classification1;
+                }
+            }
 
-                // convert to lists, sorted, with classification headers
-                let prevClassification = '';
+            // convert to lists, sorted, with classification headers
+            let prevClassification = '';
 
-                let elLayerInfo: LayerItem[] = [];
-                Object.values(newElLayerInfo)
-                    .sort((a, b) => {
-                        if (a.classification === b.classification) {
-                            return (a.displayName || '').localeCompare(b.displayName || '');
-                        }
-                        return (a.classification || '').localeCompare(b.classification || '');
-                    })
-                    .forEach(item => {
-                        if (item.classification !== prevClassification) {
-                            elLayerInfo.push({ displayName: item.classification });
-                            prevClassification = item.classification;
-                        }
-                        elLayerInfo.push(item);
-                    });
+            let elLayerInfo: LayerItem[] = [];
+            Object.values(newElLayerInfo)
+                .sort((a, b) => {
+                    if (a.classification === b.classification) {
+                        return (a.displayName || '').localeCompare(b.displayName || '');
+                    }
+                    return (a.classification || '').localeCompare(b.classification || '');
+                })
+                .forEach(item => {
+                    if (item.classification !== prevClassification) {
+                        elLayerInfo.push({ displayName: item.classification });
+                        prevClassification = item.classification;
+                    }
+                    elLayerInfo.push(item);
+                });
 
-                let clLayerInfo: LayerItem[] = [];
-                Object.values(newClLayerInfo)
-                    .sort((a, b) => {
-                        if (a.classification === b.classification) {
-                            return (a.displayName || '').localeCompare(b.displayName || '');
-                        }
-                        return (a.classification || '').localeCompare(b.classification || '');
-                    })
-                    .forEach(item => {
-                        if (item.classification !== prevClassification) {
-                            clLayerInfo.push({ displayName: item.classification });
-                            prevClassification = item.classification;
-                        }
-                        clLayerInfo.push(item);
-                    });
+            let clLayerInfo: LayerItem[] = [];
+            Object.values(newClLayerInfo)
+                .sort((a, b) => {
+                    if (a.classification === b.classification) {
+                        return (a.displayName || '').localeCompare(b.displayName || '');
+                    }
+                    return (a.classification || '').localeCompare(b.classification || '');
+                })
+                .forEach(item => {
+                    if (item.classification !== prevClassification) {
+                        clLayerInfo.push({ displayName: item.classification });
+                        prevClassification = item.classification;
+                    }
+                    clLayerInfo.push(item);
+                });
 
-                setElLayerInfo(elLayerInfo);
-                setClLayerInfo(clLayerInfo);
-            });
+            setElLayerInfo(elLayerInfo);
+            setClLayerInfo(clLayerInfo);
+        });
     }
 
     return (
@@ -143,7 +184,7 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
                                 ) : (
                                     <>
                                         <td>
-                                            <a href={`${import.meta.env.VITE_APP_SPATIAL_URL}/layers/view/more/${item.name}`} title='More information about this layer'>
+                                            <a href={`${import.meta.env.VITE_APP_SPATIAL_URL}/ws/layers/view/more/${item.name}`} title='More information about this layer'>
                                                 <FormattedMessage id={item.id} defaultMessage={item.displayName} />
                                             </a>
                                         </td>

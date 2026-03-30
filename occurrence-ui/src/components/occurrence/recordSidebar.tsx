@@ -3,18 +3,28 @@ import { faBan, faCheckCircle, faEnvelope, faExclamationCircle, faFlag, faQuesti
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import { Circle, LayersControl, MapContainer, Marker, TileLayer } from 'react-leaflet';
+import { Circle, LayersControl, MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { RecordResult } from '../../api/model.tsx';
 import ContactCuratorModal from '../contactCuratorModal.tsx';
+import FlagIssueModal from './flagIssueModal.tsx';
 import RolloverTooltip from '../rolloverTooltip.tsx';
 
 const skin_useAlaImageService = import.meta.env.VITE_USE_ALA_IMAGE_SERVICE === 'true';
 const defaultZoom = Number(import.meta.env.VITE_DEFAULT_MAP_ZOOM) || 5;
 
+function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
+    const map = useMap();
+    useEffect(() => {
+        map.setView([lat, lng]);
+    }, [lat, lng]);
+    return null;
+}
+
 function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { record?: RecordResult; contacts?: any; userAssertions?: any; eventHierarchy?: any }) {
     const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(null);
     const [showContactsModal, setShowContactsModal] = useState(false);
+    const [showFlagIssueModal, setShowFlagIssueModal] = useState(false);
 
     const intl: IntlShape = useIntl();
 
@@ -54,14 +64,8 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
 
     return (
         <>
-            <button
-                className='btn btn-default'
-                id='assertionButton'
-                role='button'
-                data-toggle='modal'
-                title='report a problem or suggest a correction for this record'
-                onClick={() => {alert('TODO: flag an issue dialog');}}>
-                <FontAwesomeIcon icon={faFlag} /> <FormattedMessage id='show.button.assertionbutton.span' defaultMessage='Flag an issue' />
+            <button className='btn btn-default' id='assertionButton' role='button' data-toggle='modal' title='report a problem or suggest a correction for this record'
+                onClick={() => setShowFlagIssueModal(true)}>                <FontAwesomeIcon icon={faFlag} /> <FormattedMessage id='show.button.assertionbutton.span' defaultMessage='Flag an issue' />
             </button>
 
             {contacts && contacts.length > 0 && (
@@ -120,9 +124,9 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                             </a>
                         </li>
                     )}
-                    {userAssertions && (
+                    {userAssertions && userAssertions.length > 0 && (
                         <li>
-                            <a href='#userAnnotationsDiv' id='userAnnotationsNav' style={{ display: 'none' }}>
+                            <a href='#userAnnotationsDiv' id='userAnnotationsNav'>
                                 <FormattedMessage id='show.userannotationsdiv.title' defaultMessage='User flagged issues' />
                             </a>
                         </li>
@@ -212,6 +216,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
             {latLng && (
                 <div id='leafletMap' style={{ height: '300px', position: 'relative' }}>
                     <MapContainer center={latLng} zoom={defaultZoom} scrollWheelZoom={false} worldCopyJump={true} style={{ height: '300px' }}>
+                        <MapRecenter lat={latLng.lat} lng={latLng.lng} />
                         {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />}
                         {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                             <LayersControl position='topright'>
@@ -255,7 +260,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                     <h4>
                         <FormattedMessage id='record.eventdetails.label' />
                     </h4>
-                    <p>
+                    <div>
                         <FormattedMessage id='record.eventdetails.desc1' />
                         <div>{RenderTree({ eventHierarchy })}</div>
                         <FormattedMessage id='record.eventdetails.desc2' />
@@ -263,7 +268,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                         <a className='btn-small btn btn-default' style={{ marginTop: '10px' }} href={`${import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL}${record.raw.event.eventID}`}>
                             <FormattedMessage id='record.eventdetails.link' />
                         </a>
-                    </p>
+                    </div>
                 </div>
             )}
 
@@ -455,9 +460,8 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                 </div>
             )}
 
-            {/*TODO: dialog for flagging an issue*/}
-
             {showContactsModal && contacts && <ContactCuratorModal contacts={contacts} onClose={() => setShowContactsModal(false)} />}
+            {showFlagIssueModal && record && <FlagIssueModal record={record} onClose={() => {setShowFlagIssueModal(false); window.location.reload()}} />}
         </>
     );
 }

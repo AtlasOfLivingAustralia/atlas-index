@@ -141,12 +141,17 @@ function OccurrenceList({setBreadcrumbs}: {
 
             updateAndSaveDataQualityInfoWithQueryString(dqList);
         } else {
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/user/property", {
+            fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property?key=dq", {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + userInfo?.accessToken,
                 }
-            }).then(response => response.json()).then(data => {
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch DQ profile: ' + response.status);
+                }
+                return response.json();
+            }).then(data => {
                 dataQualityInfo.profile = data.disableAll ? 'disable' : data.profile;
                 dataQualityInfo.selectedFilters = [];
                 for (let dq of dqList) {
@@ -160,6 +165,8 @@ function OccurrenceList({setBreadcrumbs}: {
                 }
                 dataQualityInfo.expand = data.expand;
 
+                updateAndSaveDataQualityInfoWithQueryString(dqList);
+            }).catch(() => {
                 updateAndSaveDataQualityInfoWithQueryString(dqList);
             })
         }

@@ -27,7 +27,7 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
 
     function createAlert(method: string) {
         // this would be better as a POST service, but I guess this works
-        let url = "https://alerts-test.ala.org.au/ws/" + method;
+        let url = import.meta.env.VITE_APP_ALERTS_WS_URL + "/ws/" + method;
         if (results.queryTitle.length >= 250) {
             url += "?queryDisplayName=" + encodeURIComponent(results.queryTitle.substring(0, 149) + "...");
         } else {
