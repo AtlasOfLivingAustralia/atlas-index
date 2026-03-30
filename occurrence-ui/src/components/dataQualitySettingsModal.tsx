@@ -75,19 +75,18 @@ function DataQualitySettingsModal({
                 dataProfile: profile === "disable" ? null : profile
             }));
         } else {
-            const data = new URLSearchParams();
-            data.append("name", import.meta.env.VITE_APP_NAME + ".dqUserProfile" );
-            data.append("value", JSON.stringify({
+            const value = JSON.stringify({
                 expand: showExpanded,
                 disableAll: profile === "disable",
                 disabledItems: disabledItems,
-                dataProfile: profile === "disable" ? null : profile}));
-            data.append("alaId", userInfo?.userId || "guest");
+                dataProfile: profile === "disable" ? null : profile
+            });
 
-            fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property?key=dq", {
+            fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property", {
                 method: 'POST',
-                body: data,
+                body: JSON.stringify({ dq: value }),
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + userInfo?.accessToken,
                 }
             })

@@ -6,7 +6,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import {IntlProvider} from 'react-intl';
+import { IntlProvider } from 'react-intl';
 import {BrowserRouter as Router} from 'react-router-dom';
 import App from './App';
 import messages_en from './translations/en.json';
@@ -18,7 +18,8 @@ root.render(
     <React.StrictMode>
         <NuqsAdapter>
             <Router>
-                <IntlProvider messages={messages_en} locale='en' defaultLocale='en'>
+                <IntlProvider messages={messages_en} locale='en' defaultLocale='en'
+                    onError={(err) => { if (err.code === 'MISSING_TRANSLATION') return; console.error(err); }}>
                     <App />
                 </IntlProvider>
             </Router>

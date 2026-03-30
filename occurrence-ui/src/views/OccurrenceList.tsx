@@ -117,6 +117,11 @@ function OccurrenceList({setBreadcrumbs}: {
     }, [location.search]);
 
     useEffect(() => {
+        // Block until DQ profile redirect has happened — qualityProfile or
+        // disableAllQualityFilters must be present before we fire any searches.
+        if (!queryString?.includes("qualityProfile=") && !queryString?.includes("disableAllQualityFilters=")) {
+            return;
+        }
         fetchIndex();
     }, [pageSize, sort, dir, page, queryString]);
 
@@ -125,7 +130,7 @@ function OccurrenceList({setBreadcrumbs}: {
             const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + ".dqUserProfile");
             if (stored) {
                 const data = JSON.parse(stored);
-                dataQualityInfo.profile = data.disableAll ? 'disable' : data.dataProfile;
+                dataQualityInfo.profile = data.disableAll ? 'disable' : (data.dataProfile || import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE);
                 dataQualityInfo.selectedFilters = [];
                 for (let dq of dqList) {
                     if (dq.shortName === dataQualityInfo.profile) {
@@ -145,14 +150,16 @@ function OccurrenceList({setBreadcrumbs}: {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + userInfo?.accessToken,
+                    'Accept': 'application/json'
                 }
             }).then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch DQ profile: ' + response.status);
                 }
                 return response.json();
-            }).then(data => {
-                dataQualityInfo.profile = data.disableAll ? 'disable' : data.profile;
+            }).then(raw => {
+                const data = JSON.parse(raw['dq']); // throws
+                dataQualityInfo.profile = data.disableAll ? 'disable' : (data.dataProfile || import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE || 'ALA');
                 dataQualityInfo.selectedFilters = [];
                 for (let dq of dqList) {
                     if (dq.shortName === dataQualityInfo.profile) {
