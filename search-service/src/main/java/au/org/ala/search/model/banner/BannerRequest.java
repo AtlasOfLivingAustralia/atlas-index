@@ -25,5 +25,8 @@ public class BannerRequest {
 
     @Schema(description = "Severity level: INFO, WARNING or ERROR", example = "WARNING", allowableValues = {"INFO", "WARNING", "ERROR"})
     public String severity;
+
+    @Schema(description = "Whether users can dismiss/close the banner", example = "true")
+    public boolean closable;
 }
 

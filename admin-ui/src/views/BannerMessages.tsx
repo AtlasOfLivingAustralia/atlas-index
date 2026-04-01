@@ -16,6 +16,7 @@ interface BannerEntry {
     message: string;
     severity: Severity;
     updated: string;
+    closable: boolean;
 }
 
 interface BannerData {
@@ -96,7 +97,7 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
             });
     }
 
-    function updateDraft(section: string, field: keyof BannerEntry, value: string) {
+    function updateDraft(section: string, field: keyof BannerEntry, value: string | boolean) {
         const updated: BannerData = {
             ...draft,
             [section]: {...draft[section], [field]: value},
@@ -104,7 +105,7 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
         setDraft(updated);
 
         // live validation on message
-        if (field === 'message') {
+        if (field === 'message' && typeof value === 'string') {
             const err = validateHtml(value);
             setValidationErrors(prev => ({...prev, [section]: err ?? ''}));
         }
@@ -114,7 +115,7 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
         const s = saved[section];
         const d = draft[section];
         if (!s || !d) return false;
-        return s.message !== d.message || s.severity !== d.severity;
+        return s.message !== d.message || s.severity !== d.severity || s.closable !== d.closable;
     }
 
     function canSave(section: string): boolean {
@@ -134,6 +135,7 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
                 section,
                 message: entry.message,
                 severity: entry.severity,
+                closable: entry.closable,
             }),
         })
             .then(r => {
@@ -262,8 +264,21 @@ function BannerMessages({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[
                                         )}
                                     </div>
 
-                                    {/* Status indicator */}
+                                    {/* Closable checkbox + Status indicator */}
                                     <div className="pt-1" style={{minWidth: '80px'}}>
+                                        <div className="form-check mb-1">
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id={`${section}-closable`}
+                                                checked={entry.closable}
+                                                onChange={e => updateDraft(section, 'closable', e.target.checked)}
+                                            />
+                                            <label className="form-check-label small" htmlFor={`${section}-closable`}>
+                                                Closable
+                                            </label>
+                                        </div>
+
                                         {status === 'ok' && (
                                             <span className="text-success small">
                                                 <i className="bi bi-check-circle me-1"/>Saved

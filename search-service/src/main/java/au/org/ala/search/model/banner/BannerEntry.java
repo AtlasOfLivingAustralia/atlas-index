@@ -36,6 +36,10 @@ public class BannerEntry {
     @Column(nullable = false)
     private String severity;
 
+    /** Whether users can dismiss/close the banner */
+    @Column(nullable = false)
+    private boolean closable;
+
     /** Timestamp of the last update */
     @Column(nullable = false)
     private OffsetDateTime updated;

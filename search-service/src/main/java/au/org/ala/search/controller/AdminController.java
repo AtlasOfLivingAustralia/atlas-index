@@ -416,7 +416,7 @@ public class AdminController {
         }
 
         try {
-            bannerService.save(request.getSection(), request.getMessage(), request.getSeverity(),
+            bannerService.save(request.getSection(), request.getMessage(), request.getSeverity(), request.isClosable(),
                     authService.getActor(principal, resolveIp(httpRequest), httpRequest.getHeader("User-Agent")));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

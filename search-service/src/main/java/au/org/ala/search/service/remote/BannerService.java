@@ -90,6 +90,7 @@ public class BannerService {
             Map<String, Object> entry = new LinkedHashMap<>();
             entry.put("message",  e != null ? e.getMessage()  : "");
             entry.put("severity", e != null ? e.getSeverity() : "INFO");
+            entry.put("closable", e != null && e.isClosable());
             entry.put("updated",  e != null ? e.getUpdated().toString() : OffsetDateTime.now().toString());
             result.put(section, entry);
         }
@@ -99,6 +100,7 @@ public class BannerService {
                 Map<String, Object> entry = new LinkedHashMap<>();
                 entry.put("message",  e.getMessage());
                 entry.put("severity", e.getSeverity());
+                entry.put("closable", e.isClosable());
                 entry.put("updated",  e.getUpdated().toString());
                 result.put(e.getSection(), entry);
             }
@@ -112,7 +114,7 @@ public class BannerService {
      * instances also refresh their caches.
      */
     @Transactional
-    public void save(String section, String message, String severity, String actor) {
+    public void save(String section, String message, String severity, boolean closable, String actor) {
         if (section == null || section.isBlank()) {
             throw new IllegalArgumentException("section is required");
         }
@@ -124,17 +126,15 @@ public class BannerService {
         }
 
         BannerEntry existing = bannerPostgresRepository.findById(section).orElse(null);
-        BannerEntry entry = existing != null ? existing : new BannerEntry();
-
-        // Build diff before mutating
-        Map<String, Object> diff = AuditService.merge(
-                AuditService.diff("message",  existing != null ? existing.getMessage()  : null, message),
-                AuditService.diff("severity", existing != null ? existing.getSeverity() : null, severity));
+        BannerEntry entry = new BannerEntry();
 
         entry.setSection(section);
         entry.setMessage(message);
         entry.setSeverity(severity.toUpperCase());
+        entry.setClosable(closable);
         entry.setUpdated(OffsetDateTime.now());
+
+        Map<String, Object> diff = auditService.diffObjects(existing, entry);
         bannerPostgresRepository.save(entry);
 
         // Audit
