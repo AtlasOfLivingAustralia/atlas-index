@@ -14,5 +14,5 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ImageStatistics {
-    public Integer imageCount;
+    public Integer totalImageCount;
 }

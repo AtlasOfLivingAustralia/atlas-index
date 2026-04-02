@@ -1094,7 +1094,7 @@ public class DashboardService {
             record.tables.add(table);
 
             table.rows.add(new TableRow("imagesTotal", null,
-                    new Integer[]{getImage(imagesUrl + "/ws/getRepositoryStatistics").imageCount}));
+                    new Integer[]{getImage(imagesUrl + "/ws/search?max=0").totalImageCount}));
             table.rows.add(new TableRow("taxaWithImages", null,
                     new Integer[]{getFirstCount(getBiocacheFacets(biocacheWsUrl + "/occurrence/facets?facets=taxon_name&pageSize=0&q=multimedia:Image&fq=taxon_name:*&flimit=0"))}));
             table.rows.add(new TableRow("speciesWithImages", null,
