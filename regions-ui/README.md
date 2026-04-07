@@ -128,5 +128,6 @@ This script will start a local static server to serve common files and the regio
 - If using playwright ui mode, 
   - start static-server (after running `run-playwright-test.sh` once to copy the required files)
   - copy `.env.playwright` to `.env.local`
+  - prepare regionsList.json. `cp tests/resources/regionsList.json ../static-server/static/regions/regionsList.json` then update the new `.env.local` with `VITE_REGIONS_CONFIG_URL=http://localhost:8082/static/regions/regionsList.json`
   - start in dev mode `yarn run dev` so that any changes to the app apply immediately
   - then start ui mode `yarn playwright test --ui`, any changes to the tests will apply immediately

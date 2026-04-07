@@ -539,14 +539,14 @@ test('region page default info', async ({ page }, testInfo) => {
     }); // count from species.json
     await expect(speciesCount).toBeVisible(); // check the count is visible
 
-    let yearRangeEncoded = encodeURIComponent("[1850-01-01T00:00:00Z TO " + new Date().getFullYear() + "-12-31T23:59:59Z]");
+    let yearRangeEncoded = encodeURIComponent("[1820-01-01T00:00:00Z TO " + new Date().getFullYear() + "-12-31T23:59:59Z]");
 
     // Verify the expected URLs were called
-    const speciesGroupUrl = /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup&pageSize=0&flimit=-1&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue$/;
+    const speciesGroupUrl = /^https:\/\/biocache-ws(\.[a-z0-9-]+)?\.ala\.org\.au\/ws\/occurrences\/search\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&facets=speciesGroup,decade&pageSize=0&flimit=-1&fq=species%3A\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue$/;
 
-    const speciesUrl = new RegExp(`^https://biocache-ws(\\.[a-z0-9-]+)?\\.ala\\.org\\.au/ws/occurrences/search\\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species&fq=species%3A\\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A${yearRangeEncoded}$`);
+    const speciesUrl = new RegExp(`^https://biocache-ws(\\.[a-z0-9-]+)?\\.ala\\.org\\.au/ws/occurrences/search\\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&pageSize=0&flimit=-1&facets=species,decade&fq=species%3A\\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A${yearRangeEncoded}$`);
 
-    const kingdomUrl = new RegExp(`^https://biocache-ws(\\.[a-z0-9-]+)?\\.ala\\.org\\.au/ws/occurrences/search\\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A\\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A${yearRangeEncoded}&pageSize=0&flimit=-1&facets=kingdom$`);
+    const kingdomUrl = new RegExp(`^https://biocache-ws(\\.[a-z0-9-]+)?\\.ala\\.org\\.au/ws/occurrences/search\\?q=cl10925:%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A\\*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A${yearRangeEncoded}&pageSize=0&flimit=-1&facets=kingdom,decade$`);
 
     const hasSpeciesGroupUrl = Array.from(seenUrls).find(url => speciesGroupUrl.test(url?.href));
     expect(hasSpeciesGroupUrl).toBeTruthy();
@@ -667,7 +667,7 @@ test('region ACT details', async ({ page, context }, testInfo) => {
     expect(parsedUrl.searchParams.getAll('fq')).toEqual(expect.arrayContaining([
         'species:"Aaaaba fossicollis"',
         'species:*',
-        expect.stringContaining('occurrenceYear:[1850-01-01T00:00:00Z TO')
+        expect.stringContaining('occurrenceYear:[1820-01-01T00:00:00Z TO')
     ]));
 
     const [viewBiocachePage] = await Promise.all([
@@ -685,7 +685,7 @@ test('region ACT details', async ({ page, context }, testInfo) => {
     expect(parsedviewBiocacheUrl.searchParams.getAll('fq')).toEqual(expect.arrayContaining([
         'species:"Aaaaba fossicollis"',
         'species:*',
-        expect.stringContaining('occurrenceYear:[1850-01-01T00:00:00Z TO')
+        expect.stringContaining('occurrenceYear:[1820-01-01T00:00:00Z TO')
     ]));
 
     const wmsTileForOccurrences = page.locator('.leaflet-tile-container img[src*="ALA%3Aoccurrences"]');
@@ -703,7 +703,7 @@ test('region ACT details', async ({ page, context }, testInfo) => {
     await expect(maxSlider).toBeEnabled();
     var minValue = await minSlider.getAttribute('aria-valuenow');
     const maxValue = await maxSlider.getAttribute('aria-valuenow');
-    expect(minValue).toBe('1850');
+    expect(minValue).toBe('1820');
     expect(maxValue).toBe(String(new Date().getFullYear()));
     const minSliderBBox = await minSlider.boundingBox();
     const maxSliderBBox = await maxSlider.boundingBox();
@@ -712,7 +712,7 @@ test('region ACT details', async ({ page, context }, testInfo) => {
         await minSlider.dragTo(maxSlider);
         const dateRangeText = page.locator('[data-testid="dateRangeSelection"] p');
         const currentYear = new Date().getFullYear();
-        await expect(dateRangeText).toHaveText(new RegExp(`${currentYear} - ${currentYear}`));
+        await expect(dateRangeText).toHaveText(new RegExp(`2025 - ${currentYear}`));
 
         // A forced click is required for Firefox to trigger the interaction.
         // In Chrome, it succeeds in headed mode without the force click but fails when running headless.
@@ -762,7 +762,7 @@ test('play buttons on date range slider', async ({ page,browserName }, testInfo)
     await expect(maxSlider).toBeEnabled();
     var minValue = await minSlider.getAttribute('aria-valuenow');
     const maxValue = await maxSlider.getAttribute('aria-valuenow');
-    expect(minValue).toBe('1850');
+    expect(minValue).toBe('1820');
     expect(maxValue).toBe(String(new Date().getFullYear()));
     const minSliderBBox = await minSlider.boundingBox();
     const maxSliderBBox = await maxSlider.boundingBox();
@@ -771,7 +771,7 @@ test('play buttons on date range slider', async ({ page,browserName }, testInfo)
         const playIcon = page.locator('i.bi.bi-play');
         await playIcon.click();
         const dateRangeText = page.locator('[data-testid="dateRangeSelection"] p');
-        const ranges = [/1850 - 1860/,/1860 - 1870/, /1870 - 1880/];
+        const ranges = [/1820 - 1830/,/1830 - 1840/, /1840 - 1850/];
 
         for (const range of ranges) {
             await expect(dateRangeText).toHaveText(range, { timeout: 2000 });
@@ -848,9 +848,7 @@ test('test taxon chart', async ({ page }, testInfo) => {
         expect.arrayContaining([
             'kingdom:"Animalia"',
             'species:*',
-            expect.stringContaining(
-                'occurrenceYear:[1850-01-01T00:00:00Z'
-            ),
+            expect.stringContaining('occurrenceYear:[1820-01-01T00:00:00Z'),
         ]))
     await previousRankBtn.click();
     await page.waitForTimeout(1000);

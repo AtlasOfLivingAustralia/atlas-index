@@ -80,7 +80,41 @@
     }
   ],
   "facetResults": [
-
+    {
+      "fieldName": "decade",
+      "fieldResult": [
+        {
+          "label": "1980",
+          "i18nCode": "decade.1980",
+          "count": 406396,
+          "fq": "decade:\"1980\""
+        },
+        {
+          "label": "1990",
+          "i18nCode": "decade.1990",
+          "count": 457479,
+          "fq": "decade:\"1990\""
+        },
+        {
+          "label": "2000",
+          "i18nCode": "decade.2000",
+          "count": 605922,
+          "fq": "decade:\"2000\""
+        },
+        {
+          "label": "2010",
+          "i18nCode": "decade.2010",
+          "count": 1782212,
+          "fq": "decade:\"2010\""
+        },
+        {
+          "label": "2020",
+          "i18nCode": "decade.2020",
+          "count": 2037220,
+          "fq": "decade:\"2020\""
+        }
+      ]
+    }
   ],
   "query": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A%22Aaaaba%20fossicollis%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",
   "urlParameters": "?q=cl10925%3A%22AUSTRALIAN%20CAPITAL%20TERRITORY%22&fq=species%3A%22Aaaaba%20fossicollis%22&fq=species%3A*&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&fq=occurrenceYear%3A%5B1850-01-01T00%3A00%3A00Z%20TO%202025-12-31T23%3A59%3A59Z%5D",

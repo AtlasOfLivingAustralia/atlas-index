@@ -39,7 +39,7 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
             const hasOccurrenceYear = fqs.some(f => f.startsWith('occurrenceYear:'));
 
             var response;
-            if (facets === 'species') {
+            if (facets === 'species,decade') {
                 // Adjust the species facet counts if occurrenceYear has been set to 2024 or after
                 if (hasOccurrenceYear) {
                     const occurrenceYearFilter = fqs.find(f => f.startsWith('occurrenceYear:'));
@@ -58,9 +58,9 @@ export async function apiMocks(page: Page, seenUrls: Set<URL> ) {
                     }
                 }
                 response = g_species;
-            } else if (facets === 'kingdom') {
+            } else if (facets === 'kingdom,decade') {
                 response = g_kingdoms;
-            } else if (facets === 'speciesGroup') {
+            } else if (facets === 'speciesGroup,decade') {
                 response = g_speciesGroups;
             } else if (searchOccurrences) {
                 response = g_occurrences;
