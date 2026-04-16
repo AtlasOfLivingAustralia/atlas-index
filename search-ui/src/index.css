@@ -55,6 +55,7 @@
     min-height: 69px;
     width: 255px;
     display: flex !important;
+    white-space: normal;
 }
 
 .table-striped > tbody > tr:nth-of-type(even) {

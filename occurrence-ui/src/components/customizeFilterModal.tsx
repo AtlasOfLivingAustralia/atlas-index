@@ -77,10 +77,10 @@ function CustomizeFilterModal({onClose, facetList, setFacetList, groupedFacets}:
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button id="resetFacetOptions" className="btn btn-default btn-sm margin-left-5 border-black"
+                <button id="resetFacetOptions" className="btn btn-outline-dark margin-left-5"
                         onClick={() => reset()}><FormattedMessage id="list.facetcheckboxes.button.resetfacetoptions" defaultMessage="Reset to defaults"/></button>
-                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}><FormattedMessage id="list.facetcheckboxes.button.closeFacetoptions" defaultMessage="Close"/></button>
-                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => update()}><FormattedMessage id="list.facetcheckboxes.button.updatefacetoptions" defaultMessage="Update"/></button>
+                <button className="btn btn-outline-dark" onClick={() => onClose()}><FormattedMessage id="list.facetcheckboxes.button.closeFacetoptions" defaultMessage="Close"/></button>
+                <button id="updateFacetOptions" className="btn btn-primary" onClick={() => update()}><FormattedMessage id="list.facetcheckboxes.button.updatefacetoptions" defaultMessage="Update"/></button>
             </Modal.Footer>
         </Modal>
     </>

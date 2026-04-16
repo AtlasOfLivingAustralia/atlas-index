@@ -468,6 +468,50 @@
     }
 }
 
+.refineSectionTitle {
+    color: #c44d34 !important;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: 24px;
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .refineSectionTitle {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+.refineItem {
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .refineItem {
+        font-size: 12px;
+        line-height: 16px;
+        margin-top: 1px;
+    }
+}
+
+.mapRadio {
+    background-color: #fff;
+    border-color: #212121 !important;
+    cursor: pointer;
+}
+
+.mapRadio:checked {
+    background-color: #212121 !important;
+    border-color: #212121 !important;
+}
+
+.mapRadio:focus {
+    box-shadow: none !important;
+    border-color: #212121 !important;
+}
+
 .resultsTitle {
     color: #212121;
     font-size: 20px;
@@ -638,5 +682,3 @@
     padding-top: 15px;
     margin-top: 20px;
 }
-
-

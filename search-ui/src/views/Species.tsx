@@ -319,7 +319,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('map')}>
-                    Occurrences
+                    Map
                     <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/></div>
                 {mobileToggle['map'] &&
                     <div className={classes.mobileSectionContent}>
@@ -422,7 +422,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                      style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
                          onClick={() => handleTabChange('map')}>
-                        Occurrences
+                        Map
                     </div>
                     <div className={`${tab === 'classification' ? classes.activeTab : ''} ${classes.tabButtons}`}
                          onClick={() => handleTabChange('classification')}>

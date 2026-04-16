@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'bootstrap/dist/css/bootstrap.css';
 import {
     Banner,
     Breadcrumb,
@@ -25,10 +24,10 @@ import buildInfo from './buildInfo.json';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import '@fontsource/roboto';
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
+//import '@fontsource/roboto';
+// import '@fontsource/roboto/300.css';
+// import '@fontsource/roboto/500.css';
+// import '@fontsource/roboto/700.css';
 import CustomDownload from "./views/CustomDownload.tsx";
 import Download from "./views/Download.tsx";
 import DownloadStatus from "./views/DownloadStatus.tsx";
@@ -51,7 +50,7 @@ export default function App() {
     const refreshTimer = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_JS, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
 
         checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
 
@@ -98,7 +97,9 @@ export default function App() {
     return (
         <main>
             <UserContext.Provider value={{ userInfo, setUserInfo }}>
-                <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper} headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} />
+                <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper}
+                        headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
+                        jsUrl={import.meta.env.VITE_COMMON_JS} containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}/>
 
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
 

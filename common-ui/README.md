@@ -32,11 +32,13 @@ yarn test
 For consistency, using the following environment variables in the `.env` file:
 
 ```properties
-# header/footer and common assets (retrieved and applied at runtime)
-VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/header.html
-VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.html
-VITE_COMMON_CSS=http://localhost:8082/static/common/common.css
-VITE_COMMON_JS=http://localhost:8082/static/common/common.js
+# header/footer and common assets and config (retrieved and applied at runtime by the client using common-ui components)
+VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/banner.mustache
+VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.mustache
+VITE_COMMON_CSS=http://localhost:8082/static/common/ala-combined.css
+VITE_COMMON_JS=http://localhost:8082/static/common/ala-combined.js
+VITE_COMMON_CONTAINER_CLASS=container-fluid OR container (full width vs narrow)
+VITE_SEARCH_URL_PREFIX=https://bie.test.ala.org.au
 
 # environment tagging (included in the deployed application header meta info)
 VITE_ENV=local
@@ -45,7 +47,7 @@ VITE_ENV=local
 VITE_BANNER_SCOPE=app-name
 VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
 
-# authentication required (search-service instance and the app base URL)
+# required for authentication (search-service instance and the app base URL)
 VITE_APP_API_URL=http://localhost:8081
 VITE_APP_BASE_URL=http://localhost:5173
 ```
@@ -85,7 +87,7 @@ const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
 const [cssLoaded, setCssLoaded] = useState<boolean>(false);
 
 useEffect(() => {
-    injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_JS, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+    injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
 }, []);
 ```
 
@@ -96,7 +98,10 @@ useEffect(() => {
     isLoggedIn={isLoggedIn} 
     logoutFn={handleLogout} 
     loginFn={handleLogin} 
-    headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}/>
+    headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+    containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}
+    searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX} 
+    jsUrl={import.meta.env.VITE_COMMON_JS}/>
 
 <Breadcrumbs 
     breadcrumbs={breadcrumbs}/>

@@ -341,56 +341,13 @@ span.activeFq, facet-item {
     display: inline-block;
     width: 90%;
     margin-left: -4px;
-    text-indent: 0px;
-    /*font-weight: bold;*/
+    text-indent: 0;
 }
 
 .facet-item {
     font-size: 13px;
 }
 
-/*div#currentFilter {*/
-/*    !*border: 1px solid #bbb;*!*/
-/*    !*background-color: #F0F0E8;*!*/
-/*    !*-moz-border-radius: 5px;*!*/
-/*    !*-webkit-border-radius: 5px;*!*/
-/*    !*-khtml-border-radius: 5px;*!*/
-/*    !*border-radius: 5px;*!*/
-/*    margin-left: -2px;*/
-/*    margin-right: 4px;*/
-/*    margin-bottom: 10px;*/
-/*    !*margin-top: 2px;*!*/
-/*    padding-left: 5px;*/
-/*}*/
-/*#currentFilter h4 {*/
-/*!*    color: #1775BA;*!*/
-/*}*/
-/*.removeLink {*/
-/*    font-family: sans-serif;*/
-/*    font-weight: bold;*/
-/*    text-decoration: none;*/
-/*    line-height: 18px;*/
-/*    padding: 0 4px;*/
-/*}*/
-/*#refine-results h3 strong {*/
-/*    font-weight: bold;*/
-/*    font-size: 130%;*/
-/*}*/
-/*!*#content2 #resultsReturned {*!*/
-/*    !*font-size: 110%;*!*/
-/*    !*padding: 5px 5px 5px 4px;*!*/
-/*    !*margin: 5px 0 10px -20px;*!*/
-/*    !*height: 20px;*!*/
-/*!*}*!*/
-
-/*#resultsReturned {*/
-/*    !*margin-left: -30px; *! !* Fix for absolutely positioned customise button to the left *!*/
-/*    font-size: 16px;*/
-/*}*/
-
-/*#resultsReturned .btn btn-default btn-default-sm, #submitFacets .btn btn-default btn-default-sm {*/
-/*    font-size: 13px;*/
-/*}*/
 #results {
     border-bottom: none;
     width: 100%;
@@ -449,115 +406,17 @@ span.activeFq, facet-item {
     border-top: 1px solid silver;
 }
 
-/*#downloads a, #alerts a, #alertsNorecords a, #mapView .btn btn-default btn-default a, #customiseFacetsButton > .btn btn-default btn-default {*/
-/*    !*font-size: 12px;*!*/
-/*    !*font-weight: bold;*!*/
-/*    color: inherit;*/
-/*}*/
-
-/*#downloads a.newDownload {*/
-/*    !*font-size: 14px;*!*/
-/*    !*font-weight: normal;*!*/
-/*    !*padding-left: 6px;*!*/
-/*    !*padding-right: 9px;*!*/
-/*}*/
-
-/*#downloads a:hover, #alerts a:hover, #mapView .btn btn-default btn-default a:hover {*/
-/*    text-decoration: none;*/
-/*}*/
-
-/*.nano {*/
-/*    height: 91px;*/
-/*}*/
-
-/*#sortWidgets {*/
-/*    text-align: right;*/
-/*    padding-top: 4px;*/
-/*    !*float: right;*!*/
-/*    !*width: 75%;*!*/
-/*}*/
-
-/*#sortWidgets select, #mapLayerControls select {*/
-/*    padding:0;*/
-/*}*/
 #searchNavBar {
     text-align: center;
     margin-top: 15px;
 }
-/*#navLinks {*/
-/*    text-align: center;*/
-/*    width: 80%;*/
-/*    margin: auto;*/
-/*    padding: 10px 5px;*/
-/*}*/
-/*!*#searchNavBar ul {*!*/
-/*    !*display: inline-block;*!*/
-/*!*}*!*/
-/*!*#searchNavBar ul li {*!*/
-/*    !*display: inline;*!*/
-/*    !*list-style: none;*!*/
-/*    !*font-size: 14px;*!*/
-/*!*}*!*/
-/*!*#searchNavBar ul li a, #searchNavBar ul li.currentPage, #searchNavBar ul li#prevPage {*!*/
-/*    !* border: 1px solid #01716E; *!*/
-/*    !*display: inline-block;*!*/
-/*    !*float: left;*!*/
-/*    !*margin: 0px 5px 0px 0px;*!*/
-/*    !*padding: 0px 5px;*!*/
-/*    !*text-decoration: none;*!*/
-/*!*}*!*/
-/*!*li.currentPage {*!*/
-/*    !*font-size: 110%;*!*/
-/*    !*font-weight: bold;*!*/
-/*    !*color: #DD3102;*!*/
-/*!*}*!*/
-/*!*#searchNavBar li a {*!*/
-/*    !*color:#005A8E;*!*/
-/*    !*text-decoration:none;*!*/
-/*    !*font-size: 14px;*!*/
-/*!*}*!*/
-/*!*#searchNavBar li a:hover  {*!*/
-/*    !*color:#6DB71D;*!*/
-/*    !*text-decoration:none;*!*/
-/*!*}*!*/
-/*div.recordHeader {*/
-/*    margin-left: 30px;*/
-/*    margin-bottom: 20px;*/
-/*    padding-left: 0 !important;*/
-/*    border-bottom: 2px solid gray;*/
-/*}*/
-/*#listMapToggle{*/
-/*    display: inline-block;*/
-/*    float: right;*/
-/*    padding-left: 10px;*/
-/*    text-align: right;*/
-/*}*/
-/*#resultsOuter {*/
-/*    position: relative;*/
-/*    overflow: hidden;*/
-/*    width: 730px;*/
-/*}*/
-/*#resultsOuter div.solrResults {*/
-/*!*  position: absolute;*/
-/*  left: 0;*/
-/*  top: 0;*!*/
-/*  width: 730px;*/
-/*}*/
 
-/*#resultsOuter div#mapwrapper {*/
-/*!*    position: absolute;*/
-/*    left: 730px;*/
-/*    top: 0;*!*/
-/*    width: 730px;*/
-/*    !*display:none;*!*/
-/*}*/
 .sidebar .showHide {
     margin: -2px 0 0 0;
     line-height: 1.4em;
     padding: 0;
 }
 .showHide a:link, .showHide a:visited, .showHide div  {
-    /*color: #005A8E;*/
     font-size: 12px;
     font-weight: normal; /* was bold */
     text-decoration: none;
@@ -910,7 +769,7 @@ ul.facets li {
 
 #facetWell .facetGroupName{
     border-top: 1px solid #D3D3D3;
-    padding: 10px 10px 5px 10px;
+    padding: 10px 10px 5px 3px;
     margin-bottom: 4px;
 }
 
@@ -1593,6 +1452,7 @@ h4, .h4 {
 
 .leaflet-container {
     height: 530px;
+    font-size: inherit;
 }
 
 .speciesPage .leaflet-container {
@@ -2581,4 +2441,21 @@ h4, .h4 {
 
 .mt-30 {
     margin-top: 30px;
+}
+
+.accordion-header {
+    margin-top: 0px;
+}
+
+.map-layer-control {
+    color: #000;
+    font-size: 13px !important;
+}
+
+.map-layer-control label {
+    margin-bottom: 0;
+}
+
+#mapLegendControls {
+    font-size: 12px;
 }

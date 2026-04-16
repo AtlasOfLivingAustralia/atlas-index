@@ -51,7 +51,7 @@
     "advancedsearch.table09col02.title": "Record number",
     "advancedsearch.title10": "Find records within the following date range",
     "advancedsearch.table10col01.title": "Begin date",
-    "advancedsearch.table10col01.des": "(YYYY-MM-DD) leave blank for most recent record date",
+    "advancedsearch.table10col01.des": "(YYYY-MM-DD) leave blank for earliest record date",
     "advancedsearch.table10col02.title": "End date",
     "advancedsearch.table10col02.des": "(YYYY-MM-DD) leave blank for most recent record date",
     "advancedsearch.table11col01.title": "Habitat",

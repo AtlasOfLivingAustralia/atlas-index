@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set default thread count if not provided as an argument
-thread_count=${1:-2}
+thread_count=${1:-10}
 
 # Function to check if a process is running on a specific port
 check_port() {
@@ -20,6 +20,12 @@ set -e
 
 echo "Building the project..."
 yarn run build:playwright
+
+echo "Copy dashboard.json to static-server"
+cp ./tests/resources/dashboard.json ../static-server/static/dashboard/dashboard.json
+
+echo "Copy dashboard.zip to static-server"
+cp ./tests/resources/dashboard.zip ../static-server/static/dashboard/dashboard.zip
 
 # Start the app server in the background
 echo "Starting the app server..."

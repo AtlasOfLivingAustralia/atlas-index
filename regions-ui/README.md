@@ -96,10 +96,12 @@ VITE_SPATIAL_GEOSERVER_URL=https://spatial.ala.org.au/geoserver
 VITE_CONTACT_URL=https://www.ala.org.au/contact-us/
 VITE_CREATE_ACCOUNT_URL=https://userdetails.ala.org.au/registration/createAccount
 # common header, footer, css and js
-VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/header.html
-VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.html
-VITE_COMMON_CSS=http://localhost:8082/static/common/common.css
-VITE_COMMON_JS=http://localhost:8082/static/common/common.js
+VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/banner.mustache
+VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.mustache
+VITE_COMMON_CSS=http://localhost:8082/static/common/ala-combined.css
+VITE_COMMON_JS=http://localhost:8082/static/common/ala-combined.js
+VITE_COMMON_CONTAINER_CLASS=container-fluid
+VITE_SEARCH_URL_PREFIX=https://bie.test.ala.org.au
 VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
 VITE_BANNER_SCOPE=regions
 # regions specific config

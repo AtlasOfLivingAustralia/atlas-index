@@ -6,8 +6,9 @@
 
 import {FadeInImage, FontAwesomeIconLite, RefineSection, RefineSectionItem,} from '@ala/common-ui';
 import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
-import {Fragment, useCallback, useEffect, useState} from 'react';
+import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import capitalise from '../../helpers/Capitalise.ts';
+import formatNumber from '../../helpers/FormatNumber.ts';
 import missingImage from '../../image/missing-image.png';
 import FormatName from '../nameUtils/formatName.tsx';
 import classes from './species.module.css';
@@ -138,6 +139,49 @@ function ImagesView({result, isMobile}: MediaViewProps) {
     const gridHeight = 210;
     const gridWidthTypical = 240;
 
+    // Justified grid — use a callback ref so the ResizeObserver is attached as soon as the element is available
+    const [gridWidth, setGridWidth] = useState(0);
+    const gridRef = useCallback((el: HTMLDivElement | null) => {
+        if (!el) return;
+        setGridWidth(el.clientWidth);
+        const ro = new ResizeObserver(entries => setGridWidth(entries[0].contentRect.width));
+        ro.observe(el);
+    }, []);
+
+    const justifiedRows = useMemo(() => {
+        if (gridWidth <= 0 || items.length === 0) return [];
+        const gap = 10;
+        const rows: { item: Items; w: number; h: number }[][] = [];
+        let row: Items[] = [];
+        let rowAspectSum = 0;
+
+        const flush = (partial: boolean) => {
+            if (row.length === 0) return;
+            const h = partial ? gridHeight : (gridWidth - gap * (row.length - 1)) / rowAspectSum;
+            rows.push(row.map(it => {
+                const aspect = (it.width > 0 && it.height > 0) ? it.width / it.height : gridWidthTypical / gridHeight;
+                return { item: it, w: Math.round(aspect * h), h: Math.round(h) };
+            }));
+            row = [];
+            rowAspectSum = 0;
+        };
+
+        for (const it of items) {
+            const aspect = (it.width > 0 && it.height > 0) ? it.width / it.height : gridWidthTypical / gridHeight;
+            const projectedTotal = (rowAspectSum + aspect) * gridHeight + gap * row.length;
+            if (row.length > 0 && projectedTotal > gridWidth) {
+                flush(false);
+            }
+            row.push(it);
+            rowAspectSum += aspect;
+            if (rowAspectSum * gridHeight + gap * (row.length - 1) >= gridWidth) {
+                flush(false);
+            }
+        }
+        flush(true);
+        return rows;
+    }, [gridWidth, items]);
+
     useEffect(() => {
         fetchImages();
     }, [result, page, sortDir, fqUserTrigged]);
@@ -170,7 +214,9 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                 data.occurrences.map((item: MediaTypes) => {
                     if (item.imageMetadata && includeImages) {
                         for (let image of item.imageMetadata) {
-                            let aspectRatio = image.width / image.height;
+                            let aspectRatio = (image.width > 0 && image.height > 0)
+                                ? image.width / image.height
+                                : gridWidthTypical / gridHeight;
                             if (result.hiddenImages_s && result.hiddenImages_s.includes(image.imageId)) {
                                 continue;
                             }
@@ -270,7 +316,6 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                     mappedLabel = 'Other';
                 }
 
-                // TODO: handle fq that is "-field:*", it cannot be joined with OR
                 let aggregatedResult = newFieldResultsMap[mappedLabel];
                 if (aggregatedResult) {
                     aggregatedResult.count += result.count;
@@ -319,11 +364,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
         setItems((prevItems) => prevItems.filter((_, index) => index !== idx));
     };
 
-    const formatNumber = (num: number) => {
-        return new Intl.NumberFormat('en').format(num); // TODO: move to helper and add locale detection
-    };
-
-    // Modal event handlers
+    // Remove image from list if it fails to load
     function handleOpenModal(idx: number) {
         if (isMobile) {
             // open image in a new tab instead of the modal
@@ -444,7 +485,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                 {refineResults}
             </div>}
 
-            <div style={{flex: 1}}>
+            <div style={{flex: 1, minWidth: 0}}>
                 {isMobile && occurrenceCount !== 0 && (
                     <div style={{marginBottom: '15px'}}>
                         <button onClick={() => setShowRefineDialog(true)} className={'ala-btn-secondary'}
@@ -486,88 +527,69 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                         </select>
                     </div>}
                 </div>
-                <div className={'d-flex flex-row flex-wrap'} style={{gap: '10px', marginTop: '20px'}}>
+                <div ref={gridRef} style={{marginTop: '20px'}}>
                     {loading &&
                         page == 0 &&
-                        Array.from({length: 12}).map((_, idx) => (
-                            <span className="placeholder-glow" key={idx}>
-                                <span
-                                    className="placeholder col-8"
-                                    style={{
-                                        width: gridWidthTypical,
-                                        height: gridHeight,
-                                        borderRadius: '10px',
-                                    }}
-                                ></span>
-                            </span>
-                        ))}
-                    {(!loading || page > 0) && items && items.map((item, idx) => (
-                        <Fragment key={idx}>
-                            <div style={{
-                                overflow: 'hidden',
-                                borderRadius: 10,
-                                maxWidth: gridWidthTypical,
-                                height: gridHeight
-                            }}>
-                                {item.type === MediaTypeEnum.image && (
-                                    <img alt={`Image of ${result?.scientificName} (${idx + 1})`}
-                                         style={{
-                                             borderRadius: '10px',
-                                             height: item.height,
-                                             width: item.width,
-                                             objectFit: 'cover',
-                                             transition: 'transform 0.3s ease',
-                                             backgroundColor: '#e2e2e2',
-                                         }}
-                                         src={getImageThumbnailUrl(item.id)}
-                                         onMouseOver={(event) => {
-                                             const target = event.target as HTMLImageElement;
-                                             target.style.transform = 'scale(1.1)';
-                                         }}
-                                         onMouseOut={(event) => {
-                                             const target = event.target as HTMLImageElement;
-                                             target.style.transform = 'scale(1.0)';
-                                         }}
-                                         onLoad={(event) => {
-                                             const target = event.target as HTMLImageElement;
-                                             if (target && target.complete) {
-                                                 setLoading(false);
-                                             }
-                                         }}
-                                         onError={(e) => handleImageError(idx, e)}
-                                         onClick={() => handleOpenModal(idx)}
-                                    />
-                                )}
-                                {(item.type === MediaTypeEnum.sound || item.type === MediaTypeEnum.video) && (
-                                    <button type="button"
-                                            className={`btn btn-outline-secondary ${classes.mediaIconBtn}`}
+                        Array.from({length: 3}).map((_, rowIdx) => (
+                            <div key={rowIdx} style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+                                {Array.from({length: 4}).map((_, colIdx) => (
+                                    <span className="placeholder-glow" key={colIdx} style={{flex: 1}}>
+                                        <span
+                                            className="placeholder"
                                             style={{
-                                                width: 200,
-                                                height: '100%',
-                                                borderRadius: 10,
-                                                whiteSpace: 'normal',
-                                                wordBreak: 'break-word',
+                                                display: 'block',
+                                                width: '100%',
+                                                height: gridHeight,
+                                                borderRadius: '10px',
                                             }}
-                                            onClick={() => handleOpenModal(idx)}
-                                    >
-                                        {item.type === MediaTypeEnum.sound && (
-                                            <span style={{display: 'inline-flex', alignItems: 'center', gap: 15}}>
-                                                <FontAwesomeIconLite icon={faVolumeUp} size="2xl" color="gray"
-                                                                     style={{fontSize: 40}}/>
-                                                Sound file
-                                            </span>
-                                        )}
-                                        {item.type === MediaTypeEnum.video && (
-                                            <span style={{display: 'inline-flex', alignItems: 'center', gap: 15}}>
-                                                <FontAwesomeIconLite icon={faFilm} size="2xl" color="gray"
-                                                                     style={{fontSize: 40}}/>
-                                                Video file
-                                            </span>
-                                        )}
-                                    </button>
-                                )}
+                                        ></span>
+                                    </span>
+                                ))}
                             </div>
-                        </Fragment>
+                        ))}
+                    {(!loading || page > 0) && justifiedRows.map((row, rowIdx) => (
+                        <div key={rowIdx} style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+                            {row.map(({item, w, h}, colIdx) => {
+                                const idx = items.indexOf(item);
+                                return (
+                                    <Fragment key={colIdx}>
+                                        {item.type === MediaTypeEnum.image && (
+                                            <div style={{width: w, height: h, borderRadius: '10px', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', backgroundColor: '#e2e2e2',}}
+                                                 onClick={() => handleOpenModal(idx)}>
+                                                <img alt={`Image of ${result?.scientificName} (${idx + 1})`}
+                                                    style={{width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s ease',}}
+                                                    src={getImageThumbnailUrl(item.id)}
+                                                    loading="lazy"
+                                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.1)')}
+                                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1.0)')}
+                                                    onLoad={e => { if ((e.target as HTMLImageElement).complete) setLoading(false); }}
+                                                    onError={() => handleImageError(idx, null)}
+                                                />
+                                            </div>
+                                        )}
+                                        {(item.type === MediaTypeEnum.sound || item.type === MediaTypeEnum.video) && (
+                                            <button type="button"
+                                                    className={`btn btn-outline-secondary ${classes.mediaIconBtn}`}
+                                                    style={{width: w, height: h, borderRadius: 10, whiteSpace: 'normal', wordBreak: 'break-word', flexShrink: 0 }}
+                                                    onClick={() => handleOpenModal(idx)}>
+                                                {item.type === MediaTypeEnum.sound && (
+                                                    <span style={{display: 'inline-flex', alignItems: 'center', gap: 15}}>
+                                                        <FontAwesomeIconLite icon={faVolumeUp} size="2xl" color="gray" style={{fontSize: 40}}/>
+                                                        Sound file
+                                                    </span>
+                                                )}
+                                                {item.type === MediaTypeEnum.video && (
+                                                    <span style={{display: 'inline-flex', alignItems: 'center', gap: 15}}>
+                                                        <FontAwesomeIconLite icon={faFilm} size="2xl" color="gray" style={{fontSize: 40}}/>
+                                                        Video file
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )}
+                                    </Fragment>
+                                );
+                            })}
+                        </div>
                     ))}
                 </div>
 

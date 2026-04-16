@@ -8,8 +8,9 @@
     font-size: 15px;
     line-height: 1.5em;
 }
-.panel h2 {
+h2 {
     line-height: 1.2em;
+    margin-top: 0;
 }
 .panel h3 {
     line-height: 1.2em;
@@ -154,4 +155,13 @@ ul {
 
 .pull-right a {
     margin: 2px;
+}
+
+.row>.col,.row>[class*=col-] {
+    padding-right: 0;
+    padding-left: 0;
+}
+
+label {
+    margin-bottom: 0;
 }

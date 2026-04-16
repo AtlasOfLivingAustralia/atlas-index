@@ -61,7 +61,7 @@ function RecordsView({
         <>
             <div id='searchControls' className='row align-items-center'>
                 <div className='col-sm-4 col-md-4'>
-                    <button className='btn border-black btn-sm' title={intl.formatMessage({id:'list.alerts.navigator.title', defaultMessage: 'Get email alerts for this search'})} onClick={() => setShowAlerts(true)}>
+                    <button className='btn btn-outline-dark btn-sm' title={intl.formatMessage({id:'list.alerts.navigator.title', defaultMessage: 'Get email alerts for this search'})} onClick={() => setShowAlerts(true)}>
                         <i className='bi bi-bell-fill me-1'></i><FormattedMessage id={'list.alerts.navigator'} defaultMessage={'Alerts'}/>
                     </button>
                 </div>
@@ -229,12 +229,12 @@ function RecordsView({
                 <div className='col-12'>
                     <div className='d-flex justify-content-center'>
                         {page > 1 && (
-                            <button className='btn border-black btn-sm ms-1' onClick={() => setPage(page - 1)}>
+                            <button className='btn btn-outline-dark btn-sm ms-1' onClick={() => setPage(page - 1)}>
                                 <i className='bi bi-chevron-double-left' style={{ fontSize: '11px' }}></i> <FormattedMessage id={'show.previousbtn.navigator'} defaultMessage={'Previous'}/>
                             </button>
                         )}
 
-                        <button className='btn border-black btn-sm ms-1' onClick={() => setPage(1)} disabled={page == 1}>
+                        <button className='btn btn-outline-dark btn-sm ms-1' onClick={() => setPage(1)} disabled={page == 1}>
                             1
                         </button>
 
@@ -246,8 +246,8 @@ function RecordsView({
                             if (p <= 20 && p <= maxPages) {
                                 return (
                                     <div key={idx}>
-                                        {lowerBound > 2 && idx == 0 && <button className='btn border-black btn-sm ms-1'>..</button>}
-                                        <button key={idx} className='btn border-black btn-sm ms-1' disabled={page == p} onClick={() => setPage(p)}>
+                                        {lowerBound > 2 && idx == 0 && <button className='btn btn-outline-dark btn-sm ms-1'>..</button>}
+                                        <button key={idx} className='btn btn-outline-dark btn-sm ms-1' disabled={page == p} onClick={() => setPage(p)}>
                                             {p}
                                         </button>
                                     </div>
@@ -257,10 +257,10 @@ function RecordsView({
                             }
                         })}
 
-                        {page * pageSize < results.totalRecords && Math.min(20, page + 4) < Math.ceil(results.totalRecords / pageSize) && <button className='btn border-black btn-sm ms-1'>..</button>}
+                        {page * pageSize < results.totalRecords && Math.min(20, page + 4) < Math.ceil(results.totalRecords / pageSize) && <button className='btn btn-outline-dark btn-sm ms-1'>..</button>}
 
                         {page * pageSize < results.totalRecords && page < 20 && (
-                            <button className='btn border-black btn-sm ms-1' onClick={() => setPage(page + 1)}>
+                            <button className='btn btn-outline-dark btn-sm ms-1' onClick={() => setPage(page + 1)}>
                                 <FormattedMessage id={'show.nextbtn.navigator'} defaultMessage={'Next'}/> <i className='bi bi-chevron-double-right' style={{ fontSize: '11px' }}></i>
                             </button>
                         )}

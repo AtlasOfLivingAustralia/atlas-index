@@ -664,7 +664,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 <div className="mb-3 row align-items-center text-end">
                                     <label className="col-md-2 control-label" htmlFor="startDate"><FormattedMessage id="advancedsearch.table10col01.title" defaultMessage="Begin Date"/></label>
                                     <div className="col-md-2 ms-2">
-                                        <input type="text" id="startDate" className="form-control" value={advancedBeginDate}
+                                        <input type="date" id="startDate" className="form-control" value={advancedBeginDate}
                                                onChange={e => setAdvancedBeginDate(e.target.value)}/>
                                     </div>
                                     <div className="col-md-6 text-start">
@@ -675,7 +675,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 <div className="mb-3 row align-items-center text-end">
                                     <label className="col-md-2 control-label" htmlFor="endDate"><FormattedMessage id="advancedsearch.table10col02.title" defaultMessage="End Date"/></label>
                                     <div className="col-md-2 ms-2">
-                                        <input type="text" id="endDate" className="occurrence_date form-control"
+                                        <input type="date" id="endDate" className="occurrence_date form-control"
                                                value={advancedEndDate}
                                                onChange={e => setAdvancedEndDate(e.target.value)}/>
                                     </div>
@@ -689,7 +689,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                         <button className="btn btn-primary" onClick={() => advancedSearch()}>
                                             <FormattedMessage id="advancedsearch.button.submit" defaultMessage="Search"/>
                                         </button>
-                                        <button id="clearAll" className="btn border-black ms-2" onClick={() => advancedClear()}>
+                                        <button id="clearAll" className="btn btn-outline-dark ms-2" onClick={() => advancedClear()}>
                                             <FormattedMessage id="advancedsearch.button.clear.all" defaultMessage="Clear all"/>
                                         </button>
                                     </div>

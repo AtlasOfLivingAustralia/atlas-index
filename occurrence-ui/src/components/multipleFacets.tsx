@@ -215,10 +215,10 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                 </Modal.Body>
                 <Modal.Footer>
                     <div className='btn-group' style={{ position: 'relative' }}>
-                        <button className='submit btn btn-default btn-small' onClick={includeSelected}>
+                        <button className='submit btn btn-outline-dark' onClick={includeSelected}>
                             <FormattedMessage id='facets.includeSelected.button' defaultMessage='INCLUDE selected items' />
                         </button>
-                        <button className='btn btn-default btn-small dropdown-toggle' onClick={toggleIncludeDropdown}>
+                        <button className='btn btn-outline-dark dropdown-toggle' onClick={toggleIncludeDropdown}>
                             <span className='caret'></span>
                         </button>
                         {isIncludeOpen && (
@@ -233,10 +233,10 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                     </div>
                     &nbsp;
                     <div className='btn-group' style={{ position: 'relative' }}>
-                        <button className='submit btn btn-default btn-small' onClick={excludeSelected}>
+                        <button className='submit btn btn-outline-dark' onClick={excludeSelected}>
                             <FormattedMessage id='facets.excludeSelected.button' defaultMessage='EXCLUDE selected items' />
                         </button>
-                        <button className='btn btn-default btn-small dropdown-toggle' onClick={toggleExcludeDropdown}>
+                        <button className='btn btn-outline-dark dropdown-toggle' onClick={toggleExcludeDropdown}>
                             <span className='caret'></span>
                         </button>
                         {isExcludeOpen && (
@@ -251,10 +251,10 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                     </div>
                     &nbsp;
                     <a href={import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets/download' + queryString + '&facets=' + encodeURIComponent(facet)}
-                       target="_blank" className='btn btn-default btn-small' title={intl.formatMessage({id:'facets.downloadfacets.button', defaultMessage:'Download this list'})}>
+                       target="_blank" className='btn btn-outline-dark' title={intl.formatMessage({id:'facets.downloadfacets.button', defaultMessage:'Download this list'})}>
                         <FontAwesomeIconLite icon={faDownload} title={intl.formatMessage({id:'facets.downloadfacets.button', defaultMessage:'Download this list'})}/>
                     </a>
-                    <button className='btn btn-default btn-small' onClick={onClose} aria-hidden='true' style={{ float: 'right' }}>
+                    <button className='btn btn-outline-dark' onClick={onClose} aria-hidden='true' style={{ float: 'right' }}>
                         <FormattedMessage id='facets.submitfacets.button' defaultMessage='Close' />
                     </button>
                 </Modal.Footer>

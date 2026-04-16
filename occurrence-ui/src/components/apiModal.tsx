@@ -29,7 +29,7 @@ function ApiModal({onClose, url}: ApiModalProps) {
             <Modal.Body>
                 <div className="input-group input-group-sm align-content-end">
                     <input type="text" className="form-control mt-2" readOnly={true} disabled={true} value={url} />
-                    <button className="btn border-black mt-2" onClick={() => copy()}>
+                    <button className="btn btn-outline-dark mt-2" onClick={() => copy()}>
                         <CopyTooltip text={intl.formatMessage({id: "list.copylinks.tooltip.copytoclipboard", defaultMessage: 'copied!'})}>
                             <FormattedMessage id="list.copylinks.dlg.copybutton.text" defaultMessage="Copy URL"/>
                         </CopyTooltip>

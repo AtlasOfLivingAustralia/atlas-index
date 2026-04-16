@@ -112,7 +112,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
             </div>}
             {!loading && !noMoreImages && <>
                 <br/>
-                <button className="btn btn-sm border-black mt-3" onClick={() => {setPage(page + 1);loadImages(page)}}>
+                <button className="btn btn-sm btn-outline-dark mt-3" onClick={() => {setPage(page + 1);loadImages(page)}}>
                     <FormattedMessage id="list.speciesgallerycontrols.loadmoreimages.button" defaultMessage="Show more images"/>
                 </button>
             </>}
@@ -148,7 +148,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                             <a href={image.url} target="_blank">View image</a>
                             <br/>
                             <br/>
-                            <a className="btn border-black float-end" href={image.originalUrl} target="_blank"><i
+                            <a className="btn btn-outline-dark float-end" href={image.originalUrl} target="_blank"><i
                                 className="bi bi-download me-1"></i>Download</a>
                         </div>
                     </div>
@@ -156,7 +156,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                 </Modal.Body>
             }
             <Modal.Footer>
-                <button className="btn border-black" onClick={() => setShowModal(false)}>Close</button>
+                <button className="btn btn-outline-dark" onClick={() => setShowModal(false)}>Close</button>
             </Modal.Footer>
         </Modal>
     </>

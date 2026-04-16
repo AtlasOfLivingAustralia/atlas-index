@@ -5,13 +5,14 @@
  */
 
 import {useEffect, useRef, useState} from "react";
-import {setClickEventByClassName, showLoginLogoutButtons} from "../util/utils";
+import {cleanMustache, setClickEventByClassName, showLoginLogoutButtons} from "../util/utils";
 
 interface FooterProps {
     isLoggedIn?: boolean,
     loginFn?: () => void,
     logoutFn?: () => void,
     footerUrl: string, // URL to fetch the external footer HTML
+    containerClass?: string // container-fluid (default) or container
 }
 
 /**
@@ -20,10 +21,14 @@ interface FooterProps {
  * Footer must not contain script tags, as they will not be executed.
  *
  * Footer HTML functionality supported is:
- *   1. class="footer-login-button" - button that triggers the login function
- *   2. class="footer-logout-button" - button that triggers the logout function
- *   3. class="signedIn" - section that is visible when logged in (same as header.tsx)
- *   4. class="signedOut" - section that is visible when logged out (same as header.tsx)
+ *   1. class="loginBtn" - button that triggers the login function
+ *   2. class="loginBtn" - button that triggers the logout function
+ *
+ * Functionality common to footer and header
+ *   1. class="{{containerClass}} - substituted with the Props containerClass value (default container-fluid)
+ *   2. class="{{searchServer}}{{searchPath}}" - substituted with the Props searchBaseUrl value (ignored for footer)
+ *   3. remaining {{ and }} are replaced in the mustache
+ *   4. class="loginStatus" - div (or other) that is toggled with the presence of one of "signedIn" or "signedOut" depending on app state
  *
  * Refer to /static-server/static/common/footer.html for an example of the footer html
  *
@@ -34,7 +39,7 @@ interface FooterProps {
  * @constructor
  */
 
-function Footer({isLoggedIn, loginFn, logoutFn, footerUrl}: FooterProps) {
+function Footer({isLoggedIn, loginFn, logoutFn, footerUrl, containerClass}: FooterProps) {
 
     const [externalFooterHtml, setExternalFooterHtml] = useState('');
 
@@ -45,7 +50,7 @@ function Footer({isLoggedIn, loginFn, logoutFn, footerUrl}: FooterProps) {
         if (footerUrl) {
             fetch(footerUrl)
                 .then((response) => response.text())
-                .then((text) => setExternalFooterHtml(text));
+                .then((text) => setExternalFooterHtml(cleanMustache(text, containerClass || 'container-fluid')));
         }
     }, []);
 
@@ -66,33 +71,42 @@ function Footer({isLoggedIn, loginFn, logoutFn, footerUrl}: FooterProps) {
 
     // show login/logout buttons when the login state changes
     useEffect(() => {
-        showLoginLogoutButtons(isLoggedIn);
+        if (footerRef?.current) {
+            showLoginLogoutButtons(isLoggedIn, footerRef.current);
+        }
     }, [isLoggedIn]);
 
     // setup the elements after being added to the DOM; show/hide login/logout buttons and add button listeners
     function setupHtml() {
-        // loop until <footer> is available
-        const header = document.getElementsByTagName("footer");
-        if (header.length == 0) {
+        // loop until the footer content is available in the DOM
+        if (!footerRef.current || footerRef.current.childElementCount === 0) {
             setTimeout(() => {
                 setupHtml();
             }, 10);
             return;
         }
 
-        showLoginLogoutButtons(isLoggedIn); // may be unset, this is fine
+        showLoginLogoutButtons(isLoggedIn, footerRef.current); // may be unset, this is fine
 
-        setClickEventByClassName("footer-login-button", loginFn);
-        setClickEventByClassName("footer-logout-button", logoutFn);
+        setClickEventByClassName("loginBtn", loginFn, footerRef.current);
+        setClickEventByClassName("logoutBtn", logoutFn, footerRef.current);
+
+        // remove href from loginBtn and logoutBtn
+        const loginBtns = footerRef.current.getElementsByClassName("loginBtn");
+        for (let i = 0; i < loginBtns.length; i++) {
+            loginBtns[i].removeAttribute("href");
+        }
+        const logoutBtns = footerRef.current.getElementsByClassName("logoutBtn");
+        for (let i = 0; i < logoutBtns.length; i++) {
+            logoutBtns[i].removeAttribute("href");
+        }
     }
 
-    if (!footerUrl) {
+    if (!footerUrl || !externalFooterHtml) {
         return null;
     }
 
-    return <>
-        {externalFooterHtml && <div ref={footerRef}></div>}
-    </>
+    return <div ref={footerRef}></div>
 }
 
 export default Footer;

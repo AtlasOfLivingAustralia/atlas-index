@@ -153,10 +153,10 @@ function DataQualitySettingsModal({
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>
+                <button className="btn btn-outline-dark" onClick={() => onClose()}>
                     <FormattedMessage id="dq.profilesettings.button.cancel" defaultMessage="Cancel"/>
                 </button>
-                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => save()}>
+                <button id="updateFacetOptions" className="btn btn-primary" onClick={() => save()}>
                     <FormattedMessage id="dq.profilesettings.button.save" defaultMessage="Save"/>
                 </button>
             </Modal.Footer>

@@ -5,8 +5,7 @@
  */
 
 import {Breadcrumb, FontAwesomeIconLite, useHashState} from '@ala/common-ui';
-import {faSearch} from '@fortawesome/free-solid-svg-icons';
-import {faTimes} from '@fortawesome/free-solid-svg-icons/faTimes';
+import {faSearch, faTimes} from '@fortawesome/free-solid-svg-icons';
 import {useQueryState} from 'nuqs';
 import {useEffect, useRef, useState} from 'react';
 import AllView, {searchGroupsTemplate} from '../components/search/allView.tsx';

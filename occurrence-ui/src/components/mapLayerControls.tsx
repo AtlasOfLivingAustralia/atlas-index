@@ -80,7 +80,7 @@ function MapLayerControls({
 
             <div>
                 <label htmlFor="sizeslider">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td02.label', defaultMessage: 'Size' })}:</label>
-                <span id="sizeslider-val">{sizeValue}</span>
+                <span id="sizeslider-val">{" " + sizeValue}</span>
                 <input
                     id="sizeslider"
                     type="range"
@@ -92,13 +92,13 @@ function MapLayerControls({
                         setSizeValue(v);
                         onSizeChange(v);
                     }}
-                    style={{ width: '75px', marginLeft: '5px'}}
+                    style={{ width: '75px', marginLeft: '5px', verticalAlign: '-3px'}}
                 />
             </div>
 
             <div>
                 <label htmlFor="opacityslider">{intl.formatMessage({ id: 'map.maplayercontrols.tr01td03.label', defaultMessage: 'Opacity' })}:</label>
-                <span id="opacityslider-val">{opacityValue.toFixed(1)}</span>
+                <span id="opacityslider-val">{" " + opacityValue.toFixed(1)}</span>
                 <input
                     id="opacityslider"
                     type="range"
@@ -111,7 +111,7 @@ function MapLayerControls({
                         setOpacityValue(v);
                         onOpacityChange(v);
                     }}
-                    style={{ width: '75px', marginLeft: '5px'}}
+                    style={{ width: '75px', marginLeft: '5px', verticalAlign: '-3px'}}
                 />
             </div>
 
@@ -125,7 +125,7 @@ function MapLayerControls({
                         setOutlineChecked(e.target.checked);
                         onOutlineChange(e.target.checked);
                     }}
-                    style={{ marginLeft: '5px'}}
+                    style={{ marginLeft: '5px', verticalAlign: '-2px'}}
                 />
             </div>
         </div>

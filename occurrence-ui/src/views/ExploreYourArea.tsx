@@ -536,7 +536,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                 <br />
                 {mapLookupOccurrence == undefined && <>{loading}</>}
                 <div className={'d-flex'}>
-                    <a className='btn btn-sm btn-default'
+                    <a className='btn btn-sm btn-outline-dark'
                         style={{
                             fontSize: '12px',
                             lineHeight: '14px',
@@ -547,11 +547,11 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                        href={'/occurrence/' + mapLookupOccurrence?.processed?.uuid}>
                         {viewRecord}
                     </a>
-                    <button className='btn btn-sm btn-default ms-auto' style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }} onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined} disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}
+                    <button className='btn btn-sm btn-outline-dark ms-auto' style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }} onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined} disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}
                         dangerouslySetInnerHTML={{ __html: prev }}>
                     </button>
                     <button
-                        className='btn btn-sm btn-default ms-1'
+                        className='btn btn-sm btn-outline-dark ms-1'
                         style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }}
                         onClick={mapLookupItemIdx < mapLookupOccurrences.length - 1 ? nextOccurrence : undefined}
                         disabled={mapLookupItemIdx === mapLookupOccurrences.length - 1 || mapLookupOccurrences.length <= 1}
@@ -753,12 +753,12 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                                         onClick={() => filterSpecies(species.guid)}>
                                                         <td colSpan={3} style={{backgroundColor: "transparent"}}>
                                                             <div className={'d-flex justify-content-end'}>
-                                                                <a className="btn btn-default btn-sm ms-3"
+                                                                <a className="btn btn-outline-dark btn-sm ms-3"
                                                                    style={{textDecoration: 'none'}}
                                                                    href={`${import.meta.env.VITE_SPECIES_URL_PREFIX}${species.guid}`}>
                                                                     <FormattedMessage id='eya.speciesprofile' defaultMessage='Species profile'/>
                                                                 </a>
-                                                                <a className="btn btn-default btn-sm ms-3"
+                                                                <a className="btn btn-outline-dark btn-sm ms-3"
                                                                    style={{textDecoration: 'none'}}
                                                                    href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:"${encodeURIComponent(species.guid)}"${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}>
                                                                     <FormattedMessage id='eya.listrecords' defaultMessage='List records'/>
@@ -792,7 +792,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                             </div>
 
                             <div className="d-flex mt-3 mb-4">
-                                <a className={`btn btn-sm btn-default ${!speciesList || speciesList.length === 0 ? ' disabled' : ''}`}
+                                <a className={`btn btn-sm btn-outline-dark ${!speciesList || speciesList.length === 0 ? ' disabled' : ''}`}
                                    style={{
                                        textDecoration: 'none',
                                        pointerEvents: (!speciesList || speciesList.length === 0) ? 'none' : 'auto',
@@ -803,7 +803,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                    aria-disabled={!speciesList || speciesList.length === 0}>
                                     <FormattedMessage id='eya.searchform.viewrecordsfor' defaultMessage='View records for'/> {group}
                                 </a>
-                                <a className={`btn btn-sm btn-default ms-3${!speciesList || speciesList.length === 0 ? ' disabled' : ''}`}
+                                <a className={`btn btn-sm btn-outline-dark ms-3${!speciesList || speciesList.length === 0 ? ' disabled' : ''}`}
                                    style={{
                                        textDecoration: 'none',
                                        pointerEvents: (!speciesList || speciesList.length === 0) ? 'none' : 'auto',

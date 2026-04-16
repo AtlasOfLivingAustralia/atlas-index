@@ -51,11 +51,11 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className='btn border-black' title={intl.formatMessage({id: 'list.alert.navigator01.title'})} onClick={() => createNewRecordAlert()}
+                    <div className='btn btn-outline-dark' title={intl.formatMessage({id: 'list.alert.navigator01.title'})} onClick={() => createNewRecordAlert()}
                          dangerouslySetInnerHTML={{__html: intl.formatMessage({ id: 'list.alert.navigator01', defaultMessage: "Get email alerts for new records" })}}></div>
                     <br />
 
-                    <div className='btn border-black mt-4' title={intl.formatMessage({id: 'list.alert.navigator02.title'})}  onClick={() => createNewAnnotationsAlert()}
+                    <div className='btn btn-outline-dark mt-4' title={intl.formatMessage({id: 'list.alert.navigator02.title'})}  onClick={() => createNewAnnotationsAlert()}
                          dangerouslySetInnerHTML={{__html: intl.formatMessage({ id: 'list.alert.navigator02', defaultMessage: "Get email alerts for new annotations" })}}></div>
                     <p>&nbsp;</p>
                     <p>
@@ -64,7 +64,7 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button className='btn border-black' onClick={() => onClose()}>
+                    <button className='btn btn-outline-dark' onClick={() => onClose()}>
                         <FormattedMessage id="list.alert.button01" defaultMessage="Close"/>
                     </button>
                 </Modal.Footer>

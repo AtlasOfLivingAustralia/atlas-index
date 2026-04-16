@@ -7,7 +7,8 @@
     "scripts": {
         "dev": "node ../common-ui/generateBuildInfo.js && vite",
         "build": "tsc && node ../common-ui/generateBuildInfo.js && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "jest"
     },
     "dependencies": {
         "@ala/common-ui": "file:../common-ui",

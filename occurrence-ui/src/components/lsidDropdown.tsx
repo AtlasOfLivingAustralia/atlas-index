@@ -125,7 +125,7 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
                     </div>
                     <button
                         id={`rawTaxonSumbit_${index}`}
-                        className="btn btn-sm btn-default rawTaxonSumbit mb-2"
+                        className="btn btn-sm btn-outline-dark rawTaxonSumbit mb-2"
                         title={intl.formatMessage({id: 'list.resultsreturned.restrict.results', defaultMessage: 'Restrict results to the selected names'})}
                         disabled={!anyChecked}
                         onClick={handleRefine}
@@ -171,12 +171,12 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
 
     return (
         <span className="btn-group" ref={btnGroupRef} id={`resultsReturnedTemplate_${index}`} style={{ position: "relative" }}>
-            <a className="btn btn-default btn-sm" href={speciesPageUri} id={`taxa_${index}`} title="Taxon info" target="BIE" style={{textDecoration: 'none'}} >
+            <a className="btn btn-outline-dark btn-sm" href={speciesPageUri} id={`taxa_${index}`} title="Taxon info" target="BIE" style={{textDecoration: 'none'}} >
                 {nameString}
             </a>
             <button
                 ref={toggleBtnRef}
-                className="btn btn-default btn-sm"
+                className="btn btn-outline-dark btn-sm"
                 title="Click for more info"
                 onClick={handleToggle}
                 type="button"

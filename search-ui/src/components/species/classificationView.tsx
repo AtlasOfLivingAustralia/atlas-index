@@ -10,7 +10,7 @@ import {useEffect, useState} from 'react';
 import {Link} from 'react-router-dom';
 import classes from './species.module.css';
 
-import '../../css/nameFormatting.css';``
+import '../../css/nameFormatting.css';
 
 interface ViewProps {
     result?: Record<PropertyKey, string | number | any>,
