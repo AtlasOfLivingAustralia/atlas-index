@@ -4,6 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import DOMPurify from "dompurify";
 import { useEffect, useRef, useState } from 'react';
 import CachedMapControl from './cachedMapControl';
 import Legend from './mapLegend';
@@ -330,7 +331,7 @@ function CachedMapView({ result, isMobile, showOccurrences, onToggleOccurrences,
                             if (parts.length === 0) return null;
                             return (
                                 <div
-                                    dangerouslySetInnerHTML={{ __html: parts.join(' | ') }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(parts.join(' | ')) }}
                                     style={{ position: 'absolute', bottom: '6px', right: '8px', zIndex: 10,
                                         backgroundColor: 'rgba(255,255,255,0.75)', borderRadius: '3px',
                                         padding: '1px 5px', fontSize: '11px', color: '#333', lineHeight: '16px' }}

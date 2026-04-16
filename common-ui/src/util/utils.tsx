@@ -90,19 +90,23 @@ export function injectCommonInfo(buildInfo: any, env: string, css_url: string, s
     if (css_url) {
         // load the common CSS via <link> elements to preserve relative paths (fonts, images, etc.)
         const cssUrls = css_url.split(',').map(u => u.trim()).filter(u => u.length > 0);
-        let remaining = cssUrls.length;
-        const onSettled = () => {
-            if (--remaining === 0) setCssLoaded(true);
-        };
-        cssUrls.reverse().forEach(url => {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = url;
-            link.onload = onSettled;
-            link.onerror = onSettled; // set loaded even if a stylesheet fails
-            // insert at the top of <head> so the app's own CSS takes precedence
-            document.head.insertBefore(link, document.head.firstChild);
-        });
+        if (cssUrls.length === 0) {
+            setCssLoaded(true);
+        } else {
+            let remaining = cssUrls.length;
+            const onSettled = () => {
+                if (--remaining === 0) setCssLoaded(true);
+            };
+            cssUrls.reverse().forEach(url => {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = url;
+                link.onload = onSettled;
+                link.onerror = onSettled; // set loaded even if a stylesheet fails
+                // insert at the top of <head> so the app's own CSS takes precedence
+                document.head.insertBefore(link, document.head.firstChild);
+            });
+        }
     } else {
         setCssLoaded(true);
     }

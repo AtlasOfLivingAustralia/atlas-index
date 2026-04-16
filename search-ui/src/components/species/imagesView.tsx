@@ -146,6 +146,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
         setGridWidth(el.clientWidth);
         const ro = new ResizeObserver(entries => setGridWidth(entries[0].contentRect.width));
         ro.observe(el);
+        return () => ro.disconnect();
     }, []);
 
     const justifiedRows = useMemo(() => {
