@@ -21,14 +21,14 @@ function DownloadToolbar({ onSelectAll, onSelectNone, onSave, onNext, canNext }:
         <div className='button-toolbar row mb-3'>
             <div className='col'>
                 <div className='btn-group'>
-                    <button className='btn btn-default btn-white' onClick={onSelectAll}>
+                    <button className='btn btn-outline-dark btn-white' onClick={onSelectAll}>
                         <FontAwesomeIconLite icon={faCheck} />
                         {' '}
                         <span className='d-none d-sm-inline'>
                             <FormattedMessage id='download.customize.select.all' defaultMessage='Select all' />
                         </span>
                     </button>
-                    <button className='btn btn-default btn-white' onClick={onSelectNone}>
+                    <button className='btn btn-outline-dark btn-white' onClick={onSelectNone}>
                         <FontAwesomeIconLite icon={faTimes} />
                         {' '}
                         <span className='d-none d-sm-inline'>
@@ -39,7 +39,7 @@ function DownloadToolbar({ onSelectAll, onSelectNone, onSave, onNext, canNext }:
             </div>
             <div className='col-auto'>
                 <div className='btn-group'>
-                    <button className='btn btn-default btn-white' onClick={onSave}>
+                    <button className='btn btn-outline-dark btn-white' onClick={onSave}>
                         <FontAwesomeIconLite icon={faCog} />
                         {' '}
                         <span className='d-none d-sm-inline'>

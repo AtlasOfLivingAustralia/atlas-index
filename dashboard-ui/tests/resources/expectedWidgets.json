@@ -1,7 +1,7 @@
 [
   {
     "title": "Occurrence Records",
-    "content": "150,760,023 records in total."
+    "content": "150,749,276 records in total."
   },
   {
     "title": "\\d{1,3}(,\\d{3})* Datasets",
@@ -13,11 +13,11 @@
   {
     "title": "Basis Of Record",
     "table": [
-      "Human Observation 121.45M",
-      "Preserved Specimen 17.08M"
+      "Human Observation 121.44M",
+      "Preserved Specimen 17.07M"
     ],
     "comment": "expectedUrl field is for verify clickable table",
-    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=basisOfRecord:.*$"
+    "expectedUrl": "^https:\\/\\/biocache.ala.org.au\\/occurrences\\/search\\?q=basisOfRecord:%22HUMAN_OBSERVATION%22$"
   },
   {
     "title": "\\d{1,3}(,\\d{3})* Collections"
@@ -25,8 +25,8 @@
   {
     "title": "Records by Date",
     "table": [
-      "Latest Record 2025-05-28 06:08",
-      "Last Image Added 2025-05-28 06:08"
+      "Latest Record 2025-05-26 10:00",
+      "Last Image Added 2025-05-26 01:56"
     ]
   },
   {
@@ -39,7 +39,7 @@
   {
     "title": "\\d{1,3}(,\\d{3})* Spatial Layers",
     "table": [
-      "Contextual Layers 137",
+      "Contextual Layers 139",
       "Environmental/Raster Layers 49"
     ]
   },
@@ -53,7 +53,7 @@
       "Grallina cyanoleuca - Magpie-lark 1.65M"
     ],
     "comment": "expectedUrl field is for verify clickable table, and select field is for dropdown selection",
-    "expectedUrl": "^https?:\\/\\/bie(?:\\.test)?\\.ala\\.org\\.au\\/species\\/https?:\\/\\/biodiversity\\.org\\.au\\/afd\\/taxa\\/[A-Za-z0-9\\-]+$",
+    "expectedUrl": "^http:\\/\\/bie.test.ala.org.au\\/species\\/https:\\/\\/id\\.biodiversity\\.org\\.au\\/taxon\\/apni\\/51447682$",
     "select": {
       "selectOptions": [
         "All Lifeforms",
@@ -62,19 +62,19 @@
       ],
       "expectedSelectedValuesInTable": {
         "Plants": [
-          "Lycium ferocissimum - African Boxthorn 146,927",
+          "Lycium ferocissimum - African Boxthorn 146,916",
           "Halodule uninervis - Halodule 144,314"
         ]
       }
     }
-   },
+  },
   {
     "title": "Type Specimens",
     "table": [
       "ALLOLECTOTYPE 1",
       "ALLOTYPE 2,225"
     ],
-    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=typeStatus:.*",
+    "expectedUrl": "^https:\\/\\/biocache\\.ala\\.org\\.au\\/occurrences\\/search\\?q=typeStatus:%22ALLOTYPE%22$",
     "select": {
       "selectOptions": [
         "All Occurrences",
@@ -92,14 +92,14 @@
     "title": "Biodiversity Heritage Library",
     "table": [
       "Pages 63.16M",
-      "Volumes 318,155",
-      "Titles 197,512"
+      "Volumes 318,151",
+      "Titles 197,510"
     ]
   },
   {
     "title": "DigiVol \\(Volunteer Portal\\)",
     "table": [
-      "Volunteers 16,410",
+      "Volunteers 16,403",
       "Expedition Tasks 7.79M",
       "Expedition Tasks Completed 7.48M"
     ]
@@ -111,15 +111,15 @@
       "Endangered 2,375",
       "Critically Endangered 1,073"
     ],
-    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=stateConservation:.*"
+    "expectedUrl": "^https:\\/\\/biocache\\.ala\\.org\\.au\\/occurrences\\/search\\?q=stateConservation:%22Vulnerable%22$"
   },
   {
     "title": "Records by Data Provider",
     "table": [
       "BirdLife Australia 15.13M",
-      "Department of Planning, Industry and Environment representing the State of New South Wales 14.26M"
+      "Department of Planning, Industry and Environment representing the State of New South Wales 14.25M"
     ],
-    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=dataProviderUid:.*"
+    "expectedUrl": "^https:\\/\\/biocache\\.ala\\.org\\.au\\/occurrences\\/search\\?q=dataProviderUid:%22dp28%22$"
   },
   {
     "title": "Records by Institution",
@@ -127,7 +127,7 @@
       "Australian Museum 1.56M",
       "Royal Botanic Gardens Victoria 1.09M"
     ],
-    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=institutionUid:.*"
+    "expectedUrl": "^https:\\/\\/biocache\\.ala\\.org\\.au\\/occurrences\\/search\\?q=institutionUid:%22in4%22$"
   },
   {
     "title": "Occurrence Tree",
@@ -143,7 +143,7 @@
       "Algae 1.55M",
       "Amphibians 1.64M"
     ],
-    "expectedUrl": "^https?:\\/\\/biocache(?:\\.test)?\\.ala\\.org\\.au\\/occurrences\\/search\\?q=speciesGroup:.*"
+    "expectedUrl": "^https:\\/\\/biocache\\.ala\\.org\\.au\\/occurrences\\/search\\?q=speciesGroup:%22Algae%22$"
   },
   {
     "title": "Records and Species by Decade"
@@ -151,31 +151,31 @@
   {
     "title": "Usage Statistics",
     "table": [
-      "Records Downloaded 56.4B",
-      "Number of Downloads 2.43M"
+      "Records Downloaded 56.26B",
+      "Number of Downloads 2.42M"
     ]
   },
   {
     "title": "Occurrence Downloads by Reason",
     "table": [
-      "Total 2.43M 56.4B",
-      "biosecurity management/planning 11,788 932.58M",
-      "citizen science 22,387 2.05B"
+      "Total 2.42M 56.26B",
+      "biosecurity management/planning 11,785 932.56M",
+      "citizen science 22,370 2.05B"
     ]
   },
   {
     "title": "Occurrence Downloads by User Type",
     "table": [
-      "Education 150,133 10.47B",
-      "Government 37,868 4.03B",
-      "Other 473,874 29.08B"
+      "Education 150,070 10.46B",
+      "Government 37,862 4.03B",
+      "Other 472,012 28.94B"
     ]
   },
   {
     "title": "Species Images",
     "table": [
-      "Total Number of Images 23.26M",
-      "Taxa with Images 100,747"
+      "Total Number of Images 23.24M",
+      "Taxa with Images 100,744"
     ]
   }
 ]

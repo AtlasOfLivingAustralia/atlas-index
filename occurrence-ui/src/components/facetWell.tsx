@@ -195,7 +195,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
                     </div>
                 </div>
 
-                {dqOpen && <div style={{ marginLeft: '5px' }}>
+                {dqOpen && <div>
                     <div className="facetsGroup">
                         <h4><span className="FieldName" style={{ marginLeft: '5px' }}>
                             <FormattedMessage id="facet.group.dq.categories" defaultMessage="Categories"/>
@@ -238,7 +238,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
                     </div>
 
                     {groupData[groupName].isOpen && groupData[groupName].facets.map((facet, idx) =>
-                        <div key={idx} style={{marginLeft: '5px'}}>
+                        <div key={idx}>
                             <div className="facetsGroup" id={"group_" + facet}>
                                 <h4><span className="FieldName" style={{ marginLeft: '5px'}}><FormattedMessage id={"facet." + facet} defaultMessage={facet}/></span></h4>
                                 <div className="subnavlist nano" style={{clear: "left"}}>

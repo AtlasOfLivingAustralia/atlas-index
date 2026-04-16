@@ -165,7 +165,7 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
                                     }
                                     {(!assertion.verified || assertion.verified.length == 0) && isCollectionAdmin() && (
                                         <p className="verifyAnnotation">
-                                            <a className="verifyAnnotationButton btn btn-default" href="#"
+                                            <a className="verifyAnnotationButton btn btn-outline-dark" href="#"
                                                onClick={(e) => { e.preventDefault(); setVerifyPrefill(undefined); setVerifyAssertion(assertion); }}>
                                                 <i className="glyphicon glyphicon-thumbs-up"></i> &nbsp;
                                                 <FormattedMessage id="show.userannotationtemplate.p03.navigator" defaultMessage="Verify this annotation"/>

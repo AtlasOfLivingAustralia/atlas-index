@@ -607,6 +607,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                         <label htmlFor="firstImageOnly">
                             Show only the first image for a record&nbsp;
                         </label>
+                        &nbsp;
                         <input
                             type="checkbox"
                             id="firstImageOnly"
@@ -618,7 +619,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                     </div>
                     <div className="d-flex justify-content-end">
                         <button
-                            className="btn btn-default"
+                            className="btn btn-outline-dark"
                             onClick={onClearAllFilters}
                         >
                             Clear filters
@@ -815,10 +816,7 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                         {loadStatus === 'loading' && <>Loading...</>}
                         {offset + pageSize < totalRecords &&
                             loadStatus !== 'loading' && (
-                                <span
-                                    className="btn clickable show-more"
-                                    onClick={onShowMoreResults}
-                                >
+                                <span className="btn btn-outline-dark clickable show-more" onClick={onShowMoreResults}>
                                     Show more results
                                 </span>
                             )}

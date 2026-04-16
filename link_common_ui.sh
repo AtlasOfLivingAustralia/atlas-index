@@ -9,7 +9,7 @@ else
 fi
 
 # List of UI projects to link
-for dir in admin-ui regions-ui dashboard-ui specimens-ui search-ui doi-ui occurrence-ui; do
+for dir in admin-ui regions-ui dashboard-ui specimens-ui search-ui doi-ui occurrence-ui spatial-ui; do
   if [ -d "$dir" ]; then
     cd "$dir" && echo "linking $dir" && yarn link @ala/common-ui && cd ..
   else

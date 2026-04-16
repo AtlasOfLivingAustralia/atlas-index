@@ -476,7 +476,7 @@ function EditIndexedTaxon() {
     }
 
     return <>
-        <div className="d-flex w-100 align-items-center alert alert-secondary">
+        <div className="d-flex w-100 align-items-center alert alert-dark">
             <label>Search taxon ID, linkIdentifier, scientificName, nameComplete or commonName</label>
             <input
                 id="guid"

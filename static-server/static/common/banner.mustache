@@ -1,0 +1,227 @@
+<div id="wrapper-navbar" itemscope="" itemtype="http://schema.org/WebSite">
+    <a class="skip-link visually-hidden visually-hidden-focusable" href="#INSERT_CONTENT_ID_HERE">Skip to content</a>
+
+    <nav class="navbar navbar-dark navbar-expand-lg">
+        <div class="{{containerClass}} header-logo-menu">
+            <div class="navbar-header">
+                <div>
+                    <a href="https://www-test.ala.org.au" class="custom-logo-link navbar-brand" itemprop="url">
+                        <img width="1005" height="150" src="https://www.ala.org.au/app/uploads/2019/01/logo.png"
+                             class="custom-logo" alt="Atlas of Living Australia" itemprop="image"
+                             srcset="https://www.ala.org.au/app/uploads/2019/01/logo.png 1005w, https://www.ala.org.au/app/uploads/2019/01/logo-300x45.png 300w, https://www.ala.org.au/app/uploads/2019/01/logo-768x115.png 768w"
+                             sizes="(max-width: 1005px) 100vw, 1005px"> </a>
+                </div>
+                <div class="display-flex {{loginStatus}}">
+                    <button class="display-flex search-trigger d-lg-none collapsed collapse-trigger-button" title="Open search dialog"
+                            data-bs-toggle="collapse" data-bs-target="#autocompleteSearchALA"
+                            onclick="focusOnClickSearchButton()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="18" viewBox="0 0 22 22">
+                            <defs>
+                                <style>
+                                    .search-icon {
+                                        fill: #fff;
+                                        fill-rule: evenodd;
+                                    }
+                                </style>
+                            </defs>
+                            <path class="search-icon"
+                                  d="M1524.33,60v1.151a7.183,7.183,0,1,1-2.69.523,7.213,7.213,0,0,1,2.69-.523V60m0,0a8.333,8.333,0,1,0,7.72,5.217A8.323,8.323,0,0,0,1524.33,60h0Zm6.25,13.772-0.82.813,7.25,7.254a0.583,0.583,0,0,0,.82,0,0.583,0.583,0,0,0,0-.812l-7.25-7.254h0Zm-0.69-7.684,0.01,0c0-.006-0.01-0.012-0.01-0.018s-0.01-.015-0.01-0.024a6,6,0,0,0-7.75-3.3l-0.03.009-0.02.006v0a0.6,0.6,0,0,0-.29.293,0.585,0.585,0,0,0,.31.756,0.566,0.566,0,0,0,.41.01V63.83a4.858,4.858,0,0,1,6.32,2.688l0.01,0a0.559,0.559,0,0,0,.29.29,0.57,0.57,0,0,0,.75-0.305A0.534,0.534,0,0,0,1529.89,66.089Z"
+                                  transform="translate(-1516 -60)"></path>
+                        </svg>
+                        <span class="collapse visible-on-show" aria-hidden="true">&times;</span>
+                    </button>
+                    <a href="{{loginURL}}" role="button" class="account-mobile d-lg-none loginBtn mobile-login-btn"
+                       title="Login button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10 17v-3H3v-4h7V7l5 5-5 5Zm7 3h-7v-2h7V6h-7V4h7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2Z"></path>
+                        </svg>
+                    </a>
+                    <a href="https://auth-test.ala.org.au/userdetails/myprofile" role="button"
+                       class="account-mobile d-lg-none myProfileBtn" title="Profile">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="18" viewBox="0 0 37 41">
+                            <defs>
+                                <style>
+                                    .account-icon {
+                                        fill: #212121;
+                                        fill-rule: evenodd;
+                                    }
+                                </style>
+                            </defs>
+                            <path id="Account" class="account-icon"
+                                  d="M614.5,107.1a11.549,11.549,0,1,0-11.459-11.549A11.516,11.516,0,0,0,614.5,107.1Zm0-21.288a9.739,9.739,0,1,1-9.664,9.739A9.711,9.711,0,0,1,614.5,85.81Zm9.621,23.452H604.874a8.927,8.927,0,0,0-8.881,8.949V125h37v-6.785A8.925,8.925,0,0,0,624.118,109.262Zm7.084,13.924H597.789v-4.975a7.12,7.12,0,0,1,7.085-7.139h19.244a7.119,7.119,0,0,1,7.084,7.139v4.975Z"
+                                  transform="translate(-596 -84)"></path>
+                        </svg>
+                    </a>
+                    <a href="{{logoutURL}}" role="button"
+                       class="account-mobile d-lg-none logoutBtn mobile-logout-btn" title="Logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M14 17v-3H7v-4h7V7l5 5-5 5Zm-3 3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h7v2H4v12h7v2Z"></path>
+                        </svg>
+                    </a>
+                    <div class="mobile-nav-toggle d-lg-none collapsed collapse-trigger-button"
+                            data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <div class="horizontal-line"></div>
+                        <div class="horizontal-line"></div>
+                        <div class="horizontal-line"></div>
+                        <span class="collapse visible-on-show" aria-hidden="true">&times;</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="navbarOuterWrapper" class="outer-nav-wrapper">
+                <div class="top-bar d-none d-lg-flex">
+                    <a href="https://www-test.ala.org.au/contact-us/" class="btn btn-link btn-sm">Contact us</a>
+                    <div class="account {{loginStatus}}">
+                        <a href="https://auth-test.ala.org.au/userdetails/registration/createAccount"
+                           class="btn btn-outline-light btn-sm signUpBtn" role="button">Sign up</a>
+                        <a href="https://auth-test.ala.org.au/userdetails/myprofile"
+                           class="btn btn-outline-light btn-sm myProfileBtn" role="button">Profile</a>
+                        <a href="{{loginURL}}" class="btn btn-primary btn-sm loginBtn">Login</a>
+                        <a href="{{logoutURL}}" class="btn btn-outline-light btn-sm logoutBtn" role="button">Logout</a>
+                    </div>
+                </div>
+                <div class="main-nav-wrapper">
+                    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                        <ul class="navbar-nav">
+                          <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownSearch" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Search &amp; analyse
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownSearch">
+                                <li><a href="https://bie.ala.org.au/" class="dropdown-item">Search species</a></li>
+                                <li><a href="https://biocache.ala.org.au/search#tab_simpleSearch" class="dropdown-item">Search &amp; download records</a></li>
+                                <li><a href="https://collections.ala.org.au/datasets" class="dropdown-item">Search datasets</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a href="https://spatial.ala.org.au/" class="dropdown-item">Spatial analysis (Spatial Portal)</a></li>
+                                <li><a href="https://biocache.ala.org.au/explore/your-area" class="dropdown-item">Explore your area</a></li>
+                                <li><a href="https://collections.ala.org.au/" class="dropdown-item">Explore natural history collections</a></li>
+                            </ul>
+                          </li>
+                          <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownContribute" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Contribute
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownContribute">
+                                <li><a href="https://support.ala.org.au/support/solutions/articles/6000261427-sharing-a-dataset-with-the-ala" class="dropdown-item">Share your dataset</a></li>
+                                <li><a href="https://lists.ala.org.au/public/speciesLists" class="dropdown-item">Upload species list</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a href="https://www.ala.org.au/home/record-a-sighting/" class="dropdown-item">Record a sighting</a></li>
+                                <li><a href="https://volunteer.ala.org.au/" class="dropdown-item">Transcribe &amp; digitise (DigiVol)</a></li>
+                                <li><a href="https://biocollect.ala.org.au/acsa" class="dropdown-item">Discover citizen science projects</a></li>
+                            </ul>
+                          </li>
+                          <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownResources" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Resources
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownResources">
+                                <li><a href="https://www-test.ala.org.au/publications/" class="dropdown-item">Brochures and reports</a></li>
+                                 <li><a href="https://www-test.ala.org.au/ala-logo-and-identity/" class="dropdown-item">ALA logo and identity</a></li>
+                                <li><a href="https://www-test.ala.org.au/ala-cited-publications/" class="dropdown-item">ALA-cited publications</a></li>
+                                <li><a href="https://www-test.ala.org.au/abdmp/" class="dropdown-item">Data Mobilisation Program</a></li>
+                                <li><a href="https://labs.ala.org.au/" class="dropdown-item">ALA Labs</a></li>
+                            </ul>
+                          </li>
+                          <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownAbout" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                About
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownAbout">
+                                <li><a href="https://www-test.ala.org.au/about-ala/" class="dropdown-item">About us</a></li>
+                                <li><a href="https://www-test.ala.org.au/governance" class="dropdown-item">Governance</a></li>
+                                <li><a href="https://www-test.ala.org.au/blog/" class="dropdown-item">News &amp; media</a></li>
+                                <li><a href="https://www-test.ala.org.au/careers/" class="dropdown-item">Careers</a></li>
+                                <li><a href="https://www-test.ala.org.au/internships/" class="dropdown-item">Internships</a></li>
+                                <li><a href="https://www-test.ala.org.au/contact-us/" class="dropdown-item">Contact us</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a href="https://www-test.ala.org.au/current-projects/" class="dropdown-item">Current projects</a></li>
+                                <li><a href="https://living-atlases.gbif.org/" class="dropdown-item">International Living Atlases</a></li>
+                                <li><a href="https://www-test.ala.org.au/indigenous-ecological-knowledge/" class="dropdown-item">Indigenous ecological knowledge</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a href="https://www-test.ala.org.au/sites-and-services/" class="dropdown-item">All sites, services &amp; tools</a></li>
+                            </ul>
+                          </li>
+                          <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownHelp" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Help
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownHelp">
+                                <li><a href="https://support.ala.org.au/support/home" class="dropdown-item">Browse all articles (FAQs)</a></li>
+                                <li><a href="https://support.ala.org.au/support/solutions/6000137994" class="dropdown-item">ALA Data help</a></li>
+                                <li><a href="https://support.ala.org.au/support/solutions/6000138053" class="dropdown-item">ALA Tools &amp; Apps help</a></li>
+                                <li><a href="https://support.ala.org.au/support/solutions/6000138349" class="dropdown-item">ALA Spatial Portal help</a></li>
+                                <li><a href="https://support.ala.org.au/support/solutions/articles/6000261662-citing-the-ala" class="dropdown-item">How to cite the ALA</a></li>
+                                <li><a href="https://www-test.ala.org.au/contact-us/" class="dropdown-item">Contact us</a></li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </div>
+
+                    <button class="search-trigger d-none d-lg-block collapsed collapse-trigger-button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#autocompleteSearchALA" onclick="focusOnClickSearchButton()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 22 22"
+                             title="Open search control">
+                            <defs>
+                                <style>
+                                    .search-icon {
+                                        fill: #fff;
+                                        fill-rule: evenodd;
+                                    }
+                                </style>
+                            </defs>
+                            <path class="search-icon"
+                                  d="M1524.33,60v1.151a7.183,7.183,0,1,1-2.69.523,7.213,7.213,0,0,1,2.69-.523V60m0,0a8.333,8.333,0,1,0,7.72,5.217A8.323,8.323,0,0,0,1524.33,60h0Zm6.25,13.772-0.82.813,7.25,7.254a0.583,0.583,0,0,0,.82,0,0.583,0.583,0,0,0,0-.812l-7.25-7.254h0Zm-0.69-7.684,0.01,0c0-.006-0.01-0.012-0.01-0.018s-0.01-.015-0.01-0.024a6,6,0,0,0-7.75-3.3l-0.03.009-0.02.006v0a0.6,0.6,0,0,0-.29.293,0.585,0.585,0,0,0,.31.756,0.566,0.566,0,0,0,.41.01V63.83a4.858,4.858,0,0,1,6.32,2.688l0.01,0a0.559,0.559,0,0,0,.29.29,0.57,0.57,0,0,0,.75-0.305A0.534,0.534,0,0,0,1529.89,66.089Z"
+                                  transform="translate(-1516 -60)"></path>
+                        </svg>
+                        <span class="collapse visible-on-show" aria-hidden="true" title="Close">&times;</span>
+                    </button>
+                </div>
+
+            </div>
+        </div><!-- .container -->
+        <div class="{{containerClass}}">
+            <div id="autocompleteSearchALA" class="collapse">
+                <form method="get" action="{{searchServer}}{{searchPath}}" class="search-form">
+                    <div class="space-between">
+                        <input id="autocompleteHeader" type="text" name="q"
+                               placeholder="Search species, datasets, and more..." class="search-input"
+                               autocomplete="off"/>
+                        <button class="search-submit" title="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 22 22">
+                                <defs>
+                                    <style>
+                                        .search-icon {
+                                            fill: #fff;
+                                            fill-rule: evenodd;
+                                        }
+                                    </style>
+                                </defs>
+                                <path class="search-icon"
+                                      d="M1524.33,60v1.151a7.183,7.183,0,1,1-2.69.523,7.213,7.213,0,0,1,2.69-.523V60m0,0a8.333,8.333,0,1,0,7.72,5.217A8.323,8.323,0,0,0,1524.33,60h0Zm6.25,13.772-0.82.813,7.25,7.254a0.583,0.583,0,0,0,.82,0,0.583,0.583,0,0,0,0-.812l-7.25-7.254h0Zm-0.69-7.684,0.01,0c0-.006-0.01-0.012-0.01-0.018s-0.01-.015-0.01-0.024a6,6,0,0,0-7.75-3.3l-0.03.009-0.02.006v0a0.6,0.6,0,0,0-.29.293,0.585,0.585,0,0,0,.31.756,0.566,0.566,0,0,0,.41.01V63.83a4.858,4.858,0,0,1,6.32,2.688l0.01,0a0.559,0.559,0,0,0,.29.29,0.57,0.57,0,0,0,.75-0.305A0.534,0.534,0,0,0,1529.89,66.089Z"
+                                      transform="translate(-1516 -60)"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </nav><!-- .site-navigation -->
+
+</div>
+<script type="text/html" id="autoCompleteTemplate">
+    <li class="autocomplete-item striped">
+        <div class="content-spacing">
+            <div class="autocomplete-heading">
+                <% if (commonNameMatches.length > 0) { %>
+                <%=commonNameMatches[0]%>
+                <% } else if (scientificNameMatches.length > 0) { %>
+                <%=scientificNameMatches[0]%>
+                <% } else { %>
+                <%=matchedNames[0]%>
+                <% } %>
+            </div>
+        </div>
+    </li>
+</script>

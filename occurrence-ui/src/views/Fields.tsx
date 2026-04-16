@@ -241,7 +241,7 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                         </span>
                         <div className='btn-group me-2'>
                             {FILTER_PRESETS.map(preset => (
-                                <button key={preset.value} className={`btn btn-sm btn-default ${appliedFilter === preset.value ? ' active' : ''}`} onClick={() => applyFilter(preset.value)}>
+                                <button key={preset.value} className={`btn btn-sm btn-outline-dark ${appliedFilter === preset.value ? ' active' : ''}`} onClick={() => applyFilter(preset.value)}>
                                     <FormattedMessage id={preset.labelId} defaultMessage={preset.defaultLabel} />
                                 </button>
                             ))}
@@ -249,7 +249,7 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                         <form className='d-inline-block' onSubmit={handleSearchSubmit}>
                             <div className='input-group input-group-sm'>
                                 <input className='form-control' type='text' value={filterInput} placeholder={intl.formatMessage({ id: 'downloads.fields.filter.search.placeholder', defaultMessage: 'Search fields...' })} onChange={e => setFilterInput(e.target.value)} />
-                                <button className='btn btn-default' type='submit'>
+                                <button className='btn btn-outline-dark' type='submit'>
                                     <FormattedMessage id='downloads.fields.filter.search.button' defaultMessage='Search' />
                                 </button>
                                 {appliedFilter && (

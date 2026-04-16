@@ -223,7 +223,7 @@ function MapView({ queryString, tab }: MapViewProps) {
                 <br />
                 {mapLookupOccurrence == undefined && <>{loading}</>}
                 <div className={'d-flex'}>
-                    <a className='btn btn-sm btn-default'
+                    <a className='btn btn-sm btn-outline-dark'
                        style={{
                            fontSize: '12px',
                            lineHeight: '14px',
@@ -235,11 +235,11 @@ function MapView({ queryString, tab }: MapViewProps) {
                        href={'/occurrence/' + mapLookupOccurrence?.processed?.uuid}>
                         {viewRecord}
                     </a>
-                    <button className='btn btn-sm btn-default ms-auto' style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }} onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined} disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}
+                    <button className='btn btn-sm btn-outline-dark ms-auto' style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }} onClick={mapLookupItemIdx > 0 ? prevOccurrence : undefined} disabled={mapLookupItemIdx === 0 || mapLookupOccurrences.length <= 1}
                             dangerouslySetInnerHTML={{ __html: prev }}>
                     </button>
                     <button
-                        className='btn btn-sm btn-default ms-1'
+                        className='btn btn-sm btn-outline-dark ms-1'
                         style={{ fontSize: '12px', lineHeight: '14px', paddingTop: '2px' }}
                         onClick={mapLookupItemIdx < mapLookupOccurrences.length - 1 ? nextOccurrence : undefined}
                         disabled={mapLookupItemIdx === mapLookupOccurrences.length - 1 || mapLookupOccurrences.length <= 1}
@@ -456,13 +456,13 @@ function MapView({ queryString, tab }: MapViewProps) {
     return (
         <>
             <div>
-                <a className='btn btn-default btn-sm tooltips me-1' style={{ textDecoration: 'none' }} href={buildSpatialUrl()} title={intl.formatMessage({ id: 'map.spatialportal.btn.title.param' }, { 0: org })}>
+                <a className='btn btn-outline-dark btn-sm tooltips me-1' style={{ textDecoration: 'none' }} href={buildSpatialUrl()} title={intl.formatMessage({ id: 'map.spatialportal.btn.title.param' }, { 0: org })}>
                     <FontAwesomeIconLite icon={faMapMarker} />
                     &nbsp;&nbsp;
                     <FormattedMessage id='map.spatialportal.btn.label' defaultMessage='View in spatial portal' />
                 </a>
 
-                <a className='btn btn-default btn-sm tooltips' style={{ textDecoration: 'none' }} onClick={() => alert('TODO: implement map downloads')} title={intl.formatMessage({ id: 'map.downloadmaps.btn.title' })}>
+                <a className='btn btn-outline-dark btn-sm tooltips' style={{ textDecoration: 'none' }} onClick={() => alert('TODO: implement map downloads')} title={intl.formatMessage({ id: 'map.downloadmaps.btn.title' })}>
                     <FontAwesomeIconLite icon={faDownload} />
                     &nbsp;&nbsp;
                     <FormattedMessage id='map.downloadmaps.btn.label' defaultMessage='View in spatial portal' />

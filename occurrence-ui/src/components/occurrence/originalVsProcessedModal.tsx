@@ -72,7 +72,7 @@ function OriginalVsProcessedModal({ compareRecord, onClose }: ApiModalProps) {
                     </table>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button type='button' className='btn btn-default btn-small' onClick={onClose}>
+                    <button type='button' className='btn btn-outline-dark' onClick={onClose}>
                         <FormattedMessage id='show.processedvsrawview.button.close' defaultMessage='Close' />
                     </button>
                 </Modal.Footer>

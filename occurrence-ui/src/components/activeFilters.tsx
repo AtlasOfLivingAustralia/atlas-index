@@ -64,7 +64,7 @@ function ActiveFilters({ queryString, onRemove, onClearAll }: ActiveFiltersProps
             <b style={{marginLeft: '15px'}}><FormattedMessage id="search.filters.heading" defaultMessage="User selected filters"/>:</b>&nbsp;
 
             {fqs.map((fq, i) => (
-                <span key={i} className="btn btn-sm btn-default activeFilter" style={{ cursor: 'pointer' }}
+                <span key={i} className="btn btn-outline-dark activeFilter" style={{ cursor: 'pointer' }}
                       title={intl.formatMessage({ id: 'list.resultsreturned.click.to.remove.filters', defaultMessage: 'Click to remove filter' })}
                       onClick={() => removeParam(fq)}>
                     {fqLabel(fq)}
@@ -73,7 +73,7 @@ function ActiveFilters({ queryString, onRemove, onClearAll }: ActiveFiltersProps
             ))}
 
             {wkt && (
-                <span className="btn btn-sm btn-default activeFilter"
+                <span className="btn btn-outline-dark activeFilter"
                       title={intl.formatMessage({ id: 'list.resultsreturned.click.to.remove.filters', defaultMessage: 'Click to remove filter' })}
                       style={{ cursor: 'pointer' }} onClick={removeSpatial}>
                     <FormattedMessage id="list.resultsreturned.spatial.filter" defaultMessage="Spatial filter"/>: {wkt.match(/^\w+/)?.[0]}
@@ -82,7 +82,7 @@ function ActiveFilters({ queryString, onRemove, onClearAll }: ActiveFiltersProps
             )}
 
             {!wkt && radius && lat && lon && (
-                <span className="btn btn-sm btn-default activeFilter"
+                <span className="btn btn-outline-dark activeFilter"
                       title={intl.formatMessage({ id: 'list.resultsreturned.click.to.remove.filters', defaultMessage: 'Click to remove filter' })}
                       style={{ cursor: 'pointer' }} onClick={removeSpatial}>
                     <FormattedMessage id="list.resultsreturned.spatial.filter" defaultMessage="Spatial filter"/>:&nbsp;
@@ -93,7 +93,7 @@ function ActiveFilters({ queryString, onRemove, onClearAll }: ActiveFiltersProps
 
             {totalCount > 1 && (
                 <span
-                    className="btn btn-sm btn-primary activeFilter"
+                    className="btn btn-primary activeFilter"
                     title={intl.formatMessage({ id: 'list.resultsreturned.button01.title', defaultMessage: 'Clear all filters' })}
                     onClick={onClearAll}
                     style={{ cursor: 'pointer' }}

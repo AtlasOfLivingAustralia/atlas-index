@@ -229,7 +229,7 @@ function DataQualityCategoryInfoModal({
                         <FormattedMessage id="dq.warning.dataprofile.buttonleft.text" defaultMessage="Learn More"/>
                     </a>
 
-                    <button className="btn btn-default btn-sm border-black ms-auto" onClick={() => onClose()}>
+                    <button className="btn btn-outline-dark ms-auto" onClick={() => onClose()}>
                         <FormattedMessage id="dq.categoryinfo.dlg.closebutton.text" defaultMessage="Close"/>
                     </button>
                 </div>

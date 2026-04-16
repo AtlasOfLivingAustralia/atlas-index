@@ -75,7 +75,7 @@ function ContactCuratorModal({ onClose, contacts }: ContactCuratorModalProps) {
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
-                    <button className='btn btn-default btn-small' style={{float:"right"}} onClick={() => onClose()}>
+                    <button className='btn btn-outline-dark' style={{float:"right"}} onClick={() => onClose()}>
                         <FormattedMessage id='show.processedvsrawview.button.close' defaultMessage='Close' />
                     </button>
                 </Modal.Footer>

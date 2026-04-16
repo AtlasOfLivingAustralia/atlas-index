@@ -410,7 +410,7 @@ function Occurrence({setBreadcrumbs}: {
                                 <>
                                     <span id='previousBtn'>
                                         <button title='Previous record'
-                                            className={`btn btn-default${isFirstRecord() ? ' disabled' : ''}`}
+                                            className={`btn btn-outline-dark${isFirstRecord() ? ' disabled' : ''}`}
                                             onClick={() => {prevOccurrenceIndex();}}
                                             style={{marginRight: '5px'}}>
                                             <FontAwesomeIconLite icon={faArrowLeft}/> <FormattedMessage id="show.previousbtn.navigator" defaultMessage="Previous"/>
@@ -418,14 +418,14 @@ function Occurrence({setBreadcrumbs}: {
                                     </span>
                                     <span id='nextBtn'>
                                         <button title='Next record'
-                                            className={`btn btn-default${isLastRecord() ? ' disabled' : ''}`}
+                                            className={`btn btn-outline-dark${isLastRecord() ? ' disabled' : ''}`}
                                             onClick={() => {nextOccurrence();}}
                                             style={{marginRight: '5px'}}>
                                             <FormattedMessage id="show.nextbtn.navigator" defaultMessage="Next"/> <FontAwesomeIconLite icon={faArrowRight}/>
                                         </button>
                                     </span>
                                     <span id='backBtn'>
-                                        <button title='Back to search results' className='btn btn-default'
+                                        <button title='Back to search results' className='btn btn-outline-dark'
                                             onClick={() => {backToSearch();}}>
                                             <FormattedMessage id="show.backbtn.navigator" defaultMessage="Back to search results"/>
                                         </button>
@@ -481,24 +481,24 @@ function Occurrence({setBreadcrumbs}: {
                     <div className='col-md-8'>
                         <div className='text-end'>
                             {isUrl(record?.raw?.occurrence?.occurrenceID) && (
-                                <a href={record?.raw?.occurrence?.occurrenceID || '#'} className='btn btn-default' title='Click to view the original record' style={{ marginRight: '5px' }}>
+                                <a href={record?.raw?.occurrence?.occurrenceID || '#'} className='btn btn-outline-dark' title='Click to view the original record' style={{ marginRight: '5px' }}>
                                     {' '}
                                     <FormattedMessage id="show.sidebar02.viewOriginal" defaultMessage="View original record"/>
                                 </a>
                             )}
-                            <button className='btn btn-default' id='showRawProcessed' title='Table showing both original and processed record values' onClick={() => setShowOriginalVsProcessed(true)} style={{ marginRight: '5px' }}>
+                            <button className='btn btn-outline-dark' id='showRawProcessed' title='Table showing both original and processed record values' onClick={() => setShowOriginalVsProcessed(true)} style={{ marginRight: '5px' }}>
                                 <span id='processedVsRawViewSpan' title=''>
                                     <FontAwesomeIconLite icon={faRightLeft} /> <FormattedMessage id="show.sidebar02.showrawprocessed.span" defaultMessage="View original vs processed values"/>
                                 </span>
                             </button>
                             <input id='hidden-uuid' type='hidden' value={uuid} />
                             <CopyTooltip text={`${uuid} copied!`}>
-                                <button className='btn btn-default' id='copyRecordIdToClipboard' title="Copy this record's id to the clipboard"
+                                <button className='btn btn-outline-dark' id='copyRecordIdToClipboard' title="Copy this record's id to the clipboard"
                                     onClick={() => {navigator.clipboard.writeText(uuid || '');}} style={{ marginRight: '5px' }}>
                                     <FormattedMessage id="show.sidebar02.copyrecordid" defaultMessage="Copy record id" />
                                 </button>
                             </CopyTooltip>
-                            <button className='tooltips btn btn-default copyLink' onClick={() => setShowCopyLinkModal(true)}>
+                            <button className='tooltips btn btn-outline-dark copyLink' onClick={() => setShowCopyLinkModal(true)}>
                                 <FontAwesomeIconLite icon={faFileCode} /> <FormattedMessage id="list.copylinks" defaultMessage="API"/>
                             </button>
                             {showCopyLinkModal && <ApiModal onClose={() => setShowCopyLinkModal(false)} url={`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`} />}

@@ -287,7 +287,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
 
     const refineResults = <>
         {(loading || maxResults > 0) && queryString && facets.length + customFacetData.length > 0 && (
-            <div style={{marginRight: '30px'}}>
+            <div>
                     <span className={classes.refineTitle}>
                         Refine results
                     </span>

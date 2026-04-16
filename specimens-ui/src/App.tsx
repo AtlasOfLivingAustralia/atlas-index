@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'bootstrap/dist/css/bootstrap.css';
 import Browse from './views/Browse.tsx';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
@@ -45,7 +44,6 @@ export default function App() {
         injectCommonInfo(
             buildInfo,
             import.meta.env.VITE_ENV,
-            import.meta.env.VITE_COMMON_JS,
             import.meta.env.VITE_COMMON_CSS,
             setCssLoaded
         );
@@ -81,6 +79,9 @@ export default function App() {
                 logoutFn={handleLogout}
                 loginFn={handleLogin}
                 headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+                searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
+                jsUrl={import.meta.env.VITE_COMMON_JS}
+                containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}
             />
 
             <Breadcrumbs breadcrumbs={breadcrumbs} />

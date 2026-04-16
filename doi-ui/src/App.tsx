@@ -4,7 +4,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import 'bootstrap/dist/css/bootstrap.css';
 import {
     Banner,
     Breadcrumb,
@@ -46,7 +45,7 @@ export default function App() {
     const refreshTimer = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_JS, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
 
         checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
 
@@ -93,7 +92,9 @@ export default function App() {
     return (
         <main>
             <UserContext.Provider value={{ userInfo, setUserInfo }}>
-                <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper} headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} />
+                <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper}
+                        headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
+                        jsUrl={import.meta.env.VITE_COMMON_JS} containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}/>
 
                 <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE} />
 

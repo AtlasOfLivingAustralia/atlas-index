@@ -64,13 +64,13 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
 
     return (
         <>
-            <button className='btn btn-default' id='assertionButton' role='button' data-toggle='modal' title='report a problem or suggest a correction for this record'
+            <button className='btn btn-outline-dark' id='assertionButton' role='button' data-toggle='modal' title='report a problem or suggest a correction for this record'
                 onClick={() => setShowFlagIssueModal(true)}>                <FontAwesomeIcon icon={faFlag} /> <FormattedMessage id='show.button.assertionbutton.span' defaultMessage='Flag an issue' />
             </button>
 
             {contacts && contacts.length > 0 && (
                 <button
-                    className='btn btn-default'
+                    className='btn btn-outline-dark'
                     id='showCurator'
                     role='button'
                     data-toggle='modal'
@@ -265,7 +265,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                         <div>{RenderTree({ eventHierarchy })}</div>
                         <FormattedMessage id='record.eventdetails.desc2' />
                         <br />
-                        <a className='btn-small btn btn-default' style={{ marginTop: '10px' }} href={`${import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL}${record.raw.event.eventID}`}>
+                        <a className='btn btn-outline-dark' style={{ marginTop: '10px' }} href={`${import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL}${record.raw.event.eventID}`}>
                             <FormattedMessage id='record.eventdetails.link' />
                         </a>
                     </div>

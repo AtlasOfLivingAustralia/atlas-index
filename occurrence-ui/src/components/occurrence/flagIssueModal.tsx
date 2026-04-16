@@ -400,8 +400,8 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
                             {/* Buttons */}
                             <div style={{ marginTop: '20px' }}>
                                 {!submitSuccess && <input id='issueFormSubmit' type='submit' value={intl.formatMessage({ id: 'show.issueform.button.submit', defaultMessage: 'Submit' })} className='btn btn-primary' disabled={submitting || !isValid()} />}{' '}
-                                {!submitSuccess && <input type='button' id='cancel' value={intl.formatMessage({ id: 'show.issueform.button.cancel', defaultMessage: 'Cancel' })} className='btn btn-default' onClick={onClose} />}
-                                {submitSuccess && <input type='button' id='close' value={intl.formatMessage({ id: 'show.issueform.button.close', defaultMessage: 'Close' })} className='btn btn-default' onClick={onClose} />}
+                                {!submitSuccess && <input type='button' id='cancel' value={intl.formatMessage({ id: 'show.issueform.button.cancel', defaultMessage: 'Cancel' })} className='btn btn-outline-dark' onClick={onClose} />}
+                                {submitSuccess && <input type='button' id='close' value={intl.formatMessage({ id: 'show.issueform.button.close', defaultMessage: 'Close' })} className='btn btn-outline-dark' onClick={onClose} />}
                                 <span id='submitSuccess' style={{ marginLeft: '10px' }}>{submitSuccess}</span>
                             </div>
 

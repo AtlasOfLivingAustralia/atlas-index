@@ -25,7 +25,7 @@ import FolderIcon from "./icons/folderIcon.tsx";
 import ListIcon from "./icons/listIcon.tsx";
 import TileIcon from "./icons/tileIcon.tsx";
 import useHashState from "./util/useHashState.tsx";
-import {injectCommonInfo} from "./util/utils.tsx";
+import {injectCommonInfo, injectCommonJs} from "./util/utils.tsx";
 import {UserContext, useUser, UserInfo} from "./util/UserContext.tsx";
 import {checkLoginState, handleLogin, handleLogout} from "./util/auth.tsx";
 
@@ -39,6 +39,7 @@ export {
     useHashState,
     DualRangeSlider,
     injectCommonInfo,
+    injectCommonJs,
     Breadcrumbs,
     ListIcon,
     TileIcon,

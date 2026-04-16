@@ -137,14 +137,14 @@ function VerifyRecordModal({ record, assertion, onClose, onVerified, prefill }: 
                         <button className='btn btn-primary confirmVerify' onClick={handleConfirm} disabled={submitting}>
                             <FormattedMessage id='show.verifyrecord.btn.confirmverify' defaultMessage='Confirm' />
                         </button>
-                        <button className='btn btn-default cancelVerify' onClick={onClose} disabled={submitting}>
+                        <button className='btn btn-outline-dark cancelVerify' onClick={onClose} disabled={submitting}>
                             <FormattedMessage id='show.verifyrecord.btn.cancel' defaultMessage='Cancel' />
                         </button>
                         {submitting && <i className='fa fa-spinner fa-spin' />}
                     </div>
                 ) : (
                     <div className='verifyDone'>
-                        <button className='btn btn-default closeVerify' onClick={onClose}>
+                        <button className='btn btn-outline-dark closeVerify' onClick={onClose}>
                             <FormattedMessage id='show.verifydone.btn.closeverify' defaultMessage='Close' />
                         </button>
                     </div>

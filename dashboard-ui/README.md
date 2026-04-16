@@ -56,22 +56,18 @@ VITE_AUTH_COOKIE_DOMAIN=
 
 # other services
 VITE_APP_BIOCACHE_URL=https://biocache-ws-test.ala.org.au/ws
-VITE_NAMEMATCHING_WS=https://namematching-ws.ala.org.au
-VITE_SPECIES_URL_PREFIX=https://bie.ala.org.au/species/
 
 # dashboard data sources (see examples in ../static-server/static/dashboard)
 VITE_APP_DASHBOARD_DATA_URL=http://localhost:8082/static/dashboard/dashboard.json
 VITE_APP_DASHBOARD_ZIP_URL=http://localhost:8082/static/dashboard/dashboard.zip
 
-# minimal header and footer urls
-VITE_CONTACT_URL=https://www.ala.org.au/contact-us/
-VITE_CREATE_ACCOUNT_URL=https://userdetails.test.ala.org.au/registration/createAccount
-
 # common header, footer, css, js
-VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/header.html
-VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.html
-VITE_COMMON_CSS=http://localhost:8082/static/common/common.css
-VITE_COMMON_JS=http://localhost:8082/static/common/common.js
+VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/banner.mustache
+VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.mustache
+VITE_COMMON_CSS=http://localhost:8082/static/common/ala-combined.css
+VITE_COMMON_JS=http://localhost:8082/static/common/ala-combined.js
+VITE_COMMON_CONTAINER_CLASS=container-fluid
+VITE_SEARCH_URL_PREFIX=https://bie.test.ala.org.au
 VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
 VITE_BANNER_SCOPE=dashboard
 
@@ -84,3 +80,18 @@ You may need to run ```yarn install``` to update nodejs libs;
 And run ``` npx playwright install```. ```npx playwright test --init ``` may not work. It is outdated.
 
 ```npx playwright test --ui``` will let you run test with its UI
+
+## Playwright tests
+Playwright tests are included to verify basic functionality. Running in headless mode by default. To run the tests:
+```bash
+./run-playwright-test.sh [workers, default 10]
+```
+This script will start a local static server to serve common files and the regionsList.json file, then run the tests against a locally running regions-ui instance that is built to use `.env.playwright` for config.
+- If using a different method, ensure you are using the same config as in `.env.playwright`. See `run-playwright-test.sh` for all environment details.
+- If using playwright ui mode,
+    - start static-server (after running `run-playwright-test.sh` once to copy the required files)
+    - copy `.env.playwright` to `.env.local`
+    - prepare dashboard.json. `cp ./tests/resources/dashboard.json ../static-server/static/dashboard/dashboard.json`
+    - prepare dashboard.zip . `cp ./tests/resources/dashboard.zip ../static-server/static/dashboard/dashboard.zip`
+    - start in dev mode `yarn run dev` so that any changes to the app apply immediately
+    - then start ui mode `yarn playwright test --ui`, any changes to the tests will apply immediately

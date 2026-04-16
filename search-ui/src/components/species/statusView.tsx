@@ -5,7 +5,7 @@
  */
 
 import {ConservationStatusLabel, InfoBox} from '@ala/common-ui';
-import {faCircleInfo} from '@fortawesome/free-solid-svg-icons/faCircleInfo';
+import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from 'react';
 import {openUrl} from '../search/util.tsx';
 import classes from './species.module.css';

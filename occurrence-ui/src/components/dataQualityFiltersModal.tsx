@@ -175,10 +175,10 @@ function DataQualityFiltersModal({
                 </table>
             </Modal.Body>
             <Modal.Footer>
-                <button className="btn btn-default btn-sm border-black" onClick={() => onClose()}>
+                <button className="btn btn-outline-dark" onClick={() => onClose()}>
                     <FormattedMessage id="dq.selectmultiple.form.cancel" defaultMessage="Cancel"/>
                 </button>
-                <button id="updateFacetOptions" className="btn btn-primary btn-sm" onClick={() => update()}>
+                <button id="updateFacetOptions" className="btn btn-primary" onClick={() => update()}>
                     <FormattedMessage id="dq.selectmultiple.form.submit" defaultMessage="Apply"/>
                 </button>
             </Modal.Footer>

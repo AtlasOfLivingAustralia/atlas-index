@@ -4,15 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {
-    FlaggedAlert,
-    InfoBox,
-    RefineSection
-} from '@ala/common-ui';
-import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
-import {LatLng, LayersControlEvent} from 'leaflet';
-import {JSX, useEffect, useRef, useState} from 'react';
-import {LayersControl, MapContainer, TileLayer, WMSTileLayer,} from 'react-leaflet';
+import { FlaggedAlert, InfoBox } from '@ala/common-ui';
+import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
+import { LatLng, LayersControlEvent } from 'leaflet';
+import { JSX, useEffect, useRef, useState } from 'react';
+import { LayersControl, MapContainer, TileLayer, WMSTileLayer } from 'react-leaflet';
 import Control from 'react-leaflet-custom-control';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 
@@ -21,12 +17,14 @@ import './map.css';
 import FormatName from '../nameUtils/formatName';
 import Legend from './mapLegend';
 import classes from './species.module.css';
+import CachedMapView from './cachedMapView';
+import MapRefineSection, { CachedZoomOption, MapDistribution } from './mapRefineSection';
 
 interface MapViewProps {
-    queryString?: string,
-    tab?: string,
-    result?: Record<PropertyKey, string | number | any>,
-    isMobile: boolean
+    queryString?: string;
+    tab?: string;
+    result?: Record<PropertyKey, string | number | any>;
+    isMobile: boolean;
 }
 
 interface OnlineResource {
@@ -34,35 +32,31 @@ interface OnlineResource {
     url: string;
 }
 
-interface Distribution {
-    geomIdx: string;
-    dataResourceUid: string;
-    areaName: string;
-    dataResourceName: string;
-    url?: string;
-    checked?: boolean;
-}
+const hasCachedMap = import.meta.env.VITE_TAXON_MAP_ENABLED === 'true';
+const hasLeafletMap = import.meta.env.VITE_LEAFLET_MAP_ENABLED === 'true';
+const recordLayerOpacity = import.meta.env.VITE_MAP_LAYER_OPACITY;
+const defaultZoom = import.meta.env.VITE_MAP_DEFAULT_ZOOM;
+const defaultZoomMobile = import.meta.env.VITE_MAP_DEFAULT_ZOOM_MOBILE;
+const center = new LatLng(import.meta.env.VITE_MAP_CENTRE_LAT, import.meta.env.VITE_MAP_CENTRE_LNG);
 
-function MapView({tab, result, isMobile}: MapViewProps) {
+function MapView({ tab, result, isMobile }: MapViewProps) {
     const [occurrenceCount, setOccurrenceCount] = useState(result?.occurrenceCount || -1);
     const [showOccurrences, setShowOccurrences] = useState(true);
-    const [distributions, setDistributions] = useState<Distribution[]>([]);
+    const [simpleMap, setSimpleMap] = useState(hasCachedMap);
+    const [cachedMapUnavailable, setCachedMapUnavailable] = useState(false);
+    const [distributions, setDistributions] = useState<MapDistribution[]>([]);
+    const [activeZoom, setActiveZoom] = useState<string>('');
     const [hexValuesScaled, setHexValuesScaled] = useState(false);
     const mapRef = useRef<L.Map | null>(null);
     const [mapReady, setMapReady] = useState(false);
-    const [hexBinValues, setHexBinValues] = useState<[string, number | null][]>(
-        [
-            ['FFC577', 1],
-            ['E28946', 10],
-            ['D36B3D', 100],
-            ['C44D34', 1000],
-            ['802937', null],
-        ]
-    ); // Note the count values are scaled by a factor below
-    const recordLayerOpacity = import.meta.env.VITE_MAP_LAYER_OPACITY;
-    const defaultZoom = import.meta.env.VITE_MAP_DEFAULT_ZOOM;
-    const defaultZoomMobile = import.meta.env.VITE_MAP_DEFAULT_ZOOM_MOBILE;
-    const center = new LatLng(import.meta.env.VITE_MAP_CENTRE_LAT, import.meta.env.VITE_MAP_CENTRE_LNG);
+    // hexBinValues should be consistent with the taxon-map tool
+    const [hexBinValues, setHexBinValues] = useState<[string, number | null][]>([
+        ['FFC577', 1],
+        ['E28946', 10],
+        ['D36B3D', 100],
+        ['C44D34', 1000],
+        ['802937', null]
+    ]); // Note the count values are scaled by a factor below
 
     useEffect(() => {
         if (!mapRef.current) return;
@@ -96,11 +90,27 @@ function MapView({tab, result, isMobile}: MapViewProps) {
 
     useEffect(() => {
         if (result?.guid) {
+            setCachedMapUnavailable(false);
+            setSimpleMap(hasCachedMap);
+
+            // Reset hex bin state so scaling is recalculated for the new taxon
+            // hexBinValues should be consistent with the taxon-map tool
+            setHexBinValues([
+                ['FFC577', 1],
+                ['E28946', 10],
+                ['D36B3D', 100],
+                ['C44D34', 1000],
+                ['802937', null]
+            ]);
+            setHexValuesScaled(false);
+
             let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=lsid:${encodeURIComponent(result.guid)}${import.meta.env.VITE_GLOBAL_FQ}&pageSize=0`;
-            fetch(url).then((response) => response.json()).then((data) => {
-                setOccurrenceCount(data?.totalRecords);
-                setShowOccurrences(true); // Workaround to update records layer when taxon changes
-            });
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    setOccurrenceCount(data?.totalRecords);
+                    setShowOccurrences(true); // Workaround to update records layer when taxon changes
+                });
 
             if (result.distributions) {
                 generateDistributionMapObj(result?.distributions);
@@ -123,12 +133,11 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         } else if (occurrenceCount < 500000) {
             binFactor = 10;
         }
-        const hexBinValuesScaled: [string, number | null][] = hexBinValues.map(
-            ([hex, count]) => [
-                hex,
-                typeof count === 'number' ? count * binFactor : null, // tried using (binFactor * binFactor) but reverted it
-            ]
-        );
+        const hexBinValuesScaled: [string, number | null][] = hexBinValues.map(([hex, count]) => [
+            hex,
+            typeof count === 'number' ? count * binFactor : null // tried using (binFactor * binFactor) but reverted it
+        ]);
+        // hexBinValues should be consistent with the taxon-map tool
         setHexBinValues(hexBinValuesScaled);
         setHexValuesScaled(true); // keep track of scaling "state"
     }, [occurrenceCount]);
@@ -140,10 +149,10 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         }
         for (const dist of distributions) {
             if (e.name === dist.areaName + ', ' + dist.dataResourceName) {
-                const updatedDistributions = distributions.map((d) => d.areaName + ', ' + d.dataResourceName === dist.areaName + ', ' + dist.dataResourceName ? {
-                    ...d,
-                    checked: isVisible
-                } : d);
+                const updatedDistributions = distributions.map(d =>
+                    d.areaName + ', ' + d.dataResourceName === dist.areaName + ', ' + dist.dataResourceName
+                        ? {...d, checked: isVisible} : d
+                );
                 setDistributions(updatedDistributions);
                 return;
             }
@@ -169,21 +178,21 @@ function MapView({tab, result, isMobile}: MapViewProps) {
 
     const onlineResources: OnlineResource[] = [
         {
-            name: (<>Explore and download occurrence records</>),
-            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`,
+            name: <>Explore and download occurrence records</>,
+            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`
         },
         {
             name: 'Advanced mapping',
-            url: `${import.meta.env.VITE_SPATIAL_URL}?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`,
+            url: `${import.meta.env.VITE_SPATIAL_URL}?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`
         },
         {
-            name: (<>How to submit observations</>),
-            url: 'https://www.ala.org.au/home/record-a-sighting/',
+            name: <>How to submit observations</>,
+            url: 'https://www.ala.org.au/home/record-a-sighting/'
         },
         {
-            name: (<>Receive alerts for new records</>),
-            url: createAlertForTaxon(),
-        },
+            name: <>Receive alerts for new records</>,
+            url: createAlertForTaxon()
+        }
     ];
 
     function getAlaWmsUrl() {
@@ -195,12 +204,12 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         return wmsUrl;
     }
 
-    function generateDistributionMapObj(distributions: Distribution[] | string | null) {
-        let spatialObjects: Distribution[] = [];
+    function generateDistributionMapObj(distributions: MapDistribution[] | string | null) {
+        let spatialObjects: MapDistribution[] = [];
 
         // Utility function to add 'url' and 'checked' attrs to distribution object (state management)
-        const augmentDistroData = (distros: Distribution[]): Distribution[] => {
-            distros.forEach((distro) => {
+        const augmentDistroData = (distros: MapDistribution[]): MapDistribution[] => {
+            distros.forEach(distro => {
                 distro.url = `${import.meta.env.VITE_SPATIAL_URL}/ws/distribution/map/png/${distro.geomIdx}`;
                 distro.checked = false;
             });
@@ -210,9 +219,7 @@ function MapView({tab, result, isMobile}: MapViewProps) {
 
         if (distributions && typeof distributions === 'string') {
             // Hack to handle escaped JSON inside a JSON value
-            const distributions2 = JSON.parse(
-                distributions.replace(/\\"/g, '"')
-            );
+            const distributions2 = JSON.parse(distributions.replace(/\\"/g, '"'));
             spatialObjects = augmentDistroData(distributions2 || []);
         } else if (distributions && Array.isArray(distributions)) {
             // Assume it's already parsed
@@ -226,186 +233,136 @@ function MapView({tab, result, isMobile}: MapViewProps) {
         return <></>;
     }
 
-    return <>
-        {result.sdsStatus && <FlaggedAlert
-            style={{marginBottom: '40px'}}
-            content={<>
-                This species is{' '}
-                <strong>considered sensitive</strong> in at least
-                one jurisdiction. Some or all occurrence data has
-                been obfuscated.&nbsp;
-                <a href={import.meta.env.VITE_SDS_INFO_URL}
-                   style={{textDecoration: 'underline', color: '#228be6'}}>
-                    More info</a>.
-            </>}
-        />}
-        <InfoBox
-            size={isMobile ? 14 : 16}
-            lineHeight={20}
-            icon={faCircleInfo}
-            title="About this map"
-            content={<>
-                Occurrence records show where a species has been
-                recorded, and may not show the full extent of its known
-                distribution. Records may contain some error. Expert
-                distributions show species distributions modelled by
-                experts or the coarse known distributions of species.
-            </>}
+    const sharedRefineSection = !isMobile && (
+        <MapRefineSection
+            showOccurrences={showOccurrences}
+            onToggleOccurrences={() => setShowOccurrences(prev => !prev)}
+            distributions={distributions}
+            onToggleDistribution={idx => setDistributions(prev => prev.map((d, i) => (i === idx ? { ...d, checked: !d.checked } : d)))}
+            collectionsUrl={import.meta.env.VITE_COLLECTIONS_URL}
+            noDistributionsLabel={<FormatName name={result?.name} rankId={result?.rankID} />}
+            showCachedMap={hasCachedMap && hasLeafletMap && !cachedMapUnavailable ? simpleMap : undefined}
+            onToggleCachedMap={hasCachedMap && hasLeafletMap && !cachedMapUnavailable ? (cached: boolean) => setSimpleMap(cached) : undefined}
         />
-        <div className="d-flex flex-row gap-3" style={{marginTop: isMobile ? '15px' : '30px'}}>
-            {!isMobile &&
-                <div style={{display: 'relative', paddingLeft: '5px'}}>
-                <span className={classes.refineTitle} style={{display: 'block'}}>
-                    Refine map
-                </span>
-                    <RefineSection title='Layers' items={[
-                        {
-                            label: 'Occurrence records',
-                            onClick: () => setShowOccurrences((prev) => !prev),
-                            isOpen: showOccurrences,
-                            isDisabled: () => false,
-                        },
-                        ...distributions.map((dist, idx) => ({
-                            label: <>
-                                {dist.areaName}
-                                <span style={{display: 'block', fontStyle: 'italic', cursor: 'default'}}
-                                      onClick={(e) => e.stopPropagation()}>
-                                        provided by&nbsp;
-                                    <a href={dist.dataResourceUid ? `${import.meta.env.VITE_COLLECTIONS_URL}/public/show/${dist.dataResourceUid}` : '#'}
-                                       style={{color: '#228be6', textDecoration: 'underline'}}>
-                                            {dist.dataResourceName}
-                                        </a>
-                                    </span>
-                            </>,
-                            onClick: () => {
-                                const updatedDistributions = distributions.map((d, i) => i === idx ? {
-                                    ...d,
-                                    checked: !d.checked
-                                } : d);
-                                setDistributions(updatedDistributions);
-                            },
-                            isOpen: dist.checked || false,
-                            isDisabled: () => distributions.length === 0,
-                        }))
-                    ]}/>
+    );
 
-                    {distributions && distributions.length === 0 && (
-                        <span style={{fontSize: '0.875rem', color: 'grey', display: 'block', marginTop: '15px'}}>
-                        No expert distribution maps available for{' '}
-                            <FormatName name={result?.name} rankId={result?.rankID}/>
+    return (
+        <>
+            {result.sdsStatus && (
+                <FlaggedAlert
+                    style={{ marginBottom: '40px' }}
+                    content={
+                        <>
+                            This species is <strong>considered sensitive</strong> in at least one jurisdiction. Some or all occurrence data has been obfuscated.&nbsp;
+                            <a href={import.meta.env.VITE_SDS_INFO_URL} style={{ textDecoration: 'underline', color: '#228be6' }}>
+                                More info
+                            </a>
+                            .
+                        </>
+                    }
+                />
+            )}
+            <InfoBox
+                size={isMobile ? 14 : 16}
+                lineHeight={20}
+                icon={faCircleInfo}
+                title='About this map'
+                content={<>Occurrence records show where a species has been recorded, and may not show the full extent of its known distribution. Records may contain some error. Expert distributions show species distributions modelled by experts or the coarse known distributions of species.</>}
+            />
+            <div className='d-flex flex-row gap-3' style={{ marginTop: isMobile ? '15px' : '30px' }}>
+                {sharedRefineSection}
+                {simpleMap && hasCachedMap ? (
+                    /* static map */
+                    <div style={{ minWidth: 0, width: '100%' }}>
+                        <CachedMapView
+                            result={result}
+                            isMobile={isMobile}
+                            showOccurrences={showOccurrences}
+                            onToggleOccurrences={() => setShowOccurrences(prev => !prev)}
+                            distributions={distributions}
+                            onToggleDistribution={idx => setDistributions(prev => prev.map((d, i) => (i === idx ? { ...d, checked: !d.checked } : d)))}
+                            activeZoom={activeZoom}
+                            onZoomChange={setActiveZoom}
+                            onZoomsLoaded={(zooms: CachedZoomOption[]) => {
+                                setActiveZoom(prev => (zooms.find((z: CachedZoomOption) => z.id === prev) ? prev : (zooms[0]?.id ?? '')));
+                            }}
+                            onUnavailable={() => {
+                                setCachedMapUnavailable(true);
+                                setSimpleMap(false);
+                            }}
+                        />
+                    </div>
+                ) : (
+                    /* live map */
+                    <div style={{ height: '100%', width: '100%', borderRadius: '10px' }}>
+                        <span style={{ marginBottom: '15px', display: 'block' }} className={classes.refineTitle}>
+                            {occurrenceCount >= 0 ? formatNumber(occurrenceCount) : '...'} occurrence records
                         </span>
-                    )}
-                </div>}
-            <div style={{height: '100%', width: '100%', borderRadius: '10px'}}>
-                <span style={{marginBottom: '15px', display: 'block'}} className={classes.refineTitle}>
-                    {occurrenceCount >= 0 ? formatNumber(occurrenceCount) : '...'} occurrence records
-                </span>
-                <div style={{position: 'relative'}}>
-                    <MapContainer
-                        ref={mapRef}
-                        center={center}
-                        zoom={isMobile ? defaultZoomMobile : defaultZoom}
-                        scrollWheelZoom={false}
-                        worldCopyJump={true}
-                        style={{height: '530px', borderRadius: '10px'}}
-                        whenReady={() => setMapReady(true)}
-                        dragging={false}
-                        doubleClickZoom={false}
-                        touchZoom={false}
-                        boxZoom={false}
-                        keyboard={false}
-                        zoomControl={false}
-                    >
-                        {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
-                            <LayersControl position="topright">
-                                <LayersControl.BaseLayer checked name="Minimal">
-                                    <TileLayer
-                                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                        url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}/>
-                                </LayersControl.BaseLayer>
-                                <LayersControl.BaseLayer name="Road">
-                                    <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
-                                                             type={'roadmap'}/>
-                                </LayersControl.BaseLayer>
-                                <LayersControl.BaseLayer name="Terrain">
-                                    <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
-                                                             type={'terrain'}/>
-                                </LayersControl.BaseLayer>
-                                <LayersControl.BaseLayer name="Satellite">
-                                    <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY}
-                                                             type={'satellite'}/>
-                                </LayersControl.BaseLayer>
+                        <div style={{ position: 'relative' }}>
+                            <MapContainer
+                                ref={mapRef}
+                                center={center}
+                                zoom={isMobile ? defaultZoomMobile : defaultZoom}
+                                worldCopyJump={true}
+                                style={{ height: '530px', borderRadius: '10px' }}
+                                whenReady={() => setMapReady(true)}
+                            >
+                                {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
+                                    <LayersControl position='topright'>
+                                        <LayersControl.BaseLayer checked name='Minimal'>
+                                            <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} />
+                                        </LayersControl.BaseLayer>
+                                        <LayersControl.BaseLayer name='Road'>
+                                            <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
+                                        </LayersControl.BaseLayer>
+                                        <LayersControl.BaseLayer name='Terrain'>
+                                            <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
+                                        </LayersControl.BaseLayer>
+                                        <LayersControl.BaseLayer name='Satellite'>
+                                            <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
+                                        </LayersControl.BaseLayer>
 
-                                <LayersControl.Overlay checked={showOccurrences} name="Occurrence records">
-                                    <WMSTileLayer
-                                        url={getAlaWmsUrl()}
-                                        layers="ALA:occurrences"
-                                        format="image/png"
-                                        transparent={true}
-                                        opacity={showOccurrences ? recordLayerOpacity : 0}
-                                        attribution="Atlas of Living Australia"
-                                        zIndex={15}
-                                    />
-                                </LayersControl.Overlay>
+                                        <LayersControl.Overlay checked={showOccurrences} name='Occurrence records'>
+                                            <WMSTileLayer url={getAlaWmsUrl()} layers='ALA:occurrences' format='image/png' transparent={true} opacity={showOccurrences ? recordLayerOpacity : 0} attribution='Atlas of Living Australia' zIndex={15} />
+                                        </LayersControl.Overlay>
 
-                                {distributions.map((dist, idx) => (
-                                    <LayersControl.Overlay key={idx} checked={dist.checked}
-                                                           name={dist.areaName + ', ' + dist.dataResourceName}>
-                                        <WMSTileLayer
-                                            url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${dist.geomIdx}&`}
-                                            layers="ALA:Distributions"
-                                            format="image/png"
-                                            styles="polygon"
-                                            transparent={true}
-                                            opacity={0.6}
-                                            attribution={dist.dataResourceName}
-                                            zIndex={20}
-                                        />
-                                    </LayersControl.Overlay>
-                                ))}
-                            </LayersControl>
-                        )}
-                        <Control prepend position="bottomleft">
-                            {showOccurrences && hexValuesScaled &&
-                                <Legend fillOpacity={recordLayerOpacity} hexBinValues={hexBinValues}/>
-                            }
-                        </Control>
-
-                        {/*<Control position="topleft" prepend={false}>*/}
-                        {/*    <button*/}
-                        {/*        style={{*/}
-                        {/*            width: '34px',*/}
-                        {/*            height: '36px',*/}
-                        {/*            lineHeight: '34px',*/}
-                        {/*            backgroundColor: '#FFF',*/}
-                        {/*            border: '2px solid rgba(0, 0, 0, 0.2)',*/}
-                        {/*            borderRadius: '4px',*/}
-                        {/*            backgroundClip: 'padding-box',*/}
-                        {/*        }}*/}
-                        {/*        aria-label="Reset map"*/}
-                        {/*        onClick={() => mapRef.current && mapRef.current.setView(center, isMobile ? defaultZoomMobile : defaultZoom)}>*/}
-                        {/*        <div style={{marginTop: '-1px'}}>*/}
-                        {/*            <FontAwesomeIconLite icon={faRotateRight} style={{lineHeight: '10px'}}/>*/}
-                        {/*        </div>*/}
-                        {/*    </button>*/}
-                        {/*</Control>*/}
-                    </MapContainer>
-                </div>
+                                        {distributions.map((dist, idx) => (
+                                            <LayersControl.Overlay key={idx} checked={dist.checked} name={dist.areaName + ', ' + dist.dataResourceName}>
+                                                <WMSTileLayer
+                                                    url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${dist.geomIdx}&`}
+                                                    layers='ALA:Distributions'
+                                                    format='image/png'
+                                                    styles='polygon'
+                                                    transparent={true}
+                                                    opacity={0.6}
+                                                    attribution={dist.dataResourceName}
+                                                    zIndex={20}
+                                                />
+                                            </LayersControl.Overlay>
+                                        ))}
+                                    </LayersControl>
+                                )}
+                                <Control prepend position='bottomleft'>
+                                    {showOccurrences && hexValuesScaled && <Legend fillOpacity={recordLayerOpacity} hexBinValues={hexBinValues} />}
+                                </Control>
+                            </MapContainer>
+                        </div>
+                    </div>
+                )}
             </div>
-        </div>
-        {!isMobile && <hr className={classes.hrColour} style={{marginTop: '30px', marginBottom: '40px'}}/>}
-        <span className={classes.speciesDescriptionTitle}
-              style={{marginTop: isMobile ? '15px' : '0px'}}>Getting started</span>
-        <div className="d-flex flex-wrap"
-             style={{rowGap: isMobile ? '15px' : '40px', columnGap: '30px', marginTop: isMobile ? '15px' : '30px'}}>
-            {onlineResources.map((resource, idx) => (
-                <a href={resource.url} key={idx} className="btn ala-btn-primary ala-btn-large"
-                   style={{width: isMobile ? '100%' : ''}}>
-                    {resource.name}
-                </a>
-            ))}
-        </div>
-    </>;
+            {!isMobile && <hr className={classes.hrColour} style={{ marginTop: '30px', marginBottom: '40px' }} />}
+            <span className={classes.speciesDescriptionTitle} style={{ marginTop: isMobile ? '15px' : '0px' }}>
+                Getting started
+            </span>
+            <div className='d-flex flex-wrap' style={{ rowGap: isMobile ? '15px' : '40px', columnGap: '30px', marginTop: isMobile ? '15px' : '30px' }}>
+                {onlineResources.map((resource, idx) => (
+                    <a href={resource.url} key={idx} className='btn ala-btn-primary ala-btn-large' style={{ width: isMobile ? '100%' : '' }}>
+                        {resource.name}
+                    </a>
+                ))}
+            </div>
+        </>
+    );
 }
 
 export default MapView;

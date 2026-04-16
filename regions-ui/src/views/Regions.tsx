@@ -503,7 +503,7 @@ function Regions({ setBreadcrumbs }: RegionsProps) {
                                 {selectedObject && (
                                     <>
                                         <button
-                                            className="btn btn-sm btn-default"
+                                            className="btn btn-outline-dark"
                                             onClick={openObject}
                                             style={{maxWidth: '300px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}
                                             title={selectedObject.name}
@@ -511,7 +511,7 @@ function Regions({ setBreadcrumbs }: RegionsProps) {
                                             {selectedObject.name}
                                         </button>
                                         <button
-                                            className="btn btn-sm btn-default ms-3"
+                                            className="btn btn-outline-dark ms-3"
                                             onClick={zoomToObject}
                                         >
                                             <FontAwesomeIconLite
@@ -522,7 +522,7 @@ function Regions({ setBreadcrumbs }: RegionsProps) {
                                     </>
                                 )}
                                 <button
-                                    className="btn btn-sm btn-default ms-3"
+                                    className="btn btn-outline-dark ms-3"
                                     onClick={resetMap}
                                     disabled={!mapStateChanged}
                                 >

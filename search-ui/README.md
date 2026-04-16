@@ -59,9 +59,6 @@ VITE_PROFILE_USERID=cognito:username
 # Admin role is 'ROLE_ADMIN' (OIDC) or 'admin' (Cognito)
 VITE_ADMIN_ROLE=admin
 
-# Base URL to output of taxon-bhl tool
-VITE_TAXON_BHL_URL=https://static.test.ala.org.au/taxon-bhl
-
 # URLs for various ALA services
 VITE_APP_BIOCACHE_UI_URL=https://biocache.ala.org.au
 VITE_APP_BHL_URL=https://biodiversitylibrary.org
@@ -72,6 +69,12 @@ VITE_SPATIAL_URL=https://spatial.ala.org.au
 # Base URL for the output of taxon-descriptions "merge" step
 VITE_TAXON_DESCRIPTIONS_URL=http://localhost:8082/static/taxon-descriptions
 
+# Base URL for the output of taxon-traits
+VITE_TAXON_TRAITS_URL=https://static.test.ala.org.au/taxon-traits
+
+# Base URL to output of taxon-bhl tool
+VITE_TAXON_BHL_URL=https://static.test.ala.org.au/taxon-bhl
+
 VITE_SDS_INFO_URL=https://support.ala.org.au/support/solutions/articles/6000261705-working-with-threatened-migratory-and-sensitive-species-information-in-the-ala
 
 VITE_BIOCACHE_UI_URL=https://biocache.ala.org.au
@@ -80,6 +83,16 @@ VITE_ALA_NATIVE_INTRODUCED_INFO_URL=https://lists.ala.org.au/speciesListItem/lis
 
 VITE_APP_ALERTS_URL=https://alerts.ala.org.au
 VITE_APP_ALERT_RESOURCE_NAME=Atlas of Living Australia
+
+# Species map config. At least one map type must be enabled.
+VITE_LEAFLET_MAP_ENABLED=true
+VITE_TAXON_MAP_ENABLED=true
+# Required when VITE_TAXON_MAP_ENABLED=true. Base URL for the output of taxon-map tool. 
+VITE_TAXON_MAP_URL=http://localhost:8082/static/taxon-map
+# Required when VITE_TAXON_MAP_ENABLED=true. Comma separated list of taxon-map types to show, e.g. "aus,region,world".
+VITE_TAXON_MAP_ZOOMS=aus,region,world
+# Required when VITE_TAXON_MAP_ENABLED=true. Comma separated list of taxon-map base maps to show, e.g. "base".
+VITE_TAXON_MAP_BASE_LAYERS=base
 ```
 
 ## Other configuration

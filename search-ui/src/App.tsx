@@ -10,7 +10,6 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
 import Search from './views/Search.tsx';
 import Species from './views/Species';
-import 'bootstrap/dist/css/bootstrap.css';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -47,7 +46,6 @@ const App: React.FC = () => {
         injectCommonInfo(
             buildInfo,
             import.meta.env.VITE_ENV,
-            import.meta.env.VITE_COMMON_JS,
             import.meta.env.VITE_COMMON_CSS,
             setCssLoaded
         );
@@ -82,6 +80,9 @@ const App: React.FC = () => {
             logoutFn={handleLogout}
             loginFn={handleLogin}
             headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+            searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
+            jsUrl={import.meta.env.VITE_COMMON_JS}
+            containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}
         />
 
         <Breadcrumbs breadcrumbs={breadcrumbs}/>

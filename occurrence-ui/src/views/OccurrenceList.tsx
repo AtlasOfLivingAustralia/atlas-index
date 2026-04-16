@@ -438,7 +438,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                 <input type="text" className="form-control mt-2"
                                        value={quickSearch} onChange={(e) => setQuickSearch(e.target.value)}
                                 />
-                                <button className="btn border-black mt-2"
+                                <button className="btn btn-outline-dark mt-2"
                                         onClick={() => doQuickSearch()}><FormattedMessage id={'list.advancedsearchlink.button.label'} defaultMessage={'Quick saerch'}/>
                                 </button>
                             </div>
@@ -448,7 +448,7 @@ function OccurrenceList({setBreadcrumbs}: {
                     <div className="clearfix row" id="searchInfoRow">
                         <div className="col-md-3 col-sm-3">
                             <div style={{marginBottom: "10px"}}>
-                                <div className="btn tooltips border-black btn-sm"
+                                <div className="btn tooltips btn-outline-dark btn-sm"
                                      title={intl.formatMessage({id:'search.filter.customise.title', defaultMessage:"Customise the contents of this column"})}
                                      onClick={() => openCustomizeFilters()}>
                                     <i className="bi bi-gear-fill me-1"></i><FormattedMessage id={'search.filter.customise'} defaultMessage={'Customise filters'}/>
@@ -477,7 +477,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                          onClick={() => download()}>
                                         <i className="bi bi-download me-1"></i><FormattedMessage id={'list.downloads.navigator'} defaultMessage={'Download'}/>
                                     </div>
-                                    <div id="downloads" className="btn btn-sm border-black ms-1"
+                                    <div id="downloads" className="btn btn-sm btn-outline-dark ms-1"
                                          title={intl.formatMessage({id: 'list.copylinks.dlg.copybutton.title', defaultMessage: "Click to view the URL for the JSON version of this search request"})}
                                          onClick={() => api()}>
                                         <i className="bi bi-file-code me-1"></i>API

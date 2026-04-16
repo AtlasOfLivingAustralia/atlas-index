@@ -285,7 +285,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
                         </table>
                     </Tab>
                     <Tab eventKey="log" title="Log">
-                        <div className="d-flex w-100 align-items-center alert alert-secondary">
+                        <div className="d-flex w-100 align-items-center alert alert-dark">
                             <select className="custom-select w-25" id="filter"
                                     onChange={(e) => {
                                         setLogFilter(e.target.value);

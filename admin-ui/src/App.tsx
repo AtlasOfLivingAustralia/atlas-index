@@ -18,7 +18,6 @@ import {
     UserInfo,
 } from '@ala/common-ui';
 import {useEffect, useRef, useState} from 'react';
-import 'bootstrap/dist/css/bootstrap.css';
 import {Route, Routes} from 'react-router-dom';
 import buildInfo from './buildInfo.json';
 import AtlasAdmin from './views/AtlasAdmin.tsx';
@@ -51,7 +50,7 @@ export default function App() {
 
     // Common UI
     useEffect(() => {
-        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_JS, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
 
         checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
 
@@ -83,7 +82,8 @@ export default function App() {
         <main>
             <UserContext.Provider value={{userInfo, setUserInfo}}>
                 <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper}
-                        headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}/>
+                        headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}
+                        searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX} jsUrl={import.meta.env.VITE_COMMON_JS}/>
 
                 <Breadcrumbs breadcrumbs={breadcrumbs}/>
 

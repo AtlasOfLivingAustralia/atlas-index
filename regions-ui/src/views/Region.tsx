@@ -755,7 +755,7 @@ function Region({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                     <div className='d-flex justify-content-between'>
                         <h2>{object.name}</h2>
                         <div>
-                            <button className='btn btn-sm btn-primary' onClick={createAlert}>
+                            <button className='btn btn-primary' onClick={createAlert}>
                                 Alerts
                             </button>
                         </div>
@@ -807,10 +807,10 @@ function Region({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                                                             </div>
                                                             {species.label === selectedSpecies && (
                                                                 <div className='d-flex pb-2'>
-                                                                    <button className='btn btn-default btn-sm ms-3' onClick={() => openSpeciesPage(species)}>
+                                                                    <button className='btn btn-outline-dark ms-3' onClick={() => openSpeciesPage(species)}>
                                                                         Species profile
                                                                     </button>
-                                                                    <button className='btn btn-default btn-sm ms-3' onClick={() => openBiocacheForSpecies(species)}>
+                                                                    <button className='btn btn-outline-dark ms-3' onClick={() => openBiocacheForSpecies(species)}>
                                                                         List records
                                                                     </button>
                                                                 </div>
@@ -822,10 +822,10 @@ function Region({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                                     </div>
 
                                     <div className='d-flex mt-3'>
-                                        <button className='btn btn-sm btn-default' onClick={() => openBiocacheForSpecies(null)}>
+                                        <button className='btn btn-outline-dark' onClick={() => openBiocacheForSpecies(null)}>
                                             View records
                                         </button>
-                                        <button className='btn btn-sm btn-default ms-3' onClick={openDownloadLink}>
+                                        <button className='btn btn-outline-dark ms-3' onClick={openDownloadLink}>
                                             Download records
                                         </button>
                                     </div>
@@ -846,10 +846,10 @@ function Region({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                                     </div>
                                     {currentRank > 0 && (
                                         <div className='d-flex mt-3'>
-                                            <button className='btn btn-sm btn-default' onClick={drillUpChart}>
+                                            <button className='btn btn-outline-dark' onClick={drillUpChart}>
                                                 Previous rank
                                             </button>
-                                            <button className='btn btn-sm btn-default ms-3' onClick={() => openBiocacheForSpecies(null)}>
+                                            <button className='btn btn-outline-dark ms-3' onClick={() => openBiocacheForSpecies(null)}>
                                                 View records for {ranks[currentRank - 1]} {selectedRanks[currentRank - 1]}
                                             </button>
                                         </div>

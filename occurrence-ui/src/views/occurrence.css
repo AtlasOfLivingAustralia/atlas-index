@@ -646,9 +646,8 @@ li.ac_over, li.ac_over div, li.ac_over b {
     text-align: right;
 }
 
-.leaflet-popup-content .btn btn-default btn-default-xs {
+.leaflet-popup-content {
     font-size: 12px;
-    font-weight: bold;
 }
 
 a:link, a:visited, #content2 a:link, #content2 a:visited {
@@ -775,7 +774,7 @@ body #main-content #customiseFacetsButton > .dropdown-menu, #main-content #resul
 }
 
 .breadcrumb-list {
-    margin-left: 25px;
+    margin-left: 0;
 }
 
 @media only screen and (max-width : 992px) {
@@ -817,27 +816,6 @@ h3 {
 
 .table-condensed>thead>tr>th, .table-condensed>thead>tr>td, .table-condensed>tbody>tr>th, .table-condensed>tbody>tr>td, .table-condensed>tfoot>tr>th, .table-condensed>tfoot>tr>td {
     padding: 5px;
-}
-
-.btn, .gform_button {
-    display: inline-block;
-    margin-bottom: 0;
-    font-weight: 400;
-    text-align: center;
-    white-space: nowrap;
-    vertical-align: middle;
-    touch-action: manipulation;
-    cursor: pointer;
-    background-image: none;
-    border: 1px solid transparent;
-    padding: 6px 12px;
-    font-size: 14px;
-    line-height: 1.428571429;
-    border-radius: 4px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
 }
 
 .row > * {
