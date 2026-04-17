@@ -1697,8 +1697,16 @@ public class ElasticService {
                     for (int i = 0; i < fieldsSplit.length; i++) {
                         String field = fieldsSplit[i];
                         if (item.fields().get(field) != null) {
-                            String value = item.fields().get(field).toJson().asJsonArray().getJsonString(0).getString();
-                            row[i] = value;
+                            jakarta.json.JsonArray arr = item.fields().get(field).toJson().asJsonArray();
+                            StringBuilder sb = new StringBuilder();
+                            for (int k = 0; k < arr.size(); k++) {
+                                if (k > 0) sb.append('|');
+                                jakarta.json.JsonValue jv = arr.get(k);
+                                sb.append((jv instanceof jakarta.json.JsonString)
+                                        ? ((jakarta.json.JsonString) jv).getString()
+                                        : jv.toString());
+                            }
+                            row[i] = sb.toString();
                             columnCount[i]++;
                         } else {
                             row[i] = "";
