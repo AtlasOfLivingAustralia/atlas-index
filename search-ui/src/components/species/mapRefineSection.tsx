@@ -54,6 +54,7 @@ function MapRefineSection({
 
             <RefineSection
                 title="Layers"
+                lessNumber={5}
                 items={[
                     {
                         label: 'Occurrence records',

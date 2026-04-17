@@ -335,7 +335,10 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
                                                     styles='polygon'
                                                     transparent={true}
                                                     opacity={0.6}
-                                                    attribution={dist.dataResourceName}
+                                                    attribution={
+                                                        // remove duplicates
+                                                        distributions.findIndex(d => d.dataResourceName === dist.dataResourceName) === idx ? dist.dataResourceName : undefined
+                                                    }
                                                     zIndex={20}
                                                 />
                                             </LayersControl.Overlay>

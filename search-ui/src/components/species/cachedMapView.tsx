@@ -325,7 +325,7 @@ function CachedMapView({ result, isMobile, showOccurrences, onToggleOccurrences,
 
                             attr?.distributions?.forEach(d => {
                                 const match = distributions.find(pd => String(pd.geomIdx) === String(d.geomIdx));
-                                if (match?.checked !== false && d.text) parts.push(d.text);
+                                if (match?.checked !== false && d.text && !parts.includes(d.text)) parts.push(d.text);
                             });
 
                             if (parts.length === 0) return null;
