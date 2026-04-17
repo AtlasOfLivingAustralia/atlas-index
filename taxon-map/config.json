@@ -1,0 +1,31 @@
+{
+  "biocacheUrl": "https://biocache-ws.test.ala.org.au/ws",
+  "bieUrl": "http://localhost:8081",
+  "spatialUrl": "https://spatial.ala.org.au",
+  "osmZxyUrl": "https://spatial.ala.org.au/osm/{z}/{x}/{y}.png",
+  "globalFq": "&qualityProfile=ALA",
+  "outputDir": "/data/search-service/data/taxon-map",
+  "acceptedCsv": "/data/search-service/data/accepted25.csv",
+  "occurrenceCountsCsv": "/data/search-service/data/occurrenceCounts.cache",
+  "threads": 1,
+  "userAgent": "taxon-map/1.0",
+  "imageWidth": 870,
+  "imageHeight": 530,
+  "mapLayerOpacity": 0.7,
+  "mapCentreLat": -28,
+  "mapCentreLng": 133,
+  "mapDefaultZoom": 4,
+  "mapDefaultZoomMobile": 3,
+  "hexBinColours": [
+    ["FFC577", 1],
+    ["E28946", 10],
+    ["D36B3D", 100],
+    ["C44D34", 1000],
+    ["802937", null]
+  ],
+  "zooms": [
+    { "id": "aus", "label": "Australia", "zoom": 4, "bbox": [112, -44, 154, -9] },
+    { "id": "region", "label": "Region", "zoom": 3, "bbox": [102, -54, 164, 1] },
+    { "id": "world", "label": "World", "zoom": 1, "bbox": [-180, -90, 180, 90] }
+  ]
+}
