@@ -47,7 +47,7 @@ function MapRefineSection({
     onToggleCachedMap,
 }: MapRefineSectionProps): JSX.Element {
     return (
-        <div style={{paddingLeft: '5px'}}>
+        <div>
             <span className={classes.refineTitle} style={{display: 'block'}}>
                 Refine map
             </span>

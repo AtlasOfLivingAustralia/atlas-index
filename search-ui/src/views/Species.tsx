@@ -29,6 +29,7 @@ import '../css/nameFormatting.css';
 import StatusView from '../components/species/statusView.tsx';
 import TraitsView from '../components/species/traitsView.tsx';
 import capitalizeFirstLetter from '../helpers/Capitalise.ts';
+import IMAGE_PLACEHOLDER from '../image/missing-image.png';
 
 function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
     const [tab, setTab] = useHashState('tab', 'map');
@@ -199,6 +200,16 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
 
     return <div className={'speciesPage'} style={{backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}>
         <div className={classes.speciesHeader + ' container-fluid'} style={{marginTop: '-47px'}}>
+            <div style={{
+                maxWidth: '1200px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                paddingTop: '20px'
+            }}>
+                <span className={classes.speciesHeaderName}
+                      dangerouslySetInnerHTML={{__html: result.nameFormatted || result.name}}/>
+            </div>
+
             <div className="d-flex" style={{
                 maxWidth: '1200px',
                 marginLeft: 'auto',
@@ -207,10 +218,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                 paddingBottom: isMobile ? '15px' : '60px',
             }}>
                 <div style={{width: isMobile ? '100%' : '50%'}}>
-                    <span className={classes.speciesHeaderName}>
-                        <FormatName name={result.name} rankId={result.rankID}/>
-                    </span>
-                    <span className={classes.speciesHeaderRank} style={{marginTop: '5px', marginBottom: '25px'}}>
+                    <span className={classes.speciesHeaderRank} style={{marginBottom: '25px'}}>
                         {capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}{result.speciesGroup && <>, {result.speciesGroup[0]}</>}
                     </span>
 
@@ -225,10 +233,15 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                         idx < 2 && <span className={classes.speciesHeaderVernacular}
                                          key={idx}>{item.name} in{' '} {item.languageName}</span>
                     )}
-                    <a className={classes.speciesLink} onClick={(e) => {
-                        e.preventDefault();
-                        setTab('names');
-                    }}>More names</a>
+                    {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length > 0 &&
+                        <a className={classes.speciesLink} onClick={(e) => {
+                            e.preventDefault();
+                            setTab('names');
+                            setTimeout(() => {
+                                document.getElementById('indigenous-names-heading')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+                            }, 50);
+                        }}>{result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length === 1 ? 'View this Indigenous name' : `View all ${result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length} Indigenous names`}</a>
+                    }
 
                     {result.heroDescription && (
                         <span style={{marginTop: '15px'}} className={classes.speciesHeaderDescription}
@@ -260,6 +273,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                                         <img className={classes.headerImage}
                                              src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
                                              alt="species image"
+                                             onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
                                              onMouseOver={(event) => {
                                                  const target = event.target as HTMLImageElement;
                                                  target.style.transform = 'scale(1.1)';
@@ -282,6 +296,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                                        target="_blank">
                                         <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
                                              alt="species image"
+                                             onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
                                              onMouseOver={(event) => {
                                                  const target = event.target as HTMLImageElement;
                                                  target.style.transform = 'scale(1.1)';
@@ -309,6 +324,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         }} className={"d-flex flex-row"}>
             {result.image.split(',').map((id: string) =>
                 <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"
+                     onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
                      style={{borderRadius: '10px', height: '150px'}}/>
             )}
         </div>}

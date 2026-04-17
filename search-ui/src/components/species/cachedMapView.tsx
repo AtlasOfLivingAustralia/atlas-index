@@ -331,10 +331,10 @@ function CachedMapView({ result, isMobile, showOccurrences, onToggleOccurrences,
                             if (parts.length === 0) return null;
                             return (
                                 <div
-                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(parts.join(' | ')) }}
-                                    style={{ position: 'absolute', bottom: '6px', right: '8px', zIndex: 10,
-                                        backgroundColor: 'rgba(255,255,255,0.75)', borderRadius: '3px',
-                                        padding: '1px 5px', fontSize: '11px', color: '#333', lineHeight: '16px' }}
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(parts.join(', ')) }}
+                                    style={{ position: 'absolute', bottom: '0px', right: '0px', zIndex: 10,
+                                        backgroundColor: 'rgba(255,255,255,0.75)',
+                                        padding: '0px 5px', fontSize: '0.75rem', color: '#333', lineHeight: '1.4' }}
                                 />
                             );
                         })()}

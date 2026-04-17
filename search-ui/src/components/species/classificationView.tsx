@@ -172,8 +172,8 @@ function ClassificationView({result, isMobile}: ViewProps) {
                 {/* For kingdom level items */}
                 <div
                     className={`d-flex align-items-start ${classes.currentTaxa}`}
-                    style={{borderRadius: '4px', marginBottom: '3px'}}>
-                    <span className="fw-bold" style={{minWidth: 110, fontSize: isMobile ? '14px' : '16px'}}>
+                    style={{borderRadius: '4px', marginBottom: '3px', marginLeft: '10px'}}>
+                    <span className="fw-bold" style={{minWidth: 110, paddingLeft: '1rem', fontSize: isMobile ? '14px' : '16px'}}>
                         {capitalize(result?.rank)}
                     </span>
                     <Link to={`/species/${result?.guid}?tab=classification`}

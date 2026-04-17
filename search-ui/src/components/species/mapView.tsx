@@ -88,6 +88,16 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
         }
     }, [tab]);
 
+    // When switching to the interactive map, invalidate size since it was hidden during render
+    useEffect(() => {
+        if (!simpleMap) {
+            setTimeout(() => {
+                // @ts-ignore
+                mapRef.current?.invalidateSize(false);
+            }, 50);
+        }
+    }, [simpleMap]);
+
     useEffect(() => {
         if (result?.guid) {
             setCachedMapUnavailable(false);
@@ -234,16 +244,18 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
     }
 
     const sharedRefineSection = !isMobile && (
-        <MapRefineSection
-            showOccurrences={showOccurrences}
-            onToggleOccurrences={() => setShowOccurrences(prev => !prev)}
-            distributions={distributions}
-            onToggleDistribution={idx => setDistributions(prev => prev.map((d, i) => (i === idx ? { ...d, checked: !d.checked } : d)))}
-            collectionsUrl={import.meta.env.VITE_COLLECTIONS_URL}
-            noDistributionsLabel={<FormatName name={result?.name} rankId={result?.rankID} />}
-            showCachedMap={hasCachedMap && hasLeafletMap && !cachedMapUnavailable ? simpleMap : undefined}
-            onToggleCachedMap={hasCachedMap && hasLeafletMap && !cachedMapUnavailable ? (cached: boolean) => setSimpleMap(cached) : undefined}
-        />
+        <div style={{ width: '220px', flexShrink: 0 }}>
+            <MapRefineSection
+                showOccurrences={showOccurrences}
+                onToggleOccurrences={() => setShowOccurrences(prev => !prev)}
+                distributions={distributions}
+                onToggleDistribution={idx => setDistributions(prev => prev.map((d, i) => (i === idx ? { ...d, checked: !d.checked } : d)))}
+                collectionsUrl={import.meta.env.VITE_COLLECTIONS_URL}
+                noDistributionsLabel={<FormatName name={result?.name} rankId={result?.rankID} />}
+                showCachedMap={hasCachedMap && hasLeafletMap && !cachedMapUnavailable ? simpleMap : undefined}
+                onToggleCachedMap={hasCachedMap && hasLeafletMap && !cachedMapUnavailable ? (cached: boolean) => setSimpleMap(cached) : undefined}
+            />
+        </div>
     );
 
     return (
@@ -271,87 +283,84 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
             />
             <div className='d-flex flex-row gap-3' style={{ marginTop: isMobile ? '15px' : '30px' }}>
                 {sharedRefineSection}
-                {simpleMap && hasCachedMap ? (
-                    /* static map */
-                    <div style={{ minWidth: 0, width: '100%' }}>
-                        <CachedMapView
-                            result={result}
-                            isMobile={isMobile}
-                            showOccurrences={showOccurrences}
-                            onToggleOccurrences={() => setShowOccurrences(prev => !prev)}
-                            distributions={distributions}
-                            onToggleDistribution={idx => setDistributions(prev => prev.map((d, i) => (i === idx ? { ...d, checked: !d.checked } : d)))}
-                            activeZoom={activeZoom}
-                            onZoomChange={setActiveZoom}
-                            onZoomsLoaded={(zooms: CachedZoomOption[]) => {
-                                setActiveZoom(prev => (zooms.find((z: CachedZoomOption) => z.id === prev) ? prev : (zooms[0]?.id ?? '')));
-                            }}
-                            onUnavailable={() => {
-                                setCachedMapUnavailable(true);
-                                setSimpleMap(false);
-                            }}
-                        />
-                    </div>
-                ) : (
-                    /* live map */
-                    <div style={{ height: '100%', width: '100%', borderRadius: '10px' }}>
-                        <span style={{ marginBottom: '15px', display: 'block' }} className={classes.refineTitle}>
-                            {occurrenceCount >= 0 ? formatNumber(occurrenceCount) : '...'} occurrence records
-                        </span>
-                        <div style={{ position: 'relative' }}>
-                            <MapContainer
-                                ref={mapRef}
-                                center={center}
-                                zoom={isMobile ? defaultZoomMobile : defaultZoom}
-                                worldCopyJump={true}
-                                style={{ height: '530px', borderRadius: '10px' }}
-                                whenReady={() => setMapReady(true)}
-                            >
-                                {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
-                                    <LayersControl position='topright'>
-                                        <LayersControl.BaseLayer checked name='Minimal'>
-                                            <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} />
-                                        </LayersControl.BaseLayer>
-                                        <LayersControl.BaseLayer name='Road'>
-                                            <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
-                                        </LayersControl.BaseLayer>
-                                        <LayersControl.BaseLayer name='Terrain'>
-                                            <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
-                                        </LayersControl.BaseLayer>
-                                        <LayersControl.BaseLayer name='Satellite'>
-                                            <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
-                                        </LayersControl.BaseLayer>
+                {/* static map — always mounted, hidden when not active */}
+                <div style={{ minWidth: 0, width: '100%', display: simpleMap && hasCachedMap ? 'block' : 'none' }}>
+                    <CachedMapView
+                        result={result}
+                        isMobile={isMobile}
+                        showOccurrences={showOccurrences}
+                        onToggleOccurrences={() => setShowOccurrences(prev => !prev)}
+                        distributions={distributions}
+                        onToggleDistribution={idx => setDistributions(prev => prev.map((d, i) => (i === idx ? { ...d, checked: !d.checked } : d)))}
+                        activeZoom={activeZoom}
+                        onZoomChange={setActiveZoom}
+                        onZoomsLoaded={(zooms: CachedZoomOption[]) => {
+                            setActiveZoom(prev => (zooms.find((z: CachedZoomOption) => z.id === prev) ? prev : (zooms[0]?.id ?? '')));
+                        }}
+                        onUnavailable={() => {
+                            setCachedMapUnavailable(true);
+                            setSimpleMap(false);
+                        }}
+                    />
+                </div>
+                {/* live map — always mounted, hidden when not active */}
+                <div style={{ minWidth: 0, width: '100%', maxWidth: '870px', borderRadius: '10px', display: !simpleMap || !hasCachedMap ? 'block' : 'none' }}>
+                    <span style={{ marginBottom: '15px', display: 'block' }} className={classes.refineTitle}>
+                        {occurrenceCount >= 0 ? formatNumber(occurrenceCount) : '...'} occurrence records
+                    </span>
+                    <div style={{ position: 'relative' }}>
+                        <MapContainer
+                            ref={mapRef}
+                            center={center}
+                            zoom={isMobile ? defaultZoomMobile : defaultZoom}
+                            worldCopyJump={true}
+                            style={{ height: '530px', borderRadius: '10px' }}
+                            whenReady={() => setMapReady(true)}
+                        >
+                            {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
+                                <LayersControl position='topright'>
+                                    <LayersControl.BaseLayer checked name='Minimal'>
+                                        <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} />
+                                    </LayersControl.BaseLayer>
+                                    <LayersControl.BaseLayer name='Road'>
+                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
+                                    </LayersControl.BaseLayer>
+                                    <LayersControl.BaseLayer name='Terrain'>
+                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
+                                    </LayersControl.BaseLayer>
+                                    <LayersControl.BaseLayer name='Satellite'>
+                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
+                                    </LayersControl.BaseLayer>
 
-                                        <LayersControl.Overlay checked={showOccurrences} name='Occurrence records'>
-                                            <WMSTileLayer url={getAlaWmsUrl()} layers='ALA:occurrences' format='image/png' transparent={true} opacity={showOccurrences ? recordLayerOpacity : 0} attribution='Atlas of Living Australia' zIndex={15} />
+                                    <LayersControl.Overlay checked={showOccurrences} name='Occurrence records'>
+                                        <WMSTileLayer url={getAlaWmsUrl()} layers='ALA:occurrences' format='image/png' transparent={true} opacity={showOccurrences ? recordLayerOpacity : 0} attribution='Atlas of Living Australia' zIndex={15} />
+                                    </LayersControl.Overlay>
+
+                                    {distributions.map((dist, idx) => (
+                                        <LayersControl.Overlay key={idx} checked={dist.checked} name={dist.areaName + ', ' + dist.dataResourceName}>
+                                            <WMSTileLayer
+                                                url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${dist.geomIdx}&`}
+                                                layers='ALA:Distributions'
+                                                format='image/png'
+                                                styles='polygon'
+                                                transparent={true}
+                                                opacity={0.6}
+                                                attribution={
+                                                    // remove duplicates
+                                                    distributions.findIndex(d => d.dataResourceName === dist.dataResourceName) === idx ? dist.dataResourceName : undefined
+                                                }
+                                                zIndex={20}
+                                            />
                                         </LayersControl.Overlay>
-
-                                        {distributions.map((dist, idx) => (
-                                            <LayersControl.Overlay key={idx} checked={dist.checked} name={dist.areaName + ', ' + dist.dataResourceName}>
-                                                <WMSTileLayer
-                                                    url={`${import.meta.env.VITE_SPATIAL_URL}/geoserver/wms?styles=polygon&viewparams=s:${dist.geomIdx}&`}
-                                                    layers='ALA:Distributions'
-                                                    format='image/png'
-                                                    styles='polygon'
-                                                    transparent={true}
-                                                    opacity={0.6}
-                                                    attribution={
-                                                        // remove duplicates
-                                                        distributions.findIndex(d => d.dataResourceName === dist.dataResourceName) === idx ? dist.dataResourceName : undefined
-                                                    }
-                                                    zIndex={20}
-                                                />
-                                            </LayersControl.Overlay>
-                                        ))}
-                                    </LayersControl>
-                                )}
-                                <Control prepend position='bottomleft'>
-                                    {showOccurrences && hexValuesScaled && <Legend fillOpacity={recordLayerOpacity} hexBinValues={hexBinValues} />}
-                                </Control>
-                            </MapContainer>
-                        </div>
+                                    ))}
+                                </LayersControl>
+                            )}
+                            <Control prepend position='bottomleft'>
+                                {showOccurrences && hexValuesScaled && <Legend fillOpacity={recordLayerOpacity} hexBinValues={hexBinValues} />}
+                            </Control>
+                        </MapContainer>
                     </div>
-                )}
+                </div>
             </div>
             {!isMobile && <hr className={classes.hrColour} style={{ marginTop: '30px', marginBottom: '40px' }} />}
             <span className={classes.speciesDescriptionTitle} style={{ marginTop: isMobile ? '15px' : '0px' }}>

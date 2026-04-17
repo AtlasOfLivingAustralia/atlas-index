@@ -145,7 +145,6 @@
     /* Desktop/H2/Semibold */
     /*-webkit-text-stroke-width: 1;*/
     -webkit-text-stroke-color: #000;
-    font-family: Roboto;
     font-size: 44px;
     font-style: normal;
     font-weight: 600;
@@ -188,9 +187,8 @@
 
 .speciesHeaderName {
     font-weight: 600;
-    font-size: 52px;
-    line-height: 58px;
-    font-family: 'Roboto';
+    font-size: 32px; /*52px;*/
+    line-height: 40px; /*58px;*/
     color: #212121;
     display: block;
     overflow-wrap: anywhere;
@@ -200,8 +198,8 @@
     .speciesHeaderName {
         font-style: italic;
         font-weight: 600;
-        font-size: 34px;
-        line-height: 38px;
+        font-size: 20px; /*34px;*/
+        line-height: 26px; /*38px;*/
     }
 }
 
@@ -324,7 +322,7 @@
     line-height: 20px;
     display: block;
     position: relative;
-    padding-left: 14px;
+    /*padding-left: 14px;*/
 }
 
 @media (max-width: 768px) {
@@ -334,18 +332,18 @@
     }
 }
 
-.speciesHeaderRank::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #333; /* or your preferred color */
-    display: inline-block;
-}
+/*.speciesHeaderRank::before {*/
+/*    content: '';*/
+/*    position: absolute;*/
+/*    left: 0;*/
+/*    top: 50%;*/
+/*    transform: translateY(-50%);*/
+/*    width: 7px;*/
+/*    height: 7px;*/
+/*    border-radius: 50%;*/
+/*    background: #333; !* or your preferred color *!*/
+/*    display: inline-block;*/
+/*}*/
 
 .speciesHeaderVernacular {
     font-size: 20px;
@@ -668,7 +666,6 @@
 }
 
 .mobileSectionTitle {
-    font-family: 'Roboto';
     font-style: normal;
     font-weight: 600;
     font-size: 22px;
