@@ -29,6 +29,7 @@ import groupedFacets from "../config/searchGroupedFacets.json";
 import defaultFacets from "../config/defaultFacets.json";
 
 const sortOrder = ['asc', 'desc'] as const
+
 function OccurrenceList({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
@@ -36,24 +37,15 @@ function OccurrenceList({setBreadcrumbs}: {
 
     const [tab, setTab] = useState('records');
 
-    // quick search
     const [quickSearch, setQuickSearch] = useState('');
 
     const [lastSearch, setLastSearch] = useState('');
 
-    // searching
-    // const [query, setQuery] = useQueryState('q');
-    // const [fq, setFq] = useQueryState('fq', parseAsNativeArrayOf(parseAsString).withDefault([]));
-
-    //const [lastSearch, setLastSearch] = useState('');
     const [result, setResult] = useState<OccurrenceListResult>({ occurrences: [], totalRecords: 0 });
     const [pageSize, setPageSize] = useQueryState('pageSize', parseAsInteger.withDefault(20));
     const [sort, setSort] = useQueryState('sort', { defaultValue: 'first_loaded_date'});
     const [dir, setDir] = useQueryState('order', parseAsStringLiteral(sortOrder).withDefault('desc'));
     const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
-    // const [qualityProfile, setQualityProfile] = useQueryState('qualityProfile');
-    // const [disableAllQualityFilters, setDisableAllQualityFilters] = useQueryState('disableAllQualityFilters', parseAsBoolean);
-    // const [disableQualityFilter, setDisableQualityFilter] = useQueryState('disableQualityFilter',parseAsNativeArrayOf(parseAsString).withDefault([]));
 
     const [chartsData, setChartsData] = useState<any>([]);
 
@@ -88,11 +80,15 @@ function OccurrenceList({setBreadcrumbs}: {
         const qs = location.search;
         if (!qs) return '';
         const urlParams = new URLSearchParams(qs.startsWith('?') ? qs.substring(1) : qs);
-        urlParams.delete('pageSize');
-        urlParams.delete('sort');
-        urlParams.delete('dir');
-        urlParams.delete('order');
-        urlParams.delete('start');
+
+        // whitelist of query params to limit query only params
+        // excludes include; paging, sorting, facets, im
+        const whitelist = ['q', 'fq', 'qualityProfile', 'disableQualityFilter', 'disableAllQualityFilters', 'wkt', 'radius', 'lat', 'lon'];
+        for (let param of urlParams.keys()) {
+            if (!whitelist.includes(param)) {
+                urlParams.delete(param);
+            }
+        }
         return '?' + urlParams.toString();
     });
 

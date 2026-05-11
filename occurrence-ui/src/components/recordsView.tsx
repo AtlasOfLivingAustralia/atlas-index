@@ -70,7 +70,10 @@ function RecordsView({
                     <div className='d-flex'>
                         <span className='ms-auto'></span>
                         <span className='hidden-sm'><FormattedMessage id="list.sortwidgets.span01" defaultMessage="per"/></span>&nbsp;<FormattedMessage id="list.sortwidgets.span02" defaultMessage="page"/>:
-                        <select id='per-page' name='per-page' className='input-small me-2 ms-1' value={pageSize} onChange={e => setPageSize(parseInt(e.target.value) || 20)}>
+                        <select id='per-page' name='per-page' className='input-small me-2 ms-1' value={pageSize} onChange={e => {
+                            setPageSize(parseInt(e.target.value) || 20);
+                            setPage(1);
+                        }}>
                             <option value='10'>10</option>
                             <option value='20'>20</option>
                             <option value='50'>50</option>
@@ -78,7 +81,10 @@ function RecordsView({
                         </select>
                         &nbsp;
                         <FormattedMessage id='list.sortwidgets.sort.label' defaultMessage='sort' />:
-                        <select id='sort' name='sort' className='input-small me-2 ms-1' value={sort} onChange={e => setSort(e.target.value || 'first_loaded_date')}>
+                        <select id='sort' name='sort' className='input-small me-2 ms-1' value={sort} onChange={e => {
+                            setSort(e.target.value || 'first_loaded_date');
+                            setPage(1);
+                        }}>
                             <option value='score'>
                                 <FormattedMessage id='list.sortwidgets.sort.option01' defaultMessage='Best match' />
                             </option>
@@ -103,7 +109,10 @@ function RecordsView({
                         </select>
                         &nbsp;
                         <FormattedMessage id='list.sortwidgets.dir.label' defaultMessage='order' />:
-                        <select id='dir' name='dir' className='input-small ms-1' value={dir} onChange={e => setDir(e.target.value || 'desc')}>
+                        <select id='dir' name='dir' className='input-small ms-1' value={dir} onChange={e => {
+                            setDir(e.target.value || 'desc');
+                            setPage(1);
+                        }}>
                             <option value='asc'>
                                 <FormattedMessage id='list.sortwidgets.dir.option01' defaultMessage='Ascending' />
                             </option>

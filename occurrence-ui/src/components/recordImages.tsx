@@ -56,7 +56,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
 
     function loadImages(page: number) {
         setLoading(true);
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search?" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize))
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize))
             .then(response => response.json())
             .then(data => {
                 setLoading(false);

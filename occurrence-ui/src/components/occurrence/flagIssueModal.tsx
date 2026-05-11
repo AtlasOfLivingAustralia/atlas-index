@@ -235,7 +235,9 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
         <Modal show onHide={onClose} size='lg'>
             <Modal.Header closeButton>
                 <Modal.Title>
-                    {isEditMode ? <FormattedMessage id='show.loginorflag.title.edit' defaultMessage='Edit an issue' /> : <FormattedMessage id='show.loginorflag.title' defaultMessage='Flag an issue' />}
+                    {isEditMode ?
+                        <FormattedMessage id='show.loginorflag.title.edit' defaultMessage='Edit an issue' />
+                        : <FormattedMessage id='show.loginorflag.title' defaultMessage='Flag an issue' />}
                     {import.meta.env.VITE_HELP_FLAG_ISSUE_URL && (
                         <a href={import.meta.env.VITE_HELP_FLAG_ISSUE_URL} target='_blank' rel='noreferrer' style={{ fontSize: '14px', marginLeft: '10px' }}>
                             <FontAwesomeIcon icon={faQuestionCircle} />

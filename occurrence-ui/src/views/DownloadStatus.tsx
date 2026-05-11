@@ -283,20 +283,18 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
 
             // TODO: This should be a POST, but only URL params are supported for now
             let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}`;
-            console.log("download URL sent to biocache", url);
-            alert("URL that would be sent: " + url);
-            // fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
-            //     .then(response => response.json())
-            //     .then(json => {
-            //         setJson(json);
-            //         if (json?.statusUrl) {
-            //             reloadStatus(json.statusUrl);
-            //         }
-            //     })
-            //     .catch(error => {
-            //         setError(error);
-            //         setShowProgress(false);
-            //     });
+            fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
+                .then(response => response.json())
+                .then(json => {
+                    setJson(json);
+                    if (json?.statusUrl) {
+                        reloadStatus(json.statusUrl);
+                    }
+                })
+                .catch(error => {
+                    setError(error);
+                    setShowProgress(false);
+                });
         });
     }
 

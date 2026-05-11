@@ -142,6 +142,8 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
             if (data.facetResults && data.facetResults.length > 0) {
                 let list = data.facetResults[0].fieldResult;
                 setFacetData(prevFacetData => ({...prevFacetData, [currentFacet]: list.filter((item: FacetItem) => !item.fq.endsWith('*'))}));
+            } else {
+                setFacetData(prevFacetData => ({...prevFacetData, [currentFacet]: []}));
             }
 
             // fetch next
@@ -239,30 +241,33 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
 
                     {groupData[groupName].isOpen && groupData[groupName].facets.map((facet, idx) =>
                         <div key={idx}>
-                            <div className="facetsGroup" id={"group_" + facet}>
-                                <h4><span className="FieldName" style={{ marginLeft: '5px'}}><FormattedMessage id={"facet." + facet} defaultMessage={facet}/></span></h4>
-                                <div className="subnavlist nano" style={{clear: "left"}}>
-                                    <ul className="facets nano-content">
-                                        {Array.isArray(facetData[facet]) ? facetData[facet].map((item: { fq: string; label: string; count: number, i18nCode: string }, idx) =>
-                                            <li key={idx}>
-                                                <a className="facet-item"
-                                                     title={"Filter results by " + item.label}
-                                                      href={'/occurrences/search' + (search || '') + '&fq=' + encodeURIComponent(item.fq)}>
-                                                    <i className="bi bi-square me-1"></i><span><FormattedMessage id={item.i18nCode} defaultMessage={item.label}/> ({intl.formatNumber(item.count)})</span>
-                                                </a>
-                                            </li>
-                                        ) : <div className="spinner-border" style={{width:'14px', height: '14px'}}/>}
-                                    </ul>
-                                </div>
-
-                                {facetData[facet] && facetData[facet].length >= flimitValue &&
-                                    <div className="multipleFacetsLink"
-                                         title={intl.formatMessage({id: 'search.facets.see.more.options'})}
-                                         onClick={() => chooseMore(facet)}>
-                                        <FontAwesomeIconLite icon={faList}/> <FormattedMessage id='facets.facetfromgroup.link' defaultMessage='choose more...'/>
+                            {(!Array.isArray(facetData[facet]) || facetData[facet].length > 0) &&
+                                <div className="facetsGroup" id={"group_" + facet}>
+                                    <h4><span className="FieldName" style={{ marginLeft: '5px'}}><FormattedMessage id={"facet." + facet} defaultMessage={facet}/></span></h4>
+                                    <div className="subnavlist nano" style={{clear: "left"}}>
+                                        <ul className="facets nano-content">
+                                            {Array.isArray(facetData[facet]) ? facetData[facet].map((item: { fq: string; label: string; count: number, i18nCode: string }, idx) =>
+                                                <li key={idx}>
+                                                    <a className="facet-item"
+                                                         title={"Filter results by " + item.label}
+                                                          href={'/occurrences/search' + (search || '') + '&fq=' + encodeURIComponent(item.fq)}>
+                                                        <i className="bi bi-square me-1"></i><span><FormattedMessage id={item.i18nCode} defaultMessage={item.label}/> ({intl.formatNumber(item.count)})</span>
+                                                    </a>
+                                                </li>
+                                            ) : <div className="spinner-border" style={{width:'14px', height: '14px'}}/>}
+                                        </ul>
                                     </div>
-                                }
-                            </div>
+
+                                    {facetData[facet] && facetData[facet].length >= flimitValue &&
+                                        <div className="multipleFacetsLink"
+                                             title={intl.formatMessage({id: 'search.facets.see.more.options'})}
+                                             onClick={() => chooseMore(facet)}>
+                                            <FontAwesomeIconLite icon={faList}/> <FormattedMessage id='facets.facetfromgroup.link' defaultMessage='choose more...'/>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            
                         </div>
                     )}
                 </div>

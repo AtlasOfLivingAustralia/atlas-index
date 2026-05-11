@@ -309,7 +309,6 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
-
     }
 
     function handleSearch(query: string) {
@@ -350,6 +349,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                         <Typeahead
                                             id="simple-taxa-autocomplete"
                                             labelKey="name"
+                                            minLength={3}
                                             onInputChange={query => {
                                                 setSimpleTaxa(query);
                                                 handleSearch(query);
