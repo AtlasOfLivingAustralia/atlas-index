@@ -28,7 +28,7 @@ interface Occurrence {
 
 interface OccurrenceListResult {
     occurrences: Occurrence[];
-    totalRecords: number;
+    totalRecords: number | undefined;
 }
 
 interface DataQualityInfo {

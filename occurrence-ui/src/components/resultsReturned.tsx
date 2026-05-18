@@ -70,7 +70,7 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
 
     return <>
         <div id="returnedText" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0 4px' }}>
-            {!results?.totalRecords && results?.totalRecords != 0
+            {results?.totalRecords === undefined
                 ? <div className="spinner-border" role="status" style={{width: "1em", height: "1em"}}><span className="visually-hidden">...</span></div>
                 : <strong>{results && new Intl.NumberFormat().format(results.totalRecords)}</strong>
             }

@@ -41,7 +41,7 @@ function OccurrenceList({setBreadcrumbs}: {
 
     const [lastSearch, setLastSearch] = useState('');
 
-    const [result, setResult] = useState<OccurrenceListResult>({ occurrences: [], totalRecords: 0 });
+    const [result, setResult] = useState<OccurrenceListResult>({ occurrences: [], totalRecords: undefined });
     const [pageSize, setPageSize] = useQueryState('pageSize', parseAsInteger.withDefault(20));
     const [sort, setSort] = useQueryState('sort', { defaultValue: 'first_loaded_date'});
     const [dir, setDir] = useQueryState('order', parseAsStringLiteral(sortOrder).withDefault('desc'));
