@@ -120,8 +120,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     }, [tab]);
 
     function simpleSearch() {
-        let simpleTaxaEscaped = simpleTaxa.replace(/"/g, '\\"');
-        navigate(`/occurrences/search?q=${encodeURIComponent("taxa:\"" + simpleTaxaEscaped + "\"")}`);
+        let simpleTaxaEscaped = simpleTaxa.replace(/"/g, '\\"').trim();
+        if (!simpleTaxaEscaped) {
+            navigate(`/occurrences/search?q=*:*`);
+        } else {
+            navigate(`/occurrences/search?q=${encodeURIComponent('taxa:"' + simpleTaxaEscaped + '"')}`);
+        }
     }
 
     function advancedSearch() {
