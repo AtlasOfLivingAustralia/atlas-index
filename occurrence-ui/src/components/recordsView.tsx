@@ -250,7 +250,7 @@ function RecordsView({
                         {Array.from(Array(9).keys()).map(idx => {
                             // rendering from page-4 to page +4
                             let lowerBound = Math.max(2, page - 4);
-                            let maxPages = Math.ceil(results.totalRecords / pageSize);
+                            let maxPages = Math.ceil((results?.totalRecords || 1)/ pageSize);
                             let p = lowerBound + idx;
                             if (p <= 20 && p <= maxPages) {
                                 return (
@@ -266,9 +266,9 @@ function RecordsView({
                             }
                         })}
 
-                        {page * pageSize < results.totalRecords && Math.min(20, page + 4) < Math.ceil(results.totalRecords / pageSize) && <button className='btn btn-outline-dark btn-sm ms-1'>..</button>}
+                        {page * pageSize < (results.totalRecords || 1) && Math.min(20, page + 4) < Math.ceil((results.totalRecords || 1) / pageSize) && <button className='btn btn-outline-dark btn-sm ms-1'>..</button>}
 
-                        {page * pageSize < results.totalRecords && page < 20 && (
+                        {page * pageSize < (results.totalRecords || 1) && page < 20 && (
                             <button className='btn btn-outline-dark btn-sm ms-1' onClick={() => setPage(page + 1)}>
                                 <FormattedMessage id={'show.nextbtn.navigator'} defaultMessage={'Next'}/> <i className='bi bi-chevron-double-right' style={{ fontSize: '11px' }}></i>
                             </button>
