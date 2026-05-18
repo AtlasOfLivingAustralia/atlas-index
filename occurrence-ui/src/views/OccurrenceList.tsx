@@ -483,11 +483,13 @@ function OccurrenceList({setBreadcrumbs}: {
                                 </div>
                             </div>
 
-                            <DataQuality dataQuality={dataQuality}
-                                         dataQualityInfo={dataQualityInfo}
-                                         updateDataQualityInfo={updateDataQualityInfo}
-                                         queryString={queryString}
-                                         addParams={addParams}/>
+                            {(result?.totalRecords || 0) > 0 &&
+                                <DataQuality dataQuality={dataQuality}
+                                             dataQualityInfo={dataQualityInfo}
+                                             updateDataQualityInfo={updateDataQualityInfo}
+                                             queryString={queryString}
+                                             addParams={addParams}/>
+                            }
 
                             <ActiveFilters
                                 queryString={queryString}
@@ -514,7 +516,9 @@ function OccurrenceList({setBreadcrumbs}: {
                                     <MapView queryString={queryString} dataQualityInfo={dataQualityInfo} tab={tab}/>
                                 </Tab>
                                 <Tab eventKey="charts" title={intl.formatMessage({id: 'list.link.t3', defaultMessage: "Charts"})}>
-                                    <Charts queryString={queryString} chartsData={chartsData} setChartsData={setChartsData}/>
+                                    { (result?.totalRecords || 0) > 0 &&
+                                        <Charts queryString={queryString} chartsData={chartsData} setChartsData={setChartsData}/>
+                                    }
                                 </Tab>
                                 <Tab eventKey="images" title={intl.formatMessage({id: 'list.link.t5', defaultMessage: "Record images"})}>
                                     <RecordImages queryString={queryString} dataQualityInfo={dataQualityInfo}/>

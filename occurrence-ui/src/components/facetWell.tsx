@@ -34,6 +34,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
     });
     const [dqCounts, setDqCounts] = useState<{ [label: string]: number | undefined }>({});
     const [showFilters, setShowFilters] = useState(false);
+    const [noRecords, setNoRecords] = useState(false);
 
     const intl: IntlShape = useIntl();
 
@@ -139,6 +140,14 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
         fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count", {
             method: 'GET'
         }).then(response => response.json()).then(data => {
+            // must check totalRecords after this fetch as it is done concurrently with the parent component fetches
+            if (data.totalRecords == 0) {
+                addEmptyFacets(flist);
+                setNoRecords(true);
+
+                return;
+            }
+
             if (data.facetResults && data.facetResults.length > 0) {
                 let list = data.facetResults[0].fieldResult;
                 setFacetData(prevFacetData => ({...prevFacetData, [currentFacet]: list.filter((item: FacetItem) => !item.fq.endsWith('*'))}));
@@ -149,6 +158,16 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
             // fetch next
             fetchNextFacet(flist.slice(1));
         });
+    }
+
+    // set all remaining facets as empty so spinners resolve, do not fetch next
+    function addEmptyFacets(flist: string[]) {
+        let emptyFacetData: { [key: string]: FacetItem[] } = {};
+        for (let facet of flist) {
+            emptyFacetData[facet] = [];
+        }
+
+        setFacetData(prevFacetData => ({...prevFacetData, ...emptyFacetData}));
     }
 
     function chooseMore(label: string) {
@@ -173,7 +192,11 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
             let facetsToFetch: string[] = [];
             for (let facet of groupData[groupName].facets) {
                 if (!facetData[facet]) {
-                    facetsToFetch.push(facet);
+                    if (noRecords) {
+                        addEmptyFacets(groupData[groupName].facets);
+                    } else {
+                        facetsToFetch.push(facet);
+                    }
                 }
             }
             fetchNextFacet(facetsToFetch);
@@ -249,8 +272,8 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
                                             {Array.isArray(facetData[facet]) ? facetData[facet].map((item: { fq: string; label: string; count: number, i18nCode: string }, idx) =>
                                                 <li key={idx}>
                                                     <a className="facet-item"
-                                                         title={"Filter results by " + item.label}
-                                                          href={'/occurrences/search' + (search || '') + '&fq=' + encodeURIComponent(item.fq)}>
+                                                       title={"Filter results by " + item.label}
+                                                       href={'/occurrences/search' + (search || '') + '&fq=' + encodeURIComponent(item.fq)}>
                                                         <i className="bi bi-square me-1"></i><span><FormattedMessage id={item.i18nCode} defaultMessage={item.label}/> ({intl.formatNumber(item.count)})</span>
                                                     </a>
                                                 </li>
@@ -267,7 +290,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
                                     }
                                 </div>
                             }
-                            
+
                         </div>
                     )}
                 </div>

@@ -184,24 +184,24 @@ function RecordsView({
                                 </p>
                                 <p className='rowB'>
                                     {result.institutionName && (
-                                        <span className='resultValue me-2'>
-                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
+                                        <span className='resultValue me-2' style={{ textTransform: 'none' }}>
+                                            <span className='resultsLabel'>
                                                 <FormattedMessage id='record.institutionName.label' />:
                                             </span>
                                             {result.institutionName}
                                         </span>
                                     )}
                                     {result.collectionName && (
-                                        <span className='resultValue me-2'>
-                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
+                                        <span className='resultValue me-2' style={{ textTransform: 'none' }}>
+                                            <span className='resultsLabel'>
                                                 <FormattedMessage id='record.collectionName.label' />:
                                             </span>
                                             {result.collectionName}
                                         </span>
                                     )}
                                     {!result.collectionName && result.dataResourceName && (
-                                        <span className='resultValue me-2'>
-                                            <span className='resultsLabel' style={{ textTransform: 'none' }}>
+                                        <span className='resultValue me-2' style={{ textTransform: 'none' }}>
+                                            <span className='resultsLabel'>
                                                 <FormattedMessage id='record.dataResourceName.label' />:
                                             </span>
                                             {result.dataResourceName}
