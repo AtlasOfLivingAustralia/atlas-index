@@ -4,6 +4,22 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import { Circle, LayersControl, MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// Fix Leaflet's broken default marker icon paths when bundled with Vite
+const defaultMarkerIcon = new L.Icon({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    tooltipAnchor: [16, -28],
+    shadowSize: [41, 41],
+});
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { RecordResult } from '../../api/model.tsx';
 import ContactCuratorModal from '../contactCuratorModal.tsx';
@@ -235,7 +251,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                             </LayersControl>
                         )}
 
-                        <Marker position={latLng} />
+                        <Marker position={latLng} icon={defaultMarkerIcon} />
 
                         {record?.processed?.location?.coordinateUncertaintyInMeters && latLng && !isNaN(Number(record.processed.location.coordinateUncertaintyInMeters)) && (
                             <Circle
