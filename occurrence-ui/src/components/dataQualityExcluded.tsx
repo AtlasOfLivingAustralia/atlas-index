@@ -7,9 +7,7 @@
 import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
 import {QualityCategory} from "../api/model.tsx";
-
-// In-memory cache: lost on page refresh, not shared across tabs
-const countCache = new Map<string, number>();
+import { fetchDqCountsSequentially } from "../utils/dqCache";
 
 interface DataQualityExcludedProps {
     queryString: string | undefined,
@@ -24,19 +22,12 @@ function DataQualityExcluded({queryString, category, addParams}: DataQualityExcl
     useEffect(() => {
         if (!queryString || !category?.inverseFilter) return;
 
-        const cacheKey = queryString + ':' + category.inverseFilter;
-        if (countCache.has(cacheKey)) {
-            setCount(countCache.get(cacheKey));
-            return;
-        }
-
-        const thisQueryString = queryString + "&disableAllQualityFilters=true&fq=" + category.inverseFilter;
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString)
-            .then(response => response.json())
-            .then(data => {
-                countCache.set(cacheKey, data.totalRecords);
-                setCount(data.totalRecords);
-            });
+        fetchDqCountsSequentially(
+            import.meta.env.VITE_APP_BIOCACHE_URL,
+            queryString,
+            [category],
+            (_label, value) => setCount(value)
+        );
     }, [queryString, category?.inverseFilter]);
 
     function showOnly() {

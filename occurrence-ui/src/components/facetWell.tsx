@@ -8,9 +8,10 @@ import {FontAwesomeIconLite} from "@ala/common-ui";
 import { faCaretDown, faCaretRight, faList } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from "react";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import {DataQualityInfo, FacetItem, QualityCategory, QualityProfile} from "../api/model.tsx";
+import {DataQualityInfo, FacetItem, OccurrenceListResult, QualityCategory, QualityProfile} from "../api/model.tsx";
 import MultipleFacets from "./multipleFacets.tsx";
 import DataQualityFiltersModal from "./dataQualityFiltersModal.tsx";
+import { fetchDqCountsSequentially } from "../utils/dqCache";
 
 interface FacetWellProps {
     search?: string,
@@ -19,12 +20,13 @@ interface FacetWellProps {
     dataQuality?: QualityProfile[],
     dataQualityInfo?: DataQualityInfo,
     updateDataQualityInfo?: (dataQualityInfo: DataQualityInfo) => void,
-    addParams?: (fqs: string[], removeFqs: string[]) => void
+    addParams?: (fqs: string[], removeFqs: string[]) => void,
+    result?: OccurrenceListResult
 }
 
 const flimitValue = 5;
 
-function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityInfo, updateDataQualityInfo, addParams}: FacetWellProps) {
+function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityInfo, updateDataQualityInfo, addParams, result}: FacetWellProps) {
     const [groupData, setGroupData] = useState<{ [key: string]: {isOpen: boolean, facets: string[]}}>({});
     const [facetData, setFacetData] = useState<{ [key: string]: FacetItem []}>({})
     const [chooseMoreFacet, setChooseMoreFacet] = useState<string | null>(null);
@@ -33,6 +35,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
         return stored === null ? false : stored === 'true';
     });
     const [dqCounts, setDqCounts] = useState<{ [label: string]: number | undefined }>({});
+    const [dqProfile, setDqProfile] = useState<string | undefined>();
     const [showFilters, setShowFilters] = useState(false);
     const [noRecords, setNoRecords] = useState(false);
 
@@ -58,23 +61,35 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
     }
 
     useEffect(() => {
-        if (!activeProfile || !search) return;
-        const newCounts: { [label: string]: number | undefined } = {};
-        activeProfile.categories.forEach(cat => { newCounts[cat.label] = undefined; });
-        setDqCounts(newCounts);
+        if (!activeProfile || !search || !result?.totalRecords || !dqOpen) {
+            return;
+        }
 
-        activeProfile.categories.forEach(cat => {
-            if (!cat.inverseFilter) return;
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + search + "&disableAllQualityFilters=true&fq=" + cat.inverseFilter)
-                .then(r => r.json())
-                .then(data => setDqCounts(prev => ({ ...prev, [cat.label]: data.totalRecords })))
-                .catch(() => setDqCounts(prev => ({ ...prev, [cat.label]: 0 })));
-        });
-    }, [search, dataQualityInfo?.profile]);
+        // if profile changed, reset counts
+        if (dqProfile !== activeProfile.shortName) {
+            setDqProfile(activeProfile.shortName);
+
+            const newCounts: { [label: string]: number | undefined } = {};
+            activeProfile.categories.forEach(cat => { newCounts[cat.label] = undefined; });
+            setDqCounts(newCounts);
+        }
+
+        fetchDqCountsSequentially(
+            import.meta.env.VITE_APP_BIOCACHE_URL,
+            search,
+            activeProfile.categories,
+            (label: string, count: number) => setDqCounts(prev => ({ ...prev, [label]: count }))
+        );
+    }, [search, dataQualityInfo?.profile, result?.totalRecords, dqOpen]);
 
     useEffect(() => {
+        if (!search || !groupedFacets || !facetList || !result?.totalRecords) {
+            return;
+        }
+
         fetchData()
-    }, [search, groupedFacets, facetList])
+    }, [search, groupedFacets, facetList, result?.totalRecords])
+
 
     function lookupIsOpen(groupName: string): boolean {
         // lookup local storage value

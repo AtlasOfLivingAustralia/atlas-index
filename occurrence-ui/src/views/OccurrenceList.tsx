@@ -9,9 +9,10 @@ import {useEffect, useState} from "react";
 import { FormattedMessage, useIntl } from 'react-intl';
 import { DataQualityInfo, OccurrenceListResult, QualityProfile } from '../api/model.tsx';
 import MapView from "../components/mapView.tsx";
+import RecordImages from "../components/recordImages.tsx";
 import RecordsView from "../components/recordsView.tsx";
 import ResultsReturned from "../components/resultsReturned.tsx";
-import RecordImages from "../components/recordImages.tsx";
+import LazyLoad from "../components/lazyLoad.tsx";
 import FacetWell from "../components/facetWell.tsx";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {Tab, Tabs} from "react-bootstrap";
@@ -236,8 +237,8 @@ function OccurrenceList({setBreadcrumbs}: {
             const base = queryString && queryString !== '?' ? queryString : '?';
             const newQuery = base + (base.endsWith('?') ? '' : '&') + defaultParams.join('&');
 
-            // Reload page. setQueryString is not flowing to all components as expected
-            window.location.replace(newQuery);
+            navigate(newQuery, { replace: true });
+            return;
         }
 
         setDataQualityInfo(dataQualityInfo)
@@ -459,7 +460,7 @@ function OccurrenceList({setBreadcrumbs}: {
 
                             <FacetWell search={queryString} facetList={facetList} groupedFacets={groupedFacets}
                                        dataQuality={dataQuality} dataQualityInfo={dataQualityInfo}
-                                       updateDataQualityInfo={updateDataQualityInfo} addParams={addParams}/>
+                                       updateDataQualityInfo={updateDataQualityInfo} addParams={addParams} result={result}/>
                         </div>
 
                         <div className="col-sm-9 col-md-9">
@@ -513,15 +514,25 @@ function OccurrenceList({setBreadcrumbs}: {
                                                  queryString={queryString}/>
                                 </Tab>
                                 <Tab eventKey="map" title={intl.formatMessage({id: 'list.link.t2', defaultMessage: "Map"})}>
-                                    <MapView queryString={queryString} dataQualityInfo={dataQualityInfo} tab={tab}/>
+                                    { (result?.totalRecords || 0) > 0 &&
+                                        <LazyLoad active={tab === 'map'}>
+                                            <MapView queryString={queryString} dataQualityInfo={dataQualityInfo} tab={tab}/>
+                                        </LazyLoad>
+                                    }
                                 </Tab>
                                 <Tab eventKey="charts" title={intl.formatMessage({id: 'list.link.t3', defaultMessage: "Charts"})}>
                                     { (result?.totalRecords || 0) > 0 &&
-                                        <Charts queryString={queryString} chartsData={chartsData} setChartsData={setChartsData}/>
+                                        <LazyLoad active={tab === 'charts'}>
+                                            <Charts queryString={queryString} chartsData={chartsData} setChartsData={setChartsData}/>
+                                        </LazyLoad>
                                     }
                                 </Tab>
                                 <Tab eventKey="images" title={intl.formatMessage({id: 'list.link.t5', defaultMessage: "Record images"})}>
-                                    <RecordImages queryString={queryString} dataQualityInfo={dataQualityInfo}/>
+                                    { (result?.totalRecords || 0) > 0 &&
+                                        <LazyLoad active={tab === 'images'}>
+                                            <RecordImages queryString={queryString} dataQualityInfo={dataQualityInfo}/>
+                                        </LazyLoad>
+                                    }
                                 </Tab>
                             </Tabs>
                         </div>
