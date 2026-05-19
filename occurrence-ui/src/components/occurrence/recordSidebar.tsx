@@ -22,6 +22,7 @@ const defaultMarkerIcon = new L.Icon({
 });
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { RecordResult } from '../../api/model.tsx';
+import {sanitizeBodyText} from "../../util/util.tsx";
 import ContactCuratorModal from '../contactCuratorModal.tsx';
 import FlagIssueModal from './flagIssueModal.tsx';
 import RolloverTooltip from '../rolloverTooltip.tsx';
@@ -65,13 +66,6 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
             );
         }
         return <>{renderNode(eventHierarchy)}</>;
-    }
-
-    function sanitize(input: string): string {
-        // TODO: sanitize
-        const div = document.createElement('div');
-        div.textContent = input;
-        return div.innerHTML;
     }
 
     if (!record) {
@@ -375,7 +369,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                                             <b>
                                                 <FormattedMessage id='show.sidebar03.caption' defaultMessage='Caption' />:
                                             </b>{' '}
-                                            {sanitize(record.raw.miscProperties.DESCRIPTION)}
+                                            {sanitizeBodyText(record.raw.miscProperties.DESCRIPTION)}
                                         </cite>
                                         <br />
                                     </>

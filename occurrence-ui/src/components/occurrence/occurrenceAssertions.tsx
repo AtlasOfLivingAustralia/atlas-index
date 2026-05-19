@@ -66,7 +66,6 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
             });
     }
 
-    // TODO: finish this component
     return <>
         {userAssertions && userAssertions.length > 0 &&
             <div id="userAnnotationsDiv" className="additionalData">

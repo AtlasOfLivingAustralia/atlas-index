@@ -7,7 +7,7 @@
 import React from "react";
 import {IntlShape, useIntl} from "react-intl";
 import {OccurrenceTableRowProps} from "../../api/model.tsx";
-import {translate} from "../../util/util.tsx";
+import {sanitizeBodyText, translate} from "../../util/util.tsx";
 
 function formatFieldName(intl: IntlShape, fieldCode?: string, fieldName?: string) {
     if (!fieldName) return fieldCode || "";
@@ -25,10 +25,6 @@ function formatFieldName(intl: IntlShape, fieldCode?: string, fieldName?: string
     return output;
 }
 
-function sanitizeBodyText(text: string) {
-    // TODO: implement
-    return text;
-}
 
 export const OccurrenceTableRow: React.FC<OccurrenceTableRowProps> = ({
                                                                           fieldName,

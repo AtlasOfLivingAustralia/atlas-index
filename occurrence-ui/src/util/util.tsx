@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import {IntlShape} from "react-intl";
 
 // Characters that are either HTML or ICU message syntax — not safe to use as a message ID or default message
@@ -36,4 +37,18 @@ export function isUrl(value: string | undefined): boolean {
     } catch (_) {
         return false;
     }
+}
+
+export function sanitizeBodyText(text: string, openInNewWindow: boolean = true): string {
+    const sanitized = DOMPurify.sanitize(text, {
+        ALLOWED_TAGS: ['a', 'br', 'i', 'b', 'span'],
+        ALLOWED_ATTR: ['href', 'class', 'id', 'rel', 'target'],
+        ALLOW_DATA_ATTR: false,
+    });
+
+    if (!openInNewWindow) {
+        return sanitized;
+    }
+
+    return sanitized.replace(/<a /g, '<a target="_blank" ');
 }
