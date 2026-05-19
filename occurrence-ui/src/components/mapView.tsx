@@ -9,7 +9,7 @@ import { faDownload, faMapMarker } from '@fortawesome/free-solid-svg-icons';
 import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
 import ReactDOM from "react-dom/client";
 import {FormattedMessage, IntlShape, useIntl} from "react-intl";
-import { FeatureGroup, LayersControl, MapContainer, TileLayer, WMSTileLayer, useMapEvents } from 'react-leaflet';
+import { FeatureGroup, LayersControl, MapContainer, TileLayer, WMSTileLayer, useMapEvents, useMap } from 'react-leaflet';
 import {EditControl} from "react-leaflet-draw";
 import "react-leaflet-fullscreen/styles.css";
 
@@ -22,6 +22,7 @@ import MapLayerControls from "./mapLayerControls.tsx";
 import defaultMapFacets from "../config/defaultMapFacets.json";
 import MapLegendControls from "./mapLegendControls.tsx";
 import TopRightControl from "./TopRightControl.tsx";
+import { polygonLayerToWkt } from '../util/worldWrapFix.ts';
 
 const org = import.meta.env.VITE_MAP_ORG;
 const center = new LatLng(
@@ -33,11 +34,42 @@ const defaultOpacity = Number(import.meta.env.VITE_MAP_DEFAULT_OPACITY);
 const defaultPointSize = Number(import.meta.env.VITE_MAP_DEFAULT_POINT_SIZE);
 const defaultColour = import.meta.env.VITE_MAP_DEFAULT_COLOUR;
 
-// Component to handle map click events
-function MapClickHandler({ onClick }: { onClick: (e: LeafletMouseEvent) => void }) {
+/**
+ * Haversine great-circle distance between two lat/lng points, in kilometres.
+ */
+function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    let dLngDeg = (lng2 - lng1);
+    // Normalise to shortest arc: wrap to [-180, +180]
+    dLngDeg = ((dLngDeg + 180) % 360 + 360) % 360 - 180;
+    const dLng = dLngDeg * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function MapClickHandler({ onClick, isDrawingRef }: { onClick: (e: LeafletMouseEvent) => void; isDrawingRef: React.MutableRefObject<boolean> }) {
+    const clickCountRef = useRef(0);
     useMapEvents({
         click: (e) => {
-            onClick(e);
+            if (isDrawingRef.current) return;
+            clickCountRef.current += 1;
+            if (clickCountRef.current === 1) {
+                setTimeout(() => {
+                    if (clickCountRef.current === 1) {
+                        onClick(e);
+                    }
+                    clickCountRef.current = 0;
+                }, 400);
+            }
+        },
+        dblclick: () => {
+            // reset immediately on dblclick so the delayed single-click callback
+            // sees count > 1 and skips the point lookup
+            clickCountRef.current = 2;
         }
     });
     return null;
@@ -57,6 +89,7 @@ function MapView({ queryString, tab }: MapViewProps) {
     const [showOccurrences, setShowOccurrences] = useState<boolean>(true);
     const [hiddenFacets, setHiddenFacets] = useState<number[]>([]);
     const [legendFacets, setLegendFacets] = useState<any[]>([]);
+    const isDrawingRef = useRef<boolean>(false);
 
     // map popup state
     const [mapLookupLatLng, setMapLookupLatLng] = useState<LatLng | null>(null);
@@ -71,6 +104,8 @@ function MapView({ queryString, tab }: MapViewProps) {
     const popupRef = useRef<L.Popup | null>(null);
 
     const mapRef = useRef<L.Map | null>(null);
+    const initialLayerRef = useRef<L.Layer | null>(null);
+    const worldCopyLayersRef = useRef<L.Layer[]>([]);
     const intl: IntlShape = useIntl();
 
     // Render popup content when mapLookupOccurrence changes
@@ -130,8 +165,8 @@ function MapView({ queryString, tab }: MapViewProps) {
     function onCreated(e: any) {
         const layer = e.layer;
 
-        // add onclick to e.layer itself
         layer.on('click', (event: LeafletMouseEvent) => {
+            L.DomEvent.stopPropagation(event);
             onFeatureClick(layer, event);
         });
     }
@@ -290,26 +325,8 @@ function MapView({ queryString, tab }: MapViewProps) {
             const radius = layer.getRadius() / 1000;
             return `radius=${radius}&lat=${center.lat}&lon=${center.lng}`;
         } else if (layer instanceof L.Polygon) {
-            const latlngs = layer.getLatLngs()[0]; // Assuming single polygon
-            // Ensure latlngs is always an array of L.LatLng
-            // const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-            let ring: L.LatLng[] = [];
-            if (Array.isArray(latlngs)) {
-                if (Array.isArray(latlngs[0])) {
-                    ring = latlngs[0] as L.LatLng[];
-                } else {
-                    ring = latlngs as L.LatLng[];
-                }
-            } else {
-                ring = [latlngs as L.LatLng];
-            }
-            const coords = ring.map((latlng: L.LatLng) => `${latlng.lng} ${latlng.lat}`);
-            // Ensure the polygon is closed
-            if (coords[0] !== coords[coords.length - 1]) {
-                coords.push(coords[0]);
-            }
-            // TODO: port the intl date line support from biocache-hubs
-            return `wkt=POLYGON((${coords.join(', ')}))`;
+            const wkt = mapRef.current ? polygonLayerToWkt(layer, mapRef.current) : '';
+            return `wkt=${encodeURIComponent(wkt)}`;
         }
         return '';
     }
@@ -349,6 +366,20 @@ function MapView({ queryString, tab }: MapViewProps) {
             return;
         }
 
+        const wrappedLng = ((((e.latlng.lng + 180) % 360) + 360) % 360) - 180;
+
+        // test if the clicked point is inside of the query parameter lat/lon/radius
+        const qs = new URLSearchParams(queryString.startsWith('?') ? queryString.slice(1) : queryString);
+        const filterLat = qs.get('lat');
+        const filterLon = qs.get('lon');
+        const filterRadius = qs.get('radius'); // km
+        if (filterLat && filterLon && filterRadius) {
+            const distKm = distanceKm(e.latlng.lat, wrappedLng, parseFloat(filterLat), parseFloat(filterLon));
+            if (distKm > parseFloat(filterRadius)) {
+                return; // click is outside the existing spatial filter — skip lookup
+            }
+        }
+
         setMapLookupInProgress(true);
         if (popupRef.current) {
             mapRef.current?.closePopup(popupRef.current);
@@ -369,14 +400,18 @@ function MapView({ queryString, tab }: MapViewProps) {
             radius *= 3;
         }
 
-        // TODO: the new click is ignoring any prior lon/lat/radius params in the query string, fix
+        // Strip existing lat/lon/radius spatial params, then rebuild a clean query string.
+        const stripped = queryString.replace(/[&?](lat|lon|radius)=[^&]*/g, '');
+        const cleanedQuery = stripped.replace(/^[&?]+/, '');
+        const pointParams = `lon=${wrappedLng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}`;
+        const infoQs = cleanedQuery ? `?${cleanedQuery}&${pointParams}` : `?${pointParams}`;
 
-        // biocache query for this location
-        setMapLookupQueryParams(`&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}`);
+        // biocache query for this location — always use wrapped longitude (±180)
+        setMapLookupQueryParams(`&lon=${wrappedLng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}`);
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${queryString}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${infoQs}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {
@@ -453,6 +488,81 @@ function MapView({ queryString, tab }: MapViewProps) {
         }, 5);
     }
 
+    // Add the query defined area to the map
+    function InitialLayerLoader() {
+        const map = useMap();
+        useEffect(() => {
+            if (initialLayerRef.current || !queryString) return;
+
+            const qs = new URLSearchParams(queryString.startsWith('?') ? queryString.slice(1) : queryString);
+            const lat = qs.get('lat');
+            const lon = qs.get('lon');
+            const radius = qs.get('radius');
+            const wkt = qs.get('wkt');
+
+            let layer: L.Layer | null = null;
+
+            if (lat && lon && radius) {
+                layer = L.circle([parseFloat(lat), parseFloat(lon)], {
+                    radius: parseFloat(radius) * 1000, // km → metres
+                    color: '#bada55',
+                    fillOpacity: 0.1
+                });
+            } else if (wkt) {
+                const parsePairs = (s: string): L.LatLngTuple[] =>
+                    s.trim().split(',').map(pair => {
+                        const parts = pair.trim().split(/\s+/);
+                        return [parseFloat(parts[1]), parseFloat(parts[0])] as L.LatLngTuple;
+                    }).filter(([lat, lng]) => !isNaN(lat) && !isNaN(lng));
+
+                const ringContents = [...wkt.matchAll(/\(([^()]+)\)/g)].map(m => m[1]);
+
+                if (/^POLYGON/i.test(wkt) && ringContents.length > 0) {
+                    layer = L.polygon(parsePairs(ringContents[0]), { color: '#bada55', fillOpacity: 0.1 });
+                } else if (/^MULTIPOLYGON/i.test(wkt) && ringContents.length > 0) {
+                    const latlngsArr = ringContents.map(r => parsePairs(r));
+                    layer = L.polygon(latlngsArr, { color: '#bada55', fillOpacity: 0.1 });
+                }
+            }
+
+            if (!layer) return;
+
+            layer.addTo(map);
+            initialLayerRef.current = layer;
+            layer.on('click', (event: L.LeafletMouseEvent) => {
+                L.DomEvent.stopPropagation(event);
+                onFeatureClick(layer!, event);
+            });
+
+            // add duplicate objects so they appear everywhere when zoomed out
+            const shiftLatlngs = (lls: any, offset: number): any =>
+                Array.isArray(lls[0])
+                    ? lls.map((inner: any) => shiftLatlngs(inner, offset))
+                    : (lls as L.LatLng[]).map((ll: L.LatLng) => new L.LatLng(ll.lat, ll.lng + offset));
+
+            const addWorldCopy = (offsetDeg: number) => {
+                let copy: L.Layer | null = null;
+                if (layer instanceof L.Circle) {
+                    const c = (layer as L.Circle).getLatLng();
+                    copy = L.circle([c.lat, c.lng + offsetDeg],
+                        { radius: (layer as L.Circle).getRadius(), color: '#bada55', fillOpacity: 0.1, interactive: false });
+                } else if (layer instanceof L.Polygon) {
+                    const lls = (layer as L.Polygon).getLatLngs();
+                    copy = L.polygon(shiftLatlngs(lls, offsetDeg),
+                        { color: '#bada55', fillOpacity: 0.1, interactive: false });
+                }
+                if (copy) {
+                    copy.addTo(map);
+                    worldCopyLayersRef.current.push(copy);
+                }
+            };
+            addWorldCopy(-360);
+            addWorldCopy(360);
+        }, []);
+
+        return null;
+    }
+
     return (
         <>
             <div>
@@ -517,8 +627,11 @@ function MapView({ queryString, tab }: MapViewProps) {
                         </LayersControl>
                     )}
 
-                    {/* Handle map click events */}
-                    <MapClickHandler onClick={mapClick} />
+                    {/* Handle map click events — disabled while a draw tool is active */}
+                    <MapClickHandler onClick={mapClick} isDrawingRef={isDrawingRef} />
+
+                    {/* Draw initial spatial filter from query params */}
+                    <InitialLayerLoader />
 
                     {showOccurrences && queryString !== undefined &&
                         <WMSTileLayer url={getAlaWmsUrl()} layers='ALA:occurrences' format='image/png' transparent={true} opacity={opacity} attribution='Atlas of Living Australia' zIndex={15} />}
@@ -539,7 +652,7 @@ function MapView({ queryString, tab }: MapViewProps) {
                                     allowIntersection: false, // Restricts shapes to simple polygons
                                     drawError: {
                                         color: '#e1e100', // Color the shape will turn when intersects
-                                        message: '<strong>' + intl.formatMessage({ id: 'advancedsearch.js.map.error1' }) + '</strong> ' + intl.formatMessage({ id: 'advancedsearch.js.map.error2' }) // Message that will show when intersect
+                                        message: '<strong>' + intl.formatMessage({ id: 'advancedsearch.js.map.error1' }) + '</strong> ' + intl.formatMessage({ id: 'advancedsearch.js.map.error2' }) // Message that will show when intersects
                                     },
                                     shapeOptions: {
                                         color: '#bada55'
@@ -550,6 +663,8 @@ function MapView({ queryString, tab }: MapViewProps) {
                                 circlemarker: false
                             }}
                             onCreated={onCreated}
+                            onDrawStart={() => { isDrawingRef.current = true; }}
+                            onDrawStop={() => { isDrawingRef.current = false; }}
                         />
                     </FeatureGroup>
                 </MapContainer>

@@ -15,6 +15,7 @@ import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {EditControl} from "react-leaflet-draw";
 import {useNavigate} from "react-router-dom";
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
+import { polygonLayerToWkt } from '../util/worldWrapFix';
 
 import {FeatureGroup, LayersControl, MapContainer, TileLayer} from "react-leaflet";
 import 'leaflet/dist/leaflet.css';
@@ -254,26 +255,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             const radius = layer.getRadius() / 1000;
             return `radius=${radius}&lat=${center.lat}&lon=${center.lng}`;
         } else if (layer instanceof L.Polygon) {
-            const latlngs = layer.getLatLngs()[0]; // Assuming single polygon
-            // Ensure latlngs is always an array of L.LatLng
-            // const ring = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-            let ring: L.LatLng[] = [];
-            if (Array.isArray(latlngs)) {
-                if (Array.isArray(latlngs[0])) {
-                    ring = latlngs[0] as L.LatLng[];
-                } else {
-                    ring = latlngs as L.LatLng[];
-                }
-            } else {
-                ring = [latlngs as L.LatLng];
-            }
-            const coords = ring.map((latlng: L.LatLng) => `${latlng.lng} ${latlng.lat}`);
-            // Ensure the polygon is closed
-            if (coords[0] !== coords[coords.length - 1]) {
-                coords.push(coords[0]);
-            }
-            // TODO: port the intl date line support from biocache-hubs
-            return `wkt=POLYGON((${coords.join(", ")}))`;
+            const wkt = mapRef.current ? polygonLayerToWkt(layer, mapRef.current) : '';
+            return `wkt=${encodeURIComponent(wkt)}`;
         }
         return '';
     }
