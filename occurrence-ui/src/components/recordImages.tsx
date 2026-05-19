@@ -127,7 +127,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
             {images.map((image, index) =>
                 <div key={index} className="imgCon" onClick={() => handleOpenModal(index)}>
                     <div className="cbLink thumbImage tooltips" rel="thumbs" id="thumb" title="click to enlarge">
-                        <img src={image.thumbnail} alt={image.name + " image thumbnail"} onError={(e) => { (e.currentTarget as HTMLImageElement).src = missingImage; }}/>
+                        <img src={image.thumbnail} alt={image.name + " image thumbnail"} loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).src = missingImage; }}/>
 
                         <div className="meta brief">
                             {image.name}
