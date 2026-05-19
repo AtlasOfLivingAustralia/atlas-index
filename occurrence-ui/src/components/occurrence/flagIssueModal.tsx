@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useUser} from "@ala/common-ui";
+import {handleLogin, useUser} from "@ala/common-ui";
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
@@ -251,7 +251,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
                     /* Not logged in */
                     <div style={{ margin: '20px 0' }}>
                         <FormattedMessage id='show.loginorflag.div01.label' defaultMessage='Login please:' />{' '}
-                        <a href={`${import.meta.env.VITE_LOGIN_URL || '/login'}?path=/occurrences/${record?.raw?.uuid}`}>
+                        <a href='#' onClick={e => { e.preventDefault(); handleLogin(import.meta.env.VITE_APP_API_URL); }}>
                             <FormattedMessage id='show.loginorflag.div01.navigator' defaultMessage='Click here' />
                         </a>
                     </div>
