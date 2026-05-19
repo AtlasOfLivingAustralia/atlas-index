@@ -91,6 +91,17 @@ function MapView({ queryString, tab }: MapViewProps) {
     const [legendFacets, setLegendFacets] = useState<any[]>([]);
     const isDrawingRef = useRef<boolean>(false);
 
+    // wkt from query string
+    const [queryWkt, setQueryWkt] = useState<string | null>(() => {
+        const qs = new URLSearchParams(queryString?.startsWith('?') ? queryString.slice(1) : queryString ?? '');
+        return qs.get('wkt');
+    });
+
+    useEffect(() => {
+        const qs = new URLSearchParams(queryString?.startsWith('?') ? queryString.slice(1) : queryString ?? '');
+        setQueryWkt(qs.get('wkt'));
+    }, [queryString]);
+
     // map popup state
     const [mapLookupLatLng, setMapLookupLatLng] = useState<LatLng | null>(null);
     const [mapLookupQueryParams, setMapLookupQueryParams] = useState<string>('');
@@ -286,16 +297,22 @@ function MapView({ queryString, tab }: MapViewProps) {
     }
 
     async function onFeatureClick(layer: any, e: LeafletMouseEvent) {
-        // 1. Get WKT from the layer (implement getWktFromLayer as needed)
-        const terms = getTermsFromLayer(layer);
+        // 1. Get area terms from the layer (wkt=... or radius=...&lat=...&lon=...)
+        const areaTerms = getTermsFromLayer(layer);
+
+        // 2. Strip existing spatial params from the current queryString, then append the new area
+        const baseQs = (queryString ?? '').replace(/^[?]/, '');
+        const stripped = baseQs.replace(/(^|&)(wkt|lat|lon|radius)=[^&]*/g, '').replace(/^&+/, '');
+        const fullTerms = stripped ? `${stripped}&${areaTerms}` : areaTerms;
+
         const uniqueId = Date.now(); // Simple unique ID for this popup instance
 
-        // 2. Set popup content
+        // 3. Set popup content
         const div = document.createElement('div');
         div.innerHTML = `
             <div>${intl.formatMessage({ id: 'advancedsearch.js.map.common.speciescount' })}: <span id="taxonCount${uniqueId}" class="fw-bold">calculating...</div>
             <div>${intl.formatMessage({ id: 'advancedsearch.js.map.common.occurrencecount' })}: <span id="occurrenceCount${uniqueId}" class="fw-bold">calculating...</span></div>
-            <a href="/occurrences/search?${terms}" style="color: #C44D34 !important;">${intl.formatMessage({ id: 'search.map.popup.linkText' })}</a><br/>
+            <a href="/occurrences/search?${fullTerms}" style="color: #C44D34 !important;">${intl.formatMessage({ id: 'search.map.popup.linkText' })}</a><br/>
             <a href="#" id="remove-area-btn" style="color: #C44D34 !important;">${intl.formatMessage({ id: 'search.map.popup.removeText' })}</a>
         `;
 
@@ -307,13 +324,13 @@ function MapView({ queryString, tab }: MapViewProps) {
 
         L.popup().setLatLng(e.latlng).setContent(div).openOn(mapRef.current!);
 
-        // 3. Fetch counts
-        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${terms}&facet=false&pageSize=0`);
+        // 4. Fetch counts using the full combined query
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${fullTerms}&facet=false&pageSize=0`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${terms}&facets=scientificName`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${fullTerms}&facets=scientificName`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
@@ -575,8 +592,18 @@ function MapView({ queryString, tab }: MapViewProps) {
                 <a className='btn btn-outline-dark btn-sm tooltips' style={{ textDecoration: 'none' }} onClick={() => alert('TODO: implement map downloads')} title={intl.formatMessage({ id: 'map.downloadmaps.btn.title' })}>
                     <FontAwesomeIconLite icon={faDownload} />
                     &nbsp;&nbsp;
-                    <FormattedMessage id='map.downloadmaps.btn.label' defaultMessage='View in spatial portal' />
+                    <FormattedMessage id='map.downloadmaps.btn.label' defaultMessage='Download map' />
                 </a>
+
+                {queryWkt && (
+                    <a className='btn btn-outline-dark btn-sm tooltips ms-1' style={{ textDecoration: 'none' }}
+                       href={`data:text/plain;charset=utf-8,${encodeURIComponent(queryWkt)}`} download='polygon.wkt'
+                       title={intl.formatMessage({ id: 'map.downloadwkt.btn.title', defaultMessage: 'Download the spatial area as a WKT file' })}>
+                        <FontAwesomeIconLite icon={faDownload} />
+                        &nbsp;&nbsp;
+                        <FormattedMessage id='map.downloadwkt.btn.label' defaultMessage='Download WKT' />
+                    </a>
+                )}
 
                 <div style={{ marginBottom: '10px' }}></div>
                 {mapLookupInProgress && (
