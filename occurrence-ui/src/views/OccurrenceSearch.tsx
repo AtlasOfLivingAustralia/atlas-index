@@ -97,6 +97,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
     // spatial search
     const [spatialWkt, setSpatialWkt] = useState('');
+    const [wktError, setWktError] = useState('');
 
     const navigate = useNavigate();
     const searchTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -195,23 +196,40 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     }
 
     function addWktToMap() {
-        if (!spatialWkt || !mapRef.current) return;
+        setWktError('');
 
-        // Simple WKT POLYGON parser (assumes valid input)
-        const match = spatialWkt.match(/POLYGON\s*\(\(\s*([^)]+)\s*\)\)/i);
-        if (!match) {
-            return; // TODO: indicate invalid WKT
+
+        if (!mapRef.current) return;
+
+        try {
+            // Simple WKT POLYGON parser — supports POLYGON and MULTIPOLYGON
+            const match = spatialWkt.match(/POLYGON\s*\(\(\s*([^)]+)\s*\)\)/i);
+            if (!match) {
+                throw new Error('Not a valid POLYGON WKT');
+            }
+
+            const coords: [number, number][] = match[1].split(',').map(pair => {
+                const parts = pair.trim().split(/\s+/);
+                const lng = Number(parts[0]);
+                const lat = Number(parts[1]);
+                if (isNaN(lat) || isNaN(lng)) throw new Error('Invalid coordinate pair');
+                return [lat, lng];
+            });
+
+            if (coords.length < 3) {
+                throw new Error('Polygon must have at least 3 coordinate pairs');
+            }
+
+            const polygon = L.polygon(coords, { color: '#bada55' }).addTo(mapRef.current);
+            mapRef.current.fitBounds(polygon.getBounds());
+
+            polygon.on('click', (event: L.LeafletMouseEvent) => {
+                onFeatureClick(polygon, event);
+            });
+        } catch (e) {
+            console.error(e);
+            setWktError(intl.formatMessage({ id: 'search.map.wkt.error.invalid', defaultMessage: 'Please paste a valid WKT string' }));
         }
-        const coords: [number, number][] = match[1].split(',').map(pair => {
-            const [lng, lat] = pair.trim().split(/\s+/).map(Number);
-            return [lat, lng];
-        });
-
-        const polygon = L.polygon(coords, { color: '#bada55' }).addTo(mapRef.current);
-
-        polygon.on('click', (event: L.LeafletMouseEvent) => {
-            onFeatureClick(polygon, event);
-        });
     }
 
     function batchSearch(searchText: string, fields: string[]) {
@@ -892,9 +910,10 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
 
                                                     <p><FormattedMessage id="search.map.wktHelpText" defaultMessage="Optionally, paste a WKT string: "/></p>
                                                     <textarea id="wktInput" style={{height: "280px", width: "95%"}}
-                                                              value={spatialWkt} onChange={e => setSpatialWkt(e.target.value)}></textarea>
+                                                              value={spatialWkt} onChange={e => { setSpatialWkt(e.target.value); setWktError(''); }}></textarea>
                                                     <br/>
-                                                    <button className="btn btn-primary btn-sm" id="addWkt" onClick={() => addWktToMap()}>
+                                                    {wktError && <div className="text-danger mt-1 mb-1">{wktError}</div>}
+                                                    <button className="btn btn-primary btn-sm" id="addWkt" disabled={!spatialWkt.trim()} onClick={() => addWktToMap()}>
                                                         <FormattedMessage id="search.map.wktButtonText" defaultMessage="Add to map"/>
                                                     </button>
                                                 </div>
