@@ -5,15 +5,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-    MapContainer,
-    TileLayer,
-    useMap,
-    useMapEvents,
-    WMSTileLayer,
-    Popup,
-    LayersControl,
-} from 'react-leaflet';
+import { MapContainer, TileLayer, useMap, useMapEvents, WMSTileLayer, Popup, LayersControl, ScaleControl } from 'react-leaflet';
 import { FontAwesomeIconLite } from '@ala/common-ui';
 import {
     faCircle,
@@ -540,6 +532,7 @@ function Regions({ setBreadcrumbs }: RegionsProps) {
                                     worldCopyJump={true}
                                     className={styles.map}
                                 >
+                                    <ScaleControl position='bottomright' imperial={false} />
                                     <MapStateUtil
                                         setMapStateChanged={setMapStateChanged}
                                     />

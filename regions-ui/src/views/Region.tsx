@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { LayersControl, MapContainer, TileLayer, WMSTileLayer } from 'react-leaflet';
+import { LayersControl, MapContainer, ScaleControl, TileLayer, WMSTileLayer } from 'react-leaflet';
 import { DualRangeSlider, Breadcrumb, FontAwesomeIconLite, useHashState } from '@ala/common-ui';
 import 'leaflet/dist/leaflet.css';
 import { LatLng } from 'leaflet';
@@ -904,6 +904,7 @@ function Region({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                                     </div>
                                     <div className='mt-3'>
                                         <MapContainer ref={mapRef} center={center} zoom={defaultZoom} scrollWheelZoom={false} worldCopyJump={true} style={{ height: '530px', borderRadius: '10px' }}>
+                                            <ScaleControl position='bottomright' imperial={false} />
                                             {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />}
                                             {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                                                 <LayersControl position='topright'>
