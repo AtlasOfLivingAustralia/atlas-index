@@ -598,7 +598,7 @@ ul.tree span.selected {
 }
 
 .ac_loading {
-    background: white url('indicator-03ce3dcc84af110e9da8699a841e5200.gif') right center no-repeat;
+    background: white url('../image/indicator.gif') right center no-repeat;
 }
 
 li.ac_odd {
@@ -755,11 +755,11 @@ body #main-content #customiseFacetsButton > .dropdown-menu, #main-content #resul
 }
 
 #currentFilter span.checkbox-unchecked {
-    background: url('images/checkbox-unchecked-21f659860732f225592a34742186fdcb.png') no-repeat left top;
+    background: url('../image/checkbox-unchecked.png') no-repeat left top;
 }
 
 #currentFilter span.checkbox-checked {
-    background: url('images/checkbox-checked-4c0c3e60a247a82dc5a72f1d7d7c4f43.png') no-repeat left top;
+    background: url('../image/checkbox-checked.png') no-repeat left top;
 }
 
 .well {

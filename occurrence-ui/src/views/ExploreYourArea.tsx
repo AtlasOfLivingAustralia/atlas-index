@@ -14,7 +14,7 @@ import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import {SpeciesGroup, SpeciesGroupItem, SpeciesListItem} from "../api/model.tsx";
 import styles from './exploreYourArea.module.css';
 import speciesGroupMapImport from '../config/speciesGroupsMap.json';
-import {Circle, LayersControl, MapContainer, Marker, TileLayer, WMSTileLayer} from "react-leaflet";
+import { Circle, LayersControl, MapContainer, Marker, ScaleControl, TileLayer, WMSTileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
 import {faLocationArrow} from '@fortawesome/free-solid-svg-icons/faLocationArrow';
@@ -842,6 +842,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                         borderRadius: '10px',
                                     }}
                                 >
+                                    <ScaleControl position='bottomright' imperial={false} />
                                     {!import.meta.env.VITE_GOOGLE_MAP_API_KEY &&
                                         <TileLayer
                                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

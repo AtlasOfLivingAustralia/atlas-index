@@ -3,7 +3,7 @@ import { faBan, faCheckCircle, faEnvelope, faExclamationCircle, faFlag, faQuesti
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import { Circle, LayersControl, MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
+import { Circle, LayersControl, MapContainer, Marker, ScaleControl, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -226,6 +226,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
             {latLng && (
                 <div id='leafletMap' style={{ height: '300px', position: 'relative' }}>
                     <MapContainer center={latLng} zoom={defaultZoom} scrollWheelZoom={false} worldCopyJump={true} style={{ height: '300px' }}>
+                        <ScaleControl position='bottomright' imperial={false} />
                         <MapRecenter lat={latLng.lat} lng={latLng.lng} />
                         {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />}
                         {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (

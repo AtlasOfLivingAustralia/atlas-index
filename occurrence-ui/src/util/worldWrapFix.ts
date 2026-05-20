@@ -174,15 +174,15 @@ export function polygonLayerToWkt(layer: L.Polygon, map: L.Map): string {
     if (parts.length === 1) {
         // Simple polygon
         const ring = parts[0][0];
-        const ringStr = ring.map(c => `${r6(c.x)} ${r6(c.y)}`).join(', ');
+        const ringStr = ring.map(c => `${r6(c.x)} ${r6(c.y)}`).join(',');
         return `POLYGON((${ringStr}))`;
     } else {
         // Multipolygon
         const polys = parts.map(poly => {
-            const ringStrs = poly.map(ring => `(${ring.map(c => `${r6(c.x)} ${r6(c.y)}`).join(', ')})`);
-            return `(${ringStrs.join(', ')})`;
+            const ringStrs = poly.map(ring => `(${ring.map(c => `${r6(c.x)} ${r6(c.y)}`).join(',')})`);
+            return `(${ringStrs.join(',')})`;
         });
-        return `MULTIPOLYGON(${polys.join(', ')})`;
+        return `MULTIPOLYGON(${polys.join(',')})`;
     }
 }
 

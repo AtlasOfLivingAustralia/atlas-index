@@ -9,7 +9,7 @@ import { faDownload, faMapMarker } from '@fortawesome/free-solid-svg-icons';
 import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
 import ReactDOM from "react-dom/client";
 import {FormattedMessage, IntlShape, useIntl} from "react-intl";
-import { FeatureGroup, LayersControl, MapContainer, TileLayer, WMSTileLayer, useMapEvents, useMap } from 'react-leaflet';
+import { FeatureGroup, LayersControl, MapContainer, TileLayer, WMSTileLayer, useMapEvents, useMap, ScaleControl } from 'react-leaflet';
 import {EditControl} from "react-leaflet-draw";
 import "react-leaflet-fullscreen/styles.css";
 
@@ -23,6 +23,7 @@ import defaultMapFacets from "../config/defaultMapFacets.json";
 import MapLegendControls from "./mapLegendControls.tsx";
 import TopRightControl from "./TopRightControl.tsx";
 import { polygonLayerToWkt } from '../util/worldWrapFix.ts';
+import DownloadMapModal from './downloadMapModal.tsx';
 
 const org = import.meta.env.VITE_MAP_ORG;
 const center = new LatLng(
@@ -90,6 +91,8 @@ function MapView({ queryString, tab }: MapViewProps) {
     const [hiddenFacets, setHiddenFacets] = useState<number[]>([]);
     const [legendFacets, setLegendFacets] = useState<any[]>([]);
     const isDrawingRef = useRef<boolean>(false);
+
+    const [showDownloadMap, setShowDownloadMap] = useState<boolean>(false);
 
     // wkt from query string
     const [queryWkt, setQueryWkt] = useState<string | null>(() => {
@@ -589,11 +592,19 @@ function MapView({ queryString, tab }: MapViewProps) {
                     <FormattedMessage id='map.spatialportal.btn.label' defaultMessage='View in spatial portal' />
                 </a>
 
-                <a className='btn btn-outline-dark btn-sm tooltips' style={{ textDecoration: 'none' }} onClick={() => alert('TODO: implement map downloads')} title={intl.formatMessage({ id: 'map.downloadmaps.btn.title' })}>
+                <a className='btn btn-outline-dark btn-sm tooltips' style={{ textDecoration: 'none' }} onClick={() => setShowDownloadMap(true)} title={intl.formatMessage({ id: 'map.downloadmaps.btn.title' })}>
                     <FontAwesomeIconLite icon={faDownload} />
                     &nbsp;&nbsp;
                     <FormattedMessage id='map.downloadmaps.btn.label' defaultMessage='Download map' />
                 </a>
+
+                {showDownloadMap && (
+                    <DownloadMapModal
+                        onClose={() => setShowDownloadMap(false)}
+                        queryString={queryString}
+                        mapRef={mapRef}
+                    />
+                )}
 
                 {queryWkt && (
                     <a className='btn btn-outline-dark btn-sm tooltips ms-1' style={{ textDecoration: 'none' }}
@@ -619,6 +630,7 @@ function MapView({ queryString, tab }: MapViewProps) {
                     </div>
                 )}
                 <MapContainer ref={mapRef} center={center} zoom={defaultZoom} scrollWheelZoom={false} worldCopyJump={true} style={{ height: '655px', borderRadius: '10px', cursor: 'pointer' }}>
+                    <ScaleControl position='bottomright' imperial={false} />
                     <TopRightControl className={'map-layer-control'}>
                         <MapLayerControls
                             facets={defaultMapFacets}

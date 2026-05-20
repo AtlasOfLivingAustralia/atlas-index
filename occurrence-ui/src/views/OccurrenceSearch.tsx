@@ -17,7 +17,7 @@ import {useNavigate} from "react-router-dom";
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { polygonLayerToWkt } from '../util/worldWrapFix';
 
-import {FeatureGroup, LayersControl, MapContainer, TileLayer} from "react-leaflet";
+import { FeatureGroup, LayersControl, MapContainer, ScaleControl, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css'
 
@@ -931,6 +931,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                             scrollWheelZoom={false}
                                             worldCopyJump={true}
                                             style={{ height: '655px', borderRadius: '10px', }}>
+                                            <ScaleControl position='bottomright' imperial={false} />
                                             {!import.meta.env.VITE_GOOGLE_MAP_API_KEY &&
                                                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                                     url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />
