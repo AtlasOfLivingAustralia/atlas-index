@@ -14,7 +14,6 @@ const loggerReasons: { id: number; name: string }[] = JSON.parse(import.meta.env
 const termsOfUseUrl = import.meta.env.VITE_TERMS_OF_USE_URL;
 const orgNameLong = import.meta.env.VITE_HUB_NAME;
 
-// TODO: also support the query parameters spatial sends
 function getQueryParameters() {
     const { search } = useLocation();
     const params = new URLSearchParams(search);
@@ -83,7 +82,6 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             });
     }
 
-    // TODO: All of these should only be forwarding the params to the next page, which will do the POSt/download/etc
     function onNext() {
         if (!downloadType || !downloadReason) {
             return;

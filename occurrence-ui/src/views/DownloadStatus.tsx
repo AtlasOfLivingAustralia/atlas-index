@@ -1,4 +1,5 @@
 import { Breadcrumb, FontAwesomeIconLite, useUser } from '@ala/common-ui';
+import config from '../../config/config.json';
 import './download.css';
 import { faCheckCircle, faDownload} from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
@@ -193,12 +194,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
                     } else { // downloadFormat === 'custom'
                         const classes = (customClasses || '').split(',').filter(Boolean);
 
-                        // TODO: CustomDownload.tsx has hardcoded this, when it is moved externally, use that version
-                        //  there is also some overlap with Fields.tsx, the filter for el/cl for example
-                        const configFields: Record<string, string[]> = {
-                            conservationStatus: ['aust_conservation', 'state_conservation'],
-                            otherTraits: ['species_group', 'species_subgroup'],
-                        };
+                        const configFields: Record<string, string[]> = config.download.custom;
 
                         // DwC class group keys (mirrors grailsApplication.config.downloads.customSections.darwinCore)
                         const darwinCoreClasses = [
@@ -281,7 +277,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
                 fieldsParam = `&fields=${fields}`;
             }
 
-            // TODO: This should be a POST, but only URL params are supported for now
+            // Future: This should be a POST, but only URL params are supported for now so leaving as GET
             let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}`;
             fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
                 .then(response => response.json())

@@ -1,0 +1,9 @@
+{
+  "download": {
+    "custom": {
+      "conservationStatus": ["countryConservation", "stateConservation"],
+      "otherTraits": ["speciesGroup", "speciesSubgroup"]
+    }
+  }
+}
+

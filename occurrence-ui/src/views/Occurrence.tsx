@@ -8,7 +8,7 @@ import { faFileCode } from '@fortawesome/free-regular-svg-icons';
 import { faArrowLeft, faArrowRight, faLock, faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import { JSX, useEffect, useState } from 'react';
 
-import { Breadcrumb, FontAwesomeIconLite, useUser } from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, NotFound, useUser } from '@ala/common-ui';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {RecordResult} from "../api/model.tsx";
@@ -32,7 +32,7 @@ function Occurrence({setBreadcrumbs}: {
     setBreadcrumbs: (crumbs: Breadcrumb[]) => void
 }) {
     const {uuid} = useParams();
-    const [record, setRecord] = useState<RecordResult | undefined>(undefined);
+    const [record, setRecord] = useState<RecordResult | undefined | null>(undefined);
 
     // various other information for display
     const [collectionInfo, setCollectionInfo] = useState<any>(null);
@@ -210,8 +210,8 @@ function Occurrence({setBreadcrumbs}: {
 
             updateBreadcrumb();
         } catch (error) {
-            // TODO: 404 or other error to display
-            setRecord(undefined);
+            // 404 or other error
+            setRecord(null);
         }
     }
 
@@ -368,6 +368,10 @@ function Occurrence({setBreadcrumbs}: {
             id = record?.raw?.occurrence?.occurrenceID
         }
 
+        if (!id) {
+            return 'Not found'
+        }
+
         return id;
     }
 
@@ -379,8 +383,12 @@ function Occurrence({setBreadcrumbs}: {
         }
     }
 
-    if (!record) {
+    if (record === undefined) {
         return null;
+    }
+
+    if (record === null || !record.raw) {
+        return <NotFound />;
     }
 
     return (
@@ -524,14 +532,6 @@ function Occurrence({setBreadcrumbs}: {
                         compareRecord={compareRecord}
                         onClose={() => {setShowOriginalVsProcessed(false);}}
                     />
-                )}
-
-                {/*!record.raw 404*/}
-                {record && !record.raw && (
-                    <div id='headingBar' className={'mt-5'}>
-                        <h1><FormattedMessage id='show.headingbar02.title' defaultMessage='Record Not Found'/></h1>
-                        <p><FormattedMessage id='show.headingbar02.p01' defaultMessage='The requested record ID'/> "{uuid}" <FormattedMessage id='show.headingbar02.p02' defaultMessage='was not found'/></p>
-                    </div>
                 )}
             </div>
         </div>

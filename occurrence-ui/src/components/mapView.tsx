@@ -475,7 +475,7 @@ function MapView({ queryString, tab }: MapViewProps) {
                     for (let item of data) {
                         facets.push(item);
                     }
-                    setHiddenFacets([]); // TODO: finish this functionality
+                    setHiddenFacets([]);
                     setLegendFacets(facets);
                 });
         }
