@@ -124,7 +124,11 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
 
             if (result.distributions) {
                 generateDistributionMapObj(result?.distributions);
+            } else {
+                setDistributions([]);
             }
+
+            setActiveZoom('');
         }
     }, [result]);
 
@@ -334,7 +338,9 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
                                     </LayersControl.BaseLayer>
 
                                     <LayersControl.Overlay checked={showOccurrences} name='Occurrence records'>
-                                        <WMSTileLayer url={getAlaWmsUrl()} layers='ALA:occurrences' format='image/png' transparent={true} opacity={showOccurrences ? recordLayerOpacity : 0} attribution='Atlas of Living Australia' zIndex={15} />
+                                        {hexValuesScaled &&
+                                            <WMSTileLayer url={getAlaWmsUrl()} layers='ALA:occurrences' format='image/png' transparent={true} opacity={showOccurrences ? recordLayerOpacity : 0} attribution='Atlas of Living Australia' zIndex={15} />
+                                        }
                                     </LayersControl.Overlay>
 
                                     {distributions.map((dist, idx) => (
