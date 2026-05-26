@@ -48,4 +48,3 @@ build/
 /mvnw.cmd
 /nginx.conf
 .history
-*/.yarn
