@@ -135,3 +135,1402 @@ svg[class~="leaflet-attribution-flag"] {
     padding: 0;
     margin: 2px 0;
 }
+
+#facetWell {
+}
+
+#returnedText {
+    font-size: 16px;
+}
+
+#facetWell h3 {
+    margin-top: 4px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 10px;
+    line-height: normal;
+    font-size: 16px;
+}
+
+#facetWell .sidebar h4 {
+    font-size: 13px;
+    padding: 0;
+    margin: 2px 0;
+}
+
+#content .sidebar .subnavlist > ul {
+    list-style: none;
+    padding-left: 0px;
+    margin-left: -4px;
+}
+
+#content .sidebar .subnavlist > ul#refinedFacets {
+    list-style: none;
+    margin: 5px 0 5px 0px;
+}
+
+.sidebar > .subnavlist > ul li {
+    margin-left: 14px;
+}
+
+.sidebar li {
+    text-indent: -5px;
+    margin-left: 8px;
+}
+
+span.activeFq, facet-item {
+    vertical-align: top;
+    display: inline-block;
+    width: 90%;
+    margin-left: -4px;
+    text-indent: 0;
+}
+
+.facet-item {
+    font-size: 13px;
+}
+
+#results {
+    border-bottom: none;
+    width: 100%;
+    padding: 0 10px 0 0;
+}
+#results .rowA {
+    color: #555;
+    margin-top: 4px;
+    font-weight: bold;
+    font-size: 13px;
+    padding-bottom: 4px;
+    margin-bottom: 0;
+}
+#results .resultValue {
+    color: #222;
+    text-transform:capitalize;
+    font-weight:500
+}
+#results .rowA .occurrenceNames {
+    color: #222;
+}
+#results .rowB {
+    font-size: 13px;
+    color: #222;
+    padding-bottom: 4px;
+    border-bottom: 1px solid silver;
+    margin-bottom: 0;
+}
+.rowB span {
+    padding-right: 4px;
+}
+.resultsLabel {
+    font-weight: normal;
+    color: #555;
+}
+.resultsValue {
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+#results {
+    clear: both;
+}
+
+#resultsContainer {
+    border-top: 1px solid silver;
+}
+
+#searchNavBar {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.sidebar .showHide {
+    margin: -2px 0 0 0;
+    line-height: 1.4em;
+    padding: 0;
+}
+.showHide a:link, .showHide a:visited, .showHide div  {
+    font-size: 12px;
+    font-weight: normal;
+    text-decoration: none;
+}
+.showHide i.icon-hand-right {
+    opacity: 0.7;
+    filter: alpha(opacity=70);
+}
+
+.sidebar #customiseFacets {
+    display: block;
+    float: left;
+    text-align: left;
+    padding: 2px 7px 1px 5px;
+    margin: 7px 0px 8px -2px;
+    border: 1px solid #BBBBBB;
+    background-color: #F0F0E8;
+    font-weight: bold;
+}
+
+.sidebar #customiseFacets a {
+    font-size: 13px;
+}
+
+.facetGroupName {
+    margin: 0px -10px 0 -10px;
+    padding: 6px 10px 0px 0px;
+    font-weight: bold;
+    font-size: 15px;
+    column-span: all;
+    cursor: pointer;
+}
+
+.facetGroupName span, .facet-item, .multipleFacetsLink, .dqLabel {
+    color: #c44d34;
+    cursor: pointer;
+}
+
+.facetGroupName span:hover, .facet-item:hover, .multipleFacetsLink:hover, .dqLabel:hover {
+    color: #883524;
+}
+
+span.FieldName {
+    font-weight: bold;
+}
+
+.FieldName {
+    font-size: 13px;
+    padding-bottom: 5px;
+}
+
+.multipleFacetsLink {
+    font-size: 13px;
+    padding-left: 5px;
+    margin-top: -10px;
+    padding-bottom: 10px;
+}
+
+ul.facets {
+    padding-left:0;
+    margin-left:0;
+    list-style:none;
+}
+
+ul.facets li {
+    padding-left:5px;
+    margin-left: 0;
+}
+
+#facetWell .caret {
+    margin-top: 0px;
+    margin-left: -2px;
+    margin-right: 2px;
+    color: #000;
+}
+
+#facetWell {
+    padding: 10px;
+}
+
+#facetWell .right-caret {
+    margin-top: 6px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+#facetWell .facetGroupName{
+    border-top: 1px solid #D3D3D3;
+    padding: 10px 10px 5px 3px;
+    margin-bottom: 4px;
+}
+
+.right-caret, .facetGroupName .right-caret {
+    border-bottom: 4px solid transparent;
+    border-top: 4px solid transparent;
+    border-left: 4px solid #000000;
+    display: inline-block;
+    height: 0;
+    vertical-align: top;
+    width: 0;
+}
+
+.facetGroupName > .showHideFacetGroup, .facetGroupName > .showHideFacetGroup:hover {
+    text-decoration: none;
+}
+
+#listHeader {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+
+#listHeader h1 {
+    margin: 20px 0 15px 0;
+    font-size: 26px;
+}
+
+body {
+    font-size: 14px;
+    line-height: 1.428571429;
+    color: #212121;
+    background-color: #fff;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: 500;
+    line-height: 1.1;
+    color: inherit;
+}
+
+#main{padding-top: 30px; padding-bottom: 5em; }
+body.background-white {background-color:#fff;}
+body.background-lightgrey {background-color:#f2f2f2;}
+
+.no-gutter>[class*='col-']{padding-right:0;padding-left:0;}
+.col-centered{float:none;margin:0 auto;}
+
+.toc-floating-menu.affix {position: static;}
+.sidebar-col {margin-bottom: 20px;position:relative !important;}
+
+.swatch-colour{height:70px;width:100%;display:block;border-bottom:1px solid #ccc;}
+.color--dark-grey{color: #9d9d9d;} .backgroundcolor--dark-grey{background-color: #9d9d9d;}
+.color--dark-red{color: #C44D34;} .backgroundcolor--dark-red{background-color: #C44D34;}
+.color--green{color: #006435;} .backgroundcolor--green{background-color: #006435;}
+.color--medium-blue{color: #2475A4;} .backgroundcolor--medium-blue{background-color: #2475A4;}
+.color--medium-grey{color: #637073;} .backgroundcolor--medium-grey{background-color: #637073;}
+.color--mellow-red{color: #DF3034;} .backgroundcolor--mellow-red{background-color: #DF3034;}
+.color--off-black{color: #212121;} .backgroundcolor--off-black{background-color: #212121;}
+.color--off-white{color: #F2F2F2;} .backgroundcolor--off-white{background-color: #F2F2F2;}
+.color--pink{color: #D0367D;} .backgroundcolor--pink{background-color: #D0367D;}
+.color--primary-red{color: #F26649;} .backgroundcolor--primary-red{background-color: #F26649;}
+.color--purple{color: #2E358B;} .backgroundcolor--purple{background-color: #2E358B;}
+.color--red{color: #B10E1E;} .backgroundcolor--red{background-color: #B10E1E;}
+.color--white{color: #fff !important;} .backgroundcolor--white{background-color: #fff;}
+.color--yellow{color: #FFBF47;} .backgroundcolor--yellow{background-color: #FFBF47;}
+.color--apple{color: #65B044;} .backgroundcolor--apple{background-color: #65B044;}
+.color--flamingo{color: #f26649;} .backgroundcolor--flamingo{background-color: #f26649;}
+.color--mojo{color: #C44D34;} .backgroundcolor--mojo{background-color: #C44D34;}
+.color-lochmara {color: #0087BE;} .background-lochmara {background-color: #0087BE;}
+.color-facebook {color: #507CBE;} .background-facebook {background-color: #507CBE;}
+
+a {
+    color: #c44d34;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #883524;
+}
+
+.container-fluid {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.btn-primary, .gform_button {
+    color: #fff;
+    background-color: #c44d34;
+    border-color: #c44d34;
+}
+
+.btn-primary:hover {
+    background-color: #883524;
+    border-color: #883524;
+}
+
+nav {
+    margin-bottom: 2px;
+}
+
+#searchInfoRow {
+    margin-top: 10px;
+}
+
+.form-control {
+    border: 1px solid #999;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
+    color: #6c757d;
+    cursor: default;
+    background-color: #fff;
+    border: 1px solid #999;
+    border-bottom-color: transparent;
+}
+
+.nav-tabs {
+    border-color: #999;
+    border-bottom: 1px solid #999;
+}
+
+.nav-tabs .nav-link.active, .nav-tabs .nav-link.active:hover {
+    border-color: #999;
+    border-bottom: 1px solid white;
+    color: black;
+}
+
+.nav-tabs .nav-link:not(.active) {
+    background-color: #f2f2f2;
+    border: 1px solid #bbb;
+}
+
+.nav-tabs .nav-link {
+    border-color: #bbb;
+    border-bottom: 1px solid #999;
+    margin-right: 5px;
+    color: #c44d34;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #883524;
+    border-color: #bbb;
+    border-bottom: 1px solid #999;
+    margin-right: 5px;
+}
+
+.tab-content {
+    padding: 15px;
+    border-bottom: 1px solid #999;
+    border-right: 1px solid #999;
+    border-left: 1px solid #999;
+}
+
+#resultsContainer {
+    padding-left:0;
+}
+
+#headingBar {
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+#headingBar h1 {
+    font-size: 26px;
+}
+
+#main {
+    padding-top: 1px;
+    padding-bottom: 5em;
+}
+
+h4, .h4 {
+    font-size: 18px;
+}
+
+.control-label {
+    font-weight: normal;
+}
+.radio label, .checkbox label {
+    min-height: 20px;
+    padding-left: 20px;
+    margin-bottom: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+#dataQuality {
+    border: 1px solid #999;
+    border-radius: 4px;
+}
+
+.no-wrap {
+    white-space: nowrap
+}
+
+#dataQualitySelect {
+    width: auto;
+    font-size: 14px;
+}
+
+.dqCategory {
+    margin-top: 10px;
+    line-height: 28px;
+}
+
+.dqCategoryDesc {
+}
+
+.dqH4 {
+    margin-top: 20px;
+}
+
+.dqFilter {
+    font-size: 13px;
+    line-height: 28px;
+}
+
+.imgCon {
+    display: inline-block;
+    text-align: center;
+    line-height: 1.3em;
+    background-color: #DDD;
+    color: #DDD;
+    font-size: 12px;
+    margin: 2px 4px 2px 0;
+    position: relative;
+}
+
+.imgCon .meta {
+    opacity: 0.8;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    text-align: left;
+    padding: 4px 5px 2px 5px;
+}
+
+.imgCon .brief {
+    color: black;
+    background-color: white;
+}
+
+.imgCon:hover .brief {
+    display: none;
+}
+
+.imgCon .detail {
+    display: none;
+    color: white;
+    background-color: black;
+    opacity: 0.7;
+}
+
+.imgCon:hover .detail {
+    display: block;
+}
+
+.imgCon img {
+    height: 170px;
+    min-width: 150px;
+}
+
+.imageInfoBox {
+    max-width: 220px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin-top: 15px;
+    margin-right: 15px;
+}
+
+.h3Small {
+    font-size: 24px;
+}
+
+.imageModal {
+    min-height: 400px;
+}
+
+.imageModalImg {
+    object-fit: contain;
+    max-height: 1000px;
+    max-width: 1000px;
+}
+
+.leaflet-container {
+    height: 530px;
+    font-size: inherit;
+}
+
+.speciesPage .leaflet-container {
+    height: 530px;
+}
+
+.speciesPage {
+    color: #212121;
+}
+
+#speciesListHeader {
+    background-color: #F2F2F2;
+    padding-top: 28px;
+}
+
+.speciesName {
+    font-size: 52px;
+    font-style: italic;
+    font-weight: 700;
+    line-height: 58px;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.speciesHeaderText {
+    width: 549px;
+}
+
+.speciesVernacular {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 28px;
+    text-align: left;
+    padding-bottom: 5px;
+}
+
+.speciesLink {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    color: #003A70;
+    text-decoration: underline;
+}
+
+.speciesTextSummary {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.speciesInvasive {
+    margin-top: 15px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    background-color: #FFC557;
+    padding: 8px 8px 11px 8px;
+    display: flex;
+    width: 492px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.speciesConservation {
+    margin-top: 60px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+    background-color: #FFC557;
+    padding: 8px 8px 11px 8px;
+    display: flex;
+    width: 813px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.speciesInvasiveLink {
+    text-decoration: underline;
+    color: #003A70;
+}
+
+.speciesInvasiveFlag {
+    width: 25px;
+}
+
+.speciesConservationFlag {
+    width: 20px;
+}
+
+.speciesImageBlock {
+    float:right;
+}
+
+.speciesImg > img{
+    border-radius: 10px;
+    width: 393px;
+    height: 335px;
+    margin-bottom: 15px;
+}
+
+.speciesImageBlockTall {
+    float:right;
+    margin-left: 15px;
+}
+
+.speciesImgTall > img{
+    border-radius: 10px;
+    width: 182px;
+    height: 160px;
+    margin-bottom: 15px;
+}
+
+.speciesPage .nav-tabs > li.active > a,.speciesPage .nav-tabs > li.active > a:hover,.speciesPage .nav-tabs > li.active > a:focus {
+    color: #6c757d;
+    cursor: default;
+    background-color: #fff;
+    border: 0;
+    border-bottom-color: transparent;
+}
+
+.speciesPage .nav-tabs {
+    border-color: #999;
+    border-bottom: 0px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+.speciesPage .nav-tabs .nav-link.active,.speciesPage  .nav-tabs .nav-link.active:hover {
+    border-color: transparent;
+    border-left: 0;
+    border-right: 0;
+    border-top:0;
+    border-bottom: 3px solid #C44D34;
+    color: #C44D34;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: left;
+}
+
+.speciesPage  .nav-tabs .nav-link:not(.active) {
+    background-color: white;
+    border: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+}
+
+.speciesPage .nav-tabs .nav-link {
+    color: #212121;
+    padding: 15px 15px 16px 15px;
+}
+
+.speciesPage .tab-content {
+    padding: 0;
+    border: 0px;
+}
+
+.speciesPage .nav-tabs:after {
+    display: inline-block;
+    content: "";
+    border-bottom: 1px solid #D9D9D9;
+    width: 200%;
+    margin-left: -50%;
+}
+
+.speciesMap {
+    height: 530px;
+    width: 845px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.speciesMapControl {
+    margin-left: 39px;
+    width: 255px;
+}
+
+.speciesMapAbout > span {
+    font-size: 14px;
+    margin-right: 7px;
+}
+
+.speciesMapAbout {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    margin-top:30px;
+}
+
+.speciesMapText {
+    width: 845px;
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+}
+
+.speciesMapGetStarted {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    margin-top: 30px;
+}
+
+.speciesMapButtons {
+    margin-top: 15px;
+}
+
+.speciesMapButton {
+    padding: 10px 14px 15px 14px;
+    border: 1px solid #C44D34;
+    width: 255px;
+    border-radius: 5px;
+    height: 69px;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 22px;
+    text-align: left;
+}
+
+.species-red {
+    color: #C44D34;
+    font-size: 25px;
+    margin-top: -2px;
+    margin-right: -5px;
+}
+
+.speciesPage {
+    width: 1139px;
+}
+
+.speciesOccurrenceCount {
+    margin-top: 40px;
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.speciesOccurrenceCountTxt {
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 40px;
+    text-align: left;
+}
+
+.speciesRefineView {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 24px;
+    text-align: left;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.speciesMapControlItem {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.speciesMapControlItemHr {
+    border-bottom: 1px solid #D9D9D9;
+}
+
+.speciesMapControlDist {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: left;
+}
+
+.speciesRefineView > span {
+    margin-right: 10px;
+}
+
+.speciesMapControlDistItem {
+    padding-top: 15px;
+}
+
+.speciesMapControlDistItemTxt {
+    padding-top: 5px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+}
+
+.speciesMapControlLayerItem {
+    padding-top: 10px;
+}
+
+.speciesMapControlRefresh {
+    border-radius: 20px;
+    border: 1px solid #212121;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 36px;
+    text-align: center;
+    margin-top:15px;
+    height: 36px;
+    padding: 0;
+}
+
+.speciesPageBackground {
+    background-color: #F2F2F2;
+}
+
+.speciesRow {
+    margin-top: 5px;
+    position: relative;
+    height: 22px;
+}
+
+.speciesRank {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    position: absolute;
+    left: 0;
+}
+
+.speciesClassificationLink {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    color: #003A70;
+    text-decoration: underline;
+    position: absolute;
+    left: 100px;
+}
+
+.classificationView {
+    margin-top: 60px;
+    position: relative;
+}
+
+.classificationInfo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 353px;
+}
+
+.classificationInfoText {
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+}
+
+.classificationAbout {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+}
+
+.classificationAbout > span {
+    font-size: 14px;
+    margin-right: 7px;
+}
+
+.speciesLast {
+    background-color: #D9D9D9;
+    height: 34px;
+    border-radius: 4px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    width: 550px;
+    position: relative;
+}
+
+.speciesLast div {
+    padding: 5px 41px 7px 13px;
+}
+
+.speciesLast:last-child {
+    background-color: #D9D9D9;
+    border-radius: 4px;
+}
+
+.speciesSectionTitle {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    margin-top: 30px;
+}
+
+.speciesDescription {
+    margin-top: 30px;
+}
+
+.speciesSectionText {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    margin-top:15px;
+}
+
+.sectionFoot {
+    border-bottom: 1px solid #D9D9D9;
+    width: 1139px;
+    margin-top: 60px;
+}
+
+.speciesDescription a, .speciesDescription a:hover {
+    color: #003A70;
+}
+
+.speciesImagesBlock {
+    width: 845px;
+}
+
+.speciesImagesControl {
+    margin-left: 39px;
+    width: 255px;
+}
+
+.speciesImagesView {
+    margin-top: 60px;
+}
+
+.speciesImagesCount {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 22px;
+    text-align: left;
+    margin-top: 30px;
+}
+
+.speciesImageBtn {
+    border: 1px solid #D9D9D9;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 400;
+    text-align: center;
+    width: 94px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.speciesImageBtnSelected {
+    background-color: #212121;
+    color: white;
+    border-color: #212121;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 400;
+    text-align: center;
+    width: 94px;
+    height: 40px;
+    margin-right: 10px;
+}
+
+.speciesImageBtnSelected:hover {
+    background-color: #212121;
+    color: white;
+    border-color: #212121;
+}
+
+.speciesImageBtn:hover {
+    color: black;
+    background-color: white;
+    border-color: #D9D9D9;
+}
+
+.speciesImageBlockImg {
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    max-width: 271px;
+    max-height: 210px;
+}
+
+.namesSectionHeader {
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.namesView {
+    margin-top:60px;
+    width: 845px;
+}
+
+.namesInfo {
+    margin-top: 30px;
+}
+
+.namesLink {
+    color: #003A70;
+    text-decoration: underline;
+}
+
+.namesSectionFoot {
+    border-bottom: 1px solid #D9D9D9;
+    width: 1139px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.namesRowName {
+    width: 393px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+    padding-left: 10px;
+}
+
+.namesRowSource {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.namesRow {
+}
+
+.namesRowOdd {
+    background-color: #F2F2F2;
+}
+
+.namesRowHeader {
+    height: 32px;
+    border-bottom: 0.5px solid #212121;
+    margin-top: 30px;
+    padding-bottom: 10px
+}
+
+.namesRowHeaderLabelLeft {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    padding-left: 10px;
+    width: 393px;
+}
+
+.namesRowHeaderLabelRight {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+}
+
+.speciesPage a:not(.btn), .speciesPage a:hover:not(.btn) {
+    color: #003A70;
+    text-decoration: underline;
+}
+
+.speciesFooter {
+    margin-top: 90px;
+    height: 106px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.speciesFooterLine {
+    border-bottom: 1px solid #D9D9D9;
+    width: 200%;
+    margin-left: -50%;
+    margin-top: 17px;
+}
+
+.speciesFooterUp {
+    font-size: 32px;
+    margin-top: -16px;
+    background-color: white;
+    line-height: 32px;
+}
+
+.speciesTypeTag {
+    background-color: #D9D9D9;
+    border-radius: 5px;
+    border: 1px solid #D9D9D9;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: center;
+    padding: 6px 13px 6px 13px;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.statusView {
+    margin-top: 60px;
+    width: 845px;
+}
+
+.statusRowHeaderLabelLeft {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    padding-left: 10px;
+    width: 304px;
+}
+
+.statusRowName {
+    width: 304px;
+    padding-left: 10px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.statusRowHeaderLabelMiddle {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+    width: 293px;
+}
+
+.statusRowSource {
+    width: 293px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.statusRowHeaderLabelRight {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+    text-align: left;
+}
+
+.statusRowStatus {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+    text-align: left;
+}
+
+.iucnSection {
+    margin-top: 30px;
+}
+
+.iucnRow {
+    margin-top: 5px;
+}
+
+.iucnIcon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 35px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.iucnLabel {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 35px;
+    text-align: left;
+    margin-left: 10px;
+}
+
+.traitsView {
+    margin-top: 60px;
+    width: 982px;
+}
+
+.traitsLogo {
+    width: 288px;
+    height: 105px;
+}
+
+.traitsInfo {
+    width: 590px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+}
+
+.traitsButtons {
+    margin-top: 25px;
+}
+
+.traitsButtonDefinitions, .traitsButtonDefinitions:hover  {
+    border: 1px solid #D9D9D9;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: center;
+    padding: 8px 19px 10px 19px;
+    height: 40px;
+    text-decoration-line: none;
+}
+
+.traitsButtonCsv, .traitsButtonCsv:hover {
+    background-color: #212121;
+    color: white;
+    border-color: #212121;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: center;
+    height: 40px;
+    padding: 8px 19px 10px 19px;
+    margin-left: 20px;
+}
+
+.traitsInfoBox {
+    width: 310px;
+}
+
+.traitsCite {
+    margin-top: 30px;
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    padding: 12px 12px 14px 14px;
+}
+
+.traitsCiteTitle {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: left;
+    margin-bottom: 14px;
+}
+
+.traitsCiteText {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    text-align: left;
+}
+
+.traitsData {
+    width: 590px;
+}
+
+.traitsDataBlock {
+    margin-top: 44px;
+}
+
+.traitsCategoricalInfo {
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+}
+
+.traitsConservationName {
+    width: 290px;
+    padding-left: 10px;
+}
+
+.traitsConservationValue {
+    width: 184px;
+}
+
+.traitsConservationLink {
+    width: 101px;
+}
+
+.speciesTableHeaderItem {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 22px;
+}
+
+.speciesTableItem {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 45px;
+}
+
+.traitNumericName {
+    padding-left: 10px;
+    width: 207px;
+}
+
+.traitNumericMin {
+    width: 30px;
+    text-align: right;
+}
+
+.traitNumericMean {
+    width: 66px;
+    text-align: right;
+}
+
+.traitNumericMax {
+    width: 59px;
+    text-align: right;
+}
+
+.traitNumericUnit {
+    width: 129px;
+    text-align: center;
+}
+
+.traitNumericUrl {
+}
+
+.datasetsView {
+    margin-top: 60px;
+    width: 842px;
+}
+
+.datasetName {
+    width: 298px;
+    padding-left: 10px;
+}
+
+.datasetLicence {
+    width: 293px;
+}
+
+.datasetRecords {
+    width: 150px;
+    text-align: right;
+}
+
+.datasetTable {
+    margin-top: 60px;
+}
+
+.resourcesView {
+    margin-top: 60px;
+    width: 845px;
+}
+
+.sectionSubHeader {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 32px;
+}
+
+.resourceBox {
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    padding: 15px 15px 18px 18px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    text-align: left;
+    margin-top: 15px;
+}
+
+.speciesMapButtons {
+    height: 69px;
+}
+
+.speciesMapButtonSpace {
+    margin-right: 40px;
+}
+
+.mt-30 {
+    margin-top: 30px;
+}
+
+.accordion-header {
+    margin-top: 0px;
+}
+
+.map-layer-control {
+    color: #000;
+    font-size: 13px !important;
+}
+
+.map-layer-control label {
+    margin-bottom: 0;
+}
+
+#mapLegendControls {
+    font-size: 12px;
+}
+

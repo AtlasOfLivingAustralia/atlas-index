@@ -56,7 +56,8 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
 
 
     function fetchData() {
-        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0';
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0' + qc;
 
         fetch(url, {
             method: 'GET',

@@ -42,8 +42,9 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
     function updateCount() {
         if (queryString) {
             let thisQueryString = queryString + "&disableAllQualityFilters=true";
+            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString, {})
+            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + qc, {})
                   .then(response => response.json())
                   .then(data => setCount(data.totalRecords))
                   .catch(e => console.error(e));

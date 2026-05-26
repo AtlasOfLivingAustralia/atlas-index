@@ -88,6 +88,7 @@ function Occurrence({setBreadcrumbs}: {
     }
 
     const fetchPageIds = async () => {
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
         const indexJson = await fetch(
             import.meta.env.VITE_APP_BIOCACHE_URL +
             '/occurrences/search' +
@@ -96,7 +97,7 @@ function Occurrence({setBreadcrumbs}: {
             "&sort=" + recordsViewProps.sort +
             "&dir=" + recordsViewProps.dir +
             "&start=" + (recordsViewProps.page - 1) * recordsViewProps.pageSize +
-            "&fl=id",
+            "&fl=id" + qc,
             {method: 'GET'}
         ).then(response => response.json());
 

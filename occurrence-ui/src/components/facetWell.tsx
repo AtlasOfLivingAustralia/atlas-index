@@ -152,7 +152,8 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
         }
 
         const currentFacet = flist[0];
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count", {
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count" + qc, {
             method: 'GET'
         }).then(response => response.json()).then(data => {
             // must check totalRecords after this fetch as it is done concurrently with the parent component fetches

@@ -72,7 +72,9 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             return;
         }
 
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0`, {
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0${qc}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         })

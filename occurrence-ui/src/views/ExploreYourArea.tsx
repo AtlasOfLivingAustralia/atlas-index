@@ -7,7 +7,6 @@
 import {Breadcrumb, FontAwesomeIconLite, useHashState} from "@ala/common-ui";
 import {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef, useCallback} from "react";
-import '../css/search.css';
 import ReactDOM from "react-dom/client";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
@@ -321,7 +320,8 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         }
 
         // initialize the species groups with only those with data
-        const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/groups?${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`;
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/groups?${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${qc}`;
         const response2 = await fetch(url2);
         const data2 = await response2.json();
         const counts: SpeciesGroupFacet = {};
@@ -375,7 +375,8 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
         // query biocache-service
         const groupParam = group === ALL_SPECIES ? 'ALL_SPECIES' : encodeURIComponent(group);
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`;
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${qc}`;
         fetch(url, {signal: signalSpeciesList})
             .then((response) => response.json())
             .then((data) => {
@@ -589,7 +590,8 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info?${globalFq}${occurrenceFq}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}`;
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info?${globalFq}${occurrenceFq}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}${qc}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {

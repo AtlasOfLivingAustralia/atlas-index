@@ -110,7 +110,8 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
         setShowProgress(true);
 
         // get the list of species
-        let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0&flimit=${maxFieldguideSpecies}&facets=species_guid&facet=true`;
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0&flimit=${maxFieldguideSpecies}&facets=species_guid&facet=true${qc}`;
         fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
             .then(response => response.json())
             .then(json => {
@@ -127,7 +128,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
 
                 // construct parameters
                 let body = {
-                    sourceUrl: `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams || ''}`,
+                    sourceUrl: `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams || ''}${qc}`,
                     filename: filename,
                     id: speciesGuids,
                     title: "This document was generated on " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -278,7 +279,8 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
             }
 
             // Future: This should be a POST, but only URL params are supported for now so leaving as GET
-            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}`;
+            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}${qc}`;
             fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
                 .then(response => response.json())
                 .then(json => {

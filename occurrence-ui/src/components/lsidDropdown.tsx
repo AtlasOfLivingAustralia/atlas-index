@@ -49,7 +49,8 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
     function fetchData() {
         if (data || loading) return;
         setLoading(true);
-        const jsonUri = `${biocacheUrl}/occurrences/search?q=lsid:${lsid}&facets=raw_scientificName&pageSize=0&flimit=${MAX_FACETS}`;
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const jsonUri = `${biocacheUrl}/occurrences/search?q=lsid:${lsid}&facets=raw_scientificName&pageSize=0&flimit=${MAX_FACETS}${qc}`;
         fetch(jsonUri)
             .then(r => r.json())
             .then((d: BiocacheResponse) => setData(d))

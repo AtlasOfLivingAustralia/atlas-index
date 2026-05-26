@@ -218,13 +218,17 @@ function OccurrenceList({setBreadcrumbs}: {
         } else {
             // No DQ params in URL — apply the default profile unless one was already
             // resolved from user preferences (stored/fetched). Fall back to env default.
+            let defaultDisableAll = false;
             if (dataQualityInfo.profile === 'disable') {
                 dataQualityInfo.profile = import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE || 'ALA';
+                if (dataQualityInfo.profile === 'disable') {
+                    defaultDisableAll = true;
+                }
             }
             dataQualityInfo.selectedFilters = initDqFilters(dqList, dataQualityInfo.profile);
 
             // Inject the default DQ params into queryString so all sub-components see them
-            const defaultParams: string[] = ['qualityProfile=' + dataQualityInfo.profile];
+            const defaultParams: string[] = defaultDisableAll ? ['disableAllQualityFilters=true'] : ['qualityProfile=' + dataQualityInfo.profile];
             for (let dq of dqList) {
                 if (dq.shortName === dataQualityInfo.profile) {
                     for (let cat of dq.categories) {
@@ -241,7 +245,7 @@ function OccurrenceList({setBreadcrumbs}: {
             return;
         }
 
-        setDataQualityInfo(dataQualityInfo)
+        setDataQualityInfo({...dataQualityInfo})
     }
 
     function updateDataQualityInfo(dataQualityInfo: DataQualityInfo) {
@@ -349,7 +353,8 @@ function OccurrenceList({setBreadcrumbs}: {
             return;
         }
 
-        const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?' + searchTerm + "&pageSize=" + pageSize + "&sort=" + sort + "&dir=" + dir + "&start=" + (pageTerm-1) * pageSize, {
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?' + searchTerm + "&pageSize=" + pageSize + "&sort=" + sort + "&dir=" + dir + "&start=" + (pageTerm-1) * pageSize + qc, {
             method: 'GET'
         }).then(response => response.json());
 

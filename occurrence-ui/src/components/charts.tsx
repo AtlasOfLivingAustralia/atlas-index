@@ -60,7 +60,8 @@ function Charts({ queryString, chartsData, setChartsData }: ChartsProps) {
         }
 
         const config = chartConfig[configIndex];
-        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/chart' + queryString + '&x=' + config.facet + '&xother=false&xmissing=false' + '&fq=' + config.facet + ':*'; // this excludes records with no value for the facet, but the API is supposed to do that when xmissing=false
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/chart' + queryString + '&x=' + config.facet + '&xother=false&xmissing=false' + '&fq=' + config.facet + ':*' + qc; // this excludes records with no value for the facet, but the API is supposed to do that when xmissing=false
         fetch(url, {
             method: 'GET',
             headers: {

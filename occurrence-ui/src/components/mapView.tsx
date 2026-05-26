@@ -328,12 +328,13 @@ function MapView({ queryString, tab }: MapViewProps) {
         L.popup().setLatLng(e.latlng).setContent(div).openOn(mapRef.current!);
 
         // 4. Fetch counts using the full combined query
-        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${fullTerms}&facet=false&pageSize=0`);
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${fullTerms}&facet=false&pageSize=0${qc}`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${fullTerms}&facets=scientificName`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${fullTerms}&facets=scientificName${qc}`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
@@ -431,7 +432,8 @@ function MapView({ queryString, tab }: MapViewProps) {
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${infoQs}`;
+        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${infoQs}${qc}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {
@@ -462,7 +464,8 @@ function MapView({ queryString, tab }: MapViewProps) {
             setHiddenFacets([]);
             setLegendFacets([]);
         } else {
-            let url = new URL(import.meta.env.VITE_APP_BIOCACHE_URL + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy));
+            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+            let url = new URL(import.meta.env.VITE_APP_BIOCACHE_URL + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy) + qc);
             fetch(url.toString(), {
                 method: 'GET',
                 headers: {

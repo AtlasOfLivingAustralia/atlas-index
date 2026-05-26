@@ -69,9 +69,10 @@ function DataQualityCategoryInfoModal({
 
     function updateCount() {
         if (queryString && category) {
+            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
             let thisQueryString = queryString + "&disableAllQualityFilters=true&fq=" + category.inverseFilter;
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString, {}).then(response => response.json())
+            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + qc, {}).then(response => response.json())
                 .then(data => setCount(data.totalRecords));
         }
     }

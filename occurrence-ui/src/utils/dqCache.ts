@@ -65,7 +65,8 @@ export function fetchDqCountsSequentially(
 
     // Reuse an existing in-flight request for the same key
     const existing = inFlight.get(key);
-    const request: Promise<number> = existing ?? fetch(biocacheUrl + "/occurrences/search" + key + "&pageSize=0")
+    const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+    const request: Promise<number> = existing ?? fetch(biocacheUrl + "/occurrences/search" + key + "&pageSize=0" + qc)
         .then(r => r.json())
         .then(data => {
             setCachedCount(key, data.totalRecords);
