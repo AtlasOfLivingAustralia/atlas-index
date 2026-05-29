@@ -19,6 +19,9 @@ import refineSection, {RefineSectionItem} from "./components/refineSection.tsx";
 import {useHeight} from "./components/useHeight.tsx";
 import ArrowRightIcon from "./icons/arrowRightIcon.tsx";
 import CheckDisabledIcon from "./icons/checkDisabledIcon.tsx";
+import ChevronDownIcon from "./icons/chevronDownIcon.tsx";
+import ChevronLeftCircleIcon from "./icons/chevronLeftCircleIcon.tsx";
+import ChevronRightCircleIcon from "./icons/chevronRightCircleIcon.tsx";
 import CheckedIcon from "./icons/checkedIcon.tsx";
 import CheckIcon from "./icons/checkIcon.tsx";
 import FolderIcon from "./icons/folderIcon.tsx";
@@ -50,6 +53,9 @@ export {
     CheckDisabledIcon,
     Pagination,
     CheckedIcon,
+    ChevronDownIcon,
+    ChevronLeftCircleIcon,
+    ChevronRightCircleIcon,
     RefineSection,
     refineSection,
     useHeight,

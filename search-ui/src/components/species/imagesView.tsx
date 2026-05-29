@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, FontAwesomeIconLite, RefineSection, RefineSectionItem,} from '@ala/common-ui';
+import { ChevronLeftCircleIcon, ChevronRightCircleIcon, FadeInImage, FontAwesomeIconLite, RefineSection, RefineSectionItem } from '@ala/common-ui';
 import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import capitalise from '../../helpers/Capitalise.ts';
@@ -615,7 +615,9 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                     <button aria-label="Previous image" className={classes.imageDialogButton}
                             style={{left: '15px', cursor: openImageIdx === 0 ? 'not-allowed' : 'pointer'}}
                             onClick={() => setOpenImageIdx((idx) => Math.max(0, idx - 1))}
-                            disabled={openImageIdx === 0}>&lt;</button>
+                            disabled={openImageIdx === 0}>
+                        <ChevronLeftCircleIcon size={32}/>
+                    </button>
 
                     <button aria-label="Next image" className={classes.imageDialogButton}
                             onClick={() => {
@@ -630,7 +632,8 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 right: '15px',
                                 cursor: loading ? 'wait' : (openImageIdx === items.length - 1 ? 'not-allowed' : 'pointer'),
                             }}>
-                        &gt;</button>
+                        <ChevronRightCircleIcon size={32}/>
+                    </button>
 
                     <div style={{display: 'flex', justifyContent: 'center', height: '30px'}}>
                         <span className={classes.refineTitle} id="dialogTitle">
