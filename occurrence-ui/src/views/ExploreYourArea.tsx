@@ -11,6 +11,7 @@ import ReactDOM from "react-dom/client";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import {SpeciesGroup, SpeciesGroupItem, SpeciesListItem} from "../api/model.tsx";
+import {getQc} from "../util/util.tsx";
 import styles from './exploreYourArea.module.css';
 import speciesGroupMapImport from '../config/speciesGroupsMap.json';
 import { Circle, LayersControl, MapContainer, Marker, ScaleControl, TileLayer, WMSTileLayer } from 'react-leaflet';
@@ -149,6 +150,8 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
             {title: 'Explore by location', href: 'https://www.ala.org.au/explore-by-location/'},
             {title: 'Explore your area', href: '/'},
         ]);
+
+        document.title = `Explore Your Area | ${import.meta.env.VITE_HUB_NAME}`;
 
         // if no latLng provided, try to get location from browser
         if (latLngText && latLngText.trim().length > 0) {
@@ -320,8 +323,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         }
 
         // initialize the species groups with only those with data
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/groups?${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${qc}`;
+        const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/groups?${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${getQc()}`;
         const response2 = await fetch(url2);
         const data2 = await response2.json();
         const counts: SpeciesGroupFacet = {};
@@ -375,8 +377,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
         // query biocache-service
         const groupParam = group === ALL_SPECIES ? 'ALL_SPECIES' : encodeURIComponent(group);
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${qc}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${globalFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${getQc()}`;
         fetch(url, {signal: signalSpeciesList})
             .then((response) => response.json())
             .then((data) => {
@@ -590,8 +591,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info?${globalFq}${occurrenceFq}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}${qc}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info?${globalFq}${occurrenceFq}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}${getQc()}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {

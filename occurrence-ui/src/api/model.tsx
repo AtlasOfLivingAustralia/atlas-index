@@ -12,6 +12,12 @@ interface Occurrence {
     taxonRank?: string;
     scientificName?: string;
     raw_scientificName?: string;
+    species?: string;
+    genus?: string;
+    family?: string;
+    order?: string;
+    phylum?: string;
+    kingdom?: string;
     vernacularName?: string;
     raw_vernacularName?: string;
     eventDate?: number;

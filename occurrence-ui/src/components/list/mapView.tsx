@@ -17,12 +17,13 @@ import 'leaflet/dist/leaflet.css';
 import L, { LatLng, LeafletMouseEvent } from 'leaflet';
 import {useEffect, useRef, useState} from "react";
 import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
-import { DataQualityInfo } from '../api/model.tsx';
+import { DataQualityInfo } from '../../api/model.tsx';
+import {getQc} from "../../util/util.tsx";
 import MapLayerControls from "./mapLayerControls.tsx";
-import defaultMapFacets from "../config/defaultMapFacets.json";
+import defaultMapFacets from "../../config/defaultMapFacets.json";
 import MapLegendControls from "./mapLegendControls.tsx";
 import TopRightControl from "./TopRightControl.tsx";
-import { polygonLayerToWkt } from '../util/worldWrapFix.ts';
+import { polygonLayerToWkt } from '../../util/worldWrapFix.ts';
 import DownloadMapModal from './downloadMapModal.tsx';
 
 const org = import.meta.env.VITE_MAP_ORG;
@@ -328,13 +329,12 @@ function MapView({ queryString, tab }: MapViewProps) {
         L.popup().setLatLng(e.latlng).setContent(div).openOn(mapRef.current!);
 
         // 4. Fetch counts using the full combined query
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${fullTerms}&facet=false&pageSize=0${qc}`);
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${fullTerms}&facet=false&pageSize=0${getQc()}`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${fullTerms}&facets=scientificName${qc}`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${fullTerms}&facets=scientificName${getQc()}`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
@@ -432,8 +432,7 @@ function MapView({ queryString, tab }: MapViewProps) {
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${infoQs}${qc}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${infoQs}${getQc()}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {
@@ -464,8 +463,7 @@ function MapView({ queryString, tab }: MapViewProps) {
             setHiddenFacets([]);
             setLegendFacets([]);
         } else {
-            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-            let url = new URL(import.meta.env.VITE_APP_BIOCACHE_URL + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy) + qc);
+            let url = new URL(import.meta.env.VITE_APP_BIOCACHE_URL + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy) + getQc());
             fetch(url.toString(), {
                 method: 'GET',
                 headers: {

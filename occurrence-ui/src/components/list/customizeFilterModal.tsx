@@ -7,7 +7,7 @@
 import Modal from "react-bootstrap/esm/Modal";
 import {useState} from "react";
 import {FormattedMessage} from "react-intl";
-import defaultFacets from "../config/defaultFacets.json";
+import defaultFacets from "../../config/defaultFacets.json";
 
 interface ApiModalProps {
     onClose: () => void,

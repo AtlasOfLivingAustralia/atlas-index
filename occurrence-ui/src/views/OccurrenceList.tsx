@@ -8,19 +8,19 @@ import {Breadcrumb, useUser} from "@ala/common-ui";
 import {useEffect, useState} from "react";
 import { FormattedMessage, useIntl } from 'react-intl';
 import { DataQualityInfo, OccurrenceListResult, QualityProfile } from '../api/model.tsx';
-import MapView from "../components/mapView.tsx";
-import RecordImages from "../components/recordImages.tsx";
-import RecordsView from "../components/recordsView.tsx";
-import ResultsReturned from "../components/resultsReturned.tsx";
+import MapView from "../components/list/mapView.tsx";
+import RecordImages from "../components/list/recordImages.tsx";
+import RecordsView from "../components/list/recordsView.tsx";
+import ResultsReturned from "../components/list/resultsReturned.tsx";
 import LazyLoad from "../components/lazyLoad.tsx";
-import FacetWell from "../components/facetWell.tsx";
+import FacetWell from "../components/list/facetWell.tsx";
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {Tab, Tabs} from "react-bootstrap";
-import Charts from "../components/charts.tsx";
+import Charts from "../components/list/charts.tsx";
 import ApiModal from "../components/apiModal.tsx";
-import CustomizeFilterModal from "../components/customizeFilterModal.tsx";
-import DataQuality from "../components/dataQuality.tsx";
-import ActiveFilters from "../components/activeFilters.tsx";
+import CustomizeFilterModal from "../components/list/customizeFilterModal.tsx";
+import DataQuality from "../components/list/dataQuality.tsx";
+import ActiveFilters from "../components/list/activeFilters.tsx";
 import {
     parseAsInteger,
     parseAsStringLiteral,
@@ -28,6 +28,7 @@ import {
 } from 'nuqs';
 import groupedFacets from "../config/searchGroupedFacets.json";
 import defaultFacets from "../config/defaultFacets.json";
+import {getQc} from "../util/util.tsx";
 
 const sortOrder = ['asc', 'desc'] as const
 
@@ -43,6 +44,7 @@ function OccurrenceList({setBreadcrumbs}: {
     const [lastSearch, setLastSearch] = useState('');
 
     const [result, setResult] = useState<OccurrenceListResult>({ occurrences: [], totalRecords: undefined });
+    const [queryError, setQueryError] = useState('');
     const [pageSize, setPageSize] = useQueryState('pageSize', parseAsInteger.withDefault(20));
     const [sort, setSort] = useQueryState('sort', { defaultValue: 'first_loaded_date'});
     const [dir, setDir] = useQueryState('order', parseAsStringLiteral(sortOrder).withDefault('desc'));
@@ -111,6 +113,8 @@ function OccurrenceList({setBreadcrumbs}: {
             {title: 'Occurrence records', href: '/'},
             {title: 'Search results', href: '/occurrence-list'},
         ]);
+
+        document.title = `Search | Occurrence records | ${import.meta.env.VITE_HUB_NAME}`;
     }, [location.search]);
 
     useEffect(() => {
@@ -353,11 +357,32 @@ function OccurrenceList({setBreadcrumbs}: {
             return;
         }
 
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?' + searchTerm + "&pageSize=" + pageSize + "&sort=" + sort + "&dir=" + dir + "&start=" + (pageTerm-1) * pageSize + qc, {
+        const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?' + searchTerm + "&pageSize=" + pageSize + "&sort=" + sort + "&dir=" + dir + "&start=" + (pageTerm-1) * pageSize + getQc(), {
             method: 'GET'
-        }).then(response => response.json());
-
+        }).then(async response => {
+            if (!response.ok) {
+                let errorMsg = `Search request failed: ${response.status}`;
+                try {
+                    const body = await response.json();
+                    const bodyMsg = body?.message || body?.errorMessage;
+                    const bodyStatus = body?.statusCode || body?.errorType;
+                    if (bodyMsg) {
+                        errorMsg = bodyStatus ? `${bodyStatus}: ${bodyMsg}` : bodyMsg;
+                    } else if (response.statusText) {
+                        errorMsg = `${response.status} ${response.statusText}`;
+                    }
+                } catch {
+                    if (response.statusText) {
+                        errorMsg = `${response.status} ${response.statusText}`;
+                    }
+                }
+                throw new Error(errorMsg);
+            }
+            return response.json();
+        }).catch(e => {
+            setQueryError(e.message);
+            return { occurrences: [], totalRecords: 0 };
+        });
 
         setResult(indexJson)
     }
@@ -471,7 +496,10 @@ function OccurrenceList({setBreadcrumbs}: {
                         <div className="col-sm-9 col-md-9">
                             <div className="row g-0 align-items-start mb-3">
                                 <div className="col">
-                                    <ResultsReturned results={result} queryString={queryString}/>
+                                    {queryError ?
+                                        <div className="alert alert-danger" role="alert">{queryError}</div>
+                                        : <ResultsReturned results={result} queryString={queryString}/>
+                                    }
                                 </div>
                                 <div id="download-button-area" className="col-auto pe-0">
                                     <div id="downloads" className="btn btn-primary btn-sm"

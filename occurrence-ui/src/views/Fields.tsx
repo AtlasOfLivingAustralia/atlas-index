@@ -123,6 +123,8 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
             { title: 'Indexed fields', href: '/fields' },
         ]);
 
+        document.title = `Fields | ${import.meta.env.VITE_HUB_NAME}` ;
+
         fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/index/fields`, { method: 'GET' })
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);

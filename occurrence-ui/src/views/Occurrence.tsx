@@ -24,7 +24,7 @@ import RecordCore from "../components/occurrence/recordCore.tsx";
 import RecordSidebar from '../components/occurrence/recordSidebar.tsx';
 import ReferencedPublications from "../components/occurrence/referencedPublications.tsx";
 import './occurrence.css';
-import { isUrl } from '../util/util.tsx';
+import { getQc, isUrl } from '../util/util.tsx';
 
 const vernacularName_show = import.meta.env.VITE_RECORD_VERNACULAR_NAME_SHOW !== 'false';
 
@@ -85,10 +85,11 @@ function Occurrence({setBreadcrumbs}: {
             {title: 'Occurrence records', href: '/'},
             {title: 'Record: ' + recordId(), href: '/occurrence'},
         ]);
+
+        document.title = `Record: ${recordId()} | Occurrence record | ${import.meta.env.VITE_HUB_NAME}`;
     }
 
     const fetchPageIds = async () => {
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
         const indexJson = await fetch(
             import.meta.env.VITE_APP_BIOCACHE_URL +
             '/occurrences/search' +
@@ -97,7 +98,7 @@ function Occurrence({setBreadcrumbs}: {
             "&sort=" + recordsViewProps.sort +
             "&dir=" + recordsViewProps.dir +
             "&start=" + (recordsViewProps.page - 1) * recordsViewProps.pageSize +
-            "&fl=id" + qc,
+            "&fl=id" + getQc(),
             {method: 'GET'}
         ).then(response => response.json());
 

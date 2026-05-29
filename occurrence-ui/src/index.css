@@ -1534,3 +1534,6 @@ h4, .h4 {
     font-size: 12px;
 }
 
+#resultsContainer > div:hover {
+    cursor: pointer;
+}

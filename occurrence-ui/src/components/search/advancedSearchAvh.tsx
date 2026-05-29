@@ -9,7 +9,39 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIconLite } from '@ala/common-ui';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
+import {getQc, quoteText} from "../../util/util.tsx";
 import RolloverTooltip from "../rolloverTooltip.tsx";
+
+const avhAUStates = [
+    { name: 'Australian Capital Territory', fq: 'state:"Australian Capital Territory"' },
+    { name: 'New South Wales', fq: 'state:"New South Wales"' },
+    { name: 'Northern Territory', fq: 'state:"Northern Territory"' },
+    { name: 'Queensland', fq: 'state:"Queensland"' },
+    { name: 'South Australia', fq: 'state:"South Australia"' },
+    { name: 'Tasmania', fq: 'state:"Tasmania"' },
+    { name: 'Victoria', fq: 'state:"Victoria"' },
+    { name: 'Western Australia', fq: 'state:"Western Australia"' }
+];
+
+const avhNZStates = [
+    { name: 'Auckland', fq: 'state:Auckland OR cl2117:Auckland' },
+    { name: 'Bay of Plenty', fq: 'state:"Bay of Plenty" OR cl2117:"Bay of Plenty"' },
+    { name: 'Canterbury', fq: 'state:Canterbury OR cl2117:Canterbury' },
+    { name: 'Chatham Islands', fq: 'state:"Chatham Islands" OR cl2117:"Chatham Islands"' },
+    { name: 'Gisborne', fq: 'state:Gisborne OR cl2117:Gisborne' },
+    { name: "Hawke's Bay", fq: 'state:"Hawke\'s Bay" OR cl2117:"Hawke\'s Bay"' },
+    { name: "Manawatu-Wanganui", fq: 'state:Manawatu-Wanganui OR cl2117:Manawatu-Wanganui' },
+    { name: 'Marlborough', fq: 'state:Marlborough OR cl2117:Marlborough' },
+    { name: 'Nelson', fq: 'state:Nelson OR cl2117:Nelson' },
+    { name: 'Northland', fq: 'state:Northland OR cl2117:Northland' },
+    { name: 'Otago', fq: 'state:Otago OR cl2117:Otago' },
+    { name: 'Southland', fq: 'state:Southland OR cl2117:Southland' },
+    { name: 'Taranaki', fq: 'state:Taranaki OR cl2117:Taranaki' },
+    { name: 'Tasman', fq: 'state:Tasman OR cl2117:Tasman' },
+    { name: 'Waikato', fq: 'state:Waikato OR cl2117:Waikato' },
+    { name: 'Wellington', fq: 'state:Wellington OR cl2117:Wellington' },
+    { name: 'West Coast', fq: 'state:"West Coast" OR cl2117:"West Coast"' }
+];
 
 function AdvancedSearchAvh() {
     const intl = useIntl();
@@ -18,20 +50,22 @@ function AdvancedSearchAvh() {
     // Per-facet cache: undefined = not yet fetched, null = loading, Fq[] = loaded
     const [advancedOptions, setAdvancedOptions] = useState<Record<string, { name: string; fq: string }[] | null | undefined>>({});
 
-    const fetchFacet = useCallback((facet: string) => {
+    const fetchFacet = useCallback((facet: string, includeUnknowns: boolean = false) => {
         setAdvancedOptions(prev => {
             if (prev[facet] !== undefined) return prev;
             return { ...prev, [facet]: null };
         });
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1${qc}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1${getQc()}`;
         fetch(url)
             .then(res => res.json())
             .then(data => {
                 const facetResult = data?.facetResults?.find((fr: any) => fr.fieldName === facet);
-                const values = facetResult
+                let values: { name: string; fq: string }[] = facetResult
                     ? facetResult.fieldResult.map((fr: any) => ({ name: fr.label, fq: fr.fq }))
                     : [];
+                if (!includeUnknowns) {
+                    values = values.filter(v => !(v.fq?.startsWith('-') && v.fq?.endsWith('*')));
+                }
                 setAdvancedOptions(prev => ({ ...prev, [facet]: values }));
             });
     }, []);
@@ -81,18 +115,18 @@ function AdvancedSearchAvh() {
     function advancedSearch() {
         let fqParts: string[] = [];
 
-        if (fullText) fqParts.push(`text:${fullText}`);
+        if (fullText) fqParts.push(`text:${quoteText(fullText)}`);
 
         // Taxa — 4 fields OR'd together using nameType (taxa or raw_scientificName)
         const taxonFields = [taxon1, taxon2, taxon3, taxon4].filter(Boolean);
         if (taxonFields.length > 0) {
             const taxaParts = taxonFields.map(t => `${nameType}:"${t.replace(/"/g, '\\"')}"`);
-            fqParts.push(`(${taxaParts.join(' OR ')})`);
+            fqParts.push(`${taxaParts.join(' OR ')}`);
         }
 
         if (botanicalGroup) fqParts.push(botanicalGroup);
 
-        if (identifiedBy) fqParts.push(`identified_by:(${identifiedBy})`);
+        if (identifiedBy) fqParts.push(`text_identifiedBy:${quoteText(identifiedBy)}`);
         if (identifiedDateStart || identifiedDateEnd) {
             const begin = identifiedDateStart ? identifiedDateStart + 'T00:00:00Z' : '*';
             const end = identifiedDateEnd ? identifiedDateEnd + 'T23:59:59Z' : '*';
@@ -100,15 +134,15 @@ function AdvancedSearchAvh() {
         }
 
         if (herbarium) fqParts.push(herbarium);
-        if (catalogueNumber) fqParts.push(`catalogNumber:(${catalogueNumber})`);
+        if (catalogueNumber) fqParts.push(`catalogNumber:${quoteText(catalogueNumber)}`);
         if (lastLoadStart || lastLoadEnd) {
             const begin = lastLoadStart ? lastLoadStart + 'T00:00:00Z' : '*';
             const end = lastLoadEnd ? lastLoadEnd + 'T23:59:59Z' : '*';
-            fqParts.push(`lastModifiedDate:[${begin} TO ${end}]`);
+            fqParts.push(`modified:[${begin} TO ${end}]`);
         }
 
-        if (collector) fqParts.push(`collector_text:(${collector})`);
-        if (recordNumber) fqParts.push(`recordNumber:(${recordNumber})`);
+        if (collector) fqParts.push(`text_recordedBy:${quoteText(collector)}`);
+        if (recordNumber) fqParts.push(`recordNumber:${recordNumber}`);
         if (startDate || endDate) {
             const begin = startDate ? startDate + 'T00:00:00Z' : '*';
             const end = endDate ? endDate + 'T23:59:59Z' : '*';
@@ -124,11 +158,13 @@ function AdvancedSearchAvh() {
         if (nzDistrict) fqParts.push(nzDistrict);
         if (nzEcoRegion) fqParts.push(nzEcoRegion);
 
-        if (loanNumber) fqParts.push(`loan_identifier:(${loanNumber})`);
+        if (loanNumber) fqParts.push(`loanIdentifier:${quoteText(loanNumber)}`);
         if (loanDestination) fqParts.push(loanDestination);
 
         const fq = fqParts.map(part => `fq=${encodeURIComponent(part)}`).join('&');
-        navigate(`/occurrences/search?${fq}`);
+
+        // trim the first character to convert the first "fq" to "q"
+        navigate(`/occurrences/search?${fq.substring(1)}`);
     }
 
     function advancedClear() {
@@ -160,6 +196,16 @@ function AdvancedSearchAvh() {
         setNzEcoRegion('');
         setLoanNumber('');
         setLoanDestination('');
+    }
+
+    function facetListSort(a: any, b: any) {
+        // always sort "Not supplied" first
+        const aLast = a.fq?.startsWith('-') && a.fq?.endsWith('*');
+        const bLast = b.fq?.startsWith('-') && b.fq?.endsWith('*');
+        if (aLast && !bLast) return -1;
+        if (!aLast && bLast) return 1;
+
+        return a.name?.localeCompare(b.name, undefined, { sensitivity: 'base' });
     }
 
     return (
@@ -291,7 +337,7 @@ function AdvancedSearchAvh() {
                                 onChange={e => setHerbarium(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.herbarium.placeholder" defaultMessage="-- select an herbarium --"/></option>
                             {advancedOptions?.collectionUid === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.collectionUid && advancedOptions.collectionUid.map((item, idx) =>
+                            {advancedOptions?.collectionUid && advancedOptions.collectionUid.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -360,17 +406,17 @@ function AdvancedSearchAvh() {
                 </div>
 
                 <div className="mb-3 row align-items-center ">
-                    <label className="col-md-2 control-label" htmlFor="cultivation_status">
+                    <label className="col-md-2 control-label" htmlFor="establishment_means">
                         <FormattedMessage id="advancedsearch.establishmentmeans.label" defaultMessage="Establishment means"/>
                     </label>
                     <div className="col-md-6 ms-2">
-                        <select className="form-select form-control" id="cultivation_status"
+                        <select className="form-select form-control" id="establishment_means"
                                 value={establishmentMeans}
-                                onFocus={() => fetchFacet('cultivationStatus')}
+                                onFocus={() => fetchFacet('establishmentMeans')}
                                 onChange={e => setEstablishmentMeans(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.establishmentmeans.placeholder" defaultMessage="-- select an establishment means --"/></option>
-                            {advancedOptions?.cultivationStatus === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.cultivationStatus && advancedOptions.cultivationStatus.map((item, idx) =>
+                            {advancedOptions?.establishmentMeans === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
+                            {advancedOptions?.establishmentMeans && advancedOptions.establishmentMeans.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -407,11 +453,23 @@ function AdvancedSearchAvh() {
                     <div className="col-md-6 ms-2">
                         <select className="form-select form-control" id="state_territory_province"
                                 value={stateTerritoryProvince}
-                                onFocus={() => fetchFacet('stateProvince')}
+                                onFocus={() => {
+                                    fetchFacet('stateProvince');
+                                }}
                                 onChange={e => setStateTerritoryProvince(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.state.placeholder" defaultMessage="-- select a state, territory or province --"/></option>
                             {advancedOptions?.stateProvince === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.stateProvince && advancedOptions.stateProvince.map((item, idx) =>
+                            {avhAUStates.map((item, idx) =>
+                                <option key={idx} value={item.fq}>{item.name}</option>
+                            )}
+                            <option disabled>—————————</option>
+                            {avhNZStates.map((item, idx) =>
+                                <option key={idx} value={item.fq}>{item.name}</option>
+                            )}
+                            <option disabled>—————————</option>
+                            {advancedOptions?.stateProvince && advancedOptions.stateProvince
+                                .filter(item => !avhAUStates.some(s => s.name === item.name) && !avhNZStates.some(s => s.name === item.name))
+                                .sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -429,7 +487,7 @@ function AdvancedSearchAvh() {
                                 onChange={e => setLga(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.lga.placeholder" defaultMessage="-- select local government area --"/></option>
                             {advancedOptions?.cl959 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.cl959 && advancedOptions.cl959.map((item, idx) =>
+                            {advancedOptions?.cl959 && advancedOptions.cl959.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -448,7 +506,7 @@ function AdvancedSearchAvh() {
                                 onChange={e => setIbra(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.ibra.placeholder" defaultMessage="-- select an IBRA region --"/></option>
                             {advancedOptions?.cl1048 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.cl1048 && advancedOptions.cl1048.map((item, idx) =>
+                            {advancedOptions?.cl1048 && advancedOptions.cl1048.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -467,7 +525,7 @@ function AdvancedSearchAvh() {
                                 onChange={e => setImcra(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.imcra.placeholder" defaultMessage="-- select an IMCRA region --"/></option>
                             {advancedOptions?.cl21 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.cl21 && advancedOptions.cl21.map((item, idx) =>
+                            {advancedOptions?.cl21 && advancedOptions.cl21.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -485,7 +543,7 @@ function AdvancedSearchAvh() {
                                 onChange={e => setNzDistrict(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.nzdistrict.placeholder" defaultMessage="-- select a NZ Land District --"/></option>
                             {advancedOptions?.cl2116 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.cl2116 && advancedOptions.cl2116.map((item, idx) =>
+                            {advancedOptions?.cl2116 && advancedOptions.cl2116.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -503,7 +561,7 @@ function AdvancedSearchAvh() {
                                 onChange={e => setNzEcoRegion(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.nzecoregion.placeholder" defaultMessage="-- select a NZ ECO region --"/></option>
                             {advancedOptions?.cl2115 === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.cl2115 && advancedOptions.cl2115.map((item, idx) =>
+                            {advancedOptions?.cl2115 && advancedOptions.cl2115.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>
@@ -532,11 +590,11 @@ function AdvancedSearchAvh() {
                     <div className="col-md-6 ms-2">
                         <select className="form-select form-control" id="loan_destination"
                                 value={loanDestination}
-                                onFocus={() => fetchFacet('loanDestinationInstitutionUid')}
+                                onFocus={() => fetchFacet('loanDestination')}
                                 onChange={e => setLoanDestination(e.target.value)}>
                             <option value=""><FormattedMessage id="advancedsearch.borrowinginstitution.placeholder" defaultMessage="-- select a borrowing institution --"/></option>
-                            {advancedOptions?.loanDestinationInstitutionUid === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
-                            {advancedOptions?.loanDestinationInstitutionUid && advancedOptions.loanDestinationInstitutionUid.map((item, idx) =>
+                            {advancedOptions?.loanDestination === null && <option disabled><FormattedMessage id="advancedsearch.loading" defaultMessage="Loading..."/></option>}
+                            {advancedOptions?.loanDestination && advancedOptions.loanDestination.sort(facetListSort).map((item, idx) =>
                                 <option key={idx} value={item.fq}>{item.name}</option>
                             )}
                         </select>

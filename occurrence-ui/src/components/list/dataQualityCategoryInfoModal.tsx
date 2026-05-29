@@ -7,7 +7,8 @@
 import {useEffect, useState} from "react";
 import Modal from "react-bootstrap/esm/Modal";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import {DataQualityInfo, IndexFields, QualityCategory} from "../api/model.tsx";
+import {DataQualityInfo, IndexFields, QualityCategory} from "../../api/model.tsx";
+import {getQc} from "../../util/util.tsx";
 
 interface DataQualityInfoModalProps {
     onClose: () => void,
@@ -69,10 +70,9 @@ function DataQualityCategoryInfoModal({
 
     function updateCount() {
         if (queryString && category) {
-            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
             let thisQueryString = queryString + "&disableAllQualityFilters=true&fq=" + category.inverseFilter;
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + qc, {}).then(response => response.json())
+            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + getQc(), {}).then(response => response.json())
                 .then(data => setCount(data.totalRecords));
         }
     }

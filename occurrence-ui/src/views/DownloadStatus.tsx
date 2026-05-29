@@ -1,10 +1,11 @@
 import { Breadcrumb, FontAwesomeIconLite, useUser } from '@ala/common-ui';
-import config from '../../config/config.json';
+import config from '../config/downloadConfig.json';
 import './download.css';
 import { faCheckCircle, faDownload} from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape, useIntl} from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
+import {getQc} from "../util/util.tsx";
 
 const mintDoi = import.meta.env.VITE_DOWNLOAD_MINT_DOI === 'true';
 const sendEmail = import.meta.env.VITE_DOWNLOAD_SEND_EMAIL === 'true';
@@ -60,6 +61,8 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
             {title: 'Occurrence records', href: '/'},
             {title: 'Download status', href: '/'},
         ]);
+
+        document.title = `ALA Data Download | ${import.meta.env.VITE_HUB_NAME}` ;
     }, []);
 
     useEffect(() => {
@@ -110,8 +113,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
         setShowProgress(true);
 
         // get the list of species
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0&flimit=${maxFieldguideSpecies}&facets=species_guid&facet=true${qc}`;
+        let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0&flimit=${maxFieldguideSpecies}&facets=species_guid&facet=true${getQc()}`;
         fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
             .then(response => response.json())
             .then(json => {
@@ -128,7 +130,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
 
                 // construct parameters
                 let body = {
-                    sourceUrl: `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams || ''}${qc}`,
+                    sourceUrl: `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams || ''}${getQc()}`,
                     filename: filename,
                     id: speciesGuids,
                     title: "This document was generated on " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -279,8 +281,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
             }
 
             // Future: This should be a POST, but only URL params are supported for now so leaving as GET
-            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}${qc}`;
+            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}${getQc()}`;
             fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
                 .then(response => response.json())
                 .then(json => {

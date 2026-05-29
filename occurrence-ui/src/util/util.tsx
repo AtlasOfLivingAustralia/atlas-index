@@ -52,3 +52,14 @@ export function sanitizeBodyText(text: string, openInNewWindow: boolean = true):
 
     return sanitized.replace(/<a /g, '<a target="_blank" ');
 }
+
+export function getQc() : string {
+    return (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
+}
+
+export function quoteText(text: string): string {
+    if (text && (text.includes(' ') || text.includes(':') || text.includes('(') || text.includes('['))) {
+        return `"${text.replace(/"/g, '\\"')}"`;
+    }
+    return text;
+}

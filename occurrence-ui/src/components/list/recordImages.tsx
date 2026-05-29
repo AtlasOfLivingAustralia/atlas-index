@@ -4,11 +4,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
+import { ChevronLeftCircleIcon, ChevronRightCircleIcon } from '@ala/common-ui';
 import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
-import {DataQualityInfo} from "../api/model.tsx";
+import {DataQualityInfo} from "../../api/model.tsx";
+import {getQc} from "../../util/util.tsx";
 import classes from './recordImages.module.css';
-import missingImage from '../image/missing-image.png';
+import missingImage from '../../image/missing-image.png';
 
 
 interface RecordImagesProps {
@@ -57,8 +59,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
 
     function loadImages(page: number) {
         setLoading(true);
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize) + qc)
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize) + getQc())
             .then(response => response.json())
             .then(data => {
                 setLoading(false);
@@ -166,12 +167,16 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                     <button aria-label="Previous image" className={classes.imageDialogButton}
                             style={{left: '15px', cursor: openImageIdx === 0 ? 'not-allowed' : 'pointer'}}
                             onClick={() => setOpenImageIdx(idx => Math.max(0, idx - 1))}
-                            disabled={openImageIdx === 0}>&lt;</button>
+                            disabled={openImageIdx === 0}>
+                        <ChevronLeftCircleIcon size={32}/>
+                    </button>
 
                     <button aria-label="Next image" className={classes.imageDialogButton}
                             style={{right: '15px', cursor: (loading || openImageIdx === images.length - 1) ? (loading ? 'wait' : 'not-allowed') : 'pointer'}}
                             onClick={handleNext}
-                            disabled={openImageIdx === images.length - 1 && noMoreImages}>&gt;</button>
+                            disabled={openImageIdx === images.length - 1 && noMoreImages}>
+                        <ChevronRightCircleIcon size={32}/>
+                    </button>
 
                     {/* Title */}
                     <div style={{display: 'flex', justifyContent: 'center', height: '30px'}}>

@@ -9,6 +9,7 @@ import {faDownload} from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useRef, useState } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import {getQc} from "../../util/util.tsx";
 
 interface MultipleFacetsProps {
     queryString: string | undefined;
@@ -56,8 +57,7 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
 
 
     function fetchData() {
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0' + qc;
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0' + getQc();
 
         fetch(url, {
             method: 'GET',

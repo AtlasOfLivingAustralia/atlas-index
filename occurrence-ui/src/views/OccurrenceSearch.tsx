@@ -16,6 +16,7 @@ import {useNavigate} from "react-router-dom";
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import LazyLoad from "../components/lazyLoad.tsx";
 import AdvancedSearchAvh from "../components/search/advancedSearchAvh.tsx";
+import {getQc} from "../util/util.tsx";
 import { polygonLayerToWkt } from '../util/worldWrapFix';
 import AdvancedSearch from '../components/search/AdvancedSearch';
 
@@ -70,6 +71,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             {title: 'Home', href: import.meta.env.VITE_HOME_URL},
             {title: 'Occurrence records', href: '/'},
         ]);
+
+        document.title = `Search for records | ${hubDisplayName}`;
     }, []);
 
     useEffect(() => {
@@ -142,8 +145,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         })
 
         // get qid with POST to https://biocache.ala.org.au/ws/qid?q=query (returns plain text qid)
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/qid?q=${encodeURIComponent(query)}${qc}`, {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/qid?q=${encodeURIComponent(query)}${getQc()}`, {
             method: 'POST'
         }).then(response => response.text()).then(data => {
             const qid = data.trim();
@@ -200,13 +202,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             .openOn(mapRef.current!);
 
         // 3. Fetch counts
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const resp1 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/search?${terms}&facet=false&pageSize=0${qc}`);
+        const resp1 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/search?${terms}&facet=false&pageSize=0${getQc()}`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/facets?${terms}&facets=scientificName${qc}`);
+        const resp2 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/facets?${terms}&facets=scientificName${getQc()}`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
@@ -225,8 +226,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             const controller = new AbortController();
             searchAbort.current = controller;
 
-            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-            fetch(`${import.meta.env.VITE_NAMEMATCHING_URL}/api/autocomplete?q=${encodeURIComponent(query)}${qc}`, {
+            fetch(`${import.meta.env.VITE_NAMEMATCHING_URL}/api/autocomplete?q=${encodeURIComponent(query)}${getQc()}`, {
                 signal: controller.signal
             })
                 .then(res => res.json())

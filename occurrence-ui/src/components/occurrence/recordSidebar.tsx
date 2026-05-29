@@ -23,7 +23,7 @@ const defaultMarkerIcon = new L.Icon({
 import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
 import { RecordResult } from '../../api/model.tsx';
 import {sanitizeBodyText} from "../../util/util.tsx";
-import ContactCuratorModal from '../contactCuratorModal.tsx';
+import ContactCuratorModal from '../list/contactCuratorModal.tsx';
 import FlagIssueModal from './flagIssueModal.tsx';
 import RolloverTooltip from '../rolloverTooltip.tsx';
 

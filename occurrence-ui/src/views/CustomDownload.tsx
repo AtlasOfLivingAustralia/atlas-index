@@ -183,6 +183,8 @@ function CustomDownload({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
             { title: 'Customise download', href: '#' },
         ]);
 
+        document.title = `ALA Data Download | ${import.meta.env.VITE_HUB_NAME}` ;
+
         loadFields();
     }, []);
 

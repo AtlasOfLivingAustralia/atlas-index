@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FormattedMessage, useIntl } from 'react-intl';
+import {getQc} from "../../util/util.tsx";
 
 interface LsidDropdownProps {
     lsid: string;
@@ -49,8 +50,7 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
     function fetchData() {
         if (data || loading) return;
         setLoading(true);
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        const jsonUri = `${biocacheUrl}/occurrences/search?q=lsid:${lsid}&facets=raw_scientificName&pageSize=0&flimit=${MAX_FACETS}${qc}`;
+        const jsonUri = `${biocacheUrl}/occurrences/search?q=lsid:${lsid}&facets=raw_scientificName&pageSize=0&flimit=${MAX_FACETS}${getQc()}`;
         fetch(jsonUri)
             .then(r => r.json())
             .then((d: BiocacheResponse) => setData(d))

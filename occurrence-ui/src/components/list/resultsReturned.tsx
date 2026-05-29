@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import {getQc} from "../../util/util.tsx";
 import TaxonDropdown from "./taxonDropdown.tsx";
 
 interface ResultsReturnedProps {
@@ -32,6 +33,10 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
             setShowToggle(el.scrollHeight > el.clientHeight);
             el.className = prev;
         }
+        
+        if (results?.queryTitle) {
+            document.title = `Search: ${results.queryTitle} | Occurrence records | ${import.meta.env.VITE_HUB_NAME}`;
+        }
     }, [results]);
 
     useEffect(() => {
@@ -42,9 +47,8 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
     function updateCount() {
         if (queryString) {
             let thisQueryString = queryString + "&disableAllQualityFilters=true";
-            const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + qc, {})
+            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + getQc(), {})
                   .then(response => response.json())
                   .then(data => setCount(data.totalRecords))
                   .catch(e => console.error(e));

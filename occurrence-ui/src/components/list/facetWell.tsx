@@ -8,10 +8,11 @@ import {FontAwesomeIconLite} from "@ala/common-ui";
 import { faCaretDown, faCaretRight, faList } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from "react";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import {DataQualityInfo, FacetItem, OccurrenceListResult, QualityCategory, QualityProfile} from "../api/model.tsx";
+import {DataQualityInfo, FacetItem, OccurrenceListResult, QualityCategory, QualityProfile} from "../../api/model.tsx";
+import {getQc} from "../../util/util.tsx";
 import MultipleFacets from "./multipleFacets.tsx";
 import DataQualityFiltersModal from "./dataQualityFiltersModal.tsx";
-import { fetchDqCountsSequentially } from "../utils/dqCache";
+import { fetchDqCountsSequentially } from "../../util/dqCache.ts";
 
 interface FacetWellProps {
     search?: string,
@@ -152,8 +153,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
         }
 
         const currentFacet = flist[0];
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count" + qc, {
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count" + getQc(), {
             method: 'GET'
         }).then(response => response.json()).then(data => {
             // must check totalRecords after this fetch as it is done concurrently with the parent component fetches

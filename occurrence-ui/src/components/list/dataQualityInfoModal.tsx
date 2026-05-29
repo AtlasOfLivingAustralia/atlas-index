@@ -7,7 +7,7 @@
 import {useEffect, useState} from "react";
 import Modal from "react-bootstrap/esm/Modal";
 import {FormattedMessage} from "react-intl";
-import { DataQualityInfo, QualityProfile } from '../api/model.tsx';
+import { DataQualityInfo, QualityProfile } from '../../api/model.tsx';
 import React from 'react';
 
 interface DataQualityInfoModalProps {

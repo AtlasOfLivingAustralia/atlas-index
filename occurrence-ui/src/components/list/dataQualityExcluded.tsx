@@ -6,8 +6,8 @@
 
 import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
-import {QualityCategory} from "../api/model.tsx";
-import { fetchDqCountsSequentially } from "../utils/dqCache";
+import {QualityCategory} from "../../api/model.tsx";
+import { fetchDqCountsSequentially } from "../../util/dqCache.ts";
 
 interface DataQualityExcludedProps {
     queryString: string | undefined,

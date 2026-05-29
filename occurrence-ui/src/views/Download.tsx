@@ -6,6 +6,7 @@ import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './download.css';
 import RolloverTooltip from '../components/rolloverTooltip.tsx';
+import {getQc} from "../util/util.tsx";
 
 const maxRecords = Number(import.meta.env.VITE_DOWNLOAD_MAX_RECORDS);
 const downloadFormats = (import.meta.env.VITE_DOWNLOAD_FORMATS as string).split(',');
@@ -63,6 +64,8 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             {title: 'Occurrence records', href: '/'},
             {title: 'Download', href: '/'},
         ]);
+        
+        document.title = `ALA Data Download | ${import.meta.env.VITE_HUB_NAME}` ;
 
         fetchTotalRecords();
     }, []);
@@ -72,9 +75,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             return;
         }
 
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0${qc}`, {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0${getQc()}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         })

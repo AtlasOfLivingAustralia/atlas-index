@@ -8,7 +8,7 @@ import {useUser} from "@ala/common-ui";
 import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-import {DataQualityInfo} from "../api/model.tsx";
+import {DataQualityInfo} from "../../api/model.tsx";
 
 interface DataQualitySettingsProps {
     onClose: () => void,

@@ -7,7 +7,8 @@
 import { ArcElement, BarElement, CategoryScale, Chart, Legend, LinearScale, Tooltip } from 'chart.js';
 import { useEffect, useState } from 'react';
 import { IntlShape, useIntl } from 'react-intl';
-import chartConfig from '../config/charts.json';
+import chartConfig from '../../config/charts.json';
+import {getQc} from "../../util/util.tsx";
 import HorizontalBarChart from './horizontalBarChart.tsx';
 import PieChart from './pieChart.tsx';
 import VerticalBarChart from './verticalBarChart.tsx';
@@ -60,8 +61,7 @@ function Charts({ queryString, chartsData, setChartsData }: ChartsProps) {
         }
 
         const config = chartConfig[configIndex];
-        const qc = (import.meta.env.VITE_QUERY_CONTEXT || '') ? `&qc=${import.meta.env.VITE_QUERY_CONTEXT}` : '';
-        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/chart' + queryString + '&x=' + config.facet + '&xother=false&xmissing=false' + '&fq=' + config.facet + ':*' + qc; // this excludes records with no value for the facet, but the API is supposed to do that when xmissing=false
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/chart' + queryString + '&x=' + config.facet + '&xother=false&xmissing=false' + '&fq=' + config.facet + ':*' + getQc(); // this excludes records with no value for the facet, but the API is supposed to do that when xmissing=false
         fetch(url, {
             method: 'GET',
             headers: {

@@ -975,3 +975,8 @@ hr {
     margin-bottom: 10px;
     font-weight: bold;
 }
+
+#resultsContainer > div:hover {
+    cursor: pointer;
+    background-color: rgba(255, 254, 247, 0.7) !important;
+}
