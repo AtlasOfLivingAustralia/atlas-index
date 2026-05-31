@@ -165,6 +165,7 @@ function AdvancedSearchAvh() {
 
         // trim the first character to convert the first "fq" to "q"
         navigate(`/occurrences/search?${fq.substring(1)}`);
+        window.scrollTo(0, 0);
     }
 
     function advancedClear() {

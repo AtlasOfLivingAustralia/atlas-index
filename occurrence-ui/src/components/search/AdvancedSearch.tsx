@@ -8,7 +8,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import { Menu, MenuItem, Typeahead } from 'react-bootstrap-typeahead';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {getQc} from "../../util/util.tsx";
+import {getQc, quoteText} from "../../util/util.tsx";
 
 function AdvancedSearch() {
     const intl = useIntl();
@@ -58,18 +58,18 @@ function AdvancedSearch() {
 
     function advancedSearch() {
         let fqParts: string[] = [];
-        if (advancedText) fqParts.push(`text:${advancedText}`);
+        if (advancedText) fqParts.push(`text:${quoteText(advancedText)}`);
 
         let taxaParts = [];
-        if (advancedTaxa1) taxaParts.push(`taxa:"${advancedTaxa1.replace(/"/g, '\\"')}"`);
-        if (advancedTaxa2) taxaParts.push(`taxa:${advancedTaxa2.replace(/"/g, '\\"')}"`);
-        if (advancedTaxa3) taxaParts.push(`taxa:${advancedTaxa3.replace(/"/g, '\\"')}"`);
-        if (advancedTaxa4) taxaParts.push(`taxa:${advancedTaxa4.replace(/"/g, '\\"')}"`);
+        if (advancedTaxa1) taxaParts.push(`taxa:${quoteText(advancedTaxa1)}`);
+        if (advancedTaxa2) taxaParts.push(`taxa:${quoteText(advancedTaxa2)}`);
+        if (advancedTaxa3) taxaParts.push(`taxa:${quoteText(advancedTaxa3)}`);
+        if (advancedTaxa4) taxaParts.push(`taxa:${quoteText(advancedTaxa4)}`);
         if (taxaParts.length > 0) {
-            fqParts.push(`(${taxaParts.join(' OR ')})`);
+            fqParts.push(`${taxaParts.join(' OR ')}`);
         }
 
-        if (advancedRawTaxon) fqParts.push(`raw_scientificName:${advancedRawTaxon}`);
+        if (advancedRawTaxon) fqParts.push(`raw_scientificName:${quoteText(advancedRawTaxon)}`);
         if (advancedSpeciesGroup) fqParts.push(advancedSpeciesGroup);
         if (advancedInstitution) fqParts.push(advancedInstitution);
         if (advancedCountry) fqParts.push(advancedCountry);
@@ -82,16 +82,17 @@ function AdvancedSearch() {
         if (advancedDataResource.length > 0) {
             fqParts.push(advancedDataResource[0].fq);
         }
-        if (advancedCollector) fqParts.push(`collector_text:(${advancedCollector})`);
-        if (advancedCatalogue) fqParts.push(`catalogNumber:(${advancedCatalogue})`);
-        if (advancedRecord) fqParts.push(`recordNumber:(${advancedRecord})`);
+        if (advancedCollector) fqParts.push(`collector_text:${quoteText(advancedCollector)}`);
+        if (advancedCatalogue) fqParts.push(`catalogNumber:${quoteText(advancedCatalogue)}`);
+        if (advancedRecord) fqParts.push(`recordNumber:${quoteText(advancedRecord)}`);
         if (advancedBeginDate || advancedEndDate) {
             const begin = advancedBeginDate ? advancedBeginDate + 'T00:00:00Z' : '*';
             const end = advancedEndDate ? advancedEndDate + 'T23:59:59Z' : '*';
             fqParts.push(`eventDate:[${begin} TO ${end}]`);
         }
         const fq = fqParts.map(part => `fq=${encodeURIComponent(part)}`).join('&');
-        navigate(`/occurrences/search?${fq}`);
+        navigate(`/occurrences/search?${fq.substring(1)}`); // convert first fq to q
+        window.scrollTo(0, 0);
     }
 
     function advancedClear() {
@@ -119,7 +120,7 @@ function AdvancedSearch() {
     }
 
     return (
-        <div className="container-fluid">
+        <div className="container-fluid" onKeyDown={e => { if (e.key === 'Enter') advancedSearch(); }}>
             <div className="mb-3 row mt-2">
                 <h4><FormattedMessage id="advancedsearch.title01" defaultMessage="Find records that have"/></h4>
                 <div className="mb-3 row align-items-center text-end align-items-center text-end">
