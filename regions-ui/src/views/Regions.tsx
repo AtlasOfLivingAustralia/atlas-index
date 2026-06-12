@@ -19,7 +19,8 @@ import { LatLng } from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import { Accordion, Container } from 'react-bootstrap';
 import { DualRangeSlider, Breadcrumb, useHashState } from '@ala/common-ui';
-import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
+import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
+const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
 
 // defaults
 const REGION_AGGREGATE = 'OTHER_REGIONS';

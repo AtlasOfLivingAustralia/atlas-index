@@ -11,12 +11,14 @@ import ReactDOM from "react-dom/client";
 import {FormattedMessage, IntlShape, useIntl} from "react-intl";
 import { FeatureGroup, LayersControl, MapContainer, TileLayer, WMSTileLayer, useMapEvents, useMap, ScaleControl } from 'react-leaflet';
 import {EditControl} from "react-leaflet-draw";
+import 'leaflet-draw'; // side-effect: mutates global L with Draw tools
 import "react-leaflet-fullscreen/styles.css";
 
 import 'leaflet/dist/leaflet.css';
 import L, { LatLng, LeafletMouseEvent } from 'leaflet';
 import {useEffect, useRef, useState} from "react";
-import ReactLeafletGoogleLayer from "react-leaflet-google-layer";
+import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
+const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
 import { DataQualityInfo } from '../../api/model.tsx';
 import {getQc} from "../../util/util.tsx";
 import MapLayerControls from "./mapLayerControls.tsx";
@@ -656,13 +658,13 @@ function MapView({ queryString, tab }: MapViewProps) {
                                 <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />
                             </LayersControl.BaseLayer>
                             <LayersControl.BaseLayer name='Road'>
-                                <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
+                                <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap' as any} />
                             </LayersControl.BaseLayer>
                             <LayersControl.BaseLayer name='Terrain'>
-                                <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
+                                <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain' as any} />
                             </LayersControl.BaseLayer>
                             <LayersControl.BaseLayer name='Satellite'>
-                                <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
+                                <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite' as any} />
                             </LayersControl.BaseLayer>
                         </LayersControl>
                     )}

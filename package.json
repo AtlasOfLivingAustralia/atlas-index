@@ -1,0 +1,29 @@
+{
+  "name": "atlas-index",
+  "private": true,
+  "workspaces": [
+    "common-ui",
+    "admin-ui",
+    "dashboard-ui",
+    "docs-ui",
+    "doi-ui",
+    "occurrence-ui",
+    "regions-ui",
+    "sds-ui",
+    "search-ui",
+    "spatial-ui",
+    "specimens-ui"
+  ],
+  "packageManager": "yarn@4.16.0",
+  "engines": {
+    "node": ">=24.16.0"
+  },
+  "dependenciesMeta": {
+    "canvas": {
+      "built": true
+    }
+  },
+  "resolutions": {
+    "react-leaflet-draw@npm:0.21.0": "patch:react-leaflet-draw@npm%3A0.21.0#~/.yarn/patches/react-leaflet-draw-npm-0.21.0-3dc53c6f20.patch"
+  }
+}

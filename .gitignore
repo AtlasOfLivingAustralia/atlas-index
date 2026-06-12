@@ -48,3 +48,8 @@ build/
 /mvnw.cmd
 /nginx.conf
 .history
+# Yarn workspace — ignore generated runtime files but not the directory itself
+.yarn/cache
+.yarn/install-state.gz
+# Per-package .yarn dirs (no longer used; root workspace owns node_modules)
+*/.yarn

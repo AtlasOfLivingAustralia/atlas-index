@@ -33,7 +33,7 @@ export default function App() {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     // const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
-    const refreshTimer = useRef<NodeJS.Timeout | null>(null);
+    const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);

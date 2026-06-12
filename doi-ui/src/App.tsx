@@ -24,10 +24,6 @@ import buildInfo from './buildInfo.json';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import '@fontsource/roboto';
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
 import Doi from './views/Doi.tsx';
 import Home from './views/Home.tsx';
 import MyDownloads from './views/MyDownloads.tsx';
@@ -42,7 +38,7 @@ export default function App() {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
-    const refreshTimer = useRef<NodeJS.Timeout | null>(null);
+    const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);

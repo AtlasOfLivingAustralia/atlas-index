@@ -20,7 +20,8 @@ const defaultMarkerIcon = new L.Icon({
     tooltipAnchor: [16, -28],
     shadowSize: [41, 41],
 });
-import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
+import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
+const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
 import { RecordResult } from '../../api/model.tsx';
 import {sanitizeBodyText} from "../../util/util.tsx";
 import ContactCuratorModal from '../list/contactCuratorModal.tsx';

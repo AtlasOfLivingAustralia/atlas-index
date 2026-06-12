@@ -18,13 +18,9 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
-                    leaflet: [
-                        'leaflet',
-                        'react-leaflet',
-                        'react-leaflet-google-layer',
-                    ],
-                    chart: ['chart.js', 'react-chartjs-2'],
+                manualChunks: (id) => {
+                    if (['leaflet', 'react-leaflet', 'react-leaflet-google-layer'].some(p => id.includes(`/node_modules/${p}/`))) return 'leaflet';
+                    if (['chart.js', 'react-chartjs-2'].some(p => id.includes(`/node_modules/${p}/`))) return 'chart';
                 },
             },
         },
@@ -35,7 +31,7 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         fs: {
-            allow: ['..'], // allow access to linked packages outside root
+            allow: ['..'],
         },
     },
 });

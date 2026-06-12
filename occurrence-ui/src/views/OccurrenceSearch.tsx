@@ -12,8 +12,10 @@ import {Tab, Tabs} from "react-bootstrap";
 import {Typeahead} from "react-bootstrap-typeahead";
 import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
 import {EditControl} from "react-leaflet-draw";
+import 'leaflet-draw'; // side-effect: mutates global L with Draw tools
 import {useNavigate} from "react-router-dom";
-import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
+import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
+const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
 import LazyLoad from "../components/lazyLoad.tsx";
 import AdvancedSearchAvh from "../components/search/advancedSearchAvh.tsx";
 import {getQc} from "../util/util.tsx";
@@ -60,7 +62,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
     const [wktError, setWktError] = useState('');
 
     const navigate = useNavigate();
-    const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+    const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchAbort = useRef<AbortController | null>(null);
     const intl: IntlShape = useIntl();
 
