@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!-- static-server/static/testPage.html
+     Visual QA page for theme developers. Renders brand colours, buttons, typography and forms
+     so a theme can be eyeballed. Pick a theme with a single, memorable param:
+        ?theme=community     -> loads themes/community/theme.json
+        ?theme=ala           -> loads themes/ala/theme.json
+        (no param)           -> ALA baseline (common/ala-combined.css + common header/footer)
+     ?theme also accepts a full theme.json path/URL. Individual ?cssUrl/?headerUrl/?footerUrl/
+     ?logoUrl still work as one-off overrides. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test Page</title>
+    <style>
+        /* Fallback brand variables — overridden by the theme CSS loaded at runtime. */
+        :root {
+            --ala-primary: #f26649;
+            --ala-secondary: #c44d34;
+            --ala-link: #003a70;
+            --ala-text: #212121;
+        }
+        .swatch { width: 80px; height: 80px; border: 1px solid #ccc; display: inline-block; }
+        .swatch-label { font: 12px/1.4 sans-serif; text-align: center; }
+    </style>
+</head>
+<body>
+<div id="header-placeholder"></div>
+
+<main class="container mt-4">
+    <h1>Theme Test Page</h1>
+    <p class="lead">Use this page to visually verify your theme assets.</p>
+
+    <section class="mb-5">
+        <h2>Colours</h2>
+        <div class="d-flex gap-2 flex-wrap">
+            <div><div class="swatch" style="background: var(--ala-primary)"></div><div class="swatch-label">--ala-primary</div></div>
+            <div><div class="swatch" style="background: var(--ala-secondary)"></div><div class="swatch-label">--ala-secondary</div></div>
+            <div><div class="swatch" style="background: var(--ala-link)"></div><div class="swatch-label">--ala-link</div></div>
+            <div><div class="swatch" style="background: var(--ala-text)"></div><div class="swatch-label">--ala-text</div></div>
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <h2>Buttons</h2>
+        <button class="btn btn-primary me-2">btn-primary</button>
+        <button class="btn btn-secondary me-2">btn-secondary</button>
+        <button class="btn ala-btn-primary me-2">ala-btn-primary</button>
+        <button class="btn ala-btn-secondary me-2">ala-btn-secondary</button>
+    </section>
+
+    <section class="mb-5">
+        <h2>Typography</h2>
+        <h1>Heading 1</h1><h2>Heading 2</h2><h3>Heading 3</h3>
+        <p>Body text. <a href="#">A link</a>. <strong>Bold</strong>. <em>Italic</em>.</p>
+    </section>
+
+    <section class="mb-5">
+        <h2>Forms</h2>
+        <input class="form-control mb-2" type="text" placeholder="Text input">
+        <select class="form-select mb-2"><option>Select option</option></select>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chk">
+            <label class="form-check-label" for="chk">Checkbox</label>
+        </div>
+    </section>
+
+    <section class="mb-5">
+        <h2>Alerts</h2>
+        <div class="alert alert-info">Info alert</div>
+        <div class="alert alert-warning">Warning alert</div>
+        <div class="alert alert-danger">Danger alert</div>
+    </section>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script>
+    // Resolve the theme from a single ?theme= param (mirrors how the app reads theme.json),
+    // then inject CSS and load header/footer. Individual params override for one-off testing.
+    (async function () {
+        var params = new URLSearchParams(location.search);
+
+        // Defaults = ALA baseline.
+        var cfg = {
+            cssUrls: ['common/ala-combined.css'],
+            headerUrl: 'common/banner.mustache',
+            footerUrl: 'common/footer.mustache',
+            logoUrl: 'https://www.ala.org.au/app/uploads/2019/01/logo.png'
+        };
+
+        // ?theme=community  -> themes/community/theme.json ; also accepts a full path/URL.
+        var t = params.get('theme');
+        if (t) {
+            var manifestUrl = (/\.json|\/|:/.test(t)) ? t : 'themes/' + t + '/theme.json';
+            try {
+                var m = await (await fetch(manifestUrl)).json();
+                if (m.cssUrls && m.cssUrls.length) cfg.cssUrls = m.cssUrls;
+                if (m.headerUrl) cfg.headerUrl = m.headerUrl;
+                if (m.footerUrl) cfg.footerUrl = m.footerUrl;
+                if (m.logoUrl) cfg.logoUrl = m.logoUrl;
+            } catch (e) {
+                console.warn('[testPage] could not load theme manifest', manifestUrl, e);
+            }
+        }
+        // One-off overrides.
+        if (params.get('cssUrl')) cfg.cssUrls = params.get('cssUrl').split(',');
+        if (params.get('headerUrl')) cfg.headerUrl = params.get('headerUrl');
+        if (params.get('footerUrl')) cfg.footerUrl = params.get('footerUrl');
+        if (params.get('logoUrl')) cfg.logoUrl = params.get('logoUrl');
+
+        // Inject CSS.
+        cfg.cssUrls.map(function (u) { return (u || '').trim(); }).filter(Boolean).forEach(function (u) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = u;
+            document.head.appendChild(link);
+        });
+
+        // Load header/footer mustache (DOMParser + importNode, no innerHTML).
+        function loadTemplate(url, placeholderId) {
+            fetch(url).then(function (r) { return r.text(); }).then(function (html) {
+                var clean = html
+                    .replace(/\{\{containerClass}}/g, 'container-fluid')
+                    .replace(/\{\{logoUrl}}/g, cfg.logoUrl)
+                    .replace(/\{\{|}}/g, '');
+                var doc = new DOMParser().parseFromString(clean, 'text/html');
+                var target = document.getElementById(placeholderId);
+                Array.prototype.slice.call(doc.body.childNodes).forEach(function (node) {
+                    target.appendChild(document.importNode(node, true));
+                });
+            });
+        }
+        loadTemplate(cfg.headerUrl, 'header-placeholder');
+        loadTemplate(cfg.footerUrl, 'footer-placeholder');
+    })();
+</script>
+</body>
+</html>

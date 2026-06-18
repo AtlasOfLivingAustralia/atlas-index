@@ -137,16 +137,21 @@ export function injectCommonJs(js_url: string) {
  * sanitize and replace mustache tags
  * - {{containerClass}}; value substituted
  * - {{searchServer}}{{searchPath}}; value substituted
+ * - {{logoUrl}}; value substituted (theme logo)
  * - {{loginStatus}}; braces removed
  * - {{loginURL}}; braces removed
  * - {{logoutUrl}}; braces removed
  * @param str
  */
-export function cleanMustache(str: string, containerClass: string, speciesBaseUrl?: string): string {
+export function cleanMustache(str: string, containerClass: string, speciesBaseUrl?: string, logoUrl?: string): string {
     str = str.replace(/\{\{containerClass}}/g, containerClass);
 
     if (speciesBaseUrl) {
         str = str.replace(/\{\{searchServer\}\}\{\{searchPath\}\}/g, speciesBaseUrl)
+    }
+
+    if (logoUrl) {
+        str = str.replace(/\{\{logoUrl}}/g, logoUrl);
     }
 
     // Remove all "{{" and "}}". This is messing with class selectors.

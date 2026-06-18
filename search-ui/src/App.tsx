@@ -4,10 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound,} from '@ala/common-ui';
+import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, getRuntimeConfig, NotFound, useTheme,} from '@ala/common-ui';
 import React, {useEffect, useState} from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
+import {ALA_DEFAULT_THEME} from './config/alaDefaultTheme';
 import Search from './views/Search.tsx';
 import Species from './views/Species';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
@@ -28,7 +29,14 @@ const SearchRedirect: React.FC = () => {
 
 const App: React.FC = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
-    const [cssLoaded, setCssLoaded] = useState<boolean>(false);
+    const {cssLoaded, themeConfig} = useTheme({
+        // Runtime pointer (window.APP_CONFIG via /config.js) so a prebuilt app can be branded
+        // per portal with no rebuild; falls back to the build-time VITE_ value.
+        themeConfigUrl: getRuntimeConfig('VITE_THEME_CONFIG_URL', import.meta.env.VITE_THEME_CONFIG_URL ?? ''),
+        fallbackTheme: ALA_DEFAULT_THEME,
+        buildInfo,
+        env: import.meta.env.VITE_ENV,
+    });
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([
         {title: 'Home', href: import.meta.env.VITE_HOME_URL},
         {title: 'Search', href: '/'},
@@ -40,15 +48,6 @@ const App: React.FC = () => {
             setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    useEffect(() => {
-        injectCommonInfo(
-            buildInfo,
-            import.meta.env.VITE_ENV,
-            import.meta.env.VITE_COMMON_CSS,
-            setCssLoaded
-        );
     }, []);
 
     // when receiving a login URL, handle the login by setting the auth cookie only
@@ -79,10 +78,11 @@ const App: React.FC = () => {
             isLoggedIn={isLoggedIn}
             logoutFn={handleLogout}
             loginFn={handleLogin}
-            headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
+            headerUrl={themeConfig?.headerUrl ?? import.meta.env.VITE_COMMON_HEADER_HTML}
             searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
-            jsUrl={import.meta.env.VITE_COMMON_JS}
+            jsUrl={themeConfig?.jsUrls.join(',') ?? import.meta.env.VITE_COMMON_JS}
             containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}
+            logoUrl={themeConfig?.logoUrl}
         />
 
         <Breadcrumbs breadcrumbs={breadcrumbs}/>
@@ -106,7 +106,8 @@ const App: React.FC = () => {
             isLoggedIn={isLoggedIn}
             logoutFn={handleLogout}
             loginFn={handleLogin}
-            footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}
+            footerUrl={themeConfig?.footerUrl ?? import.meta.env.VITE_COMMON_FOOTER_HTML}
+            logoUrl={themeConfig?.logoUrl}
         />
     </>;
 };

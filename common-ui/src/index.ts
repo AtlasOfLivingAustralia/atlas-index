@@ -31,6 +31,9 @@ import useHashState from "./util/useHashState.tsx";
 import {injectCommonInfo, injectCommonJs} from "./util/utils.tsx";
 import {UserContext, useUser, UserInfo} from "./util/UserContext.tsx";
 import {checkLoginState, handleLogin, handleLogout} from "./util/auth.tsx";
+import {useTheme, UseThemeResult} from "./hooks/useTheme.ts";
+import {fetchThemeConfig, fetchLocaleMessages, ThemeConfig, ThemeLocale} from "./util/theme.ts";
+import {getRuntimeConfig} from "./util/runtimeConfig.ts";
 
 export {
     Banner,
@@ -66,8 +69,12 @@ export {
     useUser,
     handleLogin,
     handleLogout,
-    checkLoginState
+    checkLoginState,
+    useTheme,
+    fetchThemeConfig,
+    fetchLocaleMessages,
+    getRuntimeConfig
 };
 
-export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo};
+export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo, UseThemeResult, ThemeConfig, ThemeLocale};
 

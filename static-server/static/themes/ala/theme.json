@@ -1,0 +1,11 @@
+{
+  "_comment": "ALA baseline theme — reproduces the current look. Applying it must be visually identical to the no-theme default (regression check). Dev URLs assume the static-server on :8082.",
+  "cssUrls": ["http://localhost:8082/static/themes/ala/theme.css"],
+  "jsUrls": ["http://localhost:8082/static/common/ala-combined.js"],
+  "headerUrl": "http://localhost:8082/static/common/banner.mustache",
+  "footerUrl": "http://localhost:8082/static/common/footer.mustache",
+  "logoUrl": "https://www.ala.org.au/app/uploads/2019/01/logo.png",
+  "homeUrl": "https://www.ala.org.au",
+  "defaultLocale": "en",
+  "locales": [{ "code": "en", "label": "English", "messagesUrl": "" }]
+}

@@ -1,0 +1,11 @@
+{
+  "_comment": "Living Atlases community example theme. Dev URLs assume the static-server on :8082. To host for real, self-host these static files on any static web server and replace the http://localhost:8082/static/themes/community URLs with your hosting URL (see README.md).",
+  "cssUrls": ["http://localhost:8082/static/themes/community/theme.css"],
+  "jsUrls": [],
+  "headerUrl": "http://localhost:8082/static/themes/community/banner.mustache",
+  "footerUrl": "http://localhost:8082/static/themes/community/footer.mustache",
+  "logoUrl": "https://raw.githubusercontent.com/living-atlases/artwork/master/la-logo.svg",
+  "homeUrl": "https://living-atlases.gbif.org",
+  "defaultLocale": "en",
+  "locales": [{ "code": "en", "label": "English", "messagesUrl": "http://localhost:8082/static/themes/community/i18n/en.json" }]
+}

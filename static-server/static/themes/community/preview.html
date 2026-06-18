@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!-- Local preview for theme authors. Serve this folder (e.g. `npx http-server -p 9000 .`)
+     and open http://localhost:9000/preview.html to eyeball your theme.css + header/footer
+     before hosting. Loads the files in this folder by relative path. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme preview</title>
+    <link rel="stylesheet" href="./theme.css">
+    <style>
+        .swatch { width: 80px; height: 80px; border: 1px solid #ccc; display: inline-block; }
+        .swatch-label { font: 12px/1.4 sans-serif; text-align: center; }
+        body { margin: 0; }
+        main { padding: 24px; }
+    </style>
+</head>
+<body>
+<div id="header-placeholder"></div>
+
+<main class="container">
+    <h1>Theme preview</h1>
+    <p class="lead">Edit <code>theme.css</code> and reload to see your brand applied.</p>
+
+    <h2>Brand colours</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div><div class="swatch" style="background:var(--ala-primary)"></div><div class="swatch-label">--ala-primary</div></div>
+        <div><div class="swatch" style="background:var(--ala-secondary)"></div><div class="swatch-label">--ala-secondary</div></div>
+        <div><div class="swatch" style="background:var(--ala-link)"></div><div class="swatch-label">--ala-link</div></div>
+        <div><div class="swatch" style="background:var(--ala-text)"></div><div class="swatch-label">--ala-text</div></div>
+    </div>
+
+    <h2 style="margin-top:32px">Buttons &amp; links</h2>
+    <button class="btn btn-primary me-2">btn-primary</button>
+    <button class="btn btn-secondary me-2">btn-secondary</button>
+    <a href="#">A link</a>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script>
+    // Mirror cleanMustache: substitute {{containerClass}}/{{logoUrl}}, strip the rest.
+    var logoUrl = 'https://raw.githubusercontent.com/living-atlases/artwork/master/la-logo.svg';
+    function load(url, id) {
+        fetch(url).then(function (r) { return r.text(); }).then(function (html) {
+            var clean = html
+                .replace(/\{\{containerClass}}/g, 'container-fluid')
+                .replace(/\{\{logoUrl}}/g, logoUrl)
+                .replace(/\{\{|}}/g, '');
+            var doc = new DOMParser().parseFromString(clean, 'text/html');
+            var target = document.getElementById(id);
+            Array.prototype.slice.call(doc.body.childNodes).forEach(function (n) {
+                target.appendChild(document.importNode(n, true));
+            });
+        });
+    }
+    load('./banner.mustache', 'header-placeholder');
+    load('./footer.mustache', 'footer-placeholder');
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+/* Living Atlases community example theme — teal brand, to show a non-ALA brand applies cleanly.
+   Rebrand by editing the 4 --ala-* values (+ their RGB). See README.md. */
+@import url("http://localhost:8082/static/common/ala-combined.css");
+
+:root {
+    --ala-primary:   #1f7a8c;  /* main brand */
+    --ala-secondary: #15596b;  /* darker shade */
+    --ala-link:      #1f7a8c;  /* links */
+    --ala-text:      #0f3d47;  /* strong text/borders */
+
+    --ala-primary-rgb:   31, 122, 140;
+    --ala-secondary-rgb: 21, 89, 107;
+
+    /* Bootstrap brand palette — recolours shared chrome (links/titles/focus) across all UIs. */
+    --bs-primary: var(--ala-primary);
+    --bs-secondary: var(--ala-secondary);
+    --bs-primary-rgb: var(--ala-primary-rgb);
+    --bs-secondary-rgb: var(--ala-secondary-rgb);
+    --bs-link-color: var(--ala-link);
+    --bs-link-color-rgb: var(--ala-primary-rgb);
+    --bs-link-hover-color: var(--ala-secondary);
+    --bs-focus-ring-color: rgba(var(--ala-primary-rgb), 0.25);
+}
+
+/* SASS-compiled literals in ala-combined.css (buttons, skip-link) need explicit overrides. */
+.btn-primary,
+.btn-primary:focus,
+.btn.btn-primary {
+    background-color: var(--ala-primary) !important;
+    border-color: var(--ala-primary) !important;
+}
+.btn-primary:hover,
+.btn-primary:active,
+.btn.btn-primary:hover {
+    background-color: var(--ala-secondary) !important;
+    border-color: var(--ala-secondary) !important;
+}
+.skip-link {
+    color: var(--ala-secondary) !important;
+    border-color: var(--ala-secondary) !important;
+}

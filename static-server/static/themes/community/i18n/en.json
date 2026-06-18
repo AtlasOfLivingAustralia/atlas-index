@@ -1,0 +1,5 @@
+{
+  "_comment": "Crowdin-compatible flat i18n. Translate values; add i18n/<locale>.json files and list them in theme.json -> locales.",
+  "search.placeholder": "Search the Atlas...",
+  "footer.copyright": "© 2026 Your Organisation"
+}

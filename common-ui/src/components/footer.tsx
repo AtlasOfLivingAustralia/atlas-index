@@ -12,7 +12,8 @@ interface FooterProps {
     loginFn?: () => void,
     logoutFn?: () => void,
     footerUrl: string, // URL to fetch the external footer HTML
-    containerClass?: string // container-fluid (default) or container
+    containerClass?: string, // container-fluid (default) or container
+    logoUrl?: string // optional theme logo, substituted for {{logoUrl}} in the footer mustache
 }
 
 /**
@@ -39,7 +40,7 @@ interface FooterProps {
  * @constructor
  */
 
-function Footer({isLoggedIn, loginFn, logoutFn, footerUrl, containerClass}: FooterProps) {
+function Footer({isLoggedIn, loginFn, logoutFn, footerUrl, containerClass, logoUrl}: FooterProps) {
 
     const [externalFooterHtml, setExternalFooterHtml] = useState('');
 
@@ -48,9 +49,11 @@ function Footer({isLoggedIn, loginFn, logoutFn, footerUrl, containerClass}: Foot
     // fetch the external footer html
     useEffect(() => {
         if (footerUrl) {
+            // Default to the ALA logo so footers that don't supply a theme logoUrl keep working.
+            const resolvedLogoUrl = logoUrl || 'https://www.ala.org.au/app/uploads/2019/01/logo.png';
             fetch(footerUrl)
                 .then((response) => response.text())
-                .then((text) => setExternalFooterHtml(cleanMustache(text, containerClass || 'container-fluid')));
+                .then((text) => setExternalFooterHtml(cleanMustache(text, containerClass || 'container-fluid', undefined, resolvedLogoUrl)));
         }
     }, []);
 

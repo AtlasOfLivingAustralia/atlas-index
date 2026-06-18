@@ -1,0 +1,11 @@
+/* ALA baseline theme. Loads the real ALA base CSS and pins the brand variables to ALA's own
+   values. Because the apps use var(--ala-x, <ALA hex>) with ALA fallbacks, applying this theme
+   must be byte-for-byte the same as running with no theme at all — i.e. the regression check. */
+@import url("http://localhost:8082/static/common/ala-combined.css");
+
+:root {
+    --ala-primary:   #f26649;
+    --ala-secondary: #c44d34;
+    --ala-link:      #003a70;
+    --ala-text:      #212121;
+}

@@ -19,7 +19,8 @@ interface HeaderProps {
     headerUrl: string, // URL to fetch the external header HTML
     searchBaseUrl?: string, // Optional searchURL for mustache templates
     containerClass?: string, // container-fluid (default) or container
-    jsUrl?: string // comma-delimited JS URLs to load after header HTML is ready
+    jsUrl?: string, // comma-delimited JS URLs to load after header HTML is ready
+    logoUrl?: string // optional theme logo, substituted for {{logoUrl}} in the header mustache
 }
 
 /**
@@ -48,7 +49,7 @@ interface HeaderProps {
  * @param jsUrl java script URLs to load, supports a comma delimited list
  * @constructor
  */
-function Header({isLoggedIn, loginFn, logoutFn, headerUrl, searchBaseUrl, containerClass, jsUrl}: HeaderProps) {
+function Header({isLoggedIn, loginFn, logoutFn, headerUrl, searchBaseUrl, containerClass, jsUrl, logoUrl}: HeaderProps) {
 
     const [externalHeaderHtml, setExternalHeaderHtml] = useState('');
 
@@ -57,10 +58,13 @@ function Header({isLoggedIn, loginFn, logoutFn, headerUrl, searchBaseUrl, contai
     // fetch the external header html
     useEffect(() => {
         if (headerUrl) {
+            // Default to the ALA logo so UIs that don't supply a theme logoUrl keep working
+            // (the shared banner.mustache uses {{logoUrl}}).
+            const resolvedLogoUrl = logoUrl || 'https://www.ala.org.au/app/uploads/2019/01/logo.png';
             fetch(headerUrl)
                 .then((response) => response.text())
                 .then((text) => {
-                    setExternalHeaderHtml(cleanMustache(text, containerClass || 'container-fluid', searchBaseUrl));
+                    setExternalHeaderHtml(cleanMustache(text, containerClass || 'container-fluid', searchBaseUrl, resolvedLogoUrl));
                 });
         }
     }, []);

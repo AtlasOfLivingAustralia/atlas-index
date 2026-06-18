@@ -12,6 +12,22 @@
     </head>
     <body>
         <div id="root"></div>
+        <!-- Runtime config: must load before the app module so window.APP_CONFIG is set first.
+             Classic (non-module) script runs ahead of the deferred module below. -->
+        <script src="/config.js"></script>
+        <!-- Apply runtime title/favicon immediately (no rebuild needed to rebrand them). -->
+        <script>
+            (function () {
+                var c = window.APP_CONFIG || {};
+                if (c.APP_TITLE) document.title = c.APP_TITLE;
+                if (c.APP_FAVICON_URL) {
+                    var link = document.querySelector('link[rel="shortcut icon"], link[rel="icon"]')
+                        || document.head.appendChild(document.createElement('link'));
+                    link.rel = 'shortcut icon';
+                    link.href = c.APP_FAVICON_URL;
+                }
+            })();
+        </script>
         <script type="module" src="/src/main.tsx"></script>
     </body>
 </html>
