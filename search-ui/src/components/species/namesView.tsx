@@ -57,7 +57,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                         </>)}
                     </td>
                     <td>
-                        <a href={result?.source} style={{color: '#003A70', textDecoration: 'underline'}}>
+                        <a href={result?.source} style={{color: 'var(--ala-link, #003A70)', textDecoration: 'underline'}}>
                             {result?.datasetName}
                         </a>
                     </td>
@@ -82,7 +82,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 {item?.source ? (
                                     <a href={item?.source}
                                        dangerouslySetInnerHTML={{__html: item.nameFormatted}}
-                                       style={{textDecoration: 'underline', color: '#003A70'}}/>
+                                       style={{textDecoration: 'underline', color: 'var(--ala-link, #003A70)'}}/>
                                 ) : (
                                     <span dangerouslySetInnerHTML={{__html: item.nameFormatted}}/>
                                 )}
@@ -99,7 +99,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             </td>
                             <td>
                                 {item?.source ? (
-                                    <a href={item?.source} style={{textDecoration: 'underline', color: '#003A70'}}>
+                                    <a href={item?.source} style={{textDecoration: 'underline', color: 'var(--ala-link, #003A70)'}}>
                                         {item?.datasetName || 'Link'}</a>
                                 ) : (<span>{item?.datasetName}</span>)}
                             </td>
@@ -126,7 +126,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 {item?.source ? (
                                     <a href={item?.source}
                                        dangerouslySetInnerHTML={{__html: item.nameFormatted}}
-                                       style={{textDecoration: 'underline', color: '#003A70'}}/>
+                                       style={{textDecoration: 'underline', color: 'var(--ala-link, #003A70)'}}/>
                                 ) : (
                                     <span dangerouslySetInnerHTML={{__html: item.nameFormatted}}/>
                                 )}
@@ -143,7 +143,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             </td>
                             <td>
                                 {item?.source ? (
-                                    <a href={item?.source} style={{textDecoration: 'underline', color: '#003A70'}}>
+                                    <a href={item?.source} style={{textDecoration: 'underline', color: 'var(--ala-link, #003A70)'}}>
                                         {item?.datasetName || 'Link'}</a>
                                 ) : (<span>{item?.datasetName}</span>)}
                             </td>
@@ -176,7 +176,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
-                                    <a href={item?.source} style={{textDecoration: 'underline', color: '#003A70'}}>
+                                    <a href={item?.source} style={{textDecoration: 'underline', color: 'var(--ala-link, #003A70)'}}>
                                         {item?.guid}
                                     </a>
                                 ) : (
@@ -196,7 +196,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                                 {item?.source ? (
                                     <a href={item?.source} style={{
                                         textDecoration: 'underline',
-                                        color: '#003A70'
+                                        color: 'var(--ala-link, #003A70)'
                                     }}>{item?.datasetName || 'Link'}</a>
                                 ) : (
                                     <span>{item?.datasetName}</span>
@@ -238,7 +238,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             <td>
                                 {item?.source ? (
                                     <a href={item?.source}
-                                       style={{textDecoration: 'underline', color: '#003A70'}}>{item?.name}</a>
+                                       style={{textDecoration: 'underline', color: 'var(--ala-link, #003A70)'}}>{item?.name}</a>
                                 ) : (
                                     <span>{item.name}</span>
                                 )}
@@ -256,7 +256,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             <td>
                                 {item?.source ? (
                                     <a href={item?.source} style={{
-                                        textDecoration: 'underline', color: '#003A70'
+                                        textDecoration: 'underline', color: 'var(--ala-link, #003A70)'
                                     }}>{item?.datasetName || 'Link'}</a>
                                 ) : (
                                     <span>{item?.datasetName}</span>
@@ -289,7 +289,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                         Australian Institute of Aboriginal and
                         Torres Strait Islander Studies (
                         <a href="https://aiatsis.gov.au" target="_blank"
-                           style={{color: '#003A70', textDecoration: 'underline'}}>
+                           style={{color: 'var(--ala-link, #003A70)', textDecoration: 'underline'}}>
                             AIATSIS
                         </a>) information about the language.
                     </>}
@@ -309,7 +309,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             <td>
                                 {item?.source ? (
                                     <a href={item?.source}
-                                       style={{color: '#003A70', textDecoration: 'underline'}}>{item?.name}</a>
+                                       style={{color: 'var(--ala-link, #003A70)', textDecoration: 'underline'}}>{item?.name}</a>
                                 ) : (
                                     <span>{item.name}</span>
                                 )}
@@ -324,7 +324,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                             </td>
                             <td>
                                 {item?.languageURL ? (
-                                    <a href={item?.languageURL} style={{color: '#003A70', textDecoration: 'underline'}}>
+                                    <a href={item?.languageURL} style={{color: 'var(--ala-link, #003A70)', textDecoration: 'underline'}}>
                                         {item?.languageName || item?.language}</a>
                                 ) : (
                                     <span>{item?.languageName || item?.language}</span>

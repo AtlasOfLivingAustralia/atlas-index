@@ -305,7 +305,7 @@ export const speciesDefn: GenericViewProps = {
             </>,
             description: <>
                 {matchInfo(item, searchTerm || '') != null &&
-                    <span className={classes.overflowText} style={{fontStyle: 'italic', color: '#212121', paddingBottom: '5px'}}>
+                    <span className={classes.overflowText} style={{fontStyle: 'italic', color: 'var(--ala-text, #212121)', paddingBottom: '5px'}}>
                         {matchInfo(item, searchTerm || '')}
                     </span>
                 }
@@ -353,7 +353,7 @@ export const speciesDefn: GenericViewProps = {
                 </span>
                 <div style={{height: '13px'}}/>
                 {matchInfo(item, searchTerm || '') != null &&
-                    <span className={classes.listItemText} style={{fontStyle: 'italic', color: '#212121'}}>
+                    <span className={classes.listItemText} style={{fontStyle: 'italic', color: 'var(--ala-text, #212121)'}}>
                         {matchInfo(item, searchTerm || '')}
                     </span>
                 }

@@ -28,7 +28,7 @@
     width: 50px;
     height: 47px;
     border-radius: 0px 5px 5px 0px;
-    background: #c44d34;
+    background: var(--ala-secondary, #c44d34);
     border: 1px solid #637073;
     cursor: pointer;
     transform: none;
@@ -40,7 +40,7 @@
 }
 
 .searchButton:active {
-    background: #212121 !important;
+    background: var(--ala-text, #212121) !important;
 }
 
 .mobileSelect {
@@ -65,7 +65,7 @@
 }
 
 .searchTitle {
-    color: #212121;
+    color: var(--ala-text, #212121);
     text-align: center;
 
     font-family: Roboto;
@@ -90,13 +90,13 @@
 }
 
 .activeTab {
-    border-bottom: 2px solid #c44d34 !important;
-    color: #c44d34;
+    border-bottom: 2px solid var(--ala-secondary, #c44d34) !important;
+    color: var(--ala-secondary, #c44d34);
 }
 
 .tabButtons:hover {
-    border-bottom: 2px solid #c44d34;
-    color: #c44d34;
+    border-bottom: 2px solid var(--ala-secondary, #c44d34);
+    color: var(--ala-secondary, #c44d34);
 }
 
 .tabButtons {
@@ -157,7 +157,7 @@
 }
 
 .groupName {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
 
     /* Desktop/H4/Semibold */
     font-family: Roboto;
@@ -175,7 +175,7 @@
 }
 
 .listItemName {
-    color: #003a70;
+    color: var(--ala-link, #003a70);
 
     /* Desktop/Body/Semibold italic underline */
     font-size: 16px;
@@ -222,7 +222,7 @@
 .filterButton,
 .filterButton:hover,
 .filterButton:active {
-    color: #212121;
+    color: var(--ala-text, #212121);
     transform: none !important;
     height: 38px;
     padding-left: 10px;
@@ -319,7 +319,7 @@
 }
 
 .refineTitle {
-    color: #212121;
+    color: var(--ala-text, #212121);
 
     /* Desktop/Intro/Semibold */
     font-family: Roboto;
@@ -337,7 +337,7 @@
 }
 
 .resultsTitle {
-    color: #212121;
+    color: var(--ala-text, #212121);
 
     /* Desktop/Intro/Reg */
     font-family: Roboto;
@@ -348,7 +348,7 @@
 }
 
 .resultsTitleBold {
-    color: #212121;
+    color: var(--ala-text, #212121);
 
     /* Desktop/Intro/Reg */
     font-family: Roboto;
@@ -359,7 +359,7 @@
 }
 
 .resultsTitleItalic {
-    color: #212121;
+    color: var(--ala-text, #212121);
 
     /* Desktop/Intro/Reg */
     font-family: Roboto;
@@ -385,7 +385,7 @@
 }
 
 .topResult {
-    color: #212121;
+    color: var(--ala-text, #212121);
 
     /* Desktop/Body/Semibold */
     font-family: Roboto;
@@ -408,13 +408,13 @@
 }
 
 .alaSelect div input {
-    border: 1px solid #212121;
+    border: 1px solid var(--ala-text, #212121);
     border-radius: 5px;
     height: 38px;
 }
 
 .alaSelect div svg {
-    color: #212121;
+    color: var(--ala-text, #212121);
     height: 16px !important;
     width: 16px !important;
 }
@@ -427,20 +427,20 @@
     }
 
     .alaSelect div input {
-        border: 1px solid #212121;
+        border: 1px solid var(--ala-text, #212121);
         border-radius: 5px;
         height: 32px;
     }
 
     .alaSelect div svg {
-        color: #212121;
+        color: var(--ala-text, #212121);
         height: 14px !important;
         width: 14px !important;
     }
 }
 
 .refineSectionTitle {
-    color: #c44d34 !important;
+    color: var(--ala-secondary, #c44d34) !important;
 
     /* Desktop/Body/Semibold */
     font-family: Roboto;
@@ -479,7 +479,7 @@
     height: 38px;
     background-color: #f2f2f2;
     padding: 8px 19px 10px 19px;
-    color: #212121;
+    color: var(--ala-text, #212121);
     border: 1px solid #f2f2f2;
     border-radius: 4px;
     flex-shrink: 0;
@@ -493,7 +493,7 @@
         height: 32px;
         background-color: #f2f2f2;
         padding: 8px 15px 8px 15px;
-        color: #212121;
+        color: var(--ala-text, #212121);
         border: 1px solid #f2f2f2;
         border-radius: 4px;
         flex-shrink: 0;
@@ -507,16 +507,16 @@
 }
 
 .activeFilter {
-    color: #212121;
+    color: var(--ala-text, #212121);
     transform: none;
-    border: 1px solid #212121;
+    border: 1px solid var(--ala-text, #212121);
     background-color: white;
     flex-shrink: 0;
     white-space: nowrap;
 }
 
 .groupCount {
-    color: #003a70;
+    color: var(--ala-link, #003a70);
     font-weight: 500;
     line-height: 22px;
     font-size: 16px;
@@ -524,7 +524,7 @@
 }
 
 .groupCount:hover {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
 }
 
 @media (max-width: 768px) {
@@ -617,7 +617,7 @@
 
 .refineResultsBtn {
     background-color: #ffffff;
-    border: 1px solid #212121;
+    border: 1px solid var(--ala-text, #212121);
     border-radius: 20px;
 
     font-size: 12px;
@@ -632,6 +632,6 @@
 }
 
 .refineDialog {
-    border: 1px solid #212121;
+    border: 1px solid var(--ala-text, #212121);
     border-radius: 5px;
 }

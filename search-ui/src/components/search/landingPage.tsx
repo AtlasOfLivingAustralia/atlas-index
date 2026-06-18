@@ -33,7 +33,7 @@ function LandingPage({isMobile}: { isMobile: boolean }) {
     };
 
     return <div style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', marginTop: (isMobile ? '20px' : '120px')}} >
-        <div style={{fontFamily: 'Roboto', fontWeight: '600', fontSize: '26px', lineHeight: '32px', color: '#C44D34', textAlign: (isMobile ? 'left' : 'center')}}>
+        <div style={{fontFamily: 'Roboto', fontWeight: '600', fontSize: '26px', lineHeight: '32px', color: 'var(--ala-secondary, #C44D34)', textAlign: (isMobile ? 'left' : 'center')}}>
             Featured pages</div>
         <div className="row" style={{marginTop: '30px'}}>
             {featuredPages && featuredPages.map((item: any, index: number) => (

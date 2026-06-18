@@ -211,7 +211,7 @@ function ResourcesView({result, isMobile}: MapViewProps) {
             </span>
             <table className="table table-striped align-middle" style={{
                 marginTop: '20px',
-                borderTop: '0.5px solid #212121',
+                borderTop: '0.5px solid var(--ala-text, #212121)',
                 paddingTop: '10px',
                 paddingBottom: '10px'
             }}>
@@ -236,7 +236,7 @@ function ResourcesView({result, isMobile}: MapViewProps) {
                                 {resource.Authors?.length > 0 && ', '}
                                 <span style={{fontStyle: resource.ItemUrl ? 'italic' : undefined}}>
                                     <a href={resource.PartUrl || resource.ItemUrl} style={{
-                                        color: '#003A70',
+                                        color: 'var(--ala-link, #003A70)',
                                         textDecoration: 'underline'
                                     }}>'{resource.Title}'</a>
                                 </span>

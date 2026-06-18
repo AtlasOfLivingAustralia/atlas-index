@@ -324,14 +324,14 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                         ))}
                         {facet.lessNumber && facet.items.length > facet.lessNumber && (
                             facet.more ?
-                                <div onClick={() => {facet.more = false;setFacets([...facets]);}} style={{marginTop: '8px', color: '#c44d34'}}>
+                                <div onClick={() => {facet.more = false;setFacets([...facets]);}} style={{marginTop: '8px', color: 'var(--ala-secondary, #c44d34)'}}>
                                     <FontAwesomeIconLite icon={faCaretUp} size="14" style={{marginRight: '8px'}}/>
                                     <span className={classes.refineItem}>
                                         Show less
                                     </span>
                                 </div>
                                 :
-                                <div onClick={() => {facet.more = true;setFacets([...facets]);}} style={{marginTop: '8px', color: '#c44d34'}}>
+                                <div onClick={() => {facet.more = true;setFacets([...facets]);}} style={{marginTop: '8px', color: 'var(--ala-secondary, #c44d34)'}}>
                                     <FontAwesomeIconLite icon={faCaretDown} size="14" style={{marginRight: '8px'}}/>
                                     <span className={classes.refineItem}>
                                         Show more

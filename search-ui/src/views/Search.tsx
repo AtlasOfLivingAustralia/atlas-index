@@ -241,7 +241,7 @@ function Search({setBreadcrumbs, isMobile}: {
                 {isMobile && <div style={{ height: '20px'}}>&nbsp;</div>}
             </div>
             {isMobile && landingPage && <div style={{ marginTop: '20px'}}>
-                <div style={{fontFamily: 'Roboto', fontWeight: '600', fontSize: '26px', lineHeight: '32px', color: '#C44D34', textAlign: 'left', marginBottom: '20px'}}>
+                <div style={{fontFamily: 'Roboto', fontWeight: '600', fontSize: '26px', lineHeight: '32px', color: 'var(--ala-secondary, #C44D34)', textAlign: 'left', marginBottom: '20px'}}>
                 Try searching for</div>
                 <Examples asText={false} tab={tab} setQueryAndTab={(query: string, tab: string | undefined) => {setLandingPage(false); setQuery(query); setTab(tab || 'all'); setSearchInputText(query); setLandingPage(false);}}/>
             </div>}

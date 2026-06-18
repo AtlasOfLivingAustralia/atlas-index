@@ -56,7 +56,7 @@ export function Examples({asText, tab, setQueryAndTab}: ExampleProps): React.Rea
                 {asText ? (
                     <>
                         <a onClick={() => setQueryAndTab(example.query, example.tab)}
-                           style={{textDecoration: 'underline', color: '#212121', cursor: 'pointer'}}>
+                           style={{textDecoration: 'underline', color: 'var(--ala-text, #212121)', cursor: 'pointer'}}>
                             {example.query}
                         </a>
                         {i < examples.length - 1 && <>,&nbsp;</>}

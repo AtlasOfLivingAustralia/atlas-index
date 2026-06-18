@@ -203,7 +203,7 @@ function DisambiguationView({result, isMobile}: DisambiguationViewProps) {
                     <tr key={idx}>
                         <td>
                             <a href={`/species/${row.guid}`}
-                               style={{color: '#003A70', textDecoration: 'underline'}}
+                               style={{color: 'var(--ala-link, #003A70)', textDecoration: 'underline'}}
                                dangerouslySetInnerHTML={{__html: row.nameFormatted}}/>
                             <div style={{
                                 fontSize: '0.85em',
@@ -219,7 +219,7 @@ function DisambiguationView({result, isMobile}: DisambiguationViewProps) {
                             {row.matchTypeDetailName && <>
                                 {': '}
                                 <a href={`/species/${encodeURIComponent(row.matchTypeDetailName)}`}
-                                   style={{color: '#003A70', textDecoration: 'underline'}}>
+                                   style={{color: 'var(--ala-link, #003A70)', textDecoration: 'underline'}}>
                                     {row.matchTypeDetailName}
                                 </a>
                             </>}

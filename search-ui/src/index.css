@@ -1,10 +1,17 @@
+/* Brand colours via CSS custom properties with inline fallbacks: var(--ala-x, <hex>).
+   The hex is the default; a runtime theme re-skins the UI with no rebuild simply by declaring
+   :root { --ala-* } in its CSS. We deliberately DO NOT declare :root{--ala-*} here, because
+   injectCommonInfo inserts the theme CSS at the top of <head> (so app CSS wins by order); an
+   app-level :root would then defeat the theme's :root. Inline fallbacks are order-independent.
+   See SPEC.md "Runtime Configurable Themes". */
+
 .btn.ala-btn-primary {
     position: relative;
     padding: 10px 40px 10px 14px;
     background: #ffffff;
-    border: 1px solid #c44d34;
+    border: 1px solid var(--ala-secondary, #c44d34);
     border-radius: 5px;
-    color: #212121;
+    color: var(--ala-text, #212121);
     font-size: 16px;
     line-height: 22px;
     font-weight: 500;
@@ -27,14 +34,14 @@
 }
 
 .btn.ala-btn-primary:hover {
-    background-color: #f26649 !important;
-    border-color: #f26649 !important;
+    background-color: var(--ala-primary, #f26649) !important;
+    border-color: var(--ala-primary, #f26649) !important;
 }
 
 .btn:active.ala-btn-primary {
-    background-color: #c44d34 !important;
+    background-color: var(--ala-secondary, #c44d34) !important;
     color: #ffffff !important;
-    border-color: #c44d34 !important;
+    border-color: var(--ala-secondary, #c44d34) !important;
 }
 
 .form-select:focus {
@@ -43,7 +50,7 @@
 }
 
 .speciesPage a:not(:is(.btn, .leaflet-container a, .leaflet-container * a)) {
-    color: #003a70 !important;
+    color: var(--ala-link, #003a70) !important;
     text-decoration: underline !important;
 }
 
@@ -72,13 +79,13 @@
 }
 
 .table > tbody > tr:first-of-type > * {
-    border-top: 0.5px solid #212121 !important;
+    border-top: 0.5px solid var(--ala-text, #212121) !important;
 }
 
 .ala-btn-secondary {
     padding: 0px 20px 0px 20px !important;
     background: #ffffff !important;
-    border: 1px solid #212121 !important;
+    border: 1px solid var(--ala-text, #212121) !important;
     border-radius: 20px !important;
 
     font-weight: 500 !important;
@@ -93,7 +100,7 @@
 }
 
 .ala-btn-secondary:active {
-    background: #212121 !important;
+    background: var(--ala-text, #212121) !important;
 }
 
 @media (max-width: 768px) {

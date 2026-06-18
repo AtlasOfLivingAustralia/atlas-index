@@ -655,7 +655,7 @@ facet-item {
 .facet-item,
 .multipleFacetsLink,
 .dqLabel {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
     cursor: pointer;
 }
 
@@ -1245,7 +1245,7 @@ body {
     font-family: 'Roboto', sans-serif;
     font-size: 14px;
     line-height: 1.428571429;
-    color: #212121;
+    color: var(--ala-text, #212121);
     background-color: #fff;
 }
 
@@ -1339,7 +1339,7 @@ section#breadcrumb {
     padding-top: 14px;
     background-color: #f2f2f2;
     font-weight: 400;
-    color: #212121;
+    color: var(--ala-text, #212121);
 }
 
 section#breadcrumb li + li::before {
@@ -1354,7 +1354,7 @@ section#breadcrumb li + li::before {
 
 .breadcrumb-item a,
 .breadcrumb-item a:hover {
-    color: #212121;
+    color: var(--ala-text, #212121);
 }
 
 .breadcrumb-list {
@@ -1396,10 +1396,10 @@ section#breadcrumb li + li::before {
     background-color: #9d9d9d;
 }
 .color--dark-red {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
 }
 .backgroundcolor--dark-red {
-    background-color: #c44d34;
+    background-color: var(--ala-secondary, #c44d34);
 }
 .color--green {
     color: #006435;
@@ -1426,10 +1426,10 @@ section#breadcrumb li + li::before {
     background-color: #df3034;
 }
 .color--off-black {
-    color: #212121;
+    color: var(--ala-text, #212121);
 }
 .backgroundcolor--off-black {
-    background-color: #212121;
+    background-color: var(--ala-text, #212121);
 }
 .color--off-white {
     color: #f2f2f2;
@@ -1444,10 +1444,10 @@ section#breadcrumb li + li::before {
     background-color: #d0367d;
 }
 .color--primary-red {
-    color: #f26649;
+    color: var(--ala-primary, #f26649);
 }
 .backgroundcolor--primary-red {
-    background-color: #f26649;
+    background-color: var(--ala-primary, #f26649);
 }
 .color--purple {
     color: #2e358b;
@@ -1480,16 +1480,16 @@ section#breadcrumb li + li::before {
     background-color: #65b044;
 }
 .color--flamingo {
-    color: #f26649;
+    color: var(--ala-primary, #f26649);
 }
 .backgroundcolor--flamingo {
-    background-color: #f26649;
+    background-color: var(--ala-primary, #f26649);
 }
 .color--mojo {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
 }
 .backgroundcolor--mojo {
-    background-color: #c44d34;
+    background-color: var(--ala-secondary, #c44d34);
 }
 .color-lochmara {
     color: #0087be;
@@ -1505,7 +1505,7 @@ section#breadcrumb li + li::before {
 }
 
 a {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
     text-decoration: none;
 }
 
@@ -1523,8 +1523,8 @@ a:hover {
 .btn-primary,
 .gform_button {
     color: #fff;
-    background-color: #c44d34;
-    border-color: #c44d34;
+    background-color: var(--ala-secondary, #c44d34);
+    border-color: var(--ala-secondary, #c44d34);
 }
 
 .btn-primary:hover {
@@ -1575,7 +1575,7 @@ nav {
     border-color: #bbb;
     border-bottom: 1px solid #999;
     margin-right: 5px;
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
 }
 
 .nav-tabs .nav-link:hover {
@@ -1746,7 +1746,7 @@ h4,
 }
 
 .speciesPage {
-    color: #212121;
+    color: var(--ala-text, #212121);
 }
 
 #speciesListHeader {
@@ -1784,7 +1784,7 @@ h4,
     font-weight: 400;
     line-height: 18px;
     text-align: left;
-    color: #003a70;
+    color: var(--ala-link, #003a70);
     text-decoration: underline;
 }
 
@@ -1827,7 +1827,7 @@ h4,
 
 .speciesInvasiveLink {
     text-decoration: underline;
-    color: #003a70;
+    color: var(--ala-link, #003a70);
 }
 
 .speciesInvasiveFlag {
@@ -1904,8 +1904,8 @@ h4,
     border-left: 0;
     border-right: 0;
     border-top: 0;
-    border-bottom: 3px solid #c44d34;
-    color: #c44d34;
+    border-bottom: 3px solid var(--ala-secondary, #c44d34);
+    color: var(--ala-secondary, #c44d34);
 
     font-size: 14px;
     font-weight: 600;
@@ -1924,7 +1924,7 @@ h4,
 }
 
 .speciesPage .nav-tabs .nav-link {
-    color: #212121;
+    color: var(--ala-text, #212121);
     padding: 15px 15px 16px 15px;
 }
 
@@ -1994,7 +1994,7 @@ h4,
 
 .speciesMapButton {
     padding: 10px 14px 15px 14px;
-    border: 1px solid #c44d34;
+    border: 1px solid var(--ala-secondary, #c44d34);
     width: 255px;
     border-radius: 5px;
     height: 69px;
@@ -2006,7 +2006,7 @@ h4,
 }
 
 .species-red {
-    color: #c44d34;
+    color: var(--ala-secondary, #c44d34);
     font-size: 25px;
     margin-top: -2px;
     margin-right: -5px;
@@ -2089,7 +2089,7 @@ h4,
 
 .speciesMapControlRefresh {
     border-radius: 20px;
-    border: 1px solid #212121;
+    border: 1px solid var(--ala-text, #212121);
 
     font-size: 16px;
     font-weight: 500;
@@ -2129,7 +2129,7 @@ h4,
     line-height: 22px;
     text-align: left;
 
-    color: #003a70;
+    color: var(--ala-link, #003a70);
     text-decoration: underline;
 
     position: absolute;
@@ -2216,7 +2216,7 @@ h4,
 
 .speciesDescription a,
 .speciesDescription a:hover {
-    color: #003a70;
+    color: var(--ala-link, #003a70);
 }
 
 .speciesImagesBlock {
@@ -2257,9 +2257,9 @@ h4,
 }
 
 .speciesImageBtnSelected {
-    background-color: #212121;
+    background-color: var(--ala-text, #212121);
     color: white;
-    border-color: #212121;
+    border-color: var(--ala-text, #212121);
 
     border-radius: 5px;
 
@@ -2275,9 +2275,9 @@ h4,
 }
 
 .speciesImageBtnSelected:hover {
-    background-color: #212121;
+    background-color: var(--ala-text, #212121);
     color: white;
-    border-color: #212121;
+    border-color: var(--ala-text, #212121);
 }
 
 .speciesImageBtn:hover {
@@ -2314,7 +2314,7 @@ h4,
 }
 
 .namesLink {
-    color: #003a70;
+    color: var(--ala-link, #003a70);
     text-decoration: underline;
 }
 
@@ -2353,7 +2353,7 @@ h4,
 
 .namesRowHeader {
     height: 32px;
-    border-bottom: 0.5px solid #212121;
+    border-bottom: 0.5px solid var(--ala-text, #212121);
     margin-top: 30px;
     padding-bottom: 10px;
 }
@@ -2378,7 +2378,7 @@ h4,
 
 .speciesPage a:not(.btn),
 .speciesPage a:hover:not(.btn) {
-    color: #003a70;
+    color: var(--ala-link, #003a70);
     text-decoration: underline;
 }
 
@@ -2548,9 +2548,9 @@ h4,
 
 .traitsButtonCsv,
 .traitsButtonCsv:hover {
-    background-color: #212121;
+    background-color: var(--ala-text, #212121);
     color: white;
-    border-color: #212121;
+    border-color: var(--ala-text, #212121);
 
     border-radius: 5px;
 
