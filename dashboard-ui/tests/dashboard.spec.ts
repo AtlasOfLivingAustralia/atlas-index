@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 });
 
 test('first sight on the board', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Dashboard | Atlas of Living Australia/);
     // Find widgets
@@ -93,7 +93,7 @@ test('first sight on the board', async ({ page }) => {
 });
 
 test('datasets', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Dashboard | Atlas of Living Australia/);
 
@@ -115,7 +115,7 @@ test('basis of record, Most Recorded Species, Type Specimens etc', async ({ page
     const widgetsWithExtra = expectedWidgets.filter(w => w.select || w.expectedUrl);
 
     for (const { title, expectedUrl, select } of widgetsWithExtra) {
-        await page.goto('/');
+        await page.goto('http://localhost:5173');
         await page.waitForLoadState('networkidle');
         await expect(page).toHaveTitle(/Dashboard \| Atlas of Living Australia/);
 
@@ -140,7 +140,7 @@ test('basis of record, Most Recorded Species, Type Specimens etc', async ({ page
 
 //Charts
 test('collections -> chart', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Dashboard | Atlas of Living Australia/);
 
@@ -174,7 +174,7 @@ test('collections -> chart', async ({ page }) => {
 });
 
 test('Records by State and Territory -> chart', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Dashboard | Atlas of Living Australia/);
 
@@ -210,7 +210,7 @@ test('Records by State and Territory -> chart', async ({ page }) => {
 });
 
 test('Records and Species by Decade -> chart', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Dashboard | Atlas of Living Australia/);
 
@@ -246,7 +246,7 @@ test('Records and Species by Decade -> chart', async ({ page }) => {
 test('CSV download', async ({ page }) => {
     const expectedCSVFiles = fs.readFileSync('tests/resources/expectedCSVFiles.csv', 'utf-8').trim().split('\n');
 
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveTitle(/Dashboard | Atlas of Living Australia/);
     const [download] = await Promise.all([

@@ -79,7 +79,7 @@ export default function SwaggerView({ setBreadcrumbs }: { setBreadcrumbs: (crumb
                 return res.json();
             })
             .then(json => {
-                parseSpecForJwtRequired(json);
+                parseSpecForJwtRequired(json, found.url);
                 setSpec(json);
             })
             .catch(err => {
@@ -101,7 +101,9 @@ export default function SwaggerView({ setBreadcrumbs }: { setBreadcrumbs: (crumb
 
     // Mutates the spec in place: simplifies the server URL, strips non-bearer
     // security schemes, and records the bearer scheme keys for pre-authorization.
-    function parseSpecForJwtRequired(spec: any): void {
+    // sourceUrl is the URL used to fetch the spec and is used as a fallback server
+    // when the spec contains no server/host information.
+    function parseSpecForJwtRequired(spec: any, sourceUrl: string): void {
         const required = new Set<string>();
         for (const path in spec.paths) {
             const pathItem = spec.paths[path];
@@ -113,6 +115,8 @@ export default function SwaggerView({ setBreadcrumbs }: { setBreadcrumbs: (crumb
         }
         jwtRequired.current = required;
 
+        const forceHttps = (url: string) => url.replace(/^http:\/\//i, 'https://');
+
         let computedUrl: string | undefined;
         if (spec.servers?.length > 0) {
             let url: string = spec.servers[0].url;
@@ -120,17 +124,33 @@ export default function SwaggerView({ setBreadcrumbs }: { setBreadcrumbs: (crumb
             for (const [varName, varDef] of Object.entries(variables)) {
                 url = url.replace(`{${varName}}`, varDef.default ?? '');
             }
-            computedUrl = url;
+            computedUrl = forceHttps(url);
         } else if (spec.host) {
             const scheme = (spec.schemes as string[] | undefined)?.[0] ?? 'https';
             const basePath: string = spec.basePath ?? '';
-            computedUrl = `${scheme}://${spec.host}${basePath}`;
+            computedUrl = forceHttps(`${scheme}://${spec.host}${basePath}`);
             delete spec.host;
             delete spec.basePath;
             delete spec.schemes;
         }
         if (computedUrl) {
             spec.servers = [{ url: computedUrl }];
+        } else {
+            // Fall back to the origin of the URL used to fetch the spec.
+            try {
+                const parsed = new URL(sourceUrl);
+                if (spec.swagger) {
+                    // Swagger 2.0: inject host/schemes — the spec has no servers array
+                    spec.host = parsed.host;
+                    spec.schemes = ['https'];
+                    if (!spec.basePath) spec.basePath = '/';
+                } else {
+                    // OpenAPI 3.x
+                    spec.servers = [{ url: forceHttps(parsed.origin) }];
+                }
+            } catch {
+                // sourceUrl is not a valid absolute URL; leave spec unchanged.
+            }
         }
 
         const securitySchemes: Record<string, any> = spec.components?.securitySchemes ?? spec.securityDefinitions ?? {};

@@ -13,6 +13,9 @@
     "exports": {
         ".": {
             "import": "./src/index.ts"
+        },
+        "./viteEnvCheckPlugin": {
+            "import": "./src/viteEnvCheckPlugin.ts"
         }
     },
     "peerDependencies": {

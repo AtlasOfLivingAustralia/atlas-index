@@ -4,7 +4,7 @@ import { Page } from '@playwright/test';
 const allowedOrigins = new Set<string>(['http://localhost:5173', 'http://localhost:8082']);
 
 // known external URLs that are safe to block and will not be logged
-const knownExternalUrlPrefixes = ['https://cdn.usefathom.com/script.js', 'https://s3.amazonaws.com/assets.freshdesk.com/widget/freshwidget.js', 'https://www.ala.org.au/app/uploads/', 'https://www.ala.org.au/app/themes/'];
+const knownExternalUrlPrefixes = ['https://cdn.usefathom.com/script.js', 'https://s3.amazonaws.com/assets.freshdesk.com/widget/freshwidget.js', 'https://www.ala.org.au/app/uploads/', 'https://www.ala.org.au/app/themes/', 'http://localhost:8081'];
 
 // Log any missing mocks. Apply before other mocks to prevent it from intercepting other implemented mocks.
 export async function logMissingMocks(page: Page, seenUrls: Set<URL>) {

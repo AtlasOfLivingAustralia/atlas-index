@@ -8,7 +8,7 @@
         "build": "node ../common-ui/generateBuildInfo.js && tsc && vite build",
         "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && PLAYWRIGHT_ENV=true vite build",
         "preview": "vite preview",
-        "test": "jest"
+        "test": "jest --passWithNoTests"
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",

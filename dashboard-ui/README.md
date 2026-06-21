@@ -21,7 +21,7 @@ Built with:
 
 ### Preparing data
 
-Use [search-service](../search-service) to generate the data found at VITE_APP_DASHBOARD_DATA_URL, VITE_APP_DASHBOARD_ZIP_URL and VITE_APP_DASHBOARD_I18N_URL.
+Use [search-service](../search-service) to generate the data found at VITE_APP_DASHBOARD_DATA_URL, VITE_APP_DASHBOARD_ZIP_URL.
 
 Example files:
 

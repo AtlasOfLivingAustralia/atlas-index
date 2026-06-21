@@ -450,7 +450,9 @@ function Occurrence({setBreadcrumbs}: {
                         </h1>
                         {record?.raw?.classification && (
                             <div id='recordHeadingLine2'>
-                                <FormattedMessage id={"basisOfRecord." + intl.formatMessage({ id: record.processed.occurrence?.basisOfRecord, defaultMessage: record.processed.occurrence?.basisOfRecord})}/>
+                                { record.processed.occurrence?.basisOfRecord &&
+                                    <FormattedMessage id={"basisOfRecord." + intl.formatMessage({ id: record.processed.occurrence.basisOfRecord, defaultMessage: record.processed.occurrence?.basisOfRecord})}/>
+                                }
                                 &nbsp;<FormattedMessage id="show.heading.of" defaultMessage="of"/>&nbsp;
                                 {record?.processed?.classification?.scientificName ? (
                                     <>

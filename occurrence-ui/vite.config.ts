@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { viteEnvCheckPlugin } from '@ala/common-ui/viteEnvCheckPlugin';
 
 // https://vitejs.dev/config/
 export default defineConfig({
     define: {
         'process.env': process.env
     },
-    plugins: [react()],
+    plugins: [react(), viteEnvCheckPlugin()],
     optimizeDeps: {
         exclude: ['@ala/common-ui'],
     },

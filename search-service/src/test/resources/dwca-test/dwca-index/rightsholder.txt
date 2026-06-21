@@ -1,0 +1,40 @@
+datasetID	datasetName	description	rightsHolder	license
+dr13266	Traditional Names	Traditional Names		
+dr17886	Traditional Names	Traditional Names		
+dr20514	BirdLife	Working List of Australian Birds		
+dr19606			Atlas of Living Australia	CC-BY
+dr17664	ABRSL	ABRS Lichen Checklist	Australian Biological Resources Study	CC-BY
+dr5393	ALA	Atlas of living Australia Name Sources	Atlas of Living Australia	CC-BY
+dr19724	AusFungi		Royal Botanic Gardens Victoria	CC-BY
+dr30473	Taxonomic Additions - Migratory Species 2025 - Internal List		Atlas of Living Australia	CC-BY
+dr32357	Taxonomic Additions - Additional synonyms for names matching part 3 2025		Atlas of Living Australia	CC-BY
+dr5214	APC	Australian Plant Name Index entries placed by the Australian Plant Census	Centre for Australian National Biodiversity Research	CC-BY
+dr2700	APNI	Australian Plant Name Index entries not placed by the Australian Plant Census, given an assumed parent of Plantae	Centre for Australian National Biodiversity Research	CC-BY
+dr23462	Traditional Names	Traditional Names		
+dr7933	ALA	Specific ALA fixes for various problems. These take precedence over anything else.	Atlas of Living Australia	CC-BY
+dr2703	AusMoss		Royal Botanic Gardens Victoria	CC-BY
+dr2704	CAAB	Codes for Australian Aquatic Biota	Commonwealth Scientific and Industrial Research Organisation	CC-BY
+dr30477	Taxonomic Additions - Pests and Weeds 2025 - Internal List		Atlas of Living Australia	CC-BY
+dr32357	Taxonomic Additions - Additional synonyms for names matching part 3 2025		Atlas of Living Australia	CC-BY
+dr2707	NZOR	New Zealand Organism Register	New Zealand Organism Register	CC-BY
+dr30473	Taxonomic Additions - Migratory Species 2025 - Internal List		Atlas of Living Australia	CC-BY
+dr2705	CoL	Catalogue of Life	Catalogue of Life	CC-BY
+dr30474	Taxonomic Additions - Recent Species and List Names 2025 - Internal List		Atlas of Living Australia	CC-BY
+dr32575	Additional Taxonomy - Additional Synonyms for names matching 2025		Atlas of Living Australia	CC-BY
+dr32844	Additional Taxonomy - Additional synonyms for names matching part 4 2025		Atlas of Living Australia	CC-BY
+dr30474	Taxonomic Additions - Recent Species and List Names 2025 - Internal List		Atlas of Living Australia	CC-BY
+dr32575	Additional Taxonomy - Additional Synonyms for names matching 2025		Atlas of Living Australia	CC-BY
+dr13558	ALA Inferences	Atlas of living Australia, provider of inferences from the matching algorithm	Atlas of Living Australia	CC-BY
+dr28035	ABRSA	ABRS Algae Checklist	Australian Biological Resources Study	CC-BY
+apni-apc	APNI/APC	Australian Plant Name Index and Australian Plant Census	Centre for Australian National Biodiversity Research	CC-BY
+dr2699	AFD	Australian Faunal Directory	Australian Biological Resources Study	CC-BY
+dr31896	Higher matches test load		Atlas of Living Australia	CC-BY
+dr32346	Additional Taxonomy - Additional synonyms for names matching part 2 2025		Atlas of Living Australia	CC-BY
+dr32844	Additional Taxonomy - Additional synonyms for names matching part 4 2025		Atlas of Living Australia	CC-BY
+dr31896	Higher matches test load		Atlas of Living Australia	CC-BY
+dr30477	Taxonomic Additions - Pests and Weeds 2025 - Internal List		Atlas of Living Australia	CC-BY
+dr32346	Additional Taxonomy - Additional synonyms for names matching part 2 2025		Atlas of Living Australia	CC-BY
+dr31252	Taxonomic Additions - Biosecurity 2025 - Internal Lists		Atlas of Living Australia	CC-BY
+dr31670	ALA Preferred Vernacular Names	ALA Preferred Vernacular Names		
+dr31252	Taxonomic Additions - Biosecurity 2025 - Internal Lists		Atlas of Living Australia	CC-BY
+dr17880	Traditional Names	Traditional Names		

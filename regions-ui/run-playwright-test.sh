@@ -18,8 +18,36 @@ check_port 5173
 # Exit on error
 set -e
 
+ENV_LOCAL=".env.local"
+ENV_LOCAL_BACKUP=".env.local.bak"
+ENV_PRODUCTION=".env.production"
+ENV_PRODUCTION_BACKUP=".env.production.bak"
+
+# Temporarily hide .env.local and .env.production so they don't bleed into the playwright build
+if [ -f "$ENV_LOCAL" ]; then
+  echo "Hiding .env.local for playwright build..."
+  mv "$ENV_LOCAL" "$ENV_LOCAL_BACKUP"
+fi
+if [ -f "$ENV_PRODUCTION" ]; then
+  echo "Hiding .env.production for playwright build..."
+  mv "$ENV_PRODUCTION" "$ENV_PRODUCTION_BACKUP"
+fi
+
+restore_env_local() {
+  if [ -f "$ENV_LOCAL_BACKUP" ]; then
+    mv "$ENV_LOCAL_BACKUP" "$ENV_LOCAL"
+  fi
+  if [ -f "$ENV_PRODUCTION_BACKUP" ]; then
+    mv "$ENV_PRODUCTION_BACKUP" "$ENV_PRODUCTION"
+  fi
+}
+trap restore_env_local EXIT
+
 echo "Building the project..."
 yarn run build:playwright
+
+echo "Restoring env files..."
+restore_env_local
 
 echo "Copy regionsList.json to dist"
 cp ./tests/resources/regionsList.json ./dist/regionsList.json
@@ -41,6 +69,7 @@ cleanup() {
   # Teardown servers
   echo "Stopping servers..."
   kill $APP_SERVER_PID $STATIC_SERVER_PID
+  restore_env_local
 }
 trap cleanup EXIT
 

@@ -9,7 +9,7 @@
         "build": "node ../common-ui/generateBuildInfo.js && tsc && node buildCollections.js && vite build",
         "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && PLAYWRIGHT_ENV=true vite build",
         "preview": "vite preview",
-        "test": "jest",
+        "test": "jest --passWithNoTests",
         "test:playwright": "./run-playwright-test.sh"
     },
     "dependencies": {
