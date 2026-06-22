@@ -196,9 +196,6 @@ CREATE INDEX IF NOT EXISTS esbre_entity_uid ON event_summary_breakdown_reason_en
 --        (7, 'TEPAPA'),
 --        (2001, 'ALA4R'),
 --        (2002, 'BCCVL'),
---        (2004, 'galah-R'),
---        (2005, 'galah-python'),
---        (2006, 'qgis-galah-python'),
 --        (10000, 'Spatial Portal'),
 --        (10001, 'List Tool'),
 --        (10002, 'CSDM');
