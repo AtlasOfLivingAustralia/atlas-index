@@ -461,19 +461,19 @@ public class V1LoggerController {
             responses = @ApiResponse(responseCode = "200", description = "Get Totals by Event Type"))
     @GetMapping("/totalsByType")
     public ResponseEntity<Map<String, Map<Integer, Map<String, Long>>>> getTotalsByType() {
-        List<EventSummaryTotals> rows = loggerPostgresRepository.findTotalsByEventType(1002); // downloads by default
+        List<EventSummaryTotalsDto> rows = loggerPostgresRepository.findTotalsByEventType();
 
         // Group and sum records/events by event type
         Map<Integer, Map<String, Long>> totals = new LinkedHashMap<>();
-        for (EventSummaryTotals row : rows) {
-            Map<String, Long> typeTotals = totals.computeIfAbsent(row.getLogEventTypeId(), k -> {
+        for (EventSummaryTotalsDto row : rows) {
+            Map<String, Long> typeTotals = totals.computeIfAbsent(row.logEventTypeId(), k -> {
                 Map<String, Long> m = new LinkedHashMap<>();
                 m.put("records", 0L);
                 m.put("events", 0L);
                 return m;
             });
-            typeTotals.put("records", typeTotals.get("records") + row.getRecordCount());
-            typeTotals.put("events", typeTotals.get("events") + row.getNumberOfEvents());
+            typeTotals.put("records", typeTotals.get("records") + row.recordCount());
+            typeTotals.put("events", typeTotals.get("events") + row.numberOfEvents());
         }
 
         Map result = new LinkedHashMap<>();

@@ -31,8 +31,8 @@ public interface LoggerPostgresRepository extends JpaRepository<LogEvent, Long> 
 
     // --- Totals by event type ---
 
-    @Query("SELECT e FROM EventSummaryTotals e WHERE e.logEventTypeId = :eventTypeId ORDER BY e.month")
-    List<EventSummaryTotals> findTotalsByEventType(@Param("eventTypeId") Integer eventTypeId);
+    @Query("SELECT new au.org.ala.search.model.logger.EventSummaryTotalsDto(e.logEventTypeId, sum(e.numberOfEvents), sum(e.recordCount)) FROM EventSummaryTotals e GROUP BY e.logEventTypeId")
+    List<EventSummaryTotalsDto> findTotalsByEventType();
 
     // --- Email breakdown ---
 
