@@ -138,12 +138,6 @@ public interface LoggerPostgresRepository extends JpaRepository<LogEvent, Long> 
             @Param("entityUid") String entityUid,
             @Param("year") String year);
 
-    // --- Summary table update ---
-
-    @org.springframework.data.jpa.repository.Modifying
-    @Query(value = "CALL process_new_events()", nativeQuery = true)
-    void processNewEvents();
-
     // --- Lookup types by ID ---
     @Query("SELECT r FROM LogReasonType r WHERE r.id = :reasonTypeId")
     LogReasonType findReasonTypeById(@Param("reasonTypeId") Integer reasonTypeId);

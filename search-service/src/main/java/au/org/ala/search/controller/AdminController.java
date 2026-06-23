@@ -234,6 +234,8 @@ public class AdminController {
                 leaderQueue.sendMessage(type, null, false);
             } else if (type.category == TaskType.Category.BROADCAST) {
                 broadcastQueue.sendMessage(type, null);
+            } else if (type.name().equals(TaskType.LOGGER_UPDATE_SUMMARY_TABLES.name())) {
+                leaderQueue.sendMessage(type, null, false);
             }
         } catch (Exception e) {
             log.error("Failed to queue task {}: {}", type, e.getMessage(), e);

@@ -58,6 +58,7 @@ public class LeaderQueue {
     protected final DashboardService dashboardService;
     protected final DescriptionsUpdateService descriptionsUpdateService;
     private final PostgresSyncService postgresSyncService;
+    private final LoggerUpdateService loggerUpdateService;
 
     @Value("${rabbitmq.exchange.direct}")
     private String directExchange;
@@ -66,7 +67,7 @@ public class LeaderQueue {
 
     ObjectMapper smileObjectMapper = new ObjectMapper(new SmileFactory());
 
-    public LeaderQueue(RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, LeadershipStatus leadershipStatus, WordpressImportService wordpressImportService, KnowledgebaseImportService knowledgebaseImportService, ListImportService listImportService, CollectionsImportService collectionsImportService, BiocollectImportService biocollectImportService, DigivolImportService digivolImportService, LayerImportService layerImportService, AreaImportService areaImportService, DwCAImportService dwcaImportService, TaxonUpdateService taxonUpdateService, SitemapService sitemapService, AllService allService, DashboardService dashboardService, DescriptionsUpdateService descriptionsUpdateService, PostgresSyncService postgresSyncService) {
+    public LeaderQueue(RabbitTemplate rabbitTemplate, LogService logService, QualityDataService qualityDataService, LeadershipStatus leadershipStatus, WordpressImportService wordpressImportService, KnowledgebaseImportService knowledgebaseImportService, ListImportService listImportService, CollectionsImportService collectionsImportService, BiocollectImportService biocollectImportService, DigivolImportService digivolImportService, LayerImportService layerImportService, AreaImportService areaImportService, DwCAImportService dwcaImportService, TaxonUpdateService taxonUpdateService, SitemapService sitemapService, AllService allService, DashboardService dashboardService, DescriptionsUpdateService descriptionsUpdateService, PostgresSyncService postgresSyncService, LoggerUpdateService loggerUpdateService) {
         this.rabbitTemplate = rabbitTemplate;
         this.logService = logService;
         this.leadershipStatus = leadershipStatus;
@@ -87,6 +88,7 @@ public class LeaderQueue {
         this.dashboardService = dashboardService;
         this.descriptionsUpdateService = descriptionsUpdateService;
         this.postgresSyncService = postgresSyncService;
+        this.loggerUpdateService = loggerUpdateService;
 
         // Increase the timeout for RPC responses to 30 seconds
         this.rabbitTemplate.setReplyTimeout(30_000);
@@ -230,6 +232,8 @@ public class LeaderQueue {
             descriptionsUpdateService.run();
         } else if (message.equals(TaskType.POSTGRES_SYNC.name())) {
             postgresSyncService.run();
+        } else if (message.equals(TaskType.LOGGER_UPDATE_SUMMARY_TABLES.name())) {
+            loggerUpdateService.run();
         } else {
             logService.log(taskType, "Unknown broadcast message: " + message);
             return false;

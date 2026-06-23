@@ -7,12 +7,11 @@
 package au.org.ala.search.service.update;
 
 import au.org.ala.search.model.TaskType;
-import au.org.ala.search.repo.LoggerPostgresRepository;
 import au.org.ala.search.service.remote.LogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -22,20 +21,19 @@ public class LoggerUpdateService {
 
     private static final TaskType taskType = TaskType.LOGGER_UPDATE_SUMMARY_TABLES;
 
-    private final LoggerPostgresRepository loggerPostgresRepository;
+    private final JdbcTemplate jdbcTemplate;
     private final LogService logService;
 
-    public LoggerUpdateService(LoggerPostgresRepository loggerPostgresRepository, LogService logService) {
-        this.loggerPostgresRepository = loggerPostgresRepository;
+    public LoggerUpdateService(JdbcTemplate jdbcTemplate, LogService logService) {
+        this.jdbcTemplate = jdbcTemplate;
         this.logService = logService;
     }
 
     @Async("processExecutor")
-    @Transactional
     public CompletableFuture<Boolean> run() {
         logService.log(taskType, "Starting");
         try {
-            loggerPostgresRepository.processNewEvents();
+            jdbcTemplate.execute("CALL process_new_events()");
             logService.log(taskType, "Finished");
             return CompletableFuture.completedFuture(true);
         } catch (Exception e) {
