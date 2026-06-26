@@ -8,7 +8,7 @@
     ],
     "scripts": {
         "check-types": "tsc --noEmit",
-        "test": "jest"
+        "test": "jest --passWithNoTests"
     },
     "exports": {
         ".": {

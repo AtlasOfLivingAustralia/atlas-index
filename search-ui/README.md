@@ -30,7 +30,7 @@ VITE_OIDC_AUTH_SERVER=
 VITE_OIDC_CLIENT_ID=
 VITE_OIDC_SCOPE=openid profile email ala/attrs ala/roles
 VITE_LOGO_URL=https://www.ala.org.au/app/uploads/2019/01/logo.png
-VITE_APP_BIE_URL=http://localhost:8081
+VITE_APP_API_URL=http://localhost:8081
 
 # static external paths and files for dashboard and vocab view
 VITE_APP_DASHBOARD_DATA_URL=http://localhost:8082/static/dashboard/dashboard.json

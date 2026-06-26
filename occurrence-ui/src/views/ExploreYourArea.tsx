@@ -60,7 +60,7 @@ const defaultMarkerIcon = new L.Icon({
 });
 
 const eyaFq = import.meta.env.VITE_EYA_FQ;
-const SPECIES_PAGE_SIZE: number = Number(import.meta.env.VITE_EYA_SPECIES_PAGE_SIZE) || 1000;
+const SPECIES_PAGE_SIZE: number = Number(import.meta.env.VITE_EYA_SPECIES_PAGE_SIZE);
 
 
 const ALL_SPECIES = 'All Species';

@@ -120,7 +120,7 @@ function AllView({queryString, setTab, isMobile}: ViewProps) {
             return;
         }
 
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) + '&facets=idxtype&pageSize=0')
+        fetch(import.meta.env.VITE_APP_API_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) + '&facets=idxtype&pageSize=0')
             .then((response) => {
                 if (!response.ok) {
                     setTotal(0);
@@ -150,7 +150,7 @@ function AllView({queryString, setTab, isMobile}: ViewProps) {
                 // fetch the first 4 results for each
                 Object.values(searchGroups).forEach((group: any) => {
                     if (group.count > 0) {
-                        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) + '&pageSize=4&fq=' + encodeURIComponent(group.fq || ''))
+                        fetch(import.meta.env.VITE_APP_API_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) + '&pageSize=4&fq=' + encodeURIComponent(group.fq || ''))
                             .then((response) => {
                                 if (!response.ok) return null;
                                 return response.json();

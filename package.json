@@ -5,13 +5,11 @@
     "common-ui",
     "admin-ui",
     "dashboard-ui",
-    "docs-ui",
     "doi-ui",
     "occurrence-ui",
     "regions-ui",
     "sds-ui",
     "search-ui",
-    "spatial-ui",
     "specimens-ui"
   ],
   "packageManager": "yarn@4.16.0",

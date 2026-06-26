@@ -513,7 +513,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                         <i className="bi bi-file-code me-1"></i>API
                                     </div>
                                     {apiModalShow && <ApiModal onClose={() => setApiModalShow(false)}
-                                                               url={import.meta.env.VITE_OIDC_REDIRECT_URL + '#/occurrence-list?' + queryString}/>}
+                                                               url={import.meta.env.VITE_APP_BASE_URL + '/occurrences/search' + queryString}/>}
                                 </div>
                             </div>
 

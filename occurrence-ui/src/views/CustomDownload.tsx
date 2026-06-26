@@ -14,10 +14,7 @@ import FieldSectionsPanel, { Section } from '../components/download/FieldSection
 
 const termsOfUseUrl = import.meta.env.VITE_TERMS_OF_USE_URL;
 const orgNameLong = import.meta.env.VITE_HUB_NAME;
-const mandatoryFieldGroups: string[] = (import.meta.env.VITE_DOWNLOAD_CUSTOM_MANDATORY_GROUPS as string | undefined)
-    ? (import.meta.env.VITE_DOWNLOAD_CUSTOM_MANDATORY_GROUPS as string).split(',')
-    : ['recordLevelTerms', 'occurrence'];
-
+const mandatoryFieldGroups: string[] = (import.meta.env.VITE_DOWNLOAD_CUSTOM_MANDATORY_GROUPS as string).split(',');
 
 /**
  * Fixed mapping of section keys to their ordered group keys.

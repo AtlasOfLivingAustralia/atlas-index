@@ -149,28 +149,10 @@ test('collections -> chart', async ({ page }) => {
     const panelBody = panel.locator('div.dashboardPanelBody.card-body');
     const canvas = panelBody.locator('canvas[role="img"]');
     await expect(canvas).toHaveCount(1);
-    await canvas.scrollIntoViewIfNeeded();
-    const bbox = await canvas.boundingBox();
-    expect(bbox).toBeTruthy();
-    // Not sure why canvas.click() does not work here
-    // Approximate "center of top-left quarter"
-    const quarterX = bbox.x + bbox.width / 4;
-    const quarterY = bbox.y + bbox.height / 4;
 
-    // Wait for popup triggered by canvas click
-    const [collectionsPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        (async () => {
-            // Move and click at that point
-            await page.mouse.move(quarterX, quarterY);
-            await page.waitForTimeout(1000); // wait for stability
-            await page.mouse.click(quarterX, quarterY);
-        })()
-    ]);
-
-    await collectionsPage.waitForLoadState();
-    const popupUrl = collectionsPage.url();
-    expect(popupUrl).toMatch(/^https?:\/\/collections(?:\.test)?\.ala\.org\.au\/\?start=.*$/);
+    const openedUrl = await captureChartClickUrl(canvas, 0, 0);
+    // URL has no trailing slash before '?' e.g. https://collections.ala.org.au?start=fauna
+    expect(openedUrl).toMatch(/^https?:\/\/collections(?:\.test)?\.ala\.org\.au\/?\?start=.*$/);
 });
 
 test('Records by State and Territory -> chart', async ({ page }) => {
@@ -183,30 +165,9 @@ test('Records by State and Territory -> chart', async ({ page }) => {
     const panelBody = panel.locator('div.dashboardPanelBody.card-body');
     const canvas = panelBody.locator('canvas[role="img"]');
     await expect(canvas).toHaveCount(1);
-    await canvas.scrollIntoViewIfNeeded();
-    const bbox = await canvas.boundingBox();
-    expect(bbox).toBeTruthy();
-    // Not sure why canvas.click() does not work here
-    // Approximate "center of top-left quarter"
-    const quarterX = bbox.x + bbox.width / 4;
-    const quarterY = bbox.y + bbox.height / 4;
 
-    // Wait for popup triggered by canvas click
-    const [collectionsPage] = await Promise.all([
-        page.waitForEvent('popup'),
-        (async () => {
-            // Move and click at that point
-            await page.mouse.move(quarterX, quarterY);
-            await page.waitForTimeout(1000); // wait for stability
-            await page.mouse.click(quarterX, quarterY);
-        })()
-    ]);
-
-    await collectionsPage.waitForLoadState();
-    const popupUrl = collectionsPage.url();
-    expect(popupUrl).toMatch(/^https?:\/\/biocache(?:\.test)?\.ala\.org\.au\/occurrences\/search\?q=stateProvince:.*$/);
-    await collectionsPage.goBack();
-    await collectionsPage.waitForLoadState();
+    const openedUrl = await captureChartClickUrl(canvas, 0, 0);
+    expect(openedUrl).toMatch(/^https?:\/\/biocache(?:\.test)?\.ala\.org\.au\/occurrences\/search\?q=stateProvince:.*$/);
 });
 
 test('Records and Species by Decade -> chart', async ({ page }) => {
@@ -219,28 +180,9 @@ test('Records and Species by Decade -> chart', async ({ page }) => {
     const panelBody = panel.locator('div.dashboardPanelBody.card-body');
     const canvas = panelBody.locator('canvas[role="img"]');
     await expect(canvas).toHaveCount(1);
-    await canvas.scrollIntoViewIfNeeded();
-    const bbox = await canvas.boundingBox();
-    expect(bbox).toBeTruthy();
-    // Not sure why canvas.click() does not work here
-    // Approximate "half below and a little bit left"
-    const halfBelowX = bbox.x + bbox.width / 2 - 20; // center minus 20px to the left
-    const halfBelowY = bbox.y + bbox.height / 2; // halfway down vertically
 
-    // Wait for popup triggered by canvas click
-    const [biocachePage] = await Promise.all([
-        page.waitForEvent('popup'),
-        (async () => {
-            // Move and click at that point
-            await page.mouse.move(halfBelowX, halfBelowY);
-            await page.waitForTimeout(1000); // wait for stability
-            await page.mouse.click(halfBelowX, halfBelowY);
-        })()
-    ]);
-
-    await biocachePage.waitForLoadState();
-    const popupUrl = biocachePage.url();
-    expect(popupUrl).toMatch(/^https?:\/\/biocache(?:\.test)?\.ala\.org\.au\/occurrences\/search\?q=decade:.*$/);
+    const openedUrl = await captureChartClickUrl(canvas, 0, 0);
+    expect(openedUrl).toMatch(/^https?:\/\/biocache(?:\.test)?\.ala\.org\.au\/occurrences\/search\?q=decade:.*$/);
 });
 
 test('CSV download', async ({ page }) => {
@@ -350,7 +292,75 @@ async function testDashboardPanelNavigation(page: Page, panel: Locator, expected
 }
 
 /**
- * Find a dashboard panel whose header text matches a regex pattern.
+ * Wait for the Chart.js instance on the given canvas to finish rendering,
+ * then programmatically fire its onClick handler for a specific data element
+ * and return the URL that window.open was called with (percent-decoded).
+ *
+ * Why not click the canvas with mouse events?
+ * – Coordinate-based hits are fragile across browsers (different pixel positions
+ *   and animation timings).
+ * – WebKit blocks window.open called from Playwright synthetic mouse events
+ *   because they are not considered a user gesture for popup purposes.
+ *
+ * @param canvas       - Locator scoped to the <canvas> element
+ * @param datasetIndex - Chart.js dataset index (usually 0)
+ * @param elementIndex - Data element index within the dataset
+ */
+async function captureChartClickUrl(
+    canvas: Locator,
+    datasetIndex: number,
+    elementIndex: number
+): Promise<string> {
+    // Wait until Chart.js has initialised the chart AND has at least one
+    // rendered data element (data has been processed, not just mounted).
+    await canvas.evaluate((canvasEl: HTMLCanvasElement) => new Promise<void>((resolve) => {
+        const poll = () => {
+            const chart = (window as any).__ChartJS?.getChart(canvasEl);
+            if (chart && chart.getDatasetMeta(0).data.length > 0) { resolve(); return; }
+            setTimeout(poll, 50);
+        };
+        poll();
+    }));
+
+    // Stub window.open, invoke the onClick handler, capture the URL, restore.
+    // Everything happens synchronously inside the same evaluate call so there
+    // is no async gap between the stub install and the URL capture.
+    const rawUrl = await canvas.evaluate(
+        (canvasEl: HTMLCanvasElement, { datasetIndex, elementIndex }: { datasetIndex: number; elementIndex: number }) => {
+            let captured: string | null = null;
+            const origOpen = window.open;
+            (window as any).open = (url?: string | URL, ..._args: any[]) => {
+                captured = url != null ? String(url) : null;
+                return null;
+            };
+            try {
+                const chart = (window as any).__ChartJS?.getChart(canvasEl);
+                if (chart?.options?.onClick) {
+                    // Replicate what Chart.js passes to the user callback:
+                    // an elements array where each item has { index, datasetIndex }
+                    chart.options.onClick(
+                        {},
+                        [{ index: elementIndex, datasetIndex }],
+                        chart
+                    );
+                }
+            } finally {
+                window.open = origOpen;
+            }
+            return captured;
+        },
+        { datasetIndex, elementIndex }
+    );
+
+    expect(
+        rawUrl,
+        `window.open was not called for dataset=${datasetIndex}, element=${elementIndex} — ` +
+        `check that __ChartJS is exposed and the chart has an onClick handler`
+    ).not.toBeNull();
+    return decodeURIComponent(rawUrl!);
+}
+
+/**
  *
  * @param page - Playwright Page object
  * @param pattern - Regex pattern to match against header text

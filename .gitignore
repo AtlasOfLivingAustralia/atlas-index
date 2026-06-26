@@ -10,6 +10,7 @@ regionList.meta.json
 regionList-*.json
 */.yalc/
 buildInfo.json
+search-ui/src/config/speciesGroupsMap.json
 env.*
 tsconfig.tsbuildinfo
 yarn-error.log

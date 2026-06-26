@@ -1,14 +1,14 @@
 {
     "name": "regions-ui",
     "private": true,
-    "version": "1.1.0-SNAPSHOT",
+    "version": "1.2.0-SNAPSHOT",
     "type": "module",
     "scripts": {
         "dev": "node ../common-ui/generateBuildInfo.js && vite",
         "build": "node ../common-ui/generateBuildInfo.js && tsc && node prepareRegions.js && vite build && node useRegions.js",
         "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && PLAYWRIGHT_ENV=true vite build && node useRegions.js playwright",
         "preview": "vite preview",
-        "test": "jest"
+        "test": "jest --passWithNoTests"
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",

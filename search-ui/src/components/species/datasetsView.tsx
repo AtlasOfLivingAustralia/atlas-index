@@ -57,7 +57,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
             }
 
             // get licences
-            fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=idxtype:DATARESOURCE&fq=' + encodeURIComponent(drs.join(' OR ')) + '&fl=id,license&pageSize=1000',
+            fetch(import.meta.env.VITE_APP_API_URL + '/v2/search?q=idxtype:DATARESOURCE&fq=' + encodeURIComponent(drs.join(' OR ')) + '&fl=id,license&pageSize=1000',
                 {
                     headers: {'Content-Type': 'application/json'}
                 }).then((response) => response.json()).then((data) => {

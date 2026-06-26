@@ -166,7 +166,7 @@ function MapView({ queryString, tab }: MapViewProps) {
     }, [tab]);
 
     function buildSpatialUrl(): string {
-        let baseUrl = import.meta.env.VITE_APP_SPATIAL_PORTAL_URL || 'https://spatial.ala.org.au';
+        let baseUrl = import.meta.env.VITE_APP_SPATIAL_URL;
         let url = new URL(baseUrl);
 
         // add query params

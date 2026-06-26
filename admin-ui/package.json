@@ -1,12 +1,13 @@
 {
     "name": "admin-ui",
     "private": true,
-    "version": "1.0.0-SNAPSHOT",
+    "version": "1.1.0-SNAPSHOT",
     "type": "module",
     "scripts": {
         "dev": "node ../common-ui/generateBuildInfo.js && vite",
         "build": "node ../common-ui/generateBuildInfo.js && tsc && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "test": "jest --passWithNoTests"
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",
@@ -30,6 +31,7 @@
     "devDependencies": {
         "@testing-library/dom": "^10.4.1",
         "@testing-library/react": "^16.3.2",
+        "@types/jest": "^30.0.0",
         "@types/node": "^25.9.2",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
@@ -40,6 +42,7 @@
         "eslint": "^10.4.1",
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-react-refresh": "^0.5.2",
+        "jest": "^30.0.3",
         "prettier": "^3.8.4",
         "typescript": "^6.0.3",
         "vite": "^8.0.16"

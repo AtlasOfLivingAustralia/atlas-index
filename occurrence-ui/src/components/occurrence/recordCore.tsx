@@ -802,13 +802,13 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         eventTable.push({
             fieldCode: "eventID", fieldName: "Event ID",
             text: data?.raw?.event?.eventID,
-            url: eventHierarchy ? import.meta.env.VITE_APP_EVENTS_EVENTURL + data?.raw?.event?.eventID : undefined
+            url: eventHierarchy ? import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL + data?.raw?.event?.eventID : undefined
         });
 
         eventTable.push({
             fieldCode: "parentEventID", fieldName: "Parent Event ID",
             text: data?.raw?.event?.parentEventID,
-            url: eventHierarchy ? import.meta.env.VITE_APP_EVENTS_EVENTURL + data?.raw?.event?.parentEventID : undefined
+            url: eventHierarchy ? import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL + data?.raw?.event?.parentEventID : undefined
         });
 
         eventTable.push({

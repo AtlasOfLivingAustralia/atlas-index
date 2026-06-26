@@ -34,10 +34,10 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
             url += "?queryDisplayName=" + encodeURIComponent(results.queryTitle);
         }
         url += "&baseUrlForWS=" + encodeURIComponent(import.meta.env.VITE_APP_BIOCACHE_URL);
-        url += "&baseUrlForUI=" + encodeURIComponent(import.meta.env.VITE_OIDC_REDIRECT_URL);
+        url += "&baseUrlForUI=" + encodeURIComponent(import.meta.env.VITE_APP_BASE_URL);
         url += "&webserviceQuery=%2Foccurrences%2Fsearch%3F" + encodeURIComponent(queryString || '');
         url += "&uiQuery=%23%2Foccurrences%2Fsearch%3F" + encodeURIComponent(queryString || '');
-        url += "&resourceName=" + encodeURIComponent(import.meta.env.VITE_ORG_NAME);
+        url += "&resourceName=" + encodeURIComponent(import.meta.env.VITE_HUB_NAME);
 
         window.location.href = url;
     }

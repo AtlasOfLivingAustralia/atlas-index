@@ -5,10 +5,10 @@
     "type": "module",
     "homepage": "https://ala-index.dev.ala.org.au",
     "scripts": {
-        "dev": "node ../common-ui/generateBuildInfo.js && vite",
-        "build": "tsc && node ../common-ui/generateBuildInfo.js && vite build",
+        "dev": "node ../common-ui/generateBuildInfo.js && node generateSpeciesGroupsMap.js && vite",
+        "build": "tsc && node ../common-ui/generateBuildInfo.js && node generateSpeciesGroupsMap.js && vite build",
         "preview": "vite preview",
-        "test": "jest"
+        "test": "jest --passWithNoTests"
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",
