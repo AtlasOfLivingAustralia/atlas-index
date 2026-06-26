@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }, testInfo) => {
 });
 
 test('Find and click a link of all collections, and navigates', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
 
     // Verify multiple thumbnail cards are present
@@ -93,7 +93,7 @@ test('Find and click a link of all collections, and navigates', async ({ page })
 });
 
 test('find South Australian Museum Terrestrial Invertebrate Collection thumbnail and navigate to its page', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('http://localhost:5173');
     await page.waitForLoadState('networkidle');
 
     const targetName = 'South Australian Museum Terrestrial Invertebrate Collection';

@@ -1,67 +1,81 @@
 {
-  "name": "@ala/common-ui",
-  "version": "1.0.0-SNAPSHOT",
-  "type": "module",
-  "main": "src/index.ts",
-  "files": [
-    "src"
-  ],
-  "scripts": {
-    "check-types": "tsc --noEmit",
-    "test": "jest"
-  },
-  "exports": {
-    ".": {
-      "import": "./src/index.ts"
+    "name": "@ala/common-ui",
+    "version": "1.0.0-SNAPSHOT",
+    "type": "module",
+    "main": "src/index.ts",
+    "files": [
+        "src"
+    ],
+    "scripts": {
+        "check-types": "tsc --noEmit",
+        "test": "jest --passWithNoTests"
+    },
+    "exports": {
+        ".": {
+            "import": "./src/index.ts"
+        },
+        "./viteEnvCheckPlugin": {
+            "import": "./src/viteEnvCheckPlugin.ts"
+        }
+    },
+    "peerDependencies": {
+        "@fortawesome/fontawesome-svg-core": "^7.2.0",
+        "@fortawesome/free-brands-svg-icons": "^7.2.0",
+        "@fortawesome/free-regular-svg-icons": "^7.2.0",
+        "@fortawesome/free-solid-svg-icons": "^7.2.0",
+        "@fortawesome/react-fontawesome": "^3.3.1",
+        "@popperjs/core": "^2.11.8",
+        "bootstrap": "^5.3.8",
+        "bootstrap-icons": "^1.13.1",
+        "react": "^19.2.7",
+        "react-bootstrap": "^2.10.10",
+        "react-bootstrap-typeahead": "^6.4.1",
+        "react-dom": "^19.2.7",
+        "react-intl": "^10.1.13",
+        "react-router-dom": "^7.17.0"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.29.7",
+        "@babel/preset-env": "^7.29.7",
+        "@babel/preset-react": "^7.29.7",
+        "@babel/preset-typescript": "^7.29.7",
+        "@fortawesome/fontawesome-svg-core": "^7.2.0",
+        "@fortawesome/free-brands-svg-icons": "^7.2.0",
+        "@fortawesome/free-regular-svg-icons": "^7.2.0",
+        "@fortawesome/free-solid-svg-icons": "^7.2.0",
+        "@fortawesome/react-fontawesome": "^3.3.1",
+        "@playwright/experimental-ct-react": "^1.60.0",
+        "@playwright/test": "^1.60.0",
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.2",
+        "@types/babel__core": "^7.20.5",
+        "@types/babel__preset-env": "^7.10.0",
+        "@types/bootstrap": "^5.2.11",
+        "@types/css-modules": "^1.0.5",
+        "@types/jest": "^30.0.0",
+        "@types/node": "^25.9.2",
+        "@types/react": "^19.2.17",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^6.0.2",
+        "babel-jest": "^30.4.1",
+        "bootstrap": "^5.3.8",
+        "bootstrap-icons": "^1.13.1",
+        "core-js": "^3.49.0",
+        "dotenv": "^17.4.2",
+        "jest": "^30.4.2",
+        "jest-environment-jsdom": "^30.4.1",
+        "jest-transform-css": "^6.0.3",
+        "playwright": "^1.60.0",
+        "postcss": "^8.5.15",
+        "react": "^19.2.7",
+        "react-dom": "^19.2.7",
+        "ts-jest": "^29.4.11",
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.16"
+    },
+    "engines": {
+        "node": ">=24.16.0"
     }
-  },
-  "dependencies": {
-    "@fontsource/roboto": "^5.0.13",
-    "@fortawesome/fontawesome-svg-core": "^6.7.2",
-    "@fortawesome/free-brands-svg-icons": "^6.7.2",
-    "@fortawesome/free-regular-svg-icons": "^6.7.2",
-    "@fortawesome/free-solid-svg-icons": "^6.7.2",
-    "@fortawesome/react-fontawesome": "^0.2.2",
-    "@popperjs/core": "^2.11.8",
-    "bootstrap": "^5.3.3",
-    "bootstrap-icons": "^1.11.3",
-    "react": "^19.1.0",
-    "react-bootstrap": "^2.10.2",
-    "react-bootstrap-typeahead": "^6.3.2",
-    "react-dom": "^19.1.0",
-    "react-intl": "^7.1.11",
-    "react-router-dom": "^7.6.3"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.26.10",
-    "@babel/preset-env": "^7.26.9",
-    "@babel/preset-react": "^7.26.3",
-    "@babel/preset-typescript": "^7.27.0",
-    "@playwright/experimental-ct-react": "^1.52.0",
-    "@playwright/test": "^1.51.1",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
-    "@types/babel__core": "^7.20.5",
-    "@types/babel__preset-env": "^7.10.0",
-    "@types/bootstrap": "^5.2.10",
-    "@types/css-modules": "^1.0.5",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.7",
-    "@types/react": "^19.0.12",
-    "@types/react-dom": "^19.0.4",
-    "@vitejs/plugin-react": "^4.3.4",
-    "babel-jest": "^30.0.2",
-    "core-js": "^3.41.0",
-    "dotenv": "^17.0.0",
-    "jest": "^30.0.3",
-    "jest-environment-jsdom": "^30.0.2",
-    "jest-transform-css": "^6.0.2",
-    "playwright": "^1.51.1",
-    "postcss": "^8.5.3",
-    "ts-jest": "^29.3.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.2",
-    "vite": "^7.0.0"
-  }
 }

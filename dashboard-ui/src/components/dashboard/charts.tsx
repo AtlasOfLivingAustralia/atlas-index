@@ -29,6 +29,10 @@ ChartJS.register(
     LogarithmicScale
 );
 
+if (typeof window !== 'undefined') {
+    (window as any).__ChartJS = ChartJS;
+}
+
 const customColors = [
     '#003A70',
     '#F26649',

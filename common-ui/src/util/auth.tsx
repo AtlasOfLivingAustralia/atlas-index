@@ -14,7 +14,7 @@
  * @param setUserInfo
  * @param refreshTimer
  */
-export function checkLoginState(setUserInfo: (info: any) => void, refreshTimer: { current: NodeJS.Timeout | null }, apiUrl: string) {
+export function checkLoginState(setUserInfo: (info: any) => void, refreshTimer: { current: ReturnType<typeof setTimeout> | null }, apiUrl: string) {
     // Clear previous timer before doing anything because it could fire while we are fetching
     if (refreshTimer.current) clearTimeout(refreshTimer.current);
 

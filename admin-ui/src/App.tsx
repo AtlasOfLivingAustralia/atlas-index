@@ -26,15 +26,13 @@ import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import Biocache from "./views/Biocache.tsx";
 import DataQualityAdmin from './views/DataQualityAdmin.tsx';
-import '@fontsource/roboto';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
 import Doi from "./views/Doi.tsx";
 import Home from './views/Home.tsx';
 import Tasks from "./views/Tasks.tsx";
 import BannerMessages from "./views/BannerMessages.tsx";
 import AuditHistory from "./views/AuditHistory.tsx";
 import ScaffoldAdmin from "./views/ScaffoldAdmin.tsx";
+import SwaggerView from "./views/SwaggerView.tsx";
 
 export default function App() {
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
@@ -46,7 +44,7 @@ export default function App() {
     ]);
 
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-    const refreshTimer = useRef<NodeJS.Timeout | null>(null);
+    const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Common UI
     useEffect(() => {
@@ -107,10 +105,12 @@ export default function App() {
                                element={<Biocache setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                         <Route path="/banners"
                                element={<BannerMessages setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
-                        <Route path="/audit"
-                               element={<AuditHistory setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                         <Route path="/scaffold"
                                element={<ScaffoldAdmin setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/audit"
+                               element={<AuditHistory setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
+                        <Route path="/swagger"
+                               element={<SwaggerView setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}/>}/>
                     </Routes>
                 ) : (
                     <div style={{display: 'flex', height: '100vh', justifyContent: 'center', marginTop: '60px'}}>

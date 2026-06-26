@@ -16,7 +16,7 @@ function SensitiveDataServicePage({ setBreadcrumbs }: { setBreadcrumbs: (crumbs:
   useEffect(() => {
     setBreadcrumbs([
       { title: 'Home', href: import.meta.env.VITE_HOME_URL },
-      { title: 'Sensitive Data Service', href: import.meta.env.VITE_EXPLORE_URL }
+      { title: 'Sensitive Data Service', href: '' }
     ]);
   }, []);
 

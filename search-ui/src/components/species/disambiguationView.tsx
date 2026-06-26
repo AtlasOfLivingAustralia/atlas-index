@@ -108,7 +108,7 @@ function DisambiguationView({result, isMobile}: DisambiguationViewProps) {
         const q = [...namesToSearch].map(name => `exact_text:"${name.replace(/"/g, '\\"')}"`).join(' OR ');
 
         const fl = 'guid,nameFormatted,name,rank,rk_kingdom,rk_phylum,rk_class,rk_order,rk_family,rk_genus,rk_species,occurrenceCount,taxonomicStatus,scientificName,commonName,additionalNames_m_s';
-        const url = import.meta.env.VITE_APP_BIE_URL
+        const url = import.meta.env.VITE_APP_API_URL
             + '/v2/search?fq=idxtype:TAXON&fq=-acceptedConceptID:*&pageSize=50&fl=' + fl
             + '&q=' + encodeURIComponent(q) + '&fq=-guid:"' + encodeURIComponent(result.guid) + '"';
 

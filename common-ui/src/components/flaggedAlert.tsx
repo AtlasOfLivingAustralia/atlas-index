@@ -15,7 +15,7 @@ interface InfoBoxProps {
 
 const InfoBox = ({content, style, className}: InfoBoxProps) => (
     <div className={"d-inline-flex align-items-start " + (className ? className : '')}
-         style={{backgroundColor: "#FFC557", padding: "10px", borderRadius: "5px", ...style}}>
+         style={{backgroundColor: "#FFC557", padding: "10px", borderRadius: "5px", ...(style as React.CSSProperties)}}>
         <FlagIcon/>
         <div style={{marginLeft: "10px", marginRight: "10px"}}>
             {content}

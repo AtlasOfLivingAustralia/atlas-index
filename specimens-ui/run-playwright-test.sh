@@ -22,23 +22,47 @@ COLLECTIONS_SRC="./src/api/sources/collections.json"
 COLLECTIONS_BACKUP="./src/api/sources/collections.json.bak"
 COLLECTIONS_PLAYWRIGHT="./tests/resources/collections.json"
 
+ENV_LOCAL=".env.local"
+ENV_LOCAL_BACKUP=".env.local.bak"
+
+ENV_LOCAL=".env.local"
+ENV_LOCAL_BACKUP=".env.local.bak"
+ENV_PRODUCTION=".env.production"
+ENV_PRODUCTION_BACKUP=".env.production.bak"
+
 echo "Swapping in playwright-specific collections.json for build..."
 cp "$COLLECTIONS_SRC" "$COLLECTIONS_BACKUP"
 cp "$COLLECTIONS_PLAYWRIGHT" "$COLLECTIONS_SRC"
 
-# Ensure the original collections.json is restored even if the build or tests fail
-restore_collections() {
+# Temporarily hide .env.local and .env.production so they don't bleed into the playwright build
+if [ -f "$ENV_LOCAL" ]; then
+  echo "Hiding .env.local for playwright build..."
+  mv "$ENV_LOCAL" "$ENV_LOCAL_BACKUP"
+fi
+if [ -f "$ENV_PRODUCTION" ]; then
+  echo "Hiding .env.production for playwright build..."
+  mv "$ENV_PRODUCTION" "$ENV_PRODUCTION_BACKUP"
+fi
+
+# Ensure the original files are restored even if the build or tests fail
+restore_files() {
   if [ -f "$COLLECTIONS_BACKUP" ]; then
     mv "$COLLECTIONS_BACKUP" "$COLLECTIONS_SRC"
   fi
+  if [ -f "$ENV_LOCAL_BACKUP" ]; then
+    mv "$ENV_LOCAL_BACKUP" "$ENV_LOCAL"
+  fi
+  if [ -f "$ENV_PRODUCTION_BACKUP" ]; then
+    mv "$ENV_PRODUCTION_BACKUP" "$ENV_PRODUCTION"
+  fi
 }
-trap restore_collections EXIT
+trap restore_files EXIT
 
 echo "Building the project..."
 yarn run build:playwright
 
-echo "Restoring original collections.json..."
-restore_collections
+echo "Restoring env files..."
+restore_files
 
 # Start the app server in the background
 echo "Starting the app server..."
@@ -57,8 +81,8 @@ cleanup() {
   # Teardown servers
   echo "Stopping servers..."
   kill $APP_SERVER_PID $STATIC_SERVER_PID
-  # Restore original collections.json (also handles any early exit before explicit restore)
-  restore_collections
+  # Restore original files (also handles any early exit before explicit restore)
+  restore_files
 }
 trap cleanup EXIT
 

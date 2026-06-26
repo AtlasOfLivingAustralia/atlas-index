@@ -119,10 +119,9 @@ public class LeaderQueue {
      */
     public Map<String, String> sendMessage(TaskType message, Object payload, boolean isRpc) throws IOException {
         if (StringUtils.isNotEmpty(rabbitMqHost) && !leadershipStatus.isLeader()) {
-            Map<String, Object> map = Map.of(
-                    "payload", payload,
-                    "message", message.name()
-            );
+            Map<String, Object> map = new java.util.LinkedHashMap<>();
+            map.put("message", message.name());
+            map.put("payload", payload); // may be null; LinkedHashMap permits null values
 
             byte[] bytes = smileObjectMapper.writeValueAsBytes(map);
 

@@ -96,11 +96,8 @@ function ResourcesView({result, isMobile}: MapViewProps) {
             setLoading(false);
         });
 
-        // TODO: This is ugly. Make it nice.
-        const env = import.meta.env.VITE_MODE; // 'development' or 'production'
-        const importResources = env === 'development' ? import('../../config/onlineResources.test.json') : import('../../config/onlineResources.prod.json');
-
-        importResources.then((module) => setOnlineResources(module.default)).catch((error) => console.error('Error loading resources:', error));
+        import('../../config/onlineResources.json')
+            .then((module) => setOnlineResources(module.default)).catch((error) => console.error('Error loading resources:', error));
     }, [result]);
 
     function isResourceVisible(resource: Resource): boolean {

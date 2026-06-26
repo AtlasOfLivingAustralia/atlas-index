@@ -19,6 +19,7 @@ function Menu() {
             <NavLink to="/banners" className="menu-link">Banner Messages</NavLink>
             <NavLink to="/scaffold" className="menu-link">Reference Tables</NavLink>
             <NavLink to="/audit" className="menu-link">Audit History</NavLink>
+            <NavLink to="/swagger" className="menu-link">Swagger</NavLink>
 
         </div>
     );

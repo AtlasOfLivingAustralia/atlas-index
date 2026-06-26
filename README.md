@@ -9,28 +9,34 @@ Work in progress aggregation of services and UI for the Atlas of Living Australi
 
 It is a work in progress and subject to change.
 
-| Component                                | Replaces                                                                        | Progress | 
-|------------------------------------------|---------------------------------------------------------------------------------|----------|
-| [search-service](search-service)         | https://github.com/AtlasOfLivingAustralia/bie-index (service)                   | 90%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/dashboard (service)                   | 100%     |
-|                                          | https://github.com/AtlasOfLivingAustralia/fieldguide (service)                  | 100%     |
-|                                          | https://github.com/AtlasOfLivingAustralia/data-quality-filter-service (service) | 95%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/doi-service (service)                 | 100%     |
-|                                          | https://github.com/AtlasOfLivingAustralia/logger-service (service)              | 80%      |
-| [search-ui](search-ui)                   | https://github.com/AtlasOfLivingAustralia/ala-bie-hub (UI)                      | 90%      |         
-| [dashboard-ui](dashboard-ui)             | https://github.com/AtlasOfLivingAustralia/dashboard (UI)                        | 100%     |
-| [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions (UI)                          | 100%     |
-| [admin-ui](admin-ui)                     | Admin UI                                                                        | 100%     |
-| [doi-ui](doi-ui)                         | https://github.com/AtlasOfLivingAustralia/doi-service (UI)                      | 100%     |
-| [occurrence-ui](occurrence-ui)           | https://github.com/AtlasOfLivingAustralia/ala-hub (UI)                          | 50%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/biocache-hub (UI)                     | 50%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/downloads-plugin (UI)                 | 80%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/ala-charts-plugin (UI)                | 80%      |
-| [taxon-descriptions](taxon-descriptions) | New data preparation tool                                                       | 100%     |
-| [names-extract](names-extract)           | New data preparation tool                                                       | 100%     |
-| [search-test](search-test)               | local development tool                                                          | 100%     |
-| [specimens-ui](specimens-ui)             | https://github.com/AtlasOfLivingAustralia/specimenbrowser (UI)                  | 100%     |
-| [static-server](static-server)           | local development tool                                                          | 100%     |
+| Component                                | Replaces                                                                                                              | Progress | 
+|------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|----------|
+| [admin-ui](admin-ui)                     | Admin UI                                                                                                              | 100%     |
+| [dashboard-ui](dashboard-ui)             | https://github.com/AtlasOfLivingAustralia/dashboard (UI)                                                              | 100%     |
+| [doi-ui](doi-ui)                         | https://github.com/AtlasOfLivingAustralia/doi-service (UI)                                                            | 100%     |
+| [names-extract](names-extract)           | New data preparation tool                                                                                             | 100%     |
+| [occurrence-ui](occurrence-ui)           | https://github.com/AtlasOfLivingAustralia/ala-hub (UI)                                                                | 50%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/biocache-hub (UI)                                                           | 50%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/downloads-plugin (UI)                                                       | 80%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/ala-charts-plugin (UI)                                                      | 80%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/avh-hub (UI)                                                                | 80%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/ozcam-hub (UI)                                                              | 80%      |
+| [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions (UI)                                                                | 100%     |
+| [sds-ui](sds-ui)                         | https://github.com/AtlasOfLivingAustralia/ala-sensitive-data-service/tree/master/ala-sds-static-home (UI) | 90%      |
+| [search-service](search-service)         | https://github.com/AtlasOfLivingAustralia/bie-index (service)                                                         | 90%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/dashboard (service)                                                         | 100%     |
+|                                          | https://github.com/AtlasOfLivingAustralia/fieldguide (service)                                                        | 100%     |
+|                                          | https://github.com/AtlasOfLivingAustralia/data-quality-filter-service (service)                                       | 95%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/doi-service (service)                                                       | 100%     |
+|                                          | https://github.com/AtlasOfLivingAustralia/logger-service (service)                                                    | 80%      |
+| [search-test](search-test)               | local development tool                                                                                                | 100%     |
+| [search-ui](search-ui)                   | https://github.com/AtlasOfLivingAustralia/ala-bie-hub (UI)                                                            | 90%      |
+| [specimens-ui](specimens-ui)             | https://github.com/AtlasOfLivingAustralia/specimenbrowser (UI)                                                        | 100%     |
+| [static-server](static-server)           | local development tool                                                                                                | 100%     |
+| [taxon-bhl](taxon-bhl)                   | New data preparation tool                                                                                             | 100%     |
+| [taxon-descriptions](taxon-descriptions) | New data preparation tool                                                                                             | 100%     |
+| [taxon-map](taxon-map)                   | New data preparation tool                                                                                             | 100%     |
+| [taxon-traits](taxon-traits)             | New data preparation tool                                                                                             | 100%     |
 
 ## Components
 
@@ -56,12 +62,19 @@ It is a work in progress and subject to change.
 
 To prepare the search-service and other UI requirements for local development, follow these steps:
 
-1. [Generate supplemental data for search-service](names-extract/README.md) (or fetch the ALA internal bucket)
-2. (Optional) [Harvest taxon descriptions for search-service and search-ui](taxon-descriptions/README.md) (or fetch from
+1. Prepare yarn workspace by running `yarn install` in this directory.
+2. [Generate supplemental data for search-service](names-extract/README.md) (or fetch the ALA internal bucket)
+3. (Optional) [Harvest taxon descriptions for search-service and search-ui](taxon-descriptions/README.md) (or fetch from
    the ALA internal bucket)
-3. [Start search-service after setting up Elasticsearch, PostgreSQL, RabbitMQ and configuring authentication](search-service/README.md)
-4. [Serve static files for UI pages using static-server](static-server/README.md)
-5. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
+4. (Optional) [Harvest taxon bhl information for search-service and search-ui](taxon-bhl/README.md) (or fetch from
+      the ALA internal bucket)
+5. (Optional) [Harvest taxon map information for search-service and search-ui](taxon-map/README.md) (or fetch from
+      the ALA internal bucket)
+6. (Optional) [Harvest taxon traits information for search-service and search-ui](taxon-traits/README.md) (or fetch from
+      the ALA internal bucket)
+7. [Start search-service after setting up Elasticsearch, PostgreSQL, RabbitMQ and configuring authentication](search-service/README.md)
+8. [Serve static files for UI pages using static-server](static-server/README.md)
+9. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
 
 The user UI applications can now be configured and started.
 

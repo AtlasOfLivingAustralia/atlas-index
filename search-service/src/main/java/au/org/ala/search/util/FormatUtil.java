@@ -113,11 +113,12 @@ public class FormatUtil {
         doc.select("script, style").remove();
 
         // Handle unordered lists
+        final String LIST_ITEM_SEP = "[[LIST_ITEM_SEP]]";
         for (Element ul : doc.select("ul")) {
             List<Element> numberedList = new ArrayList<>();
             for (Element li : ul.select("li")) {
                 if (!numberedList.isEmpty()) {
-                    numberedList.add(new Element("br"));
+                    numberedList.add(new Element("span").text(LIST_ITEM_SEP));
                 }
                 numberedList.add(new Element("span").text("- " + li.text()));
             }
@@ -130,7 +131,7 @@ public class FormatUtil {
             int count = 1;
             for (Element li : ol.select("li")) {
                 if (!numberedList.isEmpty()) {
-                    numberedList.add(new Element("br"));
+                    numberedList.add(new Element("span").text(LIST_ITEM_SEP));
                 }
                 numberedList.add(new Element("span").text(count + ". " + li.text()));
                 count++;
@@ -152,6 +153,7 @@ public class FormatUtil {
 
         return doc.body().html()
                 .replaceAll("&nbsp;", " ")
+                .replace("[[LIST_ITEM_SEP]]", "\n")
                 .replaceAll("<br\\s*/?>", "\n")
                 .replaceAll("</p>", "\n\n")
                 .replaceAll("<[^>]+>", "")

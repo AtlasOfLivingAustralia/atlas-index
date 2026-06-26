@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Banner, Breadcrumb, Breadcrumbs, Footer, Header, injectCommonInfo, NotFound,} from '@ala/common-ui';
-import React, {useEffect, useState} from 'react';
+import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
+import React, {useEffect, useRef, useState} from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
 import Search from './views/Search.tsx';
@@ -13,8 +13,6 @@ import Species from './views/Species';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-
-const isLoggedInInitial = document.cookie.includes(import.meta.env.VITE_AUTH_COOKIE);
 
 const MOBILE_BREAKPOINT = 768; // Define the breakpoint for mobile view
 
@@ -27,13 +25,33 @@ const SearchRedirect: React.FC = () => {
 };
 
 const App: React.FC = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(isLoggedInInitial);
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
+    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+    const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([
         {title: 'Home', href: import.meta.env.VITE_HOME_URL},
         {title: 'Search', href: '/'},
     ]);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
+
+    useEffect(() => {
+        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+
+        checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
 
     useEffect(() => {
         const handleResize = () =>
@@ -42,73 +60,44 @@ const App: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    useEffect(() => {
-        injectCommonInfo(
-            buildInfo,
-            import.meta.env.VITE_ENV,
-            import.meta.env.VITE_COMMON_CSS,
-            setCssLoaded
-        );
-    }, []);
-
-    // when receiving a login URL, handle the login by setting the auth cookie only
-    function handleLogin() {
-        if (import.meta.env.MODE === 'production') {
-            // do login that is suitable for an application that has no authentication requirement (redirect another app)
-            window.location.href = import.meta.env.VITE_LOGIN_URL;
-        } else {
-            // simulate login by setting the cookie and state
-            document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; expires=Thu, 01 Jul 2025 00:00:00 UTC; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
-            setIsLoggedIn(true);
-        }
+    function handleLoginWrapper() {
+        handleLogin(import.meta.env.VITE_APP_API_URL);
     }
 
-    function handleLogout() {
-        // remove cookie
-        document.cookie = `${import.meta.env.VITE_AUTH_COOKIE}loggedIn; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${import.meta.env.VITE_AUTH_COOKIE_DOMAIN}`;
-
-        setIsLoggedIn(false);
+    function handleLogoutWrapper() {
+        handleLogout(import.meta.env.VITE_APP_API_URL, import.meta.env.VITE_APP_BASE_URL);
     }
 
     if (!cssLoaded) {
         return <></>;
     }
 
-    return <>
-        <Header
-            isLoggedIn={isLoggedIn}
-            logoutFn={handleLogout}
-            loginFn={handleLogin}
-            headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML}
-            searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
-            jsUrl={import.meta.env.VITE_COMMON_JS}
-            containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}
-        />
+    return <main>
+        <UserContext.Provider value={{ userInfo, setUserInfo }}>
+            <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper}
+                    headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
+                    jsUrl={import.meta.env.VITE_COMMON_JS} containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}/>
 
-        <Breadcrumbs breadcrumbs={breadcrumbs}/>
+            <Breadcrumbs breadcrumbs={breadcrumbs}/>
 
-        <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE}/>
+            <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE}/>
 
-        <Routes>
-            <Route path="/species/*"
-                   element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                     isMobile={isMobile}/>}/>
-            <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
-                                             isMobile={isMobile}/>}/>
-            <Route path="*" element={<NotFound/>}/>
+            <Routes>
+                <Route path="/species/*"
+                       element={<Species setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                         isMobile={isMobile}/>}/>
+                <Route path="/" element={<Search setBreadcrumbs={(crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs)}
+                                                 isMobile={isMobile}/>}/>
+                <Route path="*" element={<NotFound/>}/>
 
-            {/* Deprecated legacy routes */}
-            <Route path="/search" element={<SearchRedirect />} />
-        </Routes>
-        <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
+                {/* Deprecated legacy routes */}
+                <Route path="/search" element={<SearchRedirect />} />
+            </Routes>
+            <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
 
-        <Footer
-            isLoggedIn={isLoggedIn}
-            logoutFn={handleLogout}
-            loginFn={handleLogin}
-            footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML}
-        />
-    </>;
+            <Footer isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper} footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML} />
+        </UserContext.Provider>
+    </main>;
 };
 
 export default App;

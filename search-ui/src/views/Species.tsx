@@ -64,7 +64,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
 
         setDataFetched(false);
         setResult({});
-        fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/species', {
+        fetch(import.meta.env.VITE_APP_API_URL + '/v2/species', {
             method: 'POST',
             body: JSON.stringify(request),
             headers: {

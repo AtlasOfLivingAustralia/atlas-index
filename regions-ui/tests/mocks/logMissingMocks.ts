@@ -12,7 +12,8 @@ const knownExternalUrlPrefixes = [
     'https://s3.amazonaws.com/assets.freshdesk.com/widget/freshwidget.js',
     'https://www.ala.org.au/app/uploads/',
     'https://www.ala.org.au/app/themes/',
-    'https://fonts.googleapis.com'
+    'https://fonts.googleapis.com',
+    'http://localhost:8081/session'
 ]
 
 // Log any missing mocks. Apply before other mocks to prevent it from intercepting other implemented mocks.

@@ -30,34 +30,10 @@ yarn test
 yarn run build
 ```
 
-## Environment variables
+## .env.local configuration
 
-The following environment variables are used:
+An example configuration file is provided at `./env.local.example` for local development. 
 
-```properties
-# general config
-VITE_HOME_URL=https://ala.org.au
-VITE_LOGIN_URL=https://userdetails.ala.org.au/myprofile
-VITE_LOGO_URL=https://www.ala.org.au/app/uploads/2019/01/logo.png
-VITE_AUTH_COOKIE=ALA-Auth-Test-Local=
-VITE_AUTH_COOKIE_DOMAIN=localhost
-VITE_ENV=local
-
-# other services
-VITE_APP_BIOCACHE_URL=https://biocache-ws.ala.org.au/ws
-VITE_APP_BASE_URL=http://localhost:5173
-VITE_APP_API_URL=http://localhost:8081
-
-# minimal header and footer urls
-VITE_CONTACT_URL=https://www.ala.org.au/contact-us/
-VITE_CREATE_ACCOUNT_URL=https://userdetails.ala.org.au/registration/createAccount
-# common header, footer, css and js
-VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/banner.mustache
-VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.mustache
-VITE_COMMON_CSS=http://localhost:8082/static/common/ala-combined.css
-VITE_COMMON_JS=http://localhost:8082/static/common/ala-combined.js
-VITE_COMMON_CONTAINER_CLASS=container-fluid
-VITE_SEARCH_URL_PREFIX=https://bie.test.ala.org.au
-VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
-VITE_BANNER_SCOPE=doi
-```
+Before use:
+- Run atlas-index/search-service on 8081
+- Enter the dependency URLs where required, e.g. `VITE_SEARCH_URL_PREFIX=<bie-url>`

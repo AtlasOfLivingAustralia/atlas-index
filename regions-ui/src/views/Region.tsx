@@ -16,7 +16,8 @@ import { Container, OverlayTrigger, Tab, Tabs, Tooltip } from 'react-bootstrap';
 import { faSpinner, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { Pie } from 'react-chartjs-2';
 import { Chart, ArcElement, BarElement, Legend, Tooltip as ChartTooltip } from 'chart.js';
-import ReactLeafletGoogleLayer from 'react-leaflet-google-layer';
+import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
+const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
 
 Chart.register(ArcElement, BarElement, Legend, ChartTooltip);
 
@@ -123,7 +124,7 @@ function Region({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
     const [_groupMinYear, setGroupMinYear] = useState<number>(0); // min decade for current group selection, used via groupMinYearRef by play button
     const groupMinYearRef = useRef(0); // ref so playerPlay closure always reads current value
     const [playerState, setPlayerState] = useState<string>('stopped'); // 'stopped', 'playing', 'paused'
-    const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+    const [timeoutId, setTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
     const [isFetchingSpeciesList, setIsFetchingSpeciesList] = useState(false);
     const [selectedSpecies, setSelectedSpecies] = useHashState<string | null>('species', null);
     const [group, setGroup] = useHashState<string>('group', ALL_SPECIES);

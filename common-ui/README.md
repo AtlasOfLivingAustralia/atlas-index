@@ -7,18 +7,7 @@ should include this directory in its build process to ensure that the common com
 
 Setup the environment so that changes to the `common-ui` package are reflected in the `-ui` projects while using `yarn run dev`, etc.
 
-Set the yarn link. Use the `./link_common_ui.sh` script to link the `common-ui` package all `-ui` projects.
-
-Or if you prefer to do it manually, follow these steps:
-1. In the `common-ui` directory, run:
-```bash
-yarn install
-yarn link
-```
-2. In your `-ui` project directory, run:
-```bash
-yarn link @ala/common-ui
-```
+Run `yarn install` in the root directory of atlas-index. This sets up the `common-ui` package and links it to the `-ui` projects using yarn 4.x workspace.
 
 ## Testing
 

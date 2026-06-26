@@ -49,7 +49,7 @@ function DataQualityCategoryInfoModal({
     }, [category]);
 
     function updateIndexedFields() {
-        fetch(import.meta.env.VITE_APP_INDEX_FIELDS_URL, {}).then(response => response.json()).then(json => {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/index/fields`, {}).then(response => response.json()).then(json => {
             let map : IndexFields = {};
             for (let field of json) {
                 map[field.name] = field;

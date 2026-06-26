@@ -49,7 +49,7 @@ function Search({setBreadcrumbs, isMobile}: {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_APP_BIE_URL}/v1/bie/search/auto?limit=20&q=${encodeURIComponent(searchText)}`
+                `${import.meta.env.VITE_APP_API_URL}/v1/bie/search/auto?limit=20&q=${encodeURIComponent(searchText)}`
             );
             const data = await response.json();
 

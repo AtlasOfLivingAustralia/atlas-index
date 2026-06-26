@@ -27,7 +27,7 @@ function ClassificationView({result, isMobile}: ViewProps) {
         if (result?.guid) {
             const pageSize = 10000; // the maximum page size is 10000
             const fl = 'rank,nameFormatted,guid';
-            fetch(import.meta.env.VITE_APP_BIE_URL + '/v2/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:"' + encodeURIComponent(result.guid) + '"&fl=' + fl + '&pageSize=' + pageSize)
+            fetch(import.meta.env.VITE_APP_API_URL + '/v2/search?q=idxtype:TAXON&fq=-acceptedConceptID:*&fq=parentGuid:"' + encodeURIComponent(result.guid) + '"&fl=' + fl + '&pageSize=' + pageSize)
                 .then((response) => response.json())
                 .then((data) => {
                     if (data?.searchResults) {
