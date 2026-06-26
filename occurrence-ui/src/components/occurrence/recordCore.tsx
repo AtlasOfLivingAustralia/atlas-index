@@ -405,7 +405,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "scientificName", fieldName: "Scientific name",
             text: data?.processed?.classification?.scientificName || data?.raw?.classification?.scientificName,
             url: data?.processed?.classification?.scientificName ?
-                `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.taxonConceptID}`
+                `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.taxonConceptID}`
                 : undefined,
             original: (data?.processed?.classification?.scientificName && data?.raw?.classification?.scientificName && data?.raw?.classification?.scientificName != data?.processed?.classification?.scientificName) ?
                 intl.formatMessage({
@@ -418,7 +418,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "originalNameUsage", fieldName: "Original name",
             text: data?.processed?.classification?.originalNameUsage || data?.raw?.classification?.originalNameUsage,
             url: data?.processed?.classification?.originalNameUsageID ?
-                `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.originalNameUsageID}`
+                `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.originalNameUsageID}`
                 : undefined,
             original: (data?.processed?.classification?.originalNameUsage && data?.raw?.classification?.originalNameUsage && data?.raw?.classification?.originalNameUsage?.toLowerCase() != data?.processed?.classification?.originalNameUsage?.toLowerCase()) ?
                 intl.formatMessage({
@@ -452,7 +452,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         taxonomyTable.push({
             fieldCode: "kingdom", fieldName: "Kingdom",
             text: data?.processed?.classification?.kingdom || data?.raw?.classification?.kingdom,
-            url: data?.processed?.classification?.kingdomID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.kingdomID}` : undefined,
+            url: data?.processed?.classification?.kingdomID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.kingdomID}` : undefined,
             original: (data?.processed?.classification?.kingdom && data?.raw?.classification?.kingdom && data?.raw?.classification?.kingdom?.toLowerCase() != data?.processed?.classification?.kingdom?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -463,7 +463,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         taxonomyTable.push({
             fieldCode: "phylum", fieldName: "Phylum",
             text: data?.processed?.classification?.phylum || data?.raw?.classification?.phylum,
-            url: data?.processed?.classification?.phylumID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.phylumID}` : undefined,
+            url: data?.processed?.classification?.phylumID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.phylumID}` : undefined,
             original: (data?.processed?.classification?.phylum && data?.raw?.classification?.phylum && data?.raw?.classification?.phylum?.toLowerCase() != data?.processed?.classification?.phylum?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -474,7 +474,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         taxonomyTable.push({
             fieldCode: "classs", fieldName: "Class",
             text: data?.processed?.classification?.classs || data?.raw?.classification?.classs,
-            url: data?.processed?.classification?.classID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.classID}` : undefined,
+            url: data?.processed?.classification?.classID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.classID}` : undefined,
             original: (data?.processed?.classification?.classs && data?.raw?.classification?.classs && data?.raw?.classification?.classs?.toLowerCase() != data?.processed?.classification?.classs?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -485,7 +485,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         taxonomyTable.push({
             fieldCode: "order", fieldName: "Order",
             text: data?.processed?.classification?.order || data?.raw?.classification?.order,
-            url: data?.processed?.classification?.orderID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.orderID}` : undefined,
+            url: data?.processed?.classification?.orderID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.orderID}` : undefined,
             original: (data?.processed?.classification?.order && data?.raw?.classification?.order && data?.raw?.classification?.order?.toLowerCase() != data?.processed?.classification?.order?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -496,7 +496,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         taxonomyTable.push({
             fieldCode: "family", fieldName: "Family",
             text: data?.processed?.classification?.family || data?.raw?.classification?.family,
-            url: data?.processed?.classification?.familyID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.familyID}` : undefined,
+            url: data?.processed?.classification?.familyID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.familyID}` : undefined,
             original: (data?.processed?.classification?.family && data?.raw?.classification?.family && data?.raw?.classification?.family?.toLowerCase() != data?.processed?.classification?.family?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -508,7 +508,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             fieldCode: "genus", fieldName: "Genus",
             style: {fontStyle: 'italic'},
             text: data?.processed?.classification?.genus || data?.raw?.classification?.genus,
-            url: data?.processed?.classification?.genusID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.genusID}` : undefined,
+            url: data?.processed?.classification?.genusID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.genusID}` : undefined,
             original: (data?.processed?.classification?.genus && data?.raw?.classification?.genus && data?.raw?.classification?.genus?.toLowerCase() != data?.processed?.classification?.genus?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -522,7 +522,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             text: data?.processed?.classification?.species || data?.raw?.classification?.species ||
                 (data?.raw?.classification?.specificEpithet && data?.raw?.classification?.genus ?
                     `${data?.raw?.classification?.genus} ${data?.raw?.classification?.specificEpithet}` : undefined),
-            url: data?.processed?.classification?.speciesID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.processed?.classification?.speciesID}` : undefined,
+            url: data?.processed?.classification?.speciesID ? `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.processed?.classification?.speciesID}` : undefined,
             original: (data?.processed?.classification?.species && data?.raw?.classification?.species && data?.raw?.classification?.species?.toLowerCase() != data?.processed?.classification?.species?.toLowerCase()) ?
                 intl.formatMessage({
                     id: 'recordcore.span03',
@@ -535,7 +535,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
             taxonomyTable.push({
                 fieldCode: "associatedTaxa", fieldName: "Associated species",
                 text: data?.raw?.occurrence?.associatedTaxa,
-                url: `${import.meta.env.VITE_SPECIES_URL_PREFIX}/${data?.raw?.occurrence?.associatedTaxa.replace('  ', ' ')}`
+                url: `${import.meta.env.VITE_SPECIES_URL_PREFIX}${data?.raw?.occurrence?.associatedTaxa.replace('  ', ' ')}`
             });
         }
 

@@ -25,11 +25,14 @@ COLLECTIONS_PLAYWRIGHT="./tests/resources/collections.json"
 ENV_LOCAL=".env.local"
 ENV_LOCAL_BACKUP=".env.local.bak"
 
-echo "Swapping in playwright-specific collections.json for build..."
 ENV_LOCAL=".env.local"
 ENV_LOCAL_BACKUP=".env.local.bak"
 ENV_PRODUCTION=".env.production"
 ENV_PRODUCTION_BACKUP=".env.production.bak"
+
+echo "Swapping in playwright-specific collections.json for build..."
+cp "$COLLECTIONS_SRC" "$COLLECTIONS_BACKUP"
+cp "$COLLECTIONS_PLAYWRIGHT" "$COLLECTIONS_SRC"
 
 # Temporarily hide .env.local and .env.production so they don't bleed into the playwright build
 if [ -f "$ENV_LOCAL" ]; then

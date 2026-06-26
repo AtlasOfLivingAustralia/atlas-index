@@ -43,7 +43,7 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
     const biocacheUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
     const bieSpeciesUrl = import.meta.env.VITE_SPECIES_URL_PREFIX;
     const contextPath = import.meta.env.VITE_APP_BASE_URL;
-    const speciesPageUri = `${bieSpeciesUrl}/${lsid}`;
+    const speciesPageUri = `${bieSpeciesUrl}${lsid}`;
 
     const intl = useIntl();
 
