@@ -22,7 +22,7 @@ It is a work in progress and subject to change.
 |                                          | https://github.com/AtlasOfLivingAustralia/avh-hub (UI)                                                                | 80%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/ozcam-hub (UI)                                                              | 80%      |
 | [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions (UI)                                                                | 100%     |
-| [sds-ui](sds-ui)                         | https://github.com/AtlasOfLivingAustralia/ala-sensitive-data-service/tree/master/ala-sds-static-home (UI) | 90%      |
+| [sds-ui](sds-ui)                         | https://github.com/AtlasOfLivingAustralia/ala-sensitive-data-service/tree/master/ala-sds-static-home (UI) | 100%     |
 | [search-service](search-service)         | https://github.com/AtlasOfLivingAustralia/bie-index (service)                                                         | 90%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/dashboard (service)                                                         | 100%     |
 |                                          | https://github.com/AtlasOfLivingAustralia/fieldguide (service)                                                        | 100%     |
@@ -62,7 +62,7 @@ It is a work in progress and subject to change.
 
 To prepare the search-service and other UI requirements for local development, follow these steps:
 
-1. Prepare yarn workspace by running `yarn install` in this directory.
+1. Prepare yarn workspace by running `yarn install` in this directory. Use --no-immutable if installing dependencies fails due to yarn workspaces being immutable.
 2. [Generate supplemental data for search-service](names-extract/README.md) (or fetch the ALA internal bucket)
 3. (Optional) [Harvest taxon descriptions for search-service and search-ui](taxon-descriptions/README.md) (or fetch from
    the ALA internal bucket)
