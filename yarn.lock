@@ -5522,7 +5522,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:*, dompurify@npm:^3.4.0, dompurify@npm:^3.4.8":
+"dompurify@npm:*, dompurify@npm:^3.4.0":
   version: 3.4.8
   resolution: "dompurify@npm:3.4.8"
   dependencies:
@@ -5531,6 +5531,18 @@ __metadata:
     "@types/trusted-types":
       optional: true
   checksum: 10c0/8f56a53d0ac80c76068772c9b72721f31fad68cac64a528e2420699ce2bd26b3516e29a5a7bd2205c2732d7114b9859998bf922d20cdb9361c4a05dab8352570
+  languageName: node
+  linkType: hard
+
+"dompurify@npm:^3.4.12":
+  version: 3.4.12
+  resolution: "dompurify@npm:3.4.12"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/127a13817353d4e20e75a991a9022a04c3af12af7479f68e2b8bee6dbc7330a96edfb8f4ebff96f4f0f24cd43e8dbba46214131f510c3aa87a843bd8b610d0ab
   languageName: node
   linkType: hard
 
@@ -8176,7 +8188,7 @@ __metadata:
     bootstrap-icons: "npm:^1.13.1"
     chart.js: "npm:^4.5.1"
     core-js: "npm:^3.43.0"
-    dompurify: "npm:^3.4.8"
+    dompurify: "npm:^3.4.12"
     jest: "npm:^30.0.3"
     jest-environment-jsdom: "npm:^30.0.2"
     jest-transform-css: "npm:^6.0.3"
@@ -9716,7 +9728,7 @@ __metadata:
     babel-jest: "npm:^30.0.2"
     bootstrap: "npm:^5.3.7"
     bootstrap-icons: "npm:^1.13.1"
-    dompurify: "npm:^3.4.8"
+    dompurify: "npm:^3.4.12"
     eslint: "npm:^10.4.1"
     eslint-plugin-react-hooks: "npm:^7.1.1"
     eslint-plugin-react-refresh: "npm:^0.5.2"
