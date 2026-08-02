@@ -48,7 +48,7 @@
         "jest": "^30.0.3",
         "jest-environment-jsdom": "^30.0.2",
         "jest-transform-css": "^6.0.3",
-        "postcss": "^8.5.6",
+        "postcss": "^8.5.18",
         "prettier": "^3.8.4",
         "ts-jest": "^29.4.0",
         "ts-node": "^10.9.2",
