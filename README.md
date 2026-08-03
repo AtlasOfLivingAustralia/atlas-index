@@ -1,6 +1,7 @@
-# Atlas search
+# Atlas search 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/AtlasOfLivingAustralia/atlas-index)
 
-Work in progress aggregation of services and UI for the Atlas of Living Australia.
+Work in progress aggregation of services and UI for the Atlas of Living Australia. 
 
 - Using Spring Boot, React, Elasticsearch, PostgresSQL, and RabbitMQ.
 - Suitable for Kubernetes deployment.
