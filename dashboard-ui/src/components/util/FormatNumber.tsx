@@ -4,10 +4,10 @@ export function formatNumber(number: any) {
     }
     var n = number;
     var s = '';
-    if (number > 1000000000) {
+    if (number >= 1000000000) {
         n = number / 1000000000.0;
         s = 'B';
-    } else if (number > 1000000) {
+    } else if (number >= 1000000) {
         n = number / 1000000.0;
         s = 'M';
     }

@@ -1,3 +1,9 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 import { Page } from '@playwright/test';
 import { createCanvas } from 'canvas';
 
@@ -46,13 +52,7 @@ async function generateSpecimenImage(imageId: string, width: number = 400, heigh
     ctx.fillText(`ID: ${imageId}`, width / 2, height - 20);
 
     // Convert canvas to PNG buffer
-    return new Promise((resolve, reject) => {
-        const stream = canvas.createPNGStream();
-        const chunks: Buffer[] = [];
-        stream.on('data', chunk => chunks.push(chunk));
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-        stream.on('error', err => reject(err));
-    });
+    return canvas.toBuffer('image/png');
 }
 
 /**
@@ -121,13 +121,7 @@ async function generateCollectionThumbnail(collectionName: string, width: number
     });
 
     // Convert canvas to PNG buffer
-    return new Promise((resolve, reject) => {
-        const stream = canvas.createPNGStream();
-        const chunks: Buffer[] = [];
-        stream.on('data', chunk => chunks.push(chunk));
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-        stream.on('error', err => reject(err));
-    });
+    return canvas.toBuffer('image/png');
 }
 
 export async function imageMocks(page: Page, seenUrls: Set<URL>) {

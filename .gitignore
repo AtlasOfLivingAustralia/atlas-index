@@ -14,6 +14,7 @@ search-ui/src/config/speciesGroupsMap.json
 env.*
 tsconfig.tsbuildinfo
 yarn-error.log
+coverage/
 
 ### STS ###
 .apt_generated

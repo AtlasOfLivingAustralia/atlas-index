@@ -1,0 +1,25 @@
+{
+    "queues": {
+        "default": {
+            "activeCount": 0,
+            "queueSize": 0,
+            "description": "Default task queue",
+            "queueCapacity": 10
+        }
+    },
+    "tasks": {
+        "ALL": {
+            "log": [
+                {
+                    "id": "log-1",
+                    "task": "ALL",
+                    "modified": 1719900000000,
+                    "message": "Completed successfully",
+                    "modifiedDate": "2026-07-01T00:00:00Z"
+                }
+            ],
+            "description": "Run all enabled tasks",
+            "enabled": true
+        }
+    }
+}

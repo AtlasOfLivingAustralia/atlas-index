@@ -5,8 +5,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { IntlShape, useIntl } from 'react-intl';
-
+import { IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 interface MapLayerControlsProps {
     facets: string[];
     defaultColourBy: string;

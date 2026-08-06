@@ -6,7 +6,8 @@
 
 import {Breadcrumb, useUser} from "@ala/common-ui";
 import {useEffect, useState} from "react";
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import { DataQualityInfo, OccurrenceListResult, QualityProfile } from '../api/model.tsx';
 import MapView from "../components/list/mapView.tsx";
 import RecordImages from "../components/list/recordImages.tsx";
@@ -137,7 +138,7 @@ function OccurrenceList({setBreadcrumbs}: {
                     if (dq.shortName === dataQualityInfo.profile) {
                         for (let cat of dq.categories) {
                             if (!data.disabledItems.includes(cat.label)) {
-                                dataQualityInfo.selectedFilters.push(cat.name);
+                                dataQualityInfo.selectedFilters.push(cat.label);
                             }
                         }
                     }
@@ -145,7 +146,9 @@ function OccurrenceList({setBreadcrumbs}: {
                 dataQualityInfo.expand = data.expand;
             }
 
-            updateAndSaveDataQualityInfoWithQueryString(dqList);
+            // Pass whether a saved preference was actually applied so the "no dq
+            // params yet" branch doesn't unconditionally overwrite selectedFilters.
+            updateAndSaveDataQualityInfoWithQueryString(dqList, !!stored);
         } else {
             fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property?key=dq", {
                 method: 'GET',
@@ -166,16 +169,18 @@ function OccurrenceList({setBreadcrumbs}: {
                     if (dq.shortName === dataQualityInfo.profile) {
                         for (let cat of dq.categories) {
                             if (!data.disabledItems.includes(cat.label)) {
-                                dataQualityInfo.selectedFilters.push(cat.name);
+                                dataQualityInfo.selectedFilters.push(cat.label);
                             }
                         }
                     }
                 }
                 dataQualityInfo.expand = data.expand;
 
-                updateAndSaveDataQualityInfoWithQueryString(dqList);
+                updateAndSaveDataQualityInfoWithQueryString(dqList, true);
             }).catch(() => {
-                updateAndSaveDataQualityInfoWithQueryString(dqList);
+                // Read failure must be silent — fall back to defaults, no saved
+                // preference was applied.
+                updateAndSaveDataQualityInfoWithQueryString(dqList, false);
             })
         }
     }
@@ -193,7 +198,7 @@ function OccurrenceList({setBreadcrumbs}: {
         return filters;
     }
 
-    function updateAndSaveDataQualityInfoWithQueryString(dqList : QualityProfile[]) {
+    function updateAndSaveDataQualityInfoWithQueryString(dqList : QualityProfile[], preferenceAlreadyApplied: boolean = false) {
         // Override defaults with queryString params; .profile, .selectedFilters
         if (queryString?.includes("qualityProfile=") || queryString?.includes("disableAllQualityFilters=")) {
             let terms = (queryString.startsWith('?') ? queryString.substring(1) : queryString).split("&");
@@ -229,7 +234,9 @@ function OccurrenceList({setBreadcrumbs}: {
                     defaultDisableAll = true;
                 }
             }
-            dataQualityInfo.selectedFilters = initDqFilters(dqList, dataQualityInfo.profile);
+            if (!preferenceAlreadyApplied || dataQualityInfo.selectedFilters === undefined) {
+                dataQualityInfo.selectedFilters = initDqFilters(dqList, dataQualityInfo.profile);
+            }
 
             // Inject the default DQ params into queryString so all sub-components see them
             const defaultParams: string[] = defaultDisableAll ? ['disableAllQualityFilters=true'] : ['qualityProfile=' + dataQualityInfo.profile];
@@ -507,7 +514,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                          onClick={() => download()}>
                                         <i className="bi bi-download me-1"></i><FormattedMessage id={'list.downloads.navigator'} defaultMessage={'Download'}/>
                                     </div>
-                                    <div id="downloads" className="btn btn-sm btn-outline-dark ms-1"
+                                    <div id="downloads-api" className="btn btn-sm btn-outline-dark ms-1"
                                          title={intl.formatMessage({id: 'list.copylinks.dlg.copybutton.title', defaultMessage: "Click to view the URL for the JSON version of this search request"})}
                                          onClick={() => api()}>
                                         <i className="bi bi-file-code me-1"></i>API

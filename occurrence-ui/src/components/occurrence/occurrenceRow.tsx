@@ -5,7 +5,8 @@
  */
 
 import React from "react";
-import {IntlShape, useIntl} from "react-intl";
+import { IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {OccurrenceTableRowProps} from "../../api/model.tsx";
 import {sanitizeBodyText, translate} from "../../util/util.tsx";
 

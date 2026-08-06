@@ -1,0 +1,11 @@
+{
+  "user@example.com": [
+    {
+      "status": "running",
+      "totalRecords": 5000,
+      "records": 1200,
+      "cancelUrl": "http://localhost:8081/biocache/occurrences/offline/cancel/job-abc-123",
+      "message": "Processing records"
+    }
+  ]
+}

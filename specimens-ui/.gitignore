@@ -3,6 +3,7 @@
 node_modules/
 /test-results/
 /playwright-report/
+/playwright-live-reports/
 /blob-report/
 /playwright/.cache/
 /src/api/sources/collections.json

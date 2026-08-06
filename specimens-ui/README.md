@@ -17,8 +17,7 @@ Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tr
 
 ### Local development
 
-1. Start a static server, see [static-server](../static-server/README.md).
-2. Link the `common-ui` package. Refer to the [common-ui README](../common-ui/README.md) for instructions.
+1. Link the `common-ui` package. Refer to the [common-ui README](../common-ui/README.md) for instructions.
 
 Run `buildCollections.js` to generate `./src/api/sources/collections.json` from the `./public/collections.json`. Delete 
 to regenerate if you change the `./public/collections.json` file.
@@ -82,10 +81,9 @@ Playwright tests are included to verify basic functionality. Running in headless
 ```bash
 ./run-playwright-test.sh [workers, default 10]
 ```
-This script will start a local static server. Then it will run the tests against a locally running specimens-ui instance that is built to use `.env.playwright` for config.
+This script mocks static-server content (via `tests/mocks/staticServerMocks.ts`, rather than starting a real server). Then it will run the tests against a locally running specimens-ui instance that is built to use `.env.playwright` for config.
 - If using a different method, ensure you are using the same config as in `.env.playwright`. See `run-playwright-test.sh` for all environment details.
 - If using playwright ui mode,
-   - start static-server
    - copy `.env.playwright` to `.env.local`
-   - start in dev mode `yarn run dev` so that any changes to the app apply immediately
+   - start in dev mode `yarn run dev` so that any changes to the app apply immediately (this also serves static-server content on port 8082 automatically)
    - then start ui mode `yarn playwright test --ui`, any changes to the tests will apply immediately

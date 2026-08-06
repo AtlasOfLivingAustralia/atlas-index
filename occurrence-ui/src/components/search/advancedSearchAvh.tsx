@@ -4,7 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIconLite } from '@ala/common-ui';

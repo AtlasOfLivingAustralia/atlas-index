@@ -1,0 +1,18 @@
+{
+    "elasticsearch": {
+        "idxtype": {
+            "TAXON": 12345,
+            "COMMON": 6789,
+            "REGION": 42
+        }
+    },
+    "rabbitmq": {
+        "queueDepth": 3,
+        "consumerCount": 2
+    },
+    "tables": {
+        "banner": 5,
+        "dq_profile": 4,
+        "doi": 100
+    }
+}

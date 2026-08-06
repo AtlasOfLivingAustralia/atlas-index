@@ -4,9 +4,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-.hideMobile {
+@media (max-width: calc(48em - 1px)) {
     /* Mobile Sizes */
-    @media (max-width: calc(48em - 1px)) {
+    .hideMobile {
         display: none;
     }
 }
@@ -40,9 +40,11 @@
 .speciesSectionText a,
 .traitsSectionText a {
     color: #003a70;
-    &:hover {
-        color: #1b5e83;
-    }
+}
+
+.speciesSectionText a:hover,
+.traitsSectionText a:hover {
+    color: #1b5e83;
 }
 
 .speciesSectionText {
@@ -66,11 +68,10 @@
 
 .nameFormatted {
     font-style: italic;
-    .rank-species {
-        .name {
-            font-style: italic;
-        }
-    }
+}
+
+.nameFormatted .rank-species .name {
+    font-style: italic;
 }
 
 .rankSpecies > .name {
@@ -203,9 +204,9 @@
     }
 }
 
-.hideMobile {
+@media (max-width: calc(48em - 1px)) {
     /* Mobile Sizes */
-    @media (max-width: calc(48em - 1px)) {
+    .hideMobile {
         display: none;
     }
 }
@@ -239,28 +240,27 @@
 .speciesSectionText a,
 .traitsSectionText a {
     color: #003a70;
-    &:hover {
-        color: #1b5e83;
-    }
 }
 
-.speciesSectionText {
+.speciesSectionText a:hover,
+.traitsSectionText a:hover {
+    color: #1b5e83;
+}
 
-    > figure {
-        margin-block-start: 10px;
-        margin-inline-start: 10px;
+.speciesSectionText > figure {
+    margin-block-start: 10px;
+    margin-inline-start: 10px;
+}
 
-        figcaption {
-            font-size: 12px;
-        }
+.speciesSectionText > figure figcaption {
+    font-size: 12px;
+}
 
-        audio {
-            width: 250px;
-            height: 54px;
-            display: inline !important;
-            box-sizing: border-box;
-        }
-    }
+.speciesSectionText > figure audio {
+    width: 250px;
+    height: 54px;
+    display: inline !important;
+    box-sizing: border-box;
 }
 
 .gallerySortLabel {
@@ -269,11 +269,10 @@
 
 .nameFormatted {
     font-style: italic;
-    .rank-species {
-        .name {
-            font-style: italic;
-        }
-    }
+}
+
+.nameFormatted .rank-species .name {
+    font-style: italic;
 }
 
 .rankSpecies > .name {

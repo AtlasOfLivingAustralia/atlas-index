@@ -1,0 +1,200 @@
+{
+    "totalRecords": 13,
+    "searchResults": [
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/genus-acacia",
+            "name": "Acacia",
+            "nameFormatted": "<i>Acacia</i> Mill.",
+            "commonNameSingle": null,
+            "rank": "genus",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 512340,
+            "image": "acacia-genus-img",
+            "heroDescription": "<i>Acacia</i> is a large genus of shrubs and trees in the subfamily Mimosoideae of the family Fabaceae.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-dealbata",
+            "name": "Acacia dealbata",
+            "nameFormatted": "<i>Acacia dealbata</i>",
+            "commonNameSingle": "Silver Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 15230,
+            "image": "plant-img-001",
+            "heroDescription": "<i>Acacia dealbata</i>, commonly known as the silver wattle, is a species of flowering plant.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-pycnantha",
+            "name": "Acacia pycnantha",
+            "nameFormatted": "<i>Acacia pycnantha</i>",
+            "commonNameSingle": "Golden Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 9840,
+            "image": null,
+            "heroDescription": "<i>Acacia pycnantha</i> is the floral emblem of Australia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-melanoxylon",
+            "name": "Acacia melanoxylon",
+            "nameFormatted": "<i>Acacia melanoxylon</i>",
+            "commonNameSingle": "Blackwood",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 21044,
+            "image": null,
+            "heroDescription": "<i>Acacia melanoxylon</i> is a tree in the genus Acacia.",
+            "additionalIdentifiers": ["ACAMEL"],
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-baileyana",
+            "name": "Acacia baileyana",
+            "nameFormatted": "<i>Acacia baileyana</i>",
+            "commonNameSingle": "Cootamundra Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 4021,
+            "image": null,
+            "heroDescription": "<i>Acacia baileyana</i> is a species of wattle.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-longifolia",
+            "name": "Acacia longifolia",
+            "nameFormatted": "<i>Acacia longifolia</i>",
+            "commonNameSingle": "Sydney Golden Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 6650,
+            "image": null,
+            "heroDescription": "<i>Acacia longifolia</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-implexa",
+            "name": "Acacia implexa",
+            "nameFormatted": "<i>Acacia implexa</i>",
+            "commonNameSingle": "Hickory Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 3120,
+            "image": null,
+            "heroDescription": "<i>Acacia implexa</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-podalyriifolia",
+            "name": "Acacia podalyriifolia",
+            "nameFormatted": "<i>Acacia podalyriifolia</i>",
+            "commonNameSingle": "Queensland Silver Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 2210,
+            "image": null,
+            "heroDescription": "<i>Acacia podalyriifolia</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-decurrens",
+            "name": "Acacia decurrens",
+            "nameFormatted": "<i>Acacia decurrens</i>",
+            "commonNameSingle": "Black Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 5310,
+            "image": null,
+            "heroDescription": "<i>Acacia decurrens</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-falcata",
+            "name": "Acacia falcata",
+            "nameFormatted": "<i>Acacia falcata</i>",
+            "commonNameSingle": "Sickle Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 1870,
+            "image": null,
+            "heroDescription": "<i>Acacia falcata</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-binervia",
+            "name": "Acacia binervia",
+            "nameFormatted": "<i>Acacia binervia</i>",
+            "commonNameSingle": "Coast Myall",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 1420,
+            "image": null,
+            "heroDescription": "<i>Acacia binervia</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-floribunda",
+            "name": "Acacia floribunda",
+            "nameFormatted": "<i>Acacia floribunda</i>",
+            "commonNameSingle": "White Sallow Wattle",
+            "rank": "species",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 980,
+            "image": null,
+            "heroDescription": "<i>Acacia floribunda</i> is a species of Acacia.",
+            "data": { "rk_kingdom": "Plantae" }
+        },
+        {
+            "idxtype": "TAXON",
+            "guid": "https://id.biodiversity.org.au/node/apni/acacia-saligna-var",
+            "name": "Acacia saligna var. saligna",
+            "nameFormatted": "<i>Acacia saligna</i> var. <i>saligna</i>",
+            "commonNameSingle": "Golden Wreath Wattle",
+            "rank": "variety",
+            "speciesGroup": ["Plants"],
+            "occurrenceCount": 640,
+            "image": null,
+            "heroDescription": "<i>Acacia saligna</i> var. <i>saligna</i> is a variety of Acacia saligna.",
+            "data": { "rk_kingdom": "Plantae" }
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "status",
+            "fieldResult": [{ "label": "traditionalKnowledge", "count": 2 }]
+        },
+        {
+            "fieldName": "speciesGroup",
+            "fieldResult": [{ "label": "Plants", "count": 13 }]
+        },
+        {
+            "fieldName": "taxonomicStatus",
+            "fieldResult": [
+                { "label": "accepted", "count": 12 },
+                { "label": "synonym", "count": 1 }
+            ]
+        },
+        {
+            "fieldName": "rank",
+            "fieldResult": [
+                { "label": "species", "count": 10 },
+                { "label": "variety", "count": 1 },
+                { "label": "genus", "count": 2 }
+            ]
+        }
+    ]
+}

@@ -47,8 +47,6 @@ function Metadata({ data, isMobile, download }: MetadataProps) {
         );
     }
 
-    console.log('metadata', data);
-
     function biocache(): JSX.Element | null {
         return (
             <>

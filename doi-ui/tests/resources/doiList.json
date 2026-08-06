@@ -1,0 +1,107 @@
+[
+  {
+    "uuid": "aaaabbbb-1111-2222-3333-ccccddddeeee",
+    "doi": "10.80416/ala.aaaabbbb-1111-2222-3333-ccccddddeeee",
+    "title": "Occurrence records download on 1/01/2025",
+    "description": "ALA occurrence records download",
+    "active": true,
+    "displayTemplate": "biocache",
+    "filename": "biocache-occurrence-download.zip",
+    "dateCreated": "2025-01-01T00:00:00Z",
+    "authorisedRoles": [],
+    "providerMetadata": { "title": "Occurrence records download" },
+    "applicationMetadata": {
+      "recordCount": 1234,
+      "searchUrl": "https://biocache.test.ala.org.au/occurrences/search?q=Eucalyptus",
+      "queryTitle": "Eucalyptus search",
+      "qualityFilters": [],
+      "datasets": [
+        { "name": "eBird Australia", "licence": "CC BY 4.0", "count": 900 },
+        { "name": "ALA specimen records", "licence": "CC BY 4.0", "count": 334 }
+      ]
+    },
+    "licence": ["CC BY 4.0"]
+  },
+  {
+    "uuid": "bbbbcccc-2222-3333-4444-ddddeeeeffff",
+    "doi": "10.80416/ala.bbbbcccc-2222-3333-4444-ddddeeeeffff",
+    "title": "Species distribution model",
+    "description": "CSDM model output",
+    "active": true,
+    "displayTemplate": "csdm",
+    "filename": "model-output.zip",
+    "dateCreated": "2025-02-15T12:00:00Z",
+    "authorisedRoles": [],
+    "applicationMetadata": {
+      "applicationName": "Species Distribution Modeller",
+      "modeller": "Jane Smith",
+      "organisation": "ALA",
+      "dataSetAnnotation": "Eucalyptus dataset",
+      "workflowAnnotation": "MaxEnt v3.4",
+      "recordCount": 500,
+      "searchUrl": "https://spatial.test.ala.org.au",
+      "datasets": []
+    },
+    "licence": ["CC BY 4.0"]
+  },
+  {
+    "uuid": "ccccdddd-3333-4444-5555-eeeeffff0000",
+    "doi": "10.80416/ala.ccccdddd-3333-4444-5555-eeeeffff0000",
+    "title": "Custom DOI with roles",
+    "description": "Restricted download requiring roles",
+    "active": true,
+    "displayTemplate": "biocache",
+    "filename": "restricted-download.zip",
+    "dateCreated": "2025-03-10T08:00:00Z",
+    "authorisedRoles": ["ROLE_SDS_ACT"],
+    "providerMetadata": { "title": "Restricted occurrence records" },
+    "applicationMetadata": {
+      "recordCount": 42,
+      "searchUrl": "https://biocache.test.ala.org.au/occurrences/search?q=Pseudophryne+pengilleyi",
+      "queryTitle": "Pseudophryne pengilleyi search",
+      "qualityFilters": [],
+      "datasets": [
+        { "name": "ACT SDS dataset", "licence": "CC BY-NC 4.0", "count": 42 }
+      ]
+    },
+    "licence": ["CC BY-NC 4.0"]
+  },
+  {
+    "uuid": "ddddeeee-4444-5555-6666-ffff00001111",
+    "doi": "10.80416/ala.ddddeeee-4444-5555-6666-ffff00001111",
+    "title": "Unpublished DOI",
+    "description": "This DOI is not publicly listed",
+    "active": false,
+    "displayTemplate": "biocache",
+    "filename": "unpublished-download.zip",
+    "dateCreated": "2025-04-01T00:00:00Z",
+    "authorisedRoles": [],
+    "providerMetadata": { "title": "Unpublished records" },
+    "applicationMetadata": {
+      "recordCount": 10,
+      "searchUrl": "https://biocache.test.ala.org.au/occurrences/search?q=test",
+      "queryTitle": "Test search",
+      "qualityFilters": [],
+      "datasets": []
+    },
+    "licence": ["CC BY 4.0"]
+  },
+  {
+    "uuid": "eeee0000-5555-6666-7777-000011112222",
+    "doi": "10.80416/ala.eeee0000-5555-6666-7777-000011112222",
+    "title": "No file DOI",
+    "description": "DOI with no attached file",
+    "active": true,
+    "displayTemplate": null,
+    "filename": null,
+    "dateCreated": "2025-05-01T00:00:00Z",
+    "authorisedRoles": [],
+    "applicationMetadata": {
+      "recordCount": 0,
+      "searchUrl": "https://biocache.test.ala.org.au/occurrences/search?q=*",
+      "qualityFilters": [],
+      "datasets": []
+    },
+    "licence": ["CC BY 4.0"]
+  }
+]

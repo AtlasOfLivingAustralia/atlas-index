@@ -9,8 +9,8 @@ import {useEffect, useState} from "react";
 import {CompareResult, CompareRow, InfoTableRow, RecordResult} from "../../api/model.tsx";
 import { isUrl } from '../../util/util.tsx';
 import {OccurrenceTableRow} from "./occurrenceRow.tsx";
-import {FormattedMessage, useIntl} from 'react-intl';
-
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 const vernacularName_show = import.meta.env.VITE_RECORD_VERNACULAR_NAME_SHOW !== 'false';
 const dwcExcludeFields = new Set((import.meta.env.VITE_RECORD_DWC_EXCLUDE_FIELDS as string).split(","));
 const manualDatasetFields = new Set((import.meta.env.VITE_RECORD_MANUAL_DATASET_FIELDS as string).split(","));

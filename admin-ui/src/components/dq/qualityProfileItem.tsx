@@ -32,7 +32,7 @@ function QualityProfileItem(props: {
                 name: 'New Category',
                 label: 'new-category',
                 description: '',
-                displayOrder: profile.categories.length,
+                displayOrder: profile.categories.length === 0 ? 0 : Math.max(...profile.categories.map(f => f.displayOrder ?? 0)) + 1,
                 inverseFilter: '',
                 qualityFilters: [],
             });
@@ -109,6 +109,16 @@ function QualityProfileItem(props: {
         setProfileDirty(true);
     }
 
+    function updateDisplayOrder(displayOrder: number) {
+        // update display
+        profile.displayOrder = displayOrder;
+        setProfile({...profile});
+
+        // update parent
+        props.profile.displayOrder = displayOrder;
+        setProfileDirty(true);
+    }
+
     return (
         <>
             <h4 className={"pt-4"}>Profile</h4>
@@ -172,6 +182,16 @@ function QualityProfileItem(props: {
                                 className="w-50"
                                 onChange={(e) => updateContactEmail(e.target.value)}
                                 maxLength={255}
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Display Order</td>
+                        <td>
+                            <input
+                                type="number"
+                                value={profile.displayOrder}
+                                onChange={(e) => updateDisplayOrder(Number(e.target.value))}
                             />
                         </td>
                     </tr>

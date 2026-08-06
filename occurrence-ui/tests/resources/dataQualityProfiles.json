@@ -1,0 +1,72 @@
+[
+    {
+        "id": 1,
+        "name": "ALA General",
+        "shortName": "ALA",
+        "description": "The default ALA data quality profile. Excludes records that fail one or more general-purpose spatial and taxonomic quality checks.",
+        "contactName": "ALA Support",
+        "contactEmail": "support@ala.org.au",
+        "enabled": true,
+        "isDefault": true,
+        "displayOrder": 1,
+        "dateCreated": "2020-01-01T00:00:00+10:00",
+        "lastUpdated": "2020-01-01T00:00:00+10:00",
+        "categories": [
+            {
+                "id": 101,
+                "enabled": true,
+                "name": "Exclude spatially suspect records",
+                "label": "spatiallySuspect",
+                "description": "Records with coordinates that are zero, default, or otherwise spatially invalid.",
+                "displayOrder": 1,
+                "inverseFilter": "spatiallySuspect:true",
+                "qualityFilters": []
+            },
+            {
+                "id": 102,
+                "enabled": true,
+                "name": "Exclude unidentified records",
+                "label": "unidentified",
+                "description": "Records that have not been identified to at least kingdom level.",
+                "displayOrder": 2,
+                "inverseFilter": "taxonRank:kingdom",
+                "qualityFilters": []
+            },
+            {
+                "id": 103,
+                "enabled": true,
+                "name": "Exclude records with low quality identification",
+                "label": "lowQualityIdentification",
+                "description": "Records flagged with a low-confidence species identification.",
+                "displayOrder": 3,
+                "inverseFilter": "identificationVerificationStatus:unverified",
+                "qualityFilters": []
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Environmental",
+        "shortName": "ENVIRO",
+        "description": "A data profile suited to environmental impact assessments.",
+        "contactName": "ALA Support",
+        "contactEmail": "support@ala.org.au",
+        "enabled": true,
+        "isDefault": false,
+        "displayOrder": 2,
+        "dateCreated": "2020-01-01T00:00:00+10:00",
+        "lastUpdated": "2020-01-01T00:00:00+10:00",
+        "categories": [
+            {
+                "id": 201,
+                "enabled": true,
+                "name": "Exclude old records",
+                "label": "oldRecords",
+                "description": "Records older than 20 years.",
+                "displayOrder": 1,
+                "inverseFilter": "occurrenceYear:[* TO 2005-12-31T00:00:00Z]",
+                "qualityFilters": []
+            }
+        ]
+    }
+]

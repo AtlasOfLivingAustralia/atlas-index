@@ -1,0 +1,8 @@
+{
+    "admin": {
+        "message": "This is the admin console for the Atlas of Living Australia.",
+        "severity": "INFO",
+        "updated": "2026-07-01T00:00:00Z",
+        "closable": true
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "totalRecords": 17,
+    "occurrences": [
+        {
+            "uuid": "occ-013",
+            "imageMetadata": [{ "imageId": "gallery-img-010", "width": 800, "height": 600, "license": "CC-BY 4.0 (Int)" }],
+            "videos": [], "sounds": [],
+            "license": "CC-BY 4.0 (Int)", "eventDate": "2023-05-05T00:00:00Z",
+            "dataResourceName": "eBird Australia", "basisOfRecord": "Human observation"
+        },
+        {
+            "uuid": "occ-014",
+            "imageMetadata": [{ "imageId": "gallery-img-011", "width": 600, "height": 800, "license": "CC0" }],
+            "videos": [], "sounds": [],
+            "license": "CC0", "eventDate": "2023-04-04T00:00:00Z",
+            "dataResourceName": "iNaturalist Australia", "basisOfRecord": "Human observation"
+        },
+        {
+            "uuid": "occ-015",
+            "imageMetadata": [{ "imageId": "gallery-img-012", "width": 800, "height": 500, "license": "CC-BY-NC 4.0 (Int)" }],
+            "videos": [], "sounds": [],
+            "license": "CC-BY-NC 4.0 (Int)", "eventDate": "2023-03-03T00:00:00Z",
+            "dataResourceName": "ALA specimen records", "basisOfRecord": "Preserved specimen"
+        },
+        {
+            "uuid": "occ-016",
+            "imageMetadata": [{ "imageId": "gallery-img-013", "width": 700, "height": 700, "license": "CC-BY 4.0 (Int)" }],
+            "videos": [], "sounds": [],
+            "license": "CC-BY 4.0 (Int)", "eventDate": "2023-02-02T00:00:00Z",
+            "dataResourceName": "eBird Australia", "basisOfRecord": "Human observation"
+        },
+        {
+            "uuid": "occ-017",
+            "imageMetadata": [{ "imageId": "gallery-img-014", "width": 500, "height": 800, "license": "CC0" }],
+            "videos": [], "sounds": [],
+            "license": "CC0", "eventDate": "2023-01-01T00:00:00Z",
+            "dataResourceName": "iNaturalist Australia", "basisOfRecord": "Machine observation"
+        }
+    ]
+}

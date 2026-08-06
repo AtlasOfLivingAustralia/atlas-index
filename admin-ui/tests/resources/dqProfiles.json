@@ -1,0 +1,36 @@
+[
+    {
+        "id": 1,
+        "name": "ALA Default",
+        "shortName": "ALA",
+        "description": "Default data quality profile",
+        "contactName": "Admin",
+        "contactEmail": "admin@example.com",
+        "enabled": true,
+        "isDefault": true,
+        "displayOrder": 0,
+        "dateCreated": "2024-01-01T00:00:00Z",
+        "lastUpdated": "2024-01-02T00:00:00Z",
+        "categories": [
+            {
+                "id": 1,
+                "enabled": true,
+                "name": "spatial",
+                "label": "Spatial",
+                "description": "Spatial quality filters",
+                "displayOrder": 0,
+                "inverseFilter": "",
+                "qualityFilters": [
+                    {
+                        "id": 1,
+                        "enabled": true,
+                        "description": "Has coordinates",
+                        "filter": "lat_long_uncertainty:[* TO *]",
+                        "displayOrder": 0,
+                        "inverseFilter": ""
+                    }
+                ]
+            }
+        ]
+    }
+]

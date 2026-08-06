@@ -59,7 +59,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
 
     function loadImages(page: number) {
         setLoading(true);
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrence/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize) + getQc())
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize) + getQc())
             .then(response => response.json())
             .then(data => {
                 setLoading(false);
@@ -151,7 +151,11 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
             </div>}
             {!loading && !noMoreImages && <>
                 <br/>
-                <button className="btn btn-sm btn-outline-dark mt-3" onClick={() => {setPage(page + 1);loadImages(page)}}>
+                <button className="btn btn-sm btn-outline-dark mt-3" onClick={() => {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    loadImages(nextPage);
+                }}>
                     <FormattedMessage id="list.speciesgallerycontrols.loadmoreimages.button" defaultMessage="Show more images"/>
                 </button>
             </>}

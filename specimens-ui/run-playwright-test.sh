@@ -3,19 +3,53 @@
 # Set default thread count if not provided as an argument
 thread_count=${1:-10}
 
-# Function to check if a process is running on a specific port
-check_port() {
-  if lsof -i :$1 > /dev/null; then
-    echo "Error: A process is already running on port $1. Please stop it and try again. (e.g. pkill -f http-server)"
-    exit 1
-  fi
+# Ensure this workspace's pinned playwright has its browsers available.
+yarn playwright install
+
+# Pick a random free TCP port in the ephemeral range, verifying it isn't
+# already in use (retrying with a new random port if it is).
+find_free_port() {
+  local port
+  while true; do
+    port=$(( (RANDOM % 16383) + 49152 ))
+    if ! lsof -i :$port > /dev/null 2>&1; then
+      echo $port
+      return
+    fi
+  done
 }
 
-# Check if ports 8082 or 5173 are in use. Using test specific ports instead of the defaults would be better.
-check_port 8082
-check_port 5173
+APP_PORT=$(find_free_port)
+export PLAYWRIGHT_APP_PORT=$APP_PORT
+echo "Using app port $APP_PORT"
 
-# Exit on error
+# static-server (port 8082) is not a real server in tests -- its content is
+# served directly from disk via tests/mocks/staticServerMocks.ts's page.route
+# interception, so .env.playwright's http://localhost:8082 URLs are left as-is.
+#
+# Override the app port baked into .env.playwright with the randomly selected
+# one above. Vite prioritises real environment variables over .env files, so any
+# VITE_* value in .env.playwright referencing localhost:5173 is superseded for
+# this build.
+apply_dynamic_ports() {
+  local env_file=".env.playwright"
+  [ -f "$env_file" ] || return
+  while IFS= read -r line; do
+    case "$line" in
+      \#*|'') continue ;;
+    esac
+    key="${line%%=*}"
+    value="${line#*=}"
+    case "$value" in
+      *localhost:5173*)
+        value="${value//localhost:5173/localhost:$APP_PORT}"
+        export "$key=$value"
+        ;;
+    esac
+  done < "$env_file"
+}
+apply_dynamic_ports
+
 set -e
 
 COLLECTIONS_SRC="./src/api/sources/collections.json"
@@ -64,23 +98,22 @@ yarn run build:playwright
 echo "Restoring env files..."
 restore_files
 
+# Clear previous coverage data
+echo "Clearing previous coverage data..."
+rm -rf .nyc_output
+
 # Start the app server in the background
 echo "Starting the app server..."
-http-server ./dist -p 5173 --cors --proxy "http://localhost:5173?" --silent &
+yarn vite preview --port $APP_PORT --strictPort &
 APP_SERVER_PID=$!
 
-# Start the static server in the background
-echo "Starting the static server..."
-http-server ../static-server -p 8082 --cors --silent &
-STATIC_SERVER_PID=$!
-
-# Wait for servers to start
+# Wait for the server to start
 sleep 5
 
 cleanup() {
-  # Teardown servers
-  echo "Stopping servers..."
-  kill $APP_SERVER_PID $STATIC_SERVER_PID
+  # Teardown server
+  echo "Stopping server..."
+  kill $APP_SERVER_PID
   # Restore original files (also handles any early exit before explicit restore)
   restore_files
 }
@@ -92,4 +125,8 @@ CI=true yarn playwright test --workers=$thread_count --reporter=dot
 # Headed mode tests, uncomment the line below to use it
 #yarn playwright test --workers=$thread_count --reporter=dot
 
+# Report coverage
+echo ""
+echo "Coverage report:"
+yarn nyc report --reporter=text --reporter=lcov --include='src/**' --exclude='src/buildInfo.json' 2>/dev/null || true
 

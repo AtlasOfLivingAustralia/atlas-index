@@ -1,0 +1,43 @@
+{
+    "totalRecords": 2,
+    "searchResults": [
+        {
+            "idxtype": "BIOCOLLECT",
+            "guid": "https://biocollect.ala.org.au/biocollect/project/index/proj1",
+            "name": "Melbourne Waterwatch",
+            "description": "Community water quality monitoring across Melbourne waterways.",
+            "numberOfRecords": 500,
+            "publicParticipation": true,
+            "plannedStartDate": "2023-01-01T00:00:00Z",
+            "plannedEndDate": "2025-12-31T00:00:00Z",
+            "image": null
+        },
+        {
+            "idxtype": "DIGIVOL",
+            "guid": "https://www.digivol.org.au/expedition/proj2",
+            "name": "Digitising Herbarium Sheets",
+            "description": "Volunteers transcribe label data from digitised herbarium specimen sheets.",
+            "numberOfRecords": 12000,
+            "publicParticipation": true,
+            "plannedStartDate": "2022-06-01T00:00:00Z",
+            "plannedEndDate": null,
+            "image": null
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "idxtype",
+            "fieldResult": [
+                { "label": "BIOCOLLECT", "count": 1 },
+                { "label": "DIGIVOL", "count": 1 }
+            ]
+        },
+        {
+            "fieldName": "organisationName",
+            "fieldResult": [
+                { "label": "Melbourne Water", "count": 1 },
+                { "label": "Australian Museum", "count": 1 }
+            ]
+        }
+    ]
+}

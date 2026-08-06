@@ -35,6 +35,20 @@ function QualityFilterItem(props: {
         props.resetInverseFilter();
     }
 
+    function setDisplayOrder(displayOrder: number) {
+        // update display
+        filterItem.displayOrder = displayOrder;
+        setFilterItem({ ...filterItem });
+
+        // update parent
+        if (props.actualFilter) {
+            props.actualFilter.displayOrder = displayOrder;
+            props.setProfileDirty(true);
+        }
+
+        // no need to reset inverse filter
+    }
+
     function setFilter(filter: string) {
         // update display
         filterItem.filter = filter;
@@ -88,6 +102,15 @@ function QualityFilterItem(props: {
                         className={"me-1"}
                     ></input>
                     ({filterItem.id > 1_000_000 ? 'new' : 'id: ' + filterItem.id})
+                </td>
+                <td>
+                    <input
+                        type="number"
+                        value={filterItem.displayOrder}
+                        style={{width:'50px'}}
+                        onChange={(e) => setDisplayOrder(Number(e.target.value))}
+                        className={"me-1"}
+                    ></input>
                 </td>
                 <td>
                     <textarea

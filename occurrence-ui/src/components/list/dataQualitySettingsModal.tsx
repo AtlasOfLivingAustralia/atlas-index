@@ -7,7 +7,8 @@
 import {useUser} from "@ala/common-ui";
 import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {DataQualityInfo} from "../../api/model.tsx";
 
 interface DataQualitySettingsProps {
@@ -48,7 +49,7 @@ function DataQualitySettingsModal({
                 for (let cat of dq.categories) {
                     let hasDisableParam =  (queryString?.includes("disableQualityFilter=" + cat.label + "&") ||
                         queryString?.endsWith("disableQualityFilter=" + cat.label))
-                    let selected = (selectedCategories === undefined || selectedCategories.includes(cat.name)) &&
+                    let selected = (selectedCategories === undefined || selectedCategories.includes(cat.label)) &&
                         !hasDisableParam;
                     categories.push({
                         name: cat.name,

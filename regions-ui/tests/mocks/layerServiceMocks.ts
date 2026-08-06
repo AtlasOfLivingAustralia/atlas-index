@@ -1,4 +1,4 @@
-import {Page, test, TestInfo} from "@playwright/test";
+import {Page} from "@playwright/test";
 import {createCanvas} from "canvas";
 
 // Function to get decimal degrees for the four corners of a tile
@@ -116,13 +116,7 @@ async function generateTileImage(
     );
 
     // Convert canvas to PNG buffer
-    return new Promise((resolve, reject) => {
-        const stream = canvas.createPNGStream();
-        const chunks: Buffer[] = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('end', () => resolve(Buffer.concat(chunks)));
-        stream.on('error', (err) => reject(err));
-    });
+    return canvas.toBuffer('image/png');
 }
 
 // Set up mocking for all tests

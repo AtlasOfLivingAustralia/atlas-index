@@ -1,0 +1,4 @@
+[
+    { "table": "banner", "label": "Banner Messages" },
+    { "table": "dq_profile", "label": "Data Quality Profiles" }
+]

@@ -6,9 +6,10 @@
 
 import {FontAwesomeIconLite} from "@ala/common-ui";
 import {faDownload} from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {getQc} from "../../util/util.tsx";
 
 interface MultipleFacetsProps {
@@ -28,13 +29,17 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
     const [isIncludeOpen, setIsIncludeOpen] = useState<boolean>(false);
 
     const intl: IntlShape = useIntl();
-    const observerRef = useRef<HTMLAnchorElement | null>(null);
+    const [observerRef, setObserverRef] = useState<HTMLSpanElement | null>(null);
 
     useEffect(() => {
         fetchData();
     }, [queryString, facet]);
 
     useEffect(() => {
+        if (!observerRef) {
+            return;
+        }
+
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && facetItems && facetItems.length >= maxResults) {
@@ -44,16 +49,12 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
             { threshold: 1.0 }
         );
 
-        if (observerRef.current) {
-            observer.observe(observerRef.current);
-        }
+        observer.observe(observerRef);
 
         return () => {
-            if (observerRef.current) {
-                observer.unobserve(observerRef.current);
-            }
+            observer.unobserve(observerRef);
         };
-    }, [observerRef.current]);
+    }, [observerRef, facetItems, maxResults]);
 
 
     function fetchData() {
@@ -187,7 +188,7 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                                             ))}
                                         {maxResults == import.meta.env.VITE_FLIMIT_MAX && <tr>
                                             <td colSpan={3} style={{ textAlign: 'center' }}>
-                                                    <span ref={observerRef}>
+                                                    <span ref={setObserverRef}>
                                                         <FormattedMessage id='facets.limitReached' defaultMessage='More items not shown' />
                                                     </span>
                                             </td>
@@ -195,7 +196,7 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                                         {facetItems.length >= maxResults &&
                                             <tr>
                                                 <td colSpan={3} style={{ textAlign: 'center' }}>
-                                                    <span ref={observerRef}>
+                                                    <span ref={setObserverRef}>
                                                         <FormattedMessage id='facets.multiplefacets.tabletr01td01.showmore' defaultMessage='Show more results' />
                                                     </span>
                                                 </td>

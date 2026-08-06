@@ -8,7 +8,8 @@ import {Breadcrumb, FontAwesomeIconLite, useHashState} from "@ala/common-ui";
 import {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef, useCallback} from "react";
 import ReactDOM from "react-dom/client";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
 const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
 import {SpeciesGroup, SpeciesGroupItem, SpeciesListItem} from "../api/model.tsx";

@@ -26,14 +26,14 @@ function QualityCategoryItem(props: {
         setCategory(props.category);
     }, [props.category]);
 
-    function addFilter(category: any) {
+    function addFilter(category: QualityCategory) {
         const filter: QualityFilter = {
             id: Date.now(),
             enabled: true,
             filter: 'enter a new filter',
             inverseFilter: '',
             description: '',
-            displayOrder: category.qualityFilters.length,
+            displayOrder: category.qualityFilters.length === 0 ? 0 : Math.max(...category.qualityFilters.map(f => f.displayOrder ?? 0)) + 1,
         };
 
         category.qualityFilters.push(filter);
@@ -77,6 +77,18 @@ function QualityCategoryItem(props: {
         // update parent
         if (props.actualCategory) {
             props.actualCategory.label = label;
+            props.setProfileDirty(true);
+        }
+    }
+
+    function setDisplayOrder(displayOrder: number) {
+        // update display
+        category.displayOrder = displayOrder;
+        setCategory({...category});
+
+        // update parent
+        if (props.actualCategory) {
+            props.actualCategory.displayOrder = displayOrder;
             props.setProfileDirty(true);
         }
     }
@@ -170,6 +182,16 @@ function QualityCategoryItem(props: {
                                 style={{width:'500px'}}
                             />
                             </div>
+                            <div className={"ms-3"}>
+                                display order:
+                                <input
+                                    type="number"
+                                    value={category.displayOrder}
+                                    className="ms-3 fw-bold rounded-2"
+                                    style={{width: '50px'}}
+                                    onChange={(e) => setDisplayOrder(Number(e.target.value))}
+                                />
+                            </div>
                             <button
                                 className="btn border-black btn-danger ms-auto"
                                 onClick={() => {
@@ -221,6 +243,7 @@ function QualityCategoryItem(props: {
                                 <thead>
                                 <tr>
                                     <th>enabled</th>
+                                    <th>display order</th>
                                     <th>filter</th>
                                     <th>inverse filter (manual override when API incorrect)</th>
                                     <th>description</th>

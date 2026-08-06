@@ -1,0 +1,12 @@
+{
+    "facetResults": [
+        {
+            "fieldName": "dataResourceUid",
+            "fieldResult": [
+                { "label": "eBird Australia", "fq": "dataResourceUid:\"dr1\"", "count": 3200 },
+                { "label": "ALA specimen records", "fq": "dataResourceUid:\"dr2\"", "count": 850 },
+                { "label": "iNaturalist Australia", "fq": "dataResourceUid:\"dr3\"", "count": 150 }
+            ]
+        }
+    ]
+}

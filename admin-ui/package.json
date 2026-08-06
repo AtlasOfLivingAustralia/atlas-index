@@ -6,8 +6,10 @@
     "scripts": {
         "dev": "node ../common-ui/generateBuildInfo.js && vite",
         "build": "node ../common-ui/generateBuildInfo.js && tsc && vite build",
+        "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && PLAYWRIGHT_ENV=true vite build",
         "preview": "vite preview",
-        "test": "jest --passWithNoTests"
+        "test": "jest --passWithNoTests",
+        "test:playwright": "./run-playwright-test.sh"
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",
@@ -29,6 +31,7 @@
         "swagger-ui-react": "^5.32.6"
     },
     "devDependencies": {
+        "@playwright/test": "^1.62.0",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/react": "^16.3.2",
         "@types/jest": "^30.0.0",
@@ -39,13 +42,16 @@
         "@typescript-eslint/eslint-plugin": "^8.61.0",
         "@typescript-eslint/parser": "^8.61.0",
         "@vitejs/plugin-react": "^6.0.2",
+        "dotenv": "^17.4.2",
         "eslint": "^10.4.1",
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-react-refresh": "^0.5.2",
         "jest": "^30.0.3",
+        "nyc": "^18.0.0",
         "prettier": "^3.8.4",
         "typescript": "^6.0.3",
-        "vite": "^8.0.16"
+        "vite": "^8.0.16",
+        "vite-plugin-istanbul": "^9.0.1"
     },
     "engines": {
         "node": ">=24.16.0"

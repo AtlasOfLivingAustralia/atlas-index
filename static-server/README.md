@@ -2,7 +2,23 @@
 
 This is intended for local development only.
 
-This directory contains static files that are served by the web server.
+This directory contains static files (header/footer/css/js, banner messages, and generated data such as
+regionsList.json/dashboard.json) that are served over HTTP on port 8082.
+
+## Automatic (recommended)
+
+Every `-ui` app's `yarn run dev` automatically serves this `static` directory on port 8082 via a vite dev plugin
+(`viteStaticServerPlugin`, from `common-ui`). There is no need to manually start a static file server for normal
+development — just run `yarn run dev` in the app you're working on.
+
+If port 8082 is already in use (e.g. you still have a manual `http-server` instance running, per below), the plugin
+detects this and leaves the existing server alone rather than failing.
+
+## Manual (optional)
+
+A manual static file server is still useful for standalone use, e.g. when previewing a production build
+(`vite preview`, which does not run dev-only vite plugins) or when nothing else on the network path exposes this
+directory.
 
 # Installation
 

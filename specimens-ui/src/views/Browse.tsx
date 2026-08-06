@@ -240,11 +240,15 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                     } else {
                         setLoadStatus('error');
                     }
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    return null;
                 }
                 return response.json();
             })
             .then((data) => {
+                if (!data) {
+                    return;
+                }
+
                 // do not update these if we are loading more images
                 if (currentOffset == 0) {
                     if (entityUid) {
@@ -612,9 +616,11 @@ function Browse({ setBreadcrumbs }: BrowseProps) {
                             type="checkbox"
                             id="firstImageOnly"
                             checked={fqFirstImageOnly}
-                            onChange={(e) =>
-                                setFqFirstImageOnly(e.target.checked)
-                            }
+                            onChange={(e) => {
+                                // reset results before re-fetching with the new filter
+                                resetResults();
+                                setFqFirstImageOnly(e.target.checked);
+                            }}
                         />
                     </div>
                     <div className="d-flex justify-content-end">

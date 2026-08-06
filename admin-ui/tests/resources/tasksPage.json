@@ -1,0 +1,31 @@
+{
+    "content": [
+        {
+            "id": "task-001",
+            "status": "FINISHED",
+            "created": "2026-07-01T10:00:00Z",
+            "started": "2026-07-01T10:00:01Z",
+            "liveness": "2026-07-01T10:00:05Z",
+            "queueRequest": {
+                "taskType": "SEARCH_DOWNLOAD_V2",
+                "email": "user@example.com"
+            },
+            "statusUrl": "http://localhost:8081/v2/status/task-001",
+            "cancelUrl": null
+        },
+        {
+            "id": "task-002",
+            "status": "RUNNING",
+            "created": "2026-07-02T10:00:00Z",
+            "started": "2026-07-02T10:00:01Z",
+            "liveness": "2026-07-02T10:00:05Z",
+            "queueRequest": {
+                "taskType": "FIELDGUIDE_V2",
+                "email": "user2@example.com"
+            },
+            "statusUrl": "http://localhost:8081/v2/status/task-002",
+            "cancelUrl": "http://localhost:8081/v2/cancel/task-002"
+        }
+    ],
+    "totalPages": 1
+}

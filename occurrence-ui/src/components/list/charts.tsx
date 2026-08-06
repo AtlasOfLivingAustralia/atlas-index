@@ -6,7 +6,8 @@
 
 import { ArcElement, BarElement, CategoryScale, Chart, Legend, LinearScale, Tooltip } from 'chart.js';
 import { useEffect, useState } from 'react';
-import { IntlShape, useIntl } from 'react-intl';
+import { IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import chartConfig from '../../config/charts.json';
 import {getQc} from "../../util/util.tsx";
 import HorizontalBarChart from './horizontalBarChart.tsx';

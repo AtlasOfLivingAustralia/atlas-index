@@ -7,10 +7,13 @@
 import styles from "./fontAwesomeIconLite.module.css";
 
 const FontAwesomeIconLite = (props: any) => {
-    return <svg aria-hidden="true" focusable="false"
+    return <svg aria-hidden={props.title ? undefined : "true"}
+                role={props.title ? "img" : undefined}
+                focusable="false"
                 className={styles.svgInline + (props.className ? " " + props.className : "")}
                 style={{...props.style}}
                 xmlns="http://www.w3.org/2000/svg" viewBox={"0 0 " + props.icon.icon[0] + " " + props.icon.icon[1]}>
+        {props.title && <title>{props.title}</title>}
         <path fill="currentColor" d={props.icon.icon[4]}></path>
     </svg>
 }

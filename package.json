@@ -13,6 +13,10 @@
     "specimens-ui"
   ],
   "packageManager": "yarn@4.16.0",
+  "scripts": {
+    "test": "yarn workspaces foreach --all run test",
+    "test:playwright": "yarn workspaces foreach --all run test:playwright"
+  },
   "engines": {
     "node": ">=24.16.0"
   },

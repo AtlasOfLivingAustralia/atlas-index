@@ -7,7 +7,8 @@
 import {useUser} from "@ala/common-ui";
 import { useState } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import { RecordResult } from '../../api/model.tsx';
 import { translate } from '../../util/util.tsx';
 

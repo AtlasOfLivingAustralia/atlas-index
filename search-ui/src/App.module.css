@@ -10,9 +10,11 @@
     background-position: right -70px top -20px;
 
     background-color: #f2f2f2;
+}
 
-    /* Mobile Sizes */
-    @media (max-width: calc(48em - 1px)) {
+/* Mobile Sizes */
+@media (max-width: calc(48em - 1px)) {
+    .header {
         display: none;
     }
 }
@@ -25,9 +27,11 @@
 
     background-color: #f2f2f2;
     background-image: url('/logo/logo-back-light.svg');
+}
 
-    /* Mobile Sizes */
-    @media (max-width: calc(48em - 1px)) {
+/* Mobile Sizes */
+@media (max-width: calc(48em - 1px)) {
+    .speciesHeader {
         display: none;
     }
 }

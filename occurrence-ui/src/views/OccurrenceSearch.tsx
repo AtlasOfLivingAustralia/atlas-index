@@ -10,7 +10,8 @@ import L, {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef} from "react";
 import {Tab, Tabs} from "react-bootstrap";
 import {Typeahead} from "react-bootstrap-typeahead";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import {EditControl} from "react-leaflet-draw";
 import 'leaflet-draw'; // side-effect: mutates global L with Draw tools
 import {useNavigate} from "react-router-dom";
@@ -204,12 +205,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             .openOn(mapRef.current!);
 
         // 3. Fetch counts
-        const resp1 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/search?${terms}&facet=false&pageSize=0${getQc()}`);
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${terms}&facet=false&pageSize=0${getQc()}`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`https://biocache-ws.ala.org.au/ws/occurrences/facets?${terms}&facets=scientificName${getQc()}`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${terms}&facets=scientificName${getQc()}`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();

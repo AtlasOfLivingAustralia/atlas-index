@@ -1,0 +1,49 @@
+[
+    {
+        "BHLType": "Part",
+        "Authors": [{ "Name": "Gould, John" }],
+        "Title": "The Birds of Australia",
+        "PartUrl": "https://www.biodiversitylibrary.org/part/12345",
+        "ContainerTitle": "Birds of Australia",
+        "Volume": "4",
+        "Date": "1852"
+    },
+    {
+        "BHLType": "Item",
+        "Authors": [{ "Name": "Smith, Jane" }, { "Name": "Brown, Robert" }],
+        "Title": "Falconiformes of the Southern Hemisphere",
+        "ItemUrl": "https://www.biodiversitylibrary.org/item/54321",
+        "ContainerTitle": "Ibis",
+        "PublicationDate": "1901"
+    },
+    {
+        "BHLType": "Part",
+        "Authors": [{ "Name": "Lee, Amy" }, { "Name": "Wong, David" }, { "Name": "Nguyen, Tran" }],
+        "Title": "Notes on the Grey Falcon",
+        "PartUrl": "https://www.biodiversitylibrary.org/part/99887",
+        "PublisherName": "Royal Society",
+        "Issue": "3",
+        "Date": "1978"
+    },
+    {
+        "BHLType": "Part",
+        "Authors": [{ "Name": "Mathews, Gregory" }],
+        "ContainerTitle": "Austral Avian Record",
+        "Volume": "2",
+        "Date": "1913"
+    },
+    {
+        "BHLType": "Part",
+        "Authors": [{ "Name": "Campbell, A" }, { "Name": "Barnard, H" }],
+        "Title": "Nests and Eggs of Australian Birds",
+        "PartUrl": "https://www.biodiversitylibrary.org/part/22222",
+        "Date": "1901"
+    },
+    {
+        "BHLType": "Part",
+        "Authors": [{ "Name": "Extra, Author" }],
+        "Title": "Should not appear - beyond maxBhlSize cap of 5",
+        "PartUrl": "https://www.biodiversitylibrary.org/part/00000",
+        "Date": "2000"
+    }
+]

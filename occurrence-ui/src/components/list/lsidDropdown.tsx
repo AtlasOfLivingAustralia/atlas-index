@@ -6,7 +6,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {getQc} from "../../util/util.tsx";
 
 interface LsidDropdownProps {

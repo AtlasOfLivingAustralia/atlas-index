@@ -9,7 +9,8 @@ import { faArrowLeft, faArrowRight, faLock, faRightLeft } from '@fortawesome/fre
 import { JSX, useEffect, useState } from 'react';
 
 import { Breadcrumb, FontAwesomeIconLite, NotFound, useUser } from '@ala/common-ui';
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import {useLocation, useNavigate, useParams} from "react-router-dom";
 import {RecordResult} from "../api/model.tsx";
 import ApiModal from '../components/apiModal.tsx';

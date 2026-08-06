@@ -170,7 +170,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             enabled: false,
             isDefault: false,
             categories: [],
-            displayOrder: profiles.length,
+            displayOrder: profiles.length === 0 ? 0 : Math.max(...profiles.map(f => f.displayOrder ?? 0)) + 1
         });
         setTab('profile');
     }
@@ -273,6 +273,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 <thead>
                                 <tr>
                                     <th>Id</th>
+                                    <th>Display order</th>
                                     <th>Name</th>
                                     <th>short-name</th>
                                     <th>enabled</th>
@@ -283,6 +284,7 @@ function DataQualityAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
                                 {profiles && profiles.slice().sort((a, b) => a.id - b.id).map((profileItem, idx) => (
                                     <tr key={idx}>
                                         <td>{profileItem.id}</td>
+                                        <td>{profileItem.displayOrder}</td>
                                         <td className="text-reset">
                                             {profileItem.name}
                                         </td>
