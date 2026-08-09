@@ -1,9 +1,13 @@
 import {Page} from "@playwright/test";
 
-// these will be running, see run-playwright-test.sh
+// this will be running, see run-playwright-test.sh (port is randomly selected
+// there and passed through via env var; falls back to the historical default
+// for ad-hoc/local runs). static-server (port 8082) is not a real running
+// server — its content is served via staticServerMocks.ts's page.route
+// interception instead, so it does not need to be an "allowed origin" here.
+const appPort = process.env.PLAYWRIGHT_APP_PORT ?? '5173';
 const allowedOrigins = new Set<string>([
-    'http://localhost:5173',
-    'http://localhost:8082'
+    `http://localhost:${appPort}`
 ]);
 
 // known external URLs that are safe to block and will not be logged
@@ -13,7 +17,6 @@ const knownExternalUrlPrefixes = [
     'https://www.ala.org.au/app/uploads/',
     'https://www.ala.org.au/app/themes/',
     'https://fonts.googleapis.com',
-    'http://localhost:8081'
 ]
 
 // Log any missing mocks. Apply before other mocks to prevent it from intercepting other implemented mocks.

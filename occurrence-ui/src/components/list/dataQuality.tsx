@@ -5,7 +5,8 @@
  */
 
 import {useState} from "react";
-import {FormattedMessage, IntlShape, useIntl} from "react-intl";
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {DataQualityInfo, QualityCategory} from "../../api/model.tsx";
 import DataQualityCategoryInfoModal from "./dataQualityCategoryInfoModal.tsx";
 import DataQualityExcluded from "./dataQualityExcluded.tsx";

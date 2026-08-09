@@ -5,7 +5,8 @@
  */
 
 import {useEffect, useState} from "react";
-import {FormattedMessage, IntlShape, useIntl} from "react-intl";
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {DqAssertion, RecordResult} from "../../api/model.tsx";
 import React from "react";
 

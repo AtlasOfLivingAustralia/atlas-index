@@ -6,7 +6,8 @@
 
 import { Breadcrumb, handleLogin, useUser } from '@ala/common-ui';
 import { useEffect, useState } from 'react';
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './download.css';
 import DownloadToolbar from '../components/download/DownloadToolbar.tsx';
@@ -62,7 +63,7 @@ const SECTION_GROUP_MAP: { section: string; groups: GroupEntry[] }[] = [
     {
         section: 'misc',
         groups: [
-            { key: 'qualityAssertions',   filter: 'assertion', staticFields: "All QA fields - <a href='https://biocache-ws.ala.org.au/ws/occurrences/search?q=*:*&facets=assertions&pageSize=0&flimit=500' target='_blank'>see the full list</a>" },
+            { key: 'qualityAssertions',   filter: 'assertion', staticFields: `All QA fields - <a href='${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&facets=assertions&pageSize=0&flimit=500' target='_blank'>see the full list</a>` },
             { key: 'miscellaneousFields',                      staticFields: 'All miscellaneous fields' },
             { key: 'dr15515',                                  staticFields: 'WildNet taxon ID field' },
         ],

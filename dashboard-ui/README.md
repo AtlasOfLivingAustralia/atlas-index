@@ -26,7 +26,7 @@ Use [search-service](../search-service) to generate the data found at VITE_APP_D
 Example files:
 
 - For example files, see the [static-server/static/dashboard](../static-server/static/dashboard) project directory.
-- Serve these locally using the [static-server](../static-server) project.
+- These are served automatically on port 8082 by `yarn run dev`, see the [static-server](../static-server) project.
 
 ### Run locally
 
@@ -86,12 +86,11 @@ Playwright tests are included to verify basic functionality. Running in headless
 ```bash
 ./run-playwright-test.sh [workers, default 10]
 ```
-This script will start a local static server to serve common files and the regionsList.json file, then run the tests against a locally running regions-ui instance that is built to use `.env.playwright` for config.
+This script mocks static-server content (via `tests/mocks/staticServerMocks.ts`, rather than starting a real server) to serve common files and the regionsList.json file, then runs the tests against a locally running regions-ui instance that is built to use `.env.playwright` for config.
 - If using a different method, ensure you are using the same config as in `.env.playwright`. See `run-playwright-test.sh` for all environment details.
 - If using playwright ui mode,
-    - start static-server (after running `run-playwright-test.sh` once to copy the required files)
     - copy `.env.playwright` to `.env.local`
     - prepare dashboard.json. `cp ./tests/resources/dashboard.json ../static-server/static/dashboard/dashboard.json`
     - prepare dashboard.zip . `cp ./tests/resources/dashboard.zip ../static-server/static/dashboard/dashboard.zip`
-    - start in dev mode `yarn run dev` so that any changes to the app apply immediately
+    - start in dev mode `yarn run dev` so that any changes to the app apply immediately (this also serves static-server content on port 8082 automatically)
     - then start ui mode `yarn playwright test --ui`, any changes to the tests will apply immediately

@@ -28,7 +28,7 @@ export function translate(intl: IntlShape, text: string | number, field: string 
 }
 
 export function isUrl(value: string | undefined): boolean {
-    if (!value || !(value.startsWith('http://') || value.startsWith('https://'))) {
+    if (!value || /\s/.test(value) || !(value.startsWith('http://') || value.startsWith('https://'))) {
         return false;
     }
     try {

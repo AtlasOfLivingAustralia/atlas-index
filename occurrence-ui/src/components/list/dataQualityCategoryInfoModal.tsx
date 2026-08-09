@@ -6,7 +6,8 @@
 
 import {useEffect, useState} from "react";
 import Modal from "react-bootstrap/esm/Modal";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {DataQualityInfo, IndexFields, QualityCategory} from "../../api/model.tsx";
 import {getQc} from "../../util/util.tsx";
 

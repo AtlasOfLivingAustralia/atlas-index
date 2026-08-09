@@ -5,7 +5,8 @@
  */
 
 import {useUser} from "@ala/common-ui";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import { useState } from 'react';
 import {RecordResult} from "../../api/model.tsx";
 import {translate} from "../../util/util.tsx";

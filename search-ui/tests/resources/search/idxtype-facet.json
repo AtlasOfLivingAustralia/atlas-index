@@ -1,0 +1,17 @@
+{
+    "totalRecords": 87,
+    "facetResults": [
+        {
+            "fieldName": "idxtype",
+            "fieldResult": [
+                { "label": "TAXON", "count": 42 },
+                { "label": "DATARESOURCE", "count": 10 },
+                { "label": "SPECIESLIST", "count": 5 },
+                { "label": "BIOCOLLECT", "count": 8 },
+                { "label": "LAYER", "count": 3 },
+                { "label": "REGION", "count": 4 },
+                { "label": "WORDPRESS", "count": 15 }
+            ]
+        }
+    ]
+}

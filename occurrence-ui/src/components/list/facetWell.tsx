@@ -7,7 +7,8 @@
 import {FontAwesomeIconLite} from "@ala/common-ui";
 import { faCaretDown, faCaretRight, faList } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from "react";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {DataQualityInfo, FacetItem, OccurrenceListResult, QualityCategory, QualityProfile} from "../../api/model.tsx";
 import {getQc} from "../../util/util.tsx";
 import MultipleFacets from "./multipleFacets.tsx";

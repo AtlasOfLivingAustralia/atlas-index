@@ -38,5 +38,23 @@ describe('FontAwesomeIconLite', () => {
         expect(pathElement).toHaveAttribute('fill', 'currentColor');
         expect(pathElement).toHaveAttribute('d', mockIcon.icon[4]);
     });
+
+    it('renders a title element with the given title prop', () => {
+        const mockTitle = 'my accessible title';
+        render(<FontAwesomeIconLite icon={mockIcon} title={mockTitle}/>);
+        const svgElement = document.querySelector('svg');
+        const titleElement = svgElement?.querySelector('title');
+        expect(titleElement).toBeInTheDocument();
+        expect(titleElement).toHaveTextContent(mockTitle);
+        expect(svgElement).not.toHaveAttribute('aria-hidden');
+        expect(svgElement).toHaveAttribute('role', 'img');
+    });
+
+    it('does not render a title element and keeps aria-hidden when no title is passed', () => {
+        render(<FontAwesomeIconLite icon={mockIcon}/>);
+        const svgElement = document.querySelector('svg');
+        expect(svgElement?.querySelector('title')).not.toBeInTheDocument();
+        expect(svgElement).toHaveAttribute('aria-hidden', 'true');
+    });
 });
 

@@ -1,0 +1,39 @@
+{
+    "totalRecords": 3,
+    "searchResults": [
+        {
+            "idxtype": "SPECIESLIST",
+            "guid": "https://lists.ala.org.au/speciesListItem/list/dr781",
+            "name": "Iconic Species List",
+            "type": "AUTHORITATIVE_LIST",
+            "itemCount": 250,
+            "description": "A curated list of iconic Australian species."
+        },
+        {
+            "idxtype": "SPECIESLIST",
+            "guid": "https://lists.ala.org.au/speciesListItem/list/dr650",
+            "name": "EPBC Act Threatened Species List",
+            "type": "CONSERVATION_LIST",
+            "itemCount": 1900,
+            "description": "Species listed under the Environment Protection and Biodiversity Conservation Act 1999."
+        },
+        {
+            "idxtype": "SPECIESLIST",
+            "guid": "https://lists.ala.org.au/speciesListItem/list/dr900",
+            "name": "AusTraits Species List",
+            "type": "TRAIT_LIST",
+            "itemCount": 30000,
+            "description": "Species for which AusTraits trait data is available."
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "type",
+            "fieldResult": [
+                { "label": "AUTHORITATIVE_LIST", "count": 1 },
+                { "label": "CONSERVATION_LIST", "count": 1 },
+                { "label": "TRAIT_LIST", "count": 1 }
+            ]
+        }
+    ]
+}

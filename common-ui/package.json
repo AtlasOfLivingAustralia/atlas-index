@@ -8,7 +8,8 @@
     ],
     "scripts": {
         "check-types": "tsc --noEmit",
-        "test": "jest --passWithNoTests"
+        "test": "jest --passWithNoTests",
+        "test:watch": "jest --passWithNoTests --coverage=false --watch"
     },
     "exports": {
         ".": {
@@ -16,6 +17,9 @@
         },
         "./viteEnvCheckPlugin": {
             "import": "./src/viteEnvCheckPlugin.ts"
+        },
+        "./viteStaticServerPlugin": {
+            "import": "./src/viteStaticServerPlugin.ts"
         }
     },
     "peerDependencies": {
@@ -44,8 +48,8 @@
         "@fortawesome/free-regular-svg-icons": "^7.2.0",
         "@fortawesome/free-solid-svg-icons": "^7.2.0",
         "@fortawesome/react-fontawesome": "^3.3.1",
-        "@playwright/experimental-ct-react": "^1.60.0",
-        "@playwright/test": "^1.60.0",
+        "@playwright/experimental-ct-react": "^1.62.0",
+        "@playwright/test": "^1.62.0",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
@@ -66,7 +70,7 @@
         "jest": "^30.4.2",
         "jest-environment-jsdom": "^30.4.1",
         "jest-transform-css": "^6.0.3",
-        "playwright": "^1.60.0",
+        "playwright": "^1.62.0",
         "postcss": "^8.5.15",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",

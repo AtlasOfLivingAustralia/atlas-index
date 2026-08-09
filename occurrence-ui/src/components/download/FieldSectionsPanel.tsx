@@ -6,7 +6,8 @@
 
 import { FontAwesomeIconLite } from '@ala/common-ui';
 import { faCog, faQuestionCircle, faToggleOn, faToggleOff } from '@fortawesome/free-solid-svg-icons';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import RolloverTooltip from '../rolloverTooltip.tsx';
 import './fieldSectionsPanel.css';
 

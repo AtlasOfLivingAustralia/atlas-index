@@ -40,8 +40,7 @@ Delete the `regionsList*.json` files in the project directory to trigger a rebui
 Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) configuration and deployment information.
 
 ### Local development
-1. Start a static server, see [static-server](../static-server/README.md).
-2. Link the `common-ui` package. Refer to the [common-ui README](../common-ui/README.md) for instructions.
+1. Link the `common-ui` package. Refer to the [common-ui README](../common-ui/README.md) for instructions.
 
 Run `buildRegions.js` to produce a `regionsList.json` file.
 
@@ -53,8 +52,8 @@ Update `.env.local` with the URL to this `regionsList.json` file in `.env.local:
 
 Example:
 
-- copy the `regionsList.json` file to the `static-server/static/regions/` directory.
-- start the static server, see [static-server](../static-server/README.md).
+- copy the `regionsList.json` file to the `static-server/static/regions/` directory (this is served automatically
+  on port 8082 by `yarn run dev`, see [static-server](../static-server/README.md)).
 - use `.env.local:VITE_REGIONS_CONFIG_URL=http://localhost:8082/static/regions/regionsList.json`
 
 ### Install dependencies and run the development server
@@ -125,11 +124,10 @@ Playwright tests are included to verify basic functionality. Running in headless
 ```bash
 ./run-playwright-test.sh [workers, default 10]
 ```
-This script will start a local static server to serve common files and the regionsList.json file, then run the tests against a locally running regions-ui instance that is built to use `.env.playwright` for config. 
+This script mocks static-server content (via `tests/mocks/staticServerMocks.ts`, rather than starting a real server) to serve common files and the regionsList.json file, then runs the tests against a locally running regions-ui instance that is built to use `.env.playwright` for config. 
 - If using a different method, ensure you are using the same config as in `.env.playwright`. See `run-playwright-test.sh` for all environment details.
 - If using playwright ui mode, 
-  - start static-server (after running `run-playwright-test.sh` once to copy the required files)
   - copy `.env.playwright` to `.env.local`
   - prepare regionsList.json. `cp tests/resources/regionsList.json ../static-server/static/regions/regionsList.json` then update the new `.env.local` with `VITE_REGIONS_CONFIG_URL=http://localhost:8082/static/regions/regionsList.json`
-  - start in dev mode `yarn run dev` so that any changes to the app apply immediately
+  - start in dev mode `yarn run dev` so that any changes to the app apply immediately (this also serves static-server content on port 8082 automatically)
   - then start ui mode `yarn playwright test --ui`, any changes to the tests will apply immediately

@@ -1,0 +1,39 @@
+{
+    "totalRecords": 3,
+    "searchResults": [
+        {
+            "idxtype": "WORDPRESS",
+            "guid": "https://support.ala.org.au/support/solutions/articles/6000261662-citing-the-ala",
+            "name": "Citing the ALA",
+            "description": "How to correctly cite data and information sourced from the Atlas of Living Australia.",
+            "classification1": "Governance",
+            "image": null
+        },
+        {
+            "idxtype": "KNOWLEDGEBASE",
+            "guid": "https://support.ala.org.au/support/solutions/articles/6000200000-sharing-a-dataset-with-the-ala",
+            "name": "Sharing a dataset with the ALA",
+            "description": "Steps for data custodians to share a new dataset with the Atlas of Living Australia.",
+            "classification1": ["Support", "Data sharing"],
+            "image": null
+        },
+        {
+            "idxtype": "WORDPRESS",
+            "guid": "https://support.ala.org.au/support/solutions/articles/6000300000-how-to-make-a-sighting-record",
+            "name": "How to make a sighting record",
+            "description": "A guide on how to submit a new species sighting record to the ALA.",
+            "classification1": "How to",
+            "image": null
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "classification1",
+            "fieldResult": [
+                { "label": "Governance", "count": 1 },
+                { "label": "Support", "count": 1 },
+                { "label": "How to", "count": 1 }
+            ]
+        }
+    ]
+}

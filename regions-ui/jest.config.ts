@@ -4,8 +4,10 @@ const config: Config = {
     verbose: true,
     testEnvironment: 'jsdom',
     transform: {
-        '^.+\\.css$': 'jest-transform-css',
         '^.+\\.(ts|tsx)$': 'babel-jest',
+    },
+    moduleNameMapper: {
+        '\\.css$': '<rootDir>/jest.cssMock.js',
     },
     setupFiles: ['./jest.setup.ts'],
     testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],

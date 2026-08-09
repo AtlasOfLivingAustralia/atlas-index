@@ -1,0 +1,79 @@
+{
+    "totalRecords": 6,
+    "searchResults": [
+        {
+            "idxtype": "DATARESOURCE",
+            "guid": "https://collections.ala.org.au/public/show/dr1",
+            "name": "eBird Australia",
+            "description": "Bird observation records contributed via the eBird citizen science platform.",
+            "occurrenceCount": 900000
+        },
+        {
+            "idxtype": "DATARESOURCE",
+            "guid": "https://collections.ala.org.au/public/show/dr2",
+            "name": "ALA specimen records",
+            "description": "Aggregated specimen occurrence records from Australian museums and herbaria.",
+            "occurrenceCount": 334000
+        },
+        {
+            "idxtype": "COLLECTION",
+            "guid": "https://collections.ala.org.au/public/show/co1",
+            "name": "Australian National Wildlife Collection",
+            "description": "A collection of vertebrate and invertebrate specimens held by CSIRO.",
+            "occurrenceCount": 120000
+        },
+        {
+            "idxtype": "INSTITUTION",
+            "guid": "https://collections.ala.org.au/public/show/in1",
+            "name": "CSIRO",
+            "description": "Australia's national science agency.",
+            "occurrenceCount": 500000
+        },
+        {
+            "idxtype": "DATAPROVIDER",
+            "guid": "https://collections.ala.org.au/public/show/dp1",
+            "name": "GBIF Australia",
+            "description": "Global Biodiversity Information Facility Australian node.",
+            "occurrenceCount": 0
+        },
+        {
+            "idxtype": "DATARESOURCE",
+            "guid": "https://collections.ala.org.au/public/show/dr3",
+            "name": "iNaturalist Australia",
+            "description": "Citizen science observations shared via iNaturalist.",
+            "occurrenceCount": 210000
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "license",
+            "fieldResult": [
+                { "label": "CC BY 4.0", "count": 4 },
+                { "label": "CC0", "count": 2 }
+            ]
+        },
+        {
+            "fieldName": "state",
+            "fieldResult": [
+                { "label": "Victoria", "count": 3 },
+                { "label": "New South Wales", "count": 2 }
+            ]
+        },
+        {
+            "fieldName": "idxtype",
+            "fieldResult": [
+                { "label": "DATARESOURCE", "count": 3 },
+                { "label": "COLLECTION", "count": 1 },
+                { "label": "INSTITUTION", "count": 1 },
+                { "label": "DATAPROVIDER", "count": 1 }
+            ]
+        },
+        {
+            "fieldName": "resourceType",
+            "fieldResult": [
+                { "label": "occurrence", "count": 3 },
+                { "label": "checklist", "count": 1 }
+            ]
+        }
+    ]
+}

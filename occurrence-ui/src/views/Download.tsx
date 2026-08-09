@@ -2,7 +2,8 @@ import { Breadcrumb, FontAwesomeIconLite, handleLogin, useUser } from '@ala/comm
 import { faFilePdf, faListAlt } from '@fortawesome/free-regular-svg-icons';
 import { faCheck, faChevronRight, faQuestionCircle, faTable, faTags } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './download.css';
 import RolloverTooltip from '../components/rolloverTooltip.tsx';
@@ -98,10 +99,10 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
                 '&downloadFormat=' + encodeURIComponent(downloadFormat) +
                 '&fileType=' + encodeURIComponent(fileType) +
                 '&downloadType=' + encodeURIComponent(downloadType) +
-                '&downloadReason=' + encodeURIComponent(downloadReason)) +
+                '&downloadReason=' + encodeURIComponent(downloadReason) +
                 (layers ? '&layers=' + encodeURIComponent(layers) : '') +
                 (customHeader ? '&customHeader=' + encodeURIComponent(customHeader) : '') +
-                (layersServiceUrl ? '&layersServiceUrl=' + encodeURIComponent(layersServiceUrl) : '');
+                (layersServiceUrl ? '&layersServiceUrl=' + encodeURIComponent(layersServiceUrl) : ''));
             return
         }
 

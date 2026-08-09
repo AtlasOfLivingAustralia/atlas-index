@@ -5,7 +5,8 @@
  */
 
 import Modal from "react-bootstrap/esm/Modal";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import CopyTooltip from './copyTooltip.tsx';
 
 interface ApiModalProps {

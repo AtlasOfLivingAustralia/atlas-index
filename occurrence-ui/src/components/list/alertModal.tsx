@@ -5,8 +5,8 @@
  */
 
 import Modal from "react-bootstrap/Modal";
-import { FormattedMessage, IntlShape, useIntl } from 'react-intl';
-
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 interface AlertModalProps {
     onClose: () => void,
     results: any,

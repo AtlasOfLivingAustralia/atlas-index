@@ -1,0 +1,19 @@
+{
+    "schema": {
+        "table": "banner",
+        "label": "Banner Messages",
+        "fields": [
+            { "name": "id", "type": "int", "required": true, "primaryKey": true, "readOnly": true },
+            { "name": "message", "type": "string", "required": true, "primaryKey": false, "readOnly": false },
+            { "name": "enabled", "type": "boolean", "required": false, "primaryKey": false, "readOnly": false }
+        ]
+    },
+    "content": [
+        { "id": 1, "message": "Scheduled maintenance tonight", "enabled": true },
+        { "id": 2, "message": "New release deployed", "enabled": false }
+    ],
+    "totalElements": 2,
+    "totalPages": 1,
+    "number": 0,
+    "size": 50
+}

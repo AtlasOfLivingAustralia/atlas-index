@@ -1,0 +1,39 @@
+{
+    "totalRecords": 2,
+    "searchResults": [
+        {
+            "idxtype": "LAYER",
+            "guid": "https://spatial.ala.org.au/layers/view/more/cl22",
+            "name": "IBRA 7 Subregions",
+            "keywords": "bioregion, ibra, climate",
+            "source": "Department of Climate Change, Energy, the Environment and Water",
+            "description": "Interim Biogeographic Regionalisation for Australia, version 7, subregions.",
+            "image": null
+        },
+        {
+            "idxtype": "LAYER",
+            "guid": "https://spatial.ala.org.au/layers/view/more/el874",
+            "name": "Annual mean temperature",
+            "keywords": "climate, temperature",
+            "source": "BIOCLIM",
+            "description": "Annual mean temperature (Bio01), interpolated climate surface.",
+            "image": null
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "type",
+            "fieldResult": [
+                { "label": "Contextual", "count": 1 },
+                { "label": "Environmental", "count": 1 }
+            ]
+        },
+        {
+            "fieldName": "classification",
+            "fieldResult": [
+                { "label": "Biotic|Vegetation", "count": 1 },
+                { "label": "Climate|Rainfall and Temperature", "count": 1 }
+            ]
+        }
+    ]
+}

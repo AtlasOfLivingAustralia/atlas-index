@@ -5,7 +5,8 @@
  */
 
 import { ReactElement, useEffect, useMemo, useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import { Breadcrumb } from '@ala/common-ui';
 import { useQueryState } from 'nuqs';
 
@@ -347,7 +348,7 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                                             <FormattedMessage id='downloads.fields.description' defaultMessage='Description' />
                                         </th>
                                         <th>
-                                            <FormattedMessage id='downloads.fields.download.descriptio' defaultMessage='Download description' />
+                                            <FormattedMessage id='downloads.fields.download.description' defaultMessage='Download description' />
                                         </th>
                                         <th>
                                             <FormattedMessage id='downloads.fields.furtherinformation' defaultMessage='Further information' />

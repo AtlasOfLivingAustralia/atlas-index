@@ -1,0 +1,10 @@
+{
+    "categorical_traits": [
+        { "trait_name": "leaf_type", "trait_values": "compound, simple*", "definition": "https://w3id.org/APD#leaf_type" },
+        { "trait_name": "life_history", "trait_values": "perennial", "definition": "https://w3id.org/APD#life_history" }
+    ],
+    "numeric_traits": [
+        { "trait_name": "plant_height", "min": 2.5, "mean": 8.0, "max": 15.0, "unit": "m", "definition": "https://w3id.org/APD#plant_height" },
+        { "trait_name": "seed_mass", "min": 0.01, "mean": 0.05, "max": 0.12, "unit": "g", "definition": "https://w3id.org/APD#seed_mass" }
+    ]
+}

@@ -9,7 +9,8 @@ import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import { RecordResult } from '../../api/model.tsx';
 
 interface AssertionCode {

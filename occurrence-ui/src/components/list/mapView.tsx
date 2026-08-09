@@ -8,7 +8,8 @@ import {FontAwesomeIconLite} from "@ala/common-ui";
 import { faDownload, faMapMarker } from '@fortawesome/free-solid-svg-icons';
 import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
 import ReactDOM from "react-dom/client";
-import {FormattedMessage, IntlShape, useIntl} from "react-intl";
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import { FeatureGroup, LayersControl, MapContainer, TileLayer, WMSTileLayer, useMapEvents, useMap, ScaleControl } from 'react-leaflet';
 import {EditControl} from "react-leaflet-draw";
 import 'leaflet-draw'; // side-effect: mutates global L with Draw tools

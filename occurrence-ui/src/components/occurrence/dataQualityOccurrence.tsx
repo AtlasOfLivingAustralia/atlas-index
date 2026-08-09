@@ -12,7 +12,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import {useEffect, useRef, useState} from "react";
 import {Overlay, Popover} from "react-bootstrap";
-import {FormattedMessage, IntlShape, useIntl} from "react-intl";
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import {DqAssertion, RecordResult, SystemAssertion} from "../../api/model.tsx";
 import React from "react";
 import {FontAwesomeIconLite} from '@ala/common-ui';

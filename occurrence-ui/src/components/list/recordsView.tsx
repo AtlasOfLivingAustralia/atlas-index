@@ -7,7 +7,8 @@
 import {FontAwesomeIconLite} from "@ala/common-ui";
 import {faImage} from "@fortawesome/free-regular-svg-icons";
 import { useState } from 'react';
-import { FormattedMessage, useIntl } from 'react-intl';
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 import { Link, useNavigate } from 'react-router-dom';
 import {Occurrence, OccurrenceListResult } from '../../api/model.tsx';
 import AlertModal from './alertModal.tsx';

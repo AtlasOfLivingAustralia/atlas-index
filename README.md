@@ -1,7 +1,7 @@
 # Atlas search 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/AtlasOfLivingAustralia/atlas-index)
 
-Work in progress aggregation of services and UI for the Atlas of Living Australia. 
+Work in progress aggregation of services and UI for the Atlas of Living Australia.
 
 - Using Spring Boot, React, Elasticsearch, PostgresSQL, and RabbitMQ.
 - Suitable for Kubernetes deployment.
@@ -16,12 +16,12 @@ It is a work in progress and subject to change.
 | [dashboard-ui](dashboard-ui)             | https://github.com/AtlasOfLivingAustralia/dashboard (UI)                                                              | 100%     |
 | [doi-ui](doi-ui)                         | https://github.com/AtlasOfLivingAustralia/doi-service (UI)                                                            | 100%     |
 | [names-extract](names-extract)           | New data preparation tool                                                                                             | 100%     |
-| [occurrence-ui](occurrence-ui)           | https://github.com/AtlasOfLivingAustralia/ala-hub (UI)                                                                | 50%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/biocache-hub (UI)                                                           | 50%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/downloads-plugin (UI)                                                       | 80%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/ala-charts-plugin (UI)                                                      | 80%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/avh-hub (UI)                                                                | 80%      |
-|                                          | https://github.com/AtlasOfLivingAustralia/ozcam-hub (UI)                                                              | 80%      |
+| [occurrence-ui](occurrence-ui)           | https://github.com/AtlasOfLivingAustralia/ala-hub (UI)                                                                | 90%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/biocache-hub (UI)                                                           | 90%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/downloads-plugin (UI)                                                       | 90%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/ala-charts-plugin (UI)                                                      | 90%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/avh-hub (UI)                                                                | 90%      |
+|                                          | https://github.com/AtlasOfLivingAustralia/ozcam-hub (UI)                                                              | 90%      |
 | [regions-ui](regions-ui)                 | https://github.com/AtlasOfLivingAustralia/regions (UI)                                                                | 100%     |
 | [sds-ui](sds-ui)                         | https://github.com/AtlasOfLivingAustralia/ala-sensitive-data-service/tree/master/ala-sds-static-home (UI) | 100%     |
 | [search-service](search-service)         | https://github.com/AtlasOfLivingAustralia/bie-index (service)                                                         | 90%      |
@@ -54,8 +54,9 @@ It is a work in progress and subject to change.
 * [search-test](search-test) - Java application for comparing GET responses of bie-index and search-service.
 * [search-ui](search-ui) - Pages to search the search-service index and display species information.
 * [specimens-ui](specimens-ui) - Pages to search and display specimen information for some sources.
-* [static-server](static-server) - Development only file server for serving static files. Production should use a proper
-  file server.
+* [static-server](static-server) - Development only static file content (header/footer/css/js, banner messages, and
+  generated data such as regionsList.json/dashboard.json). Each `-ui` app's `yarn run dev` automatically serves this
+  content on port 8082, so this does not need to be run separately. Production should use a proper file server.
 * [taxon-descriptions](taxon-descriptions) - Java application for generating taxon descriptions from profiles,
   wikipedia, species-lists, and other sources.
 
@@ -68,21 +69,47 @@ To prepare the search-service and other UI requirements for local development, f
 3. (Optional) [Harvest taxon descriptions for search-service and search-ui](taxon-descriptions/README.md) (or fetch from
    the ALA internal bucket)
 4. (Optional) [Harvest taxon bhl information for search-service and search-ui](taxon-bhl/README.md) (or fetch from
-      the ALA internal bucket)
+   the ALA internal bucket)
 5. (Optional) [Harvest taxon map information for search-service and search-ui](taxon-map/README.md) (or fetch from
-      the ALA internal bucket)
+   the ALA internal bucket)
 6. (Optional) [Harvest taxon traits information for search-service and search-ui](taxon-traits/README.md) (or fetch from
-      the ALA internal bucket)
+   the ALA internal bucket)
 7. [Start search-service after setting up Elasticsearch, PostgreSQL, RabbitMQ and configuring authentication](search-service/README.md)
-8. [Serve static files for UI pages using static-server](static-server/README.md)
-9. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
+8. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
 
 The user UI applications can now be configured and started.
 
 1. [Start admin-ui](admin-ui/README.md)
 2. [Start dashboard-ui](dashboard-ui/README.md)
 3. [Start doi-ui](doi-ui/README.md)
-4. [Start regions-ui](regions-ui/README.md)
-5. [Start search-ui](search-ui/README.md)
-6. [Start specimens-ui](specimens-ui/README.md)
-7. [Start occurrence-ui](occurrence-ui/README.md)
+4. [Start occurrence-ui](occurrence-ui/README.md)
+5. [Start regions-ui](regions-ui/README.md)
+6. [Start sds-ui](sds-ui/README.md)
+7. [Start search-ui](search-ui/README.md)
+8. [Start specimens-ui](specimens-ui/README.md)
+
+### Testing commands
+
+UI unit tests
+```shell
+# at project root, run all tests in all workspaces
+yarn test
+```
+
+UI playwright tests (requires playwright installed and configured)
+```shell
+# at project root, run all tests in all workspaces
+# yarn test:playwright <number of workers | 10>
+yarn test:playwright
+```
+
+search-service unit tests
+```shell
+mvn test -pl search-service -Dtest='!*IntegrationTest'
+```
+
+search-service integration tests (requires Docker running locally for Testcontainers)
+```shell
+mvn test -pl search-service -Dtest='*IntegrationTest'
+```
+

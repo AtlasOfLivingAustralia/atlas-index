@@ -1,0 +1,99 @@
+{
+    "guid": "https://biodiversity.org.au/afd/taxa/d03c4b24-5222-4781-a8ee-0aa8f905f4f7",
+    "name": "Falco hypoleucos",
+    "scientificName": "Falco hypoleucos",
+    "nameFormatted": "<i>Falco hypoleucos</i>",
+    "rank": "species",
+    "rankID": 7000,
+    "rankOrder": "kingdom,phylum,class,order,family,genus",
+    "rk_kingdom": "Animalia",
+    "rkid_kingdom": "https://biodiversity.org.au/afd/taxa/kingdom-animalia",
+    "rk_phylum": "Chordata",
+    "rkid_phylum": "https://biodiversity.org.au/afd/taxa/phylum-chordata",
+    "rk_class": "Aves",
+    "rkid_class": "https://biodiversity.org.au/afd/taxa/class-aves",
+    "rk_order": "Falconiformes",
+    "rkid_order": "https://biodiversity.org.au/afd/taxa/order-falconiformes",
+    "rk_family": "Falconidae",
+    "rkid_family": "https://biodiversity.org.au/afd/taxa/family-falconidae",
+    "rk_genus": "Falco",
+    "rkid_genus": "https://biodiversity.org.au/afd/taxa/genus-falco",
+    "commonName": ["Grey Falcon"],
+    "commonNameSingle": "Grey Falcon",
+    "speciesGroup": ["Animals", "Birds"],
+    "heroDescription": "The Grey Falcon (<i>Falco hypoleucos</i>) is a rare, medium-sized falcon endemic to mainland Australia, favouring arid and semi-arid inland regions.",
+    "image": "img-hero-001,img-thumb-002,img-thumb-003",
+    "hiddenImages_s": ["img-hidden-999"],
+    "occurrenceCount": 4200,
+    "nativeIntroduced": "{\"South Australia\":\"native\",\"Western Australia\":\"introduced and invasive\"}",
+    "sds_actStatus": "Endangered",
+    "listNames": {
+        "dr123": "IUCN Red List",
+        "dr456": "EPBC Act"
+    },
+    "iucn_dr123_s": "Vulnerable",
+    "conservation_dr456": "Endangered",
+    "vernacularData": [
+        {
+            "name": "Waitj",
+            "status": "traditionalKnowledge",
+            "languageName": "Noongar",
+            "language": "nys",
+            "source": "https://profiles.ala.org.au/opus/noongar/profile/fc0b2445-576b-4dc8-9f2a-582abf7897c7",
+            "languageURL": "https://aiatsis.gov.au/languages/nys"
+        },
+        {
+            "name": "Kirrkirrpa",
+            "status": "traditionalKnowledge",
+            "languageName": "Western Desert",
+            "language": "wbp",
+            "source": "https://profiles.ala.org.au/opus/westerndesert/profile/kirrkirrpa"
+        },
+        {
+            "name": "Grey Falcon",
+            "status": "common",
+            "source": "https://biodiversity.org.au/afd/taxa/common-name"
+        }
+    ],
+    "source": "https://biodiversity.org.au",
+    "datasetName": "Australian Faunal Directory",
+    "nameAccordingTo": "(Gould, 1852)",
+    "namePublishedIn": "Birds Austral. 4",
+    "synonymData": [
+        {
+            "nameFormatted": "<i>Hieracidea hypoleucos</i>",
+            "source": "https://biodiversity.org.au/afd/taxa/syn1",
+            "datasetName": "AFD",
+            "nameAccordingTo": "Gould, 1852",
+            "namePublishedInYear": "1852"
+        },
+        {
+            "nameFormatted": "<i>Falco (Hierofalco) hypoleucos</i>",
+            "source": "https://biodiversity.org.au/afd/taxa/syn2",
+            "datasetName": "AFD",
+            "namePublishedInYear": "1918"
+        },
+        {
+            "nameFormatted": "<i>Aquila hypoleucos</i>",
+            "datasetName": "AFD"
+        }
+    ],
+    "variantData": [
+        {
+            "nameFormatted": "Falco hypoleuca",
+            "datasetName": "AFD"
+        }
+    ],
+    "identifierData": [
+        {
+            "guid": "https://www.marine.csiro.au/data/caab/taxon_report.cfm?caab_code=27531011",
+            "source": "https://www.marine.csiro.au/data/caab/taxon_report.cfm?caab_code=27531011",
+            "datasetName": "CAAB"
+        },
+        {
+            "guid": "urn:lsid:biodiversity.org.au:afd.taxon:d03c4b24-5222-4781-a8ee-0aa8f905f4f7",
+            "datasetName": "AFD"
+        }
+    ],
+    "distributions": "[{\"geomIdx\":\"101\",\"dataResourceUid\":\"dr500\",\"areaName\":\"Falcon expert range\",\"dataResourceName\":\"Grey Falcon expert layer\"},{\"geomIdx\":\"102\",\"dataResourceUid\":\"dr501\",\"areaName\":\"IBRA range\",\"dataResourceName\":\"IBRA regions\"}]"
+}

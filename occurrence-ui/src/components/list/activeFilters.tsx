@@ -4,8 +4,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { FormattedMessage, useIntl } from 'react-intl';
-
+import { FormattedMessage } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 interface ActiveFiltersProps {
     queryString: string;
     onRemove: (fq: string) => void;

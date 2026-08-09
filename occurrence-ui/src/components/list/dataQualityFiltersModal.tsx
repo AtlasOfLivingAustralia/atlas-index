@@ -40,7 +40,14 @@ function DataQualityFiltersModal({
             for (let filter of qualityFilters) {
                 let found = false;
                 for (let t of terms) {
-                    if (t === "fq=" + filter.filter) {
+                    let eqIdx = t.indexOf("=");
+                    if (eqIdx === -1) {
+                        continue;
+                    }
+                    let key = t.substring(0, eqIdx);
+                    let rawValue = t.substring(eqIdx + 1);
+                    let value = decodeURIComponent(rawValue.replace(/\+/g, ' '));
+                    if (key === "fq" && value === filter.filter) {
                         found = true;
                     }
                 }

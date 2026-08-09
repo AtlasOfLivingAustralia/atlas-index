@@ -3,6 +3,11 @@
 node_modules/
 /test-results/
 /playwright-report/
+/playwright-live-reports/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Coverage
+/.nyc_output/
+/coverage/

@@ -3,7 +3,8 @@ import config from '../config/downloadConfig.json';
 import './download.css';
 import { faCheckCircle, faDownload} from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
-import { FormattedMessage, IntlShape, useIntl} from 'react-intl';
+import { FormattedMessage, IntlShape } from 'react-intl';
+import { useIntl } from '../util/useIntl';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {getQc} from "../util/util.tsx";
 

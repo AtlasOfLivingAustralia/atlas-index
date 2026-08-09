@@ -7,7 +7,7 @@
 import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
 import { useEffect, useRef, useState } from 'react';
 import './index.css';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import 'react-bootstrap-typeahead/css/Typeahead.bs5.css';
@@ -26,6 +26,24 @@ import OccurrenceList from './views/OccurrenceList.tsx';
 import OccurrenceSearch from './views/OccurrenceSearch.tsx';
 
 //const MOBILE_BREAKPOINT = 768; // Define the breakpoint for mobile view
+
+// Redirects to `to`, preserving the current query string. Defined outside App
+// so it isn't recreated (and remounted) on every render.
+function RedirectWithSearch({ to }: { to: string }) {
+    const location = useLocation();
+    return <Navigate to={`${to}${location.search}`} replace />;
+}
+
+function NotFoundWithBreadcrumbs({ setBreadcrumbs }: { setBreadcrumbs: (b: Breadcrumb[]) => void }) {
+    useEffect(() => {
+        setBreadcrumbs([
+            { title: 'Home', href: import.meta.env.VITE_HOME_URL },
+            { title: 'Occurrence records', href: '/' },
+            { title: 'Not Found', href: '#' }
+        ]);
+    }, [setBreadcrumbs]);
+    return <NotFound />;
+}
 
 export default function App() {
     const [cssLoaded, setCssLoaded] = useState<boolean>(false);
@@ -76,17 +94,6 @@ export default function App() {
         handleLogout(import.meta.env.VITE_APP_API_URL, import.meta.env.VITE_APP_BASE_URL);
     }
 
-    function NotFoundWithBreadcrumbs({ setBreadcrumbs }: { setBreadcrumbs: (b: Breadcrumb[]) => void }) {
-        useEffect(() => {
-            setBreadcrumbs([
-                { title: 'Home', href: import.meta.env.VITE_HOME_URL },
-                { title: 'Occurrence records', href: '/' },
-                { title: 'Not Found', href: '#' }
-            ]);
-        }, []);
-        return <NotFound />;
-    }
-
     return (
         <main>
             <UserContext.Provider value={{ userInfo, setUserInfo }}>
@@ -119,6 +126,10 @@ export default function App() {
                     <Route path='/search/*' element={<Navigate to='/' replace />} />
                     <Route path='/' element={<OccurrenceSearch setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/occurrences/search' element={<OccurrenceList setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
+
+                    {/* deprecated path */}
+                    <Route path='/occurrence/search' element={<RedirectWithSearch to='/occurrences/search' />} />
+
                     <Route path='/occurrence/:uuid' element={<Occurrence setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/explore/your-area' element={<ExploreYourArea setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />
                     <Route path='/download/options1' element={<Download setBreadcrumbs={setBreadcrumbs} /*isMobile={isMobile}*/ />} />

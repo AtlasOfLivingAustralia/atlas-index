@@ -1,0 +1,61 @@
+{
+    "systemAssertions": {
+        "failed": [{ "code": "30", "name": "coordinatesOutOfRange" }],
+        "warning": [{ "code": "20", "name": "decimalLatLongCalculatedFromEastingNorthing" }],
+        "passed": [{ "code": "10", "name": "basisOfRecordInvalid" }],
+        "missing": [],
+        "unchecked": []
+    },
+    "processed": {
+        "uuid": "aaaaaaaa-1111-2222-3333-444444444444",
+        "occurrence": { "catalogNumber": "CANB123456", "basisOfRecord": "PreservedSpecimen", "recordedBy": "Jane Botanist" },
+        "identification": {},
+        "event": { "eventDate": "2020-07-20" },
+        "attribution": {
+            "institutionName": "CSIRO", "institutionUid": "in1",
+            "dataResourceName": "Australian National Herbarium data", "dataResourceUid": "dr123",
+            "collectionName": "Australian National Herbarium", "collectionUid": "co1",
+            "dataProviderName": "CSIRO", "dataProviderUid": "dp1"
+        },
+        "classification": {
+            "scientificName": "Acacia dealbata", "taxonConceptID": "https://id.biodiversity.org.au/node/apni/2895958",
+            "taxonRank": "species", "vernacularName": "Silver Wattle", "kingdom": "Plantae", "phylum": "Charophyta",
+            "classs": "Equisetopsida", "order": "Fabales", "family": "Fabaceae", "genus": "Acacia", "species": "Acacia dealbata"
+        },
+        "location": {
+            "country": "Australia", "stateProvince": "Australian Capital Territory",
+            "decimalLatitude": -35.28, "decimalLongitude": 149.13, "coordinateUncertaintyInMeters": "100"
+        },
+        "cl": { "cl1048": "Australian Alps" },
+        "el": { "el882": "12.5" },
+        "geospatiallyKosher": true,
+        "taxonomicallyKosher": true,
+        "lastModifiedTime": "2024-01-01T00:00:00Z"
+    },
+    "raw": {
+        "uuid": "aaaaaaaa-1111-2222-3333-444444444444",
+        "occurrence": {
+            "catalogNumber": "CANB123456", "collectionCode": "CANB", "basisOfRecord": "PreservedSpecimen",
+            "recordedBy": "Jane Botanist", "otherCatalogNumbers": "ANH0001|ANH0002",
+            "recordedByID": "https://orcid.org/0000-0000-0000-0001|https://orcid.org/0000-0000-0000-0002"
+        },
+        "identification": {},
+        "event": { "eventDate": "2020-07-20", "datasetName": "ANH General Collection" },
+        "attribution": { "institutionCode": "CSIRO", "collectionCode": "CANB", "dataResourceUid": "dr123", "citation": "CSIRO (2024). Australian National Herbarium data." },
+        "classification": { "scientificName": "Acacia dealbata", "genus": "Acacia", "specificEpithet": "dealbata", "vernacularName": "Silver Wattle" },
+        "location": { "country": "Australia", "stateProvince": "Australian Capital Territory", "decimalLatitude": -35.28, "decimalLongitude": 149.13 },
+        "lastModifiedTime": "2024-01-01T00:00:00Z"
+    },
+    "referencedPublications": [],
+    "images": [
+        {
+            "alternativeFormats": {
+                "smallImageUrl": "https://images.test.ala.org.au/image/proxyImageThumbnail?imageId=img-1",
+                "largeImageUrl": "https://images.test.ala.org.au/image/proxyImage?imageId=img-1",
+                "imageUrl": "https://images.test.ala.org.au/image/proxyImage?imageId=img-1"
+            },
+            "filePath": "/img-1",
+            "metadata": { "creator": "Jane Botanist", "rights": "CC-BY", "rightsHolder": "CSIRO", "license": "CC-BY 4.0" }
+        }
+    ]
+}

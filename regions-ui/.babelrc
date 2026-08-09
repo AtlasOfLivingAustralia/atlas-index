@@ -10,5 +10,8 @@
         ],
         ["@babel/preset-react", { "runtime": "automatic" }],
         "@babel/preset-typescript"
+    ],
+    "plugins": [
+        "./babel-plugin-import-meta.cjs"
     ]
 }

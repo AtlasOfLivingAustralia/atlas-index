@@ -7,8 +7,8 @@
 import { useRef, useState } from 'react';
 import { Pie } from 'react-chartjs-2';
 import { ChartOptions, ChartData, Chart as ChartJS } from 'chart.js';
-import { IntlShape, useIntl } from 'react-intl';
-
+import { IntlShape } from 'react-intl';
+import { useIntl } from '../../util/useIntl';
 const defaultPalette = [
     /*"#000000", */ '#FFFF00',
     '#1CE6FF',

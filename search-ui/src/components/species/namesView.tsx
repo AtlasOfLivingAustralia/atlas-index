@@ -16,6 +16,16 @@ interface MapViewProps {
     isMobile: boolean
 }
 
+// sort descending order by namePublishedInYear first, null values last. Falling back to nameFormatted in alphabetical order
+function sortByRecencyThenName(a: any, b: any): number {
+    const yearA = parseInt(a?.namePublishedInYear, 10);
+    const yearB = parseInt(b?.namePublishedInYear, 10);
+    const hasYearA = !isNaN(yearA);
+    const hasYearB = !isNaN(yearB);
+    if (hasYearA && hasYearB && yearA !== yearB) return yearB - yearA;
+    if (hasYearA !== hasYearB) return hasYearA ? -1 : 1;
+    return a.nameFormatted.localeCompare(b.nameFormatted);
+}
 
 function NamesView({result, isMobile}: MapViewProps) {
     const [commonNames, setCommonNames] = useState<any[]>([]);
@@ -76,7 +86,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {result.synonymData.sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
+                    {result.synonymData.sort(sortByRecencyThenName).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (
@@ -120,7 +130,7 @@ function NamesView({result, isMobile}: MapViewProps) {
                     </tr>
                     </thead>
                     <tbody>
-                    {result.variantData.sort((a: any, b: any) => a.nameFormatted.localeCompare(b.nameFormatted)).map((item: any, idx: any) =>
+                    {result.variantData.sort(sortByRecencyThenName).map((item: any, idx: any) =>
                         <tr key={idx}>
                             <td>
                                 {item?.source ? (

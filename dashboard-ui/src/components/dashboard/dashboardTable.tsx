@@ -22,7 +22,7 @@ const DashboardTable = ({
 }: DashboardTableProps) => {
     let rows = table.rows || [];
     let italisizeName = italisize !== undefined ? italisize : false;
-    var headerElement = <></>;
+    let headerElement = <></>;
     if (header !== undefined && header != null) {
         if (header[2] === '') {
             header[2] = ' ';
@@ -65,7 +65,7 @@ const DashboardTable = ({
             {headerElement}
             <tbody>
                 {rows.map((row: TableRow, index: number) => {
-                    var rowClass = '';
+                    let rowClass = '';
                     if (row.url !== undefined && row.url != null) {
                         rowClass = 'dashboardRowLink';
                     }

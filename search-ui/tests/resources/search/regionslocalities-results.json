@@ -1,0 +1,37 @@
+{
+    "totalRecords": 2,
+    "searchResults": [
+        {
+            "idxtype": "LOCALITY",
+            "id": "locality-canberra",
+            "guid": "locality-canberra",
+            "name": "Canberra",
+            "fieldName": "Locality",
+            "description": "Canberra -35.2809 149.1300"
+        },
+        {
+            "idxtype": "REGION",
+            "id": "1-8832863",
+            "guid": "1-8832863",
+            "name": "Australian Capital Territory",
+            "fieldName": "State",
+            "description": "The Australian Capital Territory is a federal territory of Australia."
+        }
+    ],
+    "facetResults": [
+        {
+            "fieldName": "idxtype",
+            "fieldResult": [
+                { "label": "LOCALITY", "count": 1 },
+                { "label": "REGION", "count": 1 }
+            ]
+        },
+        {
+            "fieldName": "fieldName",
+            "fieldResult": [
+                { "label": "Locality", "count": 1 },
+                { "label": "State", "count": 1 }
+            ]
+        }
+    ]
+}

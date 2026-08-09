@@ -97,7 +97,7 @@ export default function App() {
                 <Routes>
                     <Route path='/' element={<Home setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />}/>} />
                     <Route path='/myDownloads' element={<MyDownloads setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />} />} />
-                    <Route path='/doi/:entityUid*' element={<Doi setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />}/>} />
+                    <Route path='/doi/*' element={<Doi setBreadcrumbs={setBreadcrumbs} isMobile={isMobile} breadcrumb={<Breadcrumbs breadcrumbs={breadcrumbs} />}/>} />
                     <Route path="*" element={<NotFoundWithBreadcrumbs setBreadcrumbs={setBreadcrumbs} />}/>
                 </Routes>
 

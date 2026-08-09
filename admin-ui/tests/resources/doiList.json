@@ -1,0 +1,16 @@
+[
+    {
+        "uuid": "aaaabbbb-1111-2222-3333-ccccddddeeee",
+        "doi": "10.1234/ala-000001",
+        "dateCreated": "2026-07-01T00:00:00Z",
+        "title": "Occurrence records download on 1 Jul 2026",
+        "filename": "biocache-occurrence-download.zip"
+    },
+    {
+        "uuid": "bbbbcccc-2222-3333-4444-ddddeeeeffff",
+        "doi": "10.1234/ala-000002",
+        "dateCreated": "2026-06-15T00:00:00Z",
+        "title": "Occurrence records download on 15 Jun 2026",
+        "filename": "biocache-occurrence-download2.zip"
+    }
+]

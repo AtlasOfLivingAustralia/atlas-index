@@ -1,0 +1,49 @@
+{
+    "guid": "https://biodiversity.org.au/afd/taxa/d03c4b24-5222-4781-a8ee-0aa8f905f4f7",
+    "imageWidth": 1000,
+    "imageHeight": 800,
+    "occurrenceCount": 4200,
+    "hexBinValues": [
+        ["FFC577", 1],
+        ["E28946", 10],
+        ["D36B3D", 100],
+        ["C44D34", 1000],
+        ["802937", null]
+    ],
+    "mapLayerOpacity": 0.7,
+    "generated": "2026-01-01T00:00:00Z",
+    "zooms": {
+        "aus": {
+            "label": "Australia",
+            "targetBbox": [12500000, -4600000, 16800000, -1300000],
+            "canvasBbox": [12364825, -4865942, 17017556, -1235453],
+            "layers": [
+                { "id": "base", "type": "base", "label": "Base map", "sharedFile": "aus_base.png" },
+                { "id": "occurrences", "type": "occurrences", "label": "Occurrence records" },
+                { "id": "dist-101", "type": "distribution", "label": "Falcon expert range", "dataResourceUid": "dr500", "dataResourceName": "Grey Falcon expert layer", "geomIdx": "101" }
+            ],
+            "attributions": {
+                "base": "&copy; OpenStreetMap contributors",
+                "baseLayers": [{ "id": "base", "attribution": "&copy; OpenStreetMap contributors" }],
+                "occurrences": "Atlas of Living Australia",
+                "distributions": [{ "geomIdx": "101", "text": "Grey Falcon expert layer" }]
+            }
+        },
+        "region": {
+            "label": "Regional",
+            "targetBbox": [14900000, -4100000, 15700000, -3450000],
+            "canvasBbox": [14800000, -4200000, 15800000, -3400000],
+            "layers": [
+                { "id": "base", "type": "base", "label": "Base map", "sharedFile": "region_base.png" },
+                { "id": "occurrences", "type": "occurrences", "label": "Occurrence records" },
+                { "id": "dist-101", "type": "distribution", "label": "Falcon expert range", "dataResourceUid": "dr500", "dataResourceName": "Grey Falcon expert layer", "geomIdx": "101" }
+            ],
+            "attributions": {
+                "base": "&copy; OpenStreetMap contributors",
+                "baseLayers": [{ "id": "base", "attribution": "&copy; OpenStreetMap contributors" }],
+                "occurrences": "Atlas of Living Australia",
+                "distributions": [{ "geomIdx": "101", "text": "Grey Falcon expert layer" }]
+            }
+        }
+    }
+}

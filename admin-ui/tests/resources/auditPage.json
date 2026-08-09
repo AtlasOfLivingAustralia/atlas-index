@@ -1,0 +1,28 @@
+{
+    "content": [
+        {
+            "id": 1,
+            "entityTable": "banner",
+            "entityId": "1",
+            "entityName": "admin",
+            "createdAt": "2026-07-01T10:00:00Z",
+            "actor": "admin@example.com",
+            "action": "UPDATE",
+            "diff": "{\"message\":{\"old\":\"old text\",\"new\":\"new text\"}}"
+        },
+        {
+            "id": 2,
+            "entityTable": "dq",
+            "entityId": "1",
+            "entityName": "ALA Default",
+            "createdAt": "2026-06-30T09:00:00Z",
+            "actor": "admin@example.com",
+            "action": "CREATE",
+            "diff": null
+        }
+    ],
+    "totalElements": 2,
+    "totalPages": 1,
+    "number": 0,
+    "size": 20
+}

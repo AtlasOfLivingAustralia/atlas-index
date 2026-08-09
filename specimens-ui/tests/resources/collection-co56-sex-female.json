@@ -1,0 +1,78 @@
+{
+    "pageSize": 100,
+    "startIndex": 0,
+    "totalRecords": 21000,
+    "sort": "score",
+    "dir": "asc",
+    "status": "OK",
+    "facetResults": [
+        {
+            "fieldName": "typeStatus",
+            "fieldResult": [
+                {
+                    "label": "HOLOTYPE",
+                    "count": 620,
+                    "fq": "typeStatus:\"HOLOTYPE\""
+                },
+                {
+                    "label": "PARATYPE",
+                    "count": 410,
+                    "fq": "typeStatus:\"PARATYPE\""
+                }
+            ]
+        },
+        {
+            "fieldName": "raw_sex",
+            "fieldResult": [
+                {
+                    "label": "Female",
+                    "count": 21000,
+                    "fq": "raw_sex:\"Female\""
+                }
+            ]
+        },
+        {
+            "fieldName": "order",
+            "fieldResult": [
+                {
+                    "label": "Coleoptera",
+                    "count": 11500,
+                    "fq": "order:\"Coleoptera\""
+                },
+                {
+                    "label": "Hymenoptera",
+                    "count": 6000,
+                    "fq": "order:\"Hymenoptera\""
+                },
+                {
+                    "label": "Diptera",
+                    "count": 3500,
+                    "fq": "order:\"Diptera\""
+                }
+            ]
+        }
+    ],
+    "occurrences": [
+        {
+            "uuid": "specimen-co56-female-001",
+            "collectionUid": "co56",
+            "collectionName": "South Australian Museum Terrestrial Invertebrate Collection",
+            "scientificName": "Coleoptera sp.",
+            "taxonRank": "order",
+            "kingdom": "Animalia",
+            "phylum": "Arthropoda",
+            "classs": "Insecta",
+            "order": "Coleoptera",
+            "imageMetadata": [
+                {
+                    "imageId": "img-co56-female-001",
+                    "thumbWidth": 400,
+                    "thumbHeight": 300,
+                    "thumbUrl": "https://images.ala.org.au/image/proxyImageThumbnail?imageId=img-co56-female-001",
+                    "rightsHolder": "South Australian Museum",
+                    "license": "CC BY 4.0"
+                }
+            ]
+        }
+    ]
+}
