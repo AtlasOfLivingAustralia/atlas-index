@@ -111,3 +111,65 @@ useEffect(() => {
 5. Include the same dependencies. Refer to [package.json](./package.json) for the list of dependencies to include in the `-ui` project `package.json` file.
 
 6. When authentication is required, follow the instructions in [AUTH.md](./AUTH.md) to set up authentication utilities and context.
+
+## Runtime configuration and build profiles
+
+Settings that a deployment can change after the build come from two scripts loaded before the app
+bundle:
+
+| | ships with the build | overwritten on deploy | who owns it |
+|---|---|---|---|
+| `config.js` | yes | yes | the application: defaults, and the documentation of every key |
+| `config.local.js` | no | no | the deployment: only the keys it changes, and they win |
+
+The point of the split is that a new release can update the defaults without discarding what the
+deployment set. `config.local.js` is optional and a 404 for it is harmless.
+
+This is not only for translations: anything that is different in each portal and does not need a
+rebuild can go here.
+
+There are two build profiles:
+
+| | ALA build (`yarn build`) | LA Community build (`yarn build:community`) |
+|---|---|---|
+| `config.js` and `config.local.js` tags | removed | kept |
+| `community/` in the output | not copied | copied |
+| Language selector | not included | included, and hidden when there is only one locale |
+
+`VITE_RUNTIME_CONFIG_ENABLED` and `VITE_HEADER_LANGUAGE_SWITCHER_ENABLED` control this. Both are
+false when they are not set, so a deployment with an older `.env` still gets the ALA build.
+`.env.community` sets them, and Vite loads it on top of the deployment's own `.env`, so it is two
+lines instead of a copy.
+
+Each UI's `community/config.js` lists the keys a deployer can set and shows what a `config.local.js`
+looks like. `util/runtimeConfig.ts` has the functions to read them and shows how to add new ones.
+
+## Internationalisation (i18n)
+
+`react-intl` does the formatting. Each UI passes its own `src/translations/en.json` to
+`I18nProvider`. That is the ALA build: English only, no network request, no language selector.
+
+The LA Community build can load the catalogues at runtime instead, so adding a language or fixing a
+string does not need a rebuild. Set `I18N_LOCALES` in `config.js` to turn this on. Catalogues are
+flat JSON files, the format Crowdin publishes, loaded from `/i18n/{locale}.json`. They are merged
+over the bundled messages, which are still used for anything the catalogue does not have, or if it
+is missing or too slow to load. The Grails applications work the same way through
+[ala-i18n](https://github.com/living-atlases/ala-i18n), so translations ship separately from the
+application.
+
+`community/config.js` explains the rest key by key: where catalogues are read from, how the initial
+locale is chosen, and the `lang` and `dir` attributes that right-to-left languages need.
+`community/i18n/example/` has sample files to try it locally.
+
+The common header and footer are HTML fetched from the theme, so their labels come from whatever
+serves the theme, not from these catalogues.
+
+### Coverage reporting
+
+`yarn i18n:coverage`, which `yarn test` also runs, compares the message ids used in the code with
+the bundled catalogue. Run it in a UI directory or from the repo root. It lists ids that are missing
+from `en.json` and keys that nothing in the code uses, and only fails the build with `--strict`.
+
+Ids built at runtime cannot be matched exactly. Prefixes like `` `facet.${fieldName}` `` are counted
+on their own, and an id that is just a variable could be any key, so treat the unused count as a
+hint, not as a list of keys to delete.
