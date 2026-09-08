@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
+import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, HeaderLanguageSwitcher, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
 import React, {useEffect, useRef, useState} from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
@@ -77,6 +77,7 @@ const App: React.FC = () => {
             <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper}
                     headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
                     jsUrl={import.meta.env.VITE_COMMON_JS} containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}/>
+            {import.meta.env.VITE_HEADER_LANGUAGE_SWITCHER_ENABLED === 'true' && <HeaderLanguageSwitcher/>}
 
             <Breadcrumbs breadcrumbs={breadcrumbs}/>
 

@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
+import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, HeaderLanguageSwitcher, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
 import { useEffect, useRef, useState } from 'react';
 import './index.css';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
@@ -116,6 +116,7 @@ export default function App() {
                     />
                 )}
 
+                {import.meta.env.VITE_HEADER_LANGUAGE_SWITCHER_ENABLED === 'true' && <HeaderLanguageSwitcher />}
                 {import.meta.env.VITE_SKIN === 'ALA' && <Breadcrumbs breadcrumbs={breadcrumbs} />}
 
                 <Banner bannerUrl={import.meta.env.VITE_BANNER_MESSAGES_URL} scope={import.meta.env.VITE_BANNER_SCOPE} />

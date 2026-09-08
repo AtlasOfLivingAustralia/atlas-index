@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { viteEnvCheckPlugin } from '@ala/common-ui/viteEnvCheckPlugin';
 import { viteStaticServerPlugin } from '@ala/common-ui/viteStaticServerPlugin';
+import { viteRuntimeConfigPlugin } from '@ala/common-ui/viteRuntimeConfigPlugin';
 import path from 'node:path';
 import dotenv from 'dotenv';
 import istanbul from 'vite-plugin-istanbul';
@@ -37,6 +38,7 @@ export default defineConfig({
         react(),
         viteEnvCheckPlugin(),
         viteStaticServerPlugin(),
+        viteRuntimeConfigPlugin(),
         ...(isPlaywright
             ? [
                   istanbul({
