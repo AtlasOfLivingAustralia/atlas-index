@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -40,9 +41,10 @@ public class LogService {
 
     public void log(TaskType task, String message) {
         long time = System.currentTimeMillis();
+        String id = task.name() + "-" + time + "-" + UUID.randomUUID();
         IndexQuery item = new IndexQueryBuilder()
-                .withId(task.name() + "-" + time)
-                .withObject(AdminIndex.builder().id(task.name() + time)
+                .withId(id)
+                .withObject(AdminIndex.builder().id(id)
                         .message(message)
                         .task(task.name())
                         .modified(new Date(time)))

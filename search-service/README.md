@@ -7,6 +7,7 @@ It is a Spring Boot application that provides REST web services for accessing an
 # Table of Contents
 
 - [Getting started](#getting-started)
+- [Testing and coverage](#testing-and-coverage)
 - [Migrating from bie-index](#migrating-from-bie-index)
 - [Docker hub](#docker-hub)
 - [Importing data](#import-process)
@@ -38,6 +39,21 @@ docker-compose -f ./docker/docker-compose.yml up
  ```
 
 Open the Swagger UI for REST services at `http://localhost:8081`.
+
+## Testing and coverage
+
+Tests (unit and integration) are run with:
+
+```bash
+mvn test -pl search-service
+```
+
+Running `mvn test` also produces a JaCoCo code coverage report via the `jacoco-maven-plugin`.
+After the build completes, open the HTML report at:
+
+```
+search-service/target/site/jacoco/index.html
+```
 
 ## Docker hub
 

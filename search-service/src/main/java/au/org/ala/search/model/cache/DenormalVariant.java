@@ -19,6 +19,7 @@ public class DenormalVariant extends Denormal {
     public Integer priority;
     public String nameAccordingTo;
     public String namePublishedIn;
+    public String namePublishedInYear;
     public String source;
     public String datasetID;
     public String nameFormatted;
@@ -30,6 +31,7 @@ public class DenormalVariant extends Denormal {
         this.priority = item.priority;
         this.nameAccordingTo = item.nameAccordingTo;
         this.namePublishedIn = item.namePublishedIn;
+        this.namePublishedInYear = item.namePublishedInYear;
         this.source = item.source;
         this.datasetID = item.datasetID;
         this.nameFormatted = item.nameFormatted;

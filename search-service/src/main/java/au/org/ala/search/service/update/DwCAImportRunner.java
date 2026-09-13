@@ -590,6 +590,7 @@ public class DwCAImportRunner {
                 .acceptedConceptID(synonym ? acceptedNameUsageID : null)
                 .nameAccordingTo(core.value(DwcTerm.nameAccordingTo))
                 .namePublishedIn(core.value(DwcTerm.namePublishedIn))
+                .namePublishedInYear(core.value(DwcTerm.namePublishedInYear))
                 .source(core.value(DcTerm.source))
                 .datasetID(core.value(DwcTerm.datasetID))
                 .nameFormatted(nameFormatted)
@@ -614,6 +615,7 @@ public class DwCAImportRunner {
                 .source(core.value(DcTerm.source))
                 .datasetID(core.value(DwcTerm.datasetID))
                 .namePublishedIn(core.value(DwcTerm.namePublishedIn))
+                .namePublishedInYear(core.value(DwcTerm.namePublishedInYear))
                 .nameAccordingTo(core.value(DwcTerm.nameAccordingTo))
                 .nameFormatted(core.value(ALATerm.nameFormatted))
                 .build();

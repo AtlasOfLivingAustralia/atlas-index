@@ -63,7 +63,6 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         when(authService.isAdmin(any(Principal.class))).thenReturn(true);
         when(authService.isAdmin(any())).thenReturn(true);
         when(authService.getActor(any(), any(), any())).thenReturn("test-actor");
-        // isPermittedIp is NOT mocked — the real impl uses logger.permitted.ips from test properties
     }
 
     @BeforeAll
@@ -194,7 +193,7 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
 
         ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -205,7 +204,7 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
 
         ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -216,7 +215,7 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
 
         ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -261,7 +260,6 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> body = response.getBody();
         assertThat(body).containsKey("totals");
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> totals = (Map<String, Object>) body.get("totals");
         // Event type 1002 should have been summarised
         assertThat(totals).containsKey(String.valueOf(EVENT_TYPE_ID));
@@ -281,11 +279,9 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         assertThat(body).containsKeys("all", "thisMonth", "last3Months", "lastYear");
 
         // The "all" window should contain an emailBreakdown with categories
-        @SuppressWarnings("unchecked")
         Map<String, Object> all = (Map<String, Object>) body.get("all");
         assertThat(all).containsKey("emailBreakdown");
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> emailBreakdown = (Map<String, Object>) all.get("emailBreakdown");
         // csiro.au maps to "gov", edu.au maps to "edu", gmail.com maps to "other"
         assertThat(emailBreakdown).containsKeys("gov", "edu", "other");
@@ -308,19 +304,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> body = response.getBody();
         assertThat(body).containsKeys("all", "thisMonth", "last3Months", "lastYear");
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> all = (Map<String, Object>) body.get("all");
         assertThat(all).containsKey("reasonBreakdown");
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> reasonBreakdown = (Map<String, Object>) all.get("reasonBreakdown");
         // Both reason types should appear (their names are the keys)
         assertThat(reasonBreakdown).containsKeys("scientific research", "education");
 
         // scientific research had 2 events, education had 1 — verify research > education in event count
-        @SuppressWarnings("unchecked")
         Number researchEvents = (Number) ((Map<String, Object>) reasonBreakdown.get("scientific research")).get("events");
-        @SuppressWarnings("unchecked")
         Number educationEvents = (Number) ((Map<String, Object>) reasonBreakdown.get("education")).get("events");
         assertThat(researchEvents.longValue()).isGreaterThan(educationEvents.longValue());
     }
@@ -338,7 +330,6 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> body = response.getBody();
         assertThat(body).containsKey("temporalBreakdown");
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> temporalBreakdown = (Map<String, Object>) body.get("temporalBreakdown");
         assertThat(temporalBreakdown).isNotEmpty();
     }
@@ -356,11 +347,9 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> body = response.getBody();
         assertThat(body).containsKeys("all", "thisMonth", "last3Months", "lastYear");
 
-        @SuppressWarnings("unchecked")
         Map<String, Object> all = (Map<String, Object>) body.get("all");
         assertThat(all).containsKey("sourceBreakdown");
         // ALA source (id=0) should be present
-        @SuppressWarnings("unchecked")
         Map<String, Object> sourceBreakdown = (Map<String, Object>) all.get("sourceBreakdown");
         assertThat(sourceBreakdown).containsKey("ALA");
     }
@@ -379,7 +368,6 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> body = response.getBody();
         assertThat(body).containsKey("months");
 
-        @SuppressWarnings("unchecked")
         List<Object> months = (List<Object>) body.get("months");
         assertThat(months).isNotEmpty();
     }

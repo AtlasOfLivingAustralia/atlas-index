@@ -447,7 +447,7 @@ public class DwcaImportIntegrationTest extends AbstractIntegrationTestContainers
         Map<String, Object> body = resp.getBody();
         assertThat(body).isNotNull();
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> facetResults = (List<Map<String, Object>>) body.get("facetResults");
         assertThat(facetResults).isNotNull().isNotEmpty();
 
@@ -456,7 +456,7 @@ public class DwcaImportIntegrationTest extends AbstractIntegrationTestContainers
                 .findFirst().orElse(null);
         assertThat(rankFacet).isNotNull();
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> fieldResult = (List<Map<String, Object>>) rankFacet.get("fieldResult");
         assertThat(fieldResult).isNotEmpty();
 
@@ -476,7 +476,7 @@ public class DwcaImportIntegrationTest extends AbstractIntegrationTestContainers
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<String, Object> body = resp.getBody();
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> facetResults = (List<Map<String, Object>>) body.get("facetResults");
         assertThat(facetResults).isNotNull().isNotEmpty();
 
@@ -485,7 +485,7 @@ public class DwcaImportIntegrationTest extends AbstractIntegrationTestContainers
                 .findFirst().orElse(null);
         assertThat(datasetFacet).isNotNull();
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> fieldResult = (List<Map<String, Object>>) datasetFacet.get("fieldResult");
         assertThat(fieldResult).isNotEmpty();
         // AFD dataset should appear
@@ -575,7 +575,7 @@ public class DwcaImportIntegrationTest extends AbstractIntegrationTestContainers
         );
     }
 
-    @SuppressWarnings("unchecked")
+    
     private List<Map<String, Object>> searchResults(Map<String, Object> body) {
         assertThat(body).isNotNull();
         return (List<Map<String, Object>>) body.get("searchResults");

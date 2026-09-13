@@ -20,6 +20,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serializable;
 import java.util.*;
 
 @ToString
@@ -30,7 +31,7 @@ import java.util.*;
 @SuperBuilder
 @Entity
 @Table(name = "doi")
-public class Doi {
+public class Doi implements Serializable {
 
     public static final Set<String> ALLOWED_UPDATABLE_PROPERTIES = Set.of(
             "providerMetadata", "customLandingPageUrl", "title", "authors", "description", "licence",

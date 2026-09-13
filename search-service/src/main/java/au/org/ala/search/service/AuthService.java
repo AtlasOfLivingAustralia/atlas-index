@@ -92,7 +92,7 @@ public class AuthService {
                 return response.body();
             }
         } catch (Exception ex) {
-            log.error("Exception caught trying get find user details for $userId.", ex);
+            log.error("Exception caught trying to find user details for {}.", email, ex);
         }
 
         return null;

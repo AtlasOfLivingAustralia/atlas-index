@@ -46,6 +46,14 @@ public class V1LoggerController {
         this.authService = authService;
     }
 
+    /**
+     * Map invalid-argument validation failures
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidArgument(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+
     @Tag(name = "Logger", description = "Logger REST services")
     @Operation(summary = "Get Email Breakdown", description = "Get Email Breakdown",
             responses = @ApiResponse(responseCode = "200", description = "Get Email Breakdown"))

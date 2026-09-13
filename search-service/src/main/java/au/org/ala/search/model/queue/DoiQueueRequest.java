@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+import java.io.Serializable;
+
 /**
  * Model for DOI queue request payload.
  *
@@ -24,6 +26,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @Getter
 @Setter
-public class DoiQueueRequest {
+public class DoiQueueRequest implements Serializable {
     public Doi doi;
 }

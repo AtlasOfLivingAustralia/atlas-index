@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.File;
+import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,6 +47,9 @@ public class DownloadFileStoreService {
     private Integer duration;
     @Value("${download.s3.directPath}")
     private String directS3Path;
+    // Optional. Overrides the S3 endpoint (and forces path-style access)
+    @Value("${download.s3.endpoint:}")
+    private String s3Endpoint;
 
     @PostConstruct
     void init() {
@@ -55,6 +59,10 @@ public class DownloadFileStoreService {
             // override default system credentials if s3.accessKey and s3.secretKey are provided
             if (StringUtils.isNotBlank(s3AccessKey) && StringUtils.isNotBlank(s3SecretKey)) {
                 builder.credentialsProvider(() -> AwsBasicCredentials.create(s3AccessKey, s3SecretKey));
+            }
+
+            if (StringUtils.isNotBlank(s3Endpoint)) {
+                builder.endpointOverride(URI.create(s3Endpoint)).forcePathStyle(true);
             }
 
             s3Client = builder.build();

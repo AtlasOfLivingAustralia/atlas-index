@@ -154,13 +154,20 @@ public class LeaderQueue {
     }
 
     public boolean receiveMessage(byte[] message) {
+        Map<String, Object> map;
         try {
-            Map<String, Object> map = smileObjectMapper.readValue(message, Map.class);
+            map = smileObjectMapper.readValue(message, Map.class);
+        } catch (Exception e) {
+            log.error("Error parsing message", e);
+            return false;
+        }
+
+        try {
             String taskTypeName = (String) map.get("message");
             Object payload = map.get("payload");
             return receiveMessage(taskTypeName, payload);
         } catch (Exception e) {
-            log.error("Error parsing message", e);
+            log.error("Error processing leader queue message: {}", map.get("message"), e);
         }
         return false;
     }

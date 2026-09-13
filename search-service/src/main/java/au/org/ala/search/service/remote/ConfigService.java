@@ -97,6 +97,12 @@ public class ConfigService {
         Map<String, Object> diff = auditService.diff("value", prevConfigData != null ? prevConfigData.value : null, configData.value);
 
         // compare with previous config data for "value" changes
+        ConfigData prevConfigDataSnapshot = prevConfigData != null
+                ? ConfigData.builder().id(prevConfigData.id).value(prevConfigData.value)
+                .notes(prevConfigData.notes).updated(prevConfigData.updated).build()
+                : null;
+
+        // compare with previous config data for "value" changes
         if (prevConfigData != null) {
             if (StringUtils.equals(prevConfigData.value, configData.value)) {
                 // No change in value, save the notes if changed
@@ -127,7 +133,10 @@ public class ConfigService {
         // Broadcast the change, for any node that listens for config changes
         try {
             if (BroadcastQueue.getInstance() != null) {
-                BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData);
+                ConfigData broadcastPayload = prevConfigDataSnapshot != null
+                        ? prevConfigDataSnapshot
+                        : ConfigData.builder().id(configData.id).build();
+                BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, broadcastPayload);
             } else {
                 log.warn("BroadcastService is not initialized, cannot broadcast config change for {}", configData.id);
             }

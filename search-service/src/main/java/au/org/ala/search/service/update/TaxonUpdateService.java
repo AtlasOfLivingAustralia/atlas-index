@@ -16,6 +16,7 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.elasticsearch.core.document.Document;
@@ -120,8 +121,8 @@ public class TaxonUpdateService {
 
                 for (Hit<SearchItemIndex> item : hits) {
                     String guid = item.fields().get("guid").toJson().asJsonArray().getJsonString(0).getString();
-                    String nameComplete = item.fields().get("nameComplete").toJson().asJsonArray().getJsonString(0).getString();
-                    String scientificName = item.fields().get("scientificName").toJson().asJsonArray().getJsonString(0).getString();
+                    String nameComplete = toString(item.fields().getOrDefault("nameComplete", null));
+                    String scientificName = toString(item.fields().getOrDefault("scientificName", null));
                     acceptedConceptName.put(guid, StringUtils.isNotEmpty(nameComplete) ? nameComplete : scientificName);
                 }
 
@@ -239,5 +240,9 @@ public class TaxonUpdateService {
             }
         }
         return true;
+    }
+
+    private String toString(JsonData string) {
+        return string == null ? null : string.toJson().asJsonArray().getJsonString(0).getString();
     }
 }

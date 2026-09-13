@@ -137,8 +137,12 @@ public class BroadcastQueue {
             try {
                 // Parse payload to ConfigData
                 ConfigData prevConfigData = null;
-                if (payload != null) {
+                if (payload != null && !(payload instanceof String str && str.isEmpty())) {
                     prevConfigData = smileObjectMapper.convertValue(payload, ConfigData.class);
+                }
+                if (prevConfigData == null || prevConfigData.id == null) {
+                    log.warn("Received CONFIG_CHANGE broadcast with no resolvable config id; cannot trigger listeners");
+                    return;
                 }
                 configService.triggerListeners(configService.get(prevConfigData.id), prevConfigData);
             } catch (IllegalArgumentException e) {

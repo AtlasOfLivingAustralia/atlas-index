@@ -270,8 +270,8 @@ public class SitemapService {
 
     void removeObsoleteFiles() {
         boolean hasMore = true;
-        for (int i = lastMod.size() - 1; hasMore; i++) {
-            hasMore = sitemapFileStoreService.deleteFile("sitemap" + i + ".xml");
+        for (int i = lastMod.size() - 1; hasMore; i++) { // -1 for the sitemap.xml that is also added to lastMod
+            hasMore = sitemapFileStoreService.deleteFile("sitemap" + i + ".xml.gz") || sitemapFileStoreService.deleteFile("sitemap" + i + ".xml") ;
         }
     }
 }

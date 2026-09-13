@@ -139,7 +139,7 @@ public class DashboardService {
         }
     }
 
-    private DashboardData load() {
+    DashboardData load() {
         File file = new File(dataDir + "/dashboard.json");
         if (file.exists()) {
             try {
@@ -153,7 +153,7 @@ public class DashboardService {
         return new DashboardData();
     }
 
-    private boolean save(DashboardData data) throws IOException {
+    boolean save(DashboardData data) throws IOException {
         // save data.json
         FileUtils.writeStringToFile(new File(dataDir + "/dashboard.json"), objectMapper.writeValueAsString(data), "UTF-8");
 
@@ -255,13 +255,13 @@ public class DashboardService {
                 && staticFileStoreService.copyToFileStore(new File(dataDir + "/dashboard.json"), "dashboard/dashboard.json", false);
     }
 
-    private Integer getSpeciesCount() throws IOException {
+    Integer getSpeciesCount() throws IOException {
         List result = objectMapper.readValue(IOUtils.toString(URI.create(biocacheWsUrl + summarySpeciesCountQuery), StandardCharsets.UTF_8), List.class);
 
         return (Integer) ((Map)result.get(0)).get("count");
     }
 
-    private Integer getDatasetCount() throws IOException {
+    Integer getDatasetCount() throws IOException {
         Map result = objectMapper.readValue(IOUtils.toString(URI.create(collectoryUrl + "/ws/dataResource/count/resourceType?public=true"), StandardCharsets.UTF_8), Map.class);
         return (Integer) result.get("total");
     }
@@ -274,16 +274,16 @@ public class DashboardService {
         return df.format(oneYearAgoDate);
     }
 
-    private Integer getDatasetCount1YA() throws IOException {
+    Integer getDatasetCount1YA() throws IOException {
         Map result = objectMapper.readValue(IOUtils.toString(URI.create(collectoryUrl + "/ws/dataResource/count/resourceType?public=true&createdBefore=" + getIsoDate1YA()), StandardCharsets.UTF_8), Map.class);
         return (Integer) result.get("total");
     }
 
-    private UserStats getUserCounts(String url) throws IOException {
+    UserStats getUserCounts(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), UserStats.class);
     }
 
-    private int update(DashboardData dashboardData) {
+    int update(DashboardData dashboardData) {
         int errorCount = 0;
         errorCount += addKingdoms(dashboardData);
         errorCount += addOccurrenceCount(dashboardData);
@@ -311,39 +311,39 @@ public class DashboardService {
         return errorCount;
     }
 
-    private ImageStatistics getImage(String url) throws IOException {
+    ImageStatistics getImage(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), ImageStatistics.class);
     }
 
-    private List<SpatialField> getSpatialFields(String url) throws IOException {
+    List<SpatialField> getSpatialFields(String url) throws IOException {
         return Arrays.asList(objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), SpatialField[].class));
     }
 
-    private BiocacheSearch getBiocache(String url) throws IOException {
+    BiocacheSearch getBiocache(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), BiocacheSearch.class);
     }
 
-    private LoggerSearch getLogger(String url) throws IOException {
+    LoggerSearch getLogger(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), LoggerSearch.class);
     }
 
-    private CollectionsSearch getCollection(String url) throws IOException {
+    CollectionsSearch getCollection(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), CollectionsSearch.class);
     }
 
-    private List<DataResource> getDataResourceList(String url) throws IOException {
+    List<DataResource> getDataResourceList(String url) throws IOException {
         return Arrays.asList(objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), DataResource[].class));
     }
 
-    private List<Facet> getBiocacheFacets(String url) throws IOException {
+    List<Facet> getBiocacheFacets(String url) throws IOException {
         return Arrays.asList(objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), Facet[].class));
     }
 
-    private DigivolSearch getDigivol(String url) throws IOException {
+    DigivolSearch getDigivol(String url) throws IOException {
         return objectMapper.readValue(IOUtils.toString(URI.create(url), StandardCharsets.UTF_8), DigivolSearch.class);
     }
 
-    private int addKingdoms(DashboardData dashboardData) {
+    int addKingdoms(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping kingdoms");
             return 0;
@@ -371,7 +371,7 @@ public class DashboardService {
         }
     }
 
-    private int addOccurrenceCount(DashboardData dashboardData) {
+    int addOccurrenceCount(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping occurrenceCount");
             return 0;
@@ -391,7 +391,7 @@ public class DashboardService {
         }
     }
 
-    private int addBasisOfRecord(DashboardData dashboardData) {
+    int addBasisOfRecord(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping basisOfRecord");
             return 0;
@@ -421,7 +421,7 @@ public class DashboardService {
         }
     }
 
-    private int addDatasets(DashboardData dashboardData) {
+    int addDatasets(DashboardData dashboardData) {
         if (StringUtils.isEmpty(collectoryUrl)) {
             logService.log(taskType, "skipping datasets");
             return 0;
@@ -479,7 +479,7 @@ public class DashboardService {
         }
     }
 
-    private int addBhl(DashboardData dashboardData) {
+    int addBhl(DashboardData dashboardData) {
         if (StringUtils.isEmpty(bhlGetStatsUrl) || StringUtils.isEmpty(bhlApikey)) {
             logService.log(taskType, "skipping bhl (bhlGetStatsUrl or bhlApikey not configured)");
             return 0;
@@ -536,7 +536,7 @@ public class DashboardService {
         }
     }
 
-    private int addDigivol(DashboardData dashboardData) {
+    int addDigivol(DashboardData dashboardData) {
         if (StringUtils.isEmpty(digivolUrl)) {
             logService.log(taskType, "skipping digivol");
             return 0;
@@ -577,7 +577,7 @@ public class DashboardService {
         }
     }
 
-    private int addRecordsByDate(DashboardData dashboardData) {
+    int addRecordsByDate(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping recordsByDate");
             return 0;
@@ -643,7 +643,7 @@ public class DashboardService {
         }
     }
 
-    private int addNationalSpeciesLists(DashboardData dashboardData) {
+    int addNationalSpeciesLists(DashboardData dashboardData) {
         try {
             logService.log(taskType, "updating nationalSpeciesLists");
             Record record = new Record();
@@ -671,7 +671,7 @@ public class DashboardService {
         }
     }
 
-    private int addUsageStats(DashboardData dashboardData) {
+    int addUsageStats(DashboardData dashboardData) {
         if (StringUtils.isEmpty(loggerUrl)) {
             logService.log(taskType, "skipping usageStats");
             return 0;
@@ -706,7 +706,7 @@ public class DashboardService {
         }
     }
 
-    private int addEmailDownloads(DashboardData dashboardData) {
+    int addEmailDownloads(DashboardData dashboardData) {
         if (StringUtils.isEmpty(loggerUrl)) {
             logService.log(taskType, "skipping emailDownloads");
             return 0;
@@ -740,7 +740,7 @@ public class DashboardService {
         }
     }
 
-    private int addReasonDownloads(DashboardData dashboardData) {
+    int addReasonDownloads(DashboardData dashboardData) {
         if (StringUtils.isEmpty(loggerUrl)) {
             logService.log(taskType, "skipping reasonDownloads");
             return 0;
@@ -778,7 +778,7 @@ public class DashboardService {
         }
     }
 
-    private int addSpecimenTypes(DashboardData dashboardData) {
+    int addSpecimenTypes(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping specimenTypes");
             return 0;
@@ -817,7 +817,7 @@ public class DashboardService {
         }
     }
 
-    private int addConservation(DashboardData dashboardData) {
+    int addConservation(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping conservation");
             return 0;
@@ -849,7 +849,7 @@ public class DashboardService {
     }
 
 
-    private int addFacet(DashboardData dashboardData, String facet) {
+    int addFacet(DashboardData dashboardData, String facet) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping facet: " + facet);
             return 0;
@@ -894,7 +894,7 @@ public class DashboardService {
         }
     }
 
-    private int addStates(DashboardData dashboardData) {
+    int addStates(DashboardData dashboardData) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping states");
             return 0;
@@ -946,7 +946,7 @@ public class DashboardService {
         }
     }
 
-    private int addSpeciesTable(Record record, String name, String speciesGroup) {
+    int addSpeciesTable(Record record, String name, String speciesGroup) {
         if (StringUtils.isEmpty(biocacheWsUrl)) {
             logService.log(taskType, "skipping speciesTable: " + speciesGroup);
             return 0;
@@ -988,7 +988,7 @@ public class DashboardService {
         }
     }
 
-    private int addSpecies(DashboardData dashboardData) {
+    int addSpecies(DashboardData dashboardData) {
         try {
             logService.log(taskType, "updating species");
             Record record = new Record();
@@ -1023,7 +1023,7 @@ public class DashboardService {
     }
 
 
-    private int addSpatialLayers(DashboardData dashboardData) {
+    int addSpatialLayers(DashboardData dashboardData) {
         try {
             logService.log(taskType, "updating spatialLayers");
             Record record = new Record();
@@ -1083,7 +1083,7 @@ public class DashboardService {
         }
     }
 
-    private int addImage(DashboardData dashboardData) {
+    int addImage(DashboardData dashboardData) {
         try {
             logService.log(taskType, "updating image");
             Record record = new Record();
@@ -1115,7 +1115,7 @@ public class DashboardService {
         }
     }
 
-    private Integer getFirstCount(List<Facet> biocacheFacets) {
+    Integer getFirstCount(List<Facet> biocacheFacets) {
         if (biocacheFacets != null && !biocacheFacets.isEmpty()) {
             return biocacheFacets.getFirst().count;
         }
@@ -1123,7 +1123,7 @@ public class DashboardService {
         return 0;
     }
 
-    private int getCollectionSize(String filter) throws IOException {
+    int getCollectionSize(String filter) throws IOException {
         CollectionsSearch collectionsSearch = getCollection(collectoryUrl + "/public/mapFeatures?filters=" + filter);
 
         int count = 0;
@@ -1137,7 +1137,7 @@ public class DashboardService {
         return count;
     }
 
-    private int addCollections(DashboardData dashboardData) {
+    int addCollections(DashboardData dashboardData) {
         try {
             logService.log(taskType, "updating collections");
             Record record = new Record();
@@ -1172,7 +1172,7 @@ public class DashboardService {
         }
     }
 
-    private int searchForTotal(String q, String[] fqs) {
+    int searchForTotal(String q, String[] fqs) {
         Op op = QueryParserUtil.parse(q, fqs, elasticService::isValidField);
         SearchHits<SearchItemIndex> result = elasticService.search(op, 0, 1);
         return result != null ? (int) result.getTotalHits() : 0;

@@ -9,6 +9,7 @@ package au.org.ala.search;
 import au.org.ala.search.service.queue.LeaderQueue;
 import au.org.ala.search.service.SchedulerService;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
@@ -42,6 +43,8 @@ public class LeadershipStatus {
     }
 
     private final AtomicBoolean isLeader = new AtomicBoolean(System.getenv("KUBERNETES_SERVICE_HOST") == null);
+    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private volatile Thread leaderStartupThread;
 
     @PostConstruct
     public void init() {
@@ -50,6 +53,29 @@ public class LeadershipStatus {
         }
 
         log.info("Leadership status: {}", isLeader.get());
+    }
+
+    /**
+     * Ensure the leader queue listener (and its background startup retry thread) are stopped
+     * before the application context finishes tearing down other beans.
+     */
+    @PreDestroy
+    public void shutdown() {
+        shuttingDown.set(true);
+
+        Thread startupThread = leaderStartupThread;
+        if (startupThread != null && startupThread.isAlive()) {
+            startupThread.interrupt();
+        }
+
+        try {
+            var container = registry.getListenerContainer(LeaderQueue.LEADER_QUEUE);
+            if (container.isRunning()) {
+                container.stop();
+            }
+        } catch (Exception e) {
+            log.warn("Error stopping leader queue listener during shutdown", e);
+        }
     }
 
 
@@ -80,14 +106,15 @@ public class LeadershipStatus {
 
     private void setupAsLeader() {
         // 1. identify and restart any failed tasks
-        log.error("Leadership setup goes here");
+        // TODO: identify and restart any failed tasks.
+        log.debug("Leadership setup: identify and restart any failed tasks (not yet implemented)");
 
         // 2. start the leader queue listener
         if (StringUtils.isNotEmpty(rabbitMqHost)) {
-            new Thread(() -> {
+            Thread thread = new Thread(() -> {
                 int attempts = 0;
                 int delayMs = 100;
-                while (attempts < 300 * 1000 / delayMs) { // 5 minutes
+                while (!shuttingDown.get() && attempts < 300 * 1000 / delayMs) { // 5 minutes
                     attempts++;
                     try {
                         registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).start();
@@ -100,12 +127,20 @@ public class LeadershipStatus {
                     }
                     try {
                         Thread.sleep(delayMs);
-                    } catch (InterruptedException ignored) {
-
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
                     }
                 }
-                log.error("Error starting leader queue listener after 5 minutes, giving up");
-            }).start();
+                if (!shuttingDown.get()) {
+                    log.error("Error starting leader queue listener after 5 minutes, giving up");
+                }
+            });
+            // Daemon so this background retry loop never prevents JVM shutdown on its own.
+            thread.setDaemon(true);
+            thread.setName("leader-queue-startup");
+            leaderStartupThread = thread;
+            thread.start();
         }
     }
 }
