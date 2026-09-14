@@ -95,6 +95,13 @@ class DownloadFileStoreServiceS3IntegrationTest {
         invokeInit();
     }
 
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        if (service != null) {
+            service.destroy();
+        }
+    }
+
     private void setField(String name, Object value) throws Exception {
         Field f = DownloadFileStoreService.class.getDeclaredField(name);
         f.setAccessible(true);
