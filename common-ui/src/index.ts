@@ -31,6 +31,10 @@ import useHashState from "./util/useHashState.tsx";
 import {injectCommonInfo, injectCommonJs} from "./util/utils.tsx";
 import {UserContext, useUser, UserInfo} from "./util/UserContext.tsx";
 import {checkLoginState, handleLogin, handleLogout} from "./util/auth.tsx";
+import I18nProvider, {useRuntimeLocale} from "./components/i18nProvider.tsx";
+import HeaderLanguageSwitcher from "./components/headerLanguageSwitcher.tsx";
+import {getPortalName, getRuntimeConfig} from "./util/runtimeConfig.ts";
+import type {I18nLocale, I18nRuntimeConfig} from "./util/runtimeI18n.ts";
 
 export {
     Banner,
@@ -66,8 +70,13 @@ export {
     useUser,
     handleLogin,
     handleLogout,
-    checkLoginState
+    checkLoginState,
+    I18nProvider,
+    useRuntimeLocale,
+    HeaderLanguageSwitcher,
+    getPortalName,
+    getRuntimeConfig
 };
 
-export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo};
+export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo, I18nLocale, I18nRuntimeConfig};
 

@@ -4,10 +4,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, FontAwesomeIconLite, useHashState} from '@ala/common-ui';
+import {Breadcrumb, FontAwesomeIconLite, getPortalName, useHashState} from '@ala/common-ui';
 import {faSearch, faTimes} from '@fortawesome/free-solid-svg-icons';
 import {useQueryState} from 'nuqs';
 import {useEffect, useRef, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import AllView, {searchGroupsTemplate} from '../components/search/allView.tsx';
 import {Examples} from "../components/search/examples.tsx";
 import GenericView from '../components/search/genericView.tsx';
@@ -30,6 +31,7 @@ function Search({setBreadcrumbs, isMobile}: {
     const [activeIndex, setActiveIndex] = useState(-1);
     const debounceTimerRef = useRef<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const intl = useIntl();
 
     useEffect(() => {
         setBreadcrumbs([
@@ -143,13 +145,14 @@ function Search({setBreadcrumbs, isMobile}: {
                  style={{backgroundColor: '#E7E7E7', marginLeft: '-15px', marginRight: '-15px'}}>
                 <div className="d-flex justify-content-center">
                     <span className={classes.searchTitle}>
-                        Search Atlas of Living Australia
+                        <FormattedMessage id="home.title" defaultMessage="Search {portalName}"
+                                          values={{portalName: getPortalName('Atlas of Living Australia')}}/>
                     </span>
                 </div>
                 <div className={'d-flex justify-content-center ' + classes.searchContainer}>
                     <input
                         ref={inputRef}
-                        placeholder="Search species, datasets, content and more..."
+                        placeholder={intl.formatMessage({id: 'home.searchPlaceholder', defaultMessage: 'Search species, datasets, content and more...'})}
                         className={classes.searchInput}
                         value={searchInputText}
                         onChange={(event) => handleInputChange(event.currentTarget.value)}

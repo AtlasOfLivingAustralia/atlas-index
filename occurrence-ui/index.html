@@ -8,6 +8,11 @@
     </head>
     <body>
         <div id="root"></div>
+        <!-- Runtime config: classic scripts run before the deferred module, so the globals are set
+             first. config.js ships with the build; config.local.js belongs to the deployment, is
+             optional, and its values win. -->
+        <script src="/config.js"></script>
+        <script src="/config.local.js"></script>
         <script type="module" src="/src/main.tsx"></script>
     </body>
 </html>

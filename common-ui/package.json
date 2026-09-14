@@ -18,6 +18,9 @@
         "./viteEnvCheckPlugin": {
             "import": "./src/viteEnvCheckPlugin.ts"
         },
+        "./viteRuntimeConfigPlugin": {
+            "import": "./src/viteRuntimeConfigPlugin.ts"
+        },
         "./viteStaticServerPlugin": {
             "import": "./src/viteStaticServerPlugin.ts"
         }

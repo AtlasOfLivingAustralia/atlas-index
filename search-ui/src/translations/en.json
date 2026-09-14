@@ -1,4 +1,6 @@
 {
+    "home.title": "Search {portalName}",
+    "home.searchPlaceholder": "Search species, datasets, content and more...",
     "CONSERVATION_LIST": "Conservation",
     "SENSITIVE_LIST": "Sensitive list",
     "COMMON_TRAIT": "Traits",

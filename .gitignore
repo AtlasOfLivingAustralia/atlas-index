@@ -55,3 +55,6 @@ build/
 .yarn/install-state.gz
 # Per-package .yarn dirs (no longer used; root workspace owns node_modules)
 */.yarn
+
+# Deployment-local runtime configuration (see */community/config.js)
+config.local.js
