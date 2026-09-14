@@ -148,11 +148,12 @@ class ScaffoldServiceTest {
         Object id = invokeParseId(descriptor, "urn:lsid:example:123:mykey");
 
         // TaxonDataId(taxonConceptId, key) — for a 2-field composite key, parseId splits on the
-        // *first* colon only: everything before it is taxonConceptId, the remainder is key.
+        // last colon: everything before it is taxonConceptId (which may contain colons, e.g. a URI),
+        // and the remainder is key.
         Field taxonConceptIdField = id.getClass().getField("taxonConceptId");
         Field keyField = id.getClass().getField("key");
-        assertThat(taxonConceptIdField.get(id)).isEqualTo("urn");
-        assertThat(keyField.get(id)).isEqualTo("lsid:example:123:mykey");
+        assertThat(taxonConceptIdField.get(id)).isEqualTo("urn:lsid:example:123");
+        assertThat(keyField.get(id)).isEqualTo("mykey");
     }
 
     @Test
