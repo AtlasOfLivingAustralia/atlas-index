@@ -30,6 +30,10 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -157,5 +161,28 @@ class DownloadFileStoreServiceS3IntegrationTest {
 
         assertThat(copied).isTrue();
         assertThat(src).doesNotExist();
+    }
+
+    @Test
+    void createPresignedGetUrl_withCustomEndpoint_generatesWorkingPresignedUrl(@TempDir Path tempDir) throws Exception {
+        QueueItem item = searchQueueItem(UUID.randomUUID());
+        File src = Files.writeString(tempDir.resolve("presign-src.zip"), "presigned content", StandardCharsets.UTF_8).toFile();
+        service.copyToFileStore(src, item, false);
+
+        String presignedUrl = service.createPresignedGetUrl(item);
+
+        assertThat(presignedUrl).isNotBlank();
+        assertThat(presignedUrl).contains(LOCALSTACK.getEndpoint().getHost());
+        assertThat(presignedUrl).contains("/" + BUCKET + "/downloads/search/" + item.id + ".zip");
+
+        try (HttpClient httpClient = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(presignedUrl))
+                    .GET()
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            assertThat(response.statusCode()).isEqualTo(200);
+            assertThat(response.body()).isEqualTo("presigned content");
+        }
     }
 }

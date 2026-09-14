@@ -144,6 +144,11 @@ public class BroadcastQueue {
                     log.warn("Received CONFIG_CHANGE broadcast with no resolvable config id; cannot trigger listeners");
                     return;
                 }
+                ConfigData currentConfig = configService.get(prevConfigData.id);
+                if (currentConfig == null) {
+                    log.warn("Received CONFIG_CHANGE broadcast for id '{}' but config was not found in database", prevConfigData.id);
+                    return;
+                }
                 configService.triggerListeners(configService.get(prevConfigData.id), prevConfigData);
             } catch (IllegalArgumentException e) {
                 log.error("Unknown message received: {}", message, e);

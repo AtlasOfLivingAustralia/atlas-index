@@ -12,6 +12,8 @@ import au.org.ala.search.model.config.ConfigValidationListener;
 import au.org.ala.search.repo.ConfigDataPostgresRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -132,5 +134,33 @@ class ConfigServiceTest {
         configService.registerListener("other.key", null, value -> false);
 
         assertThat(triggerValidation(configData("my.key", "any-value"))).isTrue();
+    }
+
+    @Test
+    void broadcastConfigChange_transactionActive_registersSynchronization() throws Exception {
+        TransactionSynchronizationManager.initSynchronization();
+        TransactionSynchronizationManager.setActualTransactionActive(true);
+        try {
+            Method m = ConfigService.class.getDeclaredMethod("broadcastConfigChange", String.class, ConfigData.class);
+            m.setAccessible(true);
+            m.invoke(configService, "test.key", null);
+
+            List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
+            assertThat(synchronizations).hasSize(1);
+
+            // trigger afterCommit to verify it completes cleanly without exception
+            synchronizations.get(0).afterCommit();
+        } finally {
+            TransactionSynchronizationManager.clear();
+        }
+    }
+
+    @Test
+    void broadcastConfigChange_noTransactionActive_executesImmediatelyWithoutRegistration() throws Exception {
+        Method m = ConfigService.class.getDeclaredMethod("broadcastConfigChange", String.class, ConfigData.class);
+        m.setAccessible(true);
+        m.invoke(configService, "test.key", null);
+
+        assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
     }
 }

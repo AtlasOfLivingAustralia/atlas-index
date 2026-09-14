@@ -16,7 +16,6 @@ import au.org.ala.search.service.remote.ElasticService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +65,10 @@ class DashboardServiceCoverageIntegrationTest extends AbstractIntegrationTestCon
 
     private static final WireMockServer wireMockServer = new WireMockServer(0);
 
+    static {
+        wireMockServer.start();
+    }
+
     @Autowired
     private DashboardService dashboardService;
 
@@ -75,10 +78,6 @@ class DashboardServiceCoverageIntegrationTest extends AbstractIntegrationTestCon
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
-    @BeforeAll
-    static void startWireMock() {
-        wireMockServer.start();
-    }
 
     @AfterAll
     static void stopWireMock() {

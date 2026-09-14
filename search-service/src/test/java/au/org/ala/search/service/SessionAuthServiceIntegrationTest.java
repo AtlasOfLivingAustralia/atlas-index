@@ -11,7 +11,6 @@ import au.org.ala.search.model.dto.UserInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,11 +38,7 @@ class SessionAuthServiceIntegrationTest extends AbstractIntegrationTestContainer
 
     private static final WireMockServer wireMockServer = new WireMockServer(0);
 
-    @Autowired
-    private SessionAuthService sessionAuthService;
-
-    @BeforeAll
-    static void startWireMockAndStubDiscovery() {
+    static {
         wireMockServer.start();
         String base = "http://localhost:" + wireMockServer.port();
 
@@ -57,6 +52,9 @@ class SessionAuthServiceIntegrationTest extends AbstractIntegrationTestContainer
                         }
                         """.formatted(base, base, base, base))));
     }
+
+    @Autowired
+    private SessionAuthService sessionAuthService;
 
     @AfterAll
     static void stopWireMockAndResetCachedStatics() throws Exception {

@@ -12,7 +12,6 @@ import au.org.ala.search.service.remote.BiocacheApiService;
 import au.org.ala.search.service.remote.ElasticService;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +47,10 @@ class CollectionsImportServiceIntegrationTest extends AbstractIntegrationTestCon
 
     private static final WireMockServer wireMockServer = new WireMockServer(0);
 
+    static {
+        wireMockServer.start();
+    }
+
     @Autowired
     private CollectionsImportService collectionsImportService;
 
@@ -60,10 +63,6 @@ class CollectionsImportServiceIntegrationTest extends AbstractIntegrationTestCon
     @MockBean
     private BiocacheApiService biocacheApiService;
 
-    @BeforeAll
-    static void startWireMock() {
-        wireMockServer.start();
-    }
 
     @AfterAll
     static void stopWireMock() {

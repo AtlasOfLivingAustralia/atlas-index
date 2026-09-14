@@ -11,7 +11,6 @@ import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.service.remote.ElasticService;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +48,10 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
 
     private static final WireMockServer wireMockServer = new WireMockServer(0);
 
+    static {
+        wireMockServer.start();
+    }
+
     @Autowired
     private ListImportService listImportService;
 
@@ -58,10 +61,6 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
-    @BeforeAll
-    static void startWireMock() {
-        wireMockServer.start();
-    }
 
     @AfterAll
     static void stopWireMock() {

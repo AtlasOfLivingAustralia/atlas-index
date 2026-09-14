@@ -13,13 +13,13 @@ import au.org.ala.search.model.queue.SearchQueueRequest;
 import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.SchedulerService;
 import au.org.ala.search.service.cache.CollectoryCache;
-import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
 import au.org.ala.search.service.queue.LeaderQueue;
 import au.org.ala.search.service.remote.DownloadFileStoreService;
 import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.QueueDataService;
+import au.org.ala.search.service.update.PostgresSyncService;
 import org.junit.jupiter.api.*;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -127,6 +127,9 @@ public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContai
 
     @MockBean
     private ElasticService elasticService;
+
+    @MockBean
+    private PostgresSyncService postgresSyncService;
 
     @AfterEach
     void restoreLeaderState() throws Exception {

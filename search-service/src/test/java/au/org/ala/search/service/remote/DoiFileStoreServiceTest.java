@@ -93,4 +93,17 @@ class DoiFileStoreServiceTest {
 
         assertThat(path).isEqualTo(tempDir + "/" + uuid + "/myfile.csv");
     }
+
+    @Test
+    void createPresignedGetUrl_directPathConfigured_returnsDirectPathWithoutPresigning() throws Exception {
+        Field f = DoiFileStoreService.class.getDeclaredField("directS3Path");
+        f.setAccessible(true);
+        f.set(service, "https://cdn.example.org/doi");
+        UUID uuid = UUID.randomUUID();
+        Doi doi = doi(uuid, "report.pdf");
+
+        String url = service.createPresignedGetUrl(doi);
+
+        assertThat(url).isEqualTo("https://cdn.example.org/doi/" + uuid + "/report.pdf");
+    }
 }

@@ -8,6 +8,7 @@ package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.doi.Doi;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,12 +18,14 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.File;
+import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
@@ -34,6 +37,7 @@ import java.util.concurrent.CompletableFuture;
 public class DoiFileStoreService {
 
     S3AsyncClient s3Client;
+    S3Presigner s3Presigner;
     @Value("${doi.filestore.path}")
     private String fileStorePath;
     @Value("${doi.s3.region}")
@@ -46,20 +50,44 @@ public class DoiFileStoreService {
     private Integer duration;
     @Value("${doi.s3.directPath}")
     private String directS3Path;
+    // Optional. Overrides the S3 endpoint (and forces path-style access)
+    @Value("${doi.s3.endpoint:}")
+    private String s3Endpoint;
 
     @PostConstruct
     void init() {
         if (StringUtils.isNotEmpty(s3Region)) {
             S3AsyncClientBuilder builder = S3AsyncClient.builder().region(Region.of(s3Region));
+            S3Presigner.Builder presignerBuilder = S3Presigner.builder().region(Region.of(s3Region));
 
             // override default system credentials if s3.accessKey and s3.secretKey are provided
             if (StringUtils.isNotBlank(s3AccessKey) && StringUtils.isNotBlank(s3SecretKey)) {
                 builder.credentialsProvider(() -> AwsBasicCredentials.create(s3AccessKey, s3SecretKey));
+                presignerBuilder.credentialsProvider(() -> AwsBasicCredentials.create(s3AccessKey, s3SecretKey));
+            }
+
+            if (StringUtils.isNotBlank(s3Endpoint)) {
+                builder.endpointOverride(URI.create(s3Endpoint)).forcePathStyle(true);
+                presignerBuilder.endpointOverride(URI.create(s3Endpoint))
+                        .serviceConfiguration(S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build());
             }
 
             s3Client = builder.build();
+            s3Presigner = presignerBuilder.build();
         } else if (fileStorePath.startsWith("s3")) {
             throw new RuntimeException("s3.region is not provided. file store path is s3: " + fileStorePath);
+        }
+    }
+
+    @PreDestroy
+    void destroy() {
+        if (s3Client != null) {
+            s3Client.close();
+        }
+        if (s3Presigner != null) {
+            s3Presigner.close();
         }
     }
 
@@ -110,26 +138,24 @@ public class DoiFileStoreService {
             return directS3Path + "/" + dstPath;
         } else {
             // create temporary, presigned URL
-            try (S3Presigner presigner = S3Presigner.create()) {
-                // s3 storage
-                String s3Uri = fileStorePath.substring(5); // remove "s3://"
-                int slashIdx = s3Uri.indexOf('/');
-                String bucket = slashIdx == -1 ? s3Uri : s3Uri.substring(0, slashIdx);
-                String path = slashIdx == -1 ? "" : s3Uri.substring(slashIdx + 1) + "/";
-                GetObjectRequest objectRequest = GetObjectRequest.builder()
-                        .bucket(bucket)
-                        .key(path + dstPath)
-                        .build();
+            // s3 storage
+            String s3Uri = fileStorePath.substring(5); // remove "s3://"
+            int slashIdx = s3Uri.indexOf('/');
+            String bucket = slashIdx == -1 ? s3Uri : s3Uri.substring(0, slashIdx);
+            String path = slashIdx == -1 ? "" : s3Uri.substring(slashIdx + 1) + "/";
+            GetObjectRequest objectRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(path + dstPath)
+                    .build();
 
-                GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                        .signatureDuration(Duration.ofMinutes(duration))  // The URL will expire in 10 minutes.
-                        .getObjectRequest(objectRequest)
-                        .build();
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(duration))  // The URL will expire in 10 minutes.
+                    .getObjectRequest(objectRequest)
+                    .build();
 
-                PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
 
-                return presignedRequest.url().toExternalForm();
-            }
+            return presignedRequest.url().toExternalForm();
         }
     }
 
