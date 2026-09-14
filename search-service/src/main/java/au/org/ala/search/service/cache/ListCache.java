@@ -6,12 +6,12 @@
 
 package au.org.ala.search.service.cache;
 
-import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.service.remote.ListApiService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +50,9 @@ public class ListCache {
                 String listName = (String) list.get("listName");
                 listNames.put(listId, listName);
             });
+        } catch (RestClientException e) {
+            // Expected when the lists service is unreachable
+            log.warn("Skipped caching species list, lists service unavailable: {}", e.getMessage());
         } catch (Exception e) {
             log.error("Failed to cache species list: {}", e.getMessage(), e);
         }

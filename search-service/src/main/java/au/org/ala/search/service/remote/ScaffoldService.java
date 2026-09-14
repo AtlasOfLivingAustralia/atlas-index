@@ -334,17 +334,20 @@ public class ScaffoldService {
             try { return Integer.parseInt(rawId); } catch (NumberFormatException e) { return rawId; }
         }
         // composite key — rawId is "val1:val2:..." matching PK field order
-        // Use the last N-1 colons as separators so values themselves may contain ":"
-        // Split on first (pkFields.size()-1) colons
+        // Use the last N-1 colons as separators so values themselves may contain ":" (e.g. URIs/LSIDs)
         Map<String, Object> map = new LinkedHashMap<>();
+        String[] parts = new String[pkFields.size()];
         String remaining = rawId;
-        for (int i = 0; i < pkFields.size() - 1; i++) {
-            int idx = remaining.indexOf(':');
+        for (int i = pkFields.size() - 1; i > 0; i--) {
+            int idx = remaining.lastIndexOf(':');
             if (idx < 0) throw new IllegalArgumentException("Cannot parse composite id: " + rawId);
-            map.put(pkFields.get(i).name, remaining.substring(0, idx));
-            remaining = remaining.substring(idx + 1);
+            parts[i] = remaining.substring(idx + 1);
+            remaining = remaining.substring(0, idx);
         }
-        map.put(pkFields.get(pkFields.size() - 1).name, remaining);
+        parts[0] = remaining;
+        for (int i = 0; i < pkFields.size(); i++) {
+            map.put(pkFields.get(i).name, parts[i]);
+        }
         return td.idFromMap.apply(map);
     }
 }

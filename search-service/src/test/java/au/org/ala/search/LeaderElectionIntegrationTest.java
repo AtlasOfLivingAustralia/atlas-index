@@ -7,11 +7,19 @@
 package au.org.ala.search;
 
 import au.org.ala.search.model.TaskType;
+import au.org.ala.search.model.queue.QueueItem;
+import au.org.ala.search.model.queue.QueueRequest;
+import au.org.ala.search.model.queue.SearchQueueRequest;
+import au.org.ala.search.model.queue.StatusCode;
 import au.org.ala.search.service.SchedulerService;
 import au.org.ala.search.service.cache.CollectoryCache;
-import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastQueue;
+import au.org.ala.search.service.queue.ConsumerQueue;
 import au.org.ala.search.service.queue.LeaderQueue;
+import au.org.ala.search.service.remote.DownloadFileStoreService;
+import au.org.ala.search.service.remote.ElasticService;
+import au.org.ala.search.service.remote.QueueDataService;
+import au.org.ala.search.service.update.PostgresSyncService;
 import org.junit.jupiter.api.*;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +28,23 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
+import org.springframework.test.context.TestPropertySource;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.TimeUnit;
@@ -46,10 +64,33 @@ import java.util.concurrent.TimeUnit;
  * (no KUBERNETES_SERVICE_HOST env var, spring.cloud.kubernetes.leader.enabled not set).
  * Instead, OnGrantedEvent and OnRevokedEvent are published directly to the ApplicationContext,
  * which is how LeadershipStatus receives them in production too.
+ * <p>
+ * <b>Known limitation (same as {@code ConsumerQueueIntegrationTest}):</b> since
+ * {@code consumerQueueTask_survivesLeadershipRevocationMidFlight} exercises the real
+ * {@link ConsumerQueue} bean (which registers a {@code @RabbitListener} on the shared
+ * {@code consumer} queue), this class re-enables {@code rabbitmq.consumer.listener.auto-startup}
+ * (disabled by default in {@code src/test/resources/application.properties} - see
+ * {@link ConsumerQueue#taskListener}) via {@code @TestPropertySource}, and uses
+ * {@code @DirtiesContext} to close its {@code ApplicationContext} (and deregister its listener)
+ * once this class's tests complete, so it does not become a stale competing consumer for
+ * {@code ConsumerQueueIntegrationTest} or any other test class that publishes real messages onto
+ * the {@code consumer} queue afterwards in the same JVM fork.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+@TestPropertySource(properties = {
+        "download.filestore.path=target/leader-election-test-downloads",
+        "rabbitmq.consumer.listener.auto-startup=true"
+})
 public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContainers {
+
+    private static final Path DOWNLOAD_DIR = Path.of("target/leader-election-test-downloads");
+
+    @BeforeAll
+    static void prepareFileStore() throws Exception {
+        Files.createDirectories(DOWNLOAD_DIR.resolve("search"));
+    }
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -69,8 +110,26 @@ public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContai
     @Autowired
     private RabbitListenerEndpointRegistry rabbitListenerEndpointRegistry;
 
+    @Autowired
+    private ConsumerQueue consumerQueue;
+
+    @Autowired
+    private QueueDataService queueDataService;
+
+    @Autowired
+    private DownloadFileStoreService downloadFileStoreService;
+
+    @Autowired
+    private org.springframework.amqp.rabbit.core.RabbitAdmin rabbitAdmin;
+
     @MockBean
     private CollectoryCache collectoryCache;
+
+    @MockBean
+    private ElasticService elasticService;
+
+    @MockBean
+    private PostgresSyncService postgresSyncService;
 
     @AfterEach
     void restoreLeaderState() throws Exception {
@@ -219,20 +278,22 @@ public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContai
         publishGranted();
 
         // Wait for the listener to start and consume the queued message.
-        // We can't directly observe the message being consumed without a spy,
-        // so we verify the listener is running (which means it's able to consume).
         await().atMost(15, TimeUnit.SECONDS)
                 .until(() -> rabbitListenerEndpointRegistry
                         .getListenerContainer(LeaderQueue.LEADER_QUEUE).isRunning());
 
-        // Give a brief moment for message consumption
-        await().atMost(5, TimeUnit.SECONDS).pollInterval(500, TimeUnit.MILLISECONDS)
-                .untilAsserted(() ->
-                        // Verify queue depth is zero via RabbitMQ management API or
-                        // simply assert no exception — the listener is running and will consume.
-                        assertThat(rabbitListenerEndpointRegistry
-                                .getListenerContainer(LeaderQueue.LEADER_QUEUE).isRunning()).isTrue()
-                );
+        // Ensure the message is actually drained from the queue before this test (or the class)
+        // finishes. Without this, the message can otherwise linger in the shared/singleton
+        // RabbitMQ queue and be delivered arbitrarily later — even during final JVM shutdown,
+        // once Elasticsearch's Testcontainers instance has already been reaped, producing a
+        // spurious "Connection refused" error at shutdown.
+        await().atMost(10, TimeUnit.SECONDS).pollInterval(200, TimeUnit.MILLISECONDS)
+                .untilAsserted(() -> {
+                    org.springframework.amqp.core.QueueInformation info =
+                            rabbitAdmin.getQueueInfo(LeaderQueue.LEADER_QUEUE);
+                    assertThat(info).isNotNull();
+                    assertThat(info.getMessageCount()).isZero();
+                });
     }
 
     @Test
@@ -289,6 +350,70 @@ public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContai
                 .isFalse();
     }
 
+    @Test
+    @Order(60)
+    void consumerQueueTask_survivesLeadershipRevocationMidFlight() throws Exception {
+        assertThat(leadershipStatus.isLeader()).isTrue();
+
+        // Slow down the "export" so the task is still RUNNING when leadership is revoked.
+        when(elasticService.isValidField(anyString())).thenReturn(true);
+        File csvFile = File.createTempFile("leader-election-consumer-test", ".csv");
+        try (FileWriter fw = new FileWriter(csvFile, StandardCharsets.UTF_8)) {
+            fw.write("guid,scientificName\nurn:lsid:test:1,Testus scientificus\n");
+        }
+        when(elasticService.download(eq("kangaroo"), any(), eq("guid"), eq(false))).thenAnswer(invocation -> {
+            Thread.sleep(2000);
+            return csvFile;
+        });
+
+        String userId = "user-" + UUID.randomUUID();
+        SearchQueueRequest searchQueueRequest = new SearchQueueRequest();
+        searchQueueRequest.filename = "leader-election-results-" + UUID.randomUUID();
+        searchQueueRequest.q = new String[]{"kangaroo"};
+        searchQueueRequest.fl = new String[]{"guid"};
+
+        QueueItem submitted = consumerQueue.add(QueueRequest.builder()
+                .taskType(TaskType.SEARCH_DOWNLOAD)
+                .searchQueueRequest(searchQueueRequest)
+                .build(), userId);
+
+        assertThat(submitted.status).isEqualTo(StatusCode.QUEUED);
+
+        // Wait until the task is actually RUNNING, then revoke leadership mid-flight.
+        awaitConsumerStatus(submitted.id, StatusCode.RUNNING);
+
+        publishRevoked();
+        assertThat(leadershipStatus.isLeader()).isFalse();
+        // The LEADER_QUEUE listener is stopped, but this in-flight ConsumerQueue/TASK_QUEUE task
+        // is independent of leader-queue plumbing, so it should still run to completion.
+        assertThat(rabbitListenerEndpointRegistry
+                .getListenerContainer(LeaderQueue.LEADER_QUEUE).isRunning())
+                .isFalse();
+
+        QueueItem finished = awaitConsumerStatus(submitted.id, StatusCode.FINISHED, StatusCode.ERROR);
+        assertThat(finished.status).as("statusMessage: %s", finished.statusMessage).isEqualTo(StatusCode.FINISHED);
+
+        File zipFile = new File(downloadFileStoreService.getFilePath(finished));
+        assertThat(zipFile).exists();
+    }
+
+    private QueueItem awaitConsumerStatus(UUID id, StatusCode... anyOf) {
+        return await()
+                .atMost(20, TimeUnit.SECONDS)
+                .pollInterval(200, TimeUnit.MILLISECONDS)
+                .until(() -> queueDataService.get(id), item -> {
+                    if (item == null) {
+                        return false;
+                    }
+                    for (StatusCode status : anyOf) {
+                        if (item.status == status) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+    }
+
     private void publishGranted() {
         // OnGrantedEvent(source, context, role)
         applicationContext.publishEvent(new OnGrantedEvent(this, null, "leader"));
@@ -303,7 +428,6 @@ public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContai
      * Access the private scheduledTasks map in SchedulerService via reflection
      * to verify whether a given task type has an active schedule.
      */
-    @SuppressWarnings("unchecked")
     private Map<TaskType, ?> getScheduledTasks() {
         try {
             Field field = SchedulerService.class.getDeclaredField("scheduledTasks");

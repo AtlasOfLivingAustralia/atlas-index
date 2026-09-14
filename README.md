@@ -103,13 +103,8 @@ UI playwright tests (requires playwright installed and configured)
 yarn test:playwright
 ```
 
-search-service unit tests
+search-service tests (unit and integration; requires Docker running locally for Testcontainers)
 ```shell
-mvn test -pl search-service -Dtest='!*IntegrationTest'
-```
-
-search-service integration tests (requires Docker running locally for Testcontainers)
-```shell
-mvn test -pl search-service -Dtest='*IntegrationTest'
+mvn test -pl search-service
 ```
 

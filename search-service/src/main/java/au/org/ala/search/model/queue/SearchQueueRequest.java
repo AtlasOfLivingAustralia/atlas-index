@@ -10,10 +10,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @NoArgsConstructor
 @Getter
 @Setter
-public class SearchQueueRequest {
+public class SearchQueueRequest implements Serializable {
     public String[] q; // query parameters
     public String[] fl; // fields to return
     public String filename; // optional filename, without extension, for the search results, e.g. "search_results.csv"

@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -167,10 +169,21 @@ public class AllService {
         }
 
         try {
-            Field field = AllService.class.getField("task" + StringUtils.capitalize(taskType.name().toLowerCase()) + "Enabled");
+            Field field = AllService.class.getField(taskFieldName(taskType));
             return (Boolean) field.get(this);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             return true; // it is probably OK to ignore this exception
         }
+    }
+
+    /**
+     * Converts a {@link TaskType} into the expected {@code @Value}-annotated field name on this
+     * class, e.g. {@code POSTGRES_SYNC} -&gt; {@code taskPostgresSyncEnabled}.
+     */
+    static String taskFieldName(TaskType taskType) {
+        String camel = Arrays.stream(taskType.name().split("_"))
+                .map(part -> StringUtils.capitalize(part.toLowerCase()))
+                .collect(Collectors.joining());
+        return "task" + camel + "Enabled";
     }
 }

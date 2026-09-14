@@ -7,6 +7,7 @@
 package au.org.ala.search.service.remote;
 
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -38,6 +40,9 @@ public class SitemapFileStoreService {
     private String s3AccessKey;
     @Value("${sitemap.s3.secretKey}")
     private String s3SecretKey;
+    // Optional. Overrides the S3 endpoint (and forces path-style access)
+    @Value("${sitemap.s3.endpoint:}")
+    private String s3Endpoint;
 
     @PostConstruct
     void init() {
@@ -49,9 +54,20 @@ public class SitemapFileStoreService {
                 builder.credentialsProvider(() -> AwsBasicCredentials.create(s3AccessKey, s3SecretKey));
             }
 
+            if (StringUtils.isNotBlank(s3Endpoint)) {
+                builder.endpointOverride(URI.create(s3Endpoint)).forcePathStyle(true);
+            }
+
             s3Client = builder.build();
         } else if (fileStorePath.startsWith("s3")) {
             throw new RuntimeException("s3.region is not provided. file store path is s3: " + fileStorePath);
+        }
+    }
+
+    @PreDestroy
+    void destroy() {
+        if (s3Client != null) {
+            s3Client.close();
         }
     }
 

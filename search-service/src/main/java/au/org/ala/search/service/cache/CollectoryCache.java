@@ -9,6 +9,7 @@ package au.org.ala.search.service.cache;
 import au.org.ala.search.model.SearchItemIndex;
 import au.org.ala.search.model.query.Op;
 import au.org.ala.search.service.remote.ElasticService;
+import au.org.ala.search.util.QueryParseException;
 import au.org.ala.search.util.QueryParserUtil;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldAndFormat;
@@ -61,11 +62,6 @@ public class CollectoryCache {
             fieldList.add(new FieldAndFormat.Builder().field("name").build());
 
             Op op = QueryParserUtil.parse("idxtype:DATARESOURCE", null, elasticService::isValidField);
-            if (op == null) {
-                log.warn("Failed to parse query for collectory cache, using empty Op. Elasticsearch index may be empty.");
-                return;
-            }
-
             Query queryOp = elasticService.opToQuery(op);
 
             List<FieldValue> searchAfter = null;
@@ -91,8 +87,10 @@ public class CollectoryCache {
 
                 hasMore = hits.size() == pageSize;
             }
+        } catch (QueryParseException e) {
+            // Expected when the Elasticsearch index is empty/not yet initialised
+            log.warn("Skipped caching data resource names: index does not yet have an 'idxtype' field ({})", e.getMessage());
         } catch (Exception e) {
-            // Note: this error is always logged when the index has not yet been initialized with idxtype:DATARESOURCE
             log.error("Failed to cache data resource names", e);
         } finally {
             try {

@@ -459,8 +459,11 @@ public class ConsumerQueue {
         return null;
     }
 
-    // consumerQueueListenerContainerFactory sets the concurrency value
-    @RabbitListener(queues = TASK_QUEUE, id = TASK_QUEUE, ackMode = "MANUAL", containerFactory = "consumerQueueListenerContainerFactory")
+    // consumerQueueListenerContainerFactory sets the concurrency value.
+    // autoStartup is for use by integration tests.
+    @RabbitListener(queues = TASK_QUEUE, id = TASK_QUEUE, ackMode = "MANUAL",
+            containerFactory = "consumerQueueListenerContainerFactory",
+            autoStartup = "${rabbitmq.consumer.listener.auto-startup:true}")
     public void taskListener(Message message, Channel channel) throws IOException {
         // get the retry count from the message headers to limit retries, in case something goes wrong repeatedly
         Integer retryCount = (Integer) message.getMessageProperties().getHeaders().getOrDefault("x-retry-count", 0);

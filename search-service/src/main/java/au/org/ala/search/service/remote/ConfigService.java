@@ -14,6 +14,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.InputStream;
 import java.util.*;
@@ -97,6 +99,12 @@ public class ConfigService {
         Map<String, Object> diff = auditService.diff("value", prevConfigData != null ? prevConfigData.value : null, configData.value);
 
         // compare with previous config data for "value" changes
+        ConfigData prevConfigDataSnapshot = prevConfigData != null
+                ? ConfigData.builder().id(prevConfigData.id).value(prevConfigData.value)
+                .notes(prevConfigData.notes).updated(prevConfigData.updated).build()
+                : null;
+
+        // compare with previous config data for "value" changes
         if (prevConfigData != null) {
             if (StringUtils.equals(prevConfigData.value, configData.value)) {
                 // No change in value, save the notes if changed
@@ -124,15 +132,35 @@ public class ConfigService {
                 AuditService.ACTION_UPDATE,
                 diff);
 
-        // Broadcast the change, for any node that listens for config changes
-        try {
-            if (BroadcastQueue.getInstance() != null) {
-                BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, prevConfigData);
-            } else {
-                log.warn("BroadcastService is not initialized, cannot broadcast config change for {}", configData.id);
+        // Broadcast the change after the transaction commits, for any node that listens for config changes
+        broadcastConfigChange(configData.id, prevConfigDataSnapshot);
+    }
+
+    private void broadcastConfigChange(String configId, ConfigData prevConfigDataSnapshot) {
+        Runnable broadcastTask = () -> {
+            try {
+                if (BroadcastQueue.getInstance() != null) {
+                    ConfigData broadcastPayload = prevConfigDataSnapshot != null
+                            ? prevConfigDataSnapshot
+                            : ConfigData.builder().id(configId).build();
+                    BroadcastQueue.getInstance().sendMessage(TaskType.CONFIG_CHANGE, broadcastPayload);
+                } else {
+                    log.warn("BroadcastService is not initialized, cannot broadcast config change for {}", configId);
+                }
+            } catch (Exception e) {
+                log.error("Failed to broadcast config change for {}: {}", configId, e.getMessage(), e);
             }
-        } catch (Exception e) {
-            log.error("Failed to broadcast config change for {}: {}", configData.id, e.getMessage(), e);
+        };
+
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    broadcastTask.run();
+                }
+            });
+        } else {
+            broadcastTask.run();
         }
     }
 
@@ -154,6 +182,10 @@ public class ConfigService {
 
     // triggered by BroadcastService when a config change is received
     public void triggerListeners(ConfigData configData, ConfigData prevConfigData) {
+        if (configData == null || configData.id == null) {
+            log.warn("Received null configData or configData.id, skipping triggerListeners");
+            return;
+        }
         Set<ConfigChangeListener> keyListeners = listeners.get(configData.id);
         if (keyListeners != null) {
             // copy into an array on the off chance keyListeners is modified during iteration

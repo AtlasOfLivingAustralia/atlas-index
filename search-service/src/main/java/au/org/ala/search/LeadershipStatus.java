@@ -9,6 +9,7 @@ package au.org.ala.search;
 import au.org.ala.search.service.queue.LeaderQueue;
 import au.org.ala.search.service.SchedulerService;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
@@ -42,6 +43,9 @@ public class LeadershipStatus {
     }
 
     private final AtomicBoolean isLeader = new AtomicBoolean(System.getenv("KUBERNETES_SERVICE_HOST") == null);
+    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private final Object leaderLock = new Object();
+    private volatile Thread leaderStartupThread;
 
     @PostConstruct
     public void init() {
@@ -52,13 +56,37 @@ public class LeadershipStatus {
         log.info("Leadership status: {}", isLeader.get());
     }
 
+    /**
+     * Ensure the leader queue listener (and its background startup retry thread) are stopped
+     * before the application context finishes tearing down other beans.
+     */
+    @PreDestroy
+    public void shutdown() {
+        synchronized (leaderLock) {
+            shuttingDown.set(true);
+
+            Thread startupThread = leaderStartupThread;
+            if (startupThread != null && startupThread.isAlive()) {
+                startupThread.interrupt();
+            }
+
+            stopLeaderContainer();
+        }
+    }
+
 
     @EventListener
     public void handleOnGrantedEvent(OnGrantedEvent event) {
-        boolean wasLeader = isLeader.getAndSet(true);
+        boolean wasLeader;
+        synchronized (leaderLock) {
+            wasLeader = isLeader.getAndSet(true);
+
+            if (!wasLeader) {
+                setupAsLeader();
+            }
+        }
 
         if (!wasLeader) {
-            setupAsLeader();
             schedulerService.initSchedules();
         }
 
@@ -67,45 +95,91 @@ public class LeadershipStatus {
 
     @EventListener
     public void handleOnRevokedEvent(OnRevokedEvent event) {
-        isLeader.set(false);
+        synchronized (leaderLock) {
+            isLeader.set(false);
+
+            Thread startupThread = leaderStartupThread;
+            if (startupThread != null && startupThread.isAlive()) {
+                startupThread.interrupt();
+            }
+
+            stopLeaderContainer();
+        }
+
         log.info("Leadership revoked: {}", event.getRole());
         schedulerService.initSchedules();
-
-        registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).stop();
     }
 
     public boolean isLeader() {
         return isLeader.get();
     }
 
+    private void stopLeaderContainer() {
+        try {
+            var container = registry.getListenerContainer(LeaderQueue.LEADER_QUEUE);
+            if (container != null && container.isRunning()) {
+                container.stop();
+            }
+        } catch (Exception e) {
+            log.warn("Error stopping leader queue listener", e);
+        }
+    }
+
     private void setupAsLeader() {
         // 1. identify and restart any failed tasks
-        log.error("Leadership setup goes here");
+        // TODO: identify and restart any failed tasks.
+        log.debug("Leadership setup: identify and restart any failed tasks (not yet implemented)");
 
         // 2. start the leader queue listener
         if (StringUtils.isNotEmpty(rabbitMqHost)) {
-            new Thread(() -> {
+            Thread existingThread = leaderStartupThread;
+            if (existingThread != null && existingThread.isAlive()) {
+                existingThread.interrupt();
+            }
+
+            Thread thread = new Thread(() -> {
                 int attempts = 0;
                 int delayMs = 100;
-                while (attempts < 300 * 1000 / delayMs) { // 5 minutes
+                while (!shuttingDown.get() && isLeader.get() && attempts < 300 * 1000 / delayMs) { // 5 minutes
                     attempts++;
                     try {
-                        registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).start();
-                        log.info("Started leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
-                        return;
+                        synchronized (leaderLock) {
+                            if (!shuttingDown.get() && isLeader.get()) {
+                                var container = registry.getListenerContainer(LeaderQueue.LEADER_QUEUE);
+                                if (container != null) {
+                                    container.start();
+                                    if (!isLeader.get() || shuttingDown.get()) {
+                                        stopLeaderContainer();
+                                        return;
+                                    }
+                                    log.info("Started leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
+                                    return;
+                                }
+                            } else {
+                                return;
+                            }
+                        }
                     } catch (Exception e) {
-                        if (attempts % 10 == 0) {
+                        if (!shuttingDown.get() && isLeader.get() && attempts % 10 == 0) {
                             log.info("Failed to start leader queue listener after {} seconds, retrying...", (attempts * delayMs / 1000.0));
                         }
                     }
                     try {
                         Thread.sleep(delayMs);
-                    } catch (InterruptedException ignored) {
-
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
                     }
                 }
-                log.error("Error starting leader queue listener after 5 minutes, giving up");
-            }).start();
+                if (!shuttingDown.get() && isLeader.get()) {
+                    log.error("Error starting leader queue listener after 5 minutes, giving up");
+                }
+            });
+            // Daemon so this background retry loop never prevents JVM shutdown on its own.
+            thread.setDaemon(true);
+            thread.setName("leader-queue-startup");
+            leaderStartupThread = thread;
+            thread.start();
         }
     }
 }

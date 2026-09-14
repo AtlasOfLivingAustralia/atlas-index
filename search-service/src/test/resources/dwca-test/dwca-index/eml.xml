@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd"
+        packageId="test-dwca-macropus" system="http://ala.org.au" scope="system"
+  xml:lang="en">
+
+<dataset>
+    <alternateIdentifier>local:test-dwca-macropus</alternateIdentifier>
+  <title>Test DwC-Archive - Macropus Genus Subtree</title>
+  <shortName>Test-DwCA-Macropus</shortName>
+  <creator>
+    <organizationName>Atlas of Living Australia</organizationName>
+    <electronicMailAddress>data_management@ala.org.au</electronicMailAddress>
+  </creator>
+  <pubDate>2025-01-01</pubDate>
+  <language>english</language>
+  <abstract>
+    <para>Minimal test dataset containing the Macropus (kangaroo) genus subtree, used by
+    search-service integration tests (see DwcaImportIntegrationTest and
+    search-service/scripts/extract_test_data.py).</para>
+  </abstract>
+  <intellectualRights>
+    <para><ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC BY) 4.0</citetitle></ulink></para>
+  </intellectualRights>
+</dataset>
+
+<additionalMetadata>
+  <metadata>
+    <gbif>
+      <hierarchyLevel>dataset</hierarchyLevel>
+      <citation>Atlas of Living Australia. (2025). Test DwC-Archive - Macropus Genus Subtree.</citation>
+    </gbif>
+  </metadata>
+</additionalMetadata>
+
+</eml:eml>

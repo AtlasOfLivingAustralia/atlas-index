@@ -55,7 +55,45 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     }
 
     @Test
+    @Order(0)
+    void scaffoldGet_notAdmin_returnsForbidden() {
+        when(authService.isAdmin(any())).thenReturn(false);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/admin/scaffold", HttpMethod.GET, null, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
     @Order(1)
+    void scaffoldUpsert_notAdmin_returnsForbidden() {
+        when(authService.isAdmin(any())).thenReturn(false);
+
+        Map<String, Object> body = Map.of("id", 9999, "name", "SHOULD_NOT_BE_CREATED");
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/admin/scaffold?table=log_event_type",
+                HttpMethod.POST,
+                new HttpEntity<>(body, jsonHeaders()),
+                String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    @Order(2)
+    void scaffoldDelete_notAdmin_returnsForbidden() {
+        when(authService.isAdmin(any())).thenReturn(false);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                "/admin/scaffold?table=log_event_type&id=9999",
+                HttpMethod.DELETE, null, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    @Order(3)
     void listTables_includesLoggerTables() {
         ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
                 "/admin/scaffold",
@@ -106,7 +144,7 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
         Map<String, Object> page = response.getBody();
         assertThat(page).isNotNull();
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> content = (List<Map<String, Object>>) page.get("content");
         assertThat(content).isNotNull();
         assertThat(content).anyMatch(row ->
@@ -134,7 +172,7 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
         assertThat(content).anyMatch(row ->
                 TEST_EVENT_TYPE_ID.equals(row.get("id")) && "TEST_EVENT_UPDATED".equals(row.get("name")));
@@ -159,7 +197,7 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
         assertThat(content).noneMatch(row -> TEST_EVENT_TYPE_ID.equals(row.get("id")));
     }
@@ -239,7 +277,7 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
         assertThat(content).noneMatch(row -> TEST_REASON_TYPE_ID.equals(row.get("id")));
     }
@@ -362,7 +400,7 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 HttpMethod.GET, null,
                 new ParameterizedTypeReference<>() {
                 });
-        @SuppressWarnings("unchecked")
+        
         List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
         assertThat(content).noneMatch(row -> Integer.valueOf(referencedId).equals(row.get("id")));
 

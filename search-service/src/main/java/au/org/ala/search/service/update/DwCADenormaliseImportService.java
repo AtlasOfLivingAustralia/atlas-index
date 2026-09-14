@@ -411,6 +411,7 @@ public class DwCADenormaliseImportService {
                     variantItem.put("nameFormatted", StringUtils.isNotEmpty(variant.nameFormatted) ? variant.nameFormatted : variant.scientificName);
                 if (variant.nameAccordingTo != null) variantItem.put("nameAccordingTo", variant.nameAccordingTo);
                 if (variant.namePublishedIn != null) variantItem.put("namePublishedIn", variant.namePublishedIn);
+                if (variant.namePublishedInYear != null) variantItem.put("namePublishedInYear", variant.namePublishedInYear);
                 if (variant.source != null) variantItem.put("source", variant.source);
 
                 if (variant.datasetID != null) {
@@ -524,6 +525,7 @@ public class DwCADenormaliseImportService {
                     syn.put("nameFormatted", StringUtils.isNotEmpty(synonym.nameFormatted) ? synonym.nameFormatted : synonym.scientificName);
                     if (synonym.nameAccordingTo != null) syn.put("nameAccordingTo", synonym.nameAccordingTo);
                     if (synonym.namePublishedIn != null) syn.put("namePublishedIn", synonym.namePublishedIn);
+                    if (synonym.namePublishedInYear != null) syn.put("namePublishedInYear", synonym.namePublishedInYear);
                     if (synonym.source != null) syn.put("source", synonym.source);
 
                     if (synonym.datasetID != null) {

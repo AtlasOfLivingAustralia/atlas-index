@@ -7,7 +7,11 @@
 package au.org.ala.search.service;
 
 import au.org.ala.search.AbstractIntegrationTestContainers;
+import au.org.ala.search.service.queue.BroadcastQueue;
+import au.org.ala.search.service.queue.ConsumerQueue;
+import au.org.ala.search.service.queue.LeaderQueue;
 import org.junit.jupiter.api.*;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -69,11 +73,15 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
         when(authService.getActor(any(), any(), any())).thenReturn("test-actor");
     }
 
+    // Rabbit queue purging is handled by AbstractIntegrationTestContainers (@BeforeEach / @AfterAll)
+    // for all integration test classes.
+
     @BeforeAll
     static void seedLookupTypes(@Autowired TestRestTemplate restTemplate,
                                 @Autowired AuthService authService) {
         when(authService.isAdmin(any())).thenReturn(true);
         when(authService.getActor(any(), any(), any())).thenReturn("test-actor");
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -89,6 +97,12 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
         upsertScaffold(restTemplate, headers, "log_source_type",
                 Map.of("id", SRC, "name", "ALA"));
     }
+
+    /**
+     * The advisory lock key used internally by {@code process_new_events()} (see
+     * V10__schema.sql) to prevent concurrent runs of the procedure.
+     */
+    private static final long PROCESS_NEW_EVENTS_LOCK_KEY = 123456789L;
 
     /**
      * Before each test, clear all log_event and summary table data and reset
@@ -107,6 +121,45 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
         jdbcTemplate.execute("UPDATE event_processing_checkpoint SET last_processed_event_id = 0");
     }
 
+    /**
+     * Defensively force-release the {@code process_new_events()} advisory lock
+     * before each test.
+     * <p>
+     * {@code process_new_events()} guards itself with a <em>session-level</em>
+     * Postgres advisory lock ({@code pg_try_advisory_lock}), which is only ever
+     * released explicitly at the end of the procedure, or implicitly when the
+     * database session/connection that acquired it is closed. Other test
+     * classes' cached Spring contexts hold their own connection pools against
+     * this same shared Testcontainers Postgres instance and can trigger the
+     * same procedure asynchronously in the background (e.g.
+     * {@code LeaderElectionIntegrationTest} sending a
+     * {@code LOGGER_UPDATE_SUMMARY_TABLES} message, or {@code SchedulerService}'s
+     * hourly cron for that task in any still-cached context). If such a call is
+     * interrupted or its underlying connection is never actually closed (just
+     * returned to its pool, since the lock is per-session, not per-transaction),
+     * the lock can be left permanently held — causing every subsequent
+     * {@code CALL process_new_events()} anywhere in the JVM (including this
+     * test's own explicit calls) to silently no-op ("already running,
+     * skipping"), which otherwise manifests as missing/undercounted summary
+     * data exactly like the flakiness this test previously worked around by
+     * running in its own dedicated, early Surefire execution.
+     * <p>
+     * Forcibly terminating whichever backend currently holds this specific
+     * advisory lock guarantees this test always starts with the lock free,
+     * regardless of what any other test class's background activity has done.
+     */
+    @BeforeEach
+    void releaseStuckProcessNewEventsLock() {
+        jdbcTemplate.execute("""
+                SELECT pg_terminate_backend(l.pid)
+                FROM pg_locks l
+                WHERE l.locktype = 'advisory'
+                  AND l.classid = 0
+                  AND l.objid = %d
+                  AND l.pid <> pg_backend_pid()
+                """.formatted(PROCESS_NEW_EVENTS_LOCK_KEY));
+    }
+
     @Test
     @Order(1)
     void processNewEvents_noEvents_endpointsReturnEmpty() {
@@ -118,7 +171,7 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 });
 
         assertThat(totalsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> totals = (Map<String, Object>) totalsResponse.getBody().get("totals");
         assertThat(totals).isEmpty();
     }
@@ -135,11 +188,11 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 });
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> totals = (Map<String, Object>) response.getBody().get("totals");
         assertThat(totals).containsKey(String.valueOf(EVT));
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> typeTotals = (Map<String, Object>) totals.get(String.valueOf(EVT));
         Number events = (Number) typeTotals.get("events");
         Number records = (Number) typeTotals.get("records");
@@ -160,9 +213,9 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> totals = (Map<String, Object>) response.getBody().get("totals");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> typeTotals = (Map<String, Object>) totals.get(String.valueOf(EVT));
         assertThat(((Number) typeTotals.get("events")).longValue()).isEqualTo(5L);
         assertThat(((Number) typeTotals.get("records")).longValue()).isEqualTo(500L);
@@ -184,25 +237,25 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> all = (Map<String, Object>) response.getBody().get("all");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> emailBreakdown = (Map<String, Object>) all.get("emailBreakdown");
 
         assertThat(emailBreakdown).containsKeys("gov", "edu", "other");
 
         // gov category: csiro.au → 1 event
-        @SuppressWarnings("unchecked")
+        
         Number govEvents = (Number) ((Map<String, Object>) emailBreakdown.get("gov")).get("events");
         assertThat(govEvents.longValue()).isEqualTo(1L);
 
         // edu category: .edu.au → 1 event
-        @SuppressWarnings("unchecked")
+        
         Number eduEvents = (Number) ((Map<String, Object>) emailBreakdown.get("edu")).get("events");
         assertThat(eduEvents.longValue()).isEqualTo(1L);
 
         // other category: gmail.com → 1 event
-        @SuppressWarnings("unchecked")
+        
         Number otherEvents = (Number) ((Map<String, Object>) emailBreakdown.get("other")).get("events");
         assertThat(otherEvents.longValue()).isEqualTo(1L);
     }
@@ -219,13 +272,13 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> all = (Map<String, Object>) response.getBody().get("all");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> emailBreakdown = (Map<String, Object>) all.get("emailBreakdown");
         assertThat(emailBreakdown).containsKey("unspecified");
 
-        @SuppressWarnings("unchecked")
+        
         Number unspecifiedEvents = (Number) ((Map<String, Object>) emailBreakdown.get("unspecified")).get("events");
         assertThat(unspecifiedEvents.longValue()).isGreaterThan(0L);
     }
@@ -246,18 +299,18 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> all = (Map<String, Object>) response.getBody().get("all");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> reasonBreakdown = (Map<String, Object>) all.get("reasonBreakdown");
 
         assertThat(reasonBreakdown).containsKeys("scientific research", "education");
 
-        @SuppressWarnings("unchecked")
+        
         Number researchEvents = (Number) ((Map<String, Object>) reasonBreakdown.get("scientific research")).get("events");
         assertThat(researchEvents.longValue()).isEqualTo(2L);
 
-        @SuppressWarnings("unchecked")
+        
         Number educationEvents = (Number) ((Map<String, Object>) reasonBreakdown.get("education")).get("events");
         assertThat(educationEvents.longValue()).isEqualTo(1L);
     }
@@ -276,13 +329,13 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> all = (Map<String, Object>) response.getBody().get("all");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> sourceBreakdown = (Map<String, Object>) all.get("sourceBreakdown");
         assertThat(sourceBreakdown).containsKey("ALA");
 
-        @SuppressWarnings("unchecked")
+        
         Number alaEvents = (Number) ((Map<String, Object>) sourceBreakdown.get("ALA")).get("events");
         assertThat(alaEvents.longValue()).isGreaterThan(0L);
     }
@@ -303,7 +356,7 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> allA = (Map<String, Object>) responseA.getBody().get("all");
         assertThat(((Number) allA.get("events")).longValue()).isEqualTo(3L);
 
@@ -313,7 +366,7 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> allB = (Map<String, Object>) responseB.getBody().get("all");
         assertThat(((Number) allB.get("events")).longValue()).isEqualTo(1L);
     }
@@ -330,9 +383,9 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> totals = (Map<String, Object>) response.getBody().get("totals");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> typeTotals = (Map<String, Object>) totals.get(String.valueOf(EVT));
 
         // Should still be exactly 1 event, not 2
@@ -357,9 +410,9 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> totals = (Map<String, Object>) response.getBody().get("totals");
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> typeTotals = (Map<String, Object>) totals.get(String.valueOf(EVT));
         assertThat(((Number) typeTotals.get("events")).longValue()).isEqualTo(3L);
         assertThat(((Number) typeTotals.get("records")).longValue()).isEqualTo(600L);
@@ -380,7 +433,7 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 });
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
+        
         List<List<Object>> months = (List<List<Object>>) response.getBody().get("months");
         assertThat(months).isNotEmpty();
 
@@ -405,7 +458,7 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 });
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> temporal = (Map<String, Object>) response.getBody().get("temporalBreakdown");
         // Should only include months where RSN_A events exist
         assertThat(temporal).isNotEmpty();
@@ -417,12 +470,12 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
                 HttpMethod.GET, null, new ParameterizedTypeReference<>() {
                 });
 
-        @SuppressWarnings("unchecked")
+        
         Map<String, Object> excludedTemporal = (Map<String, Object>) excludedResponse.getBody().get("temporalBreakdown");
 
         // Verify the events in the excluded response only reflect RSN_B counts
         if (!excludedTemporal.isEmpty()) {
-            @SuppressWarnings("unchecked")
+            
             Map<String, Object> monthData = (Map<String, Object>) excludedTemporal.get(CURRENT_MONTH);
             if (monthData != null) {
                 assertThat(((Number) monthData.get("events")).longValue()).isEqualTo(1L); // only RSN_B event
@@ -438,9 +491,36 @@ public class LoggerSummaryProcessingIntegrationTest extends AbstractIntegrationT
      * termination"). JPA's @Modifying requires a JPA transaction, which conflicts.
      * Using JdbcTemplate directly bypasses JPA's transaction requirement and lets
      * the procedure manage its own commits on a plain auto-commit connection.
+     * <p>
+     * Retries a few times if another session is transiently holding the
+     * procedure's advisory lock (see {@link #releaseStuckProcessNewEventsLock()}),
+     * e.g. a background task from another cached Spring context racing to run
+     * the same procedure concurrently — the call would otherwise silently
+     * no-op ("already running, skipping") and leave this test's just-inserted
+     * events unprocessed.
      */
     private void runProcessNewEvents() {
-        jdbcTemplate.execute("CALL process_new_events()");
+        Long maxEventId = jdbcTemplate.queryForObject("SELECT MAX(id) FROM log_event", Long.class);
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            jdbcTemplate.execute("CALL process_new_events()");
+
+            Long checkpoint = jdbcTemplate.queryForObject(
+                    "SELECT last_processed_event_id FROM event_processing_checkpoint WHERE id = 1", Long.class);
+
+            boolean caughtUp = maxEventId == null || (checkpoint != null && checkpoint >= maxEventId);
+            if (caughtUp) {
+                return;
+            }
+
+            releaseStuckProcessNewEventsLock();
+            try {
+                Thread.sleep(100L * (attempt + 1));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
     }
 
     private void createLogEvent(int eventTypeId, int reasonTypeId, int sourceTypeId,
