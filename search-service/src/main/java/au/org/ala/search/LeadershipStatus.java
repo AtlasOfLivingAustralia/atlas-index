@@ -44,6 +44,7 @@ public class LeadershipStatus {
 
     private final AtomicBoolean isLeader = new AtomicBoolean(System.getenv("KUBERNETES_SERVICE_HOST") == null);
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
+    private final Object leaderLock = new Object();
     private volatile Thread leaderStartupThread;
 
     @PostConstruct
@@ -61,30 +62,31 @@ public class LeadershipStatus {
      */
     @PreDestroy
     public void shutdown() {
-        shuttingDown.set(true);
+        synchronized (leaderLock) {
+            shuttingDown.set(true);
 
-        Thread startupThread = leaderStartupThread;
-        if (startupThread != null && startupThread.isAlive()) {
-            startupThread.interrupt();
-        }
-
-        try {
-            var container = registry.getListenerContainer(LeaderQueue.LEADER_QUEUE);
-            if (container.isRunning()) {
-                container.stop();
+            Thread startupThread = leaderStartupThread;
+            if (startupThread != null && startupThread.isAlive()) {
+                startupThread.interrupt();
             }
-        } catch (Exception e) {
-            log.warn("Error stopping leader queue listener during shutdown", e);
+
+            stopLeaderContainer();
         }
     }
 
 
     @EventListener
     public void handleOnGrantedEvent(OnGrantedEvent event) {
-        boolean wasLeader = isLeader.getAndSet(true);
+        boolean wasLeader;
+        synchronized (leaderLock) {
+            wasLeader = isLeader.getAndSet(true);
+
+            if (!wasLeader) {
+                setupAsLeader();
+            }
+        }
 
         if (!wasLeader) {
-            setupAsLeader();
             schedulerService.initSchedules();
         }
 
@@ -93,15 +95,34 @@ public class LeadershipStatus {
 
     @EventListener
     public void handleOnRevokedEvent(OnRevokedEvent event) {
-        isLeader.set(false);
+        synchronized (leaderLock) {
+            isLeader.set(false);
+
+            Thread startupThread = leaderStartupThread;
+            if (startupThread != null && startupThread.isAlive()) {
+                startupThread.interrupt();
+            }
+
+            stopLeaderContainer();
+        }
+
         log.info("Leadership revoked: {}", event.getRole());
         schedulerService.initSchedules();
-
-        registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).stop();
     }
 
     public boolean isLeader() {
         return isLeader.get();
+    }
+
+    private void stopLeaderContainer() {
+        try {
+            var container = registry.getListenerContainer(LeaderQueue.LEADER_QUEUE);
+            if (container != null && container.isRunning()) {
+                container.stop();
+            }
+        } catch (Exception e) {
+            log.warn("Error stopping leader queue listener", e);
+        }
     }
 
     private void setupAsLeader() {
@@ -111,17 +132,35 @@ public class LeadershipStatus {
 
         // 2. start the leader queue listener
         if (StringUtils.isNotEmpty(rabbitMqHost)) {
+            Thread existingThread = leaderStartupThread;
+            if (existingThread != null && existingThread.isAlive()) {
+                existingThread.interrupt();
+            }
+
             Thread thread = new Thread(() -> {
                 int attempts = 0;
                 int delayMs = 100;
-                while (!shuttingDown.get() && attempts < 300 * 1000 / delayMs) { // 5 minutes
+                while (!shuttingDown.get() && isLeader.get() && attempts < 300 * 1000 / delayMs) { // 5 minutes
                     attempts++;
                     try {
-                        registry.getListenerContainer(LeaderQueue.LEADER_QUEUE).start();
-                        log.info("Started leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
-                        return;
+                        synchronized (leaderLock) {
+                            if (!shuttingDown.get() && isLeader.get()) {
+                                var container = registry.getListenerContainer(LeaderQueue.LEADER_QUEUE);
+                                if (container != null) {
+                                    container.start();
+                                    if (!isLeader.get() || shuttingDown.get()) {
+                                        stopLeaderContainer();
+                                        return;
+                                    }
+                                    log.info("Started leader queue listener after {} seconds", (attempts * delayMs / 1000.0));
+                                    return;
+                                }
+                            } else {
+                                return;
+                            }
+                        }
                     } catch (Exception e) {
-                        if (attempts % 10 == 0) {
+                        if (!shuttingDown.get() && isLeader.get() && attempts % 10 == 0) {
                             log.info("Failed to start leader queue listener after {} seconds, retrying...", (attempts * delayMs / 1000.0));
                         }
                     }
@@ -132,7 +171,7 @@ public class LeadershipStatus {
                         return;
                     }
                 }
-                if (!shuttingDown.get()) {
+                if (!shuttingDown.get() && isLeader.get()) {
                     log.error("Error starting leader queue listener after 5 minutes, giving up");
                 }
             });
