@@ -1,0 +1,20 @@
+{
+    "home.index.title": "Buscar registros",
+    "home.index.body.title": "Buscar registros en",
+    "home.index.navigator01": "Búsqueda simple",
+    "home.index.navigator02": "Búsqueda avanzada",
+    "home.index.navigator03": "Búsqueda por lote de taxones",
+    "home.index.navigator04": "Búsqueda por número de catálogo",
+    "home.index.navigator05": "Búsqueda espacial",
+    "home.index.navigator06": "Búsqueda de eventos",
+    "home.index.simsplesearch.button": "Buscar",
+    "home.index.simsplesearch.span": "<b>Nota:</b> la búsqueda simple intenta coincidir con un <b>taxón/especie</b> conocido, por su nombre científico o común. Si no hay coincidencias de nombre, se realizará una búsqueda de <b>texto completo</b> sobre tu consulta",
+    "home.index.taxaupload.des01": "Introduce una lista de nombres de taxones / nombres científicos, uno por línea (los nombres comunes no se admiten por ahora).",
+    "home.index.taxaupload.batchRadioPrefix": "Buscar por:",
+    "home.index.taxaupload.batchMode.matched.param": "Nombre coincidente",
+    "home.index.taxaupload.batchMode.provided": "Nombre proporcionado",
+    "home.index.catalogupload.des01": "Introduce una lista de números de catálogo (un número por línea).",
+    "home.index.catalogupload.button01": "Buscar",
+    "search.filters.heading": "Filtros seleccionados por el usuario",
+    "button.search": "Buscar"
+}

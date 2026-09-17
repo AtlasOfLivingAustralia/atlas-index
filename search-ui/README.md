@@ -144,3 +144,16 @@ entry has the following properties:
 - `description`: The description that appears on the card.
 - `imageUrl`: The image that appears on the card. Must be hosted externally to the application.
 - `linkUrl`: The URL that the card opens.
+
+## Internationalisation (i18n)
+
+`yarn build` gives the **ALA build**: translations bundled from `src/translations/en.json`, no
+`config.js` and no language selector.
+
+`yarn build:community` gives the **LA Community build**, which loads the catalogues at runtime, so
+adding a language or fixing a string does not need a rebuild. It ships [community/](./community),
+where `config.js` is the file a deployer edits.
+
+`yarn test` reports message coverage; `yarn i18n:coverage` runs it on its own. See
+[common-ui/README.md](../common-ui/README.md#runtime-configuration-and-build-profiles) for both
+profiles and the catalogue format.

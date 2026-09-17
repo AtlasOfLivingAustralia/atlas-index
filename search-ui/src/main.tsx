@@ -10,8 +10,8 @@ import './index.css';
 import App from './App';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { NuqsAdapter } from 'nuqs/adapters/react-router';
+import { I18nProvider } from '@ala/common-ui';
 import messages_en from './translations/en.json';
-import { IntlProvider } from 'react-intl';
 
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement
@@ -20,9 +20,9 @@ root.render(
     <React.StrictMode>
         <NuqsAdapter>
             <Router>
-                <IntlProvider messages={messages_en} locale="en" defaultLocale="en" onError={() => {}}>
+                <I18nProvider messages={messages_en}>
                     <App />
-                </IntlProvider>
+                </I18nProvider>
             </Router>
         </NuqsAdapter>
     </React.StrictMode>

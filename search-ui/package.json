@@ -9,9 +9,12 @@
         "build": "tsc && node ../common-ui/generateBuildInfo.js && node generateSpeciesGroupsMap.js && vite build",
         "build:playwright": "tsc && node ../common-ui/generateBuildInfo.js && node generateSpeciesGroupsMap.js && PLAYWRIGHT_ENV=true vite build",
         "preview": "vite preview",
-        "test": "jest --passWithNoTests",
+        "dev:community": "node ../common-ui/generateBuildInfo.js && node generateSpeciesGroupsMap.js && vite --mode community",
+        "build:community": "tsc && node ../common-ui/generateBuildInfo.js && node generateSpeciesGroupsMap.js && vite build --mode community",
+        "test": "jest --passWithNoTests && yarn i18n:coverage",
         "test:playwright": "./run-playwright-test.sh",
-        "test:playwright:live": "./run-live-test.sh"
+        "test:playwright:live": "./run-live-test.sh",
+        "i18n:coverage": "node ../common-ui/scripts/i18n-coverage.mjs ."
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",
