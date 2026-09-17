@@ -35,11 +35,24 @@
  *     // Set this for a different naming or another host, e.g. '/i18n/messages_{locale}.json' or
  *     // 'https://your-host/i18n/search-ui/{locale}.json'. The bundled messages are still used for
  *     // anything a catalogue does not have.
- *     I18N_MESSAGES_PATH: '/i18n/{locale}.json'
+ *     I18N_MESSAGES_PATH: '/i18n/{locale}.json',
+ *
+ *     // --- Theme ---------------------------------------------------------------------------------
+ *     // Header/footer (mustache HTML) and the CSS/JS that style them. Unset, these fall back to the
+ *     // build's own VITE_COMMON_* values, so declaring none of this changes nothing. THEME_CSS_URL
+ *     // accepts a comma-separated list, loaded in that order; later files win the cascade, so an
+ *     // override goes LAST, after the base stylesheet it is layered onto (see
+ *     // community/theme/example/README.md).
+ *     THEME_HEADER_URL: 'https://your-host/theme/banner.mustache',
+ *     THEME_FOOTER_URL: 'https://your-host/theme/footer.mustache',
+ *     THEME_CSS_URL: 'https://your-host/theme/ala-combined.css,https://your-host/theme/accent-override.css',
+ *     THEME_JS_URL: 'https://your-host/theme/ala-combined.js',
+ *     THEME_CONTAINER_CLASS: 'container-fluid'
  *   };
  *
  * To try the runtime catalogues locally, point I18N_MESSAGES_PATH at '/i18n/example/{locale}.json'
- * and see community/i18n/example/README.md.
+ * and see community/i18n/example/README.md. To try a different theme locally, see
+ * community/theme/example/README.md.
  *
  * To add a new kind of setting, add its keys to RuntimeConfig from the module that owns them
  * (common-ui/src/util/runtimeConfig.ts shows how) and document them in a block above.

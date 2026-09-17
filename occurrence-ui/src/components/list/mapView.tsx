@@ -239,7 +239,7 @@ function MapView({ queryString, tab }: MapViewProps) {
                 <strong>
                     {viewing} {mapLookupItemIdx + 1} {of} {mapLookupOccurrences.length} {occurrences}
                 </strong>
-                <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={'/occurrences/search' + queryString + '&' + mapLookupQueryParams}>
+                <a style={{ paddingLeft: '20px', color: 'var(--ala-accent-color, #c44d34)' }} href={'/occurrences/search' + queryString + '&' + mapLookupQueryParams}>
                     {viewAll}
                 </a>
                 <br />
@@ -319,8 +319,8 @@ function MapView({ queryString, tab }: MapViewProps) {
         div.innerHTML = `
             <div>${intl.formatMessage({ id: 'advancedsearch.js.map.common.speciescount' })}: <span id="taxonCount${uniqueId}" class="fw-bold">calculating...</div>
             <div>${intl.formatMessage({ id: 'advancedsearch.js.map.common.occurrencecount' })}: <span id="occurrenceCount${uniqueId}" class="fw-bold">calculating...</span></div>
-            <a href="/occurrences/search?${fullTerms}" style="color: #C44D34 !important;">${intl.formatMessage({ id: 'search.map.popup.linkText' })}</a><br/>
-            <a href="#" id="remove-area-btn" style="color: #C44D34 !important;">${intl.formatMessage({ id: 'search.map.popup.removeText' })}</a>
+            <a href="/occurrences/search?${fullTerms}" style="color: var(--ala-accent-color, #C44D34) !important;">${intl.formatMessage({ id: 'search.map.popup.linkText' })}</a><br/>
+            <a href="#" id="remove-area-btn" style="color: var(--ala-accent-color, #C44D34) !important;">${intl.formatMessage({ id: 'search.map.popup.removeText' })}</a>
         `;
 
         // Attach event handler
