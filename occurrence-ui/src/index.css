@@ -283,12 +283,12 @@ span.activeFq, facet-item {
 }
 
 .facetGroupName span, .facet-item, .multipleFacetsLink, .dqLabel {
-    color: #c44d34;
+    color: var(--ala-accent-color, #c44d34);
     cursor: pointer;
 }
 
 .facetGroupName span:hover, .facet-item:hover, .multipleFacetsLink:hover, .dqLabel:hover {
-    color: #883524;
+    color: var(--ala-accent-color-hover, #883524);
 }
 
 span.FieldName {
@@ -390,7 +390,7 @@ body.background-lightgrey {background-color:#f2f2f2;}
 
 .swatch-colour{height:70px;width:100%;display:block;border-bottom:1px solid #ccc;}
 .color--dark-grey{color: #9d9d9d;} .backgroundcolor--dark-grey{background-color: #9d9d9d;}
-.color--dark-red{color: #C44D34;} .backgroundcolor--dark-red{background-color: #C44D34;}
+.color--dark-red{color: var(--ala-accent-color, #C44D34);} .backgroundcolor--dark-red{background-color: var(--ala-accent-color, #C44D34);}
 .color--green{color: #006435;} .backgroundcolor--green{background-color: #006435;}
 .color--medium-blue{color: #2475A4;} .backgroundcolor--medium-blue{background-color: #2475A4;}
 .color--medium-grey{color: #637073;} .backgroundcolor--medium-grey{background-color: #637073;}
@@ -405,17 +405,17 @@ body.background-lightgrey {background-color:#f2f2f2;}
 .color--yellow{color: #FFBF47;} .backgroundcolor--yellow{background-color: #FFBF47;}
 .color--apple{color: #65B044;} .backgroundcolor--apple{background-color: #65B044;}
 .color--flamingo{color: #f26649;} .backgroundcolor--flamingo{background-color: #f26649;}
-.color--mojo{color: #C44D34;} .backgroundcolor--mojo{background-color: #C44D34;}
+.color--mojo{color: var(--ala-accent-color, #C44D34);} .backgroundcolor--mojo{background-color: var(--ala-accent-color, #C44D34);}
 .color-lochmara {color: #0087BE;} .background-lochmara {background-color: #0087BE;}
 .color-facebook {color: #507CBE;} .background-facebook {background-color: #507CBE;}
 
 a {
-    color: #c44d34;
+    color: var(--ala-accent-color, #c44d34);
     text-decoration: none;
 }
 
 a:hover {
-    color: #883524;
+    color: var(--ala-accent-color-hover, #883524);
 }
 
 .container-fluid {
@@ -427,13 +427,13 @@ a:hover {
 
 .btn-primary, .gform_button {
     color: #fff;
-    background-color: #c44d34;
-    border-color: #c44d34;
+    background-color: var(--ala-accent-color, #c44d34);
+    border-color: var(--ala-accent-color, #c44d34);
 }
 
 .btn-primary:hover {
-    background-color: #883524;
-    border-color: #883524;
+    background-color: var(--ala-accent-color-hover, #883524);
+    border-color: var(--ala-accent-color-hover, #883524);
 }
 
 nav {
@@ -476,11 +476,11 @@ nav {
     border-color: #bbb;
     border-bottom: 1px solid #999;
     margin-right: 5px;
-    color: #c44d34;
+    color: var(--ala-accent-color, #c44d34);
 }
 
 .nav-tabs .nav-link:hover {
-    color: #883524;
+    color: var(--ala-accent-color-hover, #883524);
     border-color: #bbb;
     border-bottom: 1px solid #999;
     margin-right: 5px;
@@ -767,8 +767,8 @@ h4, .h4 {
     border-left: 0;
     border-right: 0;
     border-top:0;
-    border-bottom: 3px solid #C44D34;
-    color: #C44D34;
+    border-bottom: 3px solid var(--ala-accent-color, #C44D34);
+    color: var(--ala-accent-color, #C44D34);
     font-size: 14px;
     font-weight: 600;
     line-height: 18px;
@@ -850,7 +850,7 @@ h4, .h4 {
 
 .speciesMapButton {
     padding: 10px 14px 15px 14px;
-    border: 1px solid #C44D34;
+    border: 1px solid var(--ala-accent-color, #C44D34);
     width: 255px;
     border-radius: 5px;
     height: 69px;
@@ -861,7 +861,7 @@ h4, .h4 {
 }
 
 .species-red {
-    color: #C44D34;
+    color: var(--ala-accent-color, #C44D34);
     font-size: 25px;
     margin-top: -2px;
     margin-right: -5px;

@@ -542,13 +542,13 @@ ul.tree li span {
 }
 
 ul.tree li .selected {
-    background: #c44d34;
+    background: var(--ala-accent-color, #c44d34);
     color: #fff;
     border: 1px solid #ccc;
 }
 
 ul.tree li .clickable:hover {
-    background: #c44d34;
+    background: var(--ala-accent-color, #c44d34);
     color: #fff;
     border: 1px solid #ccc;
     cursor: pointer;
@@ -731,7 +731,7 @@ body #main-content #customiseFacetsButton > .dropdown-menu, #main-content #resul
 }
 
 #main-content .leaflet-container a {
-    color: #C44D34;
+    color: var(--ala-accent-color, #C44D34);
 }
 
 #main-content .leaflet-bar a.leaflet-disabled, #main-content .leaflet-bar a.leaflet-disabled:hover {

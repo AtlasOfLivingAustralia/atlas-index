@@ -173,3 +173,29 @@ from `en.json` and keys that nothing in the code uses, and only fails the build 
 Ids built at runtime cannot be matched exactly. Prefixes like `` `facet.${fieldName}` `` are counted
 on their own, and an id that is just a variable could be any key, so treat the unused count as a
 hint, not as a list of keys to delete.
+
+## Theming
+
+`Header`/`Footer` already fetch their HTML from a URL and `injectCommonInfo`/`injectCommonJs` already
+load CSS/JS from a URL — the theme itself has always been external. `THEME_HEADER_URL`,
+`THEME_FOOTER_URL`, `THEME_CSS_URL`, `THEME_JS_URL` and `THEME_CONTAINER_CLASS` (see
+`util/runtimeTheme.tsx`) let a deployment override those URLs the same way `PORTAL_NAME` and the i18n
+keys above work: unset, they fall back to the build's own `VITE_COMMON_*` values, so declaring none of
+this changes nothing. `THEME_CSS_URL` accepts a comma-separated list, loaded in that order with later
+files winning the cascade, so a deployer can layer a small override on top of a base stylesheet
+instead of hosting a full replacement.
+
+Because `community/` is already served generically (not just for `config.js`/`i18n/`), a deployer can
+drop their own CSS or mustache files straight into their own deployed `community/theme/` and point
+these keys at them — no separate theme-hosting service required, no atlas-index rebuild. Pointing at a
+fully external host works too, via the same keys. `community/theme/example/` has a small bundled theme
+to try either path locally.
+
+The SPA's own components (buttons, links) are a separate surface from the header/footer/CSS/JS above:
+their accent colour is not read from `config.js` at all, but from two CSS custom properties each app's
+own CSS reads with the ALA colour as the fallback — `var(--ala-accent-color, #c44d34)` and
+`var(--ala-accent-color-hover, #883524)`. A theme stylesheet loaded via `THEME_CSS_URL` recolours them
+by declaring `:root { --ala-accent-color: ...; --ala-accent-color-hover: ...; }`. The app's own CSS
+declares no `:root` for these on purpose: two equal-specificity `:root` rules are decided by document
+order, not by which one "should" win, so an app-owned `:root` would silently shadow the theme's —
+`community/theme/example/accent-override.css` is the one place that declares it.

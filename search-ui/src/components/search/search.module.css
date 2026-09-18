@@ -28,7 +28,7 @@
     width: 50px;
     height: 47px;
     border-radius: 0px 5px 5px 0px;
-    background: #c44d34;
+    background: var(--ala-accent-color, #c44d34);
     border: 1px solid #637073;
     cursor: pointer;
     transform: none;
@@ -90,13 +90,13 @@
 }
 
 .activeTab {
-    border-bottom: 2px solid #c44d34 !important;
-    color: #c44d34;
+    border-bottom: 2px solid var(--ala-accent-color, #c44d34) !important;
+    color: var(--ala-accent-color, #c44d34);
 }
 
 .tabButtons:hover {
-    border-bottom: 2px solid #c44d34;
-    color: #c44d34;
+    border-bottom: 2px solid var(--ala-accent-color, #c44d34);
+    color: var(--ala-accent-color, #c44d34);
 }
 
 .tabButtons {
@@ -157,7 +157,7 @@
 }
 
 .groupName {
-    color: #c44d34;
+    color: var(--ala-accent-color, #c44d34);
 
     /* Desktop/H4/Semibold */
     font-family: Roboto;
@@ -440,7 +440,7 @@
 }
 
 .refineSectionTitle {
-    color: #c44d34 !important;
+    color: var(--ala-accent-color, #c44d34) !important;
 
     /* Desktop/Body/Semibold */
     font-family: Roboto;
@@ -524,7 +524,7 @@
 }
 
 .groupCount:hover {
-    color: #c44d34;
+    color: var(--ala-accent-color, #c44d34);
 }
 
 @media (max-width: 768px) {
