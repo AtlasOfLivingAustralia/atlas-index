@@ -179,7 +179,7 @@ hint, not as a list of keys to delete.
 `Header`/`Footer` already fetch their HTML from a URL and `injectCommonInfo`/`injectCommonJs` already
 load CSS/JS from a URL — the theme itself has always been external. `THEME_HEADER_URL`,
 `THEME_FOOTER_URL`, `THEME_CSS_URL`, `THEME_JS_URL` and `THEME_CONTAINER_CLASS` (see
-`util/runtimeTheme.ts`) let a deployment override those URLs the same way `PORTAL_NAME` and the i18n
+`util/runtimeTheme.tsx`) let a deployment override those URLs the same way `PORTAL_NAME` and the i18n
 keys above work: unset, they fall back to the build's own `VITE_COMMON_*` values, so declaring none of
 this changes nothing. `THEME_CSS_URL` accepts a comma-separated list, loaded in that order with later
 files winning the cascade, so a deployer can layer a small override on top of a base stylesheet
