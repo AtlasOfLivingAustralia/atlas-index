@@ -120,7 +120,7 @@ function DataQualityOccurrence({record}: { record: RecordResult }) {
     function formatCode(code: string) {
         // return <FontAwesomeIconLite icon={faQuestionCircle} title={code} style={{color: '#c44d34', opacity: 0.5}} />;
         return <Tooltip code={code}>
-            <FontAwesomeIconLite icon={faQuestionCircle} title={code} style={{color: '#c44d34', opacity: 0.5}}/>
+            <FontAwesomeIconLite icon={faQuestionCircle} title={code} style={{color: 'var(--ala-accent-color, #c44d34)', opacity: 0.5}}/>
         </Tooltip>
     }
 

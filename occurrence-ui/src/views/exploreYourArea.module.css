@@ -23,7 +23,7 @@
 .speciesTableHeader {
     position: sticky;
     top: 0;
-    color: #c44d34 !important;
+    color: var(--ala-accent-color, #c44d34) !important;
     cursor: pointer;
 }
 

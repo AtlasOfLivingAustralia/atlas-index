@@ -189,8 +189,8 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         div.innerHTML = `
             <div>${intl.formatMessage({id:'advancedsearch.js.map.common.speciescount'})}: <span id="taxonCount${uniqueId}" class="fw-bold">calculating...</div>
             <div>${intl.formatMessage({id:'advancedsearch.js.map.common.occurrencecount'})}: <span id="occurrenceCount${uniqueId}" class="fw-bold">calculating...</span></div>
-            <a href="/occurrences/search?${terms}" style="color: #C44D34 !important;">${intl.formatMessage({id:'search.map.popup.linkText'})}</a><br/>
-            <a href="#" id="remove-area-btn" style="color: #C44D34 !important;">${intl.formatMessage({id:'search.map.popup.removeText'})}</a>
+            <a href="/occurrences/search?${terms}" style="color: var(--ala-accent-color, #C44D34) !important;">${intl.formatMessage({id:'search.map.popup.linkText'})}</a><br/>
+            <a href="#" id="remove-area-btn" style="color: var(--ala-accent-color, #C44D34) !important;">${intl.formatMessage({id:'search.map.popup.removeText'})}</a>
         `;
 
         // Attach event handler

@@ -1,0 +1,128 @@
+/*
+ * Styling for this example theme's banner.mustache/footer.mustache. It is NOT meant to be the whole
+ * THEME_CSS_URL on its own: occurrence-ui/search-ui ship no bundled Bootstrap CSS at all, so the rest
+ * of the page (tabs, buttons, form controls) is only styled because the build's base theme stylesheet
+ * (ala-combined.css, wherever the deployment's VITE_COMMON_CSS/THEME_CSS_URL points) is also loaded.
+ *
+ * List this file LAST in THEME_CSS_URL, after that base stylesheet — CSS documents later in <head>
+ * win the cascade for equal specificity, so this only needs to state what it changes. See
+ * community/theme/example/README.md for the exact value to use locally.
+ */
+
+/*
+ * --ala-accent-color/--ala-accent-color-hover are the app's own button/link accent colour
+ * (occurrence-ui/search-ui's own CSS reads them as `var(--ala-accent-color, #c44d34)`, so this is
+ * the ONE place that should declare a `:root` for them — an app-owned `:root` here too would silently
+ * shadow this one, since equal-specificity `:root` rules are decided by document order, not by which
+ * stylesheet "should" win. Leaving the app's own CSS with no `:root` of its own avoids that.
+ */
+:root {
+    --ala-accent-color: #6b2fb3;
+    --ala-accent-color-hover: #4d2180;
+}
+
+/*
+ * ala-combined.css itself styles plain links (and other Bootstrap components not overridden by the
+ * app's own CSS — e.g. the shared Breadcrumbs component) via ITS OWN --bs-primary/--bs-secondary/
+ * --bs-link-color(-rgb) custom properties, declared in its own `:root`. Overriding --ala-accent-color
+ * above does not reach those — they need to be overridden here too, in the stylesheet loaded AFTER
+ * ala-combined.css, for the same reason as above (document order decides equal-specificity `:root`
+ * rules). --bs-*-rgb needs the bare "r,g,b" triplet (no #, no rgb()) since ala-combined.css consumes
+ * it as rgba(var(--bs-link-color-rgb), var(--bs-link-opacity,1)).
+ */
+:root {
+    --bs-primary: #6b2fb3;
+    --bs-primary-rgb: 107, 47, 179;
+    --bs-secondary: #6b2fb3;
+    --bs-secondary-rgb: 107, 47, 179;
+    --bs-link-color: #6b2fb3;
+    --bs-link-color-rgb: 107, 47, 179;
+}
+
+.example-theme-banner,
+.example-theme-footer {
+    background: #2a0f47;
+    color: #f4eefc;
+}
+
+.example-theme-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+}
+
+.example-theme-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.example-theme-search {
+    display: flex;
+    gap: 0.5rem;
+    flex: 1 1 260px;
+    max-width: 420px;
+}
+
+.example-theme-search input {
+    flex: 1;
+    border: 1px solid #6b2fb3;
+    border-radius: 4px;
+    padding: 0.375rem 0.6rem;
+}
+
+.example-theme-search button,
+.example-theme-btn {
+    background: #6b2fb3;
+    border: 1px solid #6b2fb3;
+    color: #fff;
+    border-radius: 4px;
+    padding: 0.375rem 0.75rem;
+    text-decoration: none;
+}
+
+.example-theme-search button:hover,
+.example-theme-btn:hover {
+    background: #4d2180;
+    border-color: #4d2180;
+}
+
+/* Only one of loginBtn/logoutBtn shows at a time, matching signedIn/signedOut on the ancestor that
+   {{loginStatus}} resolves to (see showLoginLogoutButtons in common-ui/src/util/utils.tsx). */
+.loginStatus .loginBtn,
+.loginStatus.signedIn .loginBtn {
+    display: none;
+}
+
+.loginStatus.signedOut .loginBtn {
+    display: inline-block;
+}
+
+.loginStatus .logoutBtn,
+.loginStatus.signedOut .logoutBtn {
+    display: none;
+}
+
+.loginStatus.signedIn .logoutBtn {
+    display: inline-block;
+}
+
+.example-theme-footer-inner {
+    padding: 1rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.example-theme-footer-inner p {
+    margin: 0;
+    max-width: 640px;
+}

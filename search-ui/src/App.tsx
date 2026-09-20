@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, handleLogin, handleLogout, Header, HeaderLanguageSwitcher, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
+import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, getThemeValue, handleLogin, handleLogout, Header, HeaderLanguageSwitcher, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
 import React, {useEffect, useRef, useState} from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import buildInfo from './buildInfo.json';
@@ -37,7 +37,7 @@ const App: React.FC = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
     useEffect(() => {
-        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
+        injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, getThemeValue('THEME_CSS_URL', import.meta.env.VITE_COMMON_CSS), setCssLoaded);
 
         checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
 
@@ -75,8 +75,8 @@ const App: React.FC = () => {
     return <main>
         <UserContext.Provider value={{ userInfo, setUserInfo }}>
             <Header isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper}
-                    headerUrl={import.meta.env.VITE_COMMON_HEADER_HTML} searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
-                    jsUrl={import.meta.env.VITE_COMMON_JS} containerClass={import.meta.env.VITE_COMMON_CONTAINER_CLASS}/>
+                    headerUrl={getThemeValue('THEME_HEADER_URL', import.meta.env.VITE_COMMON_HEADER_HTML)} searchBaseUrl={import.meta.env.VITE_SEARCH_URL_PREFIX}
+                    jsUrl={getThemeValue('THEME_JS_URL', import.meta.env.VITE_COMMON_JS)} containerClass={getThemeValue('THEME_CONTAINER_CLASS', import.meta.env.VITE_COMMON_CONTAINER_CLASS)}/>
             {import.meta.env.VITE_HEADER_LANGUAGE_SWITCHER_ENABLED === 'true' && <HeaderLanguageSwitcher/>}
 
             <Breadcrumbs breadcrumbs={breadcrumbs}/>
@@ -96,7 +96,7 @@ const App: React.FC = () => {
             </Routes>
             <div style={{height: '60px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}/>
 
-            <Footer isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper} footerUrl={import.meta.env.VITE_COMMON_FOOTER_HTML} />
+            <Footer isLoggedIn={userInfo?.authenticated} logoutFn={handleLogoutWrapper} loginFn={handleLoginWrapper} footerUrl={getThemeValue('THEME_FOOTER_URL', import.meta.env.VITE_COMMON_FOOTER_HTML)} />
         </UserContext.Provider>
     </main>;
 };

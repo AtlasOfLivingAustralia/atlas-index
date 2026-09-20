@@ -503,7 +503,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                 <strong>
                     {viewing} {mapLookupItemIdx + 1} {of} {mapLookupOccurrences.length} {occurrences}
                 </strong>
-                <a style={{ paddingLeft: '20px', color: '#c44d34' }} href={'/occurrences/search?' + mapLookupQueryParams}>
+                <a style={{ paddingLeft: '20px', color: 'var(--ala-accent-color, #c44d34)' }} href={'/occurrences/search?' + mapLookupQueryParams}>
                     {viewAll}
                 </a>
                 <br />
@@ -899,7 +899,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                         <Circle
                                             center={latLng}
                                             radius={radius * 1000} // km to meters
-                                            pathOptions={{color: '#C44D34', fillOpacity: 0.2}}
+                                            pathOptions={{color: 'var(--ala-accent-color, #C44D34)', fillOpacity: 0.2}}
                                             eventHandlers={{ click: (e) => {mapClick(e)} }}
                                         />
                                     </>)}

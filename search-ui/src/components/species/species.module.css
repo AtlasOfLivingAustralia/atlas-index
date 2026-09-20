@@ -123,7 +123,7 @@
     width: 50px;
     height: 47px;
     border-radius: 0px 5px 5px 0px;
-    background: #c44d34;
+    background: var(--ala-accent-color, #c44d34);
     border: 1px solid #637073;
     cursor: pointer;
     transform: none;
@@ -157,13 +157,13 @@
 }
 
 .activeTab {
-    border-bottom: 2px solid #c44d34;
-    color: #c44d34;
+    border-bottom: 2px solid var(--ala-accent-color, #c44d34);
+    color: var(--ala-accent-color, #c44d34);
 }
 
 .tabButtons:hover {
-    border-bottom: 2px solid #c44d34;
-    color: #c44d34;
+    border-bottom: 2px solid var(--ala-accent-color, #c44d34);
+    color: var(--ala-accent-color, #c44d34);
 }
 
 .tabButtons {
@@ -466,7 +466,7 @@
 }
 
 .refineSectionTitle {
-    color: #c44d34 !important;
+    color: var(--ala-accent-color, #c44d34) !important;
     font-size: 16px;
     font-style: normal;
     font-weight: 600;
@@ -667,7 +667,7 @@
     font-size: 22px;
     line-height: 28px;
 
-    color: #C44D34;
+    color: var(--ala-accent-color, #C44D34);
 }
 
 .mobileSectionContent {

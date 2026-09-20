@@ -1,0 +1,43 @@
+<div class="{{containerClass}} example-theme-banner">
+    <a href="/" class="example-theme-logo" aria-label="Example Atlas home">
+        <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="28" height="28" rx="6" fill="currentColor"/>
+            <text x="14" y="19" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#fff">EA</text>
+        </svg>
+        <span>Example Atlas</span>
+    </a>
+
+    <!-- id="autocompleteSearchALA"/"autocompleteHeader" and the #autoCompleteTemplate script below are
+         the DEFAULT selectors ala-combined.js's own autocomplete widget binds to (BC_CONF.autoCompleteSelector
+         etc., all overridable, but these are what it falls back to unset) — matching them lets this example
+         reuse the real, unmodified script via THEME_JS_URL's own default fallback, no custom JS needed,
+         the same way base-branding reuses it for legacy apps: markup contract, not code. -->
+    <div id="autocompleteSearchALA" class="example-theme-search">
+        <form method="get" action="{{searchServer}}{{searchPath}}">
+            <input id="autocompleteHeader" type="text" name="q" placeholder="Search species, datasets, and more..." aria-label="Search" autocomplete="off"/>
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <!-- {{loginStatus}} is stripped to the literal class "loginStatus"; showLoginLogoutButtons() toggles
+         "signedIn"/"signedOut" on it, and the CSS below shows the matching button. -->
+    <div class="example-theme-actions {{loginStatus}}">
+        <a href="{{loginURL}}" role="button" class="loginBtn example-theme-btn">Login</a>
+        <a href="{{logoutURL}}" role="button" class="logoutBtn example-theme-btn">Logout</a>
+    </div>
+</div>
+<script type="text/html" id="autoCompleteTemplate">
+    <li class="autocomplete-item striped">
+        <div class="content-spacing">
+            <div class="autocomplete-heading">
+                <% if (commonNameMatches.length > 0) { %>
+                <%=commonNameMatches[0]%>
+                <% } else if (scientificNameMatches.length > 0) { %>
+                <%=scientificNameMatches[0]%>
+                <% } else { %>
+                <%=matchedNames[0]%>
+                <% } %>
+            </div>
+        </div>
+    </li>
+</script>
