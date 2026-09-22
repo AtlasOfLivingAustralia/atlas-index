@@ -88,14 +88,13 @@ export interface SpeciesPageMockOptions {
     traitsByGuid?: Record<string, TraitsEntry>;
     bhlByGuid?: Record<string, any>;
     taxonMapByGuid?: Record<string, any>;
-    /** Also register WMS-tile mocks (only needed for a test that overrides VITE_GOOGLE_MAP_API_KEY at runtime — not needed by default). */
-    includeWmsTiles?: boolean;
 }
 
 /**
  * Full mock setup for the Species page (`/species/*`). Registers, in priority
  * order: logMissingMocks (catch-all) -> imageMocks -> session -> species
- * detail/search -> biocache -> static taxon content (descriptions/traits/bhl/map).
+ * detail/search -> biocache -> static taxon content (descriptions/traits/bhl/map)
+ * -> WMS/OSM map tiles.
  *
  * Sensible per-guid defaults are wired in automatically (bird-full gets rich
  * descriptions/BHL/cached-map data; plant-traits gets AusTraits data) so most
@@ -119,9 +118,7 @@ export async function setupSpeciesPageMocks(page: Page, options: SpeciesPageMock
     await mockTraits(page, seenUrls, options.traitsByGuid ?? { [SPECIES_PLANT_TRAITS.guid]: TRAITS_ENTRY_FIXTURE });
     await mockBhl(page, seenUrls, options.bhlByGuid ?? { [SPECIES_BIRD_FULL.guid]: BHL_RESULTS_FIXTURE });
     await mockTaxonMap(page, seenUrls, options.taxonMapByGuid ?? { [SPECIES_BIRD_FULL.guid]: TAXON_MAP_METADATA_FIXTURE });
-    if (options.includeWmsTiles) {
-        await mockWmsTiles(page, seenUrls);
-    }
+    await mockWmsTiles(page, seenUrls);
     return seenUrls;
 }
 

@@ -8,10 +8,10 @@ import { FlaggedAlert, InfoBox } from '@ala/common-ui';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { LatLng, LayersControlEvent } from 'leaflet';
 import { JSX, useEffect, useRef, useState } from 'react';
-import { LayersControl, MapContainer, ScaleControl, TileLayer, WMSTileLayer } from 'react-leaflet';
+import { LayersControl, MapContainer, ScaleControl, WMSTileLayer } from 'react-leaflet';
 import Control from 'react-leaflet-custom-control';
-import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
-const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
+import LazyGoogleLayer from '@ala/common-ui/lazyGoogleLayer';
+import BaseLayer from '@ala/common-ui/baseLayer';
 
 import 'leaflet/dist/leaflet.css';
 import './map.css';
@@ -323,19 +323,30 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
                             whenReady={() => setMapReady(true)}
                         >
                             <ScaleControl position='bottomright' imperial={false} />
+                            {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
+                                <BaseLayer
+                                    vectorTileStyleUrl={import.meta.env.VITE_OSM_VECTOR_TILE_STYLE_URL}
+                                    tileUrl={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+                                    tileAttribution={import.meta.env.VITE_OPENSTREETMAP_ZXY_ATTRIBUTION}
+                                />
+                            )}
                             {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                                 <LayersControl position='topright'>
                                     <LayersControl.BaseLayer checked name='Minimal'>
-                                        <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} />
+                                        <BaseLayer
+                                            vectorTileStyleUrl={import.meta.env.VITE_OSM_VECTOR_TILE_STYLE_URL}
+                                            tileUrl={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+                                            tileAttribution={import.meta.env.VITE_OPENSTREETMAP_ZXY_ATTRIBUTION}
+                                        />
                                     </LayersControl.BaseLayer>
                                     <LayersControl.BaseLayer name='Road'>
-                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap' as any} />
+                                        <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap' as any} />
                                     </LayersControl.BaseLayer>
                                     <LayersControl.BaseLayer name='Terrain'>
-                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain' as any} />
+                                        <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain' as any} />
                                     </LayersControl.BaseLayer>
                                     <LayersControl.BaseLayer name='Satellite'>
-                                        <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite' as any} />
+                                        <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite' as any} />
                                     </LayersControl.BaseLayer>
 
                                     <LayersControl.Overlay checked={showOccurrences} name='Occurrence records'>

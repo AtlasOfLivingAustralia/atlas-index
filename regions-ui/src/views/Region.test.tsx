@@ -17,6 +17,8 @@ jest.mock('@ala/common-ui', () => {
     };
 }, { virtual: true });
 
+jest.mock('@ala/common-ui/baseLayer', () => ({ __esModule: true, default: () => null }), { virtual: true });
+
 jest.mock('react-leaflet', () => {
     const React = require('react');
     return {
@@ -35,6 +37,7 @@ jest.mock('react-leaflet', () => {
 });
 
 jest.mock('react-leaflet-google-layer', () => ({ __esModule: true, default: () => null }));
+jest.mock('@ala/common-ui/lazyGoogleLayer', () => ({ __esModule: true, default: () => null }));
 jest.mock('react-chartjs-2', () => ({ __esModule: true, Pie: () => <div data-testid="pie-chart" /> }));
 
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';

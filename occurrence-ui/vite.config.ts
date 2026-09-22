@@ -34,6 +34,9 @@ export default defineConfig({
               },
           }
         : {}),
+    worker: {
+        format: 'es'
+    },
     plugins: [
         react(),
         viteEnvCheckPlugin(),
@@ -52,7 +55,7 @@ export default defineConfig({
             : []),
     ],
     optimizeDeps: {
-        exclude: ['@ala/common-ui'],
+        exclude: ['@ala/common-ui', '@ala/common-ui/lazyGoogleLayer', '@ala/common-ui/baseLayer', 'maplibre-gl', '@maplibre/maplibre-gl-leaflet'],
     },
     server: {
         fs: {

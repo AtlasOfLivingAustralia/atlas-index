@@ -6,6 +6,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@ala/common-ui/maplibreWorker';
 import { I18nProvider } from '@ala/common-ui';
 import {BrowserRouter as Router} from 'react-router-dom';
 import App from './App';

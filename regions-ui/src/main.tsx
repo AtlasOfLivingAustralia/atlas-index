@@ -6,6 +6,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@ala/common-ui/maplibreWorker';
 import App from './App';
 import messages_en from './translations/en.json';
 import { IntlProvider } from 'react-intl';

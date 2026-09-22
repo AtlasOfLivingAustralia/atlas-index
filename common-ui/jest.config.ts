@@ -19,6 +19,7 @@ const config: Config = {
         ],
     },
     setupFiles: ['./jest.setup.ts'],
+    setupFilesAfterEnv: ['@testing-library/jest-dom'],
     // react-intl ships ESM only. It is reached transitively through the src/index.ts barrel (a test
     // importing any component pulls in i18nProvider), so Jest has to transform it rather than skip it.
     transformIgnorePatterns: ['node_modules/(?!(react-intl|intl-messageformat|@formatjs)/)'],

@@ -480,7 +480,10 @@ test.describe('Species page - Map tab', () => {
         // Leaflet map's own native zoom control using the same class names.
         await expect(page.locator('.leaflet-control-zoom-in').first()).toBeVisible();
         await expect(page.locator('.leaflet-control-zoom-out').first()).toBeVisible();
-        await expect(page.locator('text=OpenStreetMap contributors')).toBeVisible();
+        // CachedMapView's own attribution overlay (rendered before, and so matched
+        // ahead of, the interactive Leaflet map's native .leaflet-control-attribution,
+        // which credits OpenStreetMap too)
+        await expect(page.locator('text=OpenStreetMap contributors').first()).toBeVisible();
     });
 
     test('cached map: distribution layer names are shown in the refine section', async ({ page }) => {
