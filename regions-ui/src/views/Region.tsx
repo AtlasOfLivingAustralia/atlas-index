@@ -8,7 +8,6 @@ import { useEffect, useRef, useState } from 'react';
 import { LayersControl, MapContainer, ScaleControl, WMSTileLayer } from 'react-leaflet';
 import { DualRangeSlider, Breadcrumb, FontAwesomeIconLite, useHashState } from '@ala/common-ui';
 import 'leaflet/dist/leaflet.css';
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { LatLng } from 'leaflet';
 import { formatNumber } from '../components/util/FormatNumber.tsx';
 import BaseLayer from '@ala/common-ui/baseLayer';

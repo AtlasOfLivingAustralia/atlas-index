@@ -15,7 +15,6 @@ import {
 import { faRedo } from '@fortawesome/free-solid-svg-icons';
 import styles from './regions.module.css';
 import 'leaflet/dist/leaflet.css';
-import 'maplibre-gl/dist/maplibre-gl.css';
 import { LatLng } from 'leaflet';
 import { useNavigate } from 'react-router-dom';
 import { Accordion, Container } from 'react-bootstrap';

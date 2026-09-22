@@ -26,6 +26,7 @@ jest.mock('leaflet', () => ({
 }));
 
 jest.mock('@maplibre/maplibre-gl-leaflet', () => ({}));
+jest.mock('maplibre-gl/dist/maplibre-gl.css', () => ({}));
 
 describe('BaseLayer', () => {
     it('throws an error when neither vectorTileStyleUrl nor tileUrl is provided', () => {

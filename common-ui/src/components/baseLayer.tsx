@@ -10,6 +10,7 @@ import type { LayerProps } from '@react-leaflet/core';
 import L from 'leaflet';
 import type { StyleSpecification } from 'maplibre-gl';
 import '@maplibre/maplibre-gl-leaflet';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface VectorBasemapLayerProps extends LayerProps {
     /** A MapLibre style URL, or an inline StyleSpecification object. */
