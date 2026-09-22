@@ -9,7 +9,7 @@ package au.org.ala.search.util.doi;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
+import org.apache.hc.core5.http.HttpStatus;
 
 @Getter
 @Setter

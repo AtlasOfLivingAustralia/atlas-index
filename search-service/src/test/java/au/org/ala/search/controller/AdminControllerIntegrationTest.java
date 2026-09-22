@@ -28,8 +28,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -52,55 +55,56 @@ import static org.mockito.Mockito.*;
  * Integration test for the {@link AdminController} endpoints not already covered elsewhere.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class AdminControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
-    @MockBean
+    @MockitoBean
     private QualityDataService qualityDataService;
 
-    @MockBean
+    @MockitoBean
     private LeaderQueue leaderQueue;
 
-    @MockBean
+    @MockitoBean
     private ConfigService configService;
 
-    @MockBean
+    @MockitoBean
     private BannerService bannerService;
 
-    @MockBean
+    @MockitoBean
     private AuditService auditService;
 
-    @MockBean
+    @MockitoBean
     private QueueDataService queueDataService;
 
-    @MockBean
+    @MockitoBean
     private BroadcastQueue broadcastQueue;
 
-    @MockBean
+    @MockitoBean
     private ElasticService elasticService;
 
-    @MockBean
+    @MockitoBean
     private TaxonDataService taxonDataService;
 
-    @MockBean
+    @MockitoBean
     private UserDataService userDataService;
 
-    @MockBean
+    @MockitoBean
     private ScaffoldService scaffoldService;
 
-    @MockBean
+    @MockitoBean
     private RabbitTemplate rabbitTemplate;
 
-    @MockBean
+    @MockitoBean
     private CollectoryCache collectoryCache;
 
-    @MockBean
+    @MockitoBean
     private ListCache listCache;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -118,43 +122,55 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
     void dqGet_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/admin/dq")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     void dqGet_admin_returnsAllProfiles() {
         when(qualityDataService.getProfiles()).thenReturn(List.of(profile(441L, "ALA")));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/admin/dq", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/admin/dq")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("shortName")).isEqualTo("ALA");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("shortName")).isEqualTo("ALA");
     }
 
     @Test
     void dqDelete_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq?id=441", HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.delete()
+                .uri("/admin/dq?id=441")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     void dqDelete_unknownProfile_returnsNotFound() {
         when(qualityDataService.getProfile("999")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq?id=999", HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.delete()
+                .uri("/admin/dq?id=999")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -164,10 +180,13 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(leaderQueue.sendRpcMessage(eq(TaskType.DATA_QUALITY_DELETE), any())).thenReturn(Map.of("status", "success"));
         when(qualityDataService.getProfileNow("ALA")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq?id=441", HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.delete()
+                .uri("/admin/dq?id=441")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
@@ -176,10 +195,13 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(qualityDataService.getCacheRefreshLatch()).thenReturn(new CountDownLatch(0));
         when(leaderQueue.sendRpcMessage(eq(TaskType.DATA_QUALITY_DELETE), any())).thenReturn(Map.of("status", "error"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq?id=441", HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.delete()
+                .uri("/admin/dq?id=441")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -188,20 +210,27 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(qualityDataService.getCacheRefreshLatch()).thenReturn(new CountDownLatch(0));
         when(leaderQueue.sendRpcMessage(eq(TaskType.DATA_QUALITY_DELETE), any())).thenReturn(Map.of("status", "timeout"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq?id=441", HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.delete()
+                .uri("/admin/dq?id=441")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.ACCEPTED);
     }
 
     @Test
     void dqPost_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq", HttpMethod.POST, new HttpEntity<>(profile(0L, "NEW")), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/dq")
+                .body(profile(0L, "NEW"))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -211,12 +240,16 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(leaderQueue.sendRpcMessage(eq(TaskType.DATA_QUALITY_SAVE), any())).thenReturn(Map.of("status", "success"));
         when(qualityDataService.getProfileNow("NEW")).thenReturn(saved);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/admin/dq", HttpMethod.POST, new HttpEntity<>(toSave), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.post()
+                .uri("/admin/dq")
+                .body(toSave)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("shortName")).isEqualTo("NEW");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("shortName")).isEqualTo("NEW");
     }
 
     @Test
@@ -224,20 +257,27 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         QualityProfile toSave = profile(0L, "NEW");
         when(leaderQueue.sendRpcMessage(eq(TaskType.DATA_QUALITY_SAVE), any())).thenReturn(Map.of("status", "error"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/dq", HttpMethod.POST, new HttpEntity<>(toSave), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/dq")
+                .body(toSave)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Test
     void configGet_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/config", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/admin/config")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -248,10 +288,14 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         cd.id = "some.key";
         cd.value = "true";
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/config", HttpMethod.POST, new HttpEntity<>(cd), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/config")
+                .body(cd)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -261,13 +305,16 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         cd.value = "true";
         when(configService.getAll()).thenReturn(List.of(cd));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/admin/config", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/admin/config")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("id")).isEqualTo("some.key");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("id")).isEqualTo("some.key");
     }
 
     @Test
@@ -276,10 +323,14 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         cd.id = "some.key";
         cd.value = "true";
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/config", HttpMethod.POST, new HttpEntity<>(cd), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/config")
+                .body(cd)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
         verify(configService).save(any(ConfigData.class), any());
     }
 
@@ -289,10 +340,14 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         cd.id = "some.key";
         doThrow(new RuntimeException("bad value")).when(configService).save(any(ConfigData.class), any());
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/config", HttpMethod.POST, new HttpEntity<>(cd), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/config")
+                .body(cd)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -303,10 +358,14 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         request.setSection("global");
         request.setMessage("Should not be saved");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/banner", HttpMethod.POST, new HttpEntity<>(request), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/banner")
+                .body(request)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
         verifyNoInteractions(bannerService);
     }
 
@@ -318,10 +377,14 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         request.setSeverity("WARNING");
         request.setClosable(true);
 
-        ResponseEntity<Void> resp = restTemplate.exchange(
-                "/admin/banner", HttpMethod.POST, new HttpEntity<>(request), Void.class);
+        EntityExchangeResult<Void> resp = restTestClient.post()
+                .uri("/admin/banner")
+                .body(request)
+                .exchange()
+                .expectBody(Void.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
         verify(bannerService).save(eq("global"), eq("Scheduled maintenance"), eq("WARNING"), eq(true), any());
     }
 
@@ -334,20 +397,27 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         request.setSection("not-a-real-section");
         request.setMessage("test");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/banner", HttpMethod.POST, new HttpEntity<>(request), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/admin/banner")
+                .body(request)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
     void auditHistory_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/audit?entityTable=config", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/admin/audit?entityTable=config")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -358,22 +428,28 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(auditService.search(any(), any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(new PageImpl<>(new java.util.ArrayList<>(List.of(entry)), PageRequest.of(0, 20), 1));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/admin/audit?entityTable=config", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/admin/audit?entityTable=config")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("content");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("content");
     }
 
     @Test
     void tasks_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/tasks", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/admin/tasks")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -387,20 +463,26 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(queueDataService.list(isNull(), any(), any(), any(), any(), anyLong(), anyLong()))
                 .thenReturn(new PageImpl<>(new java.util.ArrayList<>(List.of(item)), PageRequest.of(0, 20), 1));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/admin/tasks", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/admin/tasks")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("content");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("content");
     }
 
     @Test
     void cancelTask_sendsCancelBroadcastMessage() {
-        ResponseEntity<Void> resp = restTemplate.exchange(
-                "/admin/task?id=123", HttpMethod.DELETE, null, Void.class);
+        EntityExchangeResult<Void> resp = restTestClient.delete()
+                .uri("/admin/task?id=123")
+                .exchange()
+                .expectBody(Void.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
         verify(broadcastQueue).sendMessage(TaskType.CANCEL_CONSUMER, "123");
     }
 
@@ -408,20 +490,26 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
     void cancelTask_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/task?id=123", HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.delete()
+                .uri("/admin/task?id=123")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     void dashboard_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/admin/info", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/admin/info")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -436,15 +524,18 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         when(userDataService.count()).thenReturn(3L);
         when(scaffoldService.count(any())).thenReturn(0L);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/admin/info", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/admin/info")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("elasticsearch");
-        assertThat(resp.getBody()).containsKey("tables");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("elasticsearch");
+        assertThat(resp.getResponseBody()).containsKey("tables");
 
-        Map<String, Object> tables = (Map<String, Object>) resp.getBody().get("tables");
+        Map<String, Object> tables = (Map<String, Object>) resp.getResponseBody().get("tables");
         assertThat(((Number) tables.get("taxon_data")).longValue()).isEqualTo(10L);
     }
 }

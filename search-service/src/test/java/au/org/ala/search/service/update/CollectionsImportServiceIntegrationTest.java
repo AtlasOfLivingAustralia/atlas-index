@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 /**
  * End-to-end coverage of {@link CollectionsImportService#run()} against a WireMock-stubbed
  * Collectory API and a real (Testcontainers) Elasticsearch instance. {@link BiocacheApiService}
- * is mocked via {@code @MockBean} (light-mocking style, consistent with the controller
+ * is mocked via {@code @MockitoBean} (light-mocking style, consistent with the controller
  * integration tests) since its own HTTP boundary (biocache) is orthogonal to what this test is
  * verifying — the Collectory fetch/batch-lookup/index/delete flow across all four entity types
  * (dataResource, dataProvider, institution, collection).
@@ -60,7 +60,7 @@ class CollectionsImportServiceIntegrationTest extends AbstractIntegrationTestCon
     @Autowired
     private ElasticsearchOperations elasticsearchOperations;
 
-    @MockBean
+    @MockitoBean
     private BiocacheApiService biocacheApiService;
 
 

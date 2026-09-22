@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
     <groupId>au.org.ala</groupId>
@@ -60,23 +60,62 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <!--
+            Spring Boot 4 auto-configures a Jackson 3 (tools.jackson) ObjectMapper by default.
+            This module restores the Jackson 2 (com.fasterxml.jackson) ObjectMapper
+            auto-configuration that the codebase still depends on.
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-jackson2</artifactId>
+        </dependency>
+        <!--
+            ala-ws-security pulls in moshi 1.8.0 (and, transitively, okio 1.16.0) which wins
+            Maven's nearest-wins resolution over the okio 3.x required by okhttp 4.12.0,
+            causing NoSuchFieldError: okio.Options$Companion at OkHttpClient construction.
+            Pin both to versions compatible with okhttp 4.12.0.
+        -->
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
+            <version>3.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.moshi</groupId>
+            <artifactId>moshi</artifactId>
+            <version>1.15.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.12</version>
         </dependency>
         <dependency>
             <groupId>io.hypersistence</groupId>
-            <artifactId>hypersistence-utils-hibernate-63</artifactId>
-            <version>3.15.3</version>
+            <artifactId>hypersistence-utils-hibernate-73</artifactId>
+            <version>3.15.5</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <!-- Spring Boot 4 splits auto-configuration into modules; Flyway auto-configuration
+             is no longer part of spring-boot-autoconfigure. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-flyway</artifactId>
+        </dependency>
+        <dependency>
             <groupId>au.org.ala</groupId>
             <artifactId>ala-ws-spring-security</artifactId>
-            <version>7.3.0-java21</version>
+            <version>8.0.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.ehcache</groupId>
@@ -87,7 +126,7 @@
         <dependency>
             <groupId>au.org.ala</groupId>
             <artifactId>ala-ws-security</artifactId>
-            <version>7.3.0-java21</version>
+            <version>8.0.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.ehcache</groupId>
@@ -221,7 +260,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.46.11</version>
+            <version>2.54.18</version>
         </dependency>
 
         <dependency>
@@ -238,13 +277,13 @@
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>5.34.0</version>
+            <version>5.36.0</version>
         </dependency>
 
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>stream-client</artifactId>
-            <version>1.8.0</version>
+            <version>1.11.0</version>
         </dependency>
 
         <dependency>
@@ -255,7 +294,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-kubernetes-fabric8-leader</artifactId>
-            <version>3.1.5</version>
+            <version>5.0.3</version>
         </dependency>
 
         <dependency>

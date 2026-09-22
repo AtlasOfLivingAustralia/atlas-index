@@ -15,8 +15,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -38,13 +41,14 @@ import static org.mockito.Mockito.*;
  * not this controller.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class V1DataQualityControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private QualityDataService qualityDataService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -72,125 +76,158 @@ public class V1DataQualityControllerIntegrationTest extends AbstractIntegrationT
         when(qualityDataService.getProfiles(any(), any(), any(), anyInt(), anyInt(), any(), any()))
                 .thenReturn(List.of(profile(441L, "ALA")));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("shortName")).isEqualTo("ALA");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("shortName")).isEqualTo("ALA");
     }
 
     @Test
     void profile_found_returnsProfile() {
         when(qualityDataService.getProfile("441")).thenReturn(profile(441L, "ALA"));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/441", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/441")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("shortName")).isEqualTo("ALA");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("shortName")).isEqualTo("ALA");
     }
 
     @Test
     void profile_notFound_returnsNotFound() {
         when(qualityDataService.getProfile("unknown")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/unknown", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/unknown")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void categories_found_returnsCategoryList() {
         when(qualityDataService.getProfile("ALA")).thenReturn(profile(441L, "ALA"));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("name")).isEqualTo("spatial");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("name")).isEqualTo("spatial");
     }
 
     @Test
     void categories_profileNotFound_returnsNotFound() {
         when(qualityDataService.getProfile("unknown")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/unknown/categories", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/unknown/categories")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void category_found_returnsCategory() {
         when(qualityDataService.getCategory("ALA", 444L)).thenReturn(category(444L));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories/444", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories/444")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("name")).isEqualTo("spatial");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("name")).isEqualTo("spatial");
     }
 
     @Test
     void category_notFound_returnsNotFound() {
         when(qualityDataService.getCategory("ALA", 999L)).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories/999", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories/999")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void qualityFilters_found_returnsFilterList() {
         when(qualityDataService.getCategory("ALA", 444L)).thenReturn(category(444L));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories/444/filters", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories/444/filters")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("filter")).isEqualTo("spatiallyValid:true");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("filter")).isEqualTo("spatiallyValid:true");
     }
 
     @Test
     void qualityFilters_categoryNotFound_returnsNotFound() {
         when(qualityDataService.getCategory("ALA", 999L)).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories/999/filters", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories/999/filters")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void qualityFilter_found_returnsFilter() {
         when(qualityDataService.getFilter("ALA", 444L, 445L)).thenReturn(filter(445L));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories/444/filters/445", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories/444/filters/445")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("filter")).isEqualTo("spatiallyValid:true");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("filter")).isEqualTo("spatiallyValid:true");
     }
 
     @Test
     void qualityFilter_notFound_returnsNotFound() {
         when(qualityDataService.getFilter("ALA", 444L, 999L)).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/data-profiles/ALA/categories/444/filters/999", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/data-profiles/ALA/categories/444/filters/999")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -198,24 +235,30 @@ public class V1DataQualityControllerIntegrationTest extends AbstractIntegrationT
         when(qualityDataService.getEnabledFiltersByLabel("ALA General"))
                 .thenReturn(Map.of("Spatial", "spatiallyValid:true"));
 
-        ResponseEntity<Map<String, String>> resp = restTemplate.exchange(
-                "/v1/dq/quality/getEnabledFiltersByLabel?profileName=ALA General", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, String>> resp = restTestClient.get()
+                .uri("/v1/dq/quality/getEnabledFiltersByLabel?profileName=ALA General")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, String>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("Spatial", "spatiallyValid:true");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("Spatial", "spatiallyValid:true");
     }
 
     @Test
     void getEnabledQualityFilters_returnsSet() {
         when(qualityDataService.getEnabledQualityFilters("ALA General")).thenReturn(Set.of("spatiallyValid:true"));
 
-        ResponseEntity<Set<String>> resp = restTemplate.exchange(
-                "/v1/dq/quality/getEnabledQualityFilters?profileName=ALA General", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Set<String>> resp = restTestClient.get()
+                .uri("/v1/dq/quality/getEnabledQualityFilters?profileName=ALA General")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Set<String>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsExactly("spatiallyValid:true");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsExactly("spatiallyValid:true");
     }
 
     @Test
@@ -224,68 +267,86 @@ public class V1DataQualityControllerIntegrationTest extends AbstractIntegrationT
         grouped.put("Spatial", List.of(filter(445L)));
         when(qualityDataService.getGroupedEnabledFilters("ALA General")).thenReturn(grouped);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/dq/quality/getGroupedEnabledFilters?profileName=ALA General", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/dq/quality/getGroupedEnabledFilters?profileName=ALA General")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("Spatial");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("Spatial");
     }
 
     @Test
     void findAllEnabledCategories_returnsList() {
         when(qualityDataService.findAllEnabledCategories("ALA General")).thenReturn(List.of(category(444L)));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/dq/quality/findAllEnabledCategories?profileName=ALA General", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v1/dq/quality/findAllEnabledCategories?profileName=ALA General")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
     }
 
     @Test
     void activeProfile_found_returnsProfile() {
         when(qualityDataService.getProfileOrDefault("ALA")).thenReturn(profile(441L, "ALA"));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/dq/quality/activeProfile?profileName=ALA", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/dq/quality/activeProfile?profileName=ALA")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("shortName")).isEqualTo("ALA");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("shortName")).isEqualTo("ALA");
     }
 
     @Test
     void activeProfile_notFound_returnsNotFound() {
         when(qualityDataService.getProfileOrDefault("unknown")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/quality/activeProfile?profileName=unknown", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/quality/activeProfile?profileName=unknown")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
     void getJoinedQualityFilter_returnsString() {
         when(qualityDataService.getJoinedQualityFilter("ALA")).thenReturn("spatiallyValid:true AND -userAssertions:50001");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/quality/getJoinedQualityFilter?profileName=ALA", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/quality/getJoinedQualityFilter?profileName=ALA")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).isEqualTo("spatiallyValid:true AND -userAssertions:50001");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).isEqualTo("spatiallyValid:true AND -userAssertions:50001");
     }
 
     @Test
     void getInverseCategoryFilter_returnsString() {
         when(qualityDataService.getInverseCategoryFilter(441L)).thenReturn("-spatiallyValid:true");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/dq/quality/getInverseCategoryFilter?qualityCategoryId=441", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/dq/quality/getInverseCategoryFilter?qualityCategoryId=441")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).isEqualTo("-spatiallyValid:true");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).isEqualTo("-spatiallyValid:true");
     }
 
     @Test
@@ -293,11 +354,14 @@ public class V1DataQualityControllerIntegrationTest extends AbstractIntegrationT
         when(qualityDataService.getAllInverseCategoryFiltersForProfile("441"))
                 .thenReturn(Map.of("Spatial", "-spatiallyValid:true"));
 
-        ResponseEntity<Map<String, String>> resp = restTemplate.exchange(
-                "/v1/dq/quality/getAllInverseCategoryFiltersForProfile?qualityProfileId=441", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, String>> resp = restTestClient.get()
+                .uri("/v1/dq/quality/getAllInverseCategoryFiltersForProfile?qualityProfileId=441")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, String>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("Spatial", "-spatiallyValid:true");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("Spatial", "-spatiallyValid:true");
     }
 }

@@ -284,7 +284,7 @@ public class ElasticService {
                     bq.filter(f -> f.bool(b -> b.mustNot(q -> q.exists(eq -> eq.field("acceptedConceptID")))));
                     return bq;
                 }))
-                .withSourceFilter(new FetchSourceFilter(new String[]{"id", "guid"}, null))
+                .withSourceFilter(new FetchSourceFilter(null, new String[]{"id", "guid"}, null))
                 .withMaxResults(guids.size())
                 .build();
 
@@ -309,7 +309,7 @@ public class ElasticService {
                     bq.filter(f -> f.bool(b -> b.mustNot(q -> q.exists(eq -> eq.field("acceptedConceptID")))));
                     return bq;
                 }))
-                .withSourceFilter(new FetchSourceFilter(new String[]{"id"}, null))
+                .withSourceFilter(new FetchSourceFilter(null, new String[]{"id"}, null))
                 .withMaxResults(1)
                 .build();
 
@@ -326,7 +326,7 @@ public class ElasticService {
                     bq.filter(f -> f.term(t -> t.field("idxtype").value("COMMON")));
                     return bq;
                 }))
-                .withSourceFilter(new FetchSourceFilter(new String[]{"id"}, null))
+                .withSourceFilter(new FetchSourceFilter(null, new String[]{"id"}, null))
                 .withMaxResults(2000)
                 .build();
 
@@ -391,7 +391,7 @@ public class ElasticService {
                     .withQuery(q -> q.terms(t -> t.field("id").terms(ts ->
                             ts.value(existingItems.keySet().stream().map(FieldValue::of).collect(Collectors.toList())))))
                     .build();
-            ByQueryResponse op = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
+            ByQueryResponse op = elasticsearchOperations.delete(DeleteQuery.builder(deleteQuery).build(), SearchItemIndex.class);
             return op.getDeleted();
         }
         return 0;
@@ -403,7 +403,7 @@ public class ElasticService {
                     .withQuery(q -> q.terms(t -> t.field("id").terms(ts ->
                             ts.value(existingIds.stream().map(FieldValue::of).collect(Collectors.toList())))))
                     .build();
-            ByQueryResponse op = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
+            ByQueryResponse op = elasticsearchOperations.delete(DeleteQuery.builder(deleteQuery).build(), SearchItemIndex.class);
             return op.getDeleted();
         }
         return 0;
@@ -413,7 +413,7 @@ public class ElasticService {
         Query deleteQuery = new NativeQueryBuilder()
                 .withQuery(q -> q.term(t -> t.field(field).value(value)))
                 .build();
-        ByQueryResponse response = elasticsearchOperations.delete(deleteQuery, SearchItemIndex.class);
+        ByQueryResponse response = elasticsearchOperations.delete(DeleteQuery.builder(deleteQuery).build(), SearchItemIndex.class);
 
         log.info("deleting {} found with {}:{}", response.getDeleted(), field, value);
     }
@@ -881,9 +881,9 @@ public class ElasticService {
                     if (baseRankID > 0 && within > 0) {
                         // rankID in a range OR rankID does not exist
                         bq.must(f -> f.bool(b ->
-                                b.should(s -> s.range(r -> r.field("rankID")
+                                b.should(s -> s.range(r -> r.untyped(u -> u.field("rankID")
                                                 .gte(JsonData.of(unranked ? -1 : baseRankID + 1))
-                                                .lte(JsonData.of(baseRankID + within))))
+                                                .lte(JsonData.of(baseRankID + within)))))
                                         .should(s -> s.bool(b1 -> b1.mustNot(m -> m.exists(r -> r.field("rankID")))))));
                     }
                     return bq;
@@ -948,7 +948,7 @@ public class ElasticService {
                 .withQuery(wq -> wq.bool(bq -> {
                     bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
                     // rankID in a range
-                    bq.must(q -> q.range(r -> r.field("rankID").gte(JsonData.of(7000))));
+                    bq.must(q -> q.range(r -> r.untyped(u -> u.field("rankID").gte(JsonData.of(7000)))));
                     // AND image available
                     bq.must(q -> q.exists(e -> e.field("image")));
                     if (StringUtils.isNotEmpty(taxonID)) {
@@ -1852,18 +1852,18 @@ public class ElasticService {
                 final String to = term.rangeTo;
                 final boolean fromInc = term.fromInclusive;
                 final boolean toInc = term.toInclusive;
-                return RangeQuery.of(rq -> {
-                    rq.field(term.field);
+                return RangeQuery.of(rq -> rq.untyped(u -> {
+                    u.field(term.field);
                     if (from != null && !"*".equals(from)) {
-                        if (fromInc) rq.gte(JsonData.of(from));
-                        else rq.gt(JsonData.of(from));
+                        if (fromInc) u.gte(JsonData.of(from));
+                        else u.gt(JsonData.of(from));
                     }
                     if (to != null && !"*".equals(to)) {
-                        if (toInc) rq.lte(JsonData.of(to));
-                        else rq.lt(JsonData.of(to));
+                        if (toInc) u.lte(JsonData.of(to));
+                        else u.lt(JsonData.of(to));
                     }
-                    return rq;
-                })._toQuery();
+                    return u;
+                }))._toQuery();
             } else {
                 if (isKeywordField(term.field)) {
                     return TermQuery.of(tq -> tq.field(term.field).value(term.value))._toQuery();
@@ -1978,7 +1978,7 @@ public class ElasticService {
                 .withTrackTotalHits(true);
 
         if (fl != null && fl.length > 0) {
-            query.withSourceFilter(new FetchSourceFilter(fl, null));
+            query.withSourceFilter(new FetchSourceFilter(null, fl, null));
         }
 
         if (StringUtils.isNotEmpty(sort) && StringUtils.isNotEmpty(dir)) {

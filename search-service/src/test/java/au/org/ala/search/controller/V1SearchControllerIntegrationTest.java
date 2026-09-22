@@ -17,8 +17,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -38,24 +41,25 @@ import static org.mockito.Mockito.*;
  * the controller's request parsing / response-shaping logic.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
     static final String MACROPUS_GUID = "urn:lsid:biodiversity.org.au:afd.taxon:macropus";
 
-    @MockBean
+    @MockitoBean
     private ElasticService elasticService;
 
-    @MockBean
+    @MockitoBean
     private LegacyService legacyService;
 
-    @MockBean
+    @MockitoBean
     private AdminService adminService;
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -83,12 +87,15 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
                 "genus", Rank.builder().rank("genus").rankID(6000).build(),
                 "species", Rank.builder().rank("species").rankID(7000).build()));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/ranks", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/ranks")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKeys("genus", "species");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKeys("genus", "species");
         verify(legacyService).getRanks(anyList());
     }
 
@@ -96,12 +103,15 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
     void indexFields_returnsFieldList() {
         when(elasticService.indexFields(true)).thenReturn(List.of());
 
-        ResponseEntity<List<Object>> resp = restTemplate.exchange(
-                "/v1/bie/indexFields", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Object>> resp = restTestClient.get()
+                .uri("/v1/bie/indexFields")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).isEmpty();
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).isEmpty();
     }
 
     @Test
@@ -109,12 +119,15 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.searchLegacy(eq("kangaroo"), any(), eq(0), eq(10), isNull(), isNull(), isNull()))
                 .thenReturn(Map.of("totalRecords", 1, "searchResults", List.of()));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/search?q=kangaroo", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/search?q=kangaroo")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("searchResults");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("searchResults");
     }
 
     @Test
@@ -122,11 +135,14 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.searchLegacy(eq("kangaroo"), any(), eq(0), eq(10), eq("_score"), eq("desc"), isNull()))
                 .thenReturn(Map.of("totalRecords", 0, "searchResults", List.of()));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/search?q=kangaroo&sort=score&dir=desc", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/search?q=kangaroo&sort=score&dir=desc")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
         verify(elasticService).searchLegacy(eq("kangaroo"), any(), eq(0), eq(10), eq("_score"), eq("desc"), isNull());
     }
 
@@ -135,10 +151,13 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.searchLegacy(eq("bad:[query"), any(), eq(0), eq(10), isNull(), isNull(), isNull()))
                 .thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/bie/search?q=bad:[query", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/bie/search?q=bad:[query")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -146,12 +165,15 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.autocomplete(eq("Mac"), isNull(), isNull(), eq(10)))
                 .thenReturn(List.of(macropusTaxon()));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/search/auto?q=Mac", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/search/auto?q=Mac")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> list = (List<Map<String, Object>>) resp.getBody().get("autoCompleteList");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> list = (List<Map<String, Object>>) resp.getResponseBody().get("autoCompleteList");
         assertThat(list).hasSize(1);
         assertThat(list.get(0).get("guid")).isEqualTo(MACROPUS_GUID);
         assertThat(list.get(0).get("commonName")).isEqualTo("Kangaroo");
@@ -162,23 +184,29 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.getTaxonsByName(eq("Macropus"), eq(10), eq(false)))
                 .thenReturn(List.of(macropusTaxon()));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/bie/guid/Macropus", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v1/bie/guid/Macropus")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("identifier")).isEqualTo(MACROPUS_GUID);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("identifier")).isEqualTo(MACROPUS_GUID);
     }
 
     @Test
     void guidName_unknownName_returnsNotFound() {
         when(elasticService.getTaxonsByName(eq("Unknown"), eq(10), eq(false))).thenReturn(List.of());
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/bie/guid/Unknown", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/bie/guid/Unknown")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -186,13 +214,16 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.getTaxonsByName(eq("Macropus"), eq(10), eq(false))).thenReturn(List.of(macropusTaxon()));
         when(elasticService.getTaxonsByName(eq("NoSuchTaxon"), eq(10), eq(false))).thenReturn(null);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/guid/batch?q=Macropus&q=NoSuchTaxon", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/guid/batch?q=Macropus&q=NoSuchTaxon")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("Macropus");
-        assertThat(resp.getBody()).doesNotContainKey("NoSuchTaxon");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("Macropus");
+        assertThat(resp.getResponseBody()).doesNotContainKey("NoSuchTaxon");
     }
 
     @Test
@@ -200,32 +231,41 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.getTaxonResponse(MACROPUS_GUID)).thenReturn(Map.of("guid", MACROPUS_GUID, "name", "Macropus"));
 
         // note: bie species/** matches everything after the prefix, so an unencoded guid works directly
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/species/" + MACROPUS_GUID, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("guid", MACROPUS_GUID);
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/species/" + MACROPUS_GUID)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("guid", MACROPUS_GUID);
     }
 
     @Test
     void species_redirectResponse_returns302WithLocation() {
         when(elasticService.getTaxonResponse("old-guid")).thenReturn(Map.of("redirect", "new-guid"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/bie/species/old-guid", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/bie/species/old-guid")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).contains("/v1/bie/species/new-guid");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).contains("/v1/bie/species/new-guid");
     }
 
     @Test
     void species_unknownGuid_returnsNotFound() {
         when(elasticService.getTaxonResponse("unknown-guid")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/bie/species/unknown-guid", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/bie/species/unknown-guid")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -234,12 +274,15 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.getShortProfile(MACROPUS_GUID)).thenReturn(new ShortProfile(
                 MACROPUS_GUID, "Macropus", null, null, "genus", 6000, "Animalia", "Macropodidae", "Kangaroo", null, null));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/species/shortProfile/" + MACROPUS_GUID, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/bie/species/shortProfile/" + MACROPUS_GUID)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("scientificName", "Macropus");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("scientificName", "Macropus");
     }
 
     @Test
@@ -247,10 +290,13 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.cleanupId("unknown")).thenReturn("unknown");
         when(elasticService.getShortProfile("unknown")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/bie/species/shortProfile/unknown", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/bie/species/shortProfile/unknown")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -262,14 +308,17 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
         when(elasticService.getLongProfileForName(eq("Macropus"), eq(false))).thenReturn(profile);
 
         Map<String, Object> body = Map.of("names", List.of("Macropus"), "vernacular", false);
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/bie/species/lookup/bulk", HttpMethod.POST,
-                new org.springframework.http.HttpEntity<>(body), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.post()
+                .uri("/v1/bie/species/lookup/bulk")
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("guid")).isEqualTo(MACROPUS_GUID);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("guid")).isEqualTo(MACROPUS_GUID);
     }
 
     @Test
@@ -279,19 +328,25 @@ public class V1SearchControllerIntegrationTest extends AbstractIntegrationTestCo
                 null, null, null, null, null, null, null, null, null, null, null, null);
         when(elasticService.getTaxa(List.of(MACROPUS_GUID))).thenReturn(List.of(item));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/bie/species/guids/bulklookup", HttpMethod.POST,
-                new org.springframework.http.HttpEntity<>(List.of(MACROPUS_GUID)), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.post()
+                .uri("/v1/bie/species/guids/bulklookup")
+                .body(List.of(MACROPUS_GUID))
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
     void download_blankQuery_returnsBadRequest() {
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/bie/download?q=", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/bie/download?q=")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

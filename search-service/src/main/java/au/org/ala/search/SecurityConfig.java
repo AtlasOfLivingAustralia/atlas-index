@@ -8,10 +8,10 @@ package au.org.ala.search;
 
 import au.org.ala.search.util.AuthMachineJwt;
 import au.org.ala.ws.security.AlaWebServiceAuthFilter;
-import au.org.ala.ws.security.TokenClient;
-import au.org.ala.ws.security.TokenInterceptor;
-import au.org.ala.ws.security.TokenService;
 import au.org.ala.ws.security.client.AlaAuthClient;
+import au.org.ala.ws.tokens.TokenClient;
+import au.org.ala.ws.tokens.TokenInterceptor;
+import au.org.ala.ws.tokens.TokenService;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.oidc.config.OidcConfiguration;

@@ -9,7 +9,7 @@ package au.org.ala.search;
 import au.org.ala.search.service.SchedulerService;
 import au.org.ala.search.service.queue.LeaderQueue;
 import org.junit.jupiter.api.Test;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
+import org.springframework.amqp.core.MessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;

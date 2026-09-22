@@ -8,13 +8,16 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.AbstractIntegrationTestContainers;
 import au.org.ala.search.service.auth.WebService;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,13 +36,14 @@ import static org.mockito.Mockito.when;
  * headers, filename generation) is what's under test.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class UtilControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private WebService webService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -66,13 +70,15 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/trait-count?taxon=Macropus"), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
                 .thenReturn(okResponse(upstreamBody));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/trait-count?taxon=Macropus", org.springframework.http.HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/trait-count?taxon=Macropus")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("count", 42);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("count", 42);
     }
 
     @Test
@@ -80,13 +86,15 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/trait-count?taxon=Macropus&APNI_ID=123"), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
                 .thenReturn(okResponse(Map.of("count", 1)));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/trait-count?taxon=Macropus&APNI_ID=123", org.springframework.http.HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/trait-count?taxon=Macropus&APNI_ID=123")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("count", 1);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("count", 1);
     }
 
     @Test
@@ -94,11 +102,14 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/trait-count"), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
                 .thenReturn(errorResponse(404, "not found"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/trait-count?taxon=Unknown", org.springframework.http.HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/trait-count?taxon=Unknown")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(resp.getBody()).contains("not found");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getResponseBody()).contains("not found");
     }
 
     @Test
@@ -106,13 +117,15 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/trait-summary?taxon=Macropus"), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
                 .thenReturn(okResponse(Map.of("summary", "some traits")));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/trait-summary?taxon=Macropus", org.springframework.http.HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/trait-summary?taxon=Macropus")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("summary", "some traits");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("summary", "some traits");
     }
 
     @Test
@@ -120,10 +133,13 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/trait-summary"), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
                 .thenReturn(errorResponse(500, "upstream failure"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/trait-summary?taxon=Macropus", org.springframework.http.HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/trait-summary?taxon=Macropus")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -131,14 +147,17 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/download-taxon-data?taxon=Macropus+rufus"), isNull(), eq(ContentType.TEXT_PLAIN), eq(false), eq(false), isNull()))
                 .thenReturn(okResponse("col1,col2\nval1,val2"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/download-taxon-data?taxon=Macropus rufus", org.springframework.http.HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/download-taxon-data?taxon=Macropus rufus")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getHeaders().getFirst("content-type")).isEqualTo("text/csv");
-        assertThat(resp.getHeaders().getFirst("content-disposition"))
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseHeaders().getFirst("content-type")).isEqualTo("text/csv");
+        assertThat(resp.getResponseHeaders().getFirst("content-disposition"))
                 .isEqualTo("attachment;filename=Macropus_rufus.csv");
-        assertThat(resp.getBody()).isEqualTo("col1,col2\nval1,val2");
+        assertThat(resp.getResponseBody()).isEqualTo("col1,col2\nval1,val2");
     }
 
     @Test
@@ -146,9 +165,12 @@ public class UtilControllerIntegrationTest extends AbstractIntegrationTestContai
         when(webService.get(contains("/download-taxon-data"), isNull(), eq(ContentType.TEXT_PLAIN), eq(false), eq(false), isNull()))
                 .thenReturn(errorResponse(400, "bad request"));
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/download-taxon-data?taxon=Bad", org.springframework.http.HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/download-taxon-data?taxon=Bad")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }

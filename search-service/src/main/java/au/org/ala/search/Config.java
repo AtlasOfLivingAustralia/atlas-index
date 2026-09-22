@@ -72,7 +72,30 @@ public class Config extends ElasticsearchConfiguration {
     @Override
     public ElasticsearchCustomConversions elasticsearchCustomConversions() {
         return new ElasticsearchCustomConversions(
-                Arrays.asList(new SearchItemIndexToElasticsearchConverter(), new ElasticsearchToSearchItemIndexConverter()));
+                Arrays.asList(new SearchItemIndexToElasticsearchConverter(), new ElasticsearchToSearchItemIndexConverter(),
+                        new DateToLongConverter(), new LongToDateConverter()));
+    }
+
+    /**
+     * Date fields (e.g. SearchItemIndex.modified, AdminIndex.modified) are mapped in Elasticsearch
+     * as {@code long} (epoch millis). Spring Data Elasticsearch 6 writes an unannotated
+     * {@link Date} as an ISO-8601 string by default, which Elasticsearch rejects against a
+     * {@code long} field, so convert explicitly.
+     */
+    @WritingConverter
+    public static class DateToLongConverter implements Converter<Date, Long> {
+        @Override
+        public Long convert(@NotNull Date source) {
+            return source.getTime();
+        }
+    }
+
+    @ReadingConverter
+    public static class LongToDateConverter implements Converter<Long, Date> {
+        @Override
+        public Date convert(@NotNull Long source) {
+            return new Date(source);
+        }
     }
 
     @WritingConverter
@@ -96,6 +119,9 @@ public class Config extends ElasticsearchConfiguration {
                         if (fields != null) {
                             target.putAll(fields);
                         }
+                    } else if (obj instanceof Date date) {
+                        // mapped as `long` (epoch millis) in Elasticsearch
+                        target.put(f.getName(), date.getTime());
                     } else {
                         target.put(f.getName(), obj);
                     }

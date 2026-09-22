@@ -14,7 +14,7 @@ import au.org.ala.search.service.queue.BroadcastQueue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,10 +22,10 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 public class BroadcastConsumerServiceIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private CollectoryCache collectoryCache;
 
-    @MockBean
+    @MockitoBean
     private ListCache listCache;
 
     @Autowired

@@ -7,17 +7,14 @@
 package au.org.ala.search.service.auth;
 
 import au.org.ala.web.UserDetails;
-import au.org.ala.ws.security.TokenService;
+import au.org.ala.ws.tokens.TokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -29,13 +26,10 @@ import java.net.URI;
 import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static org.apache.http.HttpHeaders.CONNECTION;
-import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
+import static org.springframework.http.HttpHeaders.CONNECTION;
 import static org.springframework.http.HttpMethod.*;
 
 /**

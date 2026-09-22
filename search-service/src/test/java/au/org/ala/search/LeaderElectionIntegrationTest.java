@@ -24,7 +24,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.leader.event.OnGrantedEvent;
 import org.springframework.integration.leader.event.OnRevokedEvent;
@@ -122,13 +122,13 @@ public class LeaderElectionIntegrationTest extends AbstractIntegrationTestContai
     @Autowired
     private org.springframework.amqp.rabbit.core.RabbitAdmin rabbitAdmin;
 
-    @MockBean
+    @MockitoBean
     private CollectoryCache collectoryCache;
 
-    @MockBean
+    @MockitoBean
     private ElasticService elasticService;
 
-    @MockBean
+    @MockitoBean
     private PostgresSyncService postgresSyncService;
 
     @AfterEach

@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 
@@ -62,7 +62,7 @@ import static org.mockito.Mockito.when;
  *     {@code src/test/resources/application.properties} disables {@link ConsumerQueue}'s
  *     {@code @RabbitListener} for every {@code @SpringBootTest} context by default (it would
  *     otherwise be a live, competing consumer on the shared {@code consumer} queue in every
- *     context that doesn't explicitly {@code @MockBean} {@link ConsumerQueue}, since it's a plain
+ *     context that doesn't explicitly {@code @MockitoBean} {@link ConsumerQueue}, since it's a plain
  *     {@code @Service}). The property is re-enabled just below via {@code @TestPropertySource} so
  *     this class's listener is the only one actually running.</li>
  *     <li>{@link AbstractIntegrationTestContainers#purgeSharedRabbitQueuesBeforeEach()} "flushes"
@@ -116,7 +116,7 @@ public class ConsumerQueueIntegrationTest extends AbstractIntegrationTestContain
         Files.writeString(TEMPLATE_DIR.resolve("fop.xconf"), fopXconf, StandardCharsets.UTF_8);
     }
 
-    @MockBean
+    @MockitoBean
     private ElasticService elasticService;
 
     @Autowired

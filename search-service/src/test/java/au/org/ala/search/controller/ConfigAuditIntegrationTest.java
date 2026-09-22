@@ -18,13 +18,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.List;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
  * / {@code /admin/audit} — proving real listener/validation/audit side effects, not mocked
  * collaborators.
  * <p>
- * Unlike {@code AdminControllerIntegrationTest} (which {@code @MockBean}s {@code ConfigService}
+ * Unlike {@code AdminControllerIntegrationTest} (which {@code @MockitoBean}s {@code ConfigService}
  * and {@code AuditService} to test controller-level branching only), this class leaves
  * {@link ConfigService}, {@link AuditService}, and {@code SchedulerService} as real, Spring-wired
  * beans — only {@link AuthService} is mocked (to force {@code isAdmin()==true} and stub
@@ -70,15 +70,16 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@Import(RestTestClientConfiguration.class)
 public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainers {
 
     private static final String SCHEDULER_CONFIG_KEY = "schedule.LOGGER_UPDATE_SUMMARY_TABLES.enabled";
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @Autowired
     private ConfigService configService;
@@ -103,16 +104,23 @@ public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainer
         }
     }
 
-    private ResponseEntity<String> postConfig(String key, String value) {
+    private EntityExchangeResult<String> postConfig(String key, String value) {
         ConfigData request = ConfigData.builder().id(key).value(value).notes("test").build();
-        return restTemplate.exchange("/admin/config", HttpMethod.POST, new HttpEntity<>(request), String.class);
+        return restTestClient.post()
+                .uri("/admin/config")
+                .body(request)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
     }
 
     private List<ConfigData> getAllConfig() {
-        ResponseEntity<List<ConfigData>> resp = restTemplate.exchange("/admin/config", HttpMethod.GET, null,
-                new ParameterizedTypeReference<List<ConfigData>>() {
-                });
-        return resp.getBody();
+        EntityExchangeResult<List<ConfigData>> resp = restTestClient.get()
+                .uri("/admin/config")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<ConfigData>>() { })
+                .returnResult();
+        return resp.getResponseBody();
     }
 
     private String uniqueKey() {
@@ -124,17 +132,17 @@ public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainer
         // "schedule.LOGGER_UPDATE_SUMMARY_TABLES.enabled" has a real ConfigValidationListener
         // registered by SchedulerService.initSchedules() at application startup (isValidBoolean) —
         // this is NOT mocked, proving the registration/triggerValidation wiring works end-to-end.
-        ResponseEntity<String> response = postConfig(SCHEDULER_CONFIG_KEY, "not-a-boolean");
+        EntityExchangeResult<String> response = postConfig(SCHEDULER_CONFIG_KEY, "not-a-boolean");
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).contains("Config value is invalid");
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getResponseBody()).contains("Config value is invalid");
     }
 
     @Test
     void configSet_validBooleanValue_realValidationListenerAccepts_persistsChange() {
-        ResponseEntity<String> response = postConfig(SCHEDULER_CONFIG_KEY, "false");
+        EntityExchangeResult<String> response = postConfig(SCHEDULER_CONFIG_KEY, "false");
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
 
         List<ConfigData> all = getAllConfig();
         assertThat(all).anySatisfy(cd -> {
@@ -152,9 +160,9 @@ public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainer
 
         // POSTing the identical value should be a no-op per ConfigService.save (early return),
         // so no new audit entry should be recorded.
-        ResponseEntity<String> response = postConfig(key, "initial");
+        EntityExchangeResult<String> response = postConfig(key, "initial");
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
         long auditCountAfter = auditService.search(AuditService.TABLE_CONFIG, key, null, null, null, 0, 200)
                 .getTotalElements();
         assertThat(auditCountAfter).isEqualTo(auditCountBefore);
@@ -175,8 +183,8 @@ public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainer
         };
         configService.registerListener(key, testListener, null);
 
-        ResponseEntity<String> response = postConfig(key, "changed");
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        EntityExchangeResult<String> response = postConfig(key, "changed");
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
 
         // ConfigService.save() only broadcasts (real RabbitMQ, since rabbitmq.host is set) —
         // triggerListeners() is invoked asynchronously when this instance's own broadcast
@@ -194,17 +202,18 @@ public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainer
         String key = uniqueKey();
         configService.save(ConfigData.builder().id(key).value("before").notes("baseline").build());
 
-        ResponseEntity<String> response = postConfig(key, "after");
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        EntityExchangeResult<String> response = postConfig(key, "after");
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<Map<String, Object>> auditResponse = restTemplate.exchange(
-                "/admin/audit?entityTable=config&entityId=" + key,
-                HttpMethod.GET, null, new ParameterizedTypeReference<Map<String, Object>>() {
-                });
+        EntityExchangeResult<Map<String, Object>> auditResponse = restTestClient.get()
+                .uri("/admin/audit?entityTable=config&entityId=" + key)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .returnResult();
 
-        assertThat(auditResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(auditResponse.getStatus()).isEqualTo(HttpStatus.OK);
 
-        List<Map<String, Object>> content = (List<Map<String, Object>>) auditResponse.getBody().get("content");
+        List<Map<String, Object>> content = (List<Map<String, Object>>) auditResponse.getResponseBody().get("content");
         assertThat(content).isNotEmpty();
         assertThat(content).anySatisfy(entry -> {
             assertThat(entry.get("entityTable")).isEqualTo("config");
@@ -219,18 +228,21 @@ public class ConfigAuditIntegrationTest extends AbstractIntegrationTestContainer
     void auditHistory_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/admin/audit", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> response = restTestClient.get()
+                .uri("/admin/audit")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     void configSet_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> response = postConfig(uniqueKey(), "false");
+        EntityExchangeResult<String> response = postConfig(uniqueKey(), "false");
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 }

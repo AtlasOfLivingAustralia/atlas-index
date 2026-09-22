@@ -53,7 +53,7 @@ public abstract class AbstractIntegrationTestContainers {
                     .withDatabaseName("search")
                     .withUsername("guest")
                     .withPassword("guest")
-                    // Each distinct combination of @MockBean across test classes forces Spring's
+                    // Each distinct combination of @MockitoBean across test classes forces Spring's
                     // test context cache to spin up a separate ApplicationContext, and therefore a
                     // separate Hikari connection pool against this single shared instance. Raise
                     // max_connections well above the default (100) so a full `mvn test` run doesn't
@@ -62,7 +62,7 @@ public abstract class AbstractIntegrationTestContainers {
                     .withCommand("postgres", "-c", "max_connections=300");
 
     public static final ElasticsearchContainer elasticsearchContainer =
-            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.13.0")
+            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:9.4.5")
                     .withEnv("xpack.security.enabled", "false");
 
     static {

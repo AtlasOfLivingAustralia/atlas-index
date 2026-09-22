@@ -8,7 +8,7 @@ package au.org.ala.search.controller;
 
 import au.org.ala.search.service.auth.WebService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.http.entity.ContentType;
+import org.apache.hc.core5.http.ContentType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

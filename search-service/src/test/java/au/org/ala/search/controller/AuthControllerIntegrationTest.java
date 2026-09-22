@@ -7,18 +7,18 @@
 package au.org.ala.search.controller;
 
 import au.org.ala.search.AbstractIntegrationTestContainers;
+import au.org.ala.search.RestTestClientConfiguration;
 import au.org.ala.search.model.dto.UserInfo;
 import au.org.ala.search.service.SessionAuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -35,13 +35,14 @@ import static org.mockito.Mockito.*;
  * short-circuit and state-validation branches of {@code /callback}.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class AuthControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private SessionAuthService sessionAuthService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -53,18 +54,25 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add("Origin", "https://not-allowed.example.com");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/session", HttpMethod.GET, new org.springframework.http.HttpEntity<>(headers), String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/session")
+                .headers(h -> h.addAll(headers))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     void session_missingOrigin_returnsForbidden() {
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/session", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/session")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -72,21 +80,28 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add("Origin", "http://localhost:5173");
 
-        ResponseEntity<UserInfo> resp = restTemplate.exchange(
-                "/session", HttpMethod.GET, new org.springframework.http.HttpEntity<>(headers), UserInfo.class);
+        EntityExchangeResult<UserInfo> resp = restTestClient.get()
+                .uri("/session")
+                .headers(h -> h.addAll(headers))
+                .exchange()
+                .expectBody(UserInfo.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().isAuthenticated()).isFalse();
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().isAuthenticated()).isFalse();
     }
 
     @Test
     void login_disallowedPath_returnsBadRequest() {
         when(sessionAuthService.isAllowedRedirectOnly(anyString())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/login?path=https://other.example.com", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/login?path=https://other.example.com")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -96,11 +111,14 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         when(sessionAuthService.getLoginPath(any(), any(), anyString(), any(), anyString()))
                 .thenReturn("https://idp.example.com/authorize?state=abc");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/login?path=/some/return/path", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/login?path=/some/return/path")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo("https://idp.example.com/authorize?state=abc");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo("https://idp.example.com/authorize?state=abc");
     }
 
     @Test
@@ -109,10 +127,13 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         when(sessionAuthService.getSecret(any())).thenReturn(null);
         when(sessionAuthService.getLoginPath(any(), any(), anyString(), any(), anyString())).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/login?path=/some/return/path", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/login?path=/some/return/path")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -123,11 +144,14 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         when(sessionAuthService.getSecret(any())).thenReturn("existing-secret");
         when(sessionAuthService.isSessionLoggedIn(any(), any(), anyString(), anyString())).thenReturn(true);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/callback?code=abc&state=" + state, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/callback?code=abc&state=" + state)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo(returnPath);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo(returnPath);
     }
 
     @Test
@@ -137,10 +161,13 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         when(sessionAuthService.validateStateAndGetReturnPath(any(), any(), anyString(), anyString(), anyString(), anyString()))
                 .thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/callback?code=abc&state=invalid-state", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/callback?code=abc&state=invalid-state")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -150,21 +177,27 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         when(sessionAuthService.validateStateAndGetReturnPath(any(), any(), anyString(), anyString(), anyString(), anyString()))
                 .thenReturn("/return/path");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/callback?code=abc&state=some-state", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/callback?code=abc&state=some-state")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo("/return/path");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo("/return/path");
     }
 
     @Test
     void logout_disallowedPath_returnsBadRequest() {
         when(sessionAuthService.isAllowedRedirectOnly(anyString())).thenReturn(false);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/logout?path=https://other.example.com", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/logout?path=https://other.example.com")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -172,10 +205,13 @@ public class AuthControllerIntegrationTest extends AbstractIntegrationTestContai
         when(sessionAuthService.isAllowedRedirectOnly(anyString())).thenReturn(true);
         when(sessionAuthService.logoutPath(anyString(), any(), any(), any())).thenReturn("https://idp.example.com/logout");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/logout?path=/home", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/logout?path=/home")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo("https://idp.example.com/logout");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo("https://idp.example.com/logout");
     }
 }

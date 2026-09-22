@@ -6,6 +6,7 @@
 
 package au.org.ala.search.model.quality;
 
+import au.org.ala.search.serializer.QualityProfileJackson3Serializer;
 import au.org.ala.search.serializer.QualityProfileSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
@@ -31,7 +32,11 @@ import java.util.List;
 @SuperBuilder(toBuilder = true)
 @Jacksonized
 @Data
+// Jackson 2 annotation: used by LeaderQueue's Smile ObjectMapper for the leader RPC round trip.
 @JsonSerialize(using = QualityProfileSerializer.class)
+// Jackson 3 annotation: used by Spring Boot 4's HTTP message converters. Jackson 3 ignores the
+// Jackson 2 annotation above, so both are required.
+@tools.jackson.databind.annotation.JsonSerialize(using = QualityProfileJackson3Serializer.class)
 @Entity
 @Table(name = "dqprofile")
 public class QualityProfile implements Serializable {

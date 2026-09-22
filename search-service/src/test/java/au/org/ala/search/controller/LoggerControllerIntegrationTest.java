@@ -11,8 +11,11 @@ import au.org.ala.search.service.AuthService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,6 +29,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 /**
  * Integration tests for V1LoggerController.
@@ -39,6 +43,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Import(RestTestClientConfiguration.class)
 public class LoggerControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
     // Lookup IDs used across all tests.
@@ -50,12 +55,12 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     static final String ENTITY_UID = "dr100";
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
     @BeforeEach
@@ -66,7 +71,7 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     }
 
     @BeforeAll
-    static void seedLookupTypes(@Autowired TestRestTemplate restTemplate,
+    static void seedLookupTypes(@Autowired RestTestClient restTestClient,
                                 @Autowired AuthService authService) {
         // Configure the mock for this static lifecycle method — @BeforeEach hasn't run yet.
         when(authService.isAdmin(any())).thenReturn(true);
@@ -76,41 +81,44 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         // Uses high IDs to avoid clashing with production data seeded by Flyway.
         // The AdminController scaffold is used so we test via the real API surface.
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
 
-        postScaffold(restTemplate, headers, "log_event_type",
+        postScaffold(restTestClient, headers, "log_event_type",
                 Map.of("id", EVENT_TYPE_ID, "name", "OCCURRENCE_RECORDS_DOWNLOADED"));
-        postScaffold(restTemplate, headers, "log_reason_type",
+        postScaffold(restTestClient, headers, "log_reason_type",
                 Map.of("id", REASON_TYPE_ID_RESEARCH, "rkey", "logger.download.reason.research",
                         "name", "scientific research", "defaultOrder", 1000, "deprecated", false));
-        postScaffold(restTemplate, headers, "log_reason_type",
+        postScaffold(restTestClient, headers, "log_reason_type",
                 Map.of("id", REASON_TYPE_ID_EDUCATION, "rkey", "logger.download.reason.education",
                         "name", "education", "defaultOrder", 600, "deprecated", false));
-        postScaffold(restTemplate, headers, "log_source_type",
+        postScaffold(restTestClient, headers, "log_source_type",
                 Map.of("id", SOURCE_TYPE_ID, "name", "ALA"));
     }
 
-    private static void postScaffold(TestRestTemplate restTemplate, HttpHeaders headers,
+    private static void postScaffold(RestTestClient restTestClient, HttpHeaders headers,
                                      String table, Map<String, Object> body) {
-        restTemplate.exchange(
-                "/admin/scaffold?table=" + table,
-                HttpMethod.POST,
-                new HttpEntity<>(body, headers),
-                new ParameterizedTypeReference<Map<String, Object>>() {
-                });
+        restTestClient.post()
+                .uri("/admin/scaffold?table=" + table)
+                .headers(h -> h.addAll(headers))
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
     }
 
     @Test
     @Order(1)
     void listEventTypes_returnsSeededType() {
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                "/v1/service/logger/events",
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> response = restTestClient.get()
+                .uri("/v1/service/logger/events")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> types = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> types = response.getResponseBody();
         assertThat(types).isNotNull().isNotEmpty();
         assertThat(types).anyMatch(t ->
                 EVENT_TYPE_ID.equals(t.get("id")) && "OCCURRENCE_RECORDS_DOWNLOADED".equals(t.get("name")));
@@ -119,14 +127,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(2)
     void listReasonTypes_returnsSeededTypesWithCorrectFields() {
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                "/v1/service/logger/reasons",
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> response = restTestClient.get()
+                .uri("/v1/service/logger/reasons")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> reasons = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> reasons = response.getResponseBody();
         assertThat(reasons).isNotNull().isNotEmpty();
 
         // Verify expected fields are present
@@ -142,14 +151,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(3)
     void listSourceTypes_returnsSeededType() {
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                "/v1/service/logger/sources",
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> response = restTestClient.get()
+                .uri("/v1/service/logger/sources")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> sources = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> sources = response.getResponseBody();
         assertThat(sources).isNotNull().isNotEmpty();
         assertThat(sources).anyMatch(s ->
                 SOURCE_TYPE_ID.equals(s.get("id")) && "ALA".equals(s.get("name")));
@@ -161,10 +171,10 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> payload = buildLogEvent(EVENT_TYPE_ID, REASON_TYPE_ID_RESEARCH, SOURCE_TYPE_ID,
                 "user@example.com", Map.of(ENTITY_UID, 100));
 
-        ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
+        EntityExchangeResult<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).isNotNull();
         assertThat(body).containsKey("id");
         assertThat(((Number) body.get("id")).longValue()).isGreaterThan(0L);
@@ -179,10 +189,10 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
                 "researcher@university.edu.au",
                 Map.of("dr200", 50, "dr201", 75));
 
-        ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
+        EntityExchangeResult<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).containsKey("id");
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getResponseBody()).containsKey("id");
     }
 
     @Test
@@ -191,9 +201,9 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> payload = buildLogEvent(99999, REASON_TYPE_ID_RESEARCH, SOURCE_TYPE_ID,
                 "user@example.com", Map.of(ENTITY_UID, 10));
 
-        ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
+        EntityExchangeResult<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -202,9 +212,9 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> payload = buildLogEvent(EVENT_TYPE_ID, 99999, SOURCE_TYPE_ID,
                 "user@example.com", Map.of(ENTITY_UID, 10));
 
-        ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
+        EntityExchangeResult<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -213,9 +223,9 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
         Map<String, Object> payload = buildLogEvent(EVENT_TYPE_ID, REASON_TYPE_ID_RESEARCH, 99999,
                 "user@example.com", Map.of(ENTITY_UID, 10));
 
-        ResponseEntity<Map<String, Object>> response = postLogEvent(payload);
+        EntityExchangeResult<Map<String, Object>> response = postLogEvent(payload);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -223,23 +233,23 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
      * before testing the breakdown endpoints.
      */
     @BeforeAll
-    static void seedEventsAndRunSummary(@Autowired TestRestTemplate restTemplate,
+    static void seedEventsAndRunSummary(@Autowired RestTestClient restTestClient,
                                         @Autowired JdbcTemplate jdbcTemplate,
                                         @Autowired AuthService authService) {
         when(authService.isAdmin(any())).thenReturn(true);
         when(authService.getActor(any(), any(), any())).thenReturn("test-actor");
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
 
         String currentMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
 
         // Create events with varied emails for email breakdown testing
-        postLogEventDirect(restTemplate, headers, buildLogEventStatic(EVENT_TYPE_ID, REASON_TYPE_ID_RESEARCH,
+        postLogEventDirect(restTestClient, headers, buildLogEventStatic(EVENT_TYPE_ID, REASON_TYPE_ID_RESEARCH,
                 SOURCE_TYPE_ID, "researcher@csiro.au", Map.of(ENTITY_UID, 500), currentMonth));
-        postLogEventDirect(restTemplate, headers, buildLogEventStatic(EVENT_TYPE_ID, REASON_TYPE_ID_EDUCATION,
+        postLogEventDirect(restTestClient, headers, buildLogEventStatic(EVENT_TYPE_ID, REASON_TYPE_ID_EDUCATION,
                 SOURCE_TYPE_ID, "student@university.edu.au", Map.of(ENTITY_UID, 200), currentMonth));
-        postLogEventDirect(restTemplate, headers, buildLogEventStatic(EVENT_TYPE_ID, REASON_TYPE_ID_RESEARCH,
+        postLogEventDirect(restTestClient, headers, buildLogEventStatic(EVENT_TYPE_ID, REASON_TYPE_ID_RESEARCH,
                 SOURCE_TYPE_ID, "user@gmail.com", Map.of(ENTITY_UID, 100), currentMonth));
 
         // Trigger summary table update via JdbcTemplate — bypasses JPA transaction
@@ -250,14 +260,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(50)
     void totalsByType_afterProcessing_containsEventTypeWithCounts() {
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/v1/service/totalsByType",
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/v1/service/totalsByType")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).containsKey("totals");
 
         Map<String, Object> totals = (Map<String, Object>) body.get("totals");
@@ -268,14 +279,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(51)
     void emailBreakdown_afterProcessing_containsEmailCategories() {
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/v1/service/emailBreakdown?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID,
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/v1/service/emailBreakdown?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).containsKeys("all", "thisMonth", "last3Months", "lastYear");
 
         // The "all" window should contain an emailBreakdown with categories
@@ -294,14 +306,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(52)
     void reasonBreakdown_afterProcessing_containsReasonCategories() {
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/v1/service/reasonBreakdown?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID,
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/v1/service/reasonBreakdown?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).containsKeys("all", "thisMonth", "last3Months", "lastYear");
 
         Map<String, Object> all = (Map<String, Object>) body.get("all");
@@ -320,14 +333,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(53)
     void reasonBreakdownMonthly_afterProcessing_containsMonthlyData() {
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/v1/service/reasonBreakdownMonthly?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID,
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/v1/service/reasonBreakdownMonthly?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).containsKey("temporalBreakdown");
 
         Map<String, Object> temporalBreakdown = (Map<String, Object>) body.get("temporalBreakdown");
@@ -337,14 +351,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(54)
     void sourceBreakdown_afterProcessing_containsSourceCategories() {
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/v1/service/sourceBreakdown?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID,
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/v1/service/sourceBreakdown?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).containsKeys("all", "thisMonth", "last3Months", "lastYear");
 
         Map<String, Object> all = (Map<String, Object>) body.get("all");
@@ -358,14 +373,15 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Order(55)
     void monthlyBreakdown_afterProcessing_containsMonthData() {
         String currentYear = String.valueOf(LocalDate.now().getYear());
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/v1/service/logger/get.json?eventTypeId=" + EVENT_TYPE_ID + "&q=" + ENTITY_UID + "&year=" + currentYear,
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/v1/service/logger/get.json?eventTypeId=" + EVENT_TYPE_ID + "&q=" + ENTITY_UID + "&year=" + currentYear)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = response.getResponseBody();
         assertThat(body).containsKey("months");
 
         List<Object> months = (List<Object>) body.get("months");
@@ -375,50 +391,58 @@ public class LoggerControllerIntegrationTest extends AbstractIntegrationTestCont
     @Test
     @Order(56)
     void emailBreakdownCSV_returnsValidCsvContentType() {
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/v1/service/emailBreakdownCSV?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID,
-                HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> response = restTestClient.get()
+                .uri("/v1/service/emailBreakdownCSV?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(response.getHeaders().getContentType().toString()).contains("text/csv");
-        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getResponseHeaders().getContentType()).isNotNull();
+        assertThat(response.getResponseHeaders().getContentType().toString()).contains("text/csv");
+        assertThat(response.getResponseBody()).isNotNull();
         // Check CSV header row
-        assertThat(response.getBody()).contains("year,month,user category,number of events,number of records");
+        assertThat(response.getResponseBody()).contains("year,month,user category,number of events,number of records");
     }
 
     @Test
     @Order(57)
     void reasonBreakdownCSV_returnsValidCsvContentType() {
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/v1/service/reasonBreakdownCSV?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID,
-                HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> response = restTestClient.get()
+                .uri("/v1/service/reasonBreakdownCSV?eventId=" + EVENT_TYPE_ID + "&entityUid=" + ENTITY_UID)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentType()).isNotNull();
-        assertThat(response.getHeaders().getContentType().toString()).contains("text/csv");
-        assertThat(response.getBody()).contains("year,month,reason,number of events,number of records");
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getResponseHeaders().getContentType()).isNotNull();
+        assertThat(response.getResponseHeaders().getContentType().toString()).contains("text/csv");
+        assertThat(response.getResponseBody()).contains("year,month,reason,number of events,number of records");
     }
 
-    private ResponseEntity<Map<String, Object>> postLogEvent(Map<String, Object> payload) {
+    private EntityExchangeResult<Map<String, Object>> postLogEvent(Map<String, Object> payload) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return restTemplate.exchange(
-                "/v1/service/logger",
-                HttpMethod.POST,
-                new HttpEntity<>(payload, headers),
-                new ParameterizedTypeReference<>() {
-                });
+        headers.setContentType(APPLICATION_JSON);
+        return restTestClient.post()
+                .uri("/v1/service/logger")
+                .headers(h -> h.addAll(headers))
+                .body(payload)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
     }
 
-    private static void postLogEventDirect(TestRestTemplate restTemplate, HttpHeaders headers,
+    private static void postLogEventDirect(RestTestClient restTestClient, HttpHeaders headers,
                                            Map<String, Object> payload) {
-        restTemplate.exchange(
-                "/v1/service/logger",
-                HttpMethod.POST,
-                new HttpEntity<>(payload, headers),
-                new ParameterizedTypeReference<Map<String, Object>>() {
-                });
+        restTestClient.post()
+                .uri("/v1/service/logger")
+                .headers(h -> h.addAll(headers))
+                .body(payload)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
     }
 
     private Map<String, Object> buildLogEvent(int eventTypeId, int reasonTypeId, int sourceTypeId,

@@ -14,13 +14,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -38,16 +39,17 @@ import static org.assertj.core.api.Assertions.assertThat;
  * are, matching {@code DwcaImportIntegrationTest}'s pattern).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private CollectoryCache collectoryCache;
 
-    @MockBean
+    @MockitoBean
     private ListCache listCache;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @Autowired
     private ElasticService elasticService;
@@ -104,12 +106,12 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
 
     @Test
     void wildcardFreeText_zzyzxusStar_matchesAllFixtureDocs() {
-        ResponseEntity<Map<String, Object>> resp = search(b -> b
+        EntityExchangeResult<Map<String, Object>> resp = search(b -> b
                 .queryParam("q", "zzyzxus*")
                 .queryParam("fq", "idxtype:TAXON")
                 .queryParam("pageSize", "50"));
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> results = searchResults(resp.getBody());
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> results = searchResults(resp.getResponseBody());
         List<String> guids = results.stream().map(r -> (String) r.get("guid")).toList();
         assertThat(guids).contains(
                 "wq:zzyzxus-kingdom", "wq:zzyzxus-family", "wq:zzyzxus-genus",
@@ -118,12 +120,12 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
 
     @Test
     void wildcardFieldScoped_scientificNamePrefix_matchesFixtureDocs() {
-        ResponseEntity<Map<String, Object>> resp = search(b -> b
+        EntityExchangeResult<Map<String, Object>> resp = search(b -> b
                 .queryParam("q", "scientificName:Zzyzxus*")
                 .queryParam("fq", "idxtype:TAXON")
                 .queryParam("pageSize", "50"));
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> results = searchResults(resp.getBody());
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> results = searchResults(resp.getResponseBody());
         List<String> guids = results.stream().map(r -> (String) r.get("guid")).toList();
         assertThat(guids).contains(
                 "wq:zzyzxus-kingdom", "wq:zzyzxus-family", "wq:zzyzxus-genus",
@@ -138,13 +140,13 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
         // QueryParserUtil.parse). Instead, use a field-scoped wildcard fq to scope down to the
         // fixture docs, ANDed at the top level with the range query (top-level q/fq combination
         // is always ANDed regardless of this restriction).
-        ResponseEntity<Map<String, Object>> resp = search(b -> b
+        EntityExchangeResult<Map<String, Object>> resp = search(b -> b
                 .queryParam("q", "rankID:[6000 TO 7000]")
                 .queryParam("fq", "idxtype:TAXON")
                 .queryParam("fq", "scientificName:Zzyzxus*")
                 .queryParam("pageSize", "50"));
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> results = searchResults(resp.getBody());
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> results = searchResults(resp.getResponseBody());
         List<String> guids = results.stream().map(r -> (String) r.get("guid")).toList();
 
         assertThat(guids).contains("wq:zzyzxus-genus", "wq:zzyzxus-species", "wq:zzyzxus-excluded");
@@ -153,13 +155,13 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
 
     @Test
     void negatedQuery_excludingTaxonomicStatus_omitsExcludedRecord() {
-        ResponseEntity<Map<String, Object>> resp = search(b -> b
+        EntityExchangeResult<Map<String, Object>> resp = search(b -> b
                 .queryParam("q", "scientificName:Zzyzxus*")
                 .queryParam("fq", "idxtype:TAXON")
                 .queryParam("fq", "-taxonomicStatus:excluded")
                 .queryParam("pageSize", "50"));
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> results = searchResults(resp.getBody());
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> results = searchResults(resp.getResponseBody());
         List<String> guids = results.stream().map(r -> (String) r.get("guid")).toList();
 
         assertThat(guids).contains("wq:zzyzxus-kingdom", "wq:zzyzxus-family",
@@ -174,11 +176,11 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
         // without an explicit sort/dir param, ElasticService.search()'s functionScore wrapper
         // (fieldValueFactor on "searchWeight") should rank the "accepted" doc (weight x2) ahead
         // of the "excluded" doc (weight x0.3, see util.Weight.calcGlobal).
-        ResponseEntity<Map<String, Object>> resp = search(b -> b
+        EntityExchangeResult<Map<String, Object>> resp = search(b -> b
                 .queryParam("q", "scientificName:\"Weighttestus alpha\"")
                 .queryParam("fq", "idxtype:TAXON"));
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> results = searchResults(resp.getBody());
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> results = searchResults(resp.getResponseBody());
         assertThat(results).hasSize(2);
         assertThat(results.get(0).get("guid")).isEqualTo("wq:weight-accepted");
         assertThat(results.get(1).get("guid")).isEqualTo("wq:weight-excluded");
@@ -186,14 +188,14 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
 
     @Test
     void autocomplete_prefixMatch_returnsFixtureDoc() {
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                URI.create("/v1/bie/search/auto?q=Zzyzxus+spe"),
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> body = resp.getBody();
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri(URI.create("/v1/bie/search/auto?q=Zzyzxus+spe"))
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = resp.getResponseBody();
         assertThat(body).isNotNull();
 
         
@@ -205,14 +207,14 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
 
     @Test
     void download_csvContainsFixtureRecord() {
-        ResponseEntity<String> resp = restTemplate.exchange(
-                URI.create("/v1/bie/download?q=zzyzxus&fq=idxtype:TAXON&fields=guid,scientificName"),
-                HttpMethod.GET,
-                null,
-                String.class);
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).isNotNull();
-        assertThat(resp.getBody()).contains("wq:zzyzxus-genus");
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri(URI.create("/v1/bie/download?q=zzyzxus&fq=idxtype:TAXON&fields=guid,scientificName"))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).isNotNull();
+        assertThat(resp.getResponseBody()).contains("wq:zzyzxus-genus");
     }
 
     @FunctionalInterface
@@ -220,7 +222,7 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
         UriComponentsBuilder apply(UriComponentsBuilder builder);
     }
 
-    private ResponseEntity<Map<String, Object>> search(QueryBuilder queryBuilder) {
+    private EntityExchangeResult<Map<String, Object>> search(QueryBuilder queryBuilder) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/v2/search");
         builder = queryBuilder.apply(builder);
         // .encode() is required here (unlike DwcaImportIntegrationTest's equivalent helper,
@@ -228,13 +230,12 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
         // in a raw java.net.URI) since range queries (e.g. "rankID:[6000 TO 7000]") contain
         // spaces and brackets that must be percent-encoded before constructing the URI.
         URI uri = builder.build().encode().toUri();
-        return restTemplate.exchange(
-                uri,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                }
-        );
+        return restTestClient.get()
+                .uri(uri)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
     }
 
     

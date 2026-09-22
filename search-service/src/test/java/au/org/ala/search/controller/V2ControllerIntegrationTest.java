@@ -20,8 +20,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -42,40 +45,41 @@ import static org.mockito.Mockito.*;
  * Integration test for {@link V2Controller} endpoints not covered elsewhere.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class V2ControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private ElasticService elasticService;
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
-    @MockBean
+    @MockitoBean
     private ConsumerQueue consumerQueue;
 
-    @MockBean
+    @MockitoBean
     private QueueDataService queueDataService;
 
-    @MockBean
+    @MockitoBean
     private DownloadFileStoreService downloadFileStoreService;
 
-    @MockBean
+    @MockitoBean
     private BroadcastQueue broadcastQueue;
 
-    @MockBean
+    @MockitoBean
     private BannerService bannerService;
 
-    @MockBean
+    @MockitoBean
     private UserDataService userDataService;
 
-    @MockBean
+    @MockitoBean
     private CollectoryCache collectoryCache;
 
-    @MockBean
+    @MockitoBean
     private ListCache listCache;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -105,34 +109,44 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(elasticService.indexFields(true)).thenReturn(List.of(
                 new IndexedField("guid", "string", true, true, null)));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v2/indexFields", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v2/indexFields")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("name")).isEqualTo("guid");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("name")).isEqualTo("guid");
     }
 
     @Test
     void banner_returnsBannerServiceResultWithCacheHeaders() {
         when(bannerService.getAll()).thenReturn(Map.of("global", "Some banner text"));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v2/banner", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v2/banner")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("global", "Some banner text");
-        assertThat(resp.getHeaders().getCacheControl()).isNotNull();
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("global", "Some banner text");
+        assertThat(resp.getResponseHeaders().getCacheControl()).isNotNull();
     }
 
     @Test
     void species_blankRequestList_returnsBadRequest() {
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/species", HttpMethod.POST, new HttpEntity<>(List.of()), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/v2/species")
+                .body(List.of())
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -141,13 +155,17 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(elasticService.getTaxonMap(eq("Macropus"), eq(true), eq(true)))
                 .thenReturn(new java.util.HashMap<>(Map.of("guid", "urn:lsid:macropus", "scientificName", "Macropus")));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v2/species", HttpMethod.POST, new HttpEntity<>(List.of("Macropus")), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.post()
+                .uri("/v2/species")
+                .body(List.of("Macropus"))
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).hasSize(1);
-        assertThat(resp.getBody().get(0).get("guid")).isEqualTo("urn:lsid:macropus");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).hasSize(1);
+        assertThat(resp.getResponseBody().get(0).get("guid")).isEqualTo("urn:lsid:macropus");
     }
 
     @Test
@@ -157,10 +175,14 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(elasticService.getTaxonVariantByNameMap(eq("Unknown"), eq(true))).thenReturn(null);
         when(elasticService.getTaxonByPreviousIdentifierMap(eq("Unknown"), eq(true))).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/species", HttpMethod.POST, new HttpEntity<>(List.of("Unknown")), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/v2/species")
+                .body(List.of("Unknown"))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -168,10 +190,14 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         SearchQueueRequest request = new SearchQueueRequest();
         // filename, q, fl all missing
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/download/search", HttpMethod.POST, new HttpEntity<>(request), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/v2/download/search")
+                .body(request)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -186,12 +212,16 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         request.q = new String[]{"kangaroo"};
         request.fl = new String[]{"guid", "name"};
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v2/download/search", HttpMethod.POST, new HttpEntity<>(request), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.post()
+                .uri("/v2/download/search")
+                .body(request)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("statusUrl");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("statusUrl");
     }
 
     @Test
@@ -204,10 +234,14 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         request.q = new String[]{"kangaroo"};
         request.fl = new String[]{"guid"};
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/download/search", HttpMethod.POST, new HttpEntity<>(request), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/v2/download/search")
+                .body(request)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -224,22 +258,29 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
                 .id(new String[]{"guid1"})
                 .build();
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v2/download/fieldguide", HttpMethod.POST, new HttpEntity<>(request), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.post()
+                .uri("/v2/download/fieldguide")
+                .body(request)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsKey("statusUrl");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsKey("statusUrl");
     }
 
     @Test
     void download_unknownUserAndNotDownload_returnsUnauthorized() {
         when(authService.getUserId(any())).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/download?id=" + UUID.randomUUID(), HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v2/download?id=" + UUID.randomUUID())
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -248,10 +289,13 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(authService.getUserId(any())).thenReturn("-1");
         when(queueDataService.get(id)).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/download?id=" + id, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v2/download?id=" + id)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -262,10 +306,13 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(authService.isAdmin(any())).thenReturn(false);
         when(queueDataService.get(id)).thenReturn(item);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/download?id=" + id, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v2/download?id=" + id)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
@@ -276,12 +323,15 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(authService.isAdmin(any())).thenReturn(false);
         when(queueDataService.get(id)).thenReturn(item);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v2/download?id=" + id, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v2/download?id=" + id)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("statusCode")).isEqualTo("RUNNING");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("statusCode")).isEqualTo("RUNNING");
     }
 
     @Test
@@ -291,11 +341,14 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(authService.getUserId(any())).thenReturn("-1");
         when(queueDataService.get(id)).thenReturn(item);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v2/download?id=" + id + "&cancel=true", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v2/download?id=" + id + "&cancel=true")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
         verify(broadcastQueue).sendMessage(eq(TaskType.CANCEL_CONSUMER), any(QueueCancel.class));
     }
 
@@ -308,26 +361,36 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         when(downloadFileStoreService.isS3()).thenReturn(true);
         when(downloadFileStoreService.createPresignedGetUrl(item)).thenReturn("https://s3.example.com/presigned");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/download?id=" + id + "&download=true", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v2/download?id=" + id + "&download=true")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo("https://s3.example.com/presigned");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo("https://s3.example.com/presigned");
     }
 
     @Test
     void userProperty_noPrincipal_returnsUnauthorized() {
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/user/property?key=foo", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v2/user/property?key=foo")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test
     void createOrUpdateUserData_noPrincipal_returnsUnauthorized() {
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v2/user/property", HttpMethod.POST, new HttpEntity<>(Map.of("k", "v")), String.class);
+        EntityExchangeResult<String> resp = restTestClient.post()
+                .uri("/v2/user/property")
+                .body(Map.of("k", "v"))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 }

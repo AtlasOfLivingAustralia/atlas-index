@@ -21,8 +21,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -46,22 +49,23 @@ import static org.mockito.Mockito.*;
  * validation, auth-email resolution, and response mapping.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
-    @MockBean
+    @MockitoBean
     private ConsumerQueue consumerQueue;
 
-    @MockBean
+    @MockitoBean
     private QueueDataService queueDataService;
 
-    @MockBean
+    @MockitoBean
     private DownloadFileStoreService downloadFileStoreService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
@@ -99,14 +103,17 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         request.setGuids(List.of("guid1", "guid2"));
         request.setLink("http://example.org/species");
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/fieldguide/generate?email=user@example.com", HttpMethod.POST,
-                new org.springframework.http.HttpEntity<>(request), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.post()
+                .uri("/v1/fieldguide/generate?email=user@example.com")
+                .body(request)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("status")).isEqualTo("inQueue");
-        assertThat((String) resp.getBody().get("statusUrl")).contains("/v1/fieldguide/status/" + id);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("status")).isEqualTo("inQueue");
+        assertThat((String) resp.getResponseBody().get("statusUrl")).contains("/v1/fieldguide/status/" + id);
     }
 
     @Test
@@ -120,12 +127,15 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         request.setTitle("My field guide");
         request.setGuids(List.of("guid1"));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/fieldguide/generate?email=user@example.com", HttpMethod.POST,
-                new org.springframework.http.HttpEntity<>(request), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.post()
+                .uri("/v1/fieldguide/generate?email=user@example.com")
+                .body(request)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -133,12 +143,15 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         UUID id = UUID.randomUUID();
         when(queueDataService.get(id)).thenReturn(queueItem(id, StatusCode.RUNNING));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/fieldguide/status/" + id, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/fieldguide/status/" + id)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("status")).isEqualTo("running");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("status")).isEqualTo("running");
     }
 
     @Test
@@ -146,12 +159,15 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         UUID id = UUID.randomUUID();
         when(queueDataService.get(id)).thenReturn(queueItem(id, StatusCode.QUEUED));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/fieldguide/status/" + id, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/fieldguide/status/" + id)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("status")).isEqualTo("inQueue");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("status")).isEqualTo("inQueue");
     }
 
     @Test
@@ -159,13 +175,16 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         UUID id = UUID.randomUUID();
         when(queueDataService.get(id)).thenReturn(queueItem(id, StatusCode.FINISHED));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/fieldguide/status/" + id, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/fieldguide/status/" + id)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody().get("status")).isEqualTo("finished");
-        assertThat((String) resp.getBody().get("downloadUrl")).contains("/v1/fieldguide/download/" + id);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody().get("status")).isEqualTo("finished");
+        assertThat((String) resp.getResponseBody().get("downloadUrl")).contains("/v1/fieldguide/download/" + id);
     }
 
     @Test
@@ -173,10 +192,13 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         UUID id = UUID.randomUUID();
         when(queueDataService.get(id)).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/fieldguide/status/" + id, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/fieldguide/status/" + id)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -184,10 +206,13 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         UUID id = UUID.randomUUID();
         when(queueDataService.get(id)).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/fieldguide/download/" + id, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/fieldguide/download/" + id)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -198,11 +223,14 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         when(downloadFileStoreService.isS3()).thenReturn(true);
         when(downloadFileStoreService.createPresignedGetUrl(item)).thenReturn("https://s3.example.com/presigned-url");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/fieldguide/download/" + id, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/fieldguide/download/" + id)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.TEMPORARY_REDIRECT);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo("https://s3.example.com/presigned-url");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.TEMPORARY_REDIRECT);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo("https://s3.example.com/presigned-url");
     }
 
     @Test
@@ -213,9 +241,12 @@ public class V1FieldguideControllerIntegrationTest extends AbstractIntegrationTe
         when(downloadFileStoreService.isS3()).thenReturn(false);
         when(downloadFileStoreService.getFilePath(item)).thenReturn("/tmp/does-not-exist-" + id + ".pdf");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/fieldguide/download/" + id, HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/fieldguide/download/" + id)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

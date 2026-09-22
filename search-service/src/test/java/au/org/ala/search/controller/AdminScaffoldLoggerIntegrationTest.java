@@ -7,14 +7,17 @@
 package au.org.ala.search.controller;
 
 import au.org.ala.search.AbstractIntegrationTestContainers;
+import au.org.ala.search.RestTestClientConfiguration;
 import au.org.ala.search.service.AuthService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 import java.security.Principal;
 import java.util.List;
@@ -23,6 +26,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 /**
  * Integration tests for AdminController scaffold endpoints covering CRUD operations
@@ -30,6 +34,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@Import(RestTestClientConfiguration.class)
 public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestContainers {
 
     // High IDs to avoid clashing with any Flyway-seeded data
@@ -39,12 +44,12 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     private static final Integer TEST_SOURCE_TYPE_ID = 9001;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     /**
      * Mock AuthService so all requests are treated as admin without requiring JWT.
      */
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
     @BeforeEach
@@ -59,10 +64,13 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     void scaffoldGet_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/admin/scaffold", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> response = restTestClient.get()
+                .uri("/admin/scaffold")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -71,13 +79,15 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
         when(authService.isAdmin(any())).thenReturn(false);
 
         Map<String, Object> body = Map.of("id", 9999, "name", "SHOULD_NOT_BE_CREATED");
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type",
-                HttpMethod.POST,
-                new HttpEntity<>(body, jsonHeaders()),
-                String.class);
+        EntityExchangeResult<String> response = restTestClient.post()
+                .uri("/admin/scaffold?table=log_event_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(body)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -85,25 +95,27 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     void scaffoldDelete_notAdmin_returnsForbidden() {
         when(authService.isAdmin(any())).thenReturn(false);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&id=9999",
-                HttpMethod.DELETE, null, String.class);
+        EntityExchangeResult<String> response = restTestClient.delete()
+                .uri("/admin/scaffold?table=log_event_type&id=9999")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
     @Order(3)
     void listTables_includesLoggerTables() {
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                "/admin/scaffold",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> response = restTestClient.get()
+                .uri("/admin/scaffold")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> tables = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> tables = response.getResponseBody();
         assertThat(tables).isNotNull();
 
         List<String> tableNames = tables.stream()
@@ -116,15 +128,17 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Order(10)
     void createEventType_returnsCreatedEntity() {
         Map<String, Object> body = Map.of("id", TEST_EVENT_TYPE_ID, "name", "TEST_EVENT");
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type",
-                HttpMethod.POST,
-                new HttpEntity<>(body, jsonHeaders()),
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.post()
+                .uri("/admin/scaffold?table=log_event_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> saved = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> saved = response.getResponseBody();
         assertThat(saved).isNotNull();
         assertThat(saved.get("id")).isEqualTo(TEST_EVENT_TYPE_ID);
         assertThat(saved.get("name")).isEqualTo("TEST_EVENT");
@@ -133,18 +147,17 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Test
     @Order(11)
     void readEventTypes_afterCreate_containsNewType() {
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&page=0&size=200",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.get()
+                .uri("/admin/scaffold?table=log_event_type&page=0&size=200")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> page = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> page = response.getResponseBody();
         assertThat(page).isNotNull();
 
-        
         List<Map<String, Object>> content = (List<Map<String, Object>>) page.get("content");
         assertThat(content).isNotNull();
         assertThat(content).anyMatch(row ->
@@ -155,25 +168,26 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Order(12)
     void updateEventType_changesName() {
         Map<String, Object> body = Map.of("id", TEST_EVENT_TYPE_ID, "name", "TEST_EVENT_UPDATED");
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type",
-                HttpMethod.POST,
-                new HttpEntity<>(body, jsonHeaders()),
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.post()
+                .uri("/admin/scaffold?table=log_event_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
 
         // Verify the change is visible via read
-        ResponseEntity<Map<String, Object>> readResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&page=0&size=200",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> readResponse = restTestClient.get()
+                .uri("/admin/scaffold?table=log_event_type&page=0&size=200")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        
-        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
+        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getResponseBody().get("content");
         assertThat(content).anyMatch(row ->
                 TEST_EVENT_TYPE_ID.equals(row.get("id")) && "TEST_EVENT_UPDATED".equals(row.get("name")));
     }
@@ -181,24 +195,23 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Test
     @Order(13)
     void deleteEventType_removesFromList() {
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&id=" + TEST_EVENT_TYPE_ID,
-                HttpMethod.DELETE,
-                null,
-                Object.class);
+        EntityExchangeResult<Object> deleteResponse = restTestClient.delete()
+                .uri("/admin/scaffold?table=log_event_type&id=" + TEST_EVENT_TYPE_ID)
+                .exchange()
+                .expectBody(Object.class)
+                .returnResult();
 
-        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(deleteResponse.getStatus()).isEqualTo(HttpStatus.OK);
 
         // Verify removed
-        ResponseEntity<Map<String, Object>> readResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&page=0&size=200",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> readResponse = restTestClient.get()
+                .uri("/admin/scaffold?table=log_event_type&page=0&size=200")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        
-        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
+        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getResponseBody().get("content");
         assertThat(content).noneMatch(row -> TEST_EVENT_TYPE_ID.equals(row.get("id")));
     }
 
@@ -211,15 +224,17 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 "name", "Test Reason",
                 "defaultOrder", 9999,
                 "deprecated", false);
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_reason_type",
-                HttpMethod.POST,
-                new HttpEntity<>(body, jsonHeaders()),
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.post()
+                .uri("/admin/scaffold?table=log_reason_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> saved = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> saved = response.getResponseBody();
         assertThat(saved).isNotNull();
         assertThat(saved.get("id")).isEqualTo(TEST_REASON_TYPE_ID);
         assertThat(saved.get("name")).isEqualTo("Test Reason");
@@ -235,25 +250,27 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 "name", "Test Reason",
                 "defaultOrder", 9999,
                 "deprecated", true);
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_reason_type",
-                HttpMethod.POST,
-                new HttpEntity<>(body, jsonHeaders()),
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.post()
+                .uri("/admin/scaffold?table=log_reason_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
 
         // Confirm deprecated flag visible via the V1 logger/reasons endpoint
-        ResponseEntity<List<Map<String, Object>>> reasonsResponse = restTemplate.exchange(
-                "/v1/service/logger/reasons",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> reasonsResponse = restTestClient.get()
+                .uri("/v1/service/logger/reasons")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(reasonsResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> reasons = reasonsResponse.getBody();
+        assertThat(reasonsResponse.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> reasons = reasonsResponse.getResponseBody();
         assertThat(reasons).isNotNull();
         assertThat(reasons).anyMatch(r ->
                 TEST_REASON_TYPE_ID.equals(r.get("id")) && Boolean.TRUE.equals(r.get("deprecated")));
@@ -262,23 +279,22 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Test
     @Order(22)
     void deleteReasonType_removesRow() {
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_reason_type&id=" + TEST_REASON_TYPE_ID,
-                HttpMethod.DELETE,
-                null,
-                Object.class);
+        EntityExchangeResult<Object> deleteResponse = restTestClient.delete()
+                .uri("/admin/scaffold?table=log_reason_type&id=" + TEST_REASON_TYPE_ID)
+                .exchange()
+                .expectBody(Object.class)
+                .returnResult();
 
-        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(deleteResponse.getStatus()).isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<Map<String, Object>> readResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_reason_type&page=0&size=200",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> readResponse = restTestClient.get()
+                .uri("/admin/scaffold?table=log_reason_type&page=0&size=200")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        
-        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
+        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getResponseBody().get("content");
         assertThat(content).noneMatch(row -> TEST_REASON_TYPE_ID.equals(row.get("id")));
     }
 
@@ -286,15 +302,17 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Order(30)
     void createSourceType_persisted() {
         Map<String, Object> body = Map.of("id", TEST_SOURCE_TYPE_ID, "name", "TEST_SOURCE");
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "/admin/scaffold?table=log_source_type",
-                HttpMethod.POST,
-                new HttpEntity<>(body, jsonHeaders()),
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> response = restTestClient.post()
+                .uri("/admin/scaffold?table=log_source_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Map<String, Object> saved = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> saved = response.getResponseBody();
         assertThat(saved).isNotNull();
         assertThat(saved.get("id")).isEqualTo(TEST_SOURCE_TYPE_ID);
         assertThat(saved.get("name")).isEqualTo("TEST_SOURCE");
@@ -303,15 +321,15 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Test
     @Order(31)
     void readSourceTypes_afterCreate_containsNewType() {
-        ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
-                "/v1/service/logger/sources",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> response = restTestClient.get()
+                .uri("/v1/service/logger/sources")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<Map<String, Object>> sources = response.getBody();
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> sources = response.getResponseBody();
         assertThat(sources).isNotNull();
         assertThat(sources).anyMatch(s ->
                 TEST_SOURCE_TYPE_ID.equals(s.get("id")) && "TEST_SOURCE".equals(s.get("name")));
@@ -320,22 +338,22 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     @Test
     @Order(32)
     void deleteSourceType_removesRow() {
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_source_type&id=" + TEST_SOURCE_TYPE_ID,
-                HttpMethod.DELETE,
-                null,
-                Object.class);
+        EntityExchangeResult<Object> deleteResponse = restTestClient.delete()
+                .uri("/admin/scaffold?table=log_source_type&id=" + TEST_SOURCE_TYPE_ID)
+                .exchange()
+                .expectBody(Object.class)
+                .returnResult();
 
-        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(deleteResponse.getStatus()).isEqualTo(HttpStatus.OK);
 
-        ResponseEntity<List<Map<String, Object>>> readResponse = restTemplate.exchange(
-                "/v1/service/logger/sources",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> readResponse = restTestClient.get()
+                .uri("/v1/service/logger/sources")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(readResponse.getBody()).noneMatch(s -> TEST_SOURCE_TYPE_ID.equals(s.get("id")));
+        assertThat(readResponse.getResponseBody()).noneMatch(s -> TEST_SOURCE_TYPE_ID.equals(s.get("id")));
     }
 
     // -------------------------------------------------------------------------
@@ -347,26 +365,32 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
     void deleteEventType_referencedByLogEvent_returnsBadRequestOrConflict() {
         // Create an event type
         int referencedId = 9002;
-        restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type",
-                HttpMethod.POST,
-                new HttpEntity<>(Map.of("id", referencedId, "name", "REFERENCED_EVENT"), jsonHeaders()),
-                new ParameterizedTypeReference<Map<String, Object>>() {
-                });
+        restTestClient.post()
+                .uri("/admin/scaffold?table=log_event_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(Map.of("id", referencedId, "name", "REFERENCED_EVENT"))
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
         // Create a reason type and source type so we can create a log event
-        restTemplate.exchange(
-                "/admin/scaffold?table=log_reason_type",
-                HttpMethod.POST,
-                new HttpEntity<>(Map.of("id", 9002, "rkey", "test", "name", "Test", "defaultOrder", 9998, "deprecated", false), jsonHeaders()),
-                new ParameterizedTypeReference<Map<String, Object>>() {
-                });
-        restTemplate.exchange(
-                "/admin/scaffold?table=log_source_type",
-                HttpMethod.POST,
-                new HttpEntity<>(Map.of("id", 9002, "name", "TEST_SRC"), jsonHeaders()),
-                new ParameterizedTypeReference<Map<String, Object>>() {
-                });
+        restTestClient.post()
+                .uri("/admin/scaffold?table=log_reason_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(Map.of("id", 9002, "rkey", "test", "name", "Test", "defaultOrder", 9998, "deprecated", false))
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
+        restTestClient.post()
+                .uri("/admin/scaffold?table=log_source_type")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(Map.of("id", 9002, "name", "TEST_SRC"))
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
         // Create a log event referencing the event type via the logger endpoint
         Map<String, Object> logEvent = Map.of(
@@ -375,43 +399,55 @@ public class AdminScaffoldLoggerIntegrationTest extends AbstractIntegrationTestC
                 "sourceTypeId", 9002,
                 "userEmail", "test@example.com",
                 "recordCounts", Map.of("dr1", 10));
-        restTemplate.exchange(
-                "/v1/service/logger",
-                HttpMethod.POST,
-                new HttpEntity<>(logEvent, jsonHeaders()),
-                new ParameterizedTypeReference<Map<String, Object>>() {
-                });
+        restTestClient.post()
+                .uri("/v1/service/logger")
+                .headers(h -> h.addAll(jsonHeaders()))
+                .body(logEvent)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        // Now delete the event type — the schema has no FK constraint from log_event to
+        // Now delete the event type - the schema has no FK constraint from log_event to
         // log_event_type, so the delete succeeds. This test documents that behaviour:
         // referential integrity is enforced at the application layer (validation on POST /logger),
         // not by a database FK constraint.
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&id=" + referencedId,
-                HttpMethod.DELETE,
-                null,
-                Object.class);
+        EntityExchangeResult<Object> deleteResponse = restTestClient.delete()
+                .uri("/admin/scaffold?table=log_event_type&id=" + referencedId)
+                .exchange()
+                .expectBody(Object.class)
+                .returnResult();
 
-        assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(deleteResponse.getStatus()).isEqualTo(HttpStatus.OK);
 
         // Verify the type is gone from the read endpoint
-        ResponseEntity<Map<String, Object>> readResponse = restTemplate.exchange(
-                "/admin/scaffold?table=log_event_type&page=0&size=200",
-                HttpMethod.GET, null,
-                new ParameterizedTypeReference<>() {
-                });
-        
-        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getBody().get("content");
+        EntityExchangeResult<Map<String, Object>> readResponse = restTestClient.get()
+                .uri("/admin/scaffold?table=log_event_type&page=0&size=200")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
+
+        List<Map<String, Object>> content = (List<Map<String, Object>>) readResponse.getResponseBody().get("content");
         assertThat(content).noneMatch(row -> Integer.valueOf(referencedId).equals(row.get("id")));
 
         // Cleanup: remove the lookup rows we created
-        restTemplate.exchange("/admin/scaffold?table=log_reason_type&id=9002", HttpMethod.DELETE, null, Object.class);
-        restTemplate.exchange("/admin/scaffold?table=log_source_type&id=9002", HttpMethod.DELETE, null, Object.class);
+        restTestClient.delete()
+                .uri("/admin/scaffold?table=log_reason_type&id=9002")
+                .exchange()
+                .expectBody(Object.class)
+                .returnResult();
+        restTestClient.delete()
+                .uri("/admin/scaffold?table=log_source_type&id=9002")
+                .exchange()
+                .expectBody(Object.class)
+                .returnResult();
     }
 
     private HttpHeaders jsonHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(APPLICATION_JSON);
         return headers;
     }
 }
+

@@ -19,8 +19,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import au.org.ala.search.RestTestClientConfiguration;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpEntity;
@@ -49,35 +52,37 @@ import static org.mockito.Mockito.*;
  * response-shaping logic.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(RestTestClientConfiguration.class)
 public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
-    @MockBean
+    @MockitoBean
     private DoiDataPostgresRepository doiDataPostgresRepository;
 
-    @MockBean
+    @MockitoBean
     private AuthService authService;
 
-    @MockBean
+    @MockitoBean
     private DoiFileStoreService doiFileStoreService;
 
-    @MockBean
+    @MockitoBean
     private DoiService doiService;
 
-    @MockBean
+    @MockitoBean
     private SignedUrlService signedUrlService;
 
     @Autowired
-    private TestRestTemplate restTemplate;
+    private RestTestClient restTestClient;
 
     @BeforeEach
     void resetMocks() {
         reset(doiDataPostgresRepository, authService, doiFileStoreService, doiService, signedUrlService);
     }
 
-    private HttpEntity<MultiValueMap<String, Object>> multipartEntity(MultiValueMap<String, Object> body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        return new HttpEntity<>(body, headers);
+    private RestTestClient.RequestHeadersSpec<?> multipartPost(MultiValueMap<String, Object> body) {
+        return restTestClient.post()
+                .uri("/v1/doi")
+                .headers(h -> h.setContentType(MediaType.MULTIPART_FORM_DATA))
+                .body(body);
     }
 
     private Doi doi(UUID uuid, String doiStr, List<String> authorisedRoles) {
@@ -100,12 +105,15 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         Doi item = doi(UUID.randomUUID(), "10.1234/test-doi", null);
         when(doiDataPostgresRepository.findByDoiNative("10.1234/test-doi")).thenReturn(item);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/doi/10.1234/test-doi", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/doi/10.1234/test-doi")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("doi", "10.1234/test-doi");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("doi", "10.1234/test-doi");
     }
 
     @Test
@@ -114,22 +122,28 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         when(doiDataPostgresRepository.findByDoiNative(uuid.toString())).thenReturn(null);
         when(doiDataPostgresRepository.findByIdNative(uuid)).thenReturn(doi(uuid, "10.1234/test-doi", null));
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/doi/" + uuid, HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/doi/" + uuid)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("uuid", uuid.toString());
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("uuid", uuid.toString());
     }
 
     @Test
     void getDoi_unknown_returnsNotFound() {
         when(doiDataPostgresRepository.findByDoiNative("unknown")).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/doi/unknown", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/doi/unknown")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -138,13 +152,16 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         when(doiDataPostgresRepository.listDoisNative(any(), any(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(item)));
 
-        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
-                "/v1/doi?max=10&offset=0", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<List<Map<String, Object>>> resp = restTestClient.get()
+                .uri("/v1/doi?max=10&offset=0")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getHeaders().getFirst("X-Total-Count")).isEqualTo("1");
-        assertThat(resp.getBody()).hasSize(1);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseHeaders().getFirst("X-Total-Count")).isEqualTo("1");
+        assertThat(resp.getResponseBody()).hasSize(1);
     }
 
     @Test
@@ -153,10 +170,13 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         when(doiDataPostgresRepository.findByIdNative(uuid)).thenReturn(null);
         when(doiDataPostgresRepository.findByDoiNative(uuid.toString())).thenReturn(null);
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/doi/" + uuid + "/download", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/doi/" + uuid + "/download")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
@@ -167,10 +187,13 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         when(authService.isAdmin(any())).thenReturn(false);
         when(authService.getRoles(any())).thenReturn(Set.of());
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/doi/" + uuid + "/download", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/doi/" + uuid + "/download")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -182,11 +205,14 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         when(doiFileStoreService.isS3()).thenReturn(true);
         when(doiFileStoreService.createPresignedGetUrl(item)).thenReturn("https://s3.example.com/presigned-doi");
 
-        ResponseEntity<String> resp = restTemplate.exchange(
-                "/v1/doi/" + uuid + "/download", HttpMethod.GET, null, String.class);
+        EntityExchangeResult<String> resp = restTestClient.get()
+                .uri("/v1/doi/" + uuid + "/download")
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(resp.getHeaders().getFirst("Location")).isEqualTo("https://s3.example.com/presigned-doi");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FOUND);
+        assertThat(resp.getResponseHeaders().getFirst("Location")).isEqualTo("https://s3.example.com/presigned-doi");
     }
 
     @Test
@@ -198,12 +224,15 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         when(doiFileStoreService.isS3()).thenReturn(true);
         when(doiFileStoreService.createPresignedGetUrl(item)).thenReturn("https://s3.example.com/presigned-doi");
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/doi/" + uuid + "/download?redirect=false", HttpMethod.GET, null, new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = restTestClient.get()
+                .uri("/v1/doi/" + uuid + "/download?redirect=false")
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(resp.getBody()).containsEntry("url", "https://s3.example.com/presigned-doi");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK);
+        assertThat(resp.getResponseBody()).containsEntry("url", "https://s3.example.com/presigned-doi");
     }
 
     @Test
@@ -213,9 +242,12 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("json", "{\"title\":\"Only title provided\"}");
 
-        ResponseEntity<String> resp = restTemplate.postForEntity("/v1/doi", multipartEntity(body), String.class);
+        EntityExchangeResult<String> resp = multipartPost(body)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
@@ -226,9 +258,12 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("json", "{\"title\":\"t\"}");
 
-        ResponseEntity<String> resp = restTemplate.postForEntity("/v1/doi", multipartEntity(body), String.class);
+        EntityExchangeResult<String> resp = multipartPost(body)
+                .exchange()
+                .expectBody(String.class)
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
     @Test
@@ -249,12 +284,14 @@ public class V1DoiControllerIntegrationTest extends AbstractIntegrationTestConta
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("json", json);
 
-        ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
-                "/v1/doi", HttpMethod.POST, multipartEntity(body), new ParameterizedTypeReference<>() {
-                });
+        EntityExchangeResult<Map<String, Object>> resp = multipartPost(body)
+                .exchange()
+                .expectBody(new ParameterizedTypeReference<Map<String, Object>>() {
+                })
+                .returnResult();
 
-        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(resp.getHeaders().getFirst("X-DOI-ID")).isEqualTo("10.1234/new-doi");
-        assertThat(resp.getBody()).containsEntry("doi", "10.1234/new-doi");
+        assertThat(resp.getStatus()).isEqualTo(HttpStatus.CREATED);
+        assertThat(resp.getResponseHeaders().getFirst("X-DOI-ID")).isEqualTo("10.1234/new-doi");
+        assertThat(resp.getResponseBody()).containsEntry("doi", "10.1234/new-doi");
     }
 }

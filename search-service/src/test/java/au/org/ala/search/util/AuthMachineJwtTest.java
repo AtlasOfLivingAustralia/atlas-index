@@ -7,22 +7,26 @@
 package au.org.ala.search.util;
 
 import au.org.ala.ws.security.client.AlaAuthClient;
-import com.nimbusds.oauth2.sdk.Scope;
-import com.nimbusds.oauth2.sdk.token.AccessToken;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.WebContextFactory;
 import org.pac4j.core.context.session.SessionStore;
+import org.pac4j.core.context.session.SessionStoreFactory;
 import org.pac4j.core.credentials.Credentials;
 import org.pac4j.core.exception.CredentialsException;
+import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.core.profile.UserProfile;
+import org.pac4j.core.profile.factory.ProfileManagerFactory;
 import org.pac4j.oidc.credentials.OidcCredentials;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -48,11 +52,20 @@ class AuthMachineJwtTest {
 
     private final Config config = mock(Config.class);
     private final AlaAuthClient alaAuthClient = mock(AlaAuthClient.class);
+    private final WebContext webContext = mock(WebContext.class);
     private final SessionStore sessionStore = mock(SessionStore.class);
+    private final ProfileManager profileManager = mock(ProfileManager.class);
     private final AuthMachineJwt filter = new AuthMachineJwt(config, alaAuthClient);
 
     {
-        when(config.getSessionStore()).thenReturn(sessionStore);
+        // pac4j 6 builds the WebContext/SessionStore/ProfileManager via factories on Config,
+        // which AuthMachineJwt then wraps in a CallContext.
+        WebContextFactory webContextFactory = parameters -> webContext;
+        SessionStoreFactory sessionStoreFactory = parameters -> sessionStore;
+        ProfileManagerFactory profileManagerFactory = (ctx, store) -> profileManager;
+        when(config.getWebContextFactory()).thenReturn(webContextFactory);
+        when(config.getSessionStoreFactory()).thenReturn(sessionStoreFactory);
+        when(config.getProfileManagerFactory()).thenReturn(profileManagerFactory);
     }
 
     @AfterEach
@@ -62,7 +75,7 @@ class AuthMachineJwtTest {
 
     @Test
     void doFilterInternal_noCredentials_continuesChainWithoutAuthenticating() throws Exception {
-        when(alaAuthClient.getCredentials(any(), any())).thenReturn(Optional.empty());
+        when(alaAuthClient.getCredentials(any())).thenReturn(Optional.empty());
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -79,8 +92,8 @@ class AuthMachineJwtTest {
         Credentials credentials = mock(Credentials.class);
         UserProfile profile = mock(UserProfile.class);
         when(profile.getRoles()).thenReturn(Set.of("ROLE_ADMIN"));
-        when(alaAuthClient.getCredentials(any(), any())).thenReturn(Optional.of(credentials));
-        when(alaAuthClient.getUserProfile(eq(credentials), any(), any())).thenReturn(Optional.of(profile));
+        when(alaAuthClient.getCredentials(any())).thenReturn(Optional.of(credentials));
+        when(alaAuthClient.getUserProfile(any(), eq(credentials))).thenReturn(Optional.of(profile));
         when(alaAuthClient.getSaveProfileInSession(any(), any())).thenReturn(false);
         when(alaAuthClient.isMultiProfile(any(), any())).thenReturn(false);
 
@@ -106,14 +119,11 @@ class AuthMachineJwtTest {
         // client-credentials-grant token) — AuthMachineJwt builds a stub AlaUserProfile whose
         // getRoles() returns the token's scope set, so AuthService.isAdmin/hasAdminRole can treat
         // a scope like "ala/internal" as a role.
-        AccessToken accessToken = mock(AccessToken.class);
-        when(accessToken.getScope()).thenReturn(new Scope("ala/internal", "users/read"));
-
         OidcCredentials credentials = new OidcCredentials();
-        credentials.setAccessToken(accessToken);
+        credentials.setAccessToken(Map.of("scope", "ala/internal users/read"));
 
-        when(alaAuthClient.getCredentials(any(), any())).thenReturn(Optional.of(credentials));
-        when(alaAuthClient.getUserProfile(eq(credentials), any(), any())).thenReturn(Optional.empty());
+        when(alaAuthClient.getCredentials(any())).thenReturn(Optional.of(credentials));
+        when(alaAuthClient.getUserProfile(any(), eq(credentials))).thenReturn(Optional.empty());
         when(alaAuthClient.getSaveProfileInSession(any(), any())).thenReturn(false);
         when(alaAuthClient.isMultiProfile(any(), any())).thenReturn(false);
 
@@ -133,7 +143,7 @@ class AuthMachineJwtTest {
 
     @Test
     void doFilterInternal_credentialsExceptionThrown_sends401AndDoesNotContinueChain() throws Exception {
-        when(alaAuthClient.getCredentials(any(), any())).thenThrow(new CredentialsException("expired/malformed token"));
+        when(alaAuthClient.getCredentials(any())).thenThrow(new CredentialsException("expired/malformed token"));
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
