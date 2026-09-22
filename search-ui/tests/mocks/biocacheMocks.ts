@@ -78,10 +78,11 @@ export async function mockBiocacheSearch(page: Page, seenUrls: Set<URL>, config:
 }
 
 /**
- * Mock WMS tile endpoints (occurrence hex-bin overlay + distribution overlays).
- * Only reachable when VITE_GOOGLE_MAP_API_KEY is set for a specific test (the
- * interactive Leaflet map's LayersControl is otherwise unmounted — see
- * PLAYWRIGHT_TEST.md Phase 3 note). Registered for completeness / future use.
+ * Mock map tile endpoints: the Leaflet base layer (VITE_OPENSTREETMAP_ZXY_URL,
+ * rendered whenever VITE_GOOGLE_MAP_API_KEY is empty — as it is in
+ * .env.playwright) plus the occurrence hex-bin and distribution WMS overlays.
+ * Always registered by setupSpeciesPageMocks since Species.tsx mounts every
+ * tab, so the map (and its tiles) loads regardless of the active tab.
  */
 export async function mockWmsTiles(page: Page, seenUrls: Set<URL>) {
     const patterns = [

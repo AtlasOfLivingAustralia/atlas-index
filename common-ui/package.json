@@ -15,6 +15,9 @@
         ".": {
             "import": "./src/index.ts"
         },
+        "./baseLayer": "./src/components/baseLayer.tsx",
+        "./lazyGoogleLayer": "./src/components/lazyGoogleLayer.tsx",
+        "./maplibreWorker": "./src/maplibreWorker.ts",
         "./viteEnvCheckPlugin": {
             "import": "./src/viteEnvCheckPlugin.ts"
         },
@@ -31,15 +34,41 @@
         "@fortawesome/free-regular-svg-icons": "^7.2.0",
         "@fortawesome/free-solid-svg-icons": "^7.2.0",
         "@fortawesome/react-fontawesome": "^3.3.1",
+        "@maplibre/maplibre-gl-leaflet": "^0.1.4",
         "@popperjs/core": "^2.11.8",
+        "@react-leaflet/core": "^3.0.0",
         "bootstrap": "^5.3.8",
         "bootstrap-icons": "^1.13.1",
+        "leaflet": "^1.9.4",
+        "maplibre-gl": "^6.5.0",
         "react": "^19.2.7",
         "react-bootstrap": "^2.10.10",
         "react-bootstrap-typeahead": "^6.4.1",
         "react-dom": "^19.2.7",
         "react-intl": "^10.1.13",
+        "react-leaflet": "^5.0.0",
+        "react-leaflet-google-layer": "^4.0.0",
         "react-router-dom": "^7.17.0"
+    },
+    "peerDependenciesMeta": {
+        "@maplibre/maplibre-gl-leaflet": {
+            "optional": true
+        },
+        "@react-leaflet/core": {
+            "optional": true
+        },
+        "leaflet": {
+            "optional": true
+        },
+        "maplibre-gl": {
+            "optional": true
+        },
+        "react-leaflet": {
+            "optional": true
+        },
+        "react-leaflet-google-layer": {
+            "optional": true
+        }
     },
     "devDependencies": {
         "@babel/core": "^7.29.7",
@@ -51,8 +80,10 @@
         "@fortawesome/free-regular-svg-icons": "^7.2.0",
         "@fortawesome/free-solid-svg-icons": "^7.2.0",
         "@fortawesome/react-fontawesome": "^3.3.1",
+        "@maplibre/maplibre-gl-leaflet": "^0.1.4",
         "@playwright/experimental-ct-react": "^1.62.0",
         "@playwright/test": "^1.62.0",
+        "@react-leaflet/core": "^3.0.0",
         "@testing-library/dom": "^10.4.1",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.2",
@@ -61,6 +92,7 @@
         "@types/bootstrap": "^5.2.11",
         "@types/css-modules": "^1.0.5",
         "@types/jest": "^30.0.0",
+        "@types/leaflet": "^1.9.21",
         "@types/node": "^25.9.2",
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
@@ -73,10 +105,14 @@
         "jest": "^30.4.2",
         "jest-environment-jsdom": "^30.4.1",
         "jest-transform-css": "^6.0.3",
+        "leaflet": "^1.9.4",
+        "maplibre-gl": "^6.5.0",
         "playwright": "^1.62.0",
         "postcss": "^8.5.23",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",
+        "react-leaflet": "^5.0.0",
+        "react-leaflet-google-layer": "^4.0.0",
         "ts-jest": "^29.4.11",
         "ts-node": "^10.9.2",
         "typescript": "^6.0.3",

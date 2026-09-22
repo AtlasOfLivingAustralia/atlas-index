@@ -55,6 +55,7 @@ jest.mock('react-leaflet', () => {
 });
 
 jest.mock('react-leaflet-google-layer', () => ({ __esModule: true, default: () => null }));
+jest.mock('@ala/common-ui/baseLayer', () => ({ __esModule: true, default: () => null }), { virtual: true });
 
 import { render, screen, waitFor, act, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';

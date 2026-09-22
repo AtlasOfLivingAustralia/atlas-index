@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
-import { Circle, LayersControl, MapContainer, Marker, ScaleControl, TileLayer, useMap } from 'react-leaflet';
+import { Circle, LayersControl, MapContainer, Marker, ScaleControl, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -21,8 +21,8 @@ const defaultMarkerIcon = new L.Icon({
     tooltipAnchor: [16, -28],
     shadowSize: [41, 41],
 });
-import ReactLeafletGoogleLayerBase from 'react-leaflet-google-layer'
-const ReactLeafletGoogleLayer = ((ReactLeafletGoogleLayerBase as any)?.default ?? ReactLeafletGoogleLayerBase) as any;
+import LazyGoogleLayer from '@ala/common-ui/lazyGoogleLayer';
+import BaseLayer from '@ala/common-ui/baseLayer';
 import { RecordResult } from '../../api/model.tsx';
 import {sanitizeBodyText} from "../../util/util.tsx";
 import ContactCuratorModal from '../list/contactCuratorModal.tsx';
@@ -230,20 +230,30 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                     <MapContainer center={latLng} zoom={defaultZoom} scrollWheelZoom={false} worldCopyJump={true} style={{ height: '300px' }}>
                         <ScaleControl position='bottomright' imperial={false} />
                         <MapRecenter lat={latLng.lat} lng={latLng.lng} />
-                        {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />}
+                        {!import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
+                            <BaseLayer
+                                vectorTileStyleUrl={import.meta.env.VITE_OSM_VECTOR_TILE_STYLE_URL}
+                                tileUrl={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+                                tileAttribution={import.meta.env.VITE_OPENSTREETMAP_ZXY_ATTRIBUTION}
+                            />
+                        )}
                         {import.meta.env.VITE_GOOGLE_MAP_API_KEY && (
                             <LayersControl position='topright'>
                                 <LayersControl.BaseLayer checked name='Minimal'>
-                                    <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL} zIndex={1} />
+                                    <BaseLayer
+                                        vectorTileStyleUrl={import.meta.env.VITE_OSM_VECTOR_TILE_STYLE_URL}
+                                        tileUrl={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+                                        tileAttribution={import.meta.env.VITE_OPENSTREETMAP_ZXY_ATTRIBUTION}
+                                    />
                                 </LayersControl.BaseLayer>
                                 <LayersControl.BaseLayer name='Road'>
-                                    <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
+                                    <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
                                 </LayersControl.BaseLayer>
                                 <LayersControl.BaseLayer name='Terrain'>
-                                    <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
+                                    <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'terrain'} />
                                 </LayersControl.BaseLayer>
                                 <LayersControl.BaseLayer name='Satellite'>
-                                    <ReactLeafletGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
+                                    <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'satellite'} />
                                 </LayersControl.BaseLayer>
                             </LayersControl>
                         )}

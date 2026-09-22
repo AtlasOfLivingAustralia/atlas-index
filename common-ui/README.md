@@ -199,3 +199,50 @@ by declaring `:root { --ala-accent-color: ...; --ala-accent-color-hover: ...; }`
 declares no `:root` for these on purpose: two equal-specificity `:root` rules are decided by document
 order, not by which one "should" win, so an app-owned `:root` would silently shadow the theme's —
 `community/theme/example/accent-override.css` is the one place that declares it.
+
+## Map components
+
+`LazyGoogleLayer` is a Leaflet base layer that defers loading the Google Maps JS API until the layer is actually
+selected in the layer selector. It is exported from a subpath (not the package barrel) so that `-ui` projects without
+Leaflet are not required to install the Leaflet dependencies.
+
+```tsx
+import LazyGoogleLayer from '@ala/common-ui/lazyGoogleLayer';
+
+<LayersControl position="topright">
+    <LayersControl.BaseLayer name="Road">
+        <LazyGoogleLayer apiKey={import.meta.env.VITE_GOOGLE_MAP_API_KEY} type={'roadmap'} />
+    </LayersControl.BaseLayer>
+</LayersControl>
+```
+
+`BaseLayer` renders the OpenStreetMap-derived base layer. When `vectorTileStyleUrl` is configured, it renders a MapLibre GL vector-tile basemap via `@maplibre/maplibre-gl-leaflet`. Otherwise, it falls back to a raster XYZ `TileLayer` using `tileUrl` and `tileAttribution`.
+
+```tsx
+import BaseLayer from '@ala/common-ui/baseLayer';
+
+// As a standalone base layer:
+<BaseLayer
+    vectorTileStyleUrl={import.meta.env.VITE_OSM_VECTOR_TILE_STYLE_URL}
+    tileUrl={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+    tileAttribution={import.meta.env.VITE_OPENSTREETMAP_ZXY_ATTRIBUTION}
+/>
+
+// Or inside LayersControl:
+<LayersControl.BaseLayer checked name="Minimal">
+    <BaseLayer
+        vectorTileStyleUrl={import.meta.env.VITE_OSM_VECTOR_TILE_STYLE_URL}
+        tileUrl={import.meta.env.VITE_OPENSTREETMAP_ZXY_URL}
+        tileAttribution={import.meta.env.VITE_OPENSTREETMAP_ZXY_ATTRIBUTION}
+    />
+</LayersControl.BaseLayer>
+```
+
+Projects using these components must declare the required Leaflet and MapLibre dependencies:
+`leaflet`, `react-leaflet`, `@react-leaflet/core`, `react-leaflet-google-layer`, `maplibre-gl`, and `@maplibre/maplibre-gl-leaflet` (declared as optional peer dependencies here), and should add the subpaths to `optimizeDeps.exclude` in `vite.config.ts`:
+
+```ts
+optimizeDeps: {
+    exclude: ['@ala/common-ui', '@ala/common-ui/lazyGoogleLayer', '@ala/common-ui/baseLayer', 'maplibre-gl', '@maplibre/maplibre-gl-leaflet'],
+},
+```

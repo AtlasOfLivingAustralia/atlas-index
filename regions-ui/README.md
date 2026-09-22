@@ -117,6 +117,8 @@ VITE_SPECIES_PAGE_URL=https://bie.ala.org.au/species/
 VITE_DOWNLOAD_URL=https://biocache.ala.org.au/download/options1?targetUri=%2Foccurrence%2Fsearch&searchParams=
 #VITE_GOOGLE_MAP_API_KEY={optional}
 VITE_OPENSTREETMAP_ZXY_URL=https://spatial.ala.org.au/osm/{z}/{x}/{y}.png
+# optional MapLibre GL style URL; when set, a vector basemap is used instead of VITE_OPENSTREETMAP_ZXY_URL
+#VITE_OSM_VECTOR_TILE_STYLE_URL=https://basemaps.cartocdn.com/gl/positron-gl-style/style.json
 ```
 
 ## Playwright tests
