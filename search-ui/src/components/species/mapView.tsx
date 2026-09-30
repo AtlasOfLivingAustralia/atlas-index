@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { FlaggedAlert, InfoBox } from '@ala/common-ui';
+import { FlaggedAlert, InfoBox, getAppConfigValue } from '@ala/common-ui';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { LatLng, LayersControlEvent } from 'leaflet';
 import { JSX, useEffect, useRef, useState } from 'react';
@@ -115,7 +115,7 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
             ]);
             setHexValuesScaled(false);
 
-            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=lsid:${encodeURIComponent(result.guid)}${import.meta.env.VITE_GLOBAL_FQ}&pageSize=0`;
+            let url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search?q=lsid:${encodeURIComponent(result.guid)}${import.meta.env.VITE_GLOBAL_FQ}&pageSize=0`;
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -188,13 +188,13 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
 
         // Produces an alert identical to biocache-hubs
         const query = `/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`;
-        return `${import.meta.env.VITE_APP_ALERTS_URL}/webservice/createBiocacheNewRecordsAlert?webserviceQuery=${query}&uiQuery=${query}&queryDisplayName=${result?.name}&baseUrlForWS=${import.meta.env.VITE_APP_BIOCACHE_URL}&baseUrlForUI=${import.meta.env.VITE_APP_BIOCACHE_UI_URL}&resourceName=${import.meta.env.VITE_APP_ALERT_RESOURCE_NAME}`;
+        return `${getAppConfigValue('VITE_APP_ALERTS_URL', import.meta.env.VITE_APP_ALERTS_URL)}/webservice/createBiocacheNewRecordsAlert?webserviceQuery=${query}&uiQuery=${query}&queryDisplayName=${result?.name}&baseUrlForWS=${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}&baseUrlForUI=${getAppConfigValue('VITE_APP_BIOCACHE_UI_URL', import.meta.env.VITE_APP_BIOCACHE_UI_URL)}&resourceName=${getAppConfigValue('VITE_APP_ALERT_RESOURCE_NAME', import.meta.env.VITE_APP_ALERT_RESOURCE_NAME)}`;
     }
 
     const onlineResources: OnlineResource[] = [
         {
             name: <>Explore and download occurrence records</>,
-            url: `${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`
+            url: `${getAppConfigValue('VITE_APP_BIOCACHE_UI_URL', import.meta.env.VITE_APP_BIOCACHE_UI_URL)}/occurrences/search?q=lsid:${encodeURIComponent(result?.guid)}${import.meta.env.VITE_GLOBAL_FQ}`
         },
         {
             name: 'Advanced mapping',
@@ -215,7 +215,7 @@ function MapView({ tab, result, isMobile }: MapViewProps) {
             return '';
         }
         const hexBinParam = hexBinValues.join(',').replace(/,$/, '');
-        const wmsUrl = `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=lsid:${encodeURIComponent(result.guid)}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:${hexBinParam}${import.meta.env.VITE_GLOBAL_FQ}`;
+        const wmsUrl = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/ogc/wms/reflect?q=lsid:${encodeURIComponent(result.guid)}&OUTLINE=false&ENV=size:3;colormode:hexbin;color:${hexBinParam}${import.meta.env.VITE_GLOBAL_FQ}`;
         return wmsUrl;
     }
 

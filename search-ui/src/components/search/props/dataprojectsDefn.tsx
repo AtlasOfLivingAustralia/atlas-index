@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, FolderIcon} from '@ala/common-ui';
+import {FadeInImage, FolderIcon, getAppConfigValue} from '@ala/common-ui';
 import {
     CustomFacetFn,
     GenericViewProps,
@@ -121,11 +121,11 @@ export const dataprojectsDefn: GenericViewProps = {
     resourceLinks: [
         {
             label: 'Biocollect',
-            url: import.meta.env.VITE_APP_BIOCOLLECT_URL,
+            url: getAppConfigValue('VITE_APP_BIOCOLLECT_URL', import.meta.env.VITE_APP_BIOCOLLECT_URL),
         },
         {
             label: 'DigiVol',
-            url: import.meta.env.VITE_APP_DIGIVOL_URL,
+            url: getAppConfigValue('VITE_APP_DIGIVOL_URL', import.meta.env.VITE_APP_DIGIVOL_URL),
         },
     ],
 

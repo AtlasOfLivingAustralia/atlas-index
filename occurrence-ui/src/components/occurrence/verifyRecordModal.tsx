@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useUser} from "@ala/common-ui";
+import {useUser, getAppConfigValue} from "@ala/common-ui";
 import { useState } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
 import { FormattedMessage } from 'react-intl';
@@ -65,7 +65,7 @@ function VerifyRecordModal({ record, assertion, onClose, onVerified, prefill }: 
             ...(prefill?.verificationUuid ? { updateId: prefill.verificationUuid } : {}),
         });
 
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/assertions/add`, {
+        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/assertions/add`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

@@ -7,6 +7,7 @@
 import Modal from "react-bootstrap/Modal";
 import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
+import { getAppConfigValue } from '@ala/common-ui';
 interface AlertModalProps {
     onClose: () => void,
     results: any,
@@ -27,14 +28,14 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
 
     function createAlert(method: string) {
         // this would be better as a POST service, but I guess this works
-        let url = import.meta.env.VITE_APP_ALERTS_WS_URL + "/ws/" + method;
+        let url = getAppConfigValue('VITE_APP_ALERTS_WS_URL', import.meta.env.VITE_APP_ALERTS_WS_URL) + "/ws/" + method;
         if (results.queryTitle.length >= 250) {
             url += "?queryDisplayName=" + encodeURIComponent(results.queryTitle.substring(0, 149) + "...");
         } else {
             url += "?queryDisplayName=" + encodeURIComponent(results.queryTitle);
         }
-        url += "&baseUrlForWS=" + encodeURIComponent(import.meta.env.VITE_APP_BIOCACHE_URL);
-        url += "&baseUrlForUI=" + encodeURIComponent(import.meta.env.VITE_APP_BASE_URL);
+        url += "&baseUrlForWS=" + encodeURIComponent(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL));
+        url += "&baseUrlForUI=" + encodeURIComponent(getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL));
         url += "&webserviceQuery=%2Foccurrences%2Fsearch%3F" + encodeURIComponent(queryString || '');
         url += "&uiQuery=%23%2Foccurrences%2Fsearch%3F" + encodeURIComponent(queryString || '');
         url += "&resourceName=" + encodeURIComponent(import.meta.env.VITE_HUB_NAME);
@@ -59,7 +60,7 @@ function AlertModal({onClose, results, queryString}: AlertModalProps) {
                          dangerouslySetInnerHTML={{__html: intl.formatMessage({ id: 'list.alert.navigator02', defaultMessage: "Get email alerts for new annotations" })}}></div>
                     <p>&nbsp;</p>
                     <p>
-                        <a href={import.meta.env.VITE_APP_MY_ALERTS_URL}>
+                        <a href={getAppConfigValue('VITE_APP_MY_ALERTS_URL', import.meta.env.VITE_APP_MY_ALERTS_URL)}>
                             <FormattedMessage id="list.alert.navigator03" defaultMessage="View your current alerts"/></a>
                     </p>
                 </Modal.Body>

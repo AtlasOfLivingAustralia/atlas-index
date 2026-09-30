@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {getQc} from "../../util/util.tsx";
 import TaxonDropdown from "./taxonDropdown.tsx";
+import { getAppConfigValue } from '@ala/common-ui';
 
 interface ResultsReturnedProps {
     results?: {
@@ -48,7 +49,7 @@ function ResultsReturned({results, queryString}: ResultsReturnedProps) {
         if (queryString) {
             let thisQueryString = queryString + "&disableAllQualityFilters=true";
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + getQc(), {})
+            fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + "/occurrences/search" + thisQueryString + getQc(), {})
                   .then(response => response.json())
                   .then(data => setCount(data.totalRecords))
                   .catch(e => console.error(e));

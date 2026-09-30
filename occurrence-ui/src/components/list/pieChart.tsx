@@ -9,6 +9,7 @@ import { Pie } from 'react-chartjs-2';
 import { ChartOptions, ChartData, Chart as ChartJS } from 'chart.js';
 import { IntlShape } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
+import { getAppConfigValue } from '@ala/common-ui';
 const defaultPalette = [
     /*"#000000", */ '#FFFF00',
     '#1CE6FF',
@@ -324,7 +325,7 @@ function PieChart({ data, labels, urls, palette = paletteWithAlpha, options = de
             const firstPoint = points[0];
             const index = firstPoint.index;
             if (urls && urls[index]) {
-                window.location.assign(import.meta.env.VITE_APP_BASE_URL + urls[index]);
+                window.location.assign(getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL) + urls[index]);
             }
         }
     };

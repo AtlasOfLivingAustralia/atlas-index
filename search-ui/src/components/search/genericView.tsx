@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {CheckDisabledIcon, CheckedIcon, CheckIcon, FontAwesomeIconLite, ListIcon, Pagination, TileIcon,} from '@ala/common-ui';
+import {CheckDisabledIcon, CheckedIcon, CheckIcon, FontAwesomeIconLite, ListIcon, Pagination, TileIcon,getAppConfigValue} from '@ala/common-ui';
 import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
@@ -94,7 +94,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
         const thisSortValue = overrides?.sortParam !== undefined ? overrides.sortParam : sortValue;
         const thisPage = overrides?.page !== undefined ? overrides.page : page;
         const thisFacetFqs = overrides?.facetFqs !== undefined ? overrides.facetFqs : facetFqs;
-        const url = import.meta.env.VITE_APP_API_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) +
+        const url = getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL) + '/v2/search?q=' + encodeURIComponent(queryString as string) +
             '&facets=' + Object.keys(props.facetDefinitions).join(',') +
             (props.customFacets ? ',' + props.customFacets.join(',') : '') +
             (thisFacetFqs.length > 0 ? '&fq=' + thisFacetFqs.map((fq) => encodeURIComponent(fq)).join('&fq=') : '') + // the 'drill down' does not update the facets section

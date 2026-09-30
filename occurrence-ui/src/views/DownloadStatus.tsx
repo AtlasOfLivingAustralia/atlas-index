@@ -1,4 +1,4 @@
-import { Breadcrumb, FontAwesomeIconLite, useUser } from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, useUser, getAppConfigValue } from '@ala/common-ui';
 import config from '../config/downloadConfig.json';
 import './download.css';
 import { faCheckCircle, faDownload} from '@fortawesome/free-solid-svg-icons';
@@ -104,7 +104,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
     function startDownloadChecklist() {
         setIsChecklist(true);
         setLead(intl.formatMessage({ id: "download.confirm.finished"}));
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets/download${searchParams}&file=${filename}&reasonTypeId=${encodeURIComponent(downloadReason || '')}&dwcHeaders=true&fileType=csv&qa=${qaDefault}&sourceTypeId=${sourceTypeId}&email=${encodeURIComponent(userInfo?.email || '')}&facets=species_guid&lookup=true&count=true&lists=true`;
+        const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/facets/download${searchParams}&file=${filename}&reasonTypeId=${encodeURIComponent(downloadReason || '')}&dwcHeaders=true&fileType=csv&qa=${qaDefault}&sourceTypeId=${sourceTypeId}&email=${encodeURIComponent(userInfo?.email || '')}&facets=species_guid&lookup=true&count=true&lists=true`;
         setDownloadUrl(url);
     }
 
@@ -114,7 +114,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
         setShowProgress(true);
 
         // get the list of species
-        let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0&flimit=${maxFieldguideSpecies}&facets=species_guid&facet=true${getQc()}`;
+        let url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search${searchParams}&pageSize=0&flimit=${maxFieldguideSpecies}&facets=species_guid&facet=true${getQc()}`;
         fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
             .then(response => response.json())
             .then(json => {
@@ -131,13 +131,13 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
 
                 // construct parameters
                 let body = {
-                    sourceUrl: `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams || ''}${getQc()}`,
+                    sourceUrl: `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search${searchParams || ''}${getQc()}`,
                     filename: filename,
                     id: speciesGuids,
                     title: "This document was generated on " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
                 }
 
-                fetch(import.meta.env.VITE_APP_FIELDGUIDE_DOWNLOAD_URL, {
+                fetch(getAppConfigValue('VITE_APP_FIELDGUIDE_DOWNLOAD_URL', import.meta.env.VITE_APP_FIELDGUIDE_DOWNLOAD_URL), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userInfo?.accessToken}` },
                     body: JSON.stringify(body)
@@ -187,7 +187,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
             extraParam = '';
             dwcHeadersParam = `&dwcHeaders=true`;
 
-            fieldsFuture = fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/index/fields`, { method: 'GET' })
+            fieldsFuture = fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/index/fields`, { method: 'GET' })
                 .then(response => response.json())
                 .then((allFields: any[]) => {
                     if (downloadFormat === 'dwc') {
@@ -282,7 +282,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
             }
 
             // Future: This should be a POST, but only URL params are supported for now so leaving as GET
-            let url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}${getQc()}`;
+            let url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/offline/download${searchParams}${emailParam}${reasonTypeIdParam}${sourceTypeIdParam}${requestEmailParam}${dwcHeadersParam}${mintDoiParam}${qaParam}${fileParam}${fieldsParam}${extraParam}${fileTypeParam}${spatialLayerParams}${getQc()}`;
             fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${userInfo?.accessToken}` }, })
                 .then(response => response.json())
                 .then(json => {
@@ -388,7 +388,7 @@ function DownloadStatus({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
                 </div>
             </div>
             <div id='mydownloads' style={{ textAlign: 'center', marginBottom: '120px' }}>
-                <a href={import.meta.env.VITE_APP_MY_DOWNLOADS_URL} target='_blank'>
+                <a href={getAppConfigValue('VITE_APP_MY_DOWNLOADS_URL', import.meta.env.VITE_APP_MY_DOWNLOADS_URL)} target='_blank'>
                     <FormattedMessage id='download.confirm.myDownloadsLink' defaultMessage='My Downloads - View a list of all your previous downloads' />
                 </a>
             </div>

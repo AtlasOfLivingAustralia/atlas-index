@@ -1,4 +1,4 @@
-import { Breadcrumb, FontAwesomeIconLite, handleLogin, useUser } from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, handleLogin, useUser, getAppConfigValue } from '@ala/common-ui';
 import { faFilePdf, faListAlt } from '@fortawesome/free-regular-svg-icons';
 import { faCheck, faChevronRight, faQuestionCircle, faTable, faTags } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
@@ -55,7 +55,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
     // handleLogin() uses the current window.location.href as the return path.
     useEffect(() => {
         if (userInfo !== null && !userInfo.authenticated) {
-            handleLogin(import.meta.env.VITE_APP_API_URL);
+            handleLogin(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL));
         }
     }, [userInfo]);
 
@@ -76,7 +76,7 @@ function Download({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) =
             return;
         }
 
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search${searchParams}&pageSize=0${getQc()}`, {
+        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search${searchParams}&pageSize=0${getQc()}`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         })

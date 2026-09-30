@@ -10,6 +10,7 @@ import { Menu, MenuItem, Typeahead } from 'react-bootstrap-typeahead';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {getQc, quoteText} from "../../util/util.tsx";
+import { getAppConfigValue } from '@ala/common-ui';
 
 function AdvancedSearch() {
     const intl = useIntl();
@@ -23,7 +24,7 @@ function AdvancedSearch() {
             if (prev[facet] !== undefined) return prev;
             return { ...prev, [facet]: null };
         });
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1${getQc()}`;
+        const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1${getQc()}`;
         fetch(url)
             .then(res => res.json())
             .then(data => {

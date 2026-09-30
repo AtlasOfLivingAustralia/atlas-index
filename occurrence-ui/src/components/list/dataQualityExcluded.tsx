@@ -8,6 +8,7 @@ import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
 import {QualityCategory} from "../../api/model.tsx";
 import { fetchDqCountsSequentially } from "../../util/dqCache.ts";
+import { getAppConfigValue } from '@ala/common-ui';
 
 interface DataQualityExcludedProps {
     queryString: string | undefined,
@@ -23,7 +24,7 @@ function DataQualityExcluded({queryString, category, addParams}: DataQualityExcl
         if (!queryString || !category?.inverseFilter) return;
 
         fetchDqCountsSequentially(
-            import.meta.env.VITE_APP_BIOCACHE_URL,
+            getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL),
             queryString,
             [category],
             (_label, value) => setCount(value)

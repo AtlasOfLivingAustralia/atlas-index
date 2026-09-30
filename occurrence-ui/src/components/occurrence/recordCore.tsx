@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useUser} from "@ala/common-ui";
+import {useUser, getAppConfigValue} from "@ala/common-ui";
 import {useEffect, useState} from "react";
 import {CompareResult, CompareRow, InfoTableRow, RecordResult} from "../../api/model.tsx";
 import { isUrl } from '../../util/util.tsx';
@@ -61,7 +61,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
     function getEventInfo(data: RecordResult) {
         // no events service
-        if (!import.meta.env.VITE_APP_EVENTS_ENABLED) {
+        if (!getAppConfigValue('VITE_APP_EVENTS_ENABLED', import.meta.env.VITE_APP_EVENTS_ENABLED)) {
             createEventTable(data, undefined);
             return;
         }
@@ -69,7 +69,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         // events service enabled
         if (data?.raw?.event?.eventID && data?.processed?.attribution?.dataResourceUid) {
             let query = eventsGraphqlQuery(data.processed.attribution.dataResourceUid, data.raw.event.eventID)
-            fetch(import.meta.env.VITE_APP_EVENTS_GRAPHQL_URL, {
+            fetch(getAppConfigValue('VITE_APP_EVENTS_GRAPHQL_URL', import.meta.env.VITE_APP_EVENTS_GRAPHQL_URL), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -101,7 +101,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
     }
 
     function isClubView(): boolean {
-        return userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) || false;
+        return userInfo?.roles?.includes(getAppConfigValue('VITE_APP_ROLE_ADMIN', import.meta.env.VITE_APP_ROLE_ADMIN)) || false;
     }
 
     function capitalize(text: string): string {
@@ -172,19 +172,19 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         let datasetTable: InfoTableRow[] = [];
         datasetTable.push({
             fieldCode: "dataProvider", fieldName: "Data provider",
-            url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.processed?.attribution?.dataProviderUid}`,
+            url: `${getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL)}/public/show/${data?.processed?.attribution?.dataProviderUid}`,
             text: data?.processed?.attribution?.dataProviderName || data?.processed?.attribution?.dataProviderUid
         });
 
         datasetTable.push({
             fieldCode: "dataResource", fieldName: "Data resource",
-            url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.raw?.attribution?.dataResourceUid}`,
+            url: `${getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL)}/public/show/${data?.raw?.attribution?.dataResourceUid}`,
             text: data?.processed?.attribution?.dataResourceName || data?.raw?.attribution?.dataResourceUid
         });
 
         datasetTable.push({
             fieldCode: "institutionCode", fieldName: "Institution",
-            url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.processed?.attribution?.institutionUid}`,
+            url: `${getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL)}/public/show/${data?.processed?.attribution?.institutionUid}`,
             text: data?.processed?.attribution?.institutionName,
             original: data?.raw?.occurrence?.institutionCode &&
                 intl.formatMessage({
@@ -195,7 +195,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
 
         datasetTable.push({
             fieldCode: "collectionCode", fieldName: "Collection",
-            url: `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${data?.processed?.attribution?.collectionUid}`,
+            url: `${getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL)}/public/show/${data?.processed?.attribution?.collectionUid}`,
             text: data?.processed?.attribution?.collectionName || collectionInfo?.collectionName || data?.processed?.attribution?.collectionUid,
             original: data?.raw?.occurrence?.collectionCode &&
                 intl.formatMessage({
@@ -802,13 +802,13 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
         eventTable.push({
             fieldCode: "eventID", fieldName: "Event ID",
             text: data?.raw?.event?.eventID,
-            url: eventHierarchy ? import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL + data?.raw?.event?.eventID : undefined
+            url: eventHierarchy ? getAppConfigValue('VITE_APP_EVENTS_HIERARCHY_URL', import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL) + data?.raw?.event?.eventID : undefined
         });
 
         eventTable.push({
             fieldCode: "parentEventID", fieldName: "Parent Event ID",
             text: data?.raw?.event?.parentEventID,
-            url: eventHierarchy ? import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL + data?.raw?.event?.parentEventID : undefined
+            url: eventHierarchy ? getAppConfigValue('VITE_APP_EVENTS_HIERARCHY_URL', import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL) + data?.raw?.event?.parentEventID : undefined
         });
 
         eventTable.push({

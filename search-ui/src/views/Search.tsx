@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, FontAwesomeIconLite, getPortalName, useHashState} from '@ala/common-ui';
+import {Breadcrumb, FontAwesomeIconLite, getPortalName, useHashState, getAppConfigValue} from '@ala/common-ui';
 import {faSearch, faTimes} from '@fortawesome/free-solid-svg-icons';
 import {useQueryState} from 'nuqs';
 import {useEffect, useRef, useState} from 'react';
@@ -51,7 +51,7 @@ function Search({setBreadcrumbs, isMobile}: {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_APP_API_URL}/v1/bie/search/auto?limit=20&q=${encodeURIComponent(searchText)}`
+                `${getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL)}/v1/bie/search/auto?limit=20&q=${encodeURIComponent(searchText)}`
             );
             const data = await response.json();
 

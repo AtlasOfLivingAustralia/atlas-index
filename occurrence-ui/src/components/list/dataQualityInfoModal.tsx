@@ -9,6 +9,7 @@ import Modal from "react-bootstrap/esm/Modal";
 import {FormattedMessage} from "react-intl";
 import { DataQualityInfo, QualityProfile } from '../../api/model.tsx';
 import React from 'react';
+import { getAppConfigValue } from '@ala/common-ui';
 
 interface DataQualityInfoModalProps {
     onClose: () => void,
@@ -31,12 +32,12 @@ function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQuali
     function infoUrl(fq: string) {
         let match = fq.match(/-?assertions:(\w+)/);
         if (match && match.length > 1) {
-            return import.meta.env.VITE_APP_DQ_WIKI_URL + match[1];
+            return getAppConfigValue('VITE_APP_DQ_WIKI_URL', import.meta.env.VITE_APP_DQ_WIKI_URL) + match[1];
         }
 
         match = fq.match(/-?(\w+):/);
         if (match && match.length > 1) {
-            return import.meta.env.VITE_APP_DQ_WIKI_URL + match[1];
+            return getAppConfigValue('VITE_APP_DQ_WIKI_URL', import.meta.env.VITE_APP_DQ_WIKI_URL) + match[1];
         }
 
         return null;
@@ -112,7 +113,7 @@ function DataQualityInfoModal({onClose, dataQualityInfo, dataQuality}: DataQuali
             </Modal.Body>
             <Modal.Footer>
                 <div className="d-flex w-100">
-                    <a href={import.meta.env.VITE_APP_DQ_INFO_URL} target="_blank">
+                    <a href={getAppConfigValue('VITE_APP_DQ_INFO_URL', import.meta.env.VITE_APP_DQ_INFO_URL)} target="_blank">
                         <FormattedMessage id="dq.warning.dataprofile.buttonleft.text" defaultMessage="Learn More"/>
                     </a>
 

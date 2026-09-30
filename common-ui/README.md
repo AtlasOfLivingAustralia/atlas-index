@@ -41,6 +41,9 @@ VITE_APP_API_URL=http://localhost:8081
 VITE_APP_BASE_URL=http://localhost:5173
 ```
 
+Every `VITE_APP_*` service URL above is also overridable per deployment without a rebuild, see
+"Runtime configuration and build profiles" and "Service configuration" below.
+
 ## Typical inclusion in a `-ui` project
 
 1. Add "@ala/common-ui" as a dependency in the `-ui` project directory `package.json` file:
@@ -143,6 +146,20 @@ lines instead of a copy.
 
 Each UI's `community/config.js` lists the keys a deployer can set and shows what a `config.local.js`
 looks like. `util/runtimeConfig.ts` has the functions to read them and shows how to add new ones.
+
+## Service configuration
+
+Every backend service URL an app calls (biocache, collectory, spatial, alerts, images, events...)
+and `VITE_APP_ROLE_ADMIN` are `VITE_APP_*` in the `.env` files, build-time by default. `util/
+runtimeAppConfig.ts` mirrors these onto `RuntimeConfig` the same way `runtimeTheme.tsx` does for
+`THEME_*`, so `getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)`
+reads the deployment's `config.js`/`config.local.js` first and only falls back to the build's own
+value when the deployment hasn't set it, same two-file precedence as everything else on this page.
+
+OIDC client settings (`VITE_OIDC_*`) are not part of this: the browser never talks to the identity
+provider directly, only to `search-service`'s `/login`/`/logout`/`/session`, and `search-service`
+already reads its own OIDC config from an externally mounted file. There is nothing to override
+here for OIDC.
 
 ## Internationalisation (i18n)
 

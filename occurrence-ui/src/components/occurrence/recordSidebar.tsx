@@ -1,4 +1,4 @@
-import { FontAwesomeIconLite } from '@ala/common-ui';
+import { FontAwesomeIconLite, getAppConfigValue } from '@ala/common-ui';
 import { faBan, faCheckCircle, faEnvelope, faExclamationCircle, faFlag, faQuestionCircle, faTimesCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react';
@@ -288,7 +288,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                         <div>{RenderTree({ eventHierarchy })}</div>
                         <FormattedMessage id='record.eventdetails.desc2' />
                         <br />
-                        <a className='btn btn-outline-dark' style={{ marginTop: '10px' }} href={`${import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL}${record.raw.event.eventID}`}>
+                        <a className='btn btn-outline-dark' style={{ marginTop: '10px' }} href={`${getAppConfigValue('VITE_APP_EVENTS_HIERARCHY_URL', import.meta.env.VITE_APP_EVENTS_HIERARCHY_URL)}${record.raw.event.eventID}`}>
                             <FormattedMessage id='record.eventdetails.link' />
                         </a>
                     </div>
@@ -304,7 +304,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                         {record.images.map((image, index: number) => (
                             <div style={{ marginBottom: '10px' }} key={index}>
                                 {skin_useAlaImageService ? (
-                                    <a href={`${import.meta.env.VITE_APP_IMAGE_VIEWER_URL}${image.filePath}`} target='_blank'>
+                                    <a href={`${getAppConfigValue('VITE_APP_IMAGE_VIEWER_URL', import.meta.env.VITE_APP_IMAGE_VIEWER_URL)}${image.filePath}`} target='_blank'>
                                         <img src={image.alternativeFormats?.smallImageUrl} style={{ maxWidth: '100%' }} alt='Click to view this image in a large viewer' />
                                     </a>
                                 ) : (
@@ -389,7 +389,7 @@ function RecordSidebar({ record, contacts, userAssertions, eventHierarchy }: { r
                                 )}
 
                                 {skin_useAlaImageService ? (
-                                    <a href={`${import.meta.env.VITE_APP_IMAGE_METADATA_URL}${image.filePath}`} target='_blank'>
+                                    <a href={`${getAppConfigValue('VITE_APP_IMAGE_METADATA_URL', import.meta.env.VITE_APP_IMAGE_METADATA_URL)}${image.filePath}`} target='_blank'>
                                         <FormattedMessage id='show.sidebardiv.occurrenceimages.navigator01' defaultMessage='View image details' />
                                     </a>
                                 ) : (

@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, useUser} from "@ala/common-ui";
+import {Breadcrumb, useUser, getAppConfigValue} from "@ala/common-ui";
 import {useEffect, useState} from "react";
 import { FormattedMessage } from 'react-intl';
 import { useIntl } from '../util/useIntl';
@@ -129,10 +129,10 @@ function OccurrenceList({setBreadcrumbs}: {
 
     function loadDqProfile(dqList: QualityProfile []) {
         if (!userInfo?.authenticated) {
-            const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + ".dqUserProfile");
+            const stored = localStorage.getItem(getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + ".dqUserProfile");
             if (stored) {
                 const data = JSON.parse(stored);
-                dataQualityInfo.profile = data.disableAll ? 'disable' : (data.dataProfile || import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE);
+                dataQualityInfo.profile = data.disableAll ? 'disable' : (data.dataProfile || getAppConfigValue('VITE_APP_DQ_DEFAULT_PROFILE', import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE));
                 dataQualityInfo.selectedFilters = [];
                 for (let dq of dqList) {
                     if (dq.shortName === dataQualityInfo.profile) {
@@ -150,7 +150,7 @@ function OccurrenceList({setBreadcrumbs}: {
             // params yet" branch doesn't unconditionally overwrite selectedFilters.
             updateAndSaveDataQualityInfoWithQueryString(dqList, !!stored);
         } else {
-            fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property?key=dq", {
+            fetch(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL) + "/v2/user/property?key=dq", {
                 method: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + userInfo?.accessToken,
@@ -163,7 +163,7 @@ function OccurrenceList({setBreadcrumbs}: {
                 return response.json();
             }).then(raw => {
                 const data = JSON.parse(raw['dq']); // throws
-                dataQualityInfo.profile = data.disableAll ? 'disable' : (data.dataProfile || import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE || 'ALA');
+                dataQualityInfo.profile = data.disableAll ? 'disable' : (data.dataProfile || getAppConfigValue('VITE_APP_DQ_DEFAULT_PROFILE', import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE) || 'ALA');
                 dataQualityInfo.selectedFilters = [];
                 for (let dq of dqList) {
                     if (dq.shortName === dataQualityInfo.profile) {
@@ -229,7 +229,7 @@ function OccurrenceList({setBreadcrumbs}: {
             // resolved from user preferences (stored/fetched). Fall back to env default.
             let defaultDisableAll = false;
             if (dataQualityInfo.profile === 'disable') {
-                dataQualityInfo.profile = import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE || 'ALA';
+                dataQualityInfo.profile = getAppConfigValue('VITE_APP_DQ_DEFAULT_PROFILE', import.meta.env.VITE_APP_DQ_DEFAULT_PROFILE) || 'ALA';
                 if (dataQualityInfo.profile === 'disable') {
                     defaultDisableAll = true;
                 }
@@ -308,7 +308,7 @@ function OccurrenceList({setBreadcrumbs}: {
     }
 
     function fetchDataQuality() : Promise<QualityProfile[]> {
-        const cacheKey = import.meta.env.VITE_APP_NAME + '.dqProfiles';
+        const cacheKey = getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + '.dqProfiles';
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
             const data = JSON.parse(cached) as QualityProfile[];
@@ -316,7 +316,7 @@ function OccurrenceList({setBreadcrumbs}: {
             return Promise.resolve(data);
         }
 
-        return fetch(import.meta.env.VITE_APP_DATA_QUALITY_URL, {
+        return fetch(getAppConfigValue('VITE_APP_DATA_QUALITY_URL', import.meta.env.VITE_APP_DATA_QUALITY_URL), {
             method: 'GET'
         }).then(response => response.json()).then(async data => {
             // fetch all, could also make a change that only retrieves the active profile
@@ -338,7 +338,7 @@ function OccurrenceList({setBreadcrumbs}: {
         }
 
         // not present, fetch
-        return fetch(import.meta.env.VITE_APP_DATA_QUALITY_INVERSE_URL + "?qualityProfileId=" + profile.id, {
+        return fetch(getAppConfigValue('VITE_APP_DATA_QUALITY_INVERSE_URL', import.meta.env.VITE_APP_DATA_QUALITY_INVERSE_URL) + "?qualityProfileId=" + profile.id, {
             method: 'GET'
         }).then(response => response.json()).then(data => {
             for (let cat of profile.categories) {
@@ -364,7 +364,7 @@ function OccurrenceList({setBreadcrumbs}: {
             return;
         }
 
-        const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?' + searchTerm + "&pageSize=" + pageSize + "&sort=" + sort + "&dir=" + dir + "&start=" + (pageTerm-1) * pageSize + getQc(), {
+        const indexJson = await fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/search?' + searchTerm + "&pageSize=" + pageSize + "&sort=" + sort + "&dir=" + dir + "&start=" + (pageTerm-1) * pageSize + getQc(), {
             method: 'GET'
         }).then(async response => {
             if (!response.ok) {
@@ -520,7 +520,7 @@ function OccurrenceList({setBreadcrumbs}: {
                                         <i className="bi bi-file-code me-1"></i>API
                                     </div>
                                     {apiModalShow && <ApiModal onClose={() => setApiModalShow(false)}
-                                                               url={import.meta.env.VITE_APP_BASE_URL + '/occurrences/search' + queryString}/>}
+                                                               url={getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL) + '/occurrences/search' + queryString}/>}
                                 </div>
                             </div>
 

@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, FolderIcon} from '@ala/common-ui';
+import {FadeInImage, FolderIcon, getAppConfigValue} from '@ala/common-ui';
 import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} from '../../../api/sources/model.ts';
 
 import speciesGroupMap from '../../../config/speciesGroupsMap.json';
@@ -381,16 +381,16 @@ export const speciesDefn: GenericViewProps = {
                     });
                 }
 
-                fetch(url + '&fq=speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
+                fetch(url + '&fq=speciesList:' + getAppConfigValue('VITE_APP_ICONIC_SPECIES_LIST', import.meta.env.VITE_APP_ICONIC_SPECIES_LIST))
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.totalRecords > 0) {
                             items.push({
-                                fq: 'speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST,
+                                fq: 'speciesList:' + getAppConfigValue('VITE_APP_ICONIC_SPECIES_LIST', import.meta.env.VITE_APP_ICONIC_SPECIES_LIST),
                                 label: 'Iconic species',
                                 count: data.totalRecords,
                                 depth: 0,
-                                selected: thisFacetFqs.includes('speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST),
+                                selected: thisFacetFqs.includes('speciesList:' + getAppConfigValue('VITE_APP_ICONIC_SPECIES_LIST', import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)),
                             });
                         }
 

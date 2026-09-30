@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FontAwesomeIconLite} from "@ala/common-ui";
+import {FontAwesomeIconLite, getAppConfigValue} from "@ala/common-ui";
 import { faCaretDown, faCaretRight, faList } from '@fortawesome/free-solid-svg-icons';
 import {useEffect, useState} from "react";
 import { FormattedMessage, IntlShape } from 'react-intl';
@@ -77,7 +77,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
         }
 
         fetchDqCountsSequentially(
-            import.meta.env.VITE_APP_BIOCACHE_URL,
+            getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL),
             search,
             activeProfile.categories,
             (label: string, count: number) => setDqCounts(prev => ({ ...prev, [label]: count }))
@@ -154,7 +154,7 @@ function FacetWell({search, facetList, groupedFacets, dataQuality, dataQualityIn
         }
 
         const currentFacet = flist[0];
-        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count" + getQc(), {
+        fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/search' + search + "&pageSize=0&facet=true&facets=" + currentFacet + "&flimit=" + flimitValue + "&fsort=count" + getQc(), {
             method: 'GET'
         }).then(response => response.json()).then(data => {
             // must check totalRecords after this fetch as it is done concurrently with the parent component fetches

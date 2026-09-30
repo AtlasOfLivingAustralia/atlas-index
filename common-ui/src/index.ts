@@ -37,6 +37,8 @@ import {getPortalName, getRuntimeConfig} from "./util/runtimeConfig.ts";
 import type {I18nLocale, I18nRuntimeConfig} from "./util/runtimeI18n.ts";
 import {getThemeValue} from "./util/runtimeTheme.tsx";
 import type {ThemeConfigKey} from "./util/runtimeTheme.tsx";
+import {getAppConfigValue} from "./util/runtimeAppConfig.ts";
+import type {AppConfigKey} from "./util/runtimeAppConfig.ts";
 
 export {
     Banner,
@@ -78,8 +80,9 @@ export {
     HeaderLanguageSwitcher,
     getPortalName,
     getRuntimeConfig,
-    getThemeValue
+    getThemeValue,
+    getAppConfigValue
 };
 
-export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo, I18nLocale, I18nRuntimeConfig, ThemeConfigKey};
+export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo, I18nLocale, I18nRuntimeConfig, ThemeConfigKey, AppConfigKey};
 

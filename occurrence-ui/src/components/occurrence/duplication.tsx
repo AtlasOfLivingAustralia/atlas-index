@@ -11,6 +11,7 @@ import {DqAssertion, RecordResult} from "../../api/model.tsx";
 import React from "react";
 
 import dqCodesJson from '../../config/dqCodes.json';
+import { getAppConfigValue } from '@ala/common-ui';
 
 const dqCodes: { [key: string]: DqAssertion } = dqCodesJson;
 
@@ -28,7 +29,7 @@ function Duplication({record}: { record: RecordResult }) {
             return;
         }
 
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/duplicates/${record.processed.uuid}`, {
+        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/duplicates/${record.processed.uuid}`, {
             method: 'GET',
             headers: {'Content-Type': 'application/json'}
         }).then(response => response.json())
@@ -44,7 +45,7 @@ function Duplication({record}: { record: RecordResult }) {
 
         Promise.all(
             ids.map(id =>
-                fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrence/${id}`, {
+                fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrence/${id}`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 }).then(response => response.json())
@@ -108,7 +109,7 @@ function Duplication({record}: { record: RecordResult }) {
                             </th>
                         </tr>
                         { duplicateInfo.uuid && tableRow("Record UUID", duplicateInfo.uuid, `/occurrence/${duplicateInfo.uuid}`) }
-                        { representativeDrName[duplicateInfo.uuid] && tableRow("Data Resource", representativeDrName[duplicateInfo.uuid], `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${duplicateInfo.druid}"`) }
+                        { representativeDrName[duplicateInfo.uuid] && tableRow("Data Resource", representativeDrName[duplicateInfo.uuid], `${getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL)}/public/show/${duplicateInfo.druid}"`) }
                         { duplicateInfo.rawScientificName && tableRow("Raw Scientific Name", duplicateInfo.rawScientificName) }
                         { duplicateInfo.latLong && tableRow("Coordinates", duplicateInfo.latLong) }
                         { duplicateInfo.collector && tableRow("Collector", duplicateInfo.collector) }
@@ -123,7 +124,7 @@ function Duplication({record}: { record: RecordResult }) {
                         {duplicateInfo.duplicates.map((dup: any, index: number) => (
                             <React.Fragment key={index}>
                                 { dup.uuid && tableRow("Record UUID", dup.uuid, `/occurrence/${dup.uuid}`) }
-                                { representativeDrName[dup.uuid] && tableRow("Data Resource", representativeDrName[dup.uuid], `${import.meta.env.VITE_APP_COLLECTORY_URL}/public/show/${dup.druid}"`) }
+                                { representativeDrName[dup.uuid] && tableRow("Data Resource", representativeDrName[dup.uuid], `${getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL)}/public/show/${dup.druid}"`) }
                                 { dup.rawScientificName && tableRow("Raw Scientific Name", dup.rawScientificName) }
                                 { dup.latLong && tableRow("Coordinates", dup.latLong) }
                                 { dup.collector && tableRow("Collector", dup.collector) }

@@ -10,6 +10,7 @@ import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
 import {DataQualityInfo, IndexFields, QualityCategory} from "../../api/model.tsx";
 import {getQc} from "../../util/util.tsx";
+import { getAppConfigValue } from '@ala/common-ui';
 
 interface DataQualityInfoModalProps {
     onClose: () => void,
@@ -50,7 +51,7 @@ function DataQualityCategoryInfoModal({
     }, [category]);
 
     function updateIndexedFields() {
-        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/index/fields`, {}).then(response => response.json()).then(json => {
+        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/index/fields`, {}).then(response => response.json()).then(json => {
             let map : IndexFields = {};
             for (let field of json) {
                 map[field.name] = field;
@@ -73,7 +74,7 @@ function DataQualityCategoryInfoModal({
         if (queryString && category) {
             let thisQueryString = queryString + "&disableAllQualityFilters=true&fq=" + category.inverseFilter;
 
-            fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + thisQueryString + getQc(), {}).then(response => response.json())
+            fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + "/occurrences/search" + thisQueryString + getQc(), {}).then(response => response.json())
                 .then(data => setCount(data.totalRecords));
         }
     }
@@ -81,12 +82,12 @@ function DataQualityCategoryInfoModal({
     function infoUrl(fq: string) {
         let match = fq.match(/-?assertions:(\w+)/);
         if (match && match.length > 1) {
-            return import.meta.env.VITE_APP_DQ_WIKI_URL + match[1];
+            return getAppConfigValue('VITE_APP_DQ_WIKI_URL', import.meta.env.VITE_APP_DQ_WIKI_URL) + match[1];
         }
 
         match = fq.match(/-?(\w+):/);
         if (match && match.length > 1) {
-            return import.meta.env.VITE_APP_DQ_WIKI_URL + match[1];
+            return getAppConfigValue('VITE_APP_DQ_WIKI_URL', import.meta.env.VITE_APP_DQ_WIKI_URL) + match[1];
         }
 
         return null;
@@ -187,7 +188,7 @@ function DataQualityCategoryInfoModal({
                             <td className="filter-value">
                                 {fieldDescription(name)}</td>
                             <td className="filter-wiki">
-                                <a href={import.meta.env.VITE_APP_DQ_WIKI_URL + name} target="_blank">
+                                <a href={getAppConfigValue('VITE_APP_DQ_WIKI_URL', import.meta.env.VITE_APP_DQ_WIKI_URL) + name} target="_blank">
                                     <FormattedMessage id="dq.categoryinfo.dlg.fieldtable.value.link" defaultMessage="Link"/>
                                 </a>
                             </td>
@@ -227,7 +228,7 @@ function DataQualityCategoryInfoModal({
             </Modal.Body>
             <Modal.Footer>
                 <div className="d-flex w-100">
-                    <a href={import.meta.env.VITE_APP_DQ_INFO_URL} target="_blank">
+                    <a href={getAppConfigValue('VITE_APP_DQ_INFO_URL', import.meta.env.VITE_APP_DQ_INFO_URL)} target="_blank">
                         <FormattedMessage id="dq.warning.dataprofile.buttonleft.text" defaultMessage="Learn More"/>
                     </a>
 

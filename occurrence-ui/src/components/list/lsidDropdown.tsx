@@ -9,6 +9,7 @@ import { createPortal } from "react-dom";
 import { FormattedMessage } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
 import {getQc} from "../../util/util.tsx";
+import { getAppConfigValue } from '@ala/common-ui';
 
 interface LsidDropdownProps {
     lsid: string;
@@ -41,9 +42,9 @@ function LsidDropdown({ lsid, nameString, index }: LsidDropdownProps) {
     const btnGroupRef = useRef<HTMLSpanElement>(null);
     const toggleBtnRef = useRef<HTMLButtonElement>(null);
 
-    const biocacheUrl = import.meta.env.VITE_APP_BIOCACHE_URL;
+    const biocacheUrl = getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL);
     const bieSpeciesUrl = import.meta.env.VITE_SPECIES_URL_PREFIX;
-    const contextPath = import.meta.env.VITE_APP_BASE_URL;
+    const contextPath = getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL);
     const speciesPageUri = `${bieSpeciesUrl}${lsid}`;
 
     const intl = useIntl();

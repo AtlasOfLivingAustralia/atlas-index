@@ -8,6 +8,7 @@ import { useState } from 'react';
 import Modal from 'react-bootstrap/Modal';
 import { FormattedMessage } from 'react-intl';
 import L from 'leaflet';
+import { getAppConfigValue } from '@ala/common-ui';
 
 interface BaseLayerOption {
     value: string;       // e.g. "baselayer.world"
@@ -49,7 +50,7 @@ function DownloadMapModal({ onClose, queryString, mapRef }: DownloadMapModalProp
 
         const baseQs = (queryString ?? '').replace(/^[?]/, '');
 
-        const url = new URL(`${import.meta.env.VITE_APP_BIOCACHE_URL}/webportal/wms/image`);
+        const url = new URL(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/webportal/wms/image`);
         if (baseQs) {
             baseQs.split('&').forEach(part => {
                 const eqIdx = part.indexOf('=');

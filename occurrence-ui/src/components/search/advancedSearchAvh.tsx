@@ -8,7 +8,8 @@ import { FormattedMessage } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FontAwesomeIconLite } from '@ala/common-ui';
+import { FontAwesomeIconLite,
+getAppConfigValue,} from '@ala/common-ui';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import {getQc, quoteText} from "../../util/util.tsx";
 import RolloverTooltip from "../rolloverTooltip.tsx";
@@ -56,7 +57,7 @@ function AdvancedSearchAvh() {
             if (prev[facet] !== undefined) return prev;
             return { ...prev, [facet]: null };
         });
-        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1${getQc()}`;
+        const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search?q=*:*&pageSize=0&facets=${facet}&flimit=-1${getQc()}`;
         fetch(url)
             .then(res => res.json())
             .then(data => {
