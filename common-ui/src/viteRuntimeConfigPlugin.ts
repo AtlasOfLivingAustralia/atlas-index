@@ -14,6 +14,9 @@
  *   LA Community build   with `VITE_RUNTIME_CONFIG_ENABLED=true` (see `.env.community` and
  *                        `yarn build:community`) the tag stays and `community/` is copied, so a
  *                        deployer can set the portal name, the translations and so on afterwards.
+ *                        Every `import.meta.env.VITE_APP_*` in the app's sources is also rewritten
+ *                        to `getAppConfigValue(key, import.meta.env.VITE_APP_*)`, so any service URL
+ *                        can be overridden from config.js without a rebuild and without listing keys.
  *
  * `community/` is outside `public/` on purpose, because Vite copies `public/` into every build.
  * Both profiles are built from the same code and the same commit; the difference is the build
@@ -24,9 +27,12 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadEnv } from 'vite';
 import type { Plugin, ResolvedConfig } from 'vite';
 import { isRuntimeConfigEnabled, stripRuntimeConfigScript, RUNTIME_CONFIG_FLAG } from './util/runtimeConfigHtml.ts';
+
+import { findUnsupportedAppEnvUsage, rewriteAppEnvReferences } from './util/runtimeAppConfigTransform.ts';
 
 export { RUNTIME_CONFIG_FLAG, isRuntimeConfigEnabled, stripRuntimeConfigScript } from './util/runtimeConfigHtml.ts';
 
@@ -46,6 +52,10 @@ const FLAG_DEFAULTS: Record<string, string> = {
     [RUNTIME_CONFIG_FLAG]: 'false',
     [LANGUAGE_SWITCHER_FLAG]: 'false'
 };
+
+/** The helper the rewritten sources import. Resolved from this file so it works from any app. */
+const APP_CONFIG_HELPER = fileURLToPath(new URL('./util/runtimeAppConfig.ts', import.meta.url)).replace(/\\/g, '/');
+const APP_SOURCE_RE = /\.(ts|tsx|js|jsx)$/;
 
 function copyDir(from: string, to: string) {
     fs.mkdirSync(to, { recursive: true });
@@ -95,6 +105,27 @@ export function viteRuntimeConfigPlugin(): Plugin {
             order: 'pre',
             handler(html: string) {
                 return enabled ? html : stripRuntimeConfigScript(html);
+            }
+        },
+
+        // LA Community build only: make every `import.meta.env.VITE_APP_*` overridable at runtime.
+        // `pre` so it runs before Vite's own define step replaces `import.meta.env.*` with values.
+        transform: {
+            order: 'pre',
+            handler(this: { error: (message: string) => never }, code: string, id: string) {
+                if (!enabled) return null;
+                const file = id.split('?')[0].replace(/\\/g, '/');
+                const root = resolvedConfig.root.replace(/\\/g, '/');
+                if (!file.startsWith(`${root}/`) || file.includes('/node_modules/') || !APP_SOURCE_RE.test(file)) return null;
+                const unsupported = findUnsupportedAppEnvUsage(code);
+                if (unsupported.length > 0) {
+                    this.error(
+                        `[ala-runtime-config] ${file}: ${unsupported.join('; ')}. Only the literal form ` +
+                            '`import.meta.env.VITE_APP_X` can be overridden from config.js; use it, or the key will ignore config.js.'
+                    );
+                }
+                const out = rewriteAppEnvReferences(code, APP_CONFIG_HELPER);
+                return out === null ? null : { code: out, map: null };
             }
         },
 

@@ -47,7 +47,16 @@
  *     THEME_FOOTER_URL: 'https://your-host/theme/footer.mustache',
  *     THEME_CSS_URL: 'https://your-host/theme/ala-combined.css,https://your-host/theme/accent-override.css',
  *     THEME_JS_URL: 'https://your-host/theme/ala-combined.js',
- *     THEME_CONTAINER_CLASS: 'container-fluid'
+ *     THEME_CONTAINER_CLASS: 'container-fluid',
+ *
+ *     // --- Configuration -----------------------------------------------------------------------
+ *     // Every backend service URL (biocache, collectory, spatial, alerts, images, events...) and
+ *     // the OIDC-derived VITE_APP_ROLE_ADMIN role name is build-time by default (VITE_APP_* in the
+ *     // .env files) but can be pointed at a different deployment here, without a rebuild. Unset
+ *     // keys fall back to the build's own value, so declaring none of this changes nothing.
+ *     // Any VITE_APP_* variable the app uses works here; there is no list to keep up to date.
+ *     VITE_APP_BIOCACHE_URL: 'https://your-host/ws',
+ *     VITE_APP_API_URL: 'https://your-host/api'
  *   };
  *
  * To try the runtime catalogues locally, point I18N_MESSAGES_PATH at '/i18n/example/{locale}.json'
