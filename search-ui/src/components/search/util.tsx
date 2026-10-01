@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, getAppConfigValue} from '@ala/common-ui';
+import {FadeInImage} from '@ala/common-ui';
 import {RenderItemElements, RenderItemParams,} from '../../api/sources/model.ts';
 import missingImage from '../../image/missing-image.png';
 import classes from './search.module.css';
@@ -21,7 +21,7 @@ function openUrl(url: string) {
 }
 
 const getImageThumbnailUrl = (id: string) => {
-    return `${getAppConfigValue('VITE_APP_IMAGE_THUMBNAIL_URL', import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL)}${id}`;
+    return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
 };
 
 const renderGenericListItemFn = ({wide, isMobile}: RenderItemParams, elements: RenderItemElements) => {

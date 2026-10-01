@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, getThemeValue, handleLogin, handleLogout, Header, HeaderLanguageSwitcher, injectCommonInfo, NotFound, UserContext, UserInfo, getAppConfigValue } from '@ala/common-ui';
+import { Banner, Breadcrumb, Breadcrumbs, checkLoginState, Footer, getThemeValue, handleLogin, handleLogout, Header, HeaderLanguageSwitcher, injectCommonInfo, NotFound, UserContext, UserInfo } from '@ala/common-ui';
 import { useEffect, useRef, useState } from 'react';
 import './index.css';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
@@ -56,7 +56,7 @@ export default function App() {
     useEffect(() => {
         injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, getThemeValue('THEME_CSS_URL', import.meta.env.VITE_COMMON_CSS), setCssLoaded);
 
-        checkLoginState(setUserInfo, refreshTimer, getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL));
+        checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
 
         if (import.meta.env.VITE_SKIN === 'OZCAM') {
             import('./ozcam.css');
@@ -66,7 +66,7 @@ export default function App() {
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                checkLoginState(setUserInfo, refreshTimer, getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL));
+                checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
             }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -87,11 +87,11 @@ export default function App() {
     }
 
     function handleLoginWrapper() {
-        handleLogin(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL));
+        handleLogin(import.meta.env.VITE_APP_API_URL);
     }
 
     function handleLogoutWrapper() {
-        handleLogout(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL), getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL));
+        handleLogout(import.meta.env.VITE_APP_API_URL, import.meta.env.VITE_APP_BASE_URL);
     }
 
     return (

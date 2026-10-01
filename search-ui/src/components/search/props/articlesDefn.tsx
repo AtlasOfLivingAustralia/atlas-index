@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FadeInImage, getAppConfigValue} from '@ala/common-ui';
+import {FadeInImage} from '@ala/common-ui';
 import {GenericViewProps, RenderItemElements, RenderItemParams} from '../../../api/sources/model.ts';
 import missingImage from '../../../image/missing-image.png';
 import classes from '../search.module.css';
@@ -64,7 +64,7 @@ export const articlesDefn: GenericViewProps = {
     resourceLinks: [
         {
             label: 'Support',
-            url: getAppConfigValue('VITE_APP_KNOWLEDGE_BASE_URL', import.meta.env.VITE_APP_KNOWLEDGE_BASE_URL),
+            url: import.meta.env.VITE_APP_KNOWLEDGE_BASE_URL,
         }
     ],
 

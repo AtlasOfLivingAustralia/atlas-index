@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useUser, getAppConfigValue} from "@ala/common-ui";
+import {useUser} from "@ala/common-ui";
 import Modal from "react-bootstrap/esm/Modal";
 import {useEffect, useState} from "react";
 import { FormattedMessage, IntlShape } from 'react-intl';
@@ -30,7 +30,7 @@ function DataQualitySettingsModal({
     const [localCategories, setLocalCategories] = useState<any[]>([]);
     const [profile, setProfile] = useState(dataQualityInfo.profile);
     const [showExpanded, setShowExpanded] = useState(() => {
-        const stored = localStorage.getItem(getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + '.dqExpanded');
+        const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + '.dqExpanded');
         const isExpanded = stored !== null ? stored === 'true' : dataQualityInfo.expand;
         return isExpanded ? 'expanded' : 'collapsed';
     });
@@ -66,10 +66,10 @@ function DataQualitySettingsModal({
         let disabledItems :string[] = localCategories.filter(cat => !cat.selected).map(cat => cat.label);
 
         // Persist expand preference for the toggle in dataQuality.tsx
-        localStorage.setItem(getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + '.dqExpanded', String(showExpanded === 'expanded'));
+        localStorage.setItem(import.meta.env.VITE_APP_NAME + '.dqExpanded', String(showExpanded === 'expanded'));
 
         if (!userInfo?.authenticated) {
-            localStorage.setItem(getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + ".dqUserProfile", JSON.stringify({
+            localStorage.setItem(import.meta.env.VITE_APP_NAME + ".dqUserProfile", JSON.stringify({
                 expand: showExpanded,
                 disableAll: profile === "disable",
                 disabledItems: disabledItems,
@@ -83,7 +83,7 @@ function DataQualitySettingsModal({
                 dataProfile: profile === "disable" ? null : profile
             });
 
-            fetch(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL) + "/v2/user/property", {
+            fetch(import.meta.env.VITE_APP_API_URL + "/v2/user/property", {
                 method: 'POST',
                 body: JSON.stringify({ dq: value }),
                 headers: {

@@ -13,7 +13,6 @@ import {getQc} from "../../util/util.tsx";
 import HorizontalBarChart from './horizontalBarChart.tsx';
 import PieChart from './pieChart.tsx';
 import VerticalBarChart from './verticalBarChart.tsx';
-import { getAppConfigValue } from '@ala/common-ui';
 
 Chart.register(ArcElement, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
@@ -63,7 +62,7 @@ function Charts({ queryString, chartsData, setChartsData }: ChartsProps) {
         }
 
         const config = chartConfig[configIndex];
-        let url = getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/chart' + queryString + '&x=' + config.facet + '&xother=false&xmissing=false' + '&fq=' + config.facet + ':*' + getQc(); // this excludes records with no value for the facet, but the API is supposed to do that when xmissing=false
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/chart' + queryString + '&x=' + config.facet + '&xother=false&xmissing=false' + '&fq=' + config.facet + ':*' + getQc(); // this excludes records with no value for the facet, but the API is supposed to do that when xmissing=false
         fetch(url, {
             method: 'GET',
             headers: {

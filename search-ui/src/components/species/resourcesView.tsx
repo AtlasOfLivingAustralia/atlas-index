@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FlaggedAlert, getAppConfigValue} from '@ala/common-ui';
+import {FlaggedAlert} from '@ala/common-ui';
 import {JSX, useEffect, useState} from 'react';
 import FormatName from '../nameUtils/formatName';
 import classes from './species.module.css';
@@ -70,7 +70,7 @@ function ResourcesView({result, isMobile}: MapViewProps) {
         const searchQuery = encodeURIComponent('"' + s.join('" OR "') + '"');
 
         // Generate link for humans
-        setBhlQuery(getAppConfigValue('VITE_APP_BHL_URL', import.meta.env.VITE_APP_BHL_URL) + `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`);
+        setBhlQuery(import.meta.env.VITE_APP_BHL_URL + `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`);
 
         // Fetch pre-built BHL results from the static taxon-bhl directory, see taxon-bhl tool
         const guidEncoded = encodeURIComponent(encodeURIComponent(result.guid));

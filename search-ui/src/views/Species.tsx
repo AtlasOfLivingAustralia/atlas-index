@@ -9,7 +9,6 @@ import {
     FlaggedAlert,
     FontAwesomeIconLite,
     useHashState,
-    getAppConfigValue,
 } from '@ala/common-ui';
 import {faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify';
@@ -65,7 +64,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
 
         setDataFetched(false);
         setResult({});
-        fetch(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL) + '/v2/species', {
+        fetch(import.meta.env.VITE_APP_API_URL + '/v2/species', {
             method: 'POST',
             body: JSON.stringify(request),
             headers: {
@@ -270,9 +269,9 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                                     overflow: 'hidden',
                                     borderRadius: '10px'
                                 }} key={idx}>
-                                    <a href={getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL) + '/image/' + id} target="_blank">
+                                    <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id} target="_blank">
                                         <img className={classes.headerImage}
-                                             src={getAppConfigValue('VITE_APP_IMAGE_THUMBNAIL_URL', import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL) + id}
+                                             src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
                                              alt="species image"
                                              onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
                                              onMouseOver={(event) => {
@@ -293,9 +292,9 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                             {result.image && result.image.split(',').map((id: string, idx: number) =>
                                 (idx == 1 || idx == 2) &&
                                 <div className={classes.headerImageSmall} key={idx}>
-                                    <a href={getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL) + '/image/' + id}
+                                    <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id}
                                        target="_blank">
-                                        <img src={getAppConfigValue('VITE_APP_IMAGE_THUMBNAIL_URL', import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL) + id}
+                                        <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
                                              alt="species image"
                                              onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
                                              onMouseOver={(event) => {
@@ -324,7 +323,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             marginBottom: '20px'
         }} className={"d-flex flex-row"}>
             {result.image.split(',').map((id: string) =>
-                <img src={getAppConfigValue('VITE_APP_IMAGE_THUMBNAIL_URL', import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL) + id} alt="species image"
+                <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"
                      onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
                      style={{borderRadius: '10px', height: '150px'}}/>
             )}

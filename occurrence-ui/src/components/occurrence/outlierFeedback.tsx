@@ -7,7 +7,6 @@
 import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
 import {RecordResult} from "../../api/model.tsx";
-import { getAppConfigValue } from '@ala/common-ui';
 
 function OutlierFeedback({record}: { record: RecordResult }) {
     const [metadataForOutlierLayers, setMetadataForOutlierLayers] = useState<any[]>([]);
@@ -26,7 +25,7 @@ function OutlierFeedback({record}: { record: RecordResult }) {
 
         Promise.all(
             outlierForLayers.map((layer: any) =>
-                fetch(`${getAppConfigValue('VITE_APP_SPATIAL_SERVICE_URL', import.meta.env.VITE_APP_SPATIAL_SERVICE_URL)}/layer/${layer.substring(2)}`, {
+                fetch(`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/layer/${layer.substring(2)}`, {
                     method: 'GET',
                     headers: {'Content-Type': 'application/json'}
                 }).then(response => response.json())
@@ -52,7 +51,7 @@ function OutlierFeedback({record}: { record: RecordResult }) {
             <ul>
                 {metadataForOutlierLayers && metadataForOutlierLayers.map((layerMetadata: any, idx: number) => (
                     <li key={idx}>
-                        <a href={`${getAppConfigValue('VITE_APP_SPATIAL_SERVICE_URL', import.meta.env.VITE_APP_SPATIAL_SERVICE_URL)}/layers/view/more/${layerMetadata.name}`}>
+                        <a href={`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/layers/view/more/${layerMetadata.name}`}>
                             {layerMetadata.displayname} - {layerMetadata.source}</a><br/>
                         <FormattedMessage id={"show.outlierinformation.each.label01"} defaultMessage={"Notes"}/>
                         : {layerMetadata.notes || layerMetadata.description}<br/>

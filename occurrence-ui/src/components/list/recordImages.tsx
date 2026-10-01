@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { ChevronLeftCircleIcon, ChevronRightCircleIcon, getAppConfigValue } from '@ala/common-ui';
+import { ChevronLeftCircleIcon, ChevronRightCircleIcon } from '@ala/common-ui';
 import {useEffect, useState} from "react";
 import {FormattedMessage} from "react-intl";
 import {DataQualityInfo} from "../../api/model.tsx";
@@ -59,7 +59,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
 
     function loadImages(page: number) {
         setLoading(true);
-        fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + "/occurrences/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize) + getQc())
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + "/occurrences/search" + queryString + "&pageSize=" + pageSize + "&fq=multimedia:Image&sort=identificationQualifier&dir=asc&facet=false&start=" + (page * pageSize) + getQc())
             .then(response => response.json())
             .then(data => {
                 setLoading(false);
@@ -69,7 +69,7 @@ function RecordImages({queryString, dataQualityInfo}: RecordImagesProps) {
                         href: "/occurrence/" + el.uuid,
                         thumbnail: el.thumbnailUrl,
                         largeImage: el.largeImageUrl,
-                        url: getAppConfigValue('VITE_APP_IMAGE_SERVICE_URL', import.meta.env.VITE_APP_IMAGE_SERVICE_URL) + "/image/" + el.image,
+                        url: import.meta.env.VITE_APP_IMAGE_SERVICE_URL + "/image/" + el.image,
                         originalUrl: el.imageUrl,
                         id: el.thumbnailUrl,
                         name: (el.raw_scientificName || el.scientificName),

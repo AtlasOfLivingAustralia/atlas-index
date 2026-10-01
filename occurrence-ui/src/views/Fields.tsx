@@ -7,8 +7,7 @@
 import { ReactElement, useEffect, useMemo, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { useIntl } from '../util/useIntl';
-import { Breadcrumb,
-getAppConfigValue,} from '@ala/common-ui';
+import { Breadcrumb } from '@ala/common-ui';
 import { useQueryState } from 'nuqs';
 
 interface FieldInfo {
@@ -127,7 +126,7 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
 
         document.title = `Fields | ${import.meta.env.VITE_HUB_NAME}` ;
 
-        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/index/fields`, { method: 'GET' })
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/index/fields`, { method: 'GET' })
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.json();
@@ -234,7 +233,7 @@ function Fields({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => 
                         __html: (
                             (intl.messages['downloads.fields.intro'] as string) ??
                             'This table provides information on the occurrence record field types and mappings between search terms, JSON output terms, download headers, readable names, descriptions, Darwin Core (DwC) terms and classes, as well as other miscellaneous attributes.'
-                        ).replace(/\{biocacheLink\}/g, `<a href="${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}">${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}</a>`)
+                        ).replace(/\{biocacheLink\}/g, `<a href="${import.meta.env.VITE_APP_BIOCACHE_URL}">${import.meta.env.VITE_APP_BIOCACHE_URL}</a>`)
                     }}></p>
 
                 {/* Filter buttons */}

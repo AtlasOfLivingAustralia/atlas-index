@@ -53,8 +53,8 @@
  *     // Every backend service URL (biocache, collectory, spatial, alerts, images, events...) and
  *     // the OIDC-derived VITE_APP_ROLE_ADMIN role name is build-time by default (VITE_APP_* in the
  *     // .env files) but can be pointed at a different deployment here, without a rebuild. Unset
- *     // keys fall back to the build's own value, so declaring none of this changes nothing. The
- *     // full list of keys is the VITE_APP_* union in common-ui/src/util/runtimeAppConfig.ts.
+ *     // keys fall back to the build's own value, so declaring none of this changes nothing.
+ *     // Any VITE_APP_* variable the app uses works here; there is no list to keep up to date.
  *     VITE_APP_BIOCACHE_URL: 'https://your-host/ws',
  *     VITE_APP_API_URL: 'https://your-host/api'
  *   };

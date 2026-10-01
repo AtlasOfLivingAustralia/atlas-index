@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FontAwesomeIconLite, getAppConfigValue} from "@ala/common-ui";
+import {FontAwesomeIconLite} from "@ala/common-ui";
 import { faDownload, faMapMarker } from '@fortawesome/free-solid-svg-icons';
 import {faSpinner} from "@fortawesome/free-solid-svg-icons/faSpinner";
 import ReactDOM from "react-dom/client";
@@ -167,7 +167,7 @@ function MapView({ queryString, tab }: MapViewProps) {
     }, [tab]);
 
     function buildSpatialUrl(): string {
-        let baseUrl = getAppConfigValue('VITE_APP_SPATIAL_URL', import.meta.env.VITE_APP_SPATIAL_URL);
+        let baseUrl = import.meta.env.VITE_APP_SPATIAL_URL;
         let url = new URL(baseUrl);
 
         // add query params
@@ -201,7 +201,7 @@ function MapView({ queryString, tab }: MapViewProps) {
 
     function fetchOccurrence(idx: number) {
         if (mapLookupOccurrences.length > idx) {
-            const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrence/${mapLookupOccurrences[idx]}`;
+            const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrence/${mapLookupOccurrences[idx]}`;
             fetch(url, {
                 method: 'GET'
             }).then(response => response.json()).then((data) => {
@@ -332,12 +332,12 @@ function MapView({ queryString, tab }: MapViewProps) {
         L.popup().setLatLng(e.latlng).setContent(div).openOn(mapRef.current!);
 
         // 4. Fetch counts using the full combined query
-        const resp1 = await fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search?${fullTerms}&facet=false&pageSize=0${getQc()}`);
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${fullTerms}&facet=false&pageSize=0${getQc()}`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/facets?${fullTerms}&facets=scientificName${getQc()}`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${fullTerms}&facets=scientificName${getQc()}`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();
@@ -374,12 +374,12 @@ function MapView({ queryString, tab }: MapViewProps) {
             extra += hiddenFacets.map(facet => `&HQ=${encodeURIComponent(facet)}`).join('');
         }
 
-        return `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/ogc/wms/reflect${queryString}&ENV=${style}%3Bname%3Acircle%3Bsize%3A${pointSize}%3Bopacity%3A1&OUTLINE=${outline}${extra}`;
+        return `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect${queryString}&ENV=${style}%3Bname%3Acircle%3Bsize%3A${pointSize}%3Bopacity%3A1&OUTLINE=${outline}${extra}`;
     }
 
     function getLegendImgUrl() {
         if (colourBy === 'grid') {
-            return `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/density/legend${queryString}`;
+            return `${import.meta.env.VITE_APP_BIOCACHE_URL}/density/legend${queryString}`;
         }
 
         return undefined;
@@ -435,7 +435,7 @@ function MapView({ queryString, tab }: MapViewProps) {
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/info${infoQs}${getQc()}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info${infoQs}${getQc()}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {
@@ -466,7 +466,7 @@ function MapView({ queryString, tab }: MapViewProps) {
             setHiddenFacets([]);
             setLegendFacets([]);
         } else {
-            let url = new URL(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy) + getQc());
+            let url = new URL(import.meta.env.VITE_APP_BIOCACHE_URL + '/mapping/legend' + queryString + "&cm=" + encodeURIComponent(colourBy) + getQc());
             fetch(url.toString(), {
                 method: 'GET',
                 headers: {

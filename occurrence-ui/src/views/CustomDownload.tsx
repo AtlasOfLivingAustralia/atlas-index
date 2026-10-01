@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { Breadcrumb, handleLogin, useUser, getAppConfigValue } from '@ala/common-ui';
+import { Breadcrumb, handleLogin, useUser } from '@ala/common-ui';
 import { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../util/useIntl';
@@ -63,7 +63,7 @@ const SECTION_GROUP_MAP: { section: string; groups: GroupEntry[] }[] = [
     {
         section: 'misc',
         groups: [
-            { key: 'qualityAssertions',   filter: 'assertion', staticFields: `All QA fields - <a href='${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search?q=*:*&facets=assertions&pageSize=0&flimit=500' target='_blank'>see the full list</a>` },
+            { key: 'qualityAssertions',   filter: 'assertion', staticFields: `All QA fields - <a href='${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?q=*:*&facets=assertions&pageSize=0&flimit=500' target='_blank'>see the full list</a>` },
             { key: 'miscellaneousFields',                      staticFields: 'All miscellaneous fields' },
             { key: 'dr15515',                                  staticFields: 'WildNet taxon ID field' },
         ],
@@ -170,7 +170,7 @@ function CustomDownload({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
     // handleLogin() uses the current window.location.href as the return path.
     useEffect(() => {
         if (userInfo !== null && !userInfo.authenticated) {
-            handleLogin(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL));
+            handleLogin(import.meta.env.VITE_APP_API_URL);
         }
     }, [userInfo]);
 
@@ -192,7 +192,7 @@ function CustomDownload({ setBreadcrumbs }: { setBreadcrumbs: (crumbs: Breadcrum
         // Load saved preferences from cookie (if any)
         const savedCookie = getSavedFieldsCookie();
 
-        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/index/fields`, {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/index/fields`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' },
         })

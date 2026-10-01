@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react';
 import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
 import {RecordResult} from "../../api/model.tsx";
-import { getAppConfigValue } from '@ala/common-ui';
 
 
 function ReferencedPublications({record}: { record: RecordResult }) {
@@ -66,7 +65,7 @@ function ReferencedPublications({record}: { record: RecordResult }) {
                 <div className="well well-sm" key={idx}>
                     <h4>
                         Publication:{" "}
-                        <a href={getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL) + '/public/show/' + publication.annotation?.dataResourceUid}>
+                        <a href={import.meta.env.VITE_APP_COLLECTORY_URL + '/public/show/' + publication.annotation?.dataResourceUid}>
                             {publication.name}
                         </a>
                     </h4>

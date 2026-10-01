@@ -13,7 +13,6 @@ import DataQualityExcluded from "./dataQualityExcluded.tsx";
 import DataQualityFiltersModal from "./dataQualityFiltersModal.tsx";
 import DataQualityInfoModal from "./dataQualityInfoModal.tsx";
 import DataQualitySettingsModal from "./dataQualitySettingsModal.tsx";
-import { getAppConfigValue } from '@ala/common-ui';
 
 interface DataQualityProps {
     dataQuality: any[],
@@ -32,7 +31,7 @@ function DataQuality({
                      }: DataQualityProps) {
 
     const [expanded, setExpanded] = useState<boolean>(() => {
-        const stored = localStorage.getItem(getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + '.dqExpanded');
+        const stored = localStorage.getItem(import.meta.env.VITE_APP_NAME + '.dqExpanded');
         return stored !== null ? stored === 'true' : dataQualityInfo.expand;
     })
     const [showInfo, setShowInfo] = useState(false)
@@ -94,7 +93,7 @@ function DataQuality({
                 <div className="no-wrap" onClick={() => {
                     const next = !expanded;
                     setExpanded(next);
-                    localStorage.setItem(getAppConfigValue('VITE_APP_NAME', import.meta.env.VITE_APP_NAME) + '.dqExpanded', String(next));
+                    localStorage.setItem(import.meta.env.VITE_APP_NAME + '.dqExpanded', String(next));
                 }} style={{cursor: "pointer"}}>
                     {expanded ? <i className="bi bi-caret-down-fill"></i> : <i className="bi bi-caret-right-fill"></i>}
                     &nbsp;<b className="dqLabel"><FormattedMessage id="quality.filters.group.title" defaultMessage="Data Profile"/></b>:

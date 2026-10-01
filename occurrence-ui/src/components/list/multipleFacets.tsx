@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FontAwesomeIconLite, getAppConfigValue} from "@ala/common-ui";
+import {FontAwesomeIconLite} from "@ala/common-ui";
 import {faDownload} from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from 'react';
 import Modal from 'react-bootstrap/esm/Modal';
@@ -58,7 +58,7 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
 
 
     function fetchData() {
-        let url = getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0' + getQc();
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets' + queryString + '&facets=' + encodeURIComponent(facet) + '&flimit=' + import.meta.env.VITE_FLIMIT_MAX + '&pageSize=0' + getQc();
 
         fetch(url, {
             method: 'GET',
@@ -252,7 +252,7 @@ function MultipleFacets({ queryString, facet, onClose }: MultipleFacetsProps) {
                         )}
                     </div>
                     &nbsp;
-                    <a href={getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/facets/download' + queryString + '&facets=' + encodeURIComponent(facet)}
+                    <a href={import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/facets/download' + queryString + '&facets=' + encodeURIComponent(facet)}
                        target="_blank" className='btn btn-outline-dark' title={intl.formatMessage({id:'facets.downloadfacets.button', defaultMessage:'Download this list'})}>
                         <FontAwesomeIconLite icon={faDownload} title={intl.formatMessage({id:'facets.downloadfacets.button', defaultMessage:'Download this list'})}/>
                     </a>

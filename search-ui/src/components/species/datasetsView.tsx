@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FlaggedAlert, getAppConfigValue} from '@ala/common-ui';
+import {FlaggedAlert} from '@ala/common-ui';
 import {useCallback, useEffect, useState} from 'react';
 import classes from './species.module.css';
 
@@ -32,7 +32,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
 
         setLoading(true);
         setErrorMessage('');
-        fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/search?q=lsid:"' + encodeURIComponent(result.guid) + '"&pageSize=0&facet=true&facets=dataResourceUid',
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/search?q=lsid:"' + encodeURIComponent(result.guid) + '"&pageSize=0&facet=true&facets=dataResourceUid',
             {
                 headers: {'Content-Type': 'application/json'}
             }).then((response) => response.json()).then((data) => {
@@ -57,7 +57,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
             }
 
             // get licences
-            fetch(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL) + '/v2/search?q=idxtype:DATARESOURCE&fq=' + encodeURIComponent(drs.join(' OR ')) + '&fl=id,license&pageSize=1000',
+            fetch(import.meta.env.VITE_APP_API_URL + '/v2/search?q=idxtype:DATARESOURCE&fq=' + encodeURIComponent(drs.join(' OR ')) + '&fl=id,license&pageSize=1000',
                 {
                     headers: {'Content-Type': 'application/json'}
                 }).then((response) => response.json()).then((data) => {
@@ -93,7 +93,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
                 <a className={classes.speciesLink}
                    style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}
                    target="_blank"
-                   href={getAppConfigValue('VITE_APP_BIOCACHE_UI_URL', import.meta.env.VITE_APP_BIOCACHE_UI_URL) + '/occurrences/search?q=lsid:"' + result?.guid + '"&fq=dataResourceUid:' + item.dataResourceUid}>
+                   href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrences/search?q=lsid:"' + result?.guid + '"&fq=dataResourceUid:' + item.dataResourceUid}>
                     {item.records.toLocaleString()}
                 </a>
             ]),

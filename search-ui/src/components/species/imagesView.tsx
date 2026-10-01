@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { ChevronLeftCircleIcon, ChevronRightCircleIcon, FadeInImage, FontAwesomeIconLite, RefineSection, RefineSectionItem, getAppConfigValue } from '@ala/common-ui';
+import { ChevronLeftCircleIcon, ChevronRightCircleIcon, FadeInImage, FontAwesomeIconLite, RefineSection, RefineSectionItem } from '@ala/common-ui';
 import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import capitalise from '../../helpers/Capitalise.ts';
@@ -194,7 +194,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
 
         setLoading(true);
 
-        let url = getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) +
+        let url = import.meta.env.VITE_APP_BIOCACHE_URL +
             '/occurrences/search?q=lsid:' + encodeURIComponent(result.guid) +
             (page == 0 ? `&facets=${facetFields.join(',')}` : '') +
             '&start=' + page * pageSize +
@@ -353,11 +353,11 @@ function ImagesView({result, isMobile}: MediaViewProps) {
     }
 
     const getImageThumbnailUrl = (id: string) => {
-        return `${getAppConfigValue('VITE_APP_IMAGE_THUMBNAIL_URL', import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL)}${id}`;
+        return `${import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL}${id}`;
     };
 
     const getImageOriginalUrl = (id: string) => {
-        return `${getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL)}/image/proxyImage?imageId=${id}`;
+        return `${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/proxyImage?imageId=${id}`;
     };
 
     // Remove image from list if it fails to load
@@ -369,7 +369,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
     function handleOpenModal(idx: number) {
         if (isMobile) {
             // open image in a new tab instead of the modal
-            window.open(getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL) + '/image/' + items[idx].id, '_blank');
+            window.open(import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + items[idx].id, '_blank');
             return;
         }
 
@@ -655,7 +655,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                         height: 'calc(100vh - 350px)',
                         textAlign: 'center'
                     }}>
-                        <a href={`${getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL)}/image/${items[openImageIdx].id}`}
+                        <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
                            target="_blank">
                             <div style={{
                                 display: 'flex',
@@ -681,7 +681,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                     <audio key={items[openImageIdx].id} controls preload="auto"
                                            style={{width: '50vw'}}>
                                         <source
-                                            src={`${getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL)}/proxyImage?imageId=${items[openImageIdx].id}`}
+                                            src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}
                                             type="audio/mpeg"/>
                                     </audio>
                                 )}
@@ -689,7 +689,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                     <video key={items[openImageIdx].id} controls preload="false"
                                            style={{maxWidth: '100%', maxHeight: '100%', borderRadius: '10px'}}>
                                         <source
-                                            src={`${getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL)}/proxyImage?imageId=${items[openImageIdx].id}`}/>
+                                            src={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/proxyImage?imageId=${items[openImageIdx].id}`}/>
                                     </video>
                                 )}
                             </div>
@@ -709,11 +709,11 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                             columnGap: '30px',
                             marginTop: '30px'
                         }}>
-                            <a href={`${getAppConfigValue('VITE_APP_BIOCACHE_UI_URL', import.meta.env.VITE_APP_BIOCACHE_UI_URL)}/occurrences/${encodeURIComponent(items[openImageIdx].occurrenceId)}`}
+                            <a href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/${encodeURIComponent(items[openImageIdx].occurrenceId)}`}
                                target="_blank" className="btn ala-btn-primary">
                                 View occurrence details
                             </a>
-                            <a href={`${getAppConfigValue('VITE_APP_IMAGE_BASE_URL', import.meta.env.VITE_APP_IMAGE_BASE_URL)}/image/${items[openImageIdx].id}`}
+                            <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
                                target="_blank"
                                className="btn ala-btn-primary">
                                 View {items[openImageIdx].type} details

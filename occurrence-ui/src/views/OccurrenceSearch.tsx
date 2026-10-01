@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import { Breadcrumb, FontAwesomeIconLite, useHashState, getAppConfigValue } from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, useHashState } from '@ala/common-ui';
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import L, {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef} from "react";
@@ -148,7 +148,7 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
         })
 
         // get qid with POST to https://biocache.ala.org.au/ws/qid?q=query (returns plain text qid)
-        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/qid?q=${encodeURIComponent(query)}${getQc()}`, {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/qid?q=${encodeURIComponent(query)}${getQc()}`, {
             method: 'POST'
         }).then(response => response.text()).then(data => {
             const qid = data.trim();
@@ -205,12 +205,12 @@ function OccurrenceSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrum
             .openOn(mapRef.current!);
 
         // 3. Fetch counts
-        const resp1 = await fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/search?${terms}&facet=false&pageSize=0${getQc()}`);
+        const resp1 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/search?${terms}&facet=false&pageSize=0${getQc()}`);
         const data1 = await resp1.json();
         const occurrenceCount = data1.totalRecords;
         div.querySelector('#occurrenceCount' + uniqueId)!.textContent = occurrenceCount.toString();
 
-        const resp2 = await fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/facets?${terms}&facets=scientificName${getQc()}`);
+        const resp2 = await fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/facets?${terms}&facets=scientificName${getQc()}`);
         const data2 = await resp2.json();
         const taxonCount = data2[0].count;
         div.querySelector('#taxonCount' + uniqueId)!.textContent = taxonCount.toString();

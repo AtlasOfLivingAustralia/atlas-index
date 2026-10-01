@@ -150,11 +150,13 @@ looks like. `util/runtimeConfig.ts` has the functions to read them and shows how
 ## Service configuration
 
 Every backend service URL an app calls (biocache, collectory, spatial, alerts, images, events...)
-and `VITE_APP_ROLE_ADMIN` are `VITE_APP_*` in the `.env` files, build-time by default. `util/
-runtimeAppConfig.ts` mirrors these onto `RuntimeConfig` the same way `runtimeTheme.tsx` does for
-`THEME_*`, so `getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)`
-reads the deployment's `config.js`/`config.local.js` first and only falls back to the build's own
-value when the deployment hasn't set it, same two-file precedence as everything else on this page.
+and `VITE_APP_ROLE_ADMIN` are `VITE_APP_*` in the `.env` files, build-time by default. In the LA
+Community build, `viteRuntimeConfigPlugin` rewrites each `import.meta.env.VITE_APP_X` in the app's
+sources to `getAppConfigValue('VITE_APP_X', import.meta.env.VITE_APP_X)` (`util/runtimeAppConfig.ts`),
+which reads the deployment's `config.js`/`config.local.js` first and falls back to the build's own
+value, same two-file precedence as everything else on this page. Nothing is listed or imported in
+the app code, so a new `VITE_APP_*` variable is overridable as soon as it is used. The ALA build is
+not rewritten.
 
 OIDC client settings (`VITE_OIDC_*`) are not part of this: the browser never talks to the identity
 provider directly, only to `search-service`'s `/login`/`/logout`/`/session`, and `search-service`

@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {useUser, getAppConfigValue} from "@ala/common-ui";
+import {useUser} from "@ala/common-ui";
 import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../../util/useIntl';
 import { useState } from 'react';
@@ -50,7 +50,7 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
             assertionUuid: assertion.uuid,
         });
 
-        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/assertions/delete`, {
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/assertions/delete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

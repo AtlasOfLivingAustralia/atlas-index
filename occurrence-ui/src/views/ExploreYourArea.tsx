@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {Breadcrumb, FontAwesomeIconLite, useHashState, getAppConfigValue} from "@ala/common-ui";
+import {Breadcrumb, FontAwesomeIconLite, useHashState} from "@ala/common-ui";
 import {LatLng, LeafletMouseEvent} from "leaflet";
 import {useEffect, useState, useRef, useCallback} from "react";
 import ReactDOM from "react-dom/client";
@@ -325,7 +325,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         }
 
         // initialize the species groups with only those with data
-        const url2 = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/explore/groups?${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${getQc()}`;
+        const url2 = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/groups?${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${getQc()}`;
         const response2 = await fetch(url2);
         const data2 = await response2.json();
         const counts: SpeciesGroupFacet = {};
@@ -362,7 +362,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
     // build the WMS URL for the current state
     function getAlaWmsUrl() {
-        return `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/ogc/wms/reflect?q=*:*&ENV=color%3AC44D34%3Bname%3Acircle%3Bsize%3A5%3Bopacity%3A0.7&OUTLINE=false${occurrenceFq}${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`;
+        return `${import.meta.env.VITE_APP_BIOCACHE_URL}/ogc/wms/reflect?q=*:*&ENV=color%3AC44D34%3Bname%3Acircle%3Bsize%3A5%3Bopacity%3A0.7&OUTLINE=false${occurrenceFq}${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`;
     }
 
     // get the list of species for the current state
@@ -379,7 +379,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
         // query biocache-service
         const groupParam = group === ALL_SPECIES ? 'ALL_SPECIES' : encodeURIComponent(group);
-        const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${getQc()}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/explore/group/${groupParam}?includeRank=false&sort=${apiSort}&pageSize=${SPECIES_PAGE_SIZE}${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}${getQc()}`;
         fetch(url, {signal: signalSpeciesList})
             .then((response) => response.json())
             .then((data) => {
@@ -593,7 +593,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
         setMapLookupLatLng(e.latlng);
         setMapLookupOccurrence(undefined);
         setMapLookupItemIdx(0);
-        const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/info?${eyaFq}${occurrenceFq}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}${getQc()}`;
+        const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/info?${eyaFq}${occurrenceFq}&lon=${e.latlng.lng}&lat=${e.latlng.lat}&radius=${radius}&zoom=${zoomLevel}${getQc()}`;
         fetch(url, {
             method: 'GET'
         }).then(response => response.json()).then((data) => {
@@ -615,7 +615,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
 
     function fetchOccurrence(idx: number) {
         if (mapLookupOccurrences.length > idx) {
-            const url = `${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrence/${mapLookupOccurrences[idx]}`;
+            const url = `${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrence/${mapLookupOccurrences[idx]}`;
             fetch(url, {
                 method: 'GET'
             }).then(response => response.json()).then((data) => {
@@ -764,7 +764,7 @@ function ExploreYourArea({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb
                                                                 </a>
                                                                 <a className="btn btn-outline-dark btn-sm ms-3"
                                                                    style={{textDecoration: 'none'}}
-                                                                   href={`${getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL)}/occurrences/search?q=lsid:"${encodeURIComponent(species.guid)}"${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}>
+                                                                   href={`${import.meta.env.VITE_APP_BASE_URL}/occurrences/search?q=lsid:"${encodeURIComponent(species.guid)}"${eyaFq}&lon=${latLng?.lng}&lat=${latLng?.lat}&radius=${radius}`}>
                                                                     <FormattedMessage id='eya.listrecords' defaultMessage='List records'/>
                                                                 </a>
                                                             </div>

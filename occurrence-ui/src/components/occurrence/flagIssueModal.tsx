@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {handleLogin, useUser, getAppConfigValue} from "@ala/common-ui";
+import {handleLogin, useUser} from "@ala/common-ui";
 import { faQuestionCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useRef, useState } from 'react';
@@ -52,7 +52,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
 
     // Fetch available assertion codes on mount
     useEffect(() => {
-        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/assertions/user/codes`)
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/assertions/user/codes`)
             .then(r => r.json())
             .then((codes: AssertionCode[]) => {
                 // filter to user-facing codes (< 50000)
@@ -77,7 +77,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
         setRelatedRecordState('loading');
         if (relatedRecordTimer.current) clearTimeout(relatedRecordTimer.current);
         relatedRecordTimer.current = setTimeout(() => {
-            fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrence/${relatedRecordId.trim()}`)
+            fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrence/${relatedRecordId.trim()}`)
                 .then(r => {
                     if (!r.ok) throw new Error('not found');
                     return r.json();
@@ -125,7 +125,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
         setSubmitError('');
 
         // Step 1: fetch existing assertions to guard against re-flagging an already-verified type
-        fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/${recordUuid}/assertions`)
+        fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${recordUuid}/assertions`)
             .then(r => r.json())
             .then((data: any[]) => {
                 // Check: does a verified assertion (code=50000) already cover this issue code?
@@ -186,7 +186,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
                     ...(editAssertionId ? { updateId: editAssertionId } : {})
                 });
 
-                fetch(`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/assertions/add`, {
+                fetch(`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/assertions/add`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
@@ -200,7 +200,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
                         // Step 4: update alert subscription if enabled
                         if (import.meta.env.VITE_ALERTS_MY_ANNOTATION_ENABLED === 'true') {
                             const alertMethod = notifyChange ? 'subscribeMyAnnotation' : 'unsubscribeMyAnnotation';
-                            const alertsWsUrl = getAppConfigValue('VITE_APP_ALERTS_WS_URL', import.meta.env.VITE_APP_ALERTS_WS_URL);
+                            const alertsWsUrl = import.meta.env.VITE_APP_ALERTS_WS_URL;
                             const userId = userInfo?.userId || '';
                             fetch(`${alertsWsUrl}/api/alerts/user/${encodeURIComponent(userId)}/${alertMethod}`, {
                                 method: 'POST',
@@ -252,7 +252,7 @@ function FlagIssueModal({ record, editAssertionId, editIssueCode, editComment, o
                     /* Not logged in */
                     <div style={{ margin: '20px 0' }}>
                         <FormattedMessage id='show.loginorflag.div01.label' defaultMessage='Login please:' />{' '}
-                        <a href='#' onClick={e => { e.preventDefault(); handleLogin(getAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL)); }}>
+                        <a href='#' onClick={e => { e.preventDefault(); handleLogin(import.meta.env.VITE_APP_API_URL); }}>
                             <FormattedMessage id='show.loginorflag.div01.navigator' defaultMessage='Click here' />
                         </a>
                     </div>

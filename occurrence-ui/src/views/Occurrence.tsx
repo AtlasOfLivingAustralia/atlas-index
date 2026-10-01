@@ -8,8 +8,7 @@ import { faFileCode } from '@fortawesome/free-regular-svg-icons';
 import { faArrowLeft, faArrowRight, faLock, faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import { JSX, useEffect, useState } from 'react';
 
-import { Breadcrumb, FontAwesomeIconLite, NotFound, useUser,
-getAppConfigValue,} from '@ala/common-ui';
+import { Breadcrumb, FontAwesomeIconLite, NotFound, useUser } from '@ala/common-ui';
 import { FormattedMessage, IntlShape } from 'react-intl';
 import { useIntl } from '../util/useIntl';
 import {useLocation, useNavigate, useParams} from "react-router-dom";
@@ -93,7 +92,7 @@ function Occurrence({setBreadcrumbs}: {
 
     const fetchPageIds = async () => {
         const indexJson = await fetch(
-            getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) +
+            import.meta.env.VITE_APP_BIOCACHE_URL +
             '/occurrences/search' +
             recordsViewProps.queryString +
             "&pageSize=" + recordsViewProps.pageSize +
@@ -193,7 +192,7 @@ function Occurrence({setBreadcrumbs}: {
         }
 
         try {
-            const indexJson = await fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/' + fetchUuid + "?im=true", {
+            const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/' + fetchUuid + "?im=true", {
                 method: 'GET'
             });
             if (!indexJson.ok) {
@@ -220,7 +219,7 @@ function Occurrence({setBreadcrumbs}: {
     }
 
     function getCompareRecordInfo(fetchUuid: string) {
-        fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/compare/' + fetchUuid, {
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/compare/' + fetchUuid, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -232,7 +231,7 @@ function Occurrence({setBreadcrumbs}: {
 
     // $.get( OCC_REC.contextPath + "/assertions/" + OCC_REC.recordUuid, function(data) {
     const getUserAssertions = async (uuid: string) => {
-        fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrences/' + uuid + '/assertions', {
+        fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrences/' + uuid + '/assertions', {
             method: 'GET'
         }).then(response => response.json())
             .then(userAssertions => {
@@ -249,7 +248,7 @@ function Occurrence({setBreadcrumbs}: {
             const assertion = assertions20020[i];
             if (assertion.relatedRecordId) {
                 try {
-                    const indexJson = await fetch(getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL) + '/occurrence/exists/' + assertion.relatedRecordId, {
+                    const indexJson = await fetch(import.meta.env.VITE_APP_BIOCACHE_URL + '/occurrence/exists/' + assertion.relatedRecordId, {
                         method: 'GET'
                     });
                     if (!indexJson.ok) {
@@ -298,7 +297,7 @@ function Occurrence({setBreadcrumbs}: {
 
     function fetchCollectionInfo(collectionUid: string) {
         // collectory info
-        fetch(getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL) + '/lookup/summary/' + collectionUid, {
+        fetch(import.meta.env.VITE_APP_COLLECTORY_URL + '/lookup/summary/' + collectionUid, {
             method: 'GET'
         }).then(response => response.json())
             .then(data => {
@@ -312,7 +311,7 @@ function Occurrence({setBreadcrumbs}: {
         });
 
         // contact info
-        fetch(getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL) + '/ws/collection/' + collectionUid + '/contact.json', {
+        fetch(import.meta.env.VITE_APP_COLLECTORY_URL + '/ws/collection/' + collectionUid + '/contact.json', {
             method: 'GET'
         }).then(response => response.json())
             .then(data => {
@@ -324,7 +323,7 @@ function Occurrence({setBreadcrumbs}: {
 
     function fetchDataResourceInfo(dataResourceUid: string) {
         // contact info
-        fetch(getAppConfigValue('VITE_APP_COLLECTORY_URL', import.meta.env.VITE_APP_COLLECTORY_URL) + '/ws/dataResource/' + dataResourceUid + '/contact.json', {
+        fetch(import.meta.env.VITE_APP_COLLECTORY_URL + '/ws/dataResource/' + dataResourceUid + '/contact.json', {
             method: 'GET'
         }).then(response => response.json())
             .then(data => {
@@ -344,7 +343,7 @@ function Occurrence({setBreadcrumbs}: {
     }
 
     function isCollectionAdmin(): boolean {
-        if (userInfo?.roles?.includes(getAppConfigValue('VITE_APP_ROLE_ADMIN', import.meta.env.VITE_APP_ROLE_ADMIN))) {
+        if (userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN)) {
             return true;
         }
 
@@ -409,7 +408,7 @@ function Occurrence({setBreadcrumbs}: {
                     </div>
                     <div className='side right'>
                         <div id='jsonLinkZ'>
-                            {userInfo?.roles?.includes(getAppConfigValue('VITE_APP_ROLE_ADMIN', import.meta.env.VITE_APP_ROLE_ADMIN)) && (
+                            {userInfo?.roles?.includes(import.meta.env.VITE_APP_ROLE_ADMIN) && (
                                 <div id='clubView'>
                                     <span className='label label-danger'>
                                         <FontAwesomeIconLite icon={faLock}/> <FormattedMessage id="show.clubview.message" defaultMessage="Club View"/>
@@ -515,7 +514,7 @@ function Occurrence({setBreadcrumbs}: {
                             <button className='tooltips btn btn-outline-dark copyLink' onClick={() => setShowCopyLinkModal(true)}>
                                 <FontAwesomeIconLite icon={faFileCode} /> <FormattedMessage id="list.copylinks" defaultMessage="API"/>
                             </button>
-                            {showCopyLinkModal && <ApiModal onClose={() => setShowCopyLinkModal(false)} url={`${getAppConfigValue('VITE_APP_BIOCACHE_URL', import.meta.env.VITE_APP_BIOCACHE_URL)}/occurrences/${uuid}`} />}
+                            {showCopyLinkModal && <ApiModal onClose={() => setShowCopyLinkModal(false)} url={`${import.meta.env.VITE_APP_BIOCACHE_URL}/occurrences/${uuid}`} />}
                         </div>
                         <RecordCore record={record} compareRecord={compareRecord} collectionInfo={collectionInfo} setEventHierarchy={setEventHierarchy} />
 

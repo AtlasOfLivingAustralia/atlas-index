@@ -7,7 +7,6 @@
 import { useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { RecordResult } from '../../api/model.tsx';
-import { getAppConfigValue } from '@ala/common-ui';
 
 interface LayerItem {
     id?: string;
@@ -73,7 +72,7 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
         const cached = getCachedFields();
         const dataPromise: Promise<any[]> = cached
             ? Promise.resolve(cached)
-            : fetch(`${getAppConfigValue('VITE_APP_SPATIAL_SERVICE_URL', import.meta.env.VITE_APP_SPATIAL_SERVICE_URL)}/fields/search`, {
+            : fetch(`${import.meta.env.VITE_APP_SPATIAL_SERVICE_URL}/fields/search`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             })
@@ -157,7 +156,7 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
                                 ) : (
                                     <>
                                         <td>
-                                            <a href={`${getAppConfigValue('VITE_APP_SPATIAL_URL', import.meta.env.VITE_APP_SPATIAL_URL)}/layers/view/more/${item.name}`} title='More information about this layer'>
+                                            <a href={`${import.meta.env.VITE_APP_SPATIAL_URL}/layers/view/more/${item.name}`} title='More information about this layer'>
                                                 <FormattedMessage id={item.id} defaultMessage={item.displayName} />
                                             </a>
                                         </td>
@@ -185,7 +184,7 @@ function EnvironmentSampleInfo({ record }: { record: RecordResult }) {
                                 ) : (
                                     <>
                                         <td>
-                                            <a href={`${getAppConfigValue('VITE_APP_SPATIAL_URL', import.meta.env.VITE_APP_SPATIAL_URL)}/ws/layers/view/more/${item.name}`} title='More information about this layer'>
+                                            <a href={`${import.meta.env.VITE_APP_SPATIAL_URL}/ws/layers/view/more/${item.name}`} title='More information about this layer'>
                                                 <FormattedMessage id={item.id} defaultMessage={item.displayName} />
                                             </a>
                                         </td>

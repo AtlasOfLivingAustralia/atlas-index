@@ -7,7 +7,6 @@
 import { useEffect, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { ChartOptions, ChartData, Chart as ChartJS } from 'chart.js';
-import { getAppConfigValue } from '@ala/common-ui';
 
 const defaultOptions: ChartOptions<'bar'> = {
     indexAxis: 'y',
@@ -102,7 +101,7 @@ function HorizontalBarChart({ data, labels, urls, options = defaultOptions }: Ho
                 });
 
                 if (clickedIndex !== -1 && urls && urls[clickedIndex]) {
-                    window.location.assign(getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL) + urls[clickedIndex]);
+                    window.location.assign(import.meta.env.VITE_APP_BASE_URL + urls[clickedIndex]);
                 }
             }
         };
@@ -123,7 +122,7 @@ function HorizontalBarChart({ data, labels, urls, options = defaultOptions }: Ho
             const firstPoint = points[0];
             const index = firstPoint.index;
             if (urls && urls[index]) {
-                window.location.assign(getAppConfigValue('VITE_APP_BASE_URL', import.meta.env.VITE_APP_BASE_URL) + urls[index]);
+                window.location.assign(import.meta.env.VITE_APP_BASE_URL + urls[index]);
             }
         }
     };

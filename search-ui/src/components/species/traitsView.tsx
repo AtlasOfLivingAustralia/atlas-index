@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {FlaggedAlert, FontAwesomeIconLite, InfoBox, getAppConfigValue} from '@ala/common-ui';
+import {FlaggedAlert, FontAwesomeIconLite, InfoBox} from '@ala/common-ui';
 import {faCircleInfo, faDownload, faUpRightFromSquare} from '@fortawesome/free-solid-svg-icons';
 import React, {useEffect, useState} from 'react';
 import FormatName from '../nameUtils/formatName.tsx';
@@ -232,7 +232,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                              </>
                              }/>
                     <img
-                        src={getAppConfigValue('VITE_APP_AUSTRAITS_LOGO', import.meta.env.VITE_APP_AUSTRAITS_LOGO)}
+                        src={import.meta.env.VITE_APP_AUSTRAITS_LOGO}
                         alt="Austraits logo"
                         style={{
                             width: isMobile ? '50%' : '100%',
