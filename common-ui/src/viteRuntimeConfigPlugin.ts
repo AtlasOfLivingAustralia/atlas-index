@@ -32,7 +32,7 @@ import { loadEnv } from 'vite';
 import type { Plugin, ResolvedConfig } from 'vite';
 import { isRuntimeConfigEnabled, stripRuntimeConfigScript, RUNTIME_CONFIG_FLAG } from './util/runtimeConfigHtml.ts';
 
-import { rewriteAppEnvReferences } from './util/runtimeAppConfigTransform.ts';
+import { findUnsupportedAppEnvUsage, rewriteAppEnvReferences } from './util/runtimeAppConfigTransform.ts';
 
 export { RUNTIME_CONFIG_FLAG, isRuntimeConfigEnabled, stripRuntimeConfigScript } from './util/runtimeConfigHtml.ts';
 
@@ -112,11 +112,18 @@ export function viteRuntimeConfigPlugin(): Plugin {
         // `pre` so it runs before Vite's own define step replaces `import.meta.env.*` with values.
         transform: {
             order: 'pre',
-            handler(code: string, id: string) {
+            handler(this: { error: (message: string) => never }, code: string, id: string) {
                 if (!enabled) return null;
                 const file = id.split('?')[0].replace(/\\/g, '/');
                 const root = resolvedConfig.root.replace(/\\/g, '/');
                 if (!file.startsWith(`${root}/`) || file.includes('/node_modules/') || !APP_SOURCE_RE.test(file)) return null;
+                const unsupported = findUnsupportedAppEnvUsage(code);
+                if (unsupported.length > 0) {
+                    this.error(
+                        `[ala-runtime-config] ${file}: ${unsupported.join('; ')}. Only the literal form ` +
+                            '`import.meta.env.VITE_APP_X` can be overridden from config.js; use it, or the key will ignore config.js.'
+                    );
+                }
                 const out = rewriteAppEnvReferences(code, APP_CONFIG_HELPER);
                 return out === null ? null : { code: out, map: null };
             }

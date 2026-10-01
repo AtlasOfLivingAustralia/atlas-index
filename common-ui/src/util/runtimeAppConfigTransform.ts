@@ -32,3 +32,20 @@ export function rewriteAppEnvReferences(code: string, helperPath: string): strin
     if (!found) return null;
     return `import { getAppConfigValue as ${HELPER} } from ${JSON.stringify(helperPath)};${rewritten}`;
 }
+
+/** Comments are dropped before looking for unsupported forms, so prose mentioning the syntax is not flagged. */
+const COMMENT_RE = /\/\*[\s\S]*?\*\/|(^|[\s;{}()])\/\/[^\n]*/g;
+
+/**
+ * Forms of `import.meta.env` that `rewriteAppEnvReferences` cannot rewrite, so a `VITE_APP_*` read
+ * that way would silently ignore config.js. The plugin fails the build on any of them, rather than
+ * ship a portal where one key cannot be overridden.
+ */
+export function findUnsupportedAppEnvUsage(code: string): string[] {
+    const src = code.replace(COMMENT_RE, '$1');
+    const found: string[] = [];
+    if (/import\.meta\.env\s*\??\.?\s*\[/.test(src)) found.push('computed access: import.meta.env[...]');
+    if (/\{[^{}]*VITE_APP_[^{}]*\}\s*=\s*import\.meta\.env(?![.\w])/.test(src)) found.push('destructuring: const { VITE_APP_... } = import.meta.env');
+    if (/[=(,:]\s*import\.meta\.env\s*[;,)}\n]/.test(src)) found.push('import.meta.env used as a whole object');
+    return found;
+}

@@ -156,7 +156,8 @@ sources to `getAppConfigValue('VITE_APP_X', import.meta.env.VITE_APP_X)` (`util/
 which reads the deployment's `config.js`/`config.local.js` first and falls back to the build's own
 value, same two-file precedence as everything else on this page. Nothing is listed or imported in
 the app code, so a new `VITE_APP_*` variable is overridable as soon as it is used. The ALA build is
-not rewritten.
+not rewritten. The build fails on a form that cannot be rewritten (`import.meta.env[key]`,
+destructuring, passing `import.meta.env` whole), instead of leaving a key that ignores `config.js`.
 
 OIDC client settings (`VITE_OIDC_*`) are not part of this: the browser never talks to the identity
 provider directly, only to `search-service`'s `/login`/`/logout`/`/session`, and `search-service`
