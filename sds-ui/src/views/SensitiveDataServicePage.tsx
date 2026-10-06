@@ -68,9 +68,11 @@ function SensitiveDataServicePage({ setBreadcrumbs }: { setBreadcrumbs: (crumbs:
       </p>
       <ul style={{ listStyleType: 'disc'}}>
         <li>Conservation Sensitivity, whereby sensitive species are denatured according to state rules. </li>
-        <li>Pest Sensitivity. Species are passed through a set of rules based on categories as defined in the
-          &nbsp;<b>Plant Biosecurity Sensitive Data Service</b>
-        </li>
+
+        {/* the following functionality is not currently in use */}
+        {/*<li>Pest Sensitivity. Species are passed through a set of rules based on categories as defined in the*/}
+        {/*  &nbsp;<b>Plant Biosecurity Sensitive Data Service</b>*/}
+        {/*</li>*/}
       </ul>
       <p>
         For more information see <a
