@@ -43,6 +43,41 @@ describe('rewriteAppEnvReferences', () => {
         expect(out.split('\n')).toHaveLength(2);
         expect(out.startsWith(`import { getAppConfigValue as __alaGetAppConfigValue } from "${helper}";// header`)).toBe(true);
     });
+
+    it('leaves the key untouched inside strings, template text, regexes and comments', () => {
+        const src = [
+            "const a = 'import.meta.env.VITE_APP_API_URL';",
+            'const b = "import.meta.env.VITE_APP_API_URL";',
+            'const c = `docs: import.meta.env.VITE_APP_API_URL`;',
+            'const d = /import\\.meta\\.env\\.VITE_APP_API_URL/;',
+            '// import.meta.env.VITE_APP_API_URL',
+            '/* import.meta.env.VITE_APP_API_URL */',
+        ].join('\n');
+        expect(rewriteAppEnvReferences(src, helper)).toBeNull();
+    });
+
+    it('rewrites only the real reference when text and code mix', () => {
+        const out = rewriteAppEnvReferences(
+            "const a = 'import.meta.env.VITE_APP_API_URL'; const b = import.meta.env.VITE_APP_API_URL; // import.meta.env.VITE_APP_API_URL",
+            helper
+        )!;
+        expect(out.match(/__alaGetAppConfigValue\('/g)).toHaveLength(1);
+        expect(out).toContain("const a = 'import.meta.env.VITE_APP_API_URL';");
+        expect(out).toContain('; // import.meta.env.VITE_APP_API_URL');
+    });
+
+    it('rewrites a reference inside a template substitution and in JSX', () => {
+        const out = rewriteAppEnvReferences(
+            "const u = `x ${import.meta.env.VITE_APP_API_URL} y`; const el = <a href={import.meta.env.VITE_APP_BASE_URL}>Don't</a>;",
+            helper
+        )!;
+        expect(out.match(/__alaGetAppConfigValue\('/g)).toHaveLength(2);
+    });
+
+    it('handles .ts sources with type assertions', () => {
+        const out = rewriteAppEnvReferences('const u = <string>import.meta.env.VITE_APP_API_URL;', helper, 'a.ts')!;
+        expect(out).toContain("<string>__alaGetAppConfigValue('VITE_APP_API_URL', import.meta.env.VITE_APP_API_URL)");
+    });
 });
 
 describe('findUnsupportedAppEnvUsage', () => {
@@ -59,5 +94,18 @@ describe('findUnsupportedAppEnvUsage', () => {
 
     it('ignores prose in comments', () => {
         expect(findUnsupportedAppEnvUsage('// reads import.meta.env\n/* const x = import.meta.env[k] */')).toEqual([]);
+    });
+
+    it('ignores unsupported-looking text inside strings, templates and regexes', () => {
+        const src = [
+            "const a = 'const env = import.meta.env;';",
+            'const b = `f(import.meta.env[k])`;',
+            'const c = /import.meta.env[k]/;',
+        ].join('\n');
+        expect(findUnsupportedAppEnvUsage(src)).toEqual([]);
+    });
+
+    it('does not flag destructuring of non-VITE_APP_ keys', () => {
+        expect(findUnsupportedAppEnvUsage('const { MODE, DEV } = import.meta.env;')).toEqual([]);
     });
 });

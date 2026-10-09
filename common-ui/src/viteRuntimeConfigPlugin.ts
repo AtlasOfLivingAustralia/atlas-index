@@ -117,14 +117,14 @@ export function viteRuntimeConfigPlugin(): Plugin {
                 const file = id.split('?')[0].replace(/\\/g, '/');
                 const root = resolvedConfig.root.replace(/\\/g, '/');
                 if (!file.startsWith(`${root}/`) || file.includes('/node_modules/') || !APP_SOURCE_RE.test(file)) return null;
-                const unsupported = findUnsupportedAppEnvUsage(code);
+                const unsupported = findUnsupportedAppEnvUsage(code, file);
                 if (unsupported.length > 0) {
                     this.error(
                         `[ala-runtime-config] ${file}: ${unsupported.join('; ')}. Only the literal form ` +
                             '`import.meta.env.VITE_APP_X` can be overridden from config.js; use it, or the key will ignore config.js.'
                     );
                 }
-                const out = rewriteAppEnvReferences(code, APP_CONFIG_HELPER);
+                const out = rewriteAppEnvReferences(code, APP_CONFIG_HELPER, file);
                 return out === null ? null : { code: out, map: null };
             }
         },
