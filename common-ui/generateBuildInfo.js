@@ -1,4 +1,4 @@
-import { writeFileSync, readFileSync } from 'fs';
+import { writeFileSync, readFileSync, mkdirSync } from 'fs';
 import { execSync } from 'child_process';
 
 const buildDate = new Date().toISOString();
@@ -13,6 +13,13 @@ const buildInfo = {
     version
 };
 
-writeFileSync('src/buildInfo.json', JSON.stringify(buildInfo, null, 2));
+const json = JSON.stringify(buildInfo, null, 2);
+
+// src/ copy: imported by App.tsx and exposed as <meta name="buildInfo">.
+writeFileSync('src/buildInfo.json', json);
+// public/ copy: Vite serves it in dev and copies it to dist/, so a deployer can
+// `curl <ui>/buildInfo.json` to see which build is running.
+mkdirSync('public', { recursive: true });
+writeFileSync('public/buildInfo.json', json);
 console.log('Build info generated:', buildInfo);
 

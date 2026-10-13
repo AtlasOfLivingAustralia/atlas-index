@@ -133,7 +133,7 @@ file `./src/config/speciesGroupsMap.json`. The names-extract tool has informatio
 
 ### ./src/config/speciesGroupsMap.json
 
-This file is constructed by the `generateBuildInfo.js` script and using `./public/speciesGroups.json`. This is done
+This file is constructed by the `generateSpeciesGroupsMap.js` script and using `./public/speciesGroups.json`. This is done
 during the dev and build scripts. It is used by the UI to be able to display the species group hierarchy.
 
 ### ./src/config/featuredPages.json

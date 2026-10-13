@@ -83,6 +83,11 @@ useEffect(() => {
 }, []);
 ```
 
+`buildInfo` is `src/buildInfo.json`, written by `node ../common-ui/generateBuildInfo.js` at the start of the
+`dev`/`build` scripts (`buildDate`, `commit`, `branch`, `version`). The same file is written to `public/buildInfo.json`,
+so every build serves it at `<ui base>/buildInfo.json`: a deployer can `curl` it to see which build is running. Both
+copies are gitignored.
+
 4. Update App.tsx to include the common header, breadcrumbs, banner, and footer:
 
 ```tsx
