@@ -194,6 +194,11 @@ Ids built at runtime cannot be matched exactly. Prefixes like `` `facet.${fieldN
 on their own, and an id that is just a variable could be any key, so treat the unused count as a
 hint, not as a list of keys to delete.
 
+Code built only for one organisation's own skin can be left out of the report with
+`"i18nCoverage": {"exclude": ["src/components/avh", ...]}` in the UI's `package.json` (paths
+relative to the UI). Its ids are then not required in `en.json`, so translators are not asked for
+text no other portal shows; it still renders through its `defaultMessage`.
+
 ## Theming
 
 `Header`/`Footer` already fetch their HTML from a URL and `injectCommonInfo`/`injectCommonJs` already

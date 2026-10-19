@@ -63,7 +63,7 @@ function OccurrenceAssertions({userAssertions, record, isCollectionAdmin}: {
                 window.location.reload();
             })
             .catch(err => {
-                alert(intl.formatMessage({ id: 'show.verifyrecord.error', defaultMessage: 'Error deleting verification: ' }) + err.message);
+                alert(intl.formatMessage({ id: 'show.deleteverification.error', defaultMessage: 'Error deleting verification: {error}' }, { error: err.message }));
             });
     }
 

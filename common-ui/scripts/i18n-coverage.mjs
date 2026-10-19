@@ -22,6 +22,11 @@
  * Reports by default (exit 0). Pass --strict to fail (exit 1) when any MISSING key exists, e.g. to
  * gate CI once a UI's catalogue is complete; kept opt-in so pre-existing gaps don't block the build.
  *
+ * Code that is only built for one organisation's own skin (e.g. occurrence-ui's AVH and OZCAM
+ * components) can be left out with `"i18nCoverage": {"exclude": [...]}` in the UI's package.json,
+ * paths relative to the UI directory. Its ids are then neither required in en.json nor sent to
+ * translators; it still renders through its defaultMessage.
+ *
  * Usage (from repo root):
  *   node common-ui/scripts/i18n-coverage.mjs occurrence-ui search-ui
  *   node common-ui/scripts/i18n-coverage.mjs --strict occurrence-ui
@@ -40,7 +45,8 @@ const FORMATTED_MESSAGE_RE = /FormattedMessage[^>]*?\sid=["']([^"']+)["']/gs;
 // intl.formatMessage({ id: 'home.searchPlaceholder', ... })
 // NOTE: `defineMessages({...})` is NOT matched (the codebase does not use it today); add a pattern
 // here if it is adopted, otherwise those ids would be silently missing from this report.
-const FORMAT_MESSAGE_RE = /formatMessage\(\s*\{[^}]*?\bid:\s*["']([^"']+)["']/gs;
+// An id followed by `+` (`id: 'facet.' + facet`) is a prefix, picked up by DYNAMIC_PREFIX_RE below.
+const FORMAT_MESSAGE_RE = /formatMessage\(\s*\{[^}]*?\bid:\s*["']([^"']+)["'](?!\s*\+)/gs;
 
 // Ids assembled at runtime. A static scan cannot know which keys these resolve to, so the keys they
 // can reach must not be reported as unused:
@@ -53,14 +59,15 @@ const DYNAMIC_PREFIX_RE = [
 // key, so their presence means the unused count cannot be trusted at all.
 const OPAQUE_ID_RE = /\bid=\{(?!['"`])\s*([A-Za-z_$][\w.$]*)/g;
 
-function walk(dir) {
+function walk(dir, excluded) {
     const out = [];
     for (const entry of readdirSync(dir)) {
         const full = join(dir, entry);
+        if (excluded.has(resolve(full))) continue;
         const s = statSync(full);
         if (s.isDirectory()) {
             if (entry === 'node_modules' || entry === 'dist' || entry.startsWith('.')) continue;
-            out.push(...walk(full));
+            out.push(...walk(full, excluded));
         } else if (SRC_EXT.has(extname(entry))) {
             out.push(full);
         }
@@ -68,11 +75,11 @@ function walk(dir) {
     return out;
 }
 
-function collectUsedIds(srcDir) {
+function collectUsedIds(srcDir, excluded) {
     const ids = new Set();
     const dynamicPrefixes = new Set();
     const opaqueIds = new Set();
-    for (const file of walk(srcDir)) {
+    for (const file of walk(srcDir, excluded)) {
         const text = readFileSync(file, 'utf8');
         for (const re of [FORMATTED_MESSAGE_RE, FORMAT_MESSAGE_RE]) {
             for (const match of text.matchAll(re)) ids.add(match[1]);
@@ -99,7 +106,14 @@ function reportUi(ui) {
         return {missing: 0};
     }
 
-    const {ids: used, dynamicPrefixes, opaqueIds} = collectUsedIds(srcDir);
+    const pkgPath = join(ui, 'package.json');
+    const exclude = (existsSync(pkgPath) && loadJson(pkgPath).i18nCoverage?.exclude) || [];
+    const excluded = new Set(exclude.map((p) => resolve(ui, p)));
+    for (const p of excluded) {
+        // A stale entry would silently stop excluding anything, so fail loudly instead.
+        if (!existsSync(p)) throw new Error(`${label}: i18nCoverage.exclude path not found: ${p}`);
+    }
+    const {ids: used, dynamicPrefixes, opaqueIds} = collectUsedIds(srcDir, excluded);
     const base = loadJson(enPath);
     const baseKeys = new Set(Object.keys(base));
 
@@ -110,6 +124,7 @@ function reportUi(ui) {
     const viaDynamic = unreferenced.length - unused.length;
 
     console.log(`\n## ${label}`);
+    if (exclude.length > 0) console.log(`  excluded (i18nCoverage.exclude): ${exclude.join(', ')}`);
     console.log(`  used ids (static): ${used.size}`);
     console.log(`  en.json keys:      ${baseKeys.size}`);
     console.log(`  MISSING (used, not in en.json): ${missing.length}`);
