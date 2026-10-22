@@ -13,7 +13,14 @@
         "test": "jest --passWithNoTests && yarn i18n:coverage",
         "test:playwright": "./run-playwright-test.sh",
         "test:playwright:live": "./run-live-test.sh",
-        "i18n:coverage": "node ../common-ui/scripts/i18n-coverage.mjs ."
+        "i18n:coverage": "node ../common-ui/scripts/i18n-coverage.mjs --strict ."
+    },
+    "i18nCoverage": {
+        "exclude": [
+            "src/components/avh",
+            "src/components/ozcam",
+            "src/components/search/advancedSearchAvh.tsx"
+        ]
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",

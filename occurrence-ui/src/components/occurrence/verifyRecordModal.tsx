@@ -81,7 +81,7 @@ function VerifyRecordModal({ record, assertion, onClose, onVerified, prefill }: 
             })
             .catch(err => {
                 setSubmitting(false);
-                alert(intl.formatMessage({ id: 'show.verifyrecord.error', defaultMessage: 'Error verifying record: ' }) + err.message);
+                alert(intl.formatMessage({ id: 'show.verifyrecord.error', defaultMessage: 'Error verifying record: {error}' }, { error: err.message }));
             });
     }
 

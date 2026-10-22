@@ -34,9 +34,11 @@ function FieldSectionsPanel({ sections, selectedGroups, onToggleGroup, includeSe
     const intl = useIntl();
 
     function groupHelpHtml(group: any) {
-        let label = intl.formatMessage({id: "downloads.fields.group.${group.group}", defaultMessage: group.group});
+        let label = intl.formatMessage({id: `customGroup.${group.group}`, defaultMessage: group.group});
         if (group.filter && group.fieldsHtml) {
-            return `<a href='/fields?filter=${group.filter}' target='_fields'>${label} (click for full list of fields)</a> which include: ${group.fieldsHtml}`
+            const linkText = intl.formatMessage({id: 'download.customize.group.fulllist', defaultMessage: '{label} (click for full list of fields)'}, {label});
+            const includes = intl.formatMessage({id: 'download.customize.group.includes', defaultMessage: 'which include: {fields}'}, {fields: group.fieldsHtml});
+            return `<a href='/fields?filter=${group.filter}' target='_fields'>${linkText}</a> ${includes}`
         }
 
         if (group.fieldsHtml) {

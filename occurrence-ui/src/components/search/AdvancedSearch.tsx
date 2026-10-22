@@ -253,8 +253,9 @@ function AdvancedSearch() {
                 </div>
 
                 <div className="mb-3 row align-items-center text-end">
-                    <label className="col-md-2 control-label" htmlFor="ibra"><abbr
-                        title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr> <FormattedMessage id="advancedsearch.table06col03.title" defaultMessage="region"/></label>
+                    <label className="col-md-2 control-label" htmlFor="ibra">
+                        <FormattedMessage id="advancedsearch.ibra.label" defaultMessage="{abbr} region"
+                                          values={{abbr: <abbr title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr>}}/></label>
                     <div className="col-md-6 ms-2">
                         <select className="form-select form-control" id="ibra" value={advancedIbra}
                                 onFocus={() => fetchFacet('cl1048')}
@@ -269,8 +270,9 @@ function AdvancedSearch() {
                 </div>
 
                 <div className="mb-3 row align-items-center text-end">
-                    <label className="col-md-2 control-label" htmlFor="imcra"><abbr
-                        title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr> <FormattedMessage id="advancedsearch.table06col04.title" defaultMessage="region"/></label>
+                    <label className="col-md-2 control-label" htmlFor="imcra">
+                        <FormattedMessage id="advancedsearch.imcra.label" defaultMessage="{abbr} region"
+                                          values={{abbr: <abbr title="Integrated Marine and Coastal Regionalisation of Australia">IMCRA</abbr>}}/></label>
                     <div className="col-md-6 ms-2">
                         <select className="form-select form-control" id="imcra" value={advancedImcra}
                                 onFocus={() => fetchFacet('cl21')}

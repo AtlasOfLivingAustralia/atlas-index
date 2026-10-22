@@ -756,7 +756,7 @@ function RecordCore({record, compareRecord, collectionInfo, setEventHierarchy}: 
                         data?.processed?.occurrence?.dataGeneralizations : '') +
                     (isClubView() ? ' ' + intl.formatMessage({
                         id: 'recordcore.cg.label2',
-                        defaultMessage: 'NOTE: current user has "club view" and thus coordinates are not generalise.'
+                        defaultMessage: 'NOTE: current user has "club view" and thus coordinates are not generalised.'
                     }) : '')
 
         });

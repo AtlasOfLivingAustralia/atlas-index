@@ -498,8 +498,8 @@ function AdvancedSearchAvh() {
 
                 <div className="mb-1 row align-items-center ">
                     <label className="col-md-2 control-label" htmlFor="ibra">
-                        <abbr title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr>{' '}
-                        <FormattedMessage id="advancedsearch.ibra.label" defaultMessage="region"/>
+                        <FormattedMessage id="advancedsearch.ibra.label" defaultMessage="{abbr} region"
+                                          values={{abbr: <abbr title="Interim Biogeographic Regionalisation of Australia">IBRA</abbr>}}/>
                     </label>
                     <div className="col-md-6 ms-2">
                         <select className="form-select form-control" id="ibra"
@@ -517,8 +517,8 @@ function AdvancedSearchAvh() {
 
                 <div className="mb-1 row align-items-center ">
                     <label className="col-md-2 control-label" htmlFor="imcra">
-                        <abbr title="Integrated Marine and Coastal Regionalisation of Australia (meso-scale)">IMCRA</abbr>{' '}
-                        <FormattedMessage id="advancedsearch.imcra.label" defaultMessage="region"/>
+                        <FormattedMessage id="advancedsearch.imcra.label" defaultMessage="{abbr} region"
+                                          values={{abbr: <abbr title="Integrated Marine and Coastal Regionalisation of Australia (meso-scale)">IMCRA</abbr>}}/>
                     </label>
                     <div className="col-md-6 ms-2">
                         <select className="form-select form-control" id="imcra"
