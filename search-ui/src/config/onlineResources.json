@@ -206,11 +206,6 @@
         }
     },
     {
-        "name": "Australian Reference Genome Atlas",
-        "url": "https://app.arga.org.au/",
-        "external": true
-    },
-    {
         "name": "QLD Government - Species Profile Search",
         "url": "https://apps.des.qld.gov.au/species-search/",
         "external": true
