@@ -241,7 +241,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
         <div className="d-flex flex-row">
             <Menu/>
 
-            <div className="flex-grow-1 p-3">
+            <div className="flex-grow-1 p-3 admin-main">
                 <Tabs id="admin-tabs" activeKey={tab} onSelect={(k) => setTab('' + k)}>
                     <Tab eventKey="tasks" title="Background tasks">
                         {taskString && <pre className="alert alert-info" style={{height: '100px'}}>
