@@ -72,6 +72,7 @@ public class StaticFileStoreService {
     }
 
     public boolean copyToFileStore(File src, String dstPath, boolean deleteSource) {
+        dstPath = StringUtils.stripStart(dstPath, "/");
         try {
             if (fileStorePath.startsWith("s3")) {
                 // s3 storage
@@ -128,6 +129,7 @@ public class StaticFileStoreService {
      * @return
      */
     public File get(String srcPath) {
+        srcPath = StringUtils.stripStart(srcPath, "/");
         try {
             if (fileStorePath.startsWith("s3")) {
                 // s3 storage
@@ -163,6 +165,7 @@ public class StaticFileStoreService {
     }
 
     public boolean delete(String filePath) {
+        filePath = StringUtils.stripStart(filePath, "/");
         try {
             if (fileStorePath.startsWith("s3")) {
                 // s3 storage
