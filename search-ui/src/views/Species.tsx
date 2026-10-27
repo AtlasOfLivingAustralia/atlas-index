@@ -13,6 +13,7 @@ import {
 import {faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify';
 import {useEffect, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useParams} from 'react-router-dom';
 import {TaxonDescription} from '../api/sources/model.ts';
 import FormatName from '../components/nameUtils/formatName.tsx';
@@ -32,6 +33,7 @@ import capitalizeFirstLetter from '../helpers/Capitalise.ts';
 import IMAGE_PLACEHOLDER from '../image/missing-image.png';
 
 function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
+    const intl = useIntl();
     const [tab, setTab] = useHashState('tab', 'map');
     const [result, setResult] = useState<Record<PropertyKey, string | number | any>>({});
     const [descriptions, setDescriptions] = useState<TaxonDescription[]>([]);
@@ -218,9 +220,20 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                 paddingBottom: isMobile ? '15px' : '60px',
             }}>
                 <div style={{width: isMobile ? '100%' : '50%'}}>
-                    <span className={classes.speciesHeaderRank} style={{marginBottom: '25px'}}>
-                        {capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}{result.speciesGroup && <>, {result.speciesGroup[0]}</>}
-                    </span>
+                    <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{marginBottom: '25px', gap: '20px'}}>
+                        <span>{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</span>
+                        {result.taxonomicStatus && (
+                            <span>
+                                {intl.formatMessage({
+                                    id: 'taxonomicStatus.' + result.taxonomicStatus,
+                                    defaultMessage: capitalizeFirstLetter(result.taxonomicStatus),
+                                })}
+                            </span>
+                        )}
+                        {result.datasetName && (
+                            <span>Name authority: {result.datasetName}</span>
+                        )}
+                    </div>
 
                     {result.commonNameSingle &&
                         <span className={classes.speciesHeaderVernacular}>

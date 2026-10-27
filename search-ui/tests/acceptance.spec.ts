@@ -369,13 +369,15 @@ test.describe('Species page - fetch and not-found', () => {
 });
 
 test.describe('Species page - header', () => {
-    test('shows name, rank, common name and hero description', async ({ page }) => {
+    test('shows name, rank, taxonomic status, name authority, common name and hero description', async ({ page }) => {
         test.skip(shouldSkip('species-header-basic'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
 
         await expect(page.locator('text=Falco hypoleucos').first()).toBeVisible();
-        await expect(page.locator('text=Species, Animals')).toBeVisible();
+        await expect(page.getByText('Species', { exact: true }).first()).toBeVisible();
+        await expect(page.getByText('Accepted', { exact: true }).first()).toBeVisible();
+        await expect(page.locator('text=Name authority: Australian Faunal Directory')).toBeVisible();
         await expect(page.locator('text=Grey Falcon').first()).toBeVisible();
         await expect(page.locator('text=rare, medium-sized falcon')).toBeVisible();
     });
@@ -432,6 +434,7 @@ test.describe('Species page - header', () => {
         await load(page, speciesUrl(SPECIES_PLANT_MINIMAL.guid));
 
         await expect(page.locator('text=Testus minimalis').first()).toBeVisible();
+        expect(await page.locator('text=Name authority:').count()).toBe(0);
         expect(await page.locator('text=considered invasive').count()).toBe(0);
         expect(await page.locator('text=View this Indigenous name').count()).toBe(0);
         expect(await page.locator('text=View all').count()).toBe(0);

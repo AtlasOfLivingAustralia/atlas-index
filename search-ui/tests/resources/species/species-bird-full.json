@@ -3,6 +3,7 @@
     "name": "Falco hypoleucos",
     "scientificName": "Falco hypoleucos",
     "nameFormatted": "<i>Falco hypoleucos</i>",
+    "taxonomicStatus": "accepted",
     "rank": "species",
     "rankID": 7000,
     "rankOrder": "kingdom,phylum,class,order,family,genus",
