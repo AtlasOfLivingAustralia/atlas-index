@@ -26,13 +26,13 @@ Generate ALA token for profiles API access
 4. Save the `access_token` value to a file, e.g. `/data/alaToken`, or as defined in `config.json`.
 
 Get list of wikipedia titles 
-1. Download the latest wikipedia titles list from `https://dumps.wikimedia.org/enwiki/latest/`, `enwiki-latest-all-titles-in-ns0`.
+1. Download the latest wikipedia titles list from `https://dumps.wikimedia.org/enwiki/latest/`, `enwiki-latest-all-titles-in-ns0` (decompress the downloaded .gz file).
 2. Save to `/data/enwiki-latest-all-titles-in-ns0`, or as specified in `config.json`.
 3. Use the previous `/data/wikipedia-tmp` directory, and contents, if available, to make use of previously downloaded html. 
  - Delete `/data/wikipedia-tmp/matched.csv` if there is a new `enwiki-latest-all-titles-in-ns0` or `accepted.csv` file.
  - Delete directories `/data/wikipedia-tmp/cache_*` if there is a need to re-download html for existing taxonIds.
 
-Get data from vicflora
+Check settings for vicflora 
 1. Uses configuration `vicFloraGraphqlUrl` to fetch the list of pages to download. 
 2. Uses configuration `vicFloraUrl`, this is the prefix in front of the id returned by the graphql query so it should end with a `/`. This url + id is the page to download.
 3. Remove the `vicflora-tmp.json` file if there is a need to re-download data. It is found in the configured `wikipediaTmp` directory.
