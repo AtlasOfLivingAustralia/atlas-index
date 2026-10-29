@@ -4,6 +4,11 @@ Replacement for the ALA BIE ([`ala-bie-hub`](https://github.com/AtlasOfLivingAus
 
 ## Getting started
 
+### Config
+
+- For ALA development, copy `.env.local` from [atlas-index/local/search-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/search-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
+
 ```bash
 yarn install
 yarn run dev

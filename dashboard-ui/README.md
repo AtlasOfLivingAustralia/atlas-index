@@ -18,8 +18,8 @@ Built with:
 
 ### Config
 
-- For ALA development, refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/dashboard-ui) configuration and deployment information.
-- For all other use, see the [Environment variables](#environment-variables) section below and create your own `.env.local` file.
+- For ALA development, copy `.env.local` from [atlas-index/local/dashboard-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/dashboard-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
 
 ### Preparing data
 

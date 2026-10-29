@@ -8,6 +8,11 @@ UI for admin functions:
 
 ## Getting started
 
+### Config
+
+- For ALA development, copy `.env.local` from [atlas-index/local/admin-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/admin-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
+
 ```bash
 yarn install
 yarn run dev

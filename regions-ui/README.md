@@ -37,9 +37,10 @@ with either:
 
 Delete the `regionsList*.json` files in the project directory to trigger a rebuild.
 
-### ALA environment
+### Config
 
-Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) configuration and deployment information.
+- For ALA development, copy `.env.local` from [atlas-index/local/regions-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/regions-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
 
 ### Local development
 1. Link the `common-ui` package. Refer to the [common-ui README](../common-ui/README.md) for instructions.

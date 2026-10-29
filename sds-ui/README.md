@@ -4,6 +4,18 @@ Before ALA was using `ala-sensitive-data-service`, it had `sds-webapp2`, which w
 
 This directory contains the static HTML file for the home page from `sds-webapp2`. It links to the XML files via either a direct HTTP Cloudfront URL to the s3 file or by linking to the API for `ala-sensitive-data-service`. The HTML file should be served from s3 via Cloudfriont, similar to the `sensitive-species-data.xml` file.
 
+## Getting started
+
+### Config
+
+- For ALA development, copy `.env.local` from [atlas-index/local/sds-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/sds-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory. `yarn run dev` loads it.
+
+```bash
+yarn install
+yarn run dev
+```
+
 ## Playwright tests
 Playwright tests are included to verify basic functionality. Running in headless mode by default. To run the tests:
 ```bash

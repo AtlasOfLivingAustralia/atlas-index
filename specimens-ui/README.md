@@ -11,9 +11,10 @@ process, this file is used to generate a `./src/api/sources/collections.json` by
 `.env.production:VITE_APP_COLLECTIONS_URL` and based on the `collections.json` file. Delete to regenerate if you change 
 the `./public/collections.json` file.
 
-### ALA environment
+### Config
 
-Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/specimens-ui) configuration and deployment information.
+- For ALA development, copy `.env.local` from [atlas-index/local/specimens-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/specimens-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
 
 ### Local development
 

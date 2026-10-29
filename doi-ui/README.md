@@ -4,9 +4,10 @@ A UI replacement for the DOI app. Uses Search-service as a backend.
 
 ## Getting started
 
-### ALA environment
+### Config
 
-Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/doi-ui) configuration and deployment information.
+- For ALA development, copy `.env.local` from [atlas-index/local/doi-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/doi-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
 
 ### Local development
 
