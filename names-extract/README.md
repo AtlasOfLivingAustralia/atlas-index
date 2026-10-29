@@ -29,11 +29,11 @@ wget -O "/data/ala-namematching-service/config/groups.json" "https://raw.githubu
 wget -O "/data/ala-namematching-service/config/subgroups.json" "https://raw.githubusercontent.com/AtlasOfLivingAustralia/ala-install/master/ansible/roles/namematching-service/files/subgroups.json"
 ```
 
-Unpack the lucene index `https://archives.ala.org.au/archives/nameindexes/20230725-5/namematching-20230725-5.tgz` to the default `/data/lucene/namematching-20230725-5`.
+Unpack the lucene index `https://archives.ala.org.au/archives/nameindexes/2025v1-5/namematching-2025v1-5.tgz` to the default `/data/lucene/namematching-combined-2025-1-override`.
 
 Run
 ```shell
-java -Dlucene.dir=/data/lucene/namematching-20230725-5/ -jar target/names-extract-0.0.1-SNAPSHOT-jar-with-dependencies.jar server
+java -Dlucene.dir=/data/lucene/namematching-combined-2025-1-override/ -jar target/names-extract-0.0.1-SNAPSHOT-jar-with-dependencies.jar server
 ```
 
 Produces
