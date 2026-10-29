@@ -62,6 +62,16 @@ It is a work in progress and subject to change.
 
 ## Local Development
 
+### Prerequisites
+- Java 21: needed for services
+  - [SDKMAN!](https://sdkman.io/) is recommended for managing Java versions
+- Node.js 24.16 (or later): needed for UI
+  - [nvm](https://github.com/nvm-sh/nvm) is recommended for managing Node.js versions
+- Yarn: needed for UI package management
+  - Run `npm install -g corepack && corepack enable` once Node.js is installed to enable Yarn
+
+### Installation
+
 To prepare the search-service and other UI requirements for local development, follow these steps:
 
 1. Prepare yarn workspace by running `yarn install` in this directory. Use --no-immutable if installing dependencies fails due to yarn workspaces being immutable.
