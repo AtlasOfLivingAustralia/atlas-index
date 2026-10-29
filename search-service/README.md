@@ -23,6 +23,24 @@ It is a Spring Boot application that provides REST web services for accessing an
 
 ## Getting started
 
+### Config
+
+- For ALA development, copy `search-service-config.properties` and `conservation-lists.json` from [atlas-index/local/search-service](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/search-service) to `/data/search-service/config/`.
+  - `atlas-index/local/search-service` also contains deployment notes.
+- Ensure you update the following properties to match your local environment. Docker defaults are in [`docker/docker-compose.yml`](docker/docker-compose.yml):
+
+    | Property | Docker default |
+    | --- | --- |
+    | `spring.datasource.url` | `jdbc:postgresql://localhost:5433/search` |
+    | `spring.datasource.username` | `atlas` |
+    | `spring.datasource.password` | `password` |
+    | `rabbitmq.username` | `atlas` |
+    | `rabbitmq.password` | `password` |
+    | `openapi.servers` | Prepend with `http://localhost:8081,` |
+    | OIDC/Webservice client IDs & secrets | [Localhost-enabled clients] |
+- For any other setup, create `/data/search-service/config/search-service-config.properties`. search-service loads that file at startup.
+  - Defaults are in `src/main/resources/application.properties`
+
 ### Elasticsearch
 
 To run the elasticsearch, postgresql and rabbitmq needed for the search-service use the following command:
@@ -135,6 +153,12 @@ elastic.adminIndex=search-log-20240401
 ### Configure data sources
 
 1. DwCA; idxtype TAXON, COMMON, TAXONVARIANT, IDENTIFIER.
+
+    **Name autocomplete and taxon search use the taxa imported from this names index.**
+    
+    Download [combined-2025v1-5.zip](https://archives.ala.org.au/archives/nameindexes/2025v1-5/combined-2025v1-5.zip) and unzip it. The archive expands to a directory named `combined-2025v1-5` containing the Darwin Core files (`meta.xml`, `taxon.txt`, and the rest).
+    
+    Place that directory inside `dwca.dir`. The importer reads every subdirectory of `dwca.dir`. The default is `/data/bie/import`:
 
     ```
     Note: Can only import when the index has no records of idxtype TAXON, COMMON, TAXONVARIANT, IDENTIFIER.

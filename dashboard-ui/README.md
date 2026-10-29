@@ -9,15 +9,17 @@ Built with:
 - React
 - TypeScript
 - Bootstrap 5
-- Node version v18.12.1
-- Yarn version v1.22.10 (brew install yarn)
+- Node.js 24.16 (or later)
+  - [nvm](https://github.com/nvm-sh/nvm) is recommended for managing Node.js versions
+- Yarn 4
+  - Run `npm install -g corepack && corepack enable` once Node.js is installed to enable Yarn
 
 ## Getting started
 
 ### Config
 
-- For ALA development, refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/dashboard-ui) configuration and deployment information.
-- For all other use, see the [Environment variables](#environment-variables) section below and create your own `.env.local` file.
+- For ALA development, copy `.env.local` from [atlas-index/local/dashboard-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/dashboard-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below.
 
 ### Preparing data
 

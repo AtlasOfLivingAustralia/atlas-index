@@ -9,6 +9,10 @@ Setup the environment so that changes to the `common-ui` package are reflected i
 
 Run `yarn install` in the root directory of atlas-index. This sets up the `common-ui` package and links it to the `-ui` projects using yarn 4.x workspace.
 
+### Config
+
+common-ui is a library used by the other `-ui` apps. Set its values in each app's `.env.local`. The variables are listed under [Configuration](#configuration).
+
 ## Testing
 
 ```bash

@@ -4,13 +4,10 @@ A UI replacement for biocache-hubs, ala-hub, avh-hub, ozcam-hub apps and relevan
 
 ## Getting started
 
-### ALA environment
+### Config
 
-Refer to [this](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/occurrence-ui) configuration and deployment information.
-
-### Local development
-
-An example configuration file is provided at `./env.local.example` for local development. Copy to `.env.local` and update the values as required.
+- For ALA development, copy `.env.local` from [atlas-index/local/occurrence-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/occurrence-ui) into this directory. That directory also has the deployment notes.
+- For any other setup, copy `env.local.example` to `.env.local` in this directory and edit the values.
 
 ### Install dependencies and run the development server
 
