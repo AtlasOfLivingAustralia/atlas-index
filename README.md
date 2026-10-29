@@ -78,17 +78,18 @@ It is a work in progress and subject to change.
 To prepare the search-service and other UI requirements for local development, follow these steps:
 
 1. Prepare yarn workspace by running `yarn install` in this directory. Use --no-immutable if installing dependencies fails due to yarn workspaces being immutable.
-2. [Generate supplemental data for search-service](names-extract/README.md) (or fetch the ALA internal bucket)
-3. (Optional) [Harvest taxon descriptions for search-service and search-ui](taxon-descriptions/README.md) (or fetch from
+2. [Supply the names index DwCA for search-service](search-service/README.md)
+3. [Generate supplemental data for search-service](names-extract/README.md) (or fetch the ALA internal bucket)
+4. (Optional) [Harvest taxon descriptions for search-service and search-ui](taxon-descriptions/README.md) (or fetch from
    the ALA internal bucket)
-4. (Optional) [Harvest taxon bhl information for search-service and search-ui](taxon-bhl/README.md) (or fetch from
+5. (Optional) [Harvest taxon bhl information for search-service and search-ui](taxon-bhl/README.md) (or fetch from
    the ALA internal bucket)
-5. (Optional) [Harvest taxon map information for search-service and search-ui](taxon-map/README.md) (or fetch from
+6. (Optional) [Harvest taxon map information for search-service and search-ui](taxon-map/README.md) (or fetch from
    the ALA internal bucket)
-6. (Optional) [Harvest taxon traits information for search-service and search-ui](taxon-traits/README.md) (or fetch from
+7. (Optional) [Harvest taxon traits information for search-service and search-ui](taxon-traits/README.md) (or fetch from
    the ALA internal bucket)
-7. [Start search-service after setting up Elasticsearch, PostgreSQL, RabbitMQ and configuring authentication](search-service/README.md)
-8. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
+8. [Start search-service after setting up Elasticsearch, PostgreSQL, RabbitMQ and configuring authentication](search-service/README.md)
+9. [Start admin-ui and start building the admin index. See the Admin page.](admin-ui/README.md)
 
 The user UI applications can now be configured and started.
 

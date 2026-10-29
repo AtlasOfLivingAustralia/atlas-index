@@ -136,6 +136,12 @@ elastic.adminIndex=search-log-20240401
 
 1. DwCA; idxtype TAXON, COMMON, TAXONVARIANT, IDENTIFIER.
 
+    **Name autocomplete and taxon search use the taxa imported from this names index.**
+    
+    Download [combined-2025v1-5.zip](https://archives.ala.org.au/archives/nameindexes/2025v1-5/combined-2025v1-5.zip) and unzip it. The archive expands to a directory named `combined-2025v1-5` containing the Darwin Core files (`meta.xml`, `taxon.txt`, and the rest).
+    
+    Place that directory inside `dwca.dir`. The importer reads every subdirectory of `dwca.dir`. The default is `/data/bie/import`:
+
     ```
     Note: Can only import when the index has no records of idxtype TAXON, COMMON, TAXONVARIANT, IDENTIFIER.
     
