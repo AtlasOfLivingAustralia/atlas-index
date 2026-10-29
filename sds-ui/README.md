@@ -9,11 +9,59 @@ This directory contains the static HTML file for the home page from `sds-webapp2
 ### Config
 
 - For ALA development, copy `.env.local` from [atlas-index/local/sds-ui](https://github.com/AtlasOfLivingAustralia/ansible-inventories/tree/master/atlas-index/local/sds-ui) into this directory. That directory also has the deployment notes.
-- For any other setup, create a `.env.local` in this directory. `yarn run dev` loads it.
+- For any other setup, create a `.env.local` in this directory using the [Environment variables](#environment-variables) below. `yarn run dev` loads it.
 
 ```bash
 yarn install
 yarn run dev
+```
+
+## Environment variables
+
+The following environment variables are read from `src/` at build time. A production build fails if any of them is missing from `.env.local`; an empty value is allowed. Example values below match a local run against the test services.
+
+```properties
+# Home breadcrumb link
+VITE_HOME_URL=https://ala.org.au
+
+# Written into a page meta tag, for example local, test or production
+VITE_ENV=local
+
+# This app's public URL. Logout returns here, and the URL must be registered with the auth provider.
+VITE_APP_BASE_URL=http://localhost:5173
+
+# search-service base URL. Login, logout and session checks call {url}/login, {url}/logout and {url}/session.
+VITE_APP_API_URL=http://localhost:8081
+
+# Sensitive Data Service web service. The page links to {url}/categories, {url}/zones and {url}/layers.
+VITE_APP_SENSITIVE_WS_URL=https://sensitive-ws-test.ala.org.au/ws
+
+# Swagger UI for the Sensitive Data Service. The page links to the report endpoint.
+VITE_APP_SENSITIVE_SWAGGER_URL=https://sensitive-ws-test.ala.org.au/swagger
+
+# Sensitive species XML. When empty, the page uses /sensitive-species-data.xml.
+VITE_APP_SENSITIVE_SPECIES_XML_URL=https://sensitive-ws-test.ala.org.au/sensitive-species-data.xml
+
+# Species lists that make up the SDS, opened from the Resources section
+VITE_APP_LISTS_URL=https://lists.test.ala.org.au/?filters=isSDS:true
+
+# Help article linked as "Data Sensitivity"
+VITE_APP_ALA_HELP_SENSITIVE_URL=https://support.ala.org.au/support/solutions/articles/6000261705-working-with-conservation-and-sensitive-species-information
+
+# Common header and footer templates, plus styles and scripts. CSS and JS accept a comma-separated list of URLs.
+# yarn run dev serves the static-server copies on port 8082.
+VITE_COMMON_HEADER_HTML=http://localhost:8082/static/common/banner.mustache
+VITE_COMMON_FOOTER_HTML=http://localhost:8082/static/common/footer.mustache
+VITE_COMMON_CSS=http://localhost:8082/static/common/ala-combined.css
+VITE_COMMON_JS=http://localhost:8082/static/common/ala-combined.js
+# Substituted for {{containerClass}} in the header template. container-fluid or container.
+VITE_COMMON_CONTAINER_CLASS=container-fluid
+# Substituted for the header search box ({{searchServer}}{{searchPath}})
+VITE_SEARCH_URL_PREFIX=https://bie.test.ala.org.au
+
+# Status messages. The banner shows entries keyed "global" and this scope.
+VITE_BANNER_MESSAGES_URL=http://localhost:8082/static/common/status.json
+VITE_BANNER_SCOPE=sds
 ```
 
 ## Playwright tests
