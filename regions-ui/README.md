@@ -10,8 +10,10 @@ Built with:
 - TypeScript
 - Bootstrap 5
 - Leaflet
-- Node version v18.12.1
-- Yarn version v1.22.10
+- Node.js 24.16 (or later)
+  - [nvm](https://github.com/nvm-sh/nvm) is recommended for managing Node.js versions
+- Yarn 4
+  - Run `npm install -g corepack && corepack enable` once Node.js is installed to enable Yarn
 
 ## Getting started
 
