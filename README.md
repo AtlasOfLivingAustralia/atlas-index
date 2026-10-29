@@ -63,11 +63,14 @@ It is a work in progress and subject to change.
 ## Local Development
 
 ### Prerequisites
-- Java 21: needed for services
+- **Java 21:** needed for services
   - [SDKMAN!](https://sdkman.io/) is recommended for managing Java versions
-- Node.js 24.16 (or later): needed for UI
+  - Run `sdk install java 21-tem` once SDKMAN! is installed, then `sdk default java 21-tem` so new shells use Java 21
+- **Maven:** needed to build and test the services
+  - Run `sdk install maven` once SDKMAN! is installed, so `mvn` is on your PATH
+- **Node.js 24.16 (or later):** needed for UI
   - [nvm](https://github.com/nvm-sh/nvm) is recommended for managing Node.js versions
-- Yarn: needed for UI package management
+- **Yarn:** needed for UI dependency management
   - Run `npm install -g corepack && corepack enable` once Node.js is installed to enable Yarn
 
 ### Installation
