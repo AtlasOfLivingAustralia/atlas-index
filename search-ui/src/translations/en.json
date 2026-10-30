@@ -65,5 +65,27 @@
     "region.CS": "Coral Sea Islands",
     "region.NF": "Norfolk Island",
     "region.HM": "Heard and McDonald Islands",
-    "region.AQ": "Australian Antarctic Territory"
+    "region.AQ": "Australian Antarctic Territory",
+
+    "taxonomicStatus.accepted": "Accepted",
+    "taxonomicStatus.inferredAccepted": "Inferred accepted",
+    "taxonomicStatus.synonym": "Synonym",
+    "taxonomicStatus.homotypicSynonym": "Homotypic synonym",
+    "taxonomicStatus.objectiveSynonym": "Objective synonym",
+    "taxonomicStatus.heterotypicSynonym": "Heterotypic synonym",
+    "taxonomicStatus.subjectiveSynonym": "Subjective synonym",
+    "taxonomicStatus.proParteSynonym": "Pro parte synonym",
+    "taxonomicStatus.misapplied": "Misapplied",
+    "taxonomicStatus.inferredSynonym": "Inferred synonym",
+    "taxonomicStatus.excluded": "Excluded",
+    "taxonomicStatus.inferredExcluded": "Inferred excluded",
+    "taxonomicStatus.incertaeSedis": "Incertae sedis",
+    "taxonomicStatus.speciesInquirenda": "Species inquirenda",
+    "taxonomicStatus.unplaced": "Unplaced",
+    "taxonomicStatus.inferredUnplaced": "Inferred unplaced",
+    "taxonomicStatus.invalid": "Invalid",
+    "taxonomicStatus.inferredInvalid": "Inferred invalid",
+    "taxonomicStatus.doubtful": "Doubtful",
+    "taxonomicStatus.miscellaneousLiterature": "Miscellaneous literature",
+    "taxonomicStatus.pseudoTaxon": "Pseudo taxon"
 }

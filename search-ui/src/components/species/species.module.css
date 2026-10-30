@@ -321,7 +321,7 @@
     line-height: 20px;
     display: block;
     position: relative;
-    /*padding-left: 14px;*/
+    padding-left: 14px;
 }
 
 @media (max-width: 768px) {
@@ -331,18 +331,24 @@
     }
 }
 
-/*.speciesHeaderRank::before {*/
-/*    content: '';*/
-/*    position: absolute;*/
-/*    left: 0;*/
-/*    top: 50%;*/
-/*    transform: translateY(-50%);*/
-/*    width: 7px;*/
-/*    height: 7px;*/
-/*    border-radius: 50%;*/
-/*    background: #333; !* or your preferred color *!*/
-/*    display: inline-block;*/
-/*}*/
+.speciesHeaderRank::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    transform: translateY(-50%);
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #657073;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .speciesHeaderRank::before {
+        top: 8px;
+    }
+}
 
 .speciesHeaderVernacular {
     font-size: 20px;

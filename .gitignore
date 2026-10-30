@@ -4,6 +4,7 @@ node_modules/
 dist/
 node/
 .env.local
+.env.development
 .env.production
 regionList.json
 regionList.meta.json
@@ -58,3 +59,4 @@ build/
 
 # Deployment-local runtime configuration (see */community/config.js)
 config.local.js
+names-extract/lsid-*.csv
