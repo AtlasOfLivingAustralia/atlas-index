@@ -60,3 +60,5 @@ build/
 # Deployment-local runtime configuration (see */community/config.js)
 config.local.js
 names-extract/lsid-*.csv
+taxon-descriptions/config.json
+taxon-descriptions/getAll.sh
