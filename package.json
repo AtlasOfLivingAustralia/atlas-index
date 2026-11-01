@@ -6,6 +6,7 @@
     "admin-ui",
     "dashboard-ui",
     "doi-ui",
+    "image-service-ui",
     "occurrence-ui",
     "regions-ui",
     "sds-ui",

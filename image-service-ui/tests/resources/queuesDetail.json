@@ -1,0 +1,7 @@
+{
+    "queues": [
+        {"name": "thumbnail-generation", "size": 12, "consumers": 4},
+        {"name": "tile-generation", "size": 3, "consumers": 2},
+        {"name": "keyword-regeneration", "size": 0, "consumers": 1}
+    ]
+}

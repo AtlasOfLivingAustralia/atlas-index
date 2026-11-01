@@ -1,0 +1,208 @@
+:root {
+    --images-ink: #172126;
+    --images-muted: #5f6f76;
+    --images-border: #d9e1e3;
+    --images-surface: #f6f8f8;
+    --images-primary: #c44d2d;
+    --images-primary-dark: #9e361e;
+}
+
+.advanced-search {
+    margin: .75rem 0 1.5rem;
+    overflow: hidden;
+    border: 1px solid var(--images-border);
+    border-radius: .75rem;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(23, 33, 38, .04);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.advanced-search--open {
+    border-color: #b8c5c8;
+    box-shadow: 0 8px 24px rgba(23, 33, 38, .08);
+}
+
+.advanced-search__toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: .875rem;
+    padding: 1rem 1.125rem;
+    border: 0;
+    background: #fff;
+    color: var(--images-ink);
+    text-align: left;
+}
+
+.advanced-search__toggle:hover {
+    background: var(--images-surface);
+}
+
+.advanced-search__toggle:focus-visible {
+    outline: 3px solid rgba(196, 77, 45, .25);
+    outline-offset: -3px;
+}
+
+.advanced-search__toggle-icon {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 2.5rem;
+    place-items: center;
+    border-radius: .625rem;
+    background: #f8eae5;
+    color: var(--images-primary-dark);
+    font-size: 1.125rem;
+}
+
+.advanced-search__toggle-copy {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.advanced-search__title {
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.advanced-search__subtitle {
+    margin-top: .125rem;
+    color: var(--images-muted);
+    font-size: .875rem;
+}
+
+.advanced-search__toggle-action {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--images-primary-dark);
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.advanced-search__panel {
+    padding: 1.125rem;
+    border-top: 1px solid var(--images-border);
+    background: var(--images-surface);
+}
+
+.advanced-search__builder {
+    display: grid;
+    grid-template-columns: minmax(11rem, 1.15fr) minmax(10rem, .9fr) minmax(13rem, 1.4fr) auto;
+    gap: .875rem;
+    align-items: end;
+}
+
+.advanced-search .form-label {
+    margin-bottom: .375rem;
+    color: #39494f;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+}
+
+.advanced-search .form-control,
+.advanced-search .form-select {
+    min-height: 2.75rem;
+    border-color: #c8d2d4;
+    border-radius: .5rem;
+}
+
+.advanced-search .form-control:focus,
+.advanced-search .form-select:focus {
+    border-color: var(--images-primary);
+    box-shadow: 0 0 0 .2rem rgba(196, 77, 45, .14);
+}
+
+.advanced-search__value-wrap {
+    position: relative;
+}
+
+.advanced-search__units {
+    position: absolute;
+    top: 50%;
+    right: .75rem;
+    color: var(--images-muted);
+    font-size: .82rem;
+    transform: translateY(-50%);
+}
+
+.advanced-search__value-wrap:has(.advanced-search__units) .form-control {
+    padding-right: 3.5rem;
+}
+
+.advanced-search__add {
+    min-height: 2.75rem;
+    padding-inline: 1.125rem;
+    border-color: var(--images-primary-dark);
+    background: var(--images-primary-dark);
+    white-space: nowrap;
+}
+
+.advanced-search__add:hover,
+.advanced-search__add:focus {
+    border-color: #7f2916;
+    background: #7f2916;
+}
+
+.advanced-search__help,
+.advanced-search__empty {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .75rem;
+    color: var(--images-muted);
+    font-size: .875rem;
+}
+
+.advanced-search__empty {
+    margin: 0;
+}
+
+@media (max-width: 991.98px) {
+    .advanced-search__builder {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .advanced-search__value {
+        grid-column: 1 / 2;
+    }
+
+    .advanced-search__add {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .advanced-search__toggle {
+        align-items: flex-start;
+        padding: .875rem;
+    }
+
+    .advanced-search__toggle-action {
+        font-size: 0;
+    }
+
+    .advanced-search__toggle-action i {
+        font-size: 1rem;
+    }
+
+    .advanced-search__panel {
+        padding: .875rem;
+    }
+
+    .advanced-search__builder {
+        grid-template-columns: 1fr;
+    }
+
+    .advanced-search__value {
+        grid-column: auto;
+    }
+
+    .advanced-search__add {
+        width: 100%;
+    }
+}
