@@ -428,6 +428,82 @@ test.describe('Species page - header', () => {
         await expect(page).toHaveURL(/#tab=status/);
     });
 
+    test('condenses the header once on a slow scroll, and is not clipped after a resize', async ({ page }) => {
+        test.skip(shouldSkip('species-header-sticky'), 'Skipped via live-config.json skip list');
+        await page.setViewportSize({ width: 1400, height: 800 });
+        await setupSpeciesPageMocks(page);
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
+
+        const header = page.locator('[data-condensed]');
+        await expect(header).toHaveAttribute('data-condensed', 'false');
+        await expect(page.locator('text=rare, medium-sized falcon')).toBeVisible();
+
+        // Record every change, so a header that condenses and expands again while scrolling is caught.
+        await header.evaluate((el) => {
+            (window as any).__condensedChanges = [];
+            new MutationObserver(() => (window as any).__condensedChanges.push(el.getAttribute('data-condensed')))
+                .observe(el, { attributes: true, attributeFilter: ['data-condensed'] });
+        });
+
+        // Small wheel steps carry the scroll across the point where the header reaches the top of the viewport.
+        await page.mouse.move(600, 400);
+        for (let i = 0; i < 60; i++) {
+            await page.mouse.wheel(0, 8);
+            await page.waitForTimeout(25);
+        }
+        await expect(header).toHaveAttribute('data-condensed', 'true');
+        await expect(page.locator('text=Name authority: Australian Faunal Directory')).toBeHidden();
+        await expect(page.locator('[class*="tabBar"]').getByText('Map', { exact: true })).toBeVisible();
+        await page.waitForTimeout(700); // let the animation finish: any flip-flop would show up by now
+        expect(await page.evaluate(() => (window as any).__condensedChanges)).toEqual(['true']);
+
+        // Narrow the window while condensed, then return to the top: the whole hero must fit in the header.
+        await page.setViewportSize({ width: 900, height: 800 });
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+        await expect(header).toHaveAttribute('data-condensed', 'false');
+        const lastLine = page.getByText('considered invasive');
+        await expect(lastLine).toBeVisible();
+        await expect.poll(async () => {
+            const headerBox = (await header.boundingBox())!;
+            const lineBox = (await lastLine.boundingBox())!;
+            return lineBox.y + lineBox.height <= headerBox.y + headerBox.height;
+        }).toBe(true);
+    });
+
+    test('truncates a long species name instead of wrapping it', async ({ page }) => {
+        test.skip(shouldSkip('species-header-long-name'), 'Skipped via live-config.json skip list');
+        const guid = 'https://biodiversity.org.au/afd/taxa/long-name-species';
+        const longName = 'Falco hypoleucos subsp. extraordinarius var. exceedingly-long-name f. goes-on-well-past-the-edge-of-the-header Gould, 1841';
+        await page.setViewportSize({ width: 900, height: 800 });
+        await setupSpeciesPageMocks(page, {
+            extraSpeciesByPath: { [guid]: { ...SPECIES_BIRD_FULL, guid, name: longName, nameFormatted: longName } },
+        });
+        await load(page, speciesUrl(guid));
+
+        const name = page.locator('[class*="speciesHeaderName"]');
+        await expect(name).toContainText('Falco hypoleucos subsp. extraordinarius');
+        const metrics = await name.evaluate((el) => ({
+            height: el.getBoundingClientRect().height,
+            lineHeight: parseFloat(getComputedStyle(el).lineHeight),
+            overflows: el.scrollWidth > el.clientWidth,
+        }));
+        expect(metrics.height).toBe(metrics.lineHeight);
+        expect(metrics.overflows).toBe(true);
+    });
+
+    test('does not condense the header on a phone-width viewport', async ({ page }) => {
+        test.skip(shouldSkip('species-header-sticky-mobile'), 'Skipped via live-config.json skip list');
+        await page.setViewportSize({ width: 400, height: 800 });
+        await setupSpeciesPageMocks(page);
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
+
+        await expect(page.locator('text=Falco hypoleucos').first()).toBeVisible();
+        await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
+        await expect(page.locator('[data-condensed="true"]')).toHaveCount(0);
+        const position = await page.locator('[data-condensed]').evaluate((el) => getComputedStyle(el).position);
+        expect(position).not.toBe('sticky');
+    });
+
     test('does not show hero image, IEK preview, or invasive alert for a minimal species', async ({ page }) => {
         test.skip(shouldSkip('species-header-minimal'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);

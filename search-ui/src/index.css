@@ -107,3 +107,15 @@
     font-size: 32px;
     line-height: 40px;
 }
+
+/* The species and search headers are pulled up over this strip. It has to paint
+   above the sticky species bar (z-index 20) or the trail is hidden. */
+section#breadcrumb {
+    position: relative;
+    z-index: 21;
+}
+
+/* Leaflet's own z-indexes would otherwise paint the map controls over the sticky species header. */
+.speciesPage .leaflet-container {
+    isolation: isolate;
+}

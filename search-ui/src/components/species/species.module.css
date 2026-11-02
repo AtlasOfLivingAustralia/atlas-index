@@ -681,3 +681,195 @@
     padding-top: 15px;
     margin-top: 20px;
 }
+
+/*
+ * Species header. On desktop it is pinned and condenses to name + thumbnail + tabs once it reaches
+ * the top of the viewport. Every size comes from CSS, so nothing needs re-measuring.
+ */
+.stickyChrome {
+    --snap: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 1px 4px transparent;
+}
+
+.headerInner {
+    position: relative;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 20px;
+    padding-bottom: 60px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    row-gap: 20px;
+}
+
+.headerInnerMobile {
+    padding-bottom: 15px;
+}
+
+/* The name is cut off with an ellipsis rather than wrapping, so the header height does not depend on it. */
+.headerInner:not(.headerInnerMobile) .speciesHeaderName {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Collapses by animating its grid row from 1fr to 0fr. */
+.heroExtra {
+    width: 50%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.headerInnerMobile .heroExtra {
+    width: 100%;
+}
+
+/* Reserves the height of the absolutely positioned images. */
+.headerInner:has(.imageCol) .heroExtra {
+    min-height: 400px;
+}
+
+.imageCol {
+    position: absolute;
+    top: 80px; /* header padding 20 + name 40 + row gap 20 */
+    right: 0;
+    width: 50%;
+    max-height: 400px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 20px;
+    overflow: hidden;
+}
+
+/* The photo is always square, so it scales between the two states without its crop changing. */
+.mainImage {
+    flex: 1 1 0;
+    max-width: 400px;
+    min-width: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.mainImage a {
+    display: block;
+    line-height: 0;
+}
+
+.mainImage .headerImage {
+    height: auto;
+    aspect-ratio: 1;
+}
+
+.sideImages {
+    flex: 0 1 200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden;
+}
+
+.tabBar {
+    border-bottom: 1px solid #D9D9D9;
+    background: #fff;
+}
+
+.tabBarInner {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .stickyChrome,
+    .stickyChrome .speciesHeader,
+    .stickyChrome .headerInner,
+    .stickyChrome .speciesHeaderName,
+    .stickyChrome .heroExtra,
+    .stickyChrome .imageCol,
+    .stickyChrome .mainImage,
+    .stickyChrome .sideImages {
+        transition: all var(--snap);
+    }
+}
+
+/* Not pinned on very short viewports, where the bar would cover most of the screen. */
+@media (min-height: 481px) {
+    /* Only pinned once condensed: until then it is still at its natural position. */
+    .stickyChrome[data-condensed='true'] {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        box-shadow: 0 1px 4px rgba(33, 33, 33, 0.12);
+    }
+
+    /* Keeps in-page jumps below the condensed bar. */
+    :global(html):has(.stickyChrome) {
+        scroll-padding-top: 130px;
+    }
+
+    .stickyChrome .speciesHeader {
+        background-size: 1029px auto;
+    }
+
+    .stickyChrome[data-condensed='true'] .speciesHeader {
+        padding-top: 4px;
+        background-size: 280px auto;
+        background-position: right -24px top -48px;
+    }
+
+    .stickyChrome[data-condensed='true'] .headerInner {
+        padding-top: 4px;
+        padding-bottom: 4px;
+        grid-template-rows: auto 0fr;
+        row-gap: 0;
+    }
+
+    .stickyChrome[data-condensed='true'] .speciesHeaderName {
+        font-size: 22px;
+        line-height: 56px;
+    }
+
+    .stickyChrome[data-condensed='true'] .headerInner:has(.imageCol) .speciesHeaderName {
+        padding-right: 76px;
+    }
+
+    .stickyChrome[data-condensed='true'] .heroExtra {
+        min-height: 0;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .stickyChrome[data-condensed='true'] .imageCol {
+        top: 4px;
+        width: 56px;
+        max-height: 56px;
+        gap: 0;
+    }
+
+    .stickyChrome[data-condensed='true'] .mainImage {
+        max-width: 56px;
+        border-radius: 8px;
+    }
+
+    .stickyChrome[data-condensed='true'] .sideImages {
+        flex-basis: 0;
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .stickyChrome[data-condensed='true'] .tabBarInner {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+}
+
+/* Set on <html> while the header animates: its height change would otherwise be "corrected" by scroll anchoring. */
+:global(html.speciesHeaderAnimating) {
+    overflow-anchor: none;
+}

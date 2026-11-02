@@ -12,7 +12,7 @@ import {
 } from '@ala/common-ui';
 import {faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useParams} from 'react-router-dom';
 import {TaxonDescription} from '../api/sources/model.ts';
@@ -32,6 +32,9 @@ import TraitsView from '../components/species/traitsView.tsx';
 import capitalizeFirstLetter from '../helpers/Capitalise.ts';
 import IMAGE_PLACEHOLDER from '../image/missing-image.png';
 
+// Global class (see species.module.css) that turns off scroll anchoring while the header animates.
+const ANIMATING_CLASS = 'speciesHeaderAnimating';
+
 function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
     const intl = useIntl();
     const [tab, setTab] = useHashState('tab', 'map');
@@ -40,6 +43,9 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
     const [dataFetched, setDataFetched] = useState(false);
     const [invasiveStatus, setInvasiveStatus] = useState(false);
     const [mobileToggle, setMobileToggle] = useState<Record<string, boolean>>({});
+    const [condensed, setCondensed] = useState(false);
+    const sentinelRef = useRef<HTMLDivElement>(null);
+    const chromeRef = useRef<HTMLDivElement>(null);
 
     let params = useParams();
     const queryPath = params['*'] || '';
@@ -123,9 +129,43 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         });
     }, [queryPath]);
 
+    // Condense the header once its top edge has scrolled off the top of the viewport.
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        const chrome = chromeRef.current;
+        if (isMobile || !sentinel || !chrome) {
+            setCondensed(false);
+            return;
+        }
+        const root = document.documentElement;
+        let current = false;
+        let timer = 0;
+        const observer = new IntersectionObserver((entries) => {
+            // Shrinking shortens the page. If it could not then still scroll this far, the scroll position
+            // would clamp back above the trigger and the header would flip back and forth.
+            const roomToShrink = root.scrollHeight - window.innerHeight - chrome.offsetHeight >= window.scrollY;
+            const next = !entries[entries.length - 1].isIntersecting && (current || roomToShrink);
+            if (next === current) return;
+            current = next;
+            setCondensed(next);
+            // Matches the 420ms header transition in species.module.css.
+            root.classList.add(ANIMATING_CLASS);
+            clearTimeout(timer);
+            timer = window.setTimeout(() => root.classList.remove(ANIMATING_CLASS), 500);
+        });
+        observer.observe(sentinel);
+        return () => {
+            observer.disconnect();
+            clearTimeout(timer);
+            root.classList.remove(ANIMATING_CLASS);
+        };
+    }, [isMobile, dataFetched]);
+
     const handleTabChange = (value: string | null) => {
-        const tabsTab = value || '';
-        setTab(tabsTab);
+        setTab(value || '');
+        // Tab contents differ in height, so start the new tab from the top rather than stranding the reader.
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({top: 0, behavior: reduceMotion ? 'instant' : 'smooth'});
     };
 
     // If no data is found for taxon ID, show an error message
@@ -200,109 +240,90 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         }
     }
 
-    return <div className={'speciesPage'} style={{backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}>
-        <div className={classes.speciesHeader + ' container-fluid'} style={{marginTop: '-47px'}}>
-            <div style={{
-                maxWidth: '1200px',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                paddingTop: '20px'
-            }}>
-                <span className={classes.speciesHeaderName}
-                      dangerouslySetInnerHTML={{__html: result.nameFormatted || result.name}}/>
-            </div>
+    return <div className={'speciesPage'} style={{marginTop: '-47px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}>
+        <div ref={sentinelRef}/>
+        <div ref={chromeRef} className={isMobile ? undefined : classes.stickyChrome} data-condensed={condensed}>
+            <div className={classes.speciesHeader + ' container-fluid'}>
+                <div className={`${classes.headerInner}${isMobile ? ` ${classes.headerInnerMobile}` : ''}`}>
+                    <span className={classes.speciesHeaderName}
+                          title={!isMobile && result.name ? String(result.name) : undefined}
+                          dangerouslySetInnerHTML={{__html: result.nameFormatted || result.name}}/>
+                    <div className={classes.heroExtra}>
+                        <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{marginBottom: '25px', gap: '20px'}}>
+                            <span>{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</span>
+                            {result.taxonomicStatus && (
+                                <span>
+                                    {intl.formatMessage({
+                                        id: 'taxonomicStatus.' + result.taxonomicStatus,
+                                        defaultMessage: capitalizeFirstLetter(result.taxonomicStatus),
+                                    })}
+                                </span>
+                            )}
+                            {result.datasetName && (
+                                <span>Name authority: {result.datasetName}</span>
+                            )}
+                        </div>
 
-            <div className="d-flex" style={{
-                maxWidth: '1200px',
-                marginLeft: 'auto',
-                marginRight: 'auto',
-                paddingTop: '20px',
-                paddingBottom: isMobile ? '15px' : '60px',
-            }}>
-                <div style={{width: isMobile ? '100%' : '50%'}}>
-                    <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{marginBottom: '25px', gap: '20px'}}>
-                        <span>{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</span>
-                        {result.taxonomicStatus && (
-                            <span>
-                                {intl.formatMessage({
-                                    id: 'taxonomicStatus.' + result.taxonomicStatus,
-                                    defaultMessage: capitalizeFirstLetter(result.taxonomicStatus),
-                                })}
+                        {result.commonNameSingle &&
+                            <span className={classes.speciesHeaderVernacular}>
+                                {result.commonNameSingle}
                             </span>
+                        }
+
+                        {/* include first 2 IEK names if available */}
+                        {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
+                            idx < 2 && <span className={classes.speciesHeaderVernacular}
+                                             key={idx}>{item.name} in{' '} {item.languageName}</span>
                         )}
-                        {result.datasetName && (
-                            <span>Name authority: {result.datasetName}</span>
+                        {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length > 0 &&
+                            <a className={classes.speciesLink} onClick={(e) => {
+                                e.preventDefault();
+                                setTab('names');
+                                setTimeout(() => {
+                                    document.getElementById('indigenous-names-heading')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                }, 50);
+                            }}>{result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length === 1 ? 'View this Indigenous name' : `View all ${result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length} Indigenous names`}</a>
+                        }
+
+                        {result.heroDescription && (
+                            <span style={{marginTop: '15px'}} className={classes.speciesHeaderDescription}
+                                  dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(result.heroDescription),}}/>
                         )}
+                        {invasiveStatus &&
+                            <FlaggedAlert style={{marginTop: '15px'}} className={classes.flaggedAlert} content={<>
+                                This species is{' '}
+                                <a className={classes.speciesLink}
+                                   onClick={(e) => {
+                                       e.preventDefault();
+                                       setTab('status');
+                                   }}>
+                                    considered invasive</a>
+                                {' '}in some part of Australia and may be of biosecurity concern.
+                            </>}
+                            />}
                     </div>
-
-                    {result.commonNameSingle &&
-                        <span className={classes.speciesHeaderVernacular}>
-                            {result.commonNameSingle}
-                        </span>
-                    }
-
-                    {/* include first 2 IEK names if available */}
-                    {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
-                        idx < 2 && <span className={classes.speciesHeaderVernacular}
-                                         key={idx}>{item.name} in{' '} {item.languageName}</span>
-                    )}
-                    {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length > 0 &&
-                        <a className={classes.speciesLink} onClick={(e) => {
-                            e.preventDefault();
-                            setTab('names');
-                            setTimeout(() => {
-                                document.getElementById('indigenous-names-heading')?.scrollIntoView({behavior: 'smooth', block: 'start'});
-                            }, 50);
-                        }}>{result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length === 1 ? 'View this Indigenous name' : `View all ${result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length} Indigenous names`}</a>
-                    }
-
-                    {result.heroDescription && (
-                        <span style={{marginTop: '15px'}} className={classes.speciesHeaderDescription}
-                              dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(result.heroDescription),}}/>
-                    )}
-                    {invasiveStatus &&
-                        <FlaggedAlert style={{marginTop: '15px'}} className={classes.flaggedAlert} content={<>
-                            This species is{' '}
-                            <a className={classes.speciesLink}
-                               onClick={(e) => {
-                                   e.preventDefault();
-                                   setTab('status');
-                               }}>
-                                considered invasive</a>
-                            {' '}in some part of Australia and may be of biosecurity concern.
-                        </>}
-                        />}
-                </div>
-                {!isMobile && <>
-                    <div style={{flexGrow: 1, maxWidth: '50%', marginLeft: 'auto'}}>
-                        {result.image && result.image.split(',').map((id: string, idx: number) =>
-                                idx == 0 && <div style={{
-                                    marginLeft: '20px',
-                                    marginRight: '20px',
-                                    overflow: 'hidden',
-                                    borderRadius: '10px'
-                                }} key={idx}>
-                                    <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id} target="_blank">
-                                        <img className={classes.headerImage}
-                                             src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
-                                             alt="species image"
-                                             onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
-                                             onMouseOver={(event) => {
-                                                 const target = event.target as HTMLImageElement;
-                                                 target.style.transform = 'scale(1.1)';
-                                             }}
-                                             onMouseOut={(event) => {
-                                                 const target = event.target as HTMLImageElement;
-                                                 target.style.transform = 'scale(1.0)';
-                                             }}
-                                        />
-                                    </a>
-                                </div>
+                    {!isMobile && result.image && <div className={classes.imageCol}>
+                        {result.image.split(',').map((id: string, idx: number) =>
+                            idx == 0 && <div className={classes.mainImage} key={idx}>
+                                <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id} target="_blank">
+                                    <img className={classes.headerImage}
+                                         src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
+                                         alt="species image"
+                                         onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
+                                         onMouseOver={(event) => {
+                                             const target = event.target as HTMLImageElement;
+                                             target.style.transform = 'scale(1.1)';
+                                         }}
+                                         onMouseOut={(event) => {
+                                             const target = event.target as HTMLImageElement;
+                                             target.style.transform = 'scale(1.0)';
+                                         }}
+                                    />
+                                </a>
+                            </div>
                         )}
-                    </div>
-                    <div className="col-12 col-md-2 col-lg-2">
-                        <div className="d-flex flex-row flex-lg-column" style={{gap: '20px'}}>
-                            {result.image && result.image.split(',').map((id: string, idx: number) =>
+                        <div className={classes.sideImages}>
+                            {result.image.split(',').map((id: string, idx: number) =>
                                 (idx == 1 || idx == 2) &&
                                 <div className={classes.headerImageSmall} key={idx}>
                                     <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id}
@@ -323,9 +344,49 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                                 </div>
                             )}
                         </div>
-                    </div>
-                </>}
+                    </div>}
+                </div>
             </div>
+            {!isMobile && <div className={classes.tabBar}>
+                <div className={classes.tabBarInner}>
+                    <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('map')}>
+                        Map
+                    </div>
+                    <div className={`${tab === 'classification' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('classification')}>
+                        Classification
+                    </div>
+                    <div className={`${tab === 'description' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('description')}>
+                        Description
+                    </div>
+                    <div className={`${tab === 'media' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('media')}>
+                        Images and sounds
+                    </div>
+                    <div className={`${tab === 'names' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('names')}>
+                        Names
+                    </div>
+                    <div className={`${tab === 'status' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('status')}>
+                        Status
+                    </div>
+                    <div className={`${tab === 'traits' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('traits')}>
+                        Traits
+                    </div>
+                    <div className={`${tab === 'datasets' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('datasets')}>
+                        Datasets
+                    </div>
+                    <div className={`${tab === 'resources' ? classes.activeTab : ''} ${classes.tabButtons}`}
+                         onClick={() => handleTabChange('resources')}>
+                        Resources
+                    </div>
+                </div>
+            </div>}
         </div>
         {isMobile && result.image && <div style={{
             gap: '15px',
@@ -445,49 +506,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                 }
             </div>
         </div>)}
-        {!isMobile && <>
-            <div style={{borderBottom: '1px solid #D9D9D9'}}>
-                <div className="d-flex flex-wrap"
-                     style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}}>
-                    <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('map')}>
-                        Map
-                    </div>
-                    <div className={`${tab === 'classification' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('classification')}>
-                        Classification
-                    </div>
-                    <div className={`${tab === 'description' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('description')}>
-                        Description
-                    </div>
-                    <div className={`${tab === 'media' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('media')}>
-                        Images and sounds
-                    </div>
-                    <div className={`${tab === 'names' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('names')}>
-                        Names
-                    </div>
-                    <div className={`${tab === 'status' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('status')}>
-                        Status
-                    </div>
-                    <div className={`${tab === 'traits' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('traits')}>
-                        Traits
-                    </div>
-                    <div className={`${tab === 'datasets' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('datasets')}>
-                        Datasets
-                    </div>
-                    <div className={`${tab === 'resources' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('resources')}>
-                        Resources
-                    </div>
-                </div>
-            </div>
-            <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}} >
+        {!isMobile && <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}} >
                 <div style={{height: '60px'}}/>
                 <div style={{display: tab === 'map' ? 'block' : 'none'}}>
                     <MapView result={result} tab={tab} isMobile={isMobile}/>
@@ -517,8 +536,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                     <ResourcesView result={result} isMobile={isMobile}/>
                 </div>
                 <div style={{height: '120px'}}/>
-            </div>
-        </>}
+            </div>}
     </div>;
 }
 
