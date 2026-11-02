@@ -16,7 +16,6 @@ interface MapViewProps {
 interface Dataset {
     name: string;
     dataResourceUid: string;
-    licence: string;
     records: number;
 }
 
@@ -50,30 +49,13 @@ function DatasetsView({result, isMobile}: MapViewProps) {
                         name: item.label,
                         dataResourceUid: dr,
                         records: item.count,
-                        licence: ''
                     });
                     drs.push('id:' + dr);
                 }
             }
 
-            // get licences
-            fetch(import.meta.env.VITE_APP_API_URL + '/v2/search?q=idxtype:DATARESOURCE&fq=' + encodeURIComponent(drs.join(' OR ')) + '&fl=id,license&pageSize=1000',
-                {
-                    headers: {'Content-Type': 'application/json'}
-                }).then((response) => response.json()).then((data) => {
-                for (let item of data.searchResults) {
-                    for (let dataset of newDatasets) {
-                        if (dataset.dataResourceUid == item.id) {
-                            dataset.licence = item.license;
-                        }
-                    }
-                }
-                setDatasets(newDatasets);
-            }).catch((error) => {
-                setErrorMessage('Failed to fetch licenses - ' + error);
-            }).finally(() => {
-                setLoading(false);
-            });
+            setDatasets(newDatasets);
+            setLoading(false);
         }).catch((error) => {
             setErrorMessage('Failed to fetch datasets - ' + error);
             setLoading(false);
@@ -82,18 +64,17 @@ function DatasetsView({result, isMobile}: MapViewProps) {
 
     const populateTableData = useCallback(() => {
         return {
-            head: ['Dataset', 'Licence', 'Records'],
+            head: ['Dataset', 'Records'],
             body: datasets.map((item) => [
                 <a className={classes.speciesLink}
-                   style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}
-                   target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + '/public/show/' + item.dataResourceUid}>
+                    style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}
+                    target="_blank" href={import.meta.env.VITE_COLLECTIONS_URL + '/public/show/' + item.dataResourceUid}>
                     {item.name}
                 </a>,
-                item.licence,
                 <a className={classes.speciesLink}
-                   style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}
-                   target="_blank"
-                   href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrences/search?q=lsid:"' + result?.guid + '"&fq=dataResourceUid:' + item.dataResourceUid}>
+                    style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}
+                    target="_blank"
+                    href={import.meta.env.VITE_APP_BIOCACHE_UI_URL + '/occurrences/search?q=lsid:"' + result?.guid + '"&fq=dataResourceUid:' + item.dataResourceUid}>
                     {item.records.toLocaleString()}
                 </a>
             ]),
@@ -104,7 +85,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
         {loading && (
             <div className="placeholder-glow">
                 <span className="placeholder"
-                      style={{height: 24, display: 'block', borderRadius: '5px', width: '100%'}}></span>
+                    style={{height: 24, display: 'block', borderRadius: '5px', width: '100%'}}></span>
                 <span className="placeholder" style={{
                     height: 800,
                     display: 'block',
@@ -127,7 +108,7 @@ function DatasetsView({result, isMobile}: MapViewProps) {
         />}
         {datasets.length > 0 && (
             <table className="table table-striped"
-                   style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
+                style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                 <thead>
                 <tr>
                     {populateTableData().head.map((col, idx) => (

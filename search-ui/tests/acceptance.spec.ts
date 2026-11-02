@@ -935,15 +935,15 @@ test.describe('Species page - Traits tab', () => {
 });
 
 test.describe('Species page - Datasets tab', () => {
-    test('shows the dataset list with names, licences and record counts', async ({ page }) => {
+    test('shows the dataset list with names and record counts', async ({ page }) => {
         test.skip(shouldSkip('species-datasets-list'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=datasets'));
         await waitForContent(page);
 
         // Every tab's table is always mounted (hidden via CSS on inactive
-        // tabs), so scope to the one with a "Licence" column header.
-        const datasetsTable = page.locator('table').filter({ has: page.locator('th', { hasText: 'Licence' }) });
+        // tabs), so scope to the one with a "Records" column header.
+        const datasetsTable = page.locator('table').filter({ has: page.locator('th', { hasText: 'Records' }) });
         const rows = datasetsTable.locator('tbody tr');
         await expect(rows).toHaveCount(3);
         // fixture order is already descending by record count; the component
@@ -952,7 +952,6 @@ test.describe('Species page - Datasets tab', () => {
         await expect(rows.nth(0)).toContainText('3,200');
         await expect(rows.nth(1)).toContainText('ALA specimen records');
         await expect(rows.nth(2)).toContainText('iNaturalist Australia');
-        await expect(datasetsTable.locator('text=CC-BY 4.0').first()).toBeVisible();
     });
 
     test('shows "No datasets found" when there are no dataset facets', async ({ page }) => {
