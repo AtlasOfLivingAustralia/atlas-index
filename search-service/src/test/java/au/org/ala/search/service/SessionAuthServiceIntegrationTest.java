@@ -217,6 +217,25 @@ class SessionAuthServiceIntegrationTest extends AbstractIntegrationTestContainer
     }
 
     @Test
+    @au.org.ala.search.test.SuppressExpectedLogging("au.org.ala.search.service.SessionAuthService")
+    void isSessionLoggedIn_usesSessionSecretRatherThanOriginToDecryptTokens() throws Exception {
+        String secret = "session-secret-distinct-from-origin";
+        String origin = "http://localhost:5173";
+        String idToken = fakeJwt(Map.of("cognito:username", "session-user"));
+
+        MockHttpSession session = new MockHttpSession();
+        sessionAuthService.saveJWTToSession(Map.of(
+                "access_token", "session-access-token",
+                "id_token", idToken,
+                "refresh_token", "session-refresh-token",
+                "expires_in", 3600), session, secret);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        assertThat(sessionAuthService.isSessionLoggedIn(response, session, secret, origin)).isTrue();
+        assertThat(sessionAuthService.isSessionLoggedIn(response, session, "incorrect-secret", origin)).isFalse();
+    }
+
+    @Test
     void logoutPath_noSessionSecretCookie_returnsPathUnchanged() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
