@@ -44,8 +44,9 @@ Produces
 
 Copy the outputs to the appropriate locations
 ```
-dwca.extract.leftRightCsvPath=/data/search-service/lsid-left-right.csv
-dwca.extract.commonNamePath=/data/search-service/lsid-vernacularName.csv
+dwca.extract.leftRightCsvPath=/data/search-service/lsid-left-right25.csv
+dwca.extract.commonNamePath=/data/search-service/lsid-vernacularName25.csv
+
 ```
 
 # Outputs
