@@ -20,7 +20,6 @@ export default function useCondensedHeader(enabled: boolean, tab: string) {
     const barRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
     const tabBarRef = useRef<HTMLDivElement>(null);
-    const contentTopRef = useRef<HTMLDivElement>(null);
     const [condensed, setCondensed] = useState(false);
     
     // Set by a tab click. Other tab changes (the Indigenous-names link) scroll somewhere else.
@@ -65,15 +64,14 @@ export default function useCondensedHeader(enabled: boolean, tab: string) {
         if (!scrollAfterTab.current) return;
         scrollAfterTab.current = false;
 
-        const content = contentTopRef.current;
+        const sentinel = sentinelRef.current;
         const bar = barRef.current;
-        const tabBar = tabBarRef.current;
         
-        if (!content || !bar || !tabBar) return;
+        // A short viewport hides the name bar, so there is no pin line to stop above.
+        if (!sentinel || !bar || !bar.offsetHeight) return;
 
-        // Each tab has its own height. Scroll after render: doing it in the click is undone when the layout changes.
-        // The spacer's bottom is the top of the tab content, which should sit just under the pinned bars.
-        const top = content.getBoundingClientRect().bottom + window.scrollY - coveredHeight(bar, tabBar);
+        // One pixel above the pin line - landing on it would slide the name bar in and the tab bar down to meet it
+        const top = sentinel.getBoundingClientRect().top + window.scrollY - bar.offsetHeight - 1;
         if (window.scrollY <= top) return;
 
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -85,7 +83,6 @@ export default function useCondensedHeader(enabled: boolean, tab: string) {
         barRef,
         sentinelRef,
         tabBarRef,
-        contentTopRef,
         queueScrollToContent: () => {
             scrollAfterTab.current = true;
         },

@@ -43,7 +43,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
     const [mobileToggle, setMobileToggle] = useState<Record<string, boolean>>({});
     const notFound = dataFetched && Object.keys(result).length === 0;
     const {
-        condensed, barRef, sentinelRef, tabBarRef, contentTopRef, queueScrollToContent,
+        condensed, barRef, sentinelRef, tabBarRef, queueScrollToContent,
     } = useCondensedHeader(!isMobile && !notFound, tab);
 
     let params = useParams();
@@ -504,8 +504,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                     </div>
                 </div>
             </div>
-            <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}} >
-                <div ref={contentTopRef} style={{height: '60px'}}/>
+            <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', paddingTop: '60px'}} >
                 <div style={{display: tab === 'map' ? 'block' : 'none'}}>
                     <MapView result={result} tab={tab} isMobile={isMobile}/>
                 </div>

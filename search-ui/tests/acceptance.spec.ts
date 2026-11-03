@@ -486,7 +486,7 @@ test.describe('Species page - header', () => {
         await expect(bar).toHaveAttribute('data-condensed', 'false');
     });
 
-    test('keeps the name bar and clears both bars when a tab is clicked while scrolled down', async ({ page }) => {
+    test('scrolls to just above the name bar when a tab is clicked while scrolled down', async ({ page }) => {
         test.skip(shouldSkip('species-header-sticky-tab-click'), 'Skipped via live-config.json skip list');
         await page.setViewportSize({ width: 1400, height: 1000 });
         await setupSpeciesPageMocks(page);
@@ -497,26 +497,27 @@ test.describe('Species page - header', () => {
         await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
         await expect(bar).toHaveAttribute('data-condensed', 'true');
 
-        const contentSitsUnderBars = async () => {
-            const tabBarBox = await tabBar.boundingBox();
-            const spacerBox = await page.locator('.speciesPage > .container > div').first().boundingBox();
-            if (!tabBarBox || !spacerBox) return false;
-            return Math.abs(spacerBox.y + spacerBox.height - (tabBarBox.y + tabBarBox.height)) <= 1;
-        };
+        // The sentinel sits one pixel below the pin line, so the name bar stays hidden.
+        const justAbovePin = () => page.evaluate(() => {
+            const tabBar = document.querySelector('[class*="_tabBar_"]') as HTMLElement;
+            const sentinel = tabBar.previousElementSibling as HTMLElement;
+            const nameBar = sentinel.previousElementSibling as HTMLElement;
+            const gap = sentinel.getBoundingClientRect().top - nameBar.offsetHeight;
+            return gap > 0 && gap <= 2;
+        });
 
         await tabBar.getByText('Names', { exact: true }).click();
         await expect(page).toHaveURL(/#tab=names/);
-        await expect(bar).toHaveAttribute('data-condensed', 'true');
-        // The spacer at the top of the tab content ends exactly where the pinned bars do.
-        await expect.poll(contentSitsUnderBars).toBe(true);
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
+        await expect.poll(justAbovePin).toBe(true);
 
-        // Map is the default tab, so clearing its hash must leave the reader on the map.
-        // A locator click scrolls the sticky tab's layout box, which sits under the fixed name bar.
+        // Map is the default tab, so clearing its hash must not jump to the top.
+        // Click the visible tab. A locator click scrolls its layout box, which sits inside the scroll padding.
         const mapBox = (await tabBar.getByText('Map', { exact: true }).boundingBox())!;
         await page.mouse.click(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
         await expect(page).not.toHaveURL(/#tab=/);
-        await expect(bar).toHaveAttribute('data-condensed', 'true');
-        await expect.poll(contentSitsUnderBars).toBe(true);
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
+        await expect.poll(justAbovePin).toBe(true);
     });
 
     test('jumps to an element below both bars when the tab bar wraps', async ({ page }) => {
