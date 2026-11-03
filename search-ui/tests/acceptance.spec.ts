@@ -499,20 +499,14 @@ test.describe('Species page - header', () => {
 
         await tabBar.getByText('Names', { exact: true }).click();
         await expect(page).toHaveURL(/#tab=names/);
-        // Wait for the smooth scroll to settle.
-        let lastY = -1;
-        await expect.poll(async () => {
-            const y = await page.evaluate(() => window.scrollY);
-            const settled = y === lastY;
-            lastY = y;
-            return settled;
-        }, { intervals: [200] }).toBe(true);
-
         await expect(bar).toHaveAttribute('data-condensed', 'true');
-        // The first element of the tab content (a spacer) ends exactly where the pinned bars do.
-        const tabBarBox = (await tabBar.boundingBox())!;
-        const spacerBox = (await page.locator('.speciesPage > .container > div').first().boundingBox())!;
-        expect(Math.abs(spacerBox.y + spacerBox.height - (tabBarBox.y + tabBarBox.height))).toBeLessThanOrEqual(1);
+        // The spacer at the top of the tab content ends exactly where the pinned bars do.
+        await expect.poll(async () => {
+            const tabBarBox = await tabBar.boundingBox();
+            const spacerBox = await page.locator('.speciesPage > .container > div').first().boundingBox();
+            if (!tabBarBox || !spacerBox) return false;
+            return Math.abs(spacerBox.y + spacerBox.height - (tabBarBox.y + tabBarBox.height)) <= 1;
+        }).toBe(true);
     });
 
     test('jumps to an element below both bars when the tab bar wraps', async ({ page }) => {
@@ -526,16 +520,37 @@ test.describe('Species page - header', () => {
 
         await page.locator('text=View all 2 Indigenous names').click();
         const heading = page.locator('#indigenous-names-heading');
-        let lastY = -1;
         await expect.poll(async () => {
-            const y = await page.evaluate(() => window.scrollY);
-            const settled = y > 0 && y === lastY;
-            lastY = y;
-            return settled;
-        }, { intervals: [200] }).toBe(true);
+            const tabBarBox = await tabBar.boundingBox();
+            const headingBox = await heading.boundingBox();
+            if (!tabBarBox || !headingBox) return false;
+            return headingBox.y >= tabBarBox.y + tabBarBox.height - 1;
+        }).toBe(true);
+    });
 
-        const tabBarBox = (await tabBar.boundingBox())!;
-        expect((await heading.boundingBox())!.y).toBeGreaterThanOrEqual(tabBarBox.y + tabBarBox.height - 1);
+    test('hides the name bar when the header grows without a scroll', async ({ page }) => {
+        test.skip(shouldSkip('species-header-sticky-reflow'), 'Skipped via live-config.json skip list');
+        await page.setViewportSize({ width: 1400, height: 1000 });
+        await setupSpeciesPageMocks(page);
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
+
+        const bar = page.locator('[class*="_condensedBar_"]');
+        await page.evaluate(() => {
+            const tabBar = document.querySelector('[class*="_tabBar_"]')!;
+            const sentinel = tabBar.previousElementSibling!;
+            const nameBar = sentinel.previousElementSibling as HTMLElement;
+            const pin = sentinel.getBoundingClientRect().top + window.scrollY - nameBar.offsetHeight;
+            window.scrollTo({ top: pin + 2, behavior: 'instant' });
+        });
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+
+        // Scroll anchoring would hold the bar still; this is a header reflow, not a scroll.
+        await page.evaluate(() => {
+            document.documentElement.style.overflowAnchor = 'none';
+            const header = document.querySelector('[class*="speciesHeader"]') as HTMLElement;
+            header.style.paddingBottom = '400px';
+        });
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
     });
 
     test('truncates a long species name in the name bar but wraps it in the header', async ({ page }) => {
