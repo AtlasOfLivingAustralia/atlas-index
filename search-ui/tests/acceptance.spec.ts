@@ -449,7 +449,7 @@ test.describe('Species page - header', () => {
                 .observe(el, { attributes: true, attributeFilter: ['data-condensed'] });
         });
 
-        // Small wheel steps carry the scroll across the point where the tab bar reaches the top of the viewport.
+        // Small wheel steps carry the scroll across the point where the tab bar reaches its pinned position.
         await page.mouse.move(600, 400);
         for (let i = 0; i < 100; i++) {
             await page.mouse.wheel(0, 8);
@@ -471,7 +471,74 @@ test.describe('Species page - header', () => {
         await expect(page.getByText('considered invasive')).toBeInViewport({ ratio: 1 });
     });
 
-    test('truncates a long species name instead of wrapping it', async ({ page }) => {
+    test('updates the name bar after an instant jump', async ({ page }) => {
+        test.skip(shouldSkip('species-header-sticky-jump'), 'Skipped via live-config.json skip list');
+        // A short window leaves the tab bar below the fold, so a jump goes from below the viewport to above it.
+        await page.setViewportSize({ width: 1400, height: 500 });
+        await setupSpeciesPageMocks(page);
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
+
+        const bar = page.locator('[class*="_condensedBar_"]');
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
+        await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+        await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
+    });
+
+    test('keeps the name bar and clears both bars when a tab is clicked while scrolled down', async ({ page }) => {
+        test.skip(shouldSkip('species-header-sticky-tab-click'), 'Skipped via live-config.json skip list');
+        await page.setViewportSize({ width: 1400, height: 1000 });
+        await setupSpeciesPageMocks(page);
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
+
+        const bar = page.locator('[class*="_condensedBar_"]');
+        const tabBar = page.locator('[class*="_tabBar_"]');
+        await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+
+        await tabBar.getByText('Names', { exact: true }).click();
+        await expect(page).toHaveURL(/#tab=names/);
+        // Wait for the smooth scroll to settle.
+        let lastY = -1;
+        await expect.poll(async () => {
+            const y = await page.evaluate(() => window.scrollY);
+            const settled = y === lastY;
+            lastY = y;
+            return settled;
+        }, { intervals: [200] }).toBe(true);
+
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+        // The first element of the tab content (a spacer) ends exactly where the pinned bars do.
+        const tabBarBox = (await tabBar.boundingBox())!;
+        const spacerBox = (await page.locator('.speciesPage > .container > div').first().boundingBox())!;
+        expect(Math.abs(spacerBox.y + spacerBox.height - (tabBarBox.y + tabBarBox.height))).toBeLessThanOrEqual(1);
+    });
+
+    test('jumps to an element below both bars when the tab bar wraps', async ({ page }) => {
+        test.skip(shouldSkip('species-header-sticky-wrapped'), 'Skipped via live-config.json skip list');
+        await page.setViewportSize({ width: 780, height: 900 });
+        await setupSpeciesPageMocks(page);
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
+
+        const tabBar = page.locator('[class*="_tabBar_"]');
+        expect((await tabBar.boundingBox())!.height).toBeGreaterThan(60); // more than one row of tabs
+
+        await page.locator('text=View all 2 Indigenous names').click();
+        const heading = page.locator('#indigenous-names-heading');
+        let lastY = -1;
+        await expect.poll(async () => {
+            const y = await page.evaluate(() => window.scrollY);
+            const settled = y > 0 && y === lastY;
+            lastY = y;
+            return settled;
+        }, { intervals: [200] }).toBe(true);
+
+        const tabBarBox = (await tabBar.boundingBox())!;
+        expect((await heading.boundingBox())!.y).toBeGreaterThanOrEqual(tabBarBox.y + tabBarBox.height - 1);
+    });
+
+    test('truncates a long species name in the name bar but wraps it in the header', async ({ page }) => {
         test.skip(shouldSkip('species-header-long-name'), 'Skipped via live-config.json skip list');
         const guid = 'https://biodiversity.org.au/afd/taxa/long-name-species';
         const longName = 'Falco hypoleucos subsp. extraordinarius var. exceedingly-long-name f. goes-on-well-past-the-edge-of-the-header Gould, 1841';
@@ -490,16 +557,15 @@ test.describe('Species page - header', () => {
             childDisplay: getComputedStyle(el.firstElementChild!).display,
         }));
 
-        for (const selector of ['[class*="speciesHeaderName"]', '[class*="condensedName"]']) {
-            if (selector.includes('condensedName')) {
-                await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }));
-                await expect(page.locator('[class*="_condensedBar_"]')).toHaveAttribute('data-condensed', 'true');
-            }
-            await expect(page.locator(selector)).toContainText('Falco hypoleucos subsp. extraordinarius');
-            await expect.poll(() => measure(selector)).toMatchObject({ overflows: true, childDisplay: 'inline' });
-            const metrics = await measure(selector);
-            expect(metrics.height).toBeCloseTo(metrics.lineHeight, 0);
-        }
+        const header = await measure('[class*="speciesHeaderName"]');
+        expect(header.height).toBeGreaterThan(header.lineHeight);
+        expect(header.overflows).toBe(false);
+
+        await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }));
+        await expect(page.locator('[class*="_condensedBar_"]')).toHaveAttribute('data-condensed', 'true');
+        await expect.poll(() => measure('[class*="condensedName"]')).toMatchObject({ overflows: true, childDisplay: 'inline' });
+        const bar = await measure('[class*="condensedName"]');
+        expect(bar.height).toBeCloseTo(bar.lineHeight, 0);
     });
 
     test('has no name bar or pinned tab bar on a phone-width viewport', async ({ page }) => {

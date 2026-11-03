@@ -42,6 +42,10 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
     const [mobileToggle, setMobileToggle] = useState<Record<string, boolean>>({});
     const [condensed, setCondensed] = useState(false);
     const sentinelRef = useRef<HTMLDivElement>(null);
+    const barRef = useRef<HTMLDivElement>(null);
+    const tabBarRef = useRef<HTMLDivElement>(null);
+    const contentTopRef = useRef<HTMLDivElement>(null);
+    const scrollToContentRef = useRef(false);
 
     let params = useParams();
     const queryPath = params['*'] || '';
@@ -125,30 +129,56 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
         });
     }, [queryPath]);
 
-    // Pin the name bar once the tab bar's natural position has scrolled off the top of the viewport.
+    // Height covered by the pinned bars (the tab bar is taller when it wraps), or 0 when they are not shown.
+    const pinnedHeight = () => {
+        const barHeight = barRef.current?.offsetHeight ?? 0;
+        return barHeight ? barHeight + (tabBarRef.current?.offsetHeight ?? 0) : 0;
+    };
+
+    // The tab bar pins just below the name bar, so the name bar shows from the moment the tab bar gets there.
     useEffect(() => {
         const sentinel = sentinelRef.current;
-        if (isMobile || !sentinel) {
+        const bar = barRef.current;
+        const tabBar = tabBarRef.current;
+        if (isMobile || !sentinel || !bar || !tabBar) {
             setCondensed(false);
             return;
         }
-        const observer = new IntersectionObserver((entries) => {
-            const entry = entries[entries.length - 1];
-            setCondensed(!entry.isIntersecting && entry.boundingClientRect.top < 0);
-        });
-        observer.observe(sentinel);
-        return () => observer.disconnect();
+        const root = document.documentElement;
+        const updateCondensed = () => setCondensed(sentinel.getBoundingClientRect().top <= bar.offsetHeight);
+        // In-page jumps have to land below both bars.
+        const updateScrollPadding = () => {
+            root.style.scrollPaddingTop = pinnedHeight() ? `${pinnedHeight()}px` : '';
+        };
+        updateCondensed();
+        window.addEventListener('scroll', updateCondensed, { passive: true });
+        const resizeObserver = new ResizeObserver(updateScrollPadding);
+        resizeObserver.observe(bar);
+        resizeObserver.observe(tabBar);
+        return () => {
+            window.removeEventListener('scroll', updateCondensed);
+            resizeObserver.disconnect();
+            root.style.scrollPaddingTop = '';
+        };
     }, [isMobile, dataFetched]);
 
     const handleTabChange = (value: string | null) => {
-        setTab(value || '');
-        // Each tab has its own height, so bring the new tab's content back up under the pinned bars.
-        const sentinelTop = (sentinelRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY;
-        if (window.scrollY > sentinelTop) {
-            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            window.scrollTo({ top: sentinelTop, behavior: reduceMotion ? 'instant' : 'smooth' });
-        }
+        const next = value || '';
+        scrollToContentRef.current = next !== tab;
+        setTab(next);
     };
+
+    // Each tab has its own height, so once the new tab has rendered bring its content back up, just under the
+    // pinned bars. Scrolling any earlier gets undone when the layout changes.
+    useEffect(() => {
+        if (!scrollToContentRef.current) return;
+        scrollToContentRef.current = false;
+        const contentTop = (contentTopRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY - pinnedHeight();
+        if (window.scrollY > contentTop) {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: contentTop, behavior: reduceMotion ? 'instant' : 'smooth' });
+        }
+    }, [tab]);
 
     // If no data is found for taxon ID, show an error message
     if (dataFetched && Object.keys(result).length === 0) {
@@ -230,8 +260,7 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
                 marginRight: 'auto',
                 paddingTop: '20px'
             }}>
-                <span className={isMobile ? classes.speciesHeaderName : `${classes.speciesHeaderName} ${classes.truncate}`}
-                    title={!isMobile && result.name ? String(result.name) : undefined}
+                <span className={classes.speciesHeaderName}
                     dangerouslySetInnerHTML={{ __html: result.nameFormatted || result.name }} />
             </div>
 
@@ -352,9 +381,10 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
         </div>
         {!isMobile && <>
             {/* Decorative copy of the name that slides in once the header has scrolled away. */}
-            <div className={classes.condensedBar} data-condensed={condensed} aria-hidden="true">
+            <div ref={barRef} className={classes.condensedBar} data-condensed={condensed} aria-hidden="true">
                 <div className={classes.condensedBarInner}>
                     <span className={`${classes.condensedName} ${classes.truncate}`}
+                        title={result.name ? String(result.name) : undefined}
                         dangerouslySetInnerHTML={{ __html: result.nameFormatted || result.name }} />
                     {result.image &&
                         <img className={classes.condensedImage} alt=""
@@ -363,7 +393,7 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
                 </div>
             </div>
             <div ref={sentinelRef} />
-            <div className={classes.tabBar}>
+            <div ref={tabBarRef} className={classes.tabBar}>
                 <div className={classes.tabBarInner}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
                         onClick={() => handleTabChange('map')}>
@@ -523,7 +553,7 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
             </div>
         </div>)}
         {!isMobile && <div className="container" style={{ maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto' }} >
-            <div style={{ height: '60px' }} />
+            <div ref={contentTopRef} style={{ height: '60px' }} />
             <div style={{ display: tab === 'map' ? 'block' : 'none' }}>
                 <MapView result={result} tab={tab} isMobile={isMobile} />
             </div>
