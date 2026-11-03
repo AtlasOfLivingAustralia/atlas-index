@@ -683,8 +683,8 @@
 }
 
 /*
- * Desktop: the tab bar sticks just below where a bar with the species name slides in, once the header has
- * scrolled past. Neither changes the page layout, so scroll positions never shift.
+ * Desktop: once the header has scrolled past, the tab bar sticks to the top and then moves down to sit
+ * under the name bar as that bar slides in. Neither changes the page layout, so scroll positions never shift.
  */
 .condensedBar,
 .tabBar {
@@ -766,7 +766,7 @@
     }
 
     .tabBar {
-        transition: box-shadow var(--snap);
+        transition: top var(--snap), box-shadow var(--snap);
     }
 }
 
@@ -783,11 +783,12 @@
 
     .tabBar {
         position: sticky;
-        top: var(--bar-height);
+        top: 0;
         z-index: 19;
     }
 
     .condensedBar[data-condensed='true'] ~ .tabBar {
+        top: var(--bar-height);
         box-shadow: 0 1px 4px rgba(33, 33, 33, 0.12);
     }
 }

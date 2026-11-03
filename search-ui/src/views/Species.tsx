@@ -12,7 +12,7 @@ import {
 } from '@ala/common-ui';
 import {faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useParams} from 'react-router-dom';
 import {TaxonDescription} from '../api/sources/model.ts';
@@ -26,6 +26,7 @@ import MapView from '../components/species/mapView.tsx';
 import NamesView from '../components/species/namesView.tsx';
 import ResourcesView from '../components/species/resourcesView.tsx';
 import classes from '../components/species/species.module.css';
+import useCondensedHeader from '../components/species/useCondensedHeader.ts';
 import '../css/nameFormatting.css';
 import StatusView from '../components/species/statusView.tsx';
 import TraitsView from '../components/species/traitsView.tsx';
@@ -40,12 +41,10 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
     const [dataFetched, setDataFetched] = useState(false);
     const [invasiveStatus, setInvasiveStatus] = useState(false);
     const [mobileToggle, setMobileToggle] = useState<Record<string, boolean>>({});
-    const [condensed, setCondensed] = useState(false);
-    const sentinelRef = useRef<HTMLDivElement>(null);
-    const barRef = useRef<HTMLDivElement>(null);
-    const tabBarRef = useRef<HTMLDivElement>(null);
-    const contentTopRef = useRef<HTMLDivElement>(null);
-    const scrollToContentRef = useRef(false);
+    const notFound = dataFetched && Object.keys(result).length === 0;
+    const {
+        condensed, barRef, sentinelRef, tabBarRef, contentTopRef, queueScrollToContent,
+    } = useCondensedHeader(!isMobile && !notFound, tab);
 
     let params = useParams();
     const queryPath = params['*'] || '';
@@ -129,61 +128,13 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         });
     }, [queryPath]);
 
-    // Height covered by the pinned bars (the tab bar is taller when it wraps), or 0 when they are not shown.
-    const pinnedHeight = () => {
-        const barHeight = barRef.current?.offsetHeight ?? 0;
-        return barHeight ? barHeight + (tabBarRef.current?.offsetHeight ?? 0) : 0;
-    };
-
-    // The tab bar pins just below the name bar, so the name bar shows once this point reaches that line.
-    // Photos and a resized window change the header height without a scroll event.
-    useEffect(() => {
-        const sentinel = sentinelRef.current;
-        const bar = barRef.current;
-        const tabBar = tabBarRef.current;
-        if (isMobile || !sentinel || !bar || !tabBar) {
-            setCondensed(false);
-            return;
-        }
-        const root = document.documentElement;
-        const update = () => {
-            const pinned = pinnedHeight();
-            setCondensed(pinned > 0 && sentinel.getBoundingClientRect().top <= bar.offsetHeight);
-            const padding = pinned ? `${pinned}px` : '';
-            if (root.style.scrollPaddingTop !== padding) root.style.scrollPaddingTop = padding;
-        };
-        update();
-        window.addEventListener('scroll', update, {passive: true});
-        // The name bar is position:fixed, so a size change there does not resize the page.
-        const resizeObserver = new ResizeObserver(update);
-        resizeObserver.observe(bar);
-        resizeObserver.observe(sentinel.parentElement!);
-        return () => {
-            window.removeEventListener('scroll', update);
-            resizeObserver.disconnect();
-            root.style.scrollPaddingTop = '';
-        };
-    }, [isMobile, dataFetched]);
-
     const handleTabChange = (value: string) => {
-        scrollToContentRef.current = value !== tab;
+        if (value !== tab) queueScrollToContent();
         setTab(value);
     };
 
-    // Each tab has its own height, so once the new tab has rendered bring its content back up, just under the
-    // pinned bars. Scrolling any earlier gets undone when the layout changes.
-    useEffect(() => {
-        if (!scrollToContentRef.current) return;
-        scrollToContentRef.current = false;
-        const contentTop = (contentTopRef.current?.getBoundingClientRect().bottom ?? 0) + window.scrollY - pinnedHeight();
-        if (window.scrollY > contentTop) {
-            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            window.scrollTo({top: contentTop, behavior: reduceMotion ? 'instant' : 'smooth'});
-        }
-    }, [tab]);
-
     // If no data is found for taxon ID, show an error message
-    if (dataFetched && Object.keys(result).length === 0) {
+    if (notFound) {
         return <>
             <div className={classes.speciesHeader}>
                 <div className="container-lg py-4">
