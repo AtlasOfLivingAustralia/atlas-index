@@ -497,16 +497,26 @@ test.describe('Species page - header', () => {
         await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
         await expect(bar).toHaveAttribute('data-condensed', 'true');
 
-        await tabBar.getByText('Names', { exact: true }).click();
-        await expect(page).toHaveURL(/#tab=names/);
-        await expect(bar).toHaveAttribute('data-condensed', 'true');
-        // The spacer at the top of the tab content ends exactly where the pinned bars do.
-        await expect.poll(async () => {
+        const contentSitsUnderBars = async () => {
             const tabBarBox = await tabBar.boundingBox();
             const spacerBox = await page.locator('.speciesPage > .container > div').first().boundingBox();
             if (!tabBarBox || !spacerBox) return false;
             return Math.abs(spacerBox.y + spacerBox.height - (tabBarBox.y + tabBarBox.height)) <= 1;
-        }).toBe(true);
+        };
+
+        await tabBar.getByText('Names', { exact: true }).click();
+        await expect(page).toHaveURL(/#tab=names/);
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+        // The spacer at the top of the tab content ends exactly where the pinned bars do.
+        await expect.poll(contentSitsUnderBars).toBe(true);
+
+        // Map is the default tab, so clearing its hash must leave the reader on the map.
+        // A locator click scrolls the sticky tab's layout box, which sits under the fixed name bar.
+        const mapBox = (await tabBar.getByText('Map', { exact: true }).boundingBox())!;
+        await page.mouse.click(mapBox.x + mapBox.width / 2, mapBox.y + mapBox.height / 2);
+        await expect(page).not.toHaveURL(/#tab=/);
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+        await expect.poll(contentSitsUnderBars).toBe(true);
     });
 
     test('jumps to an element below both bars when the tab bar wraps', async ({ page }) => {
@@ -520,11 +530,17 @@ test.describe('Species page - header', () => {
 
         await page.locator('text=View all 2 Indigenous names').click();
         const heading = page.locator('#indigenous-names-heading');
+        let lastHeadingY = -1;
         await expect.poll(async () => {
             const tabBarBox = await tabBar.boundingBox();
             const headingBox = await heading.boundingBox();
             if (!tabBarBox || !headingBox) return false;
-            return headingBox.y >= tabBarBox.y + tabBarBox.height - 1;
+            // The heading starts further down the page, so "below the tabs" is true before the jump.
+            // Wait until it has stopped just under the pinned bars.
+            const settled = headingBox.y === lastHeadingY;
+            lastHeadingY = headingBox.y;
+            const gap = headingBox.y - (tabBarBox.y + tabBarBox.height);
+            return settled && Math.abs(gap) <= 4;
         }).toBe(true);
     });
 
