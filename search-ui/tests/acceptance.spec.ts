@@ -474,21 +474,32 @@ test.describe('Species page - header', () => {
         test.skip(shouldSkip('species-header-long-name'), 'Skipped via live-config.json skip list');
         const guid = 'https://biodiversity.org.au/afd/taxa/long-name-species';
         const longName = 'Falco hypoleucos subsp. extraordinarius var. exceedingly-long-name f. goes-on-well-past-the-edge-of-the-header Gould, 1841';
+        const nameFormatted = `<span class="scientific-name rank-species"><span class="name">${longName}</span></span>`;
         await page.setViewportSize({ width: 900, height: 800 });
         await setupSpeciesPageMocks(page, {
-            extraSpeciesByPath: { [guid]: { ...SPECIES_BIRD_FULL, guid, name: longName, nameFormatted: longName } },
+            extraSpeciesByPath: { [guid]: { ...SPECIES_BIRD_FULL, guid, name: longName, nameFormatted } },
         });
         await load(page, speciesUrl(guid));
 
         const name = page.locator('[class*="speciesHeaderName"]');
         await expect(name).toContainText('Falco hypoleucos subsp. extraordinarius');
-        const metrics = await name.evaluate((el) => ({
+        const measure = () => name.evaluate((el) => ({
             height: el.getBoundingClientRect().height,
             lineHeight: parseFloat(getComputedStyle(el).lineHeight),
             overflows: el.scrollWidth > el.clientWidth,
+            // A block child would be clipped without the ellipsis.
+            childDisplay: getComputedStyle(el.firstElementChild!).display,
         }));
-        expect(metrics.height).toBe(metrics.lineHeight);
-        expect(metrics.overflows).toBe(true);
+
+        for (const condensed of [false, true]) {
+            if (condensed) {
+                await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
+                await expect(page.locator('[data-condensed]')).toHaveAttribute('data-condensed', 'true');
+            }
+            await expect.poll(measure).toMatchObject({ overflows: true, childDisplay: 'inline' });
+            const metrics = await measure();
+            expect(metrics.height).toBeCloseTo(metrics.lineHeight, 0);
+        }
     });
 
     test('does not condense the header on a phone-width viewport', async ({ page }) => {

@@ -10,12 +10,12 @@ import {
     FontAwesomeIconLite,
     useHashState,
 } from '@ala/common-ui';
-import {faChevronDown} from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import DOMPurify from 'dompurify';
-import {useEffect, useRef, useState} from 'react';
-import {useIntl} from 'react-intl';
-import {useParams} from 'react-router-dom';
-import {TaxonDescription} from '../api/sources/model.ts';
+import { useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
+import { useParams } from 'react-router-dom';
+import { TaxonDescription } from '../api/sources/model.ts';
 import FormatName from '../components/nameUtils/formatName.tsx';
 import ClassificationView from '../components/species/classificationView.tsx';
 import DatasetsView from '../components/species/datasetsView.tsx';
@@ -35,7 +35,7 @@ import IMAGE_PLACEHOLDER from '../image/missing-image.png';
 // Global class (see species.module.css) that turns off scroll anchoring while the header animates.
 const ANIMATING_CLASS = 'speciesHeaderAnimating';
 
-function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
+function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
     const intl = useIntl();
     const [tab, setTab] = useHashState('tab', 'map');
     const [result, setResult] = useState<Record<PropertyKey, string | number | any>>({});
@@ -55,10 +55,10 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             document.title = `${result.name}: ${result.commonName.join(', ')}`;
         }
         setBreadcrumbs([
-            {title: 'Home', href: import.meta.env.VITE_HOME_URL},
-            {title: 'Search', href: '/'},
+            { title: 'Home', href: import.meta.env.VITE_HOME_URL },
+            { title: 'Search', href: '/' },
             {
-                title: result ? (<FormatName name={result.scientificName} rankId={result.rank}/>) : ('Loading...'),
+                title: result ? (<FormatName name={result.scientificName} rankId={result.rank} />) : ('Loading...'),
                 href: '',
             }
         ]);
@@ -165,7 +165,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         setTab(value || '');
         // Tab contents differ in height, so start the new tab from the top rather than stranding the reader.
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        window.scrollTo({top: 0, behavior: reduceMotion ? 'instant' : 'smooth'});
+        window.scrollTo({ top: 0, behavior: reduceMotion ? 'instant' : 'smooth' });
     };
 
     // If no data is found for taxon ID, show an error message
@@ -173,15 +173,15 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         return <>
             <div className={classes.speciesHeader}>
                 <div className="container-lg py-4">
-                    <h3 style={{fontWeight: 800, marginTop: '2.5rem'}}>
+                    <h3 style={{ fontWeight: 800, marginTop: '2.5rem' }}>
                         Not found
                     </h3>
                 </div>
             </div>
             <div className="container-lg mt-5">
-                <span style={{fontSize: '1.125rem', marginTop: '2.5rem', display: 'block'}}>
+                <span style={{ fontSize: '1.125rem', marginTop: '2.5rem', display: 'block' }}>
                     No taxon found for{' '}
-                    <code style={{fontSize: '1.125rem'}}>
+                    <code style={{ fontSize: '1.125rem' }}>
                         {queryPath}
                     </code>
                 </span>
@@ -240,16 +240,16 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         }
     }
 
-    return <div className={'speciesPage'} style={{marginTop: '-47px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF'}}>
-        <div ref={sentinelRef}/>
+    return <div className={'speciesPage'} style={{ marginTop: '-47px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF' }}>
+        <div ref={sentinelRef} />
         <div ref={chromeRef} className={isMobile ? undefined : classes.stickyChrome} data-condensed={condensed}>
             <div className={classes.speciesHeader + ' container-fluid'}>
                 <div className={`${classes.headerInner}${isMobile ? ` ${classes.headerInnerMobile}` : ''}`}>
                     <span className={classes.speciesHeaderName}
-                          title={!isMobile && result.name ? String(result.name) : undefined}
-                          dangerouslySetInnerHTML={{__html: result.nameFormatted || result.name}}/>
+                        title={!isMobile && result.name ? String(result.name) : undefined}
+                        dangerouslySetInnerHTML={{ __html: result.nameFormatted || result.name }} />
                     <div className={classes.heroExtra}>
-                        <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{marginBottom: '25px', gap: '20px'}}>
+                        <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{ marginBottom: '25px', gap: '20px' }}>
                             <span>{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</span>
                             {result.taxonomicStatus && (
                                 <span>
@@ -273,30 +273,30 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                         {/* include first 2 IEK names if available */}
                         {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
                             idx < 2 && <span className={classes.speciesHeaderVernacular}
-                                             key={idx}>{item.name} in{' '} {item.languageName}</span>
+                                key={idx}>{item.name} in{' '} {item.languageName}</span>
                         )}
                         {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length > 0 &&
                             <a className={classes.speciesLink} onClick={(e) => {
                                 e.preventDefault();
                                 setTab('names');
                                 setTimeout(() => {
-                                    document.getElementById('indigenous-names-heading')?.scrollIntoView({behavior: 'smooth', block: 'start'});
+                                    document.getElementById('indigenous-names-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                 }, 50);
                             }}>{result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length === 1 ? 'View this Indigenous name' : `View all ${result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length} Indigenous names`}</a>
                         }
 
                         {result.heroDescription && (
-                            <span style={{marginTop: '15px'}} className={classes.speciesHeaderDescription}
-                                  dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(result.heroDescription),}}/>
+                            <span style={{ marginTop: '15px' }} className={classes.speciesHeaderDescription}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result.heroDescription), }} />
                         )}
                         {invasiveStatus &&
-                            <FlaggedAlert style={{marginTop: '15px'}} className={classes.flaggedAlert} content={<>
+                            <FlaggedAlert style={{ marginTop: '15px' }} className={classes.flaggedAlert} content={<>
                                 This species is{' '}
                                 <a className={classes.speciesLink}
-                                   onClick={(e) => {
-                                       e.preventDefault();
-                                       setTab('status');
-                                   }}>
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setTab('status');
+                                    }}>
                                     considered invasive</a>
                                 {' '}in some part of Australia and may be of biosecurity concern.
                             </>}
@@ -307,17 +307,17 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                             idx == 0 && <div className={classes.mainImage} key={idx}>
                                 <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id} target="_blank">
                                     <img className={classes.headerImage}
-                                         src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
-                                         alt="species image"
-                                         onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
-                                         onMouseOver={(event) => {
-                                             const target = event.target as HTMLImageElement;
-                                             target.style.transform = 'scale(1.1)';
-                                         }}
-                                         onMouseOut={(event) => {
-                                             const target = event.target as HTMLImageElement;
-                                             target.style.transform = 'scale(1.0)';
-                                         }}
+                                        src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
+                                        alt="species image"
+                                        onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
+                                        onMouseOver={(event) => {
+                                            const target = event.target as HTMLImageElement;
+                                            target.style.transform = 'scale(1.1)';
+                                        }}
+                                        onMouseOut={(event) => {
+                                            const target = event.target as HTMLImageElement;
+                                            target.style.transform = 'scale(1.0)';
+                                        }}
                                     />
                                 </a>
                             </div>
@@ -327,18 +327,18 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                                 (idx == 1 || idx == 2) &&
                                 <div className={classes.headerImageSmall} key={idx}>
                                     <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id}
-                                       target="_blank">
+                                        target="_blank">
                                         <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
-                                             alt="species image"
-                                             onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
-                                             onMouseOver={(event) => {
-                                                 const target = event.target as HTMLImageElement;
-                                                 target.style.transform = 'scale(1.1)';
-                                             }}
-                                             onMouseOut={(event) => {
-                                                 const target = event.target as HTMLImageElement;
-                                                 target.style.transform = 'scale(1.0)';
-                                             }}
+                                            alt="species image"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
+                                            onMouseOver={(event) => {
+                                                const target = event.target as HTMLImageElement;
+                                                target.style.transform = 'scale(1.1)';
+                                            }}
+                                            onMouseOut={(event) => {
+                                                const target = event.target as HTMLImageElement;
+                                                target.style.transform = 'scale(1.0)';
+                                            }}
                                         />
                                     </a>
                                 </div>
@@ -350,39 +350,39 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             {!isMobile && <div className={classes.tabBar}>
                 <div className={classes.tabBarInner}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('map')}>
+                        onClick={() => handleTabChange('map')}>
                         Map
                     </div>
                     <div className={`${tab === 'classification' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('classification')}>
+                        onClick={() => handleTabChange('classification')}>
                         Classification
                     </div>
                     <div className={`${tab === 'description' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('description')}>
+                        onClick={() => handleTabChange('description')}>
                         Description
                     </div>
                     <div className={`${tab === 'media' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('media')}>
+                        onClick={() => handleTabChange('media')}>
                         Images and sounds
                     </div>
                     <div className={`${tab === 'names' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('names')}>
+                        onClick={() => handleTabChange('names')}>
                         Names
                     </div>
                     <div className={`${tab === 'status' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('status')}>
+                        onClick={() => handleTabChange('status')}>
                         Status
                     </div>
                     <div className={`${tab === 'traits' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('traits')}>
+                        onClick={() => handleTabChange('traits')}>
                         Traits
                     </div>
                     <div className={`${tab === 'datasets' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('datasets')}>
+                        onClick={() => handleTabChange('datasets')}>
                         Datasets
                     </div>
                     <div className={`${tab === 'resources' ? classes.activeTab : ''} ${classes.tabButtons}`}
-                         onClick={() => handleTabChange('resources')}>
+                        onClick={() => handleTabChange('resources')}>
                         Resources
                     </div>
                 </div>
@@ -398,145 +398,145 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         }} className={"d-flex flex-row"}>
             {result.image.split(',').map((id: string) =>
                 <img src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id} alt="species image"
-                     onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
-                     style={{borderRadius: '10px', height: '150px'}}/>
+                    onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}
+                    style={{ borderRadius: '10px', height: '150px' }} />
             )}
         </div>}
         {isMobile && (<div>
-            <div className={"text-end"} style={{paddingRight: '15px'}} onClick={() => toggleExpandAll()}>
-                { anyExpanded() ? 'Collapse all' : 'Expand all'}{" "}
-                <FontAwesomeIconLite icon={faChevronDown}/>
+            <div className={"text-end"} style={{ paddingRight: '15px' }} onClick={() => toggleExpandAll()}>
+                {anyExpanded() ? 'Collapse all' : 'Expand all'}{" "}
+                <FontAwesomeIconLite icon={faChevronDown} />
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('map')}>
                     Map
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/></div>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} /></div>
                 {mobileToggle['map'] &&
                     <div className={classes.mobileSectionContent}>
-                        <MapView result={result} tab={tab} isMobile={isMobile}/>
+                        <MapView result={result} tab={tab} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('classification')}>
                     Classification
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['classification'] &&
                     <div className={classes.mobileSectionContent}>
-                        <ClassificationView result={result} isMobile={isMobile}/>
+                        <ClassificationView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('description')}>
                     Description
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['description'] &&
                     <div className={classes.mobileSectionContent}>
-                        <DescriptionView descriptions={descriptions} isMobile={isMobile}/>
+                        <DescriptionView descriptions={descriptions} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('images')}>
                     Images and sounds
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['images'] &&
                     <div className={classes.mobileSectionContent}>
-                        <ImagesView result={result} isMobile={isMobile}/>
+                        <ImagesView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('names')}>
                     Names
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['names'] &&
                     <div className={classes.mobileSectionContent}>
-                        <NamesView result={result} isMobile={isMobile}/>
+                        <NamesView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('status')}>
                     Status
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['status'] &&
                     <div className={classes.mobileSectionContent}>
-                        <StatusView result={result} isMobile={isMobile}/>
+                        <StatusView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('traits')}>
                     Traits
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['traits'] &&
                     <div className={classes.mobileSectionContent}>
-                        <TraitsView result={result} isMobile={isMobile}/>
+                        <TraitsView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('datasets')}>
                     Datasets
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['datasets'] &&
                     <div className={classes.mobileSectionContent}>
-                        <DatasetsView result={result} isMobile={isMobile}/>
+                        <DatasetsView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
             <div className={classes.mobileSection}>
                 <div className={classes.mobileSectionTitle} onClick={() => toggle('resources')}>
                     Resources
-                    <FontAwesomeIconLite icon={faChevronDown} style={{float: "right"}}/>
+                    <FontAwesomeIconLite icon={faChevronDown} style={{ float: "right" }} />
                 </div>
                 {mobileToggle['resources'] &&
                     <div className={classes.mobileSectionContent}>
-                        <ResourcesView result={result} isMobile={isMobile}/>
+                        <ResourcesView result={result} isMobile={isMobile} />
                     </div>
                 }
             </div>
         </div>)}
-        {!isMobile && <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}} >
-                <div style={{height: '60px'}}/>
-                <div style={{display: tab === 'map' ? 'block' : 'none'}}>
-                    <MapView result={result} tab={tab} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'classification' ? 'block' : 'none',}}>
-                    <ClassificationView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'description' ? 'block' : 'none',}}>
-                    <DescriptionView descriptions={descriptions} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'media' ? 'block' : 'none'}}>
-                    <ImagesView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'names' ? 'block' : 'none'}}>
-                    <NamesView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'status' ? 'block' : 'none'}}>
-                    <StatusView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'traits' ? 'block' : 'none'}}>
-                    <TraitsView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'datasets' ? 'block' : 'none'}}>
-                    <DatasetsView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{display: tab === 'resources' ? 'block' : 'none'}}>
-                    <ResourcesView result={result} isMobile={isMobile}/>
-                </div>
-                <div style={{height: '120px'}}/>
-            </div>}
+        {!isMobile && <div className="container" style={{ maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto' }} >
+            <div style={{ height: '60px' }} />
+            <div style={{ display: tab === 'map' ? 'block' : 'none' }}>
+                <MapView result={result} tab={tab} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'classification' ? 'block' : 'none', }}>
+                <ClassificationView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'description' ? 'block' : 'none', }}>
+                <DescriptionView descriptions={descriptions} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'media' ? 'block' : 'none' }}>
+                <ImagesView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'names' ? 'block' : 'none' }}>
+                <NamesView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'status' ? 'block' : 'none' }}>
+                <StatusView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'traits' ? 'block' : 'none' }}>
+                <TraitsView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'datasets' ? 'block' : 'none' }}>
+                <DatasetsView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ display: tab === 'resources' ? 'block' : 'none' }}>
+                <ResourcesView result={result} isMobile={isMobile} />
+            </div>
+            <div style={{ height: '120px' }} />
+        </div>}
     </div>;
 }
 

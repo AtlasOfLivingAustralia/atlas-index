@@ -687,7 +687,7 @@
  * the top of the viewport. Every size comes from CSS, so nothing needs re-measuring.
  */
 .stickyChrome {
-    --snap: 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    --snap: 520ms cubic-bezier(0.3, 0, 0.2, 1);
     box-shadow: 0 1px 4px transparent;
 }
 
@@ -713,6 +713,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* nameFormatting.css makes this a block, and an ellipsis only applies to inline content of the clipping box. */
+.headerInner:not(.headerInnerMobile) .speciesHeaderName > :global(.scientific-name) {
+    display: inline;
 }
 
 /* Collapses by animating its grid row from 1fr to 0fr. */
