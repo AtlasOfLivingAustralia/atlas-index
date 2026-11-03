@@ -428,46 +428,47 @@ test.describe('Species page - header', () => {
         await expect(page).toHaveURL(/#tab=status/);
     });
 
-    test('condenses the header once on a slow scroll, and is not clipped after a resize', async ({ page }) => {
+    test('shows the name bar once on a slow scroll without moving the page, and hides it again at the top', async ({ page }) => {
         test.skip(shouldSkip('species-header-sticky'), 'Skipped via live-config.json skip list');
-        await page.setViewportSize({ width: 1400, height: 800 });
+        await page.setViewportSize({ width: 1400, height: 1000 });
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
 
-        const header = page.locator('[data-condensed]');
-        await expect(header).toHaveAttribute('data-condensed', 'false');
-        await expect(page.locator('text=rare, medium-sized falcon')).toBeVisible();
+        const bar = page.locator('[class*="_condensedBar_"]');
+        const tabBar = page.locator('[class*="_tabBar_"]');
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
+        await expect(bar).toBeHidden();
+        // The tab bar's unpinned position, which is marked by the element just before it.
+        const tabBarDocTop = () => tabBar.evaluate((el) => el.previousElementSibling!.getBoundingClientRect().top + window.scrollY);
+        const tabBarTopBefore = await tabBarDocTop();
 
-        // Record every change, so a header that condenses and expands again while scrolling is caught.
-        await header.evaluate((el) => {
+        // Record every change, so a bar that shows and hides again while scrolling is caught.
+        await bar.evaluate((el) => {
             (window as any).__condensedChanges = [];
             new MutationObserver(() => (window as any).__condensedChanges.push(el.getAttribute('data-condensed')))
                 .observe(el, { attributes: true, attributeFilter: ['data-condensed'] });
         });
 
-        // Small wheel steps carry the scroll across the point where the header reaches the top of the viewport.
+        // Small wheel steps carry the scroll across the point where the tab bar reaches the top of the viewport.
         await page.mouse.move(600, 400);
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 100; i++) {
             await page.mouse.wheel(0, 8);
             await page.waitForTimeout(25);
         }
-        await expect(header).toHaveAttribute('data-condensed', 'true');
-        await expect(page.locator('text=Name authority: Australian Faunal Directory')).toBeHidden();
-        await expect(page.locator('[class*="tabBar"]').getByText('Map', { exact: true })).toBeVisible();
-        await page.waitForTimeout(700); // let the animation finish: any flip-flop would show up by now
+        await expect(bar).toHaveAttribute('data-condensed', 'true');
+        await expect(bar).toBeVisible();
+        // The tab bar settles directly under the name bar.
+        await expect.poll(async () => Math.round((await tabBar.boundingBox())!.y)).toBe(68);
         expect(await page.evaluate(() => (window as any).__condensedChanges)).toEqual(['true']);
+        // Nothing moved in the document, so jumps to an element land where they were aimed.
+        expect(await tabBarDocTop()).toBe(tabBarTopBefore);
 
-        // Narrow the window while condensed, then return to the top: the whole hero must fit in the header.
-        await page.setViewportSize({ width: 900, height: 800 });
+        // Narrow the window, then return to the top: the whole hero is there, and the name bar is gone.
+        await page.setViewportSize({ width: 900, height: 1000 });
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-        await expect(header).toHaveAttribute('data-condensed', 'false');
-        const lastLine = page.getByText('considered invasive');
-        await expect(lastLine).toBeVisible();
-        await expect.poll(async () => {
-            const headerBox = (await header.boundingBox())!;
-            const lineBox = (await lastLine.boundingBox())!;
-            return lineBox.y + lineBox.height <= headerBox.y + headerBox.height;
-        }).toBe(true);
+        await expect(bar).toHaveAttribute('data-condensed', 'false');
+        await expect(bar).toBeHidden();
+        await expect(page.getByText('considered invasive')).toBeInViewport({ ratio: 1 });
     });
 
     test('truncates a long species name instead of wrapping it', async ({ page }) => {
@@ -481,9 +482,7 @@ test.describe('Species page - header', () => {
         });
         await load(page, speciesUrl(guid));
 
-        const name = page.locator('[class*="speciesHeaderName"]');
-        await expect(name).toContainText('Falco hypoleucos subsp. extraordinarius');
-        const measure = () => name.evaluate((el) => ({
+        const measure = (selector: string) => page.locator(selector).evaluate((el) => ({
             height: el.getBoundingClientRect().height,
             lineHeight: parseFloat(getComputedStyle(el).lineHeight),
             overflows: el.scrollWidth > el.clientWidth,
@@ -491,18 +490,19 @@ test.describe('Species page - header', () => {
             childDisplay: getComputedStyle(el.firstElementChild!).display,
         }));
 
-        for (const condensed of [false, true]) {
-            if (condensed) {
-                await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
-                await expect(page.locator('[data-condensed]')).toHaveAttribute('data-condensed', 'true');
+        for (const selector of ['[class*="speciesHeaderName"]', '[class*="condensedName"]']) {
+            if (selector.includes('condensedName')) {
+                await page.evaluate(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }));
+                await expect(page.locator('[class*="_condensedBar_"]')).toHaveAttribute('data-condensed', 'true');
             }
-            await expect.poll(measure).toMatchObject({ overflows: true, childDisplay: 'inline' });
-            const metrics = await measure();
+            await expect(page.locator(selector)).toContainText('Falco hypoleucos subsp. extraordinarius');
+            await expect.poll(() => measure(selector)).toMatchObject({ overflows: true, childDisplay: 'inline' });
+            const metrics = await measure(selector);
             expect(metrics.height).toBeCloseTo(metrics.lineHeight, 0);
         }
     });
 
-    test('does not condense the header on a phone-width viewport', async ({ page }) => {
+    test('has no name bar or pinned tab bar on a phone-width viewport', async ({ page }) => {
         test.skip(shouldSkip('species-header-sticky-mobile'), 'Skipped via live-config.json skip list');
         await page.setViewportSize({ width: 400, height: 800 });
         await setupSpeciesPageMocks(page);
@@ -510,9 +510,8 @@ test.describe('Species page - header', () => {
 
         await expect(page.locator('text=Falco hypoleucos').first()).toBeVisible();
         await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }));
-        await expect(page.locator('[data-condensed="true"]')).toHaveCount(0);
-        const position = await page.locator('[data-condensed]').evaluate((el) => getComputedStyle(el).position);
-        expect(position).not.toBe('sticky');
+        await expect(page.locator('[class*="_condensedBar_"]')).toHaveCount(0);
+        await expect(page.locator('[class*="_tabBar_"]')).toHaveCount(0);
     });
 
     test('does not show hero image, IEK preview, or invasive alert for a minimal species', async ({ page }) => {

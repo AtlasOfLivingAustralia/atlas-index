@@ -32,9 +32,6 @@ import TraitsView from '../components/species/traitsView.tsx';
 import capitalizeFirstLetter from '../helpers/Capitalise.ts';
 import IMAGE_PLACEHOLDER from '../image/missing-image.png';
 
-// Global class (see species.module.css) that turns off scroll anchoring while the header animates.
-const ANIMATING_CLASS = 'speciesHeaderAnimating';
-
 function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void, isMobile: boolean }) {
     const intl = useIntl();
     const [tab, setTab] = useHashState('tab', 'map');
@@ -45,7 +42,6 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
     const [mobileToggle, setMobileToggle] = useState<Record<string, boolean>>({});
     const [condensed, setCondensed] = useState(false);
     const sentinelRef = useRef<HTMLDivElement>(null);
-    const chromeRef = useRef<HTMLDivElement>(null);
 
     let params = useParams();
     const queryPath = params['*'] || '';
@@ -129,43 +125,29 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
         });
     }, [queryPath]);
 
-    // Condense the header once its top edge has scrolled off the top of the viewport.
+    // Pin the name bar once the tab bar's natural position has scrolled off the top of the viewport.
     useEffect(() => {
         const sentinel = sentinelRef.current;
-        const chrome = chromeRef.current;
-        if (isMobile || !sentinel || !chrome) {
+        if (isMobile || !sentinel) {
             setCondensed(false);
             return;
         }
-        const root = document.documentElement;
-        let current = false;
-        let timer = 0;
         const observer = new IntersectionObserver((entries) => {
-            // Shrinking shortens the page. If it could not then still scroll this far, the scroll position
-            // would clamp back above the trigger and the header would flip back and forth.
-            const roomToShrink = root.scrollHeight - window.innerHeight - chrome.offsetHeight >= window.scrollY;
-            const next = !entries[entries.length - 1].isIntersecting && (current || roomToShrink);
-            if (next === current) return;
-            current = next;
-            setCondensed(next);
-            // Matches the 420ms header transition in species.module.css.
-            root.classList.add(ANIMATING_CLASS);
-            clearTimeout(timer);
-            timer = window.setTimeout(() => root.classList.remove(ANIMATING_CLASS), 500);
+            const entry = entries[entries.length - 1];
+            setCondensed(!entry.isIntersecting && entry.boundingClientRect.top < 0);
         });
         observer.observe(sentinel);
-        return () => {
-            observer.disconnect();
-            clearTimeout(timer);
-            root.classList.remove(ANIMATING_CLASS);
-        };
+        return () => observer.disconnect();
     }, [isMobile, dataFetched]);
 
     const handleTabChange = (value: string | null) => {
         setTab(value || '');
-        // Tab contents differ in height, so start the new tab from the top rather than stranding the reader.
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        window.scrollTo({ top: 0, behavior: reduceMotion ? 'instant' : 'smooth' });
+        // Each tab has its own height, so bring the new tab's content back up under the pinned bars.
+        const sentinelTop = (sentinelRef.current?.getBoundingClientRect().top ?? 0) + window.scrollY;
+        if (window.scrollY > sentinelTop) {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: sentinelTop, behavior: reduceMotion ? 'instant' : 'smooth' });
+        }
     };
 
     // If no data is found for taxon ID, show an error message
@@ -240,71 +222,89 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
         }
     }
 
-    return <div className={'speciesPage'} style={{ marginTop: '-47px', backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF' }}>
-        <div ref={sentinelRef} />
-        <div ref={chromeRef} className={isMobile ? undefined : classes.stickyChrome} data-condensed={condensed}>
-            <div className={classes.speciesHeader + ' container-fluid'}>
-                <div className={`${classes.headerInner}${isMobile ? ` ${classes.headerInnerMobile}` : ''}`}>
-                    <span className={classes.speciesHeaderName}
-                        title={!isMobile && result.name ? String(result.name) : undefined}
-                        dangerouslySetInnerHTML={{ __html: result.nameFormatted || result.name }} />
-                    <div className={classes.heroExtra}>
-                        <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{ marginBottom: '25px', gap: '20px' }}>
-                            <span>{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</span>
-                            {result.taxonomicStatus && (
-                                <span>
-                                    {intl.formatMessage({
-                                        id: 'taxonomicStatus.' + result.taxonomicStatus,
-                                        defaultMessage: capitalizeFirstLetter(result.taxonomicStatus),
-                                    })}
-                                </span>
-                            )}
-                            {result.datasetName && (
-                                <span>Name authority: {result.datasetName}</span>
-                            )}
-                        </div>
+    return <div className={'speciesPage'} style={{ backgroundColor: isMobile ? '#E7E7E7' : '#FFFFFF' }}>
+        <div className={classes.speciesHeader + ' container-fluid'} style={{ marginTop: '-47px' }}>
+            <div style={{
+                maxWidth: '1200px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                paddingTop: '20px'
+            }}>
+                <span className={isMobile ? classes.speciesHeaderName : `${classes.speciesHeaderName} ${classes.truncate}`}
+                    title={!isMobile && result.name ? String(result.name) : undefined}
+                    dangerouslySetInnerHTML={{ __html: result.nameFormatted || result.name }} />
+            </div>
 
-                        {result.commonNameSingle &&
-                            <span className={classes.speciesHeaderVernacular}>
-                                {result.commonNameSingle}
+            <div className="d-flex" style={{
+                maxWidth: '1200px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                paddingTop: '20px',
+                paddingBottom: isMobile ? '15px' : '60px',
+            }}>
+                <div style={{ width: isMobile ? '100%' : '50%' }}>
+                    <div className={`${classes.speciesHeaderRank} d-flex flex-wrap`} style={{ marginBottom: '25px', gap: '20px' }}>
+                        <span>{capitalizeFirstLetter(result.rank) || 'Unknown taxon rank'}</span>
+                        {result.taxonomicStatus && (
+                            <span>
+                                {intl.formatMessage({
+                                    id: 'taxonomicStatus.' + result.taxonomicStatus,
+                                    defaultMessage: capitalizeFirstLetter(result.taxonomicStatus),
+                                })}
                             </span>
-                        }
-
-                        {/* include first 2 IEK names if available */}
-                        {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
-                            idx < 2 && <span className={classes.speciesHeaderVernacular}
-                                key={idx}>{item.name} in{' '} {item.languageName}</span>
                         )}
-                        {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length > 0 &&
-                            <a className={classes.speciesLink} onClick={(e) => {
-                                e.preventDefault();
-                                setTab('names');
-                                setTimeout(() => {
-                                    document.getElementById('indigenous-names-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                                }, 50);
-                            }}>{result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length === 1 ? 'View this Indigenous name' : `View all ${result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length} Indigenous names`}</a>
-                        }
-
-                        {result.heroDescription && (
-                            <span style={{ marginTop: '15px' }} className={classes.speciesHeaderDescription}
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result.heroDescription), }} />
+                        {result.datasetName && (
+                            <span>Name authority: {result.datasetName}</span>
                         )}
-                        {invasiveStatus &&
-                            <FlaggedAlert style={{ marginTop: '15px' }} className={classes.flaggedAlert} content={<>
-                                This species is{' '}
-                                <a className={classes.speciesLink}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        setTab('status');
-                                    }}>
-                                    considered invasive</a>
-                                {' '}in some part of Australia and may be of biosecurity concern.
-                            </>}
-                            />}
                     </div>
-                    {!isMobile && result.image && <div className={classes.imageCol}>
-                        {result.image.split(',').map((id: string, idx: number) =>
-                            idx == 0 && <div className={classes.mainImage} key={idx}>
+
+                    {result.commonNameSingle &&
+                        <span className={classes.speciesHeaderVernacular}>
+                            {result.commonNameSingle}
+                        </span>
+                    }
+
+                    {/* include first 2 IEK names if available */}
+                    {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').map((item: any, idx: number) =>
+                        idx < 2 && <span className={classes.speciesHeaderVernacular}
+                            key={idx}>{item.name} in{' '} {item.languageName}</span>
+                    )}
+                    {result.vernacularData && result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length > 0 &&
+                        <a className={classes.speciesLink} onClick={(e) => {
+                            e.preventDefault();
+                            setTab('names');
+                            setTimeout(() => {
+                                document.getElementById('indigenous-names-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 50);
+                        }}>{result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length === 1 ? 'View this Indigenous name' : `View all ${result.vernacularData.filter((item: any) => item.status === 'traditionalKnowledge').length} Indigenous names`}</a>
+                    }
+
+                    {result.heroDescription && (
+                        <span style={{ marginTop: '15px' }} className={classes.speciesHeaderDescription}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(result.heroDescription), }} />
+                    )}
+                    {invasiveStatus &&
+                        <FlaggedAlert style={{ marginTop: '15px' }} className={classes.flaggedAlert} content={<>
+                            This species is{' '}
+                            <a className={classes.speciesLink}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setTab('status');
+                                }}>
+                                considered invasive</a>
+                            {' '}in some part of Australia and may be of biosecurity concern.
+                        </>}
+                        />}
+                </div>
+                {!isMobile && <>
+                    <div style={{ flexGrow: 1, maxWidth: '50%', marginLeft: 'auto' }}>
+                        {result.image && result.image.split(',').map((id: string, idx: number) =>
+                            idx == 0 && <div style={{
+                                marginLeft: '20px',
+                                marginRight: '20px',
+                                overflow: 'hidden',
+                                borderRadius: '10px'
+                            }} key={idx}>
                                 <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id} target="_blank">
                                     <img className={classes.headerImage}
                                         src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + id}
@@ -322,8 +322,10 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
                                 </a>
                             </div>
                         )}
-                        <div className={classes.sideImages}>
-                            {result.image.split(',').map((id: string, idx: number) =>
+                    </div>
+                    <div className="col-12 col-md-2 col-lg-2">
+                        <div className="d-flex flex-row flex-lg-column" style={{ gap: '20px' }}>
+                            {result.image && result.image.split(',').map((id: string, idx: number) =>
                                 (idx == 1 || idx == 2) &&
                                 <div className={classes.headerImageSmall} key={idx}>
                                     <a href={import.meta.env.VITE_APP_IMAGE_BASE_URL + '/image/' + id}
@@ -344,10 +346,24 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
                                 </div>
                             )}
                         </div>
-                    </div>}
+                    </div>
+                </>}
+            </div>
+        </div>
+        {!isMobile && <>
+            {/* Decorative copy of the name that slides in once the header has scrolled away. */}
+            <div className={classes.condensedBar} data-condensed={condensed} aria-hidden="true">
+                <div className={classes.condensedBarInner}>
+                    <span className={`${classes.condensedName} ${classes.truncate}`}
+                        dangerouslySetInnerHTML={{ __html: result.nameFormatted || result.name }} />
+                    {result.image &&
+                        <img className={classes.condensedImage} alt=""
+                            src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + result.image.split(',')[0]}
+                            onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }} />}
                 </div>
             </div>
-            {!isMobile && <div className={classes.tabBar}>
+            <div ref={sentinelRef} />
+            <div className={classes.tabBar}>
                 <div className={classes.tabBarInner}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
                         onClick={() => handleTabChange('map')}>
@@ -386,8 +402,8 @@ function Species({ setBreadcrumbs, isMobile }: { setBreadcrumbs: (crumbs: Breadc
                         Resources
                     </div>
                 </div>
-            </div>}
-        </div>
+            </div>
+        </>}
         {isMobile && result.image && <div style={{
             gap: '15px',
             paddingLeft: '15px',
