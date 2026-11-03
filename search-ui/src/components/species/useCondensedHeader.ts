@@ -13,8 +13,8 @@ function coveredHeight(bar: HTMLElement, tabBar: HTMLElement) {
 }
 
 /**
- * Desktop species chrome. The name bar slides in once the tab bar reaches its pin line,
- * and in-page jumps land below both bars. `enabled` is true only while that chrome is mounted.
+ * Helper hook for the desktop species name bar and tab bar. The name bar slides in once the tab bar reaches its pin line,
+ * and in-page jumps land below both bars. `enabled` is true only while those bars are mounted.
  */
 export default function useCondensedHeader(enabled: boolean, tab: string) {
     const barRef = useRef<HTMLDivElement>(null);
