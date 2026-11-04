@@ -9,6 +9,7 @@ import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import capitalise from '../../helpers/Capitalise.ts';
 import formatNumber from '../../helpers/FormatNumber.ts';
+import formatLicence from '../../helpers/FormatLicence.ts';
 import missingImage from '../../image/missing-image.png';
 import FormatName from '../nameUtils/formatName.tsx';
 import classes from './species.module.css';
@@ -311,6 +312,12 @@ function ImagesView({result, isMobile}: MediaViewProps) {
             let newFieldResultsMap: Record<string, FacetResult> = {};
             for (const result of facet.fieldResult) {
                 let mappedLabel = thisMapping[result.label];
+                if (fieldName === 'license' && !mappedLabel) {
+                    const formatted = formatLicence(result.label);
+                    if (formatted !== result.label) {
+                        mappedLabel = formatted.replace(/ \d+\.\d+$/, '');
+                    }
+                }
 
                 // Aggregate "Other"
                 if (!mappedLabel) {
@@ -654,7 +661,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                     <div style={{
                         marginTop: '30px',
                         borderRadius: '10px',
-                        height: 'calc(100vh - 350px)',
+                        height: 'calc(100vh - 360px)',
                         textAlign: 'center'
                     }}>
                         <a href={`${import.meta.env.VITE_APP_IMAGE_BASE_URL}/image/${items[openImageIdx].id}`}
@@ -697,19 +704,19 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                             </div>
                         </a>
                     </div>
-                    <div className="d-flex flex-row justify-content-between align-items-center">
+                    <div className="d-flex flex-row justify-content-between align-items-center mt-5">
                         <div className="d-flex flex-column" style={{maxWidth: '50%', overflow: 'auto'}}>
+                            {items[openImageIdx].license &&
+                                <span><b>Licence:</b> {formatLicence(items[openImageIdx].license)}</span>}
                             {items[openImageIdx].creator &&
-                                <span>Rights holder: {items[openImageIdx].rightsHolder}</span>}
-                            {/*{items[openImageIdx].license && <span>License: {items[openImageIdx].license}</span>}*/}
+                                <span><b>Rights holder:</b> {items[openImageIdx].rightsHolder}</span>}
                             {items[openImageIdx].eventDate &&
-                                <span>Date: {new Date(items[openImageIdx].eventDate).toLocaleDateString()}</span>}
+                                <span><b>Date:</b> {new Date(items[openImageIdx].eventDate).toLocaleDateString()}</span>}
                             {items[openImageIdx].sourceName && <span>{items[openImageIdx].sourceName}</span>}
                         </div>
                         <div className="d-flex justify-content-end flex-wrap" style={{
                             rowGap: '10px',
                             columnGap: '30px',
-                            marginTop: '30px'
                         }}>
                             <a href={`${import.meta.env.VITE_APP_BIOCACHE_UI_URL}/occurrences/${encodeURIComponent(items[openImageIdx].occurrenceId)}`}
                                target="_blank" className="btn ala-btn-primary">

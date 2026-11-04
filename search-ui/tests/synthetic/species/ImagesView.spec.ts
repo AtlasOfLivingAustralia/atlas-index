@@ -13,6 +13,33 @@ import { setupSpeciesPageMocks, load, speciesUrl, SPECIES_BIRD_FULL } from './he
 // ---------------------------------------------------------------------------
 
 test.describe('ImagesView.tsx', () => {
+    test('formats licence URLs in image details and licence facets', async ({ page }) => {
+        const licence = 'https://creativecommons.org/licenses/by/4.0/';
+        await setupSpeciesPageMocks(page, {
+            biocacheConfig: {
+                imagePagesByGuid: {
+                    [SPECIES_BIRD_FULL.guid]: [{
+                        totalRecords: 1,
+                        facetResults: [{
+                            fieldName: 'license',
+                            fieldResult: [{label: licence, count: 1, fq: `license:"${licence}"`}]
+                        }],
+                        occurrences: [{
+                            uuid: 'occ-001',
+                            imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600, license: licence}]
+                        }]
+                    }]
+                }
+            }
+        });
+        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
+        if (process.env.VITE_APP_MEDIA_LICENCE_FILTER_ENABLED === 'true') {
+            await expect(page.getByText('CC-BY (1)', {exact: true})).toBeVisible();
+        }
+        await page.locator('img[src*="gallery-img-001"]').click();
+        await expect(page.getByRole('dialog').getByText('Licence: CC-BY 4.0', {exact: true})).toBeVisible();
+    });
+
     test('a broken image is removed from the grid on error', async ({ page }) => {
         test.skip(shouldSkip('imagesview-broken-image'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
