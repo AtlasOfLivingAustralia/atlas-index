@@ -107,3 +107,8 @@
     font-size: 32px;
     line-height: 40px;
 }
+
+/* Leaflet's own z-indexes would otherwise paint the map controls over the species name bar. */
+.speciesPage .leaflet-container {
+    isolation: isolate;
+}

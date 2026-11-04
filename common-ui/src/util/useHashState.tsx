@@ -84,12 +84,17 @@ function useHashState<T>(key: string, defaultValue: T, enableListener: boolean =
             } else {
                 hashParams.delete(key);
             }
-            currentHash = `#${hashParams.toString()}`;
+            // An empty fragment is '#'. Assigning that scrolls the document to the top.
+            const query = hashParams.toString();
+            const nextHash = query ? `#${query}` : '';
             setValue(valueToSet);
             isUpdating.current = false;
 
-            if (window.location.hash !== currentHash) {
-                window.location.hash = currentHash;
+            if (window.location.hash !== nextHash) {
+                // Removing the hash can still scroll to the top. Put the reader back.
+                const y = window.scrollY;
+                history.pushState(null, '', `${window.location.pathname}${window.location.search}${nextHash}`);
+                if (window.scrollY !== y) window.scrollTo(0, y);
             }
 
             processQueue(); // Process the next update in the queue

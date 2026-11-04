@@ -26,6 +26,7 @@ import MapView from '../components/species/mapView.tsx';
 import NamesView from '../components/species/namesView.tsx';
 import ResourcesView from '../components/species/resourcesView.tsx';
 import classes from '../components/species/species.module.css';
+import useCondensedHeader from '../components/species/useCondensedHeader.ts';
 import '../css/nameFormatting.css';
 import StatusView from '../components/species/statusView.tsx';
 import TraitsView from '../components/species/traitsView.tsx';
@@ -40,6 +41,10 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
     const [dataFetched, setDataFetched] = useState(false);
     const [invasiveStatus, setInvasiveStatus] = useState(false);
     const [mobileToggle, setMobileToggle] = useState<Record<string, boolean>>({});
+    const notFound = dataFetched && Object.keys(result).length === 0;
+    const {
+        condensed, barRef, sentinelRef, tabBarRef, queueScrollToContent,
+    } = useCondensedHeader(!isMobile && !notFound, tab);
 
     let params = useParams();
     const queryPath = params['*'] || '';
@@ -123,13 +128,13 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
         });
     }, [queryPath]);
 
-    const handleTabChange = (value: string | null) => {
-        const tabsTab = value || '';
-        setTab(tabsTab);
+    const handleTabChange = (value: string) => {
+        if (value !== tab) queueScrollToContent();
+        setTab(value);
     };
 
     // If no data is found for taxon ID, show an error message
-    if (dataFetched && Object.keys(result).length === 0) {
+    if (notFound) {
         return <>
             <div className={classes.speciesHeader}>
                 <div className="container-lg py-4">
@@ -446,9 +451,21 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
             </div>
         </div>)}
         {!isMobile && <>
-            <div style={{borderBottom: '1px solid #D9D9D9'}}>
-                <div className="d-flex flex-wrap"
-                     style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}}>
+            {/* Decorative copy of the name that slides in once the header has scrolled away. */}
+            <div ref={barRef} className={classes.condensedBar} data-condensed={condensed} aria-hidden="true">
+                <div className={classes.condensedBarInner}>
+                    <span className={`${classes.condensedName} ${classes.truncate}`}
+                          title={result.name ? String(result.name) : undefined}
+                          dangerouslySetInnerHTML={{__html: result.nameFormatted || result.name}}/>
+                    {result.image &&
+                        <img className={classes.condensedImage} alt=""
+                             src={import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL + result.image.split(',')[0]}
+                             onError={(e) => { (e.target as HTMLImageElement).src = IMAGE_PLACEHOLDER; }}/>}
+                </div>
+            </div>
+            <div ref={sentinelRef}/>
+            <div ref={tabBarRef} className={classes.tabBar}>
+                <div className={classes.tabBarInner}>
                     <div className={`${tab === 'map' ? classes.activeTab : ''} ${classes.tabButtons}`}
                          onClick={() => handleTabChange('map')}>
                         Map
@@ -487,8 +504,7 @@ function Species({setBreadcrumbs, isMobile}: { setBreadcrumbs: (crumbs: Breadcru
                     </div>
                 </div>
             </div>
-            <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto'}} >
-                <div style={{height: '60px'}}/>
+            <div className="container" style={{maxWidth: '1200px', marginLeft: 'auto', marginRight: 'auto', paddingTop: '60px'}} >
                 <div style={{display: tab === 'map' ? 'block' : 'none'}}>
                     <MapView result={result} tab={tab} isMobile={isMobile}/>
                 </div>
