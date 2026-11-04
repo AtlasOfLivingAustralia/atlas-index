@@ -312,12 +312,6 @@ function ImagesView({result, isMobile}: MediaViewProps) {
             let newFieldResultsMap: Record<string, FacetResult> = {};
             for (const result of facet.fieldResult) {
                 let mappedLabel = thisMapping[result.label];
-                if (fieldName === 'license' && !mappedLabel) {
-                    const formatted = formatLicence(result.label);
-                    if (formatted !== result.label) {
-                        mappedLabel = formatted.replace(/ \d+\.\d+$/, '');
-                    }
-                }
 
                 // Aggregate "Other"
                 if (!mappedLabel) {
