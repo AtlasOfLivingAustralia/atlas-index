@@ -473,7 +473,9 @@ function ImagesView({result, isMobile}: MediaViewProps) {
 
                 {<RefineSection title='Occurrence type' items={itemsForFacet('basisOfRecord')}/>}
 
-                {<RefineSection title='Licence type' items={itemsForFacet('license')} lessNumber={5}/>}
+                {import.meta.env.VITE_APP_MEDIA_LICENCE_FILTER_ENABLED === 'true' && (
+                    <RefineSection title='Licence type' items={itemsForFacet('license')} lessNumber={5} />
+                )}
 
                 {<RefineSection title='Dataset' items={itemsForFacet('dataResourceName')} lessNumber={5}/>}
             </>}

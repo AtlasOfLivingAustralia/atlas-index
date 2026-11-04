@@ -962,7 +962,7 @@ test.describe('Species page - Media (Images/gallery) tab', () => {
         expect(await page.locator('img[src*="img-hidden-999"]').count()).toBe(0);
     });
 
-    test('shows refine sections for media type, occurrence type, licence type and dataset', async ({ page }) => {
+    test('show the licence refine section when the media licence filter is enabled', async ({ page }) => {
         test.skip(shouldSkip('species-media-refine'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));

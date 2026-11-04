@@ -89,6 +89,9 @@ VITE_ALA_NATIVE_INTRODUCED_INFO_URL=https://lists.ala.org.au/speciesListItem/lis
 VITE_APP_ALERTS_URL=https://alerts.ala.org.au
 VITE_APP_ALERT_RESOURCE_NAME=Atlas of Living Australia
 
+# Show the licence filter on the species media tab (default: false).
+VITE_APP_MEDIA_LICENCE_FILTER_ENABLED=false
+
 # Species map config. At least one map type must be enabled.
 VITE_LEAFLET_MAP_ENABLED=true
 VITE_TAXON_MAP_ENABLED=true
