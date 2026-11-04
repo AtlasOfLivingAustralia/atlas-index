@@ -13,30 +13,12 @@ import { setupSpeciesPageMocks, load, speciesUrl, SPECIES_BIRD_FULL } from './he
 // ---------------------------------------------------------------------------
 
 test.describe('ImagesView.tsx', () => {
-    test('formats licence URLs in image details', async ({ page }) => {
-        const licence = 'https://creativecommons.org/licenses/by/4.0/';
-        await setupSpeciesPageMocks(page, {
-            biocacheConfig: {
-                imagePagesByGuid: {
-                    [SPECIES_BIRD_FULL.guid]: [{
-                        totalRecords: 1,
-                        facetResults: [],
-                        occurrences: [{
-                            uuid: 'occ-001',
-                            license: 'CC0',
-                            imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600, license: licence}]
-                        }]
-                    }]
-                }
-            }
-        });
-        await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
-        await page.locator('img[src*="gallery-img-001"]').click();
-        await expect(page.getByRole('dialog').getByText('Licence: CC-BY 4.0', {exact: true})).toBeVisible();
-    });
-
-    for (const recordLicence of ['CC0', undefined]) {
-        test(`shows Not supplied for a missing image licence with record licence ${recordLicence}`, async ({ page }) => {
+    for (const {licence, expected} of [
+        {licence: 'CC0', expected: 'CC0'},
+        {licence: 'https://creativecommons.org/licenses/by/4.0/', expected: 'CC-BY 4.0'},
+        {licence: undefined, expected: 'Not supplied'}
+    ]) {
+        test(`shows image licence as ${expected}`, async ({ page }) => {
             await setupSpeciesPageMocks(page, {
                 biocacheConfig: {
                     imagePagesByGuid: {
@@ -45,8 +27,8 @@ test.describe('ImagesView.tsx', () => {
                             facetResults: [],
                             occurrences: [{
                                 uuid: 'occ-001',
-                                license: recordLicence,
-                                imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600}]
+                                license: 'CC-BY-NC',
+                                imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600, license: licence}]
                             }]
                         }]
                     }
@@ -54,7 +36,7 @@ test.describe('ImagesView.tsx', () => {
             });
             await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
             await page.locator('img[src*="gallery-img-001"]').click();
-            await expect(page.getByRole('dialog').getByText('Licence: Not supplied', {exact: true})).toBeVisible();
+            await expect(page.getByRole('dialog').getByText(`Licence: ${expected}`, {exact: true})).toBeVisible();
         });
     }
 
