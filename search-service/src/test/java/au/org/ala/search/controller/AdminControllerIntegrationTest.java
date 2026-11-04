@@ -447,4 +447,13 @@ public class AdminControllerIntegrationTest extends AbstractIntegrationTestConta
         Map<String, Object> tables = (Map<String, Object>) resp.getBody().get("tables");
         assertThat(((Number) tables.get("taxon_data")).longValue()).isEqualTo(10L);
     }
+
+    @Test
+    void startTask_withoutContentTypeOrBody_queuesIngestionTask() throws Exception {
+        ResponseEntity<String> resp = restTemplate.exchange(
+                "/admin/task?type=BIOCACHE", HttpMethod.POST, null, String.class);
+
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        verify(leaderQueue).sendMessage(TaskType.BIOCACHE, null, false);
+    }
 }

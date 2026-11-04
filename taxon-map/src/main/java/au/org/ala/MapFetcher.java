@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * hexBinColours       - Array of [hexColour, breakCount|null]
  * zooms               - Array of {id, label, zoom, bbox, centreLat?, centreLng?}
  * acceptedCsv         - Path to accepted.csv
+ * leftRightCsv        - Path to lsid-left-right.csv (required for --biocache-counts)
  * threads             - Number of concurrent worker threads
  * skipExisting        - Skip taxa whose manifest + occurrence PNGs already exist
  */
@@ -81,6 +82,7 @@ public class MapFetcher {
     static double mapCentreLng;
     static int mapDefaultZoom;
     static String acceptedCsv;
+    static String leftRightCsv;
     static int threads = 2;
     static boolean skipExisting = false;
     static boolean verbose = false;
@@ -107,7 +109,7 @@ public class MapFetcher {
 
     /**
      * Pre-fetched occurrence counts keyed by guid.
-     * Populated in batches of 1000 via fetchAllOccurrenceCounts() before the processing loop.
+     * Populated via fetchAllOccurrenceCounts() before the processing loop.
      */
     static Map<String, Integer> occurrenceCountsByGuid = new HashMap<>();
 
@@ -151,6 +153,7 @@ public class MapFetcher {
         mapCentreLng = getDouble(config, "mapCentreLng", mapCentreLng);
         mapDefaultZoom = getInt(config, "mapDefaultZoom", mapDefaultZoom);
         acceptedCsv = getString(config, "acceptedCsv", null);
+        leftRightCsv = getString(config, "leftRightCsv", null);
         threads = getInt(config, "threads", threads);
         occurrenceCountsCsv = getString(config, "occurrenceCountsCsv", null);
 
@@ -204,6 +207,10 @@ public class MapFetcher {
             System.err.println("ERROR: one of --biocache-counts, --bie-counts, or --previous-counts must be specified");
             System.exit(1);
         }
+        if (biocacheCounts && StringUtils.isEmpty(leftRightCsv)) {
+            System.err.println("ERROR: leftRightCsv is required in config when --biocache-counts is specified");
+            System.exit(1);
+        }
 
         new File(outputDir).mkdirs();
 
@@ -213,6 +220,7 @@ public class MapFetcher {
         System.out.println(ts() + " spatialUrl:   " + spatialUrl);
         System.out.println(ts() + " outputDir:    " + outputDir);
         System.out.println(ts() + " acceptedCsv:  " + acceptedCsv);
+        System.out.println(ts() + " leftRightCsv: " + leftRightCsv);
         System.out.println(ts() + " threads:      " + threads);
         System.out.println(ts() + " skipExisting: " + skipExisting);
         System.out.println(ts() + " imageSize:    " + imageWidth + "×" + imageHeight);
@@ -932,15 +940,6 @@ public class MapFetcher {
         }
     }
 
-    static int fetchOccurrenceCount(String guid) throws IOException {
-        String url = biocacheUrl + "/occurrences/search" + "?q=lsid:" + URLEncoder.encode(guid, StandardCharsets.UTF_8)
-                + globalFq + "&pageSize=0";
-        String json = fetchJson(url);
-        Map<?, ?> data = mapper.readValue(json, Map.class);
-        Object total = data.get("totalRecords");
-        return total != null ? ((Number) total).intValue() : 0;
-    }
-
     static String getString(Map<String, Object> map, String key, String def) {
         return map.containsKey(key) ? map.get(key).toString() : def;
     }
@@ -976,14 +975,13 @@ public class MapFetcher {
     }
 
     /**
-     * Pre-fetches occurrence counts for all guids in batches of 1000 using the biocache
-     * facets API. Results are stored in {@link #occurrenceCountsByGuid}.
-     * Any guid not returned by biocache (zero records) remains absent from the map (defaults to 0).
+     * Pre-fetches occurrence counts for all guids and stores them in {@link #occurrenceCountsByGuid}.
+     * Any guid not returned (zero records) remains absent from the map (defaults to 0).
      * <p>
      * If {@code occurrenceCountsCsv} is configured, results are written to that file after fetching.
-     * If {@code --use-previous-counts} is set and the CSV exists, it is loaded instead of fetching.
+     * If {@code --previous-counts} is set and the CSV exists, it is loaded instead of fetching.
      */
-    static void fetchAllOccurrenceCounts(List<String> guids) throws IOException {
+    static void fetchAllOccurrenceCounts(List<String> guids) throws IOException, CsvValidationException {
         // Load from CSV if requested and file exists
         if (usePreviousCounts && occurrenceCountsCsv != null) {
             File csvFile = new File(occurrenceCountsCsv);
@@ -1010,7 +1008,7 @@ public class MapFetcher {
 
         if (bieCounts) {
             fetchOccurrenceCountsFromBie();
-        } else if (biocacheCounts) {
+        } else if (biocacheCounts || usePreviousCounts) {
             fetchOccurrenceCountsFromBiocache(guids);
         }
 
@@ -1071,90 +1069,131 @@ public class MapFetcher {
     }
 
     /**
-     * Fetches occurrence counts for all guids in batches of 1000 using the biocache facets API.
-     * Results are stored in {@link #occurrenceCountsByGuid}.
+     * Fetches occurrence counts for all guids using the biocache {@code lft} facet and
+     * {@code lsid-left-right.csv} range lookup.
+     * <p>
+     * Biocache translates {@code q=lsid:{guid}} into a {@code lft:[left TO right]} range query
+     * covering the taxon and all of its descendants. Summing the {@code lft} facet across each
+     * taxon's {@code [left, right]} interval matches {@code q=lsid:{guid}} for all ranks.
      */
-    static void fetchOccurrenceCountsFromBiocache(List<String> guids) throws IOException {
-        int batchSize = 1000;
-        int total = guids.size();
-        int fetched = 0;
-        System.out.println(ts() + " Fetching occurrence counts for " + total + " taxa from biocache...");
-        for (int i = 0; i < total; i += batchSize) {
-            List<String> batch = guids.subList(i, Math.min(i + batchSize, total));
-
-            // Build lsid:(guid1 OR guid2 ...) query
-            StringBuilder qBuilder = new StringBuilder("q=lsid:(");
-            for (int j = 0; j < batch.size(); j++) {
-                if (j > 0) qBuilder.append("+OR+");
-                qBuilder.append(URLEncoder.encode("\"" + batch.get(j) + "\"", StandardCharsets.UTF_8));
-            }
-            qBuilder.append(")");
-            if (StringUtils.isNotEmpty(globalFq)) qBuilder.append(globalFq);
-            qBuilder.append("&facets=lsid&pageSize=0&flimit=-1");
-
-            String url = biocacheUrl + "/occurrences/search";
-            try {
-                System.out.println(ts() + " Fetching occurrence counts batch " + (i / batchSize + 1) + "/" + ((total + batchSize - 1) / batchSize) + " (" + batch.size() + " guids)...");
-                String json = fetchJsonPost(url, qBuilder.toString());
-                Map<?, ?> data = mapper.readValue(json, Map.class);
-                List<?> facetResults = (List<?>) data.get("facetResults");
-                if (facetResults != null && !facetResults.isEmpty()) {
-                    Map<?, ?> lsidFacet = (Map<?, ?>) facetResults.get(0);
-                    List<?> fieldResult = (List<?>) lsidFacet.get("fieldResult");
-                    if (fieldResult != null) {
-                        int batchFetched = 0;
-                        for (Object fr : fieldResult) {
-                            Map<?, ?> entry = (Map<?, ?>) fr;
-                            Object label = entry.get("label");
-                            Object count = entry.get("count");
-                            if (label != null && count != null) {
-                                occurrenceCountsByGuid.put(label.toString(), ((Number) count).intValue());
-                                fetched++;
-                                batchFetched++;
-                            }
-                        }
-                        System.out.println(ts() + "  -> " + batchFetched + " non-zero of " + batch.size() + " (total so far: " + fetched + ")");
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println(ts() + "  WARN occurrence count batch " + i + "-" + (i + batch.size()) + " failed: " + e.getMessage());
-            }
+    static void fetchOccurrenceCountsFromBiocache(List<String> guids) throws IOException, CsvValidationException {
+        if (StringUtils.isEmpty(leftRightCsv)) {
+            throw new IOException("leftRightCsv is required to compute biocache occurrence counts");
         }
-        System.out.println(ts() + " Occurrence counts fetched: " + fetched + " non-zero of " + total);
+        File lrFile = new File(leftRightCsv);
+        if (!lrFile.exists()) {
+            throw new FileNotFoundException("leftRightCsv file not found: " + leftRightCsv);
+        }
+
+        String url = biocacheUrl + "/occurrences/search?q=lft:*"
+                + (StringUtils.isNotEmpty(globalFq) ? globalFq : "")
+                + "&facets=lft&pageSize=0&flimit=-1";
+        System.out.println(ts() + " Fetching lft facet counts from biocache...");
+        String json = fetchJson(url);
+
+        try (FileReader reader = new FileReader(lrFile, StandardCharsets.UTF_8)) {
+            Map<String, Integer> counts = computeOccurrenceCountsFromLftFacet(json, reader, new HashSet<>(guids));
+            occurrenceCountsByGuid.putAll(counts);
+            System.out.println(ts() + " Occurrence counts computed from lft facet: " + counts.size() + " non-zero of " + guids.size());
+        }
     }
 
-
     /**
-     * POST request returning the response body as a String.
-     * Body should be URL-encoded form data (application/x-www-form-urlencoded).
+     * Parses a biocache {@code facets=lft} search response and computes the hierarchical occurrence
+     * count for each guid in {@code targetGuids} by summing all {@code lft} counts within the
+     * taxon's {@code [left, right]} interval from {@code leftRightCsvReader}.
      */
-    static String fetchJsonPost(String urlStr, String body) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-        try {
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("User-Agent", userAgent);
-            conn.setConnectTimeout(30_000);
-            conn.setReadTimeout(120_000);
-            conn.setInstanceFollowRedirects(true);
-            conn.setDoOutput(true);
-            byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
-            conn.setRequestProperty("Content-Length", String.valueOf(bodyBytes.length));
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(bodyBytes);
+    static Map<String, Integer> computeOccurrenceCountsFromLftFacet(
+            String facetJson, Reader leftRightCsvReader, Set<String> targetGuids) throws IOException, CsvValidationException {
+        Map<?, ?> data = mapper.readValue(facetJson, Map.class);
+        List<?> facetResults = (List<?>) data.get("facetResults");
+        List<long[]> lftEntries = new ArrayList<>();
+        if (facetResults != null && !facetResults.isEmpty()) {
+            Map<?, ?> lftFacet = (Map<?, ?>) facetResults.get(0);
+            List<?> fieldResult = (List<?>) lftFacet.get("fieldResult");
+            if (fieldResult != null) {
+                for (Object fr : fieldResult) {
+                    Map<?, ?> entry = (Map<?, ?>) fr;
+                    Object label = entry.get("label");
+                    Object count = entry.get("count");
+                    if (label != null && count != null) {
+                        try {
+                            int lft = Integer.parseInt(label.toString().trim());
+                            long c = ((Number) count).longValue();
+                            if (c > 0) {
+                                lftEntries.add(new long[]{lft, c});
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
             }
-            int status = conn.getResponseCode();
-            if (status != 200) throw new IOException("HTTP " + status + " for POST " + urlStr);
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) sb.append(line).append('\n');
-                return sb.toString().trim();
-            }
-        } finally {
-            conn.disconnect();
         }
+
+        // Biocache returns facet buckets ordered by count descending; sort by lft ascending for range sums.
+        lftEntries.sort(Comparator.comparingLong(a -> a[0]));
+
+        int n = lftEntries.size();
+        int[] lftValues = new int[n];
+        long[] prefixSums = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            lftValues[i] = (int) lftEntries.get(i)[0];
+            prefixSums[i + 1] = prefixSums[i] + lftEntries.get(i)[1];
+        }
+
+        Map<String, Integer> result = new HashMap<>();
+        try (CSVReader csvReader = new CSVReader(leftRightCsvReader)) {
+            String[] row;
+            while ((row = csvReader.readNext()) != null) {
+                if (row.length < 3) continue;
+                String guid = row[0].trim();
+                if (StringUtils.isEmpty(guid)) continue;
+                if (targetGuids != null && !targetGuids.contains(guid)) continue;
+                try {
+                    int left = Integer.parseInt(row[1].trim());
+                    int right = Integer.parseInt(row[2].trim());
+                    if (left > right) continue;
+                    int startIdx = lowerBound(lftValues, left);
+                    int endIdx = upperBound(lftValues, right);
+                    long sum = prefixSums[endIdx] - prefixSums[startIdx];
+                    if (sum > 0) {
+                        result.put(guid, (int) Math.min(sum, Integer.MAX_VALUE));
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+        return result;
+    }
+
+    /** First index where arr[idx] >= target, or arr.length if none. */
+    private static int lowerBound(int[] arr, int target) {
+        int lo = 0;
+        int hi = arr.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (arr[mid] < target) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        return lo;
+    }
+
+    /** First index where arr[idx] > target, or arr.length if none. */
+    private static int upperBound(int[] arr, int target) {
+        int lo = 0;
+        int hi = arr.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (arr[mid] <= target) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        return lo;
     }
 
     /**

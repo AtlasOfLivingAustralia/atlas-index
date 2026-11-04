@@ -214,6 +214,7 @@ class SessionAuthServiceIntegrationTest extends AbstractIntegrationTestContainer
         assertThat(userInfo.getUserId()).isEqualTo(userIdValue);
         assertThat(userInfo.getEmail()).isEqualTo(email);
         assertThat(userInfo.getRoles()).contains("ROLE_USER");
+        assertThat(sessionAuthService.isSessionLoggedIn(response, session, secret, "callback")).isTrue();
     }
 
     @Test

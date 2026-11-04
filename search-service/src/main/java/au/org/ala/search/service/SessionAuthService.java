@@ -477,7 +477,7 @@ public class SessionAuthService {
      * @return true if logged in
      */
     public boolean isSessionLoggedIn(HttpServletResponse response, HttpSession session, String secret, String origin) {
-        return session.getAttribute(SESSION_AUTH_RESPONSE) != null && getTokenInfo(response, session, origin, secret, origin).isAuthenticated();
+        return session.getAttribute(SESSION_AUTH_RESPONSE) != null && getTokenInfo(response, session, secret, origin, origin).isAuthenticated();
     }
 
     /**
