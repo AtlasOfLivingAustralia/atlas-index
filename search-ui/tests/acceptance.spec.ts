@@ -962,14 +962,14 @@ test.describe('Species page - Media (Images/gallery) tab', () => {
         expect(await page.locator('img[src*="img-hidden-999"]').count()).toBe(0);
     });
 
-    test('show the licence refine section when the media licence filter is enabled', async ({ page }) => {
+    test('hides the licence refine section when the filter is disabled', async ({ page }) => {
         test.skip(shouldSkip('species-media-refine'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
 
         await expect(page.locator('text=Media type')).toBeVisible();
         await expect(page.locator('text=Occurrence type')).toBeVisible();
-        await expect(page.locator('text=Licence type')).toBeVisible();
+        await expect(page.locator('text=Licence type')).toHaveCount(0);
         await expect(visibleText(page, 'Dataset', { exact: true })).toBeVisible();
         // basisOfRecord is aggregated client-side via fieldMapping: "Preserved specimen" -> "Specimens"
         await expect(page.locator('text=Specimens (6)')).toBeVisible();
