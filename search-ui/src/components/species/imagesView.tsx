@@ -230,7 +230,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                                 width: gridHeight * aspectRatio > gridWidthTypical ? gridWidthTypical : gridHeight * aspectRatio,
                                 creator: image.creator,
                                 rightsHolder: image.rightsHolder,
-                                license: image.license || item.license,
+                                license: image.license,
                                 sourceName: item.institutionName || item.dataResourceName,
                                 eventDate: item.eventDate
                             });
@@ -706,8 +706,8 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                     </div>
                     <div className="d-flex flex-row justify-content-between align-items-center mt-5">
                         <div className="d-flex flex-column" style={{maxWidth: '50%', overflow: 'auto'}}>
-                            {items[openImageIdx].license &&
-                                <span><b>Licence:</b> {formatLicence(items[openImageIdx].license)}</span>}
+                            <span><b>Licence:</b> {items[openImageIdx].license
+                                ? formatLicence(items[openImageIdx].license) : 'Not supplied'}</span>
                             {items[openImageIdx].creator &&
                                 <span><b>Rights holder:</b> {items[openImageIdx].rightsHolder}</span>}
                             {items[openImageIdx].eventDate &&

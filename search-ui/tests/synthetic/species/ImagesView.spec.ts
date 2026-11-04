@@ -26,6 +26,7 @@ test.describe('ImagesView.tsx', () => {
                         }],
                         occurrences: [{
                             uuid: 'occ-001',
+                            license: 'CC0',
                             imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600, license: licence}]
                         }]
                     }]
@@ -39,6 +40,29 @@ test.describe('ImagesView.tsx', () => {
         await page.locator('img[src*="gallery-img-001"]').click();
         await expect(page.getByRole('dialog').getByText('Licence: CC-BY 4.0', {exact: true})).toBeVisible();
     });
+
+    for (const recordLicence of ['CC0', undefined]) {
+        test(`shows Not supplied for a missing image licence with record licence ${recordLicence}`, async ({ page }) => {
+            await setupSpeciesPageMocks(page, {
+                biocacheConfig: {
+                    imagePagesByGuid: {
+                        [SPECIES_BIRD_FULL.guid]: [{
+                            totalRecords: 1,
+                            facetResults: [],
+                            occurrences: [{
+                                uuid: 'occ-001',
+                                license: recordLicence,
+                                imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600}]
+                            }]
+                        }]
+                    }
+                }
+            });
+            await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
+            await page.locator('img[src*="gallery-img-001"]').click();
+            await expect(page.getByRole('dialog').getByText('Licence: Not supplied', {exact: true})).toBeVisible();
+        });
+    }
 
     test('a broken image is removed from the grid on error', async ({ page }) => {
         test.skip(shouldSkip('imagesview-broken-image'), 'Skipped via live-config.json skip list');
