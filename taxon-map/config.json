@@ -8,7 +8,7 @@
   "acceptedCsv": "/data/search-service/data/accepted25.csv",
   "leftRightCsv": "/data/search-service/lsid-left-right25.csv",
   "occurrenceCountsCsv": "/data/search-service/data/occurrenceCounts.cache",
-  "threads": 4,
+  "threads": 10,
   "userAgent": "taxon-map/1.0",
   "imageWidth": 870,
   "imageHeight": 530,
