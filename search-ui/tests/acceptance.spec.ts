@@ -461,7 +461,8 @@ test.describe('Species page - header', () => {
         await expect.poll(async () => Math.round((await tabBar.boundingBox())!.y)).toBe(68);
         expect(await page.evaluate(() => (window as any).__condensedChanges)).toEqual(['true']);
         // Nothing moved in the document, so jumps to an element land where they were aimed.
-        expect(await tabBarDocTop()).toBe(tabBarTopBefore);
+        // Firefox reports sub-pixel positions with float noise, so compare to 0.05px.
+        expect(await tabBarDocTop()).toBeCloseTo(tabBarTopBefore, 1);
 
         // Narrow the window, then return to the top: the whole hero is there, and the name bar is gone.
         await page.setViewportSize({ width: 900, height: 1000 });
