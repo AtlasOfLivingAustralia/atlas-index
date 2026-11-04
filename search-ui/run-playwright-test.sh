@@ -67,6 +67,7 @@ trap restore_files EXIT
 [ -f ".env.production" ] && mv ".env.production" ".env.production.bak"
 
 echo "Building the project..."
+export VITE_APP_MEDIA_LICENCE_FILTER_ENABLED=false
 yarn run build:playwright
 
 restore_files
@@ -93,6 +94,11 @@ trap cleanup EXIT
 # Run Playwright tests
 echo "Running Playwright tests with $thread_count workers..."
 CI=true yarn playwright test --workers=$thread_count --reporter=dot
+
+# Exercise the opt-in filter against a separate enabled build
+export VITE_APP_MEDIA_LICENCE_FILTER_ENABLED=true
+yarn run build:playwright
+CI=true yarn playwright test tests/acceptance.spec.ts --grep "shows licence refine options only when the filter is enabled" --workers=$thread_count --reporter=dot
 
 # Report coverage
 echo ""

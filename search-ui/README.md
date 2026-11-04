@@ -103,6 +103,10 @@ VITE_TAXON_MAP_ZOOMS=aus,region,world
 VITE_TAXON_MAP_BASE_LAYERS=base
 ```
 
+## Playwright tests
+
+Run `yarn test:playwright` from `search-ui`. The runner executes the suite with `VITE_APP_MEDIA_LICENCE_FILTER_ENABLED=false`, then rebuilds with the flag set to `true` and reruns the media refine test to verify the licence section and its facet options. When running this test manually, pass the same flag value to both `yarn build:playwright` and `yarn playwright test`.
+
 ## Other configuration
 
 ### ./src/config/firstDescriptionLabels.json

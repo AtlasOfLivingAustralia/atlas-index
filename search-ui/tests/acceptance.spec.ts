@@ -962,14 +962,24 @@ test.describe('Species page - Media (Images/gallery) tab', () => {
         expect(await page.locator('img[src*="img-hidden-999"]').count()).toBe(0);
     });
 
-    test('hides the licence refine section when the filter is disabled', async ({ page }) => {
+    test('shows licence refine options only when the filter is enabled', async ({ page }) => {
         test.skip(shouldSkip('species-media-refine'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
 
         await expect(page.locator('text=Media type')).toBeVisible();
         await expect(page.locator('text=Occurrence type')).toBeVisible();
-        await expect(page.locator('text=Licence type')).toHaveCount(0);
+        if (process.env.VITE_APP_MEDIA_LICENCE_FILTER_ENABLED === 'true') {
+            await expect(page.locator('text=Licence type')).toBeVisible();
+            await expect(page.getByText('CC-BY (7)', { exact: true })).toBeVisible();
+            await expect(page.getByText('CC0 (5)', { exact: true })).toBeVisible();
+            await expect(page.getByText('CC-BY-NC (5)', { exact: true })).toBeVisible();
+        } else {
+            await expect(page.locator('text=Licence type')).toHaveCount(0);
+            await expect(page.getByText('CC-BY (7)', { exact: true })).toHaveCount(0);
+            await expect(page.getByText('CC0 (5)', { exact: true })).toHaveCount(0);
+            await expect(page.getByText('CC-BY-NC (5)', { exact: true })).toHaveCount(0);
+        }
         await expect(visibleText(page, 'Dataset', { exact: true })).toBeVisible();
         // basisOfRecord is aggregated client-side via fieldMapping: "Preserved specimen" -> "Specimens"
         await expect(page.locator('text=Specimens (6)')).toBeVisible();
