@@ -45,7 +45,7 @@ VITE_APP_API_URL=http://localhost:8081
 VITE_APP_BASE_URL=http://localhost:5173
 ```
 
-Every `VITE_APP_*` service URL above is also overridable per deployment without a rebuild, see
+Every `VITE_*` value above is also overridable per deployment without a rebuild, see
 "Runtime configuration and build profiles" and "Service configuration" below.
 
 ## Typical inclusion in a `-ui` project
@@ -158,13 +158,16 @@ looks like. `util/runtimeConfig.ts` has the functions to read them and shows how
 
 ## Service configuration
 
-Every backend service URL an app calls (biocache, collectory, spatial, alerts, images, events...)
-and `VITE_APP_ROLE_ADMIN` are `VITE_APP_*` in the `.env` files, build-time by default. In the LA
-Community build, `viteRuntimeConfigPlugin` rewrites each `import.meta.env.VITE_APP_X` in the app's
-sources to `getAppConfigValue('VITE_APP_X', import.meta.env.VITE_APP_X)` (`util/runtimeAppConfig.ts`),
-which reads the deployment's `config.js`/`config.local.js` first and falls back to the build's own
-value, same two-file precedence as everything else on this page. Nothing is listed or imported in
-the app code, so a new `VITE_APP_*` variable is overridable as soon as it is used. The ALA build is
+Every backend service URL an app calls (biocache, collectory, spatial, alerts, images, events...),
+`VITE_APP_ROLE_ADMIN` and the other per-portal settings (map centre, hub name, query context...)
+are `VITE_*` in the `.env` files, build-time by default. In the LA Community build,
+`viteRuntimeConfigPlugin` rewrites each `import.meta.env.VITE_X` in the app's sources to
+`getAppConfigValue('VITE_X', import.meta.env.VITE_X)` (`util/runtimeAppConfig.ts`), which reads the
+deployment's `config.js`/`config.local.js` first and falls back to the build's own value, same
+two-file precedence as everything else on this page. Nothing is listed or imported in the app code,
+so a new `VITE_*` variable is overridable as soon as it is used. The build flags that select what
+the bundle contains (`VITE_RUNTIME_CONFIG_ENABLED`, `VITE_HEADER_LANGUAGE_SWITCHER_ENABLED`,
+`VITE_ENV`) stay build-time. The ALA build is
 not rewritten. The build fails on a form that cannot be rewritten (`import.meta.env[key]`,
 destructuring, passing `import.meta.env` whole), instead of leaving a key that ignores `config.js`.
 

@@ -9,8 +9,9 @@ import {findUnsupportedAppEnvUsage, rewriteAppEnvReferences} from './runtimeAppC
 const helper = '/repo/common-ui/src/util/runtimeAppConfig.ts';
 
 describe('rewriteAppEnvReferences', () => {
-    it('returns null when the file has no VITE_APP_ reference', () => {
-        expect(rewriteAppEnvReferences('const a = import.meta.env.VITE_SKIN;', helper)).toBeNull();
+    it('returns null when the file has no overridable reference', () => {
+        expect(rewriteAppEnvReferences('const a = import.meta.env.VITE_RUNTIME_CONFIG_ENABLED;', helper)).toBeNull();
+        expect(rewriteAppEnvReferences('const a = import.meta.env.MODE;', helper)).toBeNull();
     });
 
     it('wraps a reference, keeping the original as the fallback', () => {
@@ -28,14 +29,18 @@ describe('rewriteAppEnvReferences', () => {
         expect(out.match(/__alaGetAppConfigValue\('/g)).toHaveLength(3);
     });
 
-    it('does not touch other VITE_ variables or longer names that merely start the same', () => {
+    it('wraps every VITE_ variable except the build flags and non-VITE_ ones', () => {
         const out = rewriteAppEnvReferences(
-            'import.meta.env.VITE_APP_API_URL; import.meta.env.VITE_SKIN; import.meta.env.VITE_COMMON_HEADER_URL;',
+            'import.meta.env.VITE_APP_API_URL; import.meta.env.VITE_MAP_CENTRE_LAT; import.meta.env.VITE_RUNTIME_CONFIG_ENABLED; ' +
+                'import.meta.env.VITE_HEADER_LANGUAGE_SWITCHER_ENABLED; import.meta.env.VITE_ENV; import.meta.env.MODE;',
             helper
         )!;
-        expect(out).toContain('import.meta.env.VITE_SKIN;');
-        expect(out).toContain('import.meta.env.VITE_COMMON_HEADER_URL;');
-        expect(out.match(/__alaGetAppConfigValue\('/g)).toHaveLength(1);
+        expect(out).toContain("__alaGetAppConfigValue('VITE_MAP_CENTRE_LAT', import.meta.env.VITE_MAP_CENTRE_LAT)");
+        expect(out).toContain('import.meta.env.VITE_RUNTIME_CONFIG_ENABLED;');
+        expect(out).toContain('import.meta.env.VITE_HEADER_LANGUAGE_SWITCHER_ENABLED;');
+        expect(out).toContain('import.meta.env.VITE_ENV;');
+        expect(out).toContain('import.meta.env.MODE;');
+        expect(out.match(/__alaGetAppConfigValue\('/g)).toHaveLength(2);
     });
 
     it('prepends the import on the first line so line numbers do not move', () => {
@@ -105,7 +110,7 @@ describe('findUnsupportedAppEnvUsage', () => {
         expect(findUnsupportedAppEnvUsage(src)).toEqual([]);
     });
 
-    it('does not flag destructuring of non-VITE_APP_ keys', () => {
+    it('does not flag destructuring of non-overridable keys', () => {
         expect(findUnsupportedAppEnvUsage('const { MODE, DEV } = import.meta.env;')).toEqual([]);
     });
 });
