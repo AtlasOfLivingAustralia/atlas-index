@@ -42,6 +42,9 @@ export const COMMUNITY_DIR = 'community';
 /** Flag read by the apps to decide whether the header language selector is compiled in. */
 export const LANGUAGE_SWITCHER_FLAG = 'VITE_HEADER_LANGUAGE_SWITCHER_ENABLED';
 
+/** Flag read by search-ui to decide whether to show the licence filter on the species media tab. */
+export const LICENCE_FILTER_FLAG = 'VITE_APP_MEDIA_LICENCE_FILTER_ENABLED';
+
 /**
  * Off unless a build profile says otherwise. These are applied to `process.env` before the build
  * starts so that an existing deployment, whose .env predates these flags and therefore does not
@@ -50,7 +53,8 @@ export const LANGUAGE_SWITCHER_FLAG = 'VITE_HEADER_LANGUAGE_SWITCHER_ENABLED';
  */
 const FLAG_DEFAULTS: Record<string, string> = {
     [RUNTIME_CONFIG_FLAG]: 'false',
-    [LANGUAGE_SWITCHER_FLAG]: 'false'
+    [LANGUAGE_SWITCHER_FLAG]: 'false',
+    [LICENCE_FILTER_FLAG]: 'false'
 };
 
 /** The helper the rewritten sources import. Resolved from this file so it works from any app. */
