@@ -1,0 +1,4 @@
+[
+    {"id": 1, "name": "Primary filesystem", "type": "filesystem", "isDefault": true, "hasSecretKeyConfigured": false, "hasPasswordConfigured": false},
+    {"id": 2, "name": "Archive S3", "type": "s3", "isDefault": false, "hasSecretKeyConfigured": true, "hasPasswordConfigured": false}
+]
