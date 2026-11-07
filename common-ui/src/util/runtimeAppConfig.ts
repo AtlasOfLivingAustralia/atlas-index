@@ -27,9 +27,11 @@ import {getRuntimeConfig} from './runtimeConfig.ts';
 
 /**
  * The value `config.js`/`config.local.js` declares for `key`, or `fallback` (the build's own
- * `import.meta.env.VITE_*`) when the deployment hasn't set it or left it blank.
+ * `import.meta.env.VITE_*`) when the deployment doesn't declare it. A declared empty string is
+ * kept, so a deployment can clear a setting the build fills in, such as `VITE_GLOBAL_FQ` or
+ * `VITE_QUERY_CONTEXT`. Numbers and booleans are read as their string form, as `.env` values are.
  */
 export function getAppConfigValue(key: string, fallback: string): string {
     const value = (getRuntimeConfig() as Record<string, unknown>)[key];
-    return typeof value === 'string' && value.trim() ? value : fallback;
+    return value === undefined || value === null ? fallback : String(value);
 }

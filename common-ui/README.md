@@ -164,7 +164,9 @@ are `VITE_*` in the `.env` files, build-time by default. In the LA Community bui
 `viteRuntimeConfigPlugin` rewrites each `import.meta.env.VITE_X` in the app's sources to
 `getAppConfigValue('VITE_X', import.meta.env.VITE_X)` (`util/runtimeAppConfig.ts`), which reads the
 deployment's `config.js`/`config.local.js` first and falls back to the build's own value, same
-two-file precedence as everything else on this page. Nothing is listed or imported in the app code,
+two-file precedence as everything else on this page. Only an undeclared key falls back: a declared
+`''` clears the setting, so a portal can drop a filter the build adds (`VITE_GLOBAL_FQ`,
+`VITE_QUERY_CONTEXT`). Nothing is listed or imported in the app code,
 so a new `VITE_*` variable is overridable as soon as it is used. The build flags that select what
 the bundle contains (`VITE_RUNTIME_CONFIG_ENABLED`, `VITE_HEADER_LANGUAGE_SWITCHER_ENABLED`,
 `VITE_ENV`) stay build-time. The ALA build is

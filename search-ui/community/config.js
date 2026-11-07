@@ -53,7 +53,8 @@
  *     // Every backend service URL (biocache, collectory, spatial, alerts, images, events...), the
  *     // OIDC-derived VITE_APP_ROLE_ADMIN role name and the other settings (map centre, hub name...)
  *     // are build-time by default (VITE_* in the .env files) but can be set here, without a rebuild.
- *     // Unset keys fall back to the build's own value, so declaring none of this changes nothing.
+ *     // Unset keys fall back to the build's own value, so declaring none of this changes nothing;
+ *     // '' clears a value the build sets (e.g. VITE_GLOBAL_FQ: '' drops the default filters).
  *     // Any VITE_* variable the app uses works here, except the build flags
  *     // (VITE_RUNTIME_CONFIG_ENABLED, VITE_HEADER_LANGUAGE_SWITCHER_ENABLED, VITE_ENV); there is no
  *     // list to keep up to date.
