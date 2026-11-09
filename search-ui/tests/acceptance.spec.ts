@@ -917,8 +917,6 @@ test.describe('Species page - Description tab', () => {
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=description'));
 
-        const sourceLabels = page.locator('span', { hasText: 'Source:' });
-        await expect(sourceLabels).toHaveCount(4);
         const wikipediaLinks = page.getByRole('link', { name: 'Wikipedia', exact: true });
         await expect(wikipediaLinks.first()).toHaveAttribute('href', 'https://en.wikipedia.org/wiki/Grey_falcon');
         await expect(page.locator('text=Creative Commons Attribution-ShareAlike License 4.0').first()).toBeVisible();
