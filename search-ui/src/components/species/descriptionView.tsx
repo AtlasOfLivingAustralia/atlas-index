@@ -94,7 +94,7 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
                                     />
                                 </div>
                             ))}
-                        <div className="d-flex align-items-center gap-2 mt-3" style={{borderLeft: '4px solid #DDD', paddingLeft: '6px'}}>
+                        <div className="d-flex align-items-center gap-2 mt-4">
                             <span dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(getAttributionHtml(description))}}></span>
                         </div>
                     </>}
