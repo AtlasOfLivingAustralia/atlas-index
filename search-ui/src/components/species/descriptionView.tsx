@@ -48,17 +48,17 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
                 <div className="placeholder-glow">
                     <span className="placeholder" style={{height: 40, display: 'block', width: '300px'}}></span>
                     <span className="placeholder"
-                          style={{height: 32, display: 'block', width: '180px', marginTop: '30px'}}></span>
+                        style={{height: 32, display: 'block', width: '180px', marginTop: '30px'}}></span>
                     <span className="placeholder"
-                          style={{height: 48, display: 'block', width: '500px', marginTop: '15px'}}></span>
+                        style={{height: 48, display: 'block', width: '500px', marginTop: '15px'}}></span>
                     <span className="placeholder" style={{height: 24, display: 'block', width: '100px'}}></span>
                     <span className="placeholder"
-                          style={{height: 32, display: 'block', width: '180px', marginTop: '30px'}}></span>
+                        style={{height: 32, display: 'block', width: '180px', marginTop: '30px'}}></span>
                     <span className="placeholder"
-                          style={{height: 48, display: 'block', width: '500px', marginTop: '15px'}}></span>
+                        style={{height: 48, display: 'block', width: '500px', marginTop: '15px'}}></span>
                     <span className="placeholder" style={{height: 24, display: 'block', width: '100px'}}></span>
                     <span className="placeholder"
-                          style={{height: 32, display: 'block', width: '600px', marginTop: '30px'}}></span>
+                        style={{height: 32, display: 'block', width: '600px', marginTop: '30px'}}></span>
                 </div>
             }
             {descriptions && descriptions.map((description, idx) =>
@@ -80,22 +80,21 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
                             // if key is not in the list of keys to display, skip
                             !['name', 'attribution', 'url'].includes(key) && (
                                 <div key={idx} className={classes.speciesSection}
-                                     style={{paddingTop: isMobile ? '15px' : '30px'}}>
+                                    style={{paddingTop: isMobile ? '15px' : '30px'}}>
                                     {/* The title 'summary' is present only on wikipedia data and should be suppressed */}
                                     {'summary' !== key && (
                                         <span style={{marginBottom: '15px'}}
-                                              className={classes.speciesDescriptionSection}>
+                                            className={classes.speciesDescriptionSection}>
                                             {key}
                                         </span>
                                     )}
                                     {/* Leaving this header 'just in case'. taxon-descriptions does sanitize this content. */}
                                     <div className={classes.speciesSectionText}
-                                         dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}}
+                                        dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(description[key])}}
                                     />
                                 </div>
                             ))}
-                        <div className="d-flex align-items-center gap-2 mt-3">
-                            <span>Source:</span>
+                        <div className="d-flex align-items-center gap-2 mt-3" style={{borderLeft: '4px solid #DDD', paddingLeft: '6px'}}>
                             <span dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(getAttributionHtml(description))}}></span>
                         </div>
                     </>}
