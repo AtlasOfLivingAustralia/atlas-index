@@ -99,6 +99,41 @@
     width: 305px;
 }
 
+.traitsFlexibleColumn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.traitsColumns {
+    display: flex;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.traitsFixedColumn {
+    flex: 0 0 250px;
+    max-width: 250px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.traitsDownloadButton {
+    padding-bottom: 10px;
+}
+
+.traitsDownloadButton:global(.btn.ala-btn-primary)::after {
+    content: none;
+}
+
+.traitsDownloadIcon {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+}
+
 .searchInput,
 .searchInput div,
 .searchInput div input {
@@ -204,49 +239,6 @@
     }
 }
 
-@media (max-width: calc(48em - 1px)) {
-    /* Mobile Sizes */
-    .hideMobile {
-        display: none;
-    }
-}
-
-.currentTaxa p,
-.currentTaxa a {
-    line-height: 34px;
-}
-
-.currentTaxa p {
-    padding-left: 12px !important;
-}
-
-.currentTaxa a {
-    padding-right: 11px !important;
-}
-
-.currentTaxa {
-    margin-top: 5px;
-    margin-bottom: 10px !important;
-    display: inline-flex !important;
-
-    background-color: #eae6e7;
-}
-
-.citation,
-.mediaIconBtn {
-    background-color: #e7e7e7;
-}
-
-.speciesSectionText a,
-.traitsSectionText a {
-    color: #003a70;
-}
-
-.speciesSectionText a:hover,
-.traitsSectionText a:hover {
-    color: #1b5e83;
-}
-
 .speciesSectionText > figure {
     margin-block-start: 10px;
     margin-inline-start: 10px;
@@ -263,31 +255,6 @@
     box-sizing: border-box;
 }
 
-.gallerySortLabel {
-    font-size: 14px !important;
-}
-
-.nameFormatted {
-    font-style: italic;
-}
-
-.nameFormatted .rank-species .name {
-    font-style: italic;
-}
-
-.rankSpecies > .name {
-    font-style: italic !important;
-}
-
-.rankName {
-    margin-inline-end: 6px !important;
-}
-
-/* section for handling the cleansed species description HTML from profiles, wikipedia, etc */
-.speciesSectionText p {
-    margin-block: 0px;
-}
-
 .h4grey {
     color: #637073 !important; /* grey */
     font-weight: 600;
@@ -301,18 +268,6 @@
         font-size: 18px;
         line-height: 24px;
     }
-}
-
-.primaryButton button {
-    height: 69px !important;
-}
-
-.lightLarge {
-    padding: 15px 15px 18px 18px !important;
-}
-
-.traitsLeftColumnWidth {
-    width: 305px;
 }
 
 .speciesHeaderRank {
@@ -415,7 +370,8 @@
 }
 
 .speciesDescriptionTitle {
-    font-size: 32px;
+    color: #637073;
+    font-size: 26px;
     font-weight: 600;
     line-height: 40px;
     display: block;

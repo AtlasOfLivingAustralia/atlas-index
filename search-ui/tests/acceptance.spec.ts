@@ -1051,34 +1051,10 @@ test.describe('Species page - Traits tab', () => {
 
         await expect(page.locator('text=How to cite AusTraits data')).toBeVisible();
         await expect(page.locator('img[alt="Austraits logo"]')).toBeVisible();
-        await expect(page.getByRole('button', { name: 'AusTraits definitions' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Download CSV' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Download full CSV' })).toBeVisible();
     });
 
-    test('"AusTraits definitions" button opens the correct URL', async ({ page }) => {
-        test.skip(shouldSkip('species-traits-definitions-link'), 'Skipped via live-config.json skip list');
-        await setupSpeciesPageMocks(page);
-        await load(page, speciesUrl(SPECIES_PLANT_TRAITS.guid, 'tab=traits'));
-        await waitForContent(page);
-
-        // VITE_AUSTRAITS_DEFINITIONS points at a local (non-real) URL for tests
-        // (see .env.playwright), so this stays a same-origin mock like the rest
-        // of the suite rather than depending on the real w3id.org redirector.
-        let capturedUrl: string | null = null;
-        await page.context().route('http://localhost:8082/static/austraits/definitions', async (route) => {
-            capturedUrl = route.request().url();
-            await route.fulfill({ status: 200, contentType: 'text/html', body: '<html></html>' });
-        });
-
-        const [popup] = await Promise.all([
-            page.waitForEvent('popup'),
-            page.getByRole('button', { name: 'AusTraits definitions' }).click(),
-        ]);
-        await popup.waitForLoadState('load').catch(() => {});
-        expect(capturedUrl).toBe('http://localhost:8082/static/austraits/definitions');
-    });
-
-    test('"Download CSV" button downloads the traits data file', async ({ page }) => {
+    test('"Download full CSV" button downloads the traits data file', async ({ page }) => {
         test.skip(shouldSkip('species-traits-download-csv'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_PLANT_TRAITS.guid, 'tab=traits'));
@@ -1086,7 +1062,7 @@ test.describe('Species page - Traits tab', () => {
 
         const [download] = await Promise.all([
             page.waitForEvent('download', { timeout: 5000 }),
-            page.getByRole('button', { name: 'Download CSV' }).click(),
+            page.getByRole('button', { name: 'Download full CSV' }).click(),
         ]);
         expect(download.suggestedFilename()).toBe('Acacia dealbata.csv');
     });
