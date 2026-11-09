@@ -75,8 +75,12 @@ public abstract class AbstractIntegrationTestContainers {
     static void dynamicProperties(DynamicPropertyRegistry registry) {
         registry.add("rabbitmq.host", rabbitMQContainer::getHost);
         registry.add("rabbitmq.port", rabbitMQContainer::getAmqpPort);
+        registry.add("rabbitmq.username", rabbitMQContainer::getAdminUsername);
+        registry.add("rabbitmq.password", rabbitMQContainer::getAdminPassword);
         registry.add("elastic.host", elasticsearchContainer::getHttpHostAddress);
         registry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+        registry.add("spring.datasource.password", postgreSQLContainer::getPassword);
     }
 
     @Autowired

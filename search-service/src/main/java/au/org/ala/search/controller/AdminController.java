@@ -212,7 +212,7 @@ public class AdminController {
     @SecurityRequirement(name = "JWT", scopes = {"admin"})
     @SecurityRequirement(name = "openIdConnect", scopes = {"ala/admin"})
     @Operation(summary = "Start a task")
-    @PostMapping(path = "/admin/task", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/admin/task", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> index(
             @RequestParam(name = "type") TaskType type,
             @RequestBody(required = false) Map<String, Object> requestBody,

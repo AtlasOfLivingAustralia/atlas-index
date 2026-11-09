@@ -9,11 +9,13 @@ package au.org.ala.search.service.remote;
 import au.org.ala.search.model.AdminIndex;
 import au.org.ala.search.model.TaskType;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
@@ -39,6 +41,14 @@ public class LogService {
         this.elasticsearchOperations = elasticsearchOperations;
     }
 
+    @PostConstruct
+    void init() {
+        IndexOperations indexOperations = elasticsearchOperations.indexOps(AdminIndex.class);
+        if (!indexOperations.exists()) {
+            indexOperations.createWithMapping();
+        }
+    }
+
     public void log(TaskType task, String message) {
         long time = System.currentTimeMillis();
         String id = task.name() + "-" + time + "-" + UUID.randomUUID();
@@ -56,7 +66,7 @@ public class LogService {
         PageRequest p = PageRequest.of(0, size);
 
         Query query = NativeQuery.builder()
-                .withQuery(q -> q.term(t -> t.field("task").value(task.name())))
+                .withQuery(q -> q.match(m -> m.field("task").query(task.name())))
                 .withPageable(p)
                 .withSort(s -> s.field(fs -> fs.field("modified").order(SortOrder.Desc)))
                 .build();

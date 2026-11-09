@@ -190,6 +190,7 @@ function AtlasAdmin({setBreadcrumbs,}: {
                 method: 'POST',
                 headers: {
                     Authorization: 'Bearer ' + userInfo?.accessToken,
+                    'Content-Type': 'application/json',
                 },
             }
         ).then((response) => {

@@ -232,7 +232,7 @@ public class BhlFetcher {
                 // Searches by scientific name with searchtype=C (contains)
                 String searchQuery = encodeURIComponent('"' + scientificName + '"');
                 String url = bhlUrl + "/api3?op=PublicationSearch&searchterm=" + searchQuery
-                        + "&searchtype=C&page=1&pageSize=5&apikey=" + URLEncoder.encode(bhlApiKey, StandardCharsets.UTF_8)
+                        + "&searchtype=F&page=1&pageSize=5&apikey=" + URLEncoder.encode(bhlApiKey, StandardCharsets.UTF_8)
                         + "&format=json";
 
                 String responseJson = httpGet(url);
