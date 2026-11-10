@@ -24,6 +24,7 @@ import ChevronLeftCircleIcon from "./icons/chevronLeftCircleIcon.tsx";
 import ChevronRightCircleIcon from "./icons/chevronRightCircleIcon.tsx";
 import CheckedIcon from "./icons/checkedIcon.tsx";
 import CheckIcon from "./icons/checkIcon.tsx";
+import DownloadIcon from "./icons/downloadIcon.tsx";
 import FolderIcon from "./icons/folderIcon.tsx";
 import ListIcon from "./icons/listIcon.tsx";
 import TileIcon from "./icons/tileIcon.tsx";
@@ -56,6 +57,7 @@ export {
     FadeInImage,
     FolderIcon,
     CheckIcon,
+    DownloadIcon,
     CheckDisabledIcon,
     Pagination,
     CheckedIcon,
@@ -82,4 +84,3 @@ export {
 };
 
 export type {Breadcrumb, RefineSectionItem, ConservationStatusKey, UserInfo, I18nLocale, I18nRuntimeConfig, ThemeConfigKey};
-
