@@ -113,6 +113,11 @@ The config.json file supports the following types:
   - Requires a list of fields to extract
   - Requires the profile ID used in the API
   - Requires file with an ALA token
+- "wikipedia"
+  - Downloads page HTML from Wikipedia REST API
+  - Requires compliant `userAgent` (e.g. `atlas-index/1.0.0 (https://ala.org.au; support@ala.org.au)`)
+  - Supports authenticated access via Wikimedia Enterprise JWT for higher rate limits (2000 req/min). Configure `wikimediaUsername` and `wikimediaPassword`, or provide a JSON file via `wikimediaAuthFile` with `{"username": "...", "password": "..."}`.
+  - Automatically handles token lifecycle (login and refresh) and respects HTTP 429/503 `Retry-After` headers across worker threads.
 
 ```json
 {
@@ -122,7 +127,10 @@ The config.json file supports the following types:
   "wikipediaUrl": "https://en.wikipedia.org/api/rest_v1/page/html/",
   "wikipediaTitles": "/data/taxon-descriptions/enwiki-latest-all-titles-in-ns0",
   "wikipediaTmp": "/data/taxon-descriptions",
-  "wikipediaUserAgent": "",
+  "userAgent": "atlas-index/1.0.0 (https://ala.org.au; support@ala.org.au)",
+  "wikimediaUsername": "atlasoflivingaustralia",
+  "wikimediaPassword": "<pw-in-bitwarden>",
+  "wikimediaAuthFile": "/data/wikimedia-auth.json",
   "acceptedCsv": "/data/taxon-descriptions/accepted.csv",
   "listsUrl": "https://lists.ala.org.au",
   "mergeDir": "/data/taxon-descriptions/merge",
