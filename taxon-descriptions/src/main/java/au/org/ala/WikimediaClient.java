@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -45,6 +46,7 @@ public class WikimediaClient {
     private final String userAgent;
     private final File tokenCacheFile;
     private final int maxRetries;
+    private final RateLimiter rateLimiter;
 
     private String accessToken;
     private String refreshToken;
@@ -52,15 +54,20 @@ public class WikimediaClient {
     private long expiresAtMillis;
     private long refreshTokenExpiresAtMillis;
 
-    public WikimediaClient(String authUrl, String username, String password, String userAgent, File tokenCacheFile, int maxRetries) {
+    public WikimediaClient(String authUrl, String username, String password, String userAgent, File tokenCacheFile, int maxRetries, double requestsPerSecond) {
         this.authUrl = StringUtils.isNotBlank(authUrl) ? authUrl : DEFAULT_AUTH_URL;
         this.username = username;
         this.password = password;
         this.userAgent = userAgent;
         this.tokenCacheFile = tokenCacheFile;
         this.maxRetries = maxRetries > 0 ? maxRetries : DEFAULT_MAX_RETRIES;
+        this.rateLimiter = requestsPerSecond > 0 ? new RateLimiter(requestsPerSecond, Math.min(3.0, requestsPerSecond)) : null;
 
         loadCachedTokens();
+    }
+
+    public WikimediaClient(String authUrl, String username, String password, String userAgent, File tokenCacheFile, int maxRetries) {
+        this(authUrl, username, password, userAgent, tokenCacheFile, maxRetries, (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ? 30.0 : 3.0);
     }
 
     public static WikimediaClient createFromConfig(Map config, String descriptionsTmp, String userAgent) {
@@ -91,7 +98,23 @@ public class WikimediaClient {
             tokenCacheFile = new File(descriptionsTmp + "/wikipedia/auth_tokens.json");
         }
 
-        return new WikimediaClient(authUrl, username, password, userAgent, tokenCacheFile, DEFAULT_MAX_RETRIES);
+        double requestsPerSecond = (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) ? 30.0 : 3.0;
+        if (config.get("wikimediaRequestsPerSecond") != null) {
+            try {
+                requestsPerSecond = Double.parseDouble(config.get("wikimediaRequestsPerSecond").toString().trim());
+            } catch (Exception ignored) {
+            }
+        }
+
+        return new WikimediaClient(authUrl, username, password, userAgent, tokenCacheFile, DEFAULT_MAX_RETRIES, requestsPerSecond);
+    }
+
+    public RateLimiter getRateLimiter() {
+        return rateLimiter;
+    }
+
+    public boolean hasCredentials() {
+        return StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password);
     }
 
     private synchronized void loadCachedTokens() {
@@ -211,6 +234,7 @@ public class WikimediaClient {
                 // Refresh tokens are valid for 90 days according to Wikimedia docs
                 this.refreshTokenExpiresAtMillis = now + (90L * 24 * 3600 * 1000L);
                 persistTokens();
+                System.out.println("Successfully logged in to Wikimedia Enterprise API as '" + username + "' and obtained JWT (valid for " + (expiresIn / 3600) + " hours)");
                 return true;
             }
         } else {
@@ -257,6 +281,7 @@ public class WikimediaClient {
                 long expiresIn = resp.get("expires_in") != null ? ((Number) resp.get("expires_in")).longValue() : 86400L;
                 this.expiresAtMillis = System.currentTimeMillis() + (expiresIn * 1000L);
                 persistTokens();
+                System.out.println("Successfully refreshed Wikimedia Enterprise JWT access token (valid for " + (expiresIn / 3600) + " hours)");
                 return true;
             }
         } else {
@@ -320,15 +345,26 @@ public class WikimediaClient {
                 }
             }
 
+            if (rateLimiter != null) {
+                try {
+                    rateLimiter.acquire();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            }
+
             try {
                 Connection conn = Jsoup.connect(url)
                         .userAgent(userAgent)
                         .ignoreHttpErrors(true)
+                        .ignoreContentType(true)
+                        .maxBodySize(0)
                         .followRedirects(true)
                         .timeout(30_000);
 
                 String token = getValidAccessToken();
-                if (StringUtils.isNotBlank(token)) {
+                if (StringUtils.isNotBlank(token) && !url.contains("en.wikipedia.org")) {
                     conn.header("Authorization", "Bearer " + token);
                 }
 
@@ -336,17 +372,55 @@ public class WikimediaClient {
                 int statusCode = response.statusCode();
 
                 if (statusCode == 200) {
-                    Document doc = response.parse();
+                    String body = response.body();
+                    String html = null;
+                    if (body != null && (body.trim().startsWith("[") || body.trim().startsWith("{"))) {
+                        try {
+                            if (body.trim().startsWith("[")) {
+                                List articles = OBJECT_MAPPER.readValue(body, List.class);
+                                Map chosen = null;
+                                for (Object item : articles) {
+                                    if (item instanceof Map article) {
+                                        Map isPartOf = (Map) article.get("is_part_of");
+                                        if (isPartOf != null && "enwiki".equalsIgnoreCase((String) isPartOf.get("identifier"))) {
+                                            chosen = article;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (chosen == null && !articles.isEmpty() && articles.get(0) instanceof Map m) {
+                                    chosen = m;
+                                }
+                                if (chosen != null && chosen.get("article_body") instanceof Map articleBody) {
+                                    html = (String) articleBody.get("html");
+                                }
+                            } else {
+                                Map article = OBJECT_MAPPER.readValue(body, Map.class);
+                                if (article.get("article_body") instanceof Map articleBody) {
+                                    html = (String) articleBody.get("html");
+                                }
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Failed to extract article_body.html from JSON for " + url + ": " + e.getMessage());
+                        }
+                    }
+
+                    if (html == null) {
+                        Document doc = response.parse();
+                        html = doc.outerHtml();
+                    }
+
                     File parent = outputFile.getParentFile();
                     if (parent != null && !parent.exists()) {
                         parent.mkdirs();
                     }
                     try (FileWriter writer = new FileWriter(outputFile, StandardCharsets.UTF_8)) {
-                        writer.write(doc.outerHtml());
+                        writer.write(html);
                     }
                     return true;
-                } else if (statusCode == 401) {
-                    System.err.println("Received 401 Unauthorized for URL " + url + ". Invalidating token and retrying.");
+                } else if (statusCode == 401 || statusCode == 403) {
+                    String body = response.body();
+                    System.err.println("Received HTTP " + statusCode + " for URL " + url + (StringUtils.isNotBlank(body) ? ": " + body.trim() : "") + ". Invalidating token and retrying.");
                     invalidateAccessToken();
                     Thread.sleep(500);
                 } else if (statusCode == 429 || statusCode == 503) {
@@ -360,7 +434,8 @@ public class WikimediaClient {
                     // Page not found; no retry needed
                     return false;
                 } else {
-                    System.err.println("HTTP " + statusCode + " fetching " + url + " (attempt " + attempt + "/" + maxRetries + ")");
+                    String body = response.body();
+                    System.err.println("HTTP " + statusCode + " fetching " + url + (StringUtils.isNotBlank(body) ? ": " + body.trim() : "") + " (attempt " + attempt + "/" + maxRetries + ")");
                     if (attempt < maxRetries) {
                         Thread.sleep(1000L * attempt);
                     }

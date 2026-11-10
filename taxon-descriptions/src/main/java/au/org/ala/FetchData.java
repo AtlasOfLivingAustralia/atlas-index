@@ -98,6 +98,11 @@ public class FetchData {
 
         wikimediaClient = WikimediaClient.createFromConfig(config, descriptionsTmp, userAgent);
 
+        if (wikimediaClient.hasCredentials() && wikipediaUrl.contains("en.wikipedia.org/api/rest_v1")) {
+            System.out.println("Using Wikimedia Enterprise API endpoint (https://api.enterprise.wikimedia.com/v2/articles/) with configured JWT credentials.");
+            wikipediaUrl = "https://api.enterprise.wikimedia.com/v2/articles/";
+        }
+
         acceptedCsv = config.get("acceptedCsv").toString();
 
         mergeDir = config.get("mergeDir").toString();
