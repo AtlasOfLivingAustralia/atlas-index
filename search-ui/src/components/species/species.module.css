@@ -153,10 +153,20 @@
 }
 
 .traitsDownloadIcon {
+    color: var(--ala-accent-color, #c44d34);
+    transition: inherit;
     position: absolute;
-    top: 50%;
+    top: calc(50% - 1px);
     transform: translateY(-50%);
     right: 14px;
+}
+
+.traitsDownloadButton:hover .traitsDownloadIcon {
+    color: #000;
+}
+
+.traitsDownloadButton:active .traitsDownloadIcon {
+    color: #fff;
 }
 
 .traitsSectionTitle {
