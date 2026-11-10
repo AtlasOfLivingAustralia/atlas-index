@@ -12,10 +12,18 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # 1. Fetch secret from AWS and export to ENV
-export BHL_API_KEY=$(aws secretsmanager get-secret-value \
+if ! secret=$(aws secretsmanager get-secret-value \
     --secret-id "atlas-index-bhl-api-key" \
     --query SecretString \
-    --output text | jq -r '.BHL_API_KEY')
+    --output text); then
+    echo "Failed to fetch the BHL API key from AWS Secrets Manager." >&2
+    exit 1
+fi
+if ! BHL_API_KEY=$(printf '%s' "$secret" | jq -er '.BHL_API_KEY | select(type == "string" and length > 0)'); then
+    echo "The secret must contain a nonempty BHL_API_KEY string." >&2
+    exit 1
+fi
+export BHL_API_KEY
 
 # 2. Substitute the variable to generate the real config file
 envsubst '$BHL_API_KEY' < config.template.json > config.json
