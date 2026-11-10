@@ -104,37 +104,48 @@
     margin-bottom: 30px;
     font-size: 32px;
     font-weight: 600;
+    line-height: 40px;
 }
 
-@media (max-width: 768px) {
-    .traitsTitle {
-        font-size: 20px;
-        margin-bottom: 15px;
-    }
+.traitsSectionText {
+    color: #212121;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .traitsFlexibleColumn {
     flex: 1 1 0;
     min-width: 0;
-    padding-right: 12px;
 }
 
 .traitsColumns {
     display: flex;
     width: 100%;
-    margin-left: 0;
-    margin-right: 0;
+    gap: 48px;
+}
+
+.traitsSummary {
+    margin-top: 40px;
+}
+
+.traitsExplanation,
+.traitsExplanation a {
+    font-size: 16px;
+    line-height: 24px;
 }
 
 .traitsFixedColumn {
     flex: 0 0 250px;
     max-width: 250px;
-    padding-left: 12px;
-    padding-right: 12px;
 }
 
-.traitsDownloadButton {
-    padding-bottom: 10px;
+.traitsLogo {
+    width: 225px;
+    height: auto;
+}
+
+.traitsDownloadButton:global(.btn.ala-btn-primary) {
+    white-space: nowrap;
 }
 
 .traitsDownloadButton:global(.btn.ala-btn-primary)::after {
@@ -143,8 +154,107 @@
 
 .traitsDownloadIcon {
     position: absolute;
-    top: 12px;
+    top: 50%;
+    transform: translateY(-50%);
     right: 14px;
+}
+
+.traitsSectionTitle {
+    margin: 52px 0 15px;
+    color: #637073;
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 32px;
+}
+
+.traitsSectionText > :global(.table-responsive) + .traitsSectionTitle {
+    margin-top: 60px;
+    margin-bottom: 30px;
+}
+
+.traitsFootnote {
+    display: block;
+    margin-bottom: 30px;
+    font-size: 16px;
+    line-height: 24px;
+    font-style: italic;
+}
+
+.traitsCitation {
+    margin-top: 60px;
+    padding: 12px 14px;
+    border-radius: 5px;
+    background-color: #f2f2f2;
+    font-size: 14px;
+    line-height: 20px;
+}
+
+.traitsCitation p {
+    margin: 0;
+}
+
+.traitsCitation p + p {
+    margin-top: 12px;
+}
+
+.traitsCitation a {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+@media (max-width: 768px) {
+    .traitsTitle {
+        font-size: 20px;
+        line-height: 26px;
+        margin-bottom: 15px;
+    }
+
+    .traitsColumns {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .traitsLogo {
+        width: 151px;
+    }
+
+    .traitsSummary {
+        margin-top: 15px;
+    }
+
+    .traitsExplanation,
+    .traitsExplanation a {
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    .traitsDownloadButton:global(.btn.ala-btn-primary) {
+        font-size: 14px;
+        line-height: 18px;
+        padding-top: 9px;
+        padding-bottom: 9px;
+    }
+
+    .traitsSectionTitle,
+    .traitsSectionText > :global(.table-responsive) + .traitsSectionTitle {
+        margin: 15px 0;
+        color: #212121;
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .traitsFootnote {
+        font-size: 12px;
+        line-height: 16px;
+        margin-bottom: 15px;
+    }
+
+    .traitsCitation {
+        margin-top: 15px;
+        font-size: 12px;
+        line-height: 16px;
+    }
 }
 
 .searchInput,

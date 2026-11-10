@@ -103,13 +103,13 @@ function TraitsView({result, isMobile}: MapViewProps) {
     function explanation(txt: string, taxon: string) {
         const taxonName = <FormatName name={taxon} rankId={result?.rankID}/>;
         const doiLink = txt.match(/(doi.org[^ ]*)/g)?.map((doi, index) => (
-            <a className={classes.speciesLink} style={textStyle} key={index} target="_blank" href={`https://${doi}`}>
+            <a className={classes.speciesLink} key={index} target="_blank" href={`https://${doi}`}>
                 {doi}
             </a>
         ));
 
         return (
-            <span style={textStyle}>
+            <span className={classes.traitsExplanation}>
                 {txt.split(taxon).map((part, index, parts) => (
                     <React.Fragment key={index}>
                         {part.split(/(doi.org[^ ]*)/g).map((text, textIndex) => (
@@ -127,42 +127,39 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
     return <>
         <h1 className={classes.traitsTitle}>AusTraits</h1>
-        <div className={`${classes.traitsSectionText} row`}
-             style={{marginLeft: 0, marginRight: 0}}>
-            <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
-                <InfoBox size={isMobile ? 14 : 16} className="mb-2" icon={faCircleInfo}
-                         title="About AusTraits"
-                         content={<>
-                             <p style={{ margin: 0 }}>
-                                 <a className={classes.speciesLink} style={textStyle}
-                                    href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
-                                     AusTraits
-                                 </a>
-                                 {' '}is an open-source, harmonised database of
-                                 Australian plant trait data, sourced
-                                 from individual researchers, government
-                                 entities (e.g. herbaria) or NGOs across
-                                 Australia. Traits vary in scope from
-                                 morphological attributes (e.g. leaf area,
-                                 seed mass, plant height) to ecological
-                                 attributes (e.g. fire response, flowering
-                                 time, pollinators) and physiological
-                                 measures of performance (e.g. photosynthetic
-                                 gas exchange, water-use efficiency).
-                             </p>
-                         </>
-                         }/>
-            </div>
-            <div className={isMobile ? "" : `${classes.traitsFixedColumn} d-flex align-items-start justify-content-end`}>
-                <img
-                    src={import.meta.env.VITE_APP_AUSTRAITS_LOGO}
-                    alt="Austraits logo"
-                    style={{
-                        width: isMobile ? '151px' : '225px',
-                        marginTop: isMobile ? '15px' : 0,
-                        marginBottom: isMobile ? '15px' : 0
-                    }}
-                />
+        <div className={classes.traitsSectionText}>
+            <div className={classes.traitsColumns}>
+                <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
+                    <InfoBox size={isMobile ? 14 : 16} lineHeight={isMobile ? 20 : 24} icon={faCircleInfo}
+                             title="About AusTraits"
+                             content={<>
+                                 <p style={{ margin: 0 }}>
+                                     <a className={classes.speciesLink} style={textStyle}
+                                        href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
+                                         AusTraits
+                                     </a>
+                                     {' '}is an open-source, harmonised database of
+                                     Australian plant trait data, sourced
+                                     from individual researchers, government
+                                     entities (e.g. herbaria) or NGOs across
+                                     Australia. Traits vary in scope from
+                                     morphological attributes (e.g. leaf area,
+                                     seed mass, plant height) to ecological
+                                     attributes (e.g. fire response, flowering
+                                     time, pollinators) and physiological
+                                     measures of performance (e.g. photosynthetic
+                                     gas exchange, water-use efficiency).
+                                 </p>
+                             </>
+                             }/>
+                </div>
+                <div className={isMobile ? "" : `${classes.traitsFixedColumn} d-flex align-items-start justify-content-end`}>
+                    <img
+                        src={import.meta.env.VITE_APP_AUSTRAITS_LOGO}
+                        alt="Austraits logo"
+                        className={classes.traitsLogo}
+                    />
+                </div>
             </div>
             {loadingCounts &&
                 <div className="placeholder-glow" style={{height: 80, width: '100%', borderRadius: '5px'}}>
@@ -194,7 +191,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 </span>
             )}
             {traitsText && <>
-                <div className={isMobile ? "d-flex flex-column align-items-start gap-3" : classes.traitsColumns} style={{ marginTop: isMobile ? '' : '40px' }}>
+                <div className={`${classes.traitsColumns} ${classes.traitsSummary}`}>
                     <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
                         {explanation(traitsText, traitsTaxon)}
                     </div>
@@ -221,7 +218,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                         });
                                     }}>
                                 Download full CSV
-                                <DownloadIcon size="16" className={classes.traitsDownloadIcon}/>
+                                <DownloadIcon size="14" className={classes.traitsDownloadIcon}/>
                             </button>
                         </div>
                     )}
@@ -249,13 +246,11 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 />
             }
             {traits?.categorical_traits?.length > 0 && <>
-                <h4 className={classes.speciesDescriptionTitle}
-                        style={{marginTop: isMobile ? '15px' : '40px', marginBottom: '15px'}}>
+                <h2 className={classes.traitsSectionTitle}>
                     Categorical Traits
-                </h4>
+                </h2>
                 {hasMoreValues && <>
-                    <span className="fst-italic"
-                            style={{...textStyle, marginBottom: isMobile ? '7px' : '30px', display: 'block'}}>
+                    <span className={classes.traitsFootnote}>
                         * Data sources in AusTraits report
                         multiple values for this trait,
                         suggesting variation across the taxon's
@@ -290,10 +285,9 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 </div>
             </>}
             {traits?.numeric_traits?.length > 0 && <>
-                <span className={classes.speciesDescriptionTitle}
-                        style={{marginTop: isMobile ? '15px' : '60px', marginBottom: isMobile ? '15px' : '30px'}}>
+                <h2 className={classes.traitsSectionTitle}>
                     Numerical Traits
-                </span>
+                </h2>
                 <div className="table-responsive" tabIndex={0} role="region" aria-label="Numerical traits">
                 <table className="table table-striped" style={textStyle}>
                     <thead>
@@ -332,28 +326,27 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 </table>
                 </div>
             </>}
-            <div style={{borderRadius: '5px', backgroundColor: '#F2F2F2', padding: '20px', marginTop: isMobile ? '15px' : '60px'}}>
-                <span style={textStyle}>
+            <div className={classes.traitsCitation}>
+                <p className="fw-bold">
                     How to cite AusTraits data
-                </span>
-                <span style={{...textStyle, marginTop: '10px'}}>
+                </p>
+                <p>
                     Falster, Gallagher et al (2021) AusTraits, a
                     curated plant trait database for the Australian
                     flora. Scientific Data 8: 254,{' '}
-                    <a className={classes.speciesLink} style={textStyle}
+                    <a className={classes.speciesLink}
                         href="https://doi.org/10.1038/s41597-021-01006-6" target="_blank">
                         https://doi.org/10.1038/s41597-021-01006-6
                     </a>{' '}
                     - followed by the ALA url and access date. For
                     more information about citing information on the
                     ALA, see -{' '}
-                    <a className={classes.speciesLink} style={textStyle}
+                    <a className={classes.speciesLink}
                         href={import.meta.env.VITE_CITE_URL} target="_blank">
                         Citing the ALA
                     </a>.
-                </span>
+                </p>
             </div>
-            {isMobile && <div style={{height: '15px'}}/>}
         </div>
     </>;
 }
