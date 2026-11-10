@@ -74,6 +74,8 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
         setLoadingSummary(true);
         setErrorMessageSummary('');
+        setTraits({});
+        setHasMoreValues(false);
 
         const summaryUrl = getTraitsPath('_summary.json');
         fetch(summaryUrl).then((response) => {
@@ -162,9 +164,15 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 </div>
             </div>
             {loadingCounts &&
-                <div className="placeholder-glow" style={{height: 80, width: '100%', borderRadius: '5px'}}>
-                    <span className="placeholder col-12"
-                            style={{height: '100%', display: 'block', borderRadius: '5px'}}></span>
+                <div className={`${classes.traitsColumns} ${classes.traitsSummary} placeholder-glow`}
+                     role="status" aria-label="Loading trait explanation">
+                    <div className={`${classes.traitsFlexibleColumn} ${classes.traitsExplanation} ${classes.traitsSkeletonLines}`}
+                         aria-hidden="true">
+                        <span className="placeholder col-12"/>
+                        <span className="placeholder col-12"/>
+                        <span className="placeholder col-8"/>
+                    </div>
+                    {!isMobile && <div className={classes.traitsFixedColumn} aria-hidden="true"/>}
                 </div>
             }
             {errorMessageCounts && (
@@ -181,14 +189,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 />
             )}
             {noTraitsData && !loadingCounts && (
-                <span style={textStyle}>
+                <div className={classes.traitsSummary} style={textStyle}>
                     There is currently no data for the taxon name you searched for in the AusTraits database.
                     Search for another species name or access the entire database at{' '}
                     <a className={classes.speciesLink} style={textStyle} target="_blank"
                         href="https://doi.org/10.5281/zenodo.10156222">
                         doi.org/10.5281/zenodo.10156222
                     </a>
-                </span>
+                </div>
             )}
             {traitsText && <>
                 <div className={`${classes.traitsColumns} ${classes.traitsSummary}`}>
@@ -226,12 +234,21 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
             </>}
 
-            {loadingSummary && <>
-                <div className="placeholder-glow">
-                    <span className="placeholder col-12"
-                            style={{height: 500, width: '100%', borderRadius: '5px', marginTop: '20px'}}></span>
+            {loadingSummary && (
+                <div className="placeholder-glow" role="status" aria-label="Loading trait tables">
+                    <div className={classes.traitsSectionTitle} aria-hidden="true">
+                        <span className="placeholder col-4"/>
+                    </div>
+                    <div className={classes.traitsSkeletonTable} aria-hidden="true">
+                        {[0, 1, 2, 3].map(row => (
+                            <div key={row}>
+                                <span className="placeholder col-4"/>
+                                <span className="placeholder col-5"/>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </>}
+            )}
             {errorMessageSummary &&
                 <FlaggedAlert
                     content={<>

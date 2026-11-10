@@ -128,6 +128,26 @@
     margin-top: 40px;
 }
 
+.traitsSkeletonLines {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.traitsSkeletonLines > span {
+    min-height: 1em;
+}
+
+.traitsSkeletonTable > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border-bottom: 1px solid #d9d9d9;
+    font-size: 16px;
+    line-height: 24px;
+}
+
 .traitsExplanation,
 .traitsExplanation a {
     font-size: 16px;
@@ -231,6 +251,11 @@
 
     .traitsSummary {
         margin-top: 15px;
+    }
+
+    .traitsSkeletonTable > div {
+        font-size: 14px;
+        line-height: 20px;
     }
 
     .traitsExplanation,
