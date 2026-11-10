@@ -21,7 +21,7 @@ export default function useCondensedHeader(enabled: boolean, tab: string) {
     const sentinelRef = useRef<HTMLDivElement>(null);
     const tabBarRef = useRef<HTMLDivElement>(null);
     const [condensed, setCondensed] = useState(false);
-    
+
     // Set by a tab click. Other tab changes (the Indigenous-names link) scroll somewhere else.
     const scrollAfterTab = useRef(false);
 
@@ -66,7 +66,7 @@ export default function useCondensedHeader(enabled: boolean, tab: string) {
 
         const sentinel = sentinelRef.current;
         const bar = barRef.current;
-        
+
         // A short viewport hides the name bar, so there is no pin line to stop above.
         if (!sentinel || !bar || !bar.offsetHeight) return;
 

@@ -1,6 +1,13 @@
 import { Page } from '@playwright/test';
 import { createCanvas } from 'canvas';
 
+export const IMAGE_LICENCES = [
+    {url: 'https://creativecommons.org/licenses/by/4.0/', acronym: 'CC BY 4.0'},
+    {url: 'https://creativecommons.org/licenses/by/3.0/au/', acronym: 'CC BY 3.0 AU'},
+    {url: 'https://creativecommons.org/publicdomain/zero/1.0/', acronym: 'CC0 1.0'},
+    {url: 'https://en.wikipedia.org/wiki/All_rights_reserved', acronym: 'ALL-RIGHTS-RESERVED'}
+];
+
 /**
  * Generate a mock species image with a text overlay identifying the image id.
  * Used for species header/thumbnail images, gallery grid images, and the
@@ -58,6 +65,11 @@ async function generateTilePlaceholder(width: number = 256, height: number = 256
  *  - bare /image/{id} catch-all (link targets opened in a new tab)
  */
 export async function imageMocks(page: Page, seenUrls: Set<URL>) {
+    await page.context().route('**/images*.ala.org.au/ws/licence', async route => {
+        seenUrls.add(new URL(route.request().url()));
+        await route.fulfill({json: IMAGE_LICENCES});
+    });
+
     await page.context().route('**/images*.ala.org.au/image/proxyImageThumbnail*', async route => {
         const url = new URL(route.request().url());
         seenUrls.add(url);

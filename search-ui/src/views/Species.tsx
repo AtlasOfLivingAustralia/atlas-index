@@ -26,7 +26,7 @@ import MapView from '../components/species/mapView.tsx';
 import NamesView from '../components/species/namesView.tsx';
 import ResourcesView from '../components/species/resourcesView.tsx';
 import classes from '../components/species/species.module.css';
-import useCondensedHeader from '../components/species/useCondensedHeader.ts';
+import useCondensedHeader from '../helpers/hooks/useCondensedHeader.ts';
 import '../css/nameFormatting.css';
 import StatusView from '../components/species/statusView.tsx';
 import TraitsView from '../components/species/traitsView.tsx';
