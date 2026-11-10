@@ -99,10 +99,23 @@
     width: 305px;
 }
 
+.traitsTitle {
+    margin-top: 0;
+    margin-bottom: 30px;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .traitsTitle {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+}
+
 .traitsFlexibleColumn {
     flex: 1 1 0;
     min-width: 0;
-    padding-left: 12px;
     padding-right: 12px;
 }
 

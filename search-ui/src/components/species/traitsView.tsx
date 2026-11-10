@@ -101,12 +101,6 @@ function TraitsView({result, isMobile}: MapViewProps) {
     }, [result]);
 
     function explanation(txt: string, taxon: string) {
-        const ausTraitsLink = (
-            <a className={classes.speciesLink} style={textStyle} target="_blank"
-               href={import.meta.env.VITE_AUSTRAITS_HOME}>
-                AusTraits
-            </a>
-        );
         const taxonName = <FormatName name={taxon} rankId={result?.rankID}/>;
         const doiLink = txt.match(/(doi.org[^ ]*)/g)?.map((doi, index) => (
             <a className={classes.speciesLink} style={textStyle} key={index} target="_blank" href={`https://${doi}`}>
@@ -116,19 +110,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
         return (
             <span style={textStyle}>
-                {txt.split('AusTraits').map((part1, index1, array1) => (
-                    <React.Fragment key={index1}>
-                        {part1.split(taxon).map((part2, index2, array2) => (
-                            <React.Fragment key={index2}>
-                                {part2.split(/(doi.org[^ ]*)/g).map((part3, index3) => (
-                                    <React.Fragment key={index3}>
-                                        {part3.match(/doi.org/) ? doiLink : part3}
-                                    </React.Fragment>
-                                ))}
-                                {index2 < array2.length - 1 && taxonName}
+                {txt.split(taxon).map((part, index, parts) => (
+                    <React.Fragment key={index}>
+                        {part.split(/(doi.org[^ ]*)/g).map((text, textIndex) => (
+                            <React.Fragment key={textIndex}>
+                                {text.match(/doi.org/) ? doiLink : text}
                             </React.Fragment>
                         ))}
-                        {index1 < array1.length - 1 && ausTraitsLink}
+                        {index < parts.length - 1 && taxonName}
                     </React.Fragment>
                 ))}
             </span>
@@ -137,13 +126,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
 
     return <>
+        <h1 className={classes.traitsTitle}>AusTraits</h1>
         <div className={`${classes.traitsSectionText} row`}
              style={{marginLeft: 0, marginRight: 0}}>
             <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
                 <InfoBox size={isMobile ? 14 : 16} className="mb-2" icon={faCircleInfo}
                          title="About AusTraits"
                          content={<>
-                             <p>
+                             <p style={{ margin: 0 }}>
                                  <a className={classes.speciesLink} style={textStyle}
                                     href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
                                      AusTraits
@@ -158,11 +148,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                  attributes (e.g. fire response, flowering
                                  time, pollinators) and physiological
                                  measures of performance (e.g. photosynthetic
-                                 gas exchange, water-use efficiency).{' '}
-                                 <a className={classes.speciesLink} style={textStyle}
-                                    href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
-                                     Find out more
-                                 </a>
+                                 gas exchange, water-use efficiency).
                              </p>
                          </>
                          }/>
@@ -208,7 +194,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                 </span>
             )}
             {traitsText && <>
-                <div className={isMobile ? "d-flex flex-column align-items-start gap-3" : classes.traitsColumns}>
+                <div className={isMobile ? "d-flex flex-column align-items-start gap-3" : classes.traitsColumns} style={{ marginTop: isMobile ? '' : '40px' }}>
                     <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
                         {explanation(traitsText, traitsTaxon)}
                     </div>
@@ -264,7 +250,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
             }
             {traits?.categorical_traits?.length > 0 && <>
                 <h4 className={classes.speciesDescriptionTitle}
-                        style={{marginTop: isMobile ? '15px' : '60px', marginBottom: isMobile ? '7px' : '15px'}}>
+                        style={{marginTop: isMobile ? '15px' : '40px', marginBottom: '15px'}}>
                     Categorical Traits
                 </h4>
                 {hasMoreValues && <>
@@ -280,6 +266,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         project.
                     </span>
                 </>}
+                <div className="table-responsive" tabIndex={0} role="region" aria-label="Categorical traits">
                 <table className="table table-striped" style={textStyle}>
                     <thead>
                     <tr>
@@ -300,12 +287,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
                     )}
                     </tbody>
                 </table>
+                </div>
             </>}
             {traits?.numeric_traits?.length > 0 && <>
                 <span className={classes.speciesDescriptionTitle}
-                        style={{marginTop: isMobile ? '15px' : '60px', marginBottom: isMobile ? '7px' : '30px'}}>
+                        style={{marginTop: isMobile ? '15px' : '60px', marginBottom: isMobile ? '15px' : '30px'}}>
                     Numerical Traits
                 </span>
+                <div className="table-responsive" tabIndex={0} role="region" aria-label="Numerical traits">
                 <table className="table table-striped" style={textStyle}>
                     <thead>
                     <tr>
@@ -341,6 +330,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                     )}
                     </tbody>
                 </table>
+                </div>
             </>}
             <div style={{borderRadius: '5px', backgroundColor: '#F2F2F2', padding: '20px', marginTop: isMobile ? '15px' : '60px'}}>
                 <span style={textStyle}>
