@@ -1,6 +1,6 @@
 {
   "bhlUrl": "https://www.biodiversitylibrary.org",
-  "bhlApiKey": "your-bhl-api-key-here",
+  "bhlApiKey": "$BHL_API_KEY",
   "acceptedCsv": "/data/search-service/data/accepted25.csv",
   "bhlDir": "/data/search-service/data/taxon-bhl",
   "bhlThreads": 1
