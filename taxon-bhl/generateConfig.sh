@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Check if the necessary AWS login environment variables are set.
 # (Adjust 'AWS_ACCESS_KEY_ID' or 'AWS_PROFILE' to match whatever your login script sets)
 if [ -z "${AWS_ACCESS_KEY_ID}" ] && [ -z "${AWS_PROFILE}" ]; then
@@ -7,7 +9,13 @@ fi
 
 # Check if 'jq' is installed
 if ! command -v jq &> /dev/null; then
-    echo "jq is required but not installed. Please install jq first."
+    echo "jq is required but not installed. Please install jq first (e.g., brew install jq)"
+    exit 1
+fi
+
+# Check if 'envsubst' is installed
+if ! command -v envsubst &> /dev/null; then
+    echo "envsubst is required but not installed. Please install envsubst first (e.g., brew install gettext)"
     exit 1
 fi
 
