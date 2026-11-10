@@ -68,6 +68,7 @@ VITE_ADMIN_ROLE=admin
 VITE_APP_BIOCACHE_UI_URL=https://biocache.ala.org.au
 VITE_APP_BHL_URL=https://biodiversitylibrary.org
 VITE_APP_IMAGE_BASE_URL=https://images.ala.org.au
+VITE_APP_IMAGE_API_URL=https://images.test.ala.org.au/ws
 VITE_COLLECTIONS_URL=https://collections.ala.org.au
 VITE_SPATIAL_URL=https://spatial.ala.org.au
 

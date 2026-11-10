@@ -1,5 +1,6 @@
 import { test, expect } from '../../fixtures';
 import { shouldSkip } from '../../mocks/liveConfig';
+import { IMAGE_LICENCES } from '../../mocks/imageMocks';
 import { setupSpeciesPageMocks, load, speciesUrl, SPECIES_BIRD_FULL } from './helpers';
 
 // ---------------------------------------------------------------------------
@@ -15,7 +16,7 @@ import { setupSpeciesPageMocks, load, speciesUrl, SPECIES_BIRD_FULL } from './he
 test.describe('ImagesView.tsx', () => {
     for (const {licence, expected} of [
         {licence: 'CC0', expected: 'CC0'},
-        {licence: 'https://creativecommons.org/licenses/by/4.0/', expected: 'CC-BY 4.0'},
+        {licence: 'https://creativecommons.org/licenses/by/4.0/', expected: 'CC BY 4.0'},
         {licence: undefined, expected: 'Not supplied'}
     ]) {
         test(`shows image licence as ${expected}`, async ({ page }) => {
@@ -37,6 +38,51 @@ test.describe('ImagesView.tsx', () => {
             await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
             await page.locator('img[src*="gallery-img-001"]').click();
             await expect(page.getByRole('dialog').getByText(`Licence: ${expected}`, {exact: true})).toBeVisible();
+        });
+    }
+
+    for (const registryFails of [false, true]) {
+        test(`media loads before the licence registry ${registryFails ? 'fails' : 'resolves'}`, async ({page}) => {
+            const licence = IMAGE_LICENCES[0];
+            await setupSpeciesPageMocks(page, {
+                biocacheConfig: {
+                    imagePagesByGuid: {
+                        [SPECIES_BIRD_FULL.guid]: [{
+                            totalRecords: 1,
+                            facetResults: [],
+                            occurrences: [{
+                                uuid: 'occ-001',
+                                imageMetadata: [{imageId: 'gallery-img-001', width: 800, height: 600, license: licence.url}]
+                            }]
+                        }]
+                    }
+                }
+            });
+            let releaseRegistry!: () => void;
+            const registryReady = new Promise<void>(resolve => { releaseRegistry = resolve; });
+            let requestCount = 0;
+            await page.context().route('**/images*.ala.org.au/ws/licence', async route => {
+                requestCount++;
+                await registryReady;
+                await route.fulfill(registryFails ? {status: 503} : {json: IMAGE_LICENCES});
+            });
+
+            try {
+                await page.goto(speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=media'));
+                await page.locator('img[src*="gallery-img-001"]').click();
+                const dialog = page.getByRole('dialog');
+                await expect(dialog.getByText(`Licence: ${licence.url}`, {exact: true})).toBeVisible();
+                const response = page.waitForResponse('**/ws/licence');
+                releaseRegistry();
+                await response;
+                await expect(dialog.getByText(`Licence: ${registryFails ? licence.url : licence.acronym}`, {exact: true})).toBeVisible();
+                await dialog.getByRole('button', {name: 'Close', exact: true}).click();
+                await page.locator('img[src*="gallery-img-001"]').click();
+                await expect(dialog.getByText(`Licence: ${registryFails ? licence.url : licence.acronym}`, {exact: true})).toBeVisible();
+                expect(requestCount).toBe(1);
+            } finally {
+                releaseRegistry();
+            }
         });
     }
 

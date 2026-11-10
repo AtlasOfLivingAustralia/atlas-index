@@ -9,7 +9,7 @@ import {faFilm, faVolumeUp,} from '@fortawesome/free-solid-svg-icons';
 import {Fragment, useCallback, useEffect, useMemo, useState} from 'react';
 import capitalise from '../../helpers/Capitalise.ts';
 import formatNumber from '../../helpers/FormatNumber.ts';
-import formatLicence from '../../helpers/FormatLicence.ts';
+import formatLicence, {loadLicences, type Licence} from '../../helpers/FormatLicence.ts';
 import missingImage from '../../image/missing-image.png';
 import FormatName from '../nameUtils/formatName.tsx';
 import classes from './species.module.css';
@@ -113,6 +113,7 @@ const facetFields = [
 
 function ImagesView({result, isMobile}: MediaViewProps) {
     const [items, setItems] = useState<Items[]>([]);
+    const [licences, setLicences] = useState<Licence[]>([]);
     const [facetResults, setFacetResults] = useState<FacetResultSet[]>([]); // from `facetResults` in the JSON response (unfilterded)
     const [fqUserTrigged, setFqUserTrigged] = useState<UserFq>({}); // from user interaction with the checkboxes
     const [page, setPage] = useState(0); // Note: not `start` but page number: 0, 1, 2, ...
@@ -183,6 +184,18 @@ function ImagesView({result, isMobile}: MediaViewProps) {
         flush(true);
         return rows;
     }, [gridWidth, items]);
+
+    useEffect(() => {
+        let active = true;
+        loadLicences(import.meta.env.VITE_APP_IMAGE_API_URL)
+            .then(data => {
+                if (active) setLicences(data);
+            })
+            .catch(() => {
+                if (active) setLicences([]);
+            });
+        return () => { active = false; };
+    }, []);
 
     useEffect(() => {
         fetchImages();
@@ -701,7 +714,7 @@ function ImagesView({result, isMobile}: MediaViewProps) {
                     <div className="d-flex flex-row justify-content-between align-items-center mt-5">
                         <div className="d-flex flex-column" style={{maxWidth: '50%', overflow: 'auto'}}>
                             <span><b>Licence:</b> {items[openImageIdx].license
-                                ? formatLicence(items[openImageIdx].license) : 'Not supplied'}</span>
+                                ? formatLicence(items[openImageIdx].license, licences) : 'Not supplied'}</span>
                             {items[openImageIdx].creator &&
                                 <span><b>Rights holder:</b> {items[openImageIdx].rightsHolder}</span>}
                             {items[openImageIdx].eventDate &&
