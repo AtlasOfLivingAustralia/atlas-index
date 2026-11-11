@@ -1142,7 +1142,7 @@ test.describe('Species page - Resources tab', () => {
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid, 'tab=resources'));
         await waitForContent(page);
 
-        await expect(page.locator('text=Showing 1 to 5')).toBeVisible();
+        await expect(page.locator('text=Showing first 5 results')).toBeVisible();
         // 1 author: "Gould, John" -> "Gould, J."
         await expect(visibleText(page, 'Gould, J.')).toBeVisible();
         // 2 authors: "Smith, Jane" and "Brown, Robert" -> "Smith, J. and Brown, R."
