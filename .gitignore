@@ -63,3 +63,4 @@ names-extract/lsid-*.csv
 taxon-descriptions/config.json
 taxon-descriptions/getAll.sh
 static-server/static/taxon-map
+taxon-bhl/config.json

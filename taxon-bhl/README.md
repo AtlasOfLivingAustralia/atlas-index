@@ -38,13 +38,29 @@ wc -l /data/search-service/data/accepted.csv
 mvn package
 ```
 
-## Run
+## Configuration
 
+Before running, generate `config.json` from the template.
+
+### Generating `config.json` from AWS Secrets Manager
+
+Ensure you have:
+- AWS login environment variables set (`AWS_ACCESS_KEY_ID` or `AWS_PROFILE`, e.g. via `test-login` or `prod-login`)
+- `jq` and `envsubst` installed
+
+Run the generation script:
 ```shell
-java -jar target/taxon-bhl-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.json
+./generateConfig.sh
 ```
 
-## Configuration
+This script fetches the BHL API key from AWS Secrets Manager (`atlas-index-bhl-api-key`) and substitutes `$BHL_API_KEY` in `config.template.json` to generate `config.json`.
+
+Alternatively, copy `config.template.json` to `config.json` and provide your API key manually:
+```shell
+cp config.template.json config.json
+```
+
+### Configuration Options
 
 | Key | Description | Default                              |
 |-----|-------------|--------------------------------------|
@@ -66,6 +82,14 @@ Example `config.json`:
 ```
 
 > **Note:** Use `bhlThreads: 1` to avoid hitting BHL API rate limits.
+
+## Run
+
+Once `config.json` is generated:
+
+```shell
+java -jar target/taxon-bhl-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.json
+```
 
 ## Progress and restartability
 
