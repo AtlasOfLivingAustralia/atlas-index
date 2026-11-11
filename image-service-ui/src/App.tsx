@@ -40,6 +40,7 @@ import SettingsAdmin from './views/admin/SettingsAdmin.tsx';
 import AnalyticsAdmin from './views/admin/AnalyticsAdmin.tsx';
 import SwaggerView from './views/admin/SwaggerView.tsx';
 import {isAdmin} from './config/roles.ts';
+import {setApiAccessToken} from './api/client.ts';
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -73,6 +74,11 @@ export default function App() {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= MOBILE_BREAKPOINT);
 
     const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        setApiAccessToken(userInfo?.accessToken);
+        return () => setApiAccessToken(undefined);
+    }, [userInfo?.accessToken]);
 
     useEffect(() => {
         injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);

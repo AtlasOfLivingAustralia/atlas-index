@@ -15,7 +15,7 @@
  * and easy to unit test.
  */
 
-import {apiDelete, apiGet, apiPost, apiPostForm, apiPut, buildUrl, usesDevelopmentProxy} from './client';
+import {apiDelete, apiDownload, apiGet, apiPost, apiPostForm, apiPut, buildUrl, usesDevelopmentProxy} from './client';
 import type {
     AdminDashboard,
     AuditEntry,
@@ -62,7 +62,20 @@ export interface SearchParams {
 
 function criteriaToQuery(criteria?: SearchCriterion[]): string[] | undefined {
     if (!criteria || criteria.length === 0) return undefined;
-    return criteria.map(c => `${c.field}${c.operator}${c.value}`);
+    return criteria.filter(c => c.operator === '=').map(c => `${c.field}:${c.value}`);
+}
+
+function searchQuery(params: SearchParams): string | undefined {
+    const clauses = params.q ? [`(${params.q})`] : [];
+    for (const criterion of params.criteria || []) {
+        if (criterion.operator === '=') continue;
+        const escaped = String(criterion.value).replace(/([+\-=&|><!(){}[\]^"~*?:\\/])/g, '\\$1');
+        if (criterion.operator === '~') clauses.push(`${criterion.field}:*${escaped}*`);
+        else if (criterion.operator === '!=') clauses.push(`NOT ${criterion.field}:${escaped}`);
+        else if (criterion.operator === '>') clauses.push(`${criterion.field}:{${escaped} TO *}`);
+        else if (criterion.operator === '<') clauses.push(`${criterion.field}:{* TO ${escaped}}`);
+    }
+    return clauses.length ? clauses.join(' AND ') : undefined;
 }
 
 function facetFiltersToQuery(filters?: Record<string, string[]>): string[] | undefined {
@@ -79,6 +92,15 @@ function combinedFilterQueries(params: SearchParams): string[] | undefined {
     const f = facetFiltersToQuery(params.facetFilters) || [];
     const combined = [...c, ...f];
     return combined.length > 0 ? combined : undefined;
+}
+
+function htmlDocument(raw: unknown): Document | null {
+    if (typeof raw !== 'string' || typeof DOMParser === 'undefined') return null;
+    return new DOMParser().parseFromString(raw, 'text/html');
+}
+
+function textCells(row: Element): string[] {
+    return Array.from(row.querySelectorAll(':scope > td')).map(cell => cell.textContent?.trim() || '');
 }
 
 export function normalizeImageSummary(item: any, apiUrl: string): ImageSummary {
@@ -432,7 +454,7 @@ export function normalizeImageDetail(data: any, apiUrl: string, requestedImageId
 export const searchApi = {
     async search(apiUrl: string, params: SearchParams): Promise<SearchResult> {
         const queryParams = {
-            q: params.q,
+            q: searchQuery(params),
             max: params.pageSize ?? 24,
             offset: params.page ? params.page * (params.pageSize ?? 24) : 0,
             sort: params.sort,
@@ -454,7 +476,7 @@ export const searchApi = {
 
     async facets(apiUrl: string, params: SearchParams): Promise<Facet[]> {
         const queryParams = {
-            q: params.q,
+            q: searchQuery(params),
             max: 0,
             fq: combinedFilterQueries(params)
         };
@@ -465,7 +487,14 @@ export const searchApi = {
     /** Authenticated ZIP download of the current result set — browser navigation, session cookie carries auth. */
     downloadUrl(apiUrl: string, params: SearchParams): string {
         return buildUrl(apiUrl, '/search/download', {
-            q: params.q,
+            q: searchQuery(params),
+            fq: combinedFilterQueries(params)
+        });
+    },
+
+    download(apiUrl: string, params: SearchParams) {
+        return apiDownload(apiUrl, '/search/download', {
+            q: searchQuery(params),
             fq: combinedFilterQueries(params)
         });
     }
@@ -634,8 +663,16 @@ export const adminApi = {
         return apiPost<void>(apiUrl, '/admin/clearQueues');
     },
 
-    batchUploads(apiUrl: string, hideEmpty?: boolean, signal?: AbortSignal): Promise<BatchUploadsResponse> {
-        return apiGet<BatchUploadsResponse>(apiUrl, '/admin/batchUploads', {hideEmpty}, signal);
+    async batchUploads(apiUrl: string, hideEmpty?: boolean, signal?: AbortSignal): Promise<BatchUploadsResponse> {
+        const raw = await apiGet<any>(apiUrl, '/admin/batchUploads', {hideEmpty}, signal);
+        if (typeof raw !== 'string') return raw;
+        const doc = htmlDocument(raw);
+        const uploads = Array.from(doc?.querySelectorAll('tbody tr') || []).map((row, index) => {
+            const cells = textCells(row);
+            return {fileId: cells[1] || String(index), batchId: cells[0], dataResourceUid: cells[2], status: cells[cells.length - 2] || '', fileName: cells[1]} as any;
+        });
+        const count = (heading: string) => Number(raw.match(new RegExp(`<h3>\\s*${heading}\\s*\\((\\d+)\\)`, 'i'))?.[1] || 0);
+        return {uploads, active: count('Loading'), queued: count('Queued'), batchServiceProcessingEnabled: !raw.includes('Enable batch processing')};
     },
 
     clearBatchUploads(apiUrl: string): Promise<void> {
@@ -658,8 +695,11 @@ export const adminApi = {
         return apiPost<void>(apiUrl, `/admin/batchFileDeleteFromQueue?fileId=${encodeURIComponent(fileId)}`);
     },
 
-    getSettings(apiUrl: string, signal?: AbortSignal): Promise<SettingsListResponse> {
-        return apiGet<SettingsListResponse>(apiUrl, '/admin/settings', undefined, signal);
+    async getSettings(apiUrl: string, signal?: AbortSignal): Promise<SettingsListResponse> {
+        const raw = await apiGet<any>(apiUrl, '/admin/settings', undefined, signal);
+        if (typeof raw !== 'string') return raw;
+        const rows = Array.from(htmlDocument(raw)?.querySelectorAll('table tr') || []).slice(1);
+        return {results: rows.map((row, index) => { const [name, description, value] = textCells(row); return {id: name || index, name, description, value, type: 'String'}; }).filter(s => s.name)};
     },
 
     updateSetting(apiUrl: string, name: string, value: string): Promise<Setting> {
@@ -668,6 +708,16 @@ export const adminApi = {
 
     async duplicates(apiUrl: string, max?: number, offset?: number, signal?: AbortSignal): Promise<DuplicatesResponse> {
         const raw = await apiGet<any>(apiUrl, '/admin/duplicates', {max, offset}, signal);
+        if (typeof raw === 'string') {
+            const doc = htmlDocument(raw);
+            const totalCount = Number(doc?.querySelector('h4')?.textContent?.match(/\d+/)?.[0] || 0);
+            const results = Array.from(doc?.querySelectorAll('table tr') || []).slice(1).map(row => {
+                const cells = textCells(row); const img = row.querySelector('img') as HTMLImageElement | null;
+                const imageId = img?.src.match(/\/image\/([^/]+)\/thumbnail/)?.[1] || '';
+                return {image: normalizeImageSummary({imageIdentifier: imageId, thumbnailUrl: img?.getAttribute('src')}, apiUrl), hash: cells[1], count: Number(cells[2] || 0)};
+            }).filter(entry => entry.hash);
+            return {results, totalCount};
+        }
         const results = (raw?.results || []).map((entry: any) => ({
             ...entry,
             image: normalizeImageSummary(entry.image || {}, apiUrl)
@@ -678,8 +728,11 @@ export const adminApi = {
         };
     },
 
-    failedUploads(apiUrl: string, regexPattern?: string, maxResults?: number, signal?: AbortSignal): Promise<FailedUploadsResponse> {
-        return apiGet<FailedUploadsResponse>(apiUrl, '/admin/clearFailedUploads', {preview: true, regexPattern, maxResults}, signal);
+    async failedUploads(apiUrl: string, regexPattern?: string, maxResults?: number, signal?: AbortSignal): Promise<FailedUploadsResponse> {
+        const raw = await apiGet<any>(apiUrl, '/admin/clearFailedUploads', {preview: true, regexPattern, maxResults}, signal);
+        if (typeof raw !== 'string') return raw;
+        const rows = Array.from(htmlDocument(raw)?.querySelectorAll('.table-failed-uploads tbody tr') || []);
+        return {results: rows.map(row => { const [, url, dateCreated] = textCells(row); return {url, dateCreated}; })};
     },
 
     clearFailedUploads(apiUrl: string, regexPattern?: string): Promise<void> {
@@ -694,8 +747,14 @@ export const adminApi = {
         return apiGet<unknown>(apiUrl, `/ws/analytics/${encodeURIComponent(dataResourceUid)}`, undefined, signal);
     },
 
-    indexSearch(apiUrl: string, query: object, signal?: AbortSignal): Promise<IndexSearchResult> {
-        return apiPost<IndexSearchResult>(apiUrl, '/admin/indexSearch', undefined, signal, {q: JSON.stringify(query)});
+    async indexSearch(apiUrl: string, query: object, signal?: AbortSignal): Promise<IndexSearchResult> {
+        const raw = await apiGet<any>(apiUrl, '/admin/indexSearch', {q: JSON.stringify(query)}, signal);
+        if (typeof raw !== 'string') return raw;
+        const doc = htmlDocument(raw);
+        const title = doc?.querySelector('[data-image-id]')?.closest('section')?.querySelector('h1,h2,h3,h4')?.textContent || raw;
+        const totalCount = Number(title.match(/\(([\d,]+) images\)/i)?.[1]?.replace(/,/g, '') || 0);
+        const images = Array.from(doc?.querySelectorAll('[data-image-id]') || []).map(el => ({imageId: el.getAttribute('data-image-id')}));
+        return {images, totalCount, facets: {}};
     },
 
     reindex(apiUrl: string): Promise<void> {
@@ -741,8 +800,18 @@ export const adminApi = {
         return apiPost<void>(apiUrl, '/admin/deleteFieldDefinition', undefined, undefined, {id});
     },
 
-    inbox(apiUrl: string, signal?: AbortSignal): Promise<InboxResponse> {
-        return apiGet<InboxResponse>(apiUrl, '/admin/inboxFileListFragment', undefined, signal);
+    async inbox(apiUrl: string, signal?: AbortSignal): Promise<InboxResponse> {
+        const raw = await apiGet<any>(apiUrl, '/admin/inboxFileListFragment', undefined, signal);
+        if (typeof raw !== 'string') return raw;
+        const doc = htmlDocument(raw);
+        const headers = Array.from(doc?.querySelectorAll('thead th') || []).map(th => th.textContent?.trim() || '');
+        const results = Array.from(doc?.querySelectorAll('tbody tr') || []).map(row => {
+            const cells = textCells(row); const metadata: Record<string, string> = {};
+            headers.slice(2).forEach((header, index) => { metadata[header] = cells[index + 2] || ''; });
+            const multiplier = /GB/i.test(cells[1]) ? 1024 ** 3 : /MB/i.test(cells[1]) ? 1024 ** 2 : /KB/i.test(cells[1]) ? 1024 : 1;
+            return {name: cells[0], path: cells[0], sizeInBytes: Number.parseFloat(cells[1]) * multiplier || 0, lastModified: '', metadata};
+        }).filter(file => file.name);
+        return {results: results as any, fieldDefinitions: headers.slice(2).map((name, id) => ({id, name, type: 'Literal', value: ''}))};
     },
 
     importInbox(apiUrl: string): Promise<InboxImportResponse> {
@@ -801,13 +870,20 @@ export type TagRefUpdateResult = { id: number; path: string } | { tag: { id: num
 
 export const criteriaApi = {
     async list(apiUrl: string, signal?: AbortSignal): Promise<SearchCriteriaListResponse> {
-        const raw = await apiGet<any>(apiUrl, '/ws/search', {max: 0}, signal);
-        const criteria = (raw?.criteriaDefinitions || []).map((c: any) => ({
+        const raw = await apiGet<any>(apiUrl, '/admin/searchCriteria', undefined, signal);
+        if (typeof raw === 'string') {
+            const rows = Array.from(htmlDocument(raw)?.querySelectorAll('tr[searchcriteriadefinitionid]') || []);
+            return {results: rows.map(row => {
+                const [name, type, valueType, description, fieldName, units] = textCells(row);
+                return {id: row.getAttribute('searchCriteriaDefinitionId') || name, name, type, valueType, description, fieldName, units};
+            })};
+        }
+        const criteria = (raw?.criteriaDefinitions || raw?.results || []).map((c: any) => ({
             id: c.id ?? c.name,
             name: c.name,
             fieldName: c.fieldName || c.name,
-            type: c.type || 'criteria',
-            valueType: c.valueType || 'string',
+            type: c.type || 'ImageProperty',
+            valueType: c.valueType || 'StringDirectEntry',
             description: c.description,
             units: c.units
         }));
@@ -859,7 +935,15 @@ export const licenceApi = {
 
 export const storageApi = {
     async list(apiUrl: string, signal?: AbortSignal): Promise<StorageLocation[]> {
-        const raw = await apiGet<any>(apiUrl, '/storageLocation/listFragment', undefined, signal).catch(() => []);
+        const raw = await apiGet<any>(apiUrl, '/storageLocation/listFragment', undefined, signal);
+        if (typeof raw === 'string') {
+            return Array.from(htmlDocument(raw)?.querySelectorAll('table:first-of-type tbody tr') || []).map(row => {
+                const [id, typeLabel, detail] = textCells(row);
+                const isDefault = Boolean(row.querySelector('input[name="default"]:checked'));
+                const type = typeLabel === 'FS' ? 'fs' : typeLabel === 'S3' ? 's3' : 'swift';
+                return {id, name: detail, type, detail, isDefault};
+            }).filter(location => location.id);
+        }
         return Array.isArray(raw?.storageLocationList) ? raw.storageLocationList : (Array.isArray(raw) ? raw : []);
     },
 
@@ -872,7 +956,11 @@ export const storageApi = {
     },
 
     update(apiUrl: string, id: string | number, location: Partial<StorageLocation>): Promise<StorageLocation> {
-        return apiPost<StorageLocation>(apiUrl, `/storageLocation/update?id=${encodeURIComponent(String(id))}`, location);
+        const query: Record<string, string | number | boolean | undefined> = {id};
+        for (const [key, value] of Object.entries(location)) {
+            if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') query[key] = value;
+        }
+        return apiPost<StorageLocation>(apiUrl, `/storageLocation/update/${encodeURIComponent(String(id))}`, undefined, undefined, query);
     },
 
     setDefault(apiUrl: string, id: string | number): Promise<StorageLocation> {

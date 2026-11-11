@@ -6,7 +6,7 @@
 
 import {Breadcrumb, useUser} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
-import {Button, Form, Tab, Tabs} from 'react-bootstrap';
+import {Button, Form, Modal, Tab, Tabs} from 'react-bootstrap';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import ImageViewer, {type ImageRectangle} from '../components/imageViewer.tsx';
 import {imageApi, tagApi} from '../api/endpoints.ts';
@@ -165,7 +165,7 @@ export default function ImageDetail({setBreadcrumbs}: {
                             tileZoomLevels={image.tileZoomLevels}
                             downloadUrl={image.originalUrl}
                             busy={busy}
-                            onCreateSubimage={setPendingSubimage}
+                            onCreateSubimage={canModify ? setPendingSubimage : undefined}
                         />
                     ) : image.isAudio ? (
                         <audio controls src={image.imageUrl} style={{width: '100%'}} data-testid="audio-player"/>
@@ -360,16 +360,10 @@ export default function ImageDetail({setBreadcrumbs}: {
                 </aside>
             </div>
 
-            {pendingSubimage && (
-                <div className="modal d-block image-detail__subimage-modal" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="create-subimage-title">
-                    <div className="modal-dialog modal-dialog-centered">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h2 className="modal-title fs-5" id="create-subimage-title">Create sub-image</h2>
-                                <button type="button" className="btn-close" aria-label="Close" disabled={busy} onClick={() => setPendingSubimage(null)}/>
-                            </div>
-                            <Form onSubmit={event => {
+            <Modal show={pendingSubimage !== null} onHide={() => !busy && setPendingSubimage(null)} centered aria-labelledby="create-subimage-title">
+                <Form onSubmit={event => {
                                 event.preventDefault();
+                                if (!pendingSubimage) return;
                                 const rect = pendingSubimage;
                                 runAction(() => imageApi.createSubimage(apiUrl, image.imageId, rect, subimageDescription))
                                     .then(success => {
@@ -378,19 +372,19 @@ export default function ImageDetail({setBreadcrumbs}: {
                                         setSubimageDescription('');
                                     });
                             }}>
-                                <div className="modal-body">
-                                    <Form.Label htmlFor="subimage-description">Description</Form.Label>
-                                    <Form.Control id="subimage-description" value={subimageDescription} onChange={event => setSubimageDescription(event.target.value)} autoFocus/>
-                                </div>
-                                <div className="modal-footer">
-                                    <Button variant="outline-secondary" type="button" disabled={busy} onClick={() => setPendingSubimage(null)}>Cancel</Button>
-                                    <Button type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create sub-image'}</Button>
-                                </div>
-                            </Form>
-                        </div>
-                    </div>
-                </div>
-            )}
+                    <Modal.Header closeButton closeVariant="white">
+                        <Modal.Title id="create-subimage-title">Create sub-image</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form.Label htmlFor="subimage-description">Description</Form.Label>
+                        <Form.Control id="subimage-description" value={subimageDescription} onChange={event => setSubimageDescription(event.target.value)} autoFocus/>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="outline-secondary" type="button" disabled={busy} onClick={() => setPendingSubimage(null)}>Cancel</Button>
+                        <Button type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create sub-image'}</Button>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
         </div>
     );
 }

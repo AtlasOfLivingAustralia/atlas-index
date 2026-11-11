@@ -6,13 +6,14 @@
 
 import {Breadcrumb} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
-import {Form} from 'react-bootstrap';
+import {Button, Form, Modal} from 'react-bootstrap';
 import Menu from '../../components/menu.tsx';
 import {criteriaApi} from '../../api/endpoints.ts';
 import {ApiError} from '../../api/client.ts';
 import type {SearchCriteriaDefinition} from '../../api/types.ts';
 
-const VALUE_TYPES = ['string', 'number', 'date', 'boolean'];
+const VALUE_TYPES = ['StringDirectEntry', 'StringSingleSelect', 'StringMultiSelect', 'NumberRangeInteger', 'NumberRangeLong', 'NumberRangeDouble', 'DateRange', 'Boolean'];
+const CRITERIA_TYPES = ['ImageProperty', 'ImageMetadata'];
 
 /**
  * CRUD admin for advanced-search field definitions: GET/POST
@@ -136,14 +137,14 @@ export default function SearchCriteriaAdmin({setBreadcrumbs}: { setBreadcrumbs: 
                             ))}
                             </tbody>
                         </table>
-                        <button className="btn btn-primary btn-sm" onClick={() => setEditing({name: '', fieldName: '', type: 'criteria', valueType: VALUE_TYPES[0]})}>Add definition</button>
+                        <button className="btn btn-primary btn-sm" onClick={() => setEditing({name: '', fieldName: '', type: 'ImageProperty', valueType: VALUE_TYPES[0]})}>Add definition</button>
                     </>
                 )}
 
-                {editing && (
-                    <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75" style={{zIndex: 1050}}>
-                        <div className="card p-4" style={{maxWidth: 500, width: '100%'}}>
-                            <h4>{editing.id !== undefined ? 'Edit' : 'New'} search criteria definition</h4>
+                <Modal show={editing !== null} onHide={() => setEditing(null)} centered aria-labelledby="criteria-editor-title">
+                    {editing && <>
+                        <Modal.Header closeButton><Modal.Title id="criteria-editor-title">{editing.id !== undefined ? 'Edit' : 'New'} search criteria definition</Modal.Title></Modal.Header>
+                        <Modal.Body>
                             <Form.Group className="mb-2">
                                 <Form.Label>Name</Form.Label>
                                 <Form.Control value={editing.name ?? ''} onChange={e => setEditing({...editing, name: e.target.value})}/>
@@ -154,7 +155,9 @@ export default function SearchCriteriaAdmin({setBreadcrumbs}: { setBreadcrumbs: 
                             </Form.Group>
                             <Form.Group className="mb-2">
                                 <Form.Label>Type</Form.Label>
-                                <Form.Control value={editing.type ?? ''} onChange={e => setEditing({...editing, type: e.target.value})}/>
+                                <Form.Select value={editing.type ?? CRITERIA_TYPES[0]} onChange={e => setEditing({...editing, type: e.target.value})}>
+                                    {CRITERIA_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                </Form.Select>
                             </Form.Group>
                             <Form.Group className="mb-2">
                                 <Form.Label>Value type</Form.Label>
@@ -170,13 +173,13 @@ export default function SearchCriteriaAdmin({setBreadcrumbs}: { setBreadcrumbs: 
                                 <Form.Label>Description</Form.Label>
                                 <Form.Control as="textarea" rows={2} value={editing.description ?? ''} onChange={e => setEditing({...editing, description: e.target.value})}/>
                             </Form.Group>
-                            <div>
-                                <button className="btn btn-primary" onClick={save}>Save</button>
-                                <button className="btn btn-default ms-2" onClick={() => setEditing(null)}>Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button onClick={save}>Save</Button>
+                            <Button variant="outline-secondary" onClick={() => setEditing(null)}>Cancel</Button>
+                        </Modal.Footer>
+                    </>}
+                </Modal>
             </div>
         </div>
     );

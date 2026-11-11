@@ -6,7 +6,7 @@
 
 import {Breadcrumb} from '@ala/common-ui';
 import {useEffect, useState} from 'react';
-import {Form} from 'react-bootstrap';
+import {Button, Form, Modal} from 'react-bootstrap';
 import Menu from '../../components/menu.tsx';
 import {storageApi} from '../../api/endpoints.ts';
 import {ApiError} from '../../api/client.ts';
@@ -28,8 +28,8 @@ export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const [name, setName] = useState('');
-    const [type, setType] = useState('filesystem');
+    const [type, setType] = useState('fs');
+    const [createConfig, setCreateConfig] = useState<Record<string, string | boolean>>({authenticationMethod: 'BASIC'});
 
     const [editingId, setEditingId] = useState<string | number | null>(null);
     const [editName, setEditName] = useState('');
@@ -73,10 +73,10 @@ export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs
     }, [apiUrl]);
 
     async function create() {
-        if (!name) return;
+        if ((type === 'fs' && !createConfig.basePath) || (type === 's3' && (!createConfig.region || !createConfig.bucket)) || (type === 'swift' && (!createConfig.authUrl || !createConfig.containerName))) return;
         try {
-            await storageApi.create(apiUrl, {name, type});
-            setName('');
+            await storageApi.create(apiUrl, {type, ...createConfig});
+            setCreateConfig({authenticationMethod: 'BASIC'});
             load();
         } catch (err) {
             setError((err as ApiError)?.message ?? 'Create failed');
@@ -110,7 +110,7 @@ export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs
     }
 
     async function migrate() {
-        if (!migrateSource || !migrateDestination) return;
+        if (!migrateSource || !migrateDestination || migrateSource === migrateDestination) return;
         if (!window.confirm('Migrate all images from the source location to the destination? This may take a long time.')) return;
         setMigrating(true);
         try {
@@ -170,15 +170,30 @@ export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs
                         </table>
 
                         <h5>Add storage location</h5>
-                        <div className="d-flex gap-2 mb-4" style={{maxWidth: 500}}>
-                            <input className="form-control" placeholder="Name" value={name} onChange={e => setName(e.target.value)}/>
-                            <input className="form-control" placeholder="Type (e.g. filesystem, s3)" value={type} onChange={e => setType(e.target.value)}/>
-                            <button className="btn btn-primary" onClick={create} disabled={!name}>Add</button>
+                        <div className="d-grid gap-2 mb-4" style={{maxWidth: 620}}>
+                            <select className="form-select" value={type} onChange={e => { setType(e.target.value); setCreateConfig({authenticationMethod: 'BASIC'}); }}>
+                                <option value="fs">File system</option><option value="s3">AWS S3</option><option value="swift">OpenStack Swift</option>
+                            </select>
+                            {type === 'fs' && <input className="form-control" placeholder="Base path" value={String(createConfig.basePath || '')} onChange={e => setCreateConfig({...createConfig, basePath: e.target.value})}/>}
+                            {type === 's3' && <>
+                                <input className="form-control" placeholder="Region" value={String(createConfig.region || '')} onChange={e => setCreateConfig({...createConfig, region: e.target.value})}/>
+                                <input className="form-control" placeholder="Bucket" value={String(createConfig.bucket || '')} onChange={e => setCreateConfig({...createConfig, bucket: e.target.value})}/>
+                                <input className="form-control" placeholder="Object prefix" value={String(createConfig.prefix || '')} onChange={e => setCreateConfig({...createConfig, prefix: e.target.value})}/>
+                                <input className="form-control" placeholder="Access key (leave blank for container credentials)" value={String(createConfig.accessKey || '')} onChange={e => setCreateConfig({...createConfig, accessKey: e.target.value})}/>
+                                <input className="form-control" type="password" placeholder="Secret key" value={String(createConfig.secretKey || '')} onChange={e => setCreateConfig({...createConfig, secretKey: e.target.value})}/>
+                                <Form.Check label="Use container credentials" checked={Boolean(createConfig.containerCredentials)} onChange={e => setCreateConfig({...createConfig, containerCredentials: e.target.checked})}/>
+                                <Form.Check label="Public read" checked={Boolean(createConfig.publicRead)} onChange={e => setCreateConfig({...createConfig, publicRead: e.target.checked})}/>
+                            </>}
+                            {type === 'swift' && <>
+                                {['authUrl', 'username', 'password', 'tenantId', 'tenantName', 'containerName'].map(field => <input key={field} className="form-control" type={field === 'password' ? 'password' : 'text'} placeholder={field} value={String(createConfig[field] || '')} onChange={e => setCreateConfig({...createConfig, [field]: e.target.value})}/>)}
+                                <select className="form-select" value={String(createConfig.authenticationMethod || 'BASIC')} onChange={e => setCreateConfig({...createConfig, authenticationMethod: e.target.value})}><option value="BASIC">BASIC</option><option value="KEYSTONE">KEYSTONE</option><option value="KEYSTONE_V3">KEYSTONE_V3</option></select>
+                            </>}
+                            <button className="btn btn-primary" onClick={create}>Add</button>
                         </div>
 
                         <h5>Migrate storage</h5>
                         <div className="d-flex gap-2 align-items-center" style={{maxWidth: 700}}>
-                            <select className="form-select" value={migrateSource} onChange={e => setMigrateSource(e.target.value)}>
+                            <select className="form-select" value={migrateSource} onChange={e => { const value = e.target.value; setMigrateSource(value); if (value === migrateDestination) setMigrateDestination(''); }}>
                                 <option value="">Source…</option>
                                 {locations.map(l => <option key={String(l.id)} value={String(l.id)}>{l.name}</option>)}
                             </select>
@@ -190,17 +205,16 @@ export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs
                                 <input type="checkbox" checked={migrateDeleteSource} onChange={e => setMigrateDeleteSource(e.target.checked)}/>
                                 Delete source after migration
                             </label>
-                            <button className="btn btn-outline-primary" disabled={migrating || !migrateSource || !migrateDestination} onClick={migrate}>
+                            <button className="btn btn-outline-primary" disabled={migrating || !migrateSource || !migrateDestination || migrateSource === migrateDestination} onClick={migrate}>
                                 {migrating ? 'Migrating…' : 'Migrate'}
                             </button>
                         </div>
                     </>
                 )}
 
-                {editingId !== null && (
-                    <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-75" style={{zIndex: 1050}}>
-                        <div className="card p-4" style={{maxWidth: 500, width: '100%'}}>
-                            <h4>Edit storage location</h4>
+                <Modal show={editingId !== null} onHide={() => setEditingId(null)} centered aria-labelledby="storage-editor-title">
+                    <Modal.Header closeButton><Modal.Title id="storage-editor-title">Edit storage location</Modal.Title></Modal.Header>
+                    <Modal.Body>
                             <Form.Group className="mb-2">
                                 <Form.Label>Name</Form.Label>
                                 <Form.Control value={editName} onChange={e => setEditName(e.target.value)}/>
@@ -213,13 +227,9 @@ export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs
                                 <Form.Label>New password (leave blank to keep current)</Form.Label>
                                 <Form.Control type="password" value={editPassword} onChange={e => setEditPassword(e.target.value)}/>
                             </Form.Group>
-                            <div>
-                                <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                                <button className="btn btn-default ms-2" onClick={() => setEditingId(null)}>Cancel</button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                    </Modal.Body>
+                    <Modal.Footer><Button onClick={saveEdit}>Save</Button><Button variant="outline-secondary" onClick={() => setEditingId(null)}>Cancel</Button></Modal.Footer>
+                </Modal>
             </div>
         </div>
     );

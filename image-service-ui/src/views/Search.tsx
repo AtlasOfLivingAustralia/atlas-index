@@ -6,7 +6,7 @@
 
 import {Breadcrumb, Pagination, useUser} from '@ala/common-ui';
 import {parseAsInteger, parseAsString, useQueryState} from 'nuqs';
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Form} from 'react-bootstrap';
 import ActiveFilters from '../components/activeFilters.tsx';
 import AdvancedCriteria from '../components/advancedCriteria.tsx';
@@ -37,14 +37,21 @@ export default function Search({setBreadcrumbs, isMobile}: {
     const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(0));
     const [sort, setSort] = useQueryState('sort', parseAsString.withDefault('score'));
     const [sortDirection, setSortDirection] = useQueryState('sortDirection', parseAsString.withDefault('desc'));
-    const [facetFilters, setFacetFilters] = useState<Record<string, string[]>>({});
-    const [criteria, setCriteria] = useState<SearchCriterion[]>([]);
+    const [facetState, setFacetState] = useQueryState('facets', parseAsString.withDefault(''));
+    const [criteriaState, setCriteriaState] = useQueryState('criteria', parseAsString.withDefault(''));
+    const facetFilters = useMemo<Record<string, string[]>>(() => {
+        try { return facetState ? JSON.parse(facetState) : {}; } catch { return {}; }
+    }, [facetState]);
+    const criteria = useMemo<SearchCriterion[]>(() => {
+        try { const value = criteriaState ? JSON.parse(criteriaState) : []; return Array.isArray(value) ? value : []; } catch { return []; }
+    }, [criteriaState]);
     const [inputText, setInputText] = useState(query);
 
     const [result, setResult] = useState<SearchResult | null>(null);
     const [facets, setFacets] = useState<Facet[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
         setBreadcrumbs([
@@ -93,34 +100,53 @@ export default function Search({setBreadcrumbs, isMobile}: {
     }
 
     function toggleFacet(name: string, value: string) {
-        setFacetFilters(prev => {
-            const current = prev[name] ?? [];
-            const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
-            const updated = {...prev, [name]: next};
-            if (updated[name].length === 0) delete updated[name];
-            return updated;
-        });
+        const current = facetFilters[name] ?? [];
+        const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
+        const updated = {...facetFilters, [name]: next};
+        if (updated[name].length === 0) delete updated[name];
+        setFacetState(Object.keys(updated).length ? JSON.stringify(updated) : null);
         setPage(0);
     }
 
     function addCriterion(criterion: SearchCriterion) {
-        setCriteria(prev => [...prev, criterion]);
+        setCriteriaState(JSON.stringify([...criteria, criterion]));
         setPage(0);
     }
 
     function removeCriterion(id: string) {
-        setCriteria(prev => prev.filter(c => c.id !== id));
+        const next = criteria.filter(c => c.id !== id);
+        setCriteriaState(next.length ? JSON.stringify(next) : null);
     }
 
     function clearAll() {
         setQuery('');
         setInputText('');
-        setFacetFilters({});
-        setCriteria([]);
+        setFacetState(null);
+        setCriteriaState(null);
         setPage(0);
     }
 
     const canDownload = canEdit(userInfo) && !!result && result.totalRecords > 0;
+
+    async function downloadResults() {
+        setDownloading(true);
+        setError(null);
+        try {
+            const {blob, filename} = await searchApi.download(apiUrl, {q: query || undefined, criteria, facetFilters});
+            const objectUrl = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = objectUrl;
+            anchor.download = filename || 'image-search-results.zip';
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(objectUrl);
+        } catch (err) {
+            setError((err as ApiError)?.message ?? 'Failed to download search results');
+        } finally {
+            setDownloading(false);
+        }
+    }
 
     return (
         <div className="container-fluid">
@@ -167,9 +193,9 @@ export default function Search({setBreadcrumbs, isMobile}: {
                     {result ? `${result.totalRecords.toLocaleString()} image${result.totalRecords === 1 ? '' : 's'} found` : ''}
                 </div>
                 {canDownload && (
-                    <a className="btn btn-outline-secondary btn-sm" href={searchApi.downloadUrl(apiUrl, {q: query || undefined, criteria, facetFilters})} data-testid="download-zip">
-                        Download results as ZIP
-                    </a>
+                    <button type="button" className="btn btn-outline-secondary btn-sm" onClick={downloadResults} disabled={downloading} data-testid="download-zip">
+                        {downloading ? 'Preparing ZIP…' : 'Download results as ZIP'}
+                    </button>
                 )}
             </div>
 

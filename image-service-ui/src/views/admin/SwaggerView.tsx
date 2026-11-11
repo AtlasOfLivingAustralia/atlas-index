@@ -130,11 +130,15 @@ export default function SwaggerView({ setBreadcrumbs }: { setBreadcrumbs: (crumb
             const scheme = (spec.schemes as string[] | undefined)?.[0] ?? 'https';
             const basePath: string = spec.basePath ?? '';
             computedUrl = forceHttps(`${scheme}://${spec.host}${basePath}`);
-            delete spec.host;
-            delete spec.basePath;
-            delete spec.schemes;
+            if (!spec.swagger) {
+                delete spec.host;
+                delete spec.basePath;
+                delete spec.schemes;
+            } else {
+                spec.schemes = ['https'];
+            }
         }
-        if (computedUrl) {
+        if (computedUrl && !spec.swagger) {
             spec.servers = [{ url: computedUrl }];
         } else {
             // Fall back to the origin of the URL used to fetch the spec.

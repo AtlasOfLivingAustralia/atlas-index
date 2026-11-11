@@ -105,8 +105,11 @@ function ViewerToolbar({
     const [editingRectangle, setEditingRectangle] = useState(false);
     const rectangleRef = useRef<L.Rectangle | null>(null);
     const editHandlesRef = useRef<L.CircleMarker[]>([]);
+    const editListenerCleanupRef = useRef<Array<() => void>>([]);
 
     function removeEditHandles() {
+        editListenerCleanupRef.current.forEach(cleanup => cleanup());
+        editListenerCleanupRef.current = [];
         editHandlesRef.current.forEach(handle => handle.remove());
         editHandlesRef.current = [];
         setEditingRectangle(false);
@@ -157,7 +160,7 @@ function ViewerToolbar({
                 dragging = true;
                 map.dragging.disable();
             });
-            map.on('mousemove', event => {
+            const move = (event: L.LeafletMouseEvent) => {
                 if (!dragging) return;
                 handle.setLatLng(event.latlng);
                 const fixed = editHandlesRef.current[oppositeCorner[index]].getLatLng();
@@ -167,7 +170,8 @@ function ViewerToolbar({
                 editHandlesRef.current.forEach((other, otherIndex) => {
                     if (otherIndex !== index) other.setLatLng(nextCorners[otherIndex]);
                 });
-            });
+            };
+            map.on('mousemove', move);
             const finish = () => {
                 if (!dragging) return;
                 dragging = false;
@@ -175,6 +179,12 @@ function ViewerToolbar({
             };
             map.on('mouseup', finish);
             window.addEventListener('mouseup', finish);
+            editListenerCleanupRef.current.push(() => {
+                map.off('mousemove', move);
+                map.off('mouseup', finish);
+                window.removeEventListener('mouseup', finish);
+                map.dragging.enable();
+            });
             return handle;
         });
         setEditingRectangle(true);
@@ -236,6 +246,8 @@ function ViewerToolbar({
     }, [drawingRectangle, map]);
 
     useEffect(() => () => {
+        editListenerCleanupRef.current.forEach(cleanup => cleanup());
+        editListenerCleanupRef.current = [];
         editHandlesRef.current.forEach(handle => handle.remove());
         rectangleRef.current?.remove();
     }, []);
@@ -293,10 +305,12 @@ function ViewerToolbar({
                     type="button"
                     title={hasRectangle ? 'Create a sub-image from the selected rectangle' : 'Draw a rectangle to create a sub-image'}
                     aria-label="Create sub-image"
-                    disabled={!hasRectangle || busy}
-                    onClick={() => {
+                    disabled={!hasRectangle || busy || !onCreateSubimage}
+                    onClick={async () => {
                         const rect = rectangleInImagePixels();
-                        if (rect && rect.width > 0 && rect.height > 0) onCreateSubimage?.(rect);
+                        if (!rect || rect.width <= 0 || rect.height <= 0) return;
+                        if (document.fullscreenElement) await document.exitFullscreen();
+                        onCreateSubimage?.(rect);
                     }}
                 >
                     <i className="bi bi-image" aria-hidden="true"/>

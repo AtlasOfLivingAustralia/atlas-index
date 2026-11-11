@@ -7,8 +7,8 @@
 /**
  * Thin typed fetch client for the image-service `/api/v2` structured JSON
  * API. All requests are made with `credentials: 'include'` so the
- * backend-brokered session cookie is sent — the frontend never stores or
- * attaches an access/API key itself (see AuthContext / doi-ui pattern).
+ * backend session cookie is sent. When the shared ALA login supplies an
+ * access token it is also attached as a bearer token for legacy WS routes.
  *
  * Callers get a discriminated result so they can render loading / empty /
  * unauthorized / failure states without the client silently swallowing
@@ -72,6 +72,11 @@ function readCookie(name: string): string | undefined {
 const CSRF_COOKIE_NAME = 'XSRF-TOKEN';
 const CSRF_HEADER_NAME = 'X-XSRF-TOKEN';
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+let accessToken: string | undefined;
+
+export function setApiAccessToken(token?: string | null): void {
+    accessToken = token || undefined;
+}
 
 /** Whether Vite should proxy a development request to a different API origin. */
 export function usesDevelopmentProxy(baseUrl: string): boolean {
@@ -130,6 +135,7 @@ export async function apiRequest<T>(baseUrl: string, path: string, options: Requ
     const url = `${requestBaseUrl}${path}${buildQueryString(query)}`;
 
     const headers: Record<string, string> = {};
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     let requestBody: BodyInit | undefined;
     if (body !== undefined && !isFormData) {
         headers['Content-Type'] = 'application/json';
@@ -218,4 +224,19 @@ export function apiPostForm<T>(baseUrl: string, path: string, formData: FormData
 /** Builds an absolute download/zip URL (browser navigation, not fetch) that still relies on the session cookie. */
 export function buildUrl(baseUrl: string, path: string, query?: RequestOptions['query']): string {
     return `${baseUrl}${path}${buildQueryString(query)}`;
+}
+
+/** Fetches an authenticated binary response (used for protected ZIP downloads). */
+export async function apiDownload(baseUrl: string, path: string, query?: RequestOptions['query']): Promise<{blob: Blob; filename?: string}> {
+    const requestBaseUrl = usesDevelopmentProxy(baseUrl) ? '/image-service' : baseUrl;
+    const headers: Record<string, string> = {};
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    const response = await fetch(`${requestBaseUrl}${path}${buildQueryString(query)}`, {credentials: 'include', headers});
+    if (!response.ok) {
+        const parsed = await parseErrorBody(response);
+        throw new ApiError(response.status, parsed.message, parsed.code, parsed.body);
+    }
+    const disposition = response.headers.get('content-disposition') || '';
+    const filename = disposition.match(/filename\*?=(?:UTF-8''|["'])?([^"';]+)/i)?.[1];
+    return {blob: await response.blob(), filename: filename ? decodeURIComponent(filename) : undefined};
 }

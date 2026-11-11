@@ -258,17 +258,17 @@ describe('criteriaApi', () => {
         return fetchMock;
     }
 
-    it('list() calls GET /ws/search with max=0', async () => {
+    it('list() loads definitions from the legacy admin source that actually exposes them', async () => {
         const fetchMock = mockFetchOnce({criteriaDefinitions: []});
 
         await criteriaApi.list('http://api.test');
 
         const [url, options] = fetchMock.mock.calls[0];
-        expect(url).toBe('http://api.test/ws/search?max=0');
+        expect(url).toBe('http://api.test/admin/searchCriteria');
         expect(options.method).toBe('GET');
     });
 
-    it('list() reads public criteria definitions from the search response', async () => {
+    it('list() normalizes structured criteria definitions when available', async () => {
         mockFetchOnce({criteriaDefinitions: [{id: 1, name: 'Scientific name', fieldName: 'scientificName', type: 'ImageProperty', valueType: 'String', description: 'Taxon name'}]});
 
         await expect(criteriaApi.list('http://api.test')).resolves.toEqual({results: [{

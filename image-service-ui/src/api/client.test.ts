@@ -4,14 +4,25 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {apiDelete, apiGet, apiPost, ApiError} from './client';
+import {apiDelete, apiGet, apiPost, ApiError, setApiAccessToken} from './client';
 
 describe('apiRequest', () => {
     const originalFetch = global.fetch;
 
     afterEach(() => {
+        setApiAccessToken(undefined);
         global.fetch = originalFetch;
         jest.restoreAllMocks();
+    });
+
+    it('attaches the current ALA access token as a bearer credential', async () => {
+        const fetchMock = jest.fn().mockResolvedValue({ok: true, status: 204, headers: new Headers()});
+        global.fetch = fetchMock as unknown as typeof fetch;
+        setApiAccessToken('access-token-123');
+
+        await apiPost('http://api.test', '/ws/uploadImage');
+
+        expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer access-token-123');
     });
 
     it('resolves with parsed JSON on success and always sends credentials: include', async () => {

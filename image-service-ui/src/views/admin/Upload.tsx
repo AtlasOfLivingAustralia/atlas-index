@@ -79,7 +79,7 @@ export default function Upload({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Brea
     const [inboxLoading, setInboxLoading] = useState(false);
     const [importMessage, setImportMessage] = useState<string | null>(null);
     const [newFieldName, setNewFieldName] = useState('');
-    const [newFieldType, setNewFieldType] = useState('string');
+    const [newFieldType, setNewFieldType] = useState('Literal');
     const [newFieldValue, setNewFieldValue] = useState('');
 
     const [busy, setBusy] = useState(false);
@@ -308,7 +308,7 @@ export default function Upload({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Brea
                                             <td>{f.name}</td>
                                             <td><code>{f.path}</code></td>
                                             <td>{(f.sizeInBytes / 1024).toFixed(1)} KB</td>
-                                            <td>{new Date(f.lastModified).toLocaleString()}</td>
+                                            <td>{f.lastModified ? new Date(f.lastModified).toLocaleString() : '—'}</td>
                                         </tr>
                                     ))}
                                     </tbody>
@@ -347,7 +347,10 @@ export default function Upload({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Brea
                                 </table>
                                 <div className="d-flex gap-2" style={{maxWidth: 600}}>
                                     <input className="form-control" placeholder="Name" value={newFieldName} onChange={e => setNewFieldName(e.target.value)}/>
-                                    <input className="form-control" placeholder="Type" value={newFieldType} onChange={e => setNewFieldType(e.target.value)}/>
+                                    <select className="form-select" aria-label="Field type" value={newFieldType} onChange={e => setNewFieldType(e.target.value)}>
+                                        <option value="Literal">Literal</option>
+                                        <option value="FilenameRegex">Filename regular expression</option>
+                                    </select>
                                     <input className="form-control" placeholder="Value" value={newFieldValue} onChange={e => setNewFieldValue(e.target.value)}/>
                                     <button className="btn btn-outline-primary" disabled={busy || !newFieldName} onClick={saveImportField}>Add</button>
                                 </div>
