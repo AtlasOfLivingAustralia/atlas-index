@@ -70,7 +70,7 @@ function ResourcesView({result, isMobile}: MapViewProps) {
         const searchQuery = encodeURIComponent('"' + s.join('" OR "') + '"');
 
         // Generate link for humans
-        setBhlQuery(import.meta.env.VITE_APP_BHL_URL + `/search?SearchTerm=${searchQuery}&SearchCat=M#/names`);
+        setBhlQuery(import.meta.env.VITE_APP_BHL_URL + `/search?SearchTerm=${searchQuery}&stype=F#/titles`);
 
         // Fetch pre-built BHL results from the static taxon-bhl directory, see taxon-bhl tool
         const guidEncoded = encodeURIComponent(encodeURIComponent(result.guid));
