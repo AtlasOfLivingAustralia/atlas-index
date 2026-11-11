@@ -16,7 +16,7 @@ public class RateLimiter {
             throw new IllegalArgumentException("maxRequestsPerSecond must be positive");
         }
         this.maxRequestsPerSecond = maxRequestsPerSecond;
-        this.maxBurst = maxBurst > 0 ? maxBurst : Math.max(1.0, maxRequestsPerSecond);
+        this.maxBurst = Math.max(1.0, maxBurst > 0 ? maxBurst : maxRequestsPerSecond);
         this.availableTokens = this.maxBurst;
         this.lastRefillTimestamp = System.currentTimeMillis();
     }

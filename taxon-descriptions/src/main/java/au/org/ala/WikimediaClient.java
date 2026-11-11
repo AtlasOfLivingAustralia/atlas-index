@@ -368,6 +368,10 @@ public class WikimediaClient {
                     conn.header("Authorization", "Bearer " + token);
                 }
 
+                long remainingPause;
+                while ((remainingPause = pauseUntilTimestamp.get() - System.currentTimeMillis()) > 0) {
+                    Thread.sleep(remainingPause);
+                }
                 Connection.Response response = conn.execute();
                 int statusCode = response.statusCode();
 
@@ -388,8 +392,8 @@ public class WikimediaClient {
                                         }
                                     }
                                 }
-                                if (chosen == null && !articles.isEmpty() && articles.get(0) instanceof Map m) {
-                                    chosen = m;
+                                if (chosen == null) {
+                                    return false;
                                 }
                                 if (chosen != null && chosen.get("article_body") instanceof Map articleBody) {
                                     html = (String) articleBody.get("html");
@@ -402,6 +406,9 @@ public class WikimediaClient {
                             }
                         } catch (Exception e) {
                             System.err.println("Failed to extract article_body.html from JSON for " + url + ": " + e.getMessage());
+                        }
+                        if (StringUtils.isBlank(html)) {
+                            return false;
                         }
                     }
 
