@@ -377,4 +377,64 @@ public class WikimediaClientTest {
         boolean success = client.fetchPageHtml(serverUrl + "/api/rest_v1/page/html/No_Auth?host=en.wikipedia.org", outputFile);
         assertTrue(success);
     }
+
+    @Test
+    void testFetchHtmlFailsWhenNoEnwikiInEnterpriseJson(@TempDir Path tempDir) throws Exception {
+        server.createContext("/v2/articles/Test_Dewiki_Only", exchange -> {
+            String json = "[{\"is_part_of\":{\"identifier\":\"dewiki\"},\"article_body\":{\"html\":\"<p>German</p>\"}}]";
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+        });
+
+        WikimediaClient client = new WikimediaClient(null, null, null, "test-agent/1.0", null, 1);
+        File outputFile = tempDir.resolve("dewiki_only.html").toFile();
+        boolean success = client.fetchPageHtml(serverUrl + "/v2/articles/Test_Dewiki_Only", outputFile);
+
+        assertFalse(success, "Fetch should fail when no enwiki article is present in response");
+        assertFalse(outputFile.exists(), "Output file must not be created for non-enwiki articles");
+    }
+
+    @Test
+    void testFetchHtmlFailsWhenEnterpriseJsonMissingArticleBodyHtml(@TempDir Path tempDir) throws Exception {
+        server.createContext("/v2/articles/Test_Empty_Body", exchange -> {
+            String json = "[{\"is_part_of\":{\"identifier\":\"enwiki\"},\"article_body\":{}}]";
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+        });
+
+        WikimediaClient client = new WikimediaClient(null, null, null, "test-agent/1.0", null, 1);
+        File outputFile = tempDir.resolve("empty_body.html").toFile();
+        boolean success = client.fetchPageHtml(serverUrl + "/v2/articles/Test_Empty_Body", outputFile);
+
+        assertFalse(success, "Fetch should fail when article_body.html is missing");
+        assertFalse(outputFile.exists(), "Output file must not be created when HTML extraction fails");
+    }
+
+    @Test
+    void testFetchHtmlFailsWhenEnterpriseJsonMalformed(@TempDir Path tempDir) throws Exception {
+        server.createContext("/v2/articles/Test_Malformed", exchange -> {
+            String json = "[{\"is_part_of\": broken json";
+            byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+        });
+
+        WikimediaClient client = new WikimediaClient(null, null, null, "test-agent/1.0", null, 1);
+        File outputFile = tempDir.resolve("malformed.html").toFile();
+        boolean success = client.fetchPageHtml(serverUrl + "/v2/articles/Test_Malformed", outputFile);
+
+        assertFalse(success, "Fetch should fail when JSON is malformed");
+        assertFalse(outputFile.exists(), "Output file must not be created on malformed JSON");
+    }
 }

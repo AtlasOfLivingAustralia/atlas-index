@@ -77,4 +77,19 @@ public class RateLimiterTest {
         // 20 requests at 50/sec (after 5 burst, 15 remaining = 300ms min)
         assertTrue(elapsed >= 250, "Concurrent throttling was too fast: " + elapsed + "ms");
     }
+
+    @Test
+    void testFractionalBurstCapacityDoesNotDeadlock() throws InterruptedException {
+        // With rate 5.0 and maxBurst passed as 0.2, capacity must be clamped to >= 1.0
+        // to avoid deadlocking worker threads while pacing requests.
+        RateLimiter limiter = new RateLimiter(5.0, 0.2);
+
+        long start = System.currentTimeMillis();
+        limiter.acquire(); // takes initial burst token (1.0)
+        limiter.acquire(); // waits ~200ms for refill at 5 req/s
+        long elapsed = System.currentTimeMillis() - start;
+
+        assertTrue(elapsed >= 150, "Throttling was not enforced: " + elapsed + "ms");
+        assertTrue(elapsed < 2000, "Acquire deadlocked or took too long: " + elapsed + "ms");
+    }
 }
