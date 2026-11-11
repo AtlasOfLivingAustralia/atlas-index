@@ -148,7 +148,7 @@ function ResourcesView({result, isMobile}: MapViewProps) {
         <span className={classes.speciesDescriptionTitle}>Literature</span>
 
         <span className={classes.h4grey}
-              style={{marginBottom: isMobile ? '15px' : '30px', marginTop: isMobile ? '15px' : '30px'}}>
+            style={{marginBottom: isMobile ? '15px' : '30px', marginTop: isMobile ? '15px' : '30px'}}>
             Biodiversity Heritage Library (BHL)
         </span>
 
@@ -194,17 +194,15 @@ function ResourcesView({result, isMobile}: MapViewProps) {
                 lineHeight: isMobile ? '20px' : '24px',
                 fontWeight: 700
             }}>
-                Showing {1} to{' '}
-                {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} for{' '}
+                Showing first {' '}
+                {bhl.length > maxBhlSize ? maxBhlSize : bhl.length} results for {' '}
                 <FormatName name={result?.name} rankId={result?.rankID}/>.{' '}
                 <a href={bhlQuery} target="bhl" className={classes.speciesLink}
-                   style={{
-                       fontSize: isMobile ? '14px' : '16px',
-                       lineHeight: isMobile ? '20px' : '24px',
-                       fontWeight: 700,
-                   }}>
-                    View in BHL
-                </a>.
+                    style={{
+                        fontSize: isMobile ? '14px' : '16px',
+                        lineHeight: isMobile ? '20px' : '24px',
+                        fontWeight: 700,
+                    }}>View in BHL</a>.
             </span>
             <table className="table table-striped align-middle" style={{
                 marginTop: '20px',
