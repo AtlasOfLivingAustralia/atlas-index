@@ -4,10 +4,10 @@
     "version": "0.1.0-SNAPSHOT",
     "type": "module",
     "scripts": {
-        "dev": "node ../common-ui/generateBuildInfo.js && NODE_OPTIONS=\"--no-warnings --loader ts-node/esm\" vite",
-        "build": "node ../common-ui/generateBuildInfo.js && tsc && NODE_OPTIONS=\"--no-warnings --loader ts-node/esm\" vite build",
-        "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && NODE_OPTIONS=\"--no-warnings --loader ts-node/esm\" PLAYWRIGHT_ENV=true vite build",
-        "preview": "NODE_OPTIONS=\"--no-warnings --loader ts-node/esm\" vite preview",
+        "dev": "node ../common-ui/generateBuildInfo.js && vite",
+        "build": "node ../common-ui/generateBuildInfo.js && tsc && vite build",
+        "build:playwright": "node ../common-ui/generateBuildInfo.js && tsc && PLAYWRIGHT_ENV=true vite build",
+        "preview": "vite preview",
         "test": "jest --passWithNoTests",
         "test:playwright": "./run-playwright-test.sh"
     },
