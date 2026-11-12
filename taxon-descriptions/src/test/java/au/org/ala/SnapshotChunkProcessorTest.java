@@ -196,6 +196,63 @@ public class SnapshotChunkProcessorTest {
     }
 
     @Test
+    void testExtractRedirectNamesFast() {
+        String lineWithRedirects = "{\"name\":\"Taro\",\"redirects\":[{\"name\":\"Colocasia esculenta\",\"url\":\"https://en.wikipedia.org/wiki/Colocasia_esculenta\"},{\"name\":\"Arum esculentum\",\"url\":\"https://en.wikipedia.org/wiki/Arum_esculentum\"}],\"article_body\":{}}";
+        List<String> redirects = SnapshotChunkProcessor.extractRedirectNamesFast(lineWithRedirects);
+        assertEquals(2, redirects.size());
+        assertEquals("Colocasia esculenta", redirects.get(0));
+        assertEquals("Arum esculentum", redirects.get(1));
+
+        String lineEmptyRedirects = "{\"name\":\"Emu\",\"redirects\":[],\"article_body\":{}}";
+        assertTrue(SnapshotChunkProcessor.extractRedirectNamesFast(lineEmptyRedirects).isEmpty());
+
+        String lineNoRedirects = "{\"name\":\"Emu\",\"article_body\":{}}";
+        assertTrue(SnapshotChunkProcessor.extractRedirectNamesFast(lineNoRedirects).isEmpty());
+
+        String lineWithEscapedRedirect = "{\"name\":\"Taxon\",\"redirects\":[{\"name\":\"Hybrid \\u00d7 name\"}]}";
+        List<String> escapedRedirects = SnapshotChunkProcessor.extractRedirectNamesFast(lineWithEscapedRedirect);
+        assertEquals(1, escapedRedirects.size());
+        assertEquals("Hybrid × name", escapedRedirects.get(0));
+
+        assertTrue(SnapshotChunkProcessor.extractRedirectNamesFast(null).isEmpty());
+        assertTrue(SnapshotChunkProcessor.extractRedirectNamesFast("").isEmpty());
+    }
+
+    @Test
+    void testProcessNdjsonReaderMatchesRedirects(@TempDir Path tempDir) throws Exception {
+        File matchedFile = tempDir.resolve("matched.csv").toFile();
+        try (FileWriter fw = new FileWriter(matchedFile, StandardCharsets.UTF_8)) {
+            // Target 1 matches via Wikipedia redirect "Colocasia_esculenta"
+            fw.write("urn:taxon:colocasia,Colocasia_esculenta,Colocasia,Araceae,Alismatales,Liliopsida,Charophyta,Plantae\n");
+            // Target 2 matches via canonical article title "Taro"
+            fw.write("urn:taxon:taro,Taro,Colocasia,Araceae,Alismatales,Liliopsida,Charophyta,Plantae\n");
+            // Target 3 does not match
+            fw.write("urn:taxon:emu,Emu,Dromaius,Casuariidae,Casuariiformes,Aves,Chordata,Animalia\n");
+        }
+
+        Map<String, List<SnapshotChunkProcessor.TaxonTarget>> targets = SnapshotChunkProcessor.loadTargets(matchedFile, tempDir.toString());
+        assertEquals(3, targets.size());
+
+        File colocasiaFile = targets.get("colocasia_esculenta").get(0).getOutputFile();
+        File taroFile = targets.get("taro").get(0).getOutputFile();
+        File emuFile = targets.get("emu").get(0).getOutputFile();
+
+        String ndjson = "{\"name\":\"Taro\",\"url\":\"https://en.wikipedia.org/wiki/Taro\",\"redirects\":[{\"name\":\"Colocasia esculenta\",\"url\":\"https://en.wikipedia.org/wiki/Colocasia_esculenta\"}],\"article_body\":{\"html\":\"<p>Taro is Colocasia esculenta</p>\"}}\n";
+        BufferedReader reader = new BufferedReader(new StringReader(ndjson));
+
+        int count = SnapshotChunkProcessor.processNdjsonReader(reader, targets);
+        assertEquals(2, count);
+
+        assertTrue(colocasiaFile.exists(), "Redirect target should receive canonical article HTML");
+        assertTrue(taroFile.exists(), "Canonical target should receive canonical article HTML");
+        assertFalse(emuFile.exists(), "Unmatched target should not be written");
+
+        String colocasiaContent = Files.readString(colocasiaFile.toPath());
+        assertTrue(colocasiaContent.contains("Taro is Colocasia esculenta"));
+        assertTrue(colocasiaContent.contains("rel=\"dc:isVersionOf\""));
+    }
+
+    @Test
     void testHasCachedHtmlFiles(@TempDir Path tempDir) throws Exception {
         File wikiDir = tempDir.resolve("wikipedia").toFile();
         assertFalse(SnapshotChunkProcessor.hasCachedHtmlFiles(wikiDir));

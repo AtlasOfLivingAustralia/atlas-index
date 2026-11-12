@@ -123,6 +123,96 @@ public class SnapshotChunkProcessor {
     }
 
     /**
+     * Quickly extracts redirect names from the "redirects" array of an NDJSON line without parsing the full JSON tree.
+     * Returns an empty list if "redirects" is missing or empty.
+     */
+    public static List<String> extractRedirectNamesFast(String line) {
+        if (line == null) {
+            return Collections.emptyList();
+        }
+        int redirectsIdx = line.indexOf("\"redirects\"");
+        if (redirectsIdx == -1) {
+            return Collections.emptyList();
+        }
+        int colon = line.indexOf(':', redirectsIdx + 11);
+        if (colon == -1) {
+            return Collections.emptyList();
+        }
+        int arrayStart = line.indexOf('[', colon + 1);
+        if (arrayStart == -1) {
+            return Collections.emptyList();
+        }
+        for (int i = colon + 1; i < arrayStart; i++) {
+            if (!Character.isWhitespace(line.charAt(i))) {
+                return Collections.emptyList();
+            }
+        }
+
+        int arrayEnd = -1;
+        boolean inString = false;
+        for (int i = arrayStart + 1; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '\\' && inString) {
+                i++;
+                continue;
+            }
+            if (c == '"') {
+                inString = !inString;
+                continue;
+            }
+            if (!inString && c == ']') {
+                arrayEnd = i;
+                break;
+            }
+        }
+        if (arrayEnd == -1) {
+            return Collections.emptyList();
+        }
+
+        List<String> redirectNames = new ArrayList<>();
+        int curr = arrayStart + 1;
+        while (curr < arrayEnd) {
+            int nameIdx = line.indexOf("\"name\"", curr);
+            if (nameIdx == -1 || nameIdx >= arrayEnd) {
+                break;
+            }
+            int nameColon = line.indexOf(':', nameIdx + 6);
+            if (nameColon == -1 || nameColon >= arrayEnd) {
+                break;
+            }
+            int firstQuote = line.indexOf('"', nameColon + 1);
+            if (firstQuote == -1 || firstQuote >= arrayEnd) {
+                break;
+            }
+            int endQuote = firstQuote + 1;
+            while (endQuote < arrayEnd) {
+                char c = line.charAt(endQuote);
+                if (c == '\\') {
+                    endQuote += 2;
+                    continue;
+                }
+                if (c == '"') {
+                    break;
+                }
+                endQuote++;
+            }
+            if (endQuote >= arrayEnd) {
+                break;
+            }
+            String raw = line.substring(firstQuote + 1, endQuote);
+            if (raw.indexOf('\\') != -1) {
+                try {
+                    raw = OBJECT_MAPPER.readValue("\"" + raw + "\"", String.class);
+                } catch (Exception ignored) {
+                }
+            }
+            redirectNames.add(raw);
+            curr = endQuote + 1;
+        }
+        return redirectNames;
+    }
+
+    /**
      * Reads matched.csv and builds an in-memory lookup map of normalized wikiTitle to target taxons.
      * Reuses existing HTML file paths if already present across cache directories to avoid duplicate copies.
      */
@@ -196,6 +286,33 @@ public class SnapshotChunkProcessor {
         return targets;
     }
 
+    private static void collectTargetsToWrite(List<TaxonTarget> matchedTargets, String articleTitle, Map<File, TaxonTarget> targetsToWrite) {
+        if (matchedTargets == null || matchedTargets.isEmpty()) {
+            return;
+        }
+        if (matchedTargets.size() > 1 && articleTitle != null) {
+            String exactTitle = articleTitle.trim().replace(' ', '_');
+            boolean hasExactMatch = false;
+            for (TaxonTarget t : matchedTargets) {
+                if (t.getWikiTitle() != null && t.getWikiTitle().trim().replace(' ', '_').equals(exactTitle)) {
+                    hasExactMatch = true;
+                    break;
+                }
+            }
+            if (hasExactMatch) {
+                for (TaxonTarget t : matchedTargets) {
+                    if (t.getWikiTitle() != null && t.getWikiTitle().trim().replace(' ', '_').equals(exactTitle)) {
+                        targetsToWrite.put(t.getOutputFile(), t);
+                    }
+                }
+                return;
+            }
+        }
+        for (TaxonTarget t : matchedTargets) {
+            targetsToWrite.put(t.getOutputFile(), t);
+        }
+    }
+
     /**
      * Reads an NDJSON stream line by line, matching article titles against targets and writing HTML files.
      */
@@ -212,9 +329,21 @@ public class SnapshotChunkProcessor {
                 continue;
             }
 
-            String normalized = normalizeTitle(name);
-            List<TaxonTarget> matchedTargets = targets.get(normalized);
-            if (matchedTargets == null || matchedTargets.isEmpty()) {
+            Map<File, TaxonTarget> targetsToWrite = new LinkedHashMap<>();
+            List<TaxonTarget> canonicalTargets = targets.get(normalizeTitle(name));
+            if (canonicalTargets != null && !canonicalTargets.isEmpty()) {
+                collectTargetsToWrite(canonicalTargets, name, targetsToWrite);
+            }
+
+            List<String> redirectNames = extractRedirectNamesFast(line);
+            for (String rName : redirectNames) {
+                List<TaxonTarget> rTargets = targets.get(normalizeTitle(rName));
+                if (rTargets != null && !rTargets.isEmpty()) {
+                    collectTargetsToWrite(rTargets, rName, targetsToWrite);
+                }
+            }
+
+            if (targetsToWrite.isEmpty()) {
                 continue;
             }
 
@@ -232,27 +361,7 @@ public class SnapshotChunkProcessor {
                     html = injectVersionLink(html, url);
                 }
 
-                List<TaxonTarget> targetsToWrite = matchedTargets;
-                if (matchedTargets.size() > 1) {
-                    String exactArticleName = name.trim().replace(' ', '_');
-                    boolean hasExactMatch = false;
-                    for (TaxonTarget t : matchedTargets) {
-                        if (t.getWikiTitle() != null && t.getWikiTitle().trim().replace(' ', '_').equals(exactArticleName)) {
-                            hasExactMatch = true;
-                            break;
-                        }
-                    }
-                    if (hasExactMatch) {
-                        targetsToWrite = new ArrayList<>();
-                        for (TaxonTarget t : matchedTargets) {
-                            if (t.getWikiTitle() != null && t.getWikiTitle().trim().replace(' ', '_').equals(exactArticleName)) {
-                                targetsToWrite.add(t);
-                            }
-                        }
-                    }
-                }
-
-                for (TaxonTarget target : targetsToWrite) {
+                for (TaxonTarget target : targetsToWrite.values()) {
                     File outFile = target.getOutputFile();
                     File parent = outFile.getParentFile();
                     if (parent != null && !parent.exists()) {
