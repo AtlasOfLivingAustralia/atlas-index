@@ -8,7 +8,7 @@ global.TextDecoder = TextDecoder;
 // `babel-plugin-transform-import-meta` (see babel.jest.config.cjs) rewrites
 // `import.meta.env` to `process.env` so these are used under Jest.
 process.env.VITE_HOME_URL = 'https://ala.org.au';
-process.env.VITE_APP_API_URL = 'http://localhost:8081';
+process.env.VITE_APP_IMAGES_API_URL = 'http://localhost:8081';
 process.env.VITE_APP_BASE_URL = 'http://localhost:5173';
 process.env.VITE_APP_ROLE_ADMIN = 'ROLE_ADMIN';
 process.env.VITE_APP_ROLE_IMAGE_ADMIN = 'ROLE_IMAGE_ADMIN';

@@ -13,7 +13,7 @@ import type {Setting} from '../../api/types.ts';
 
 /** Repository settings key/value admin: GET /api/v2/admin/settings, PUT .../settings/{name}. */
 export default function SettingsAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [settings, setSettings] = useState<Setting[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);

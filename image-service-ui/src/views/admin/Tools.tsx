@@ -70,7 +70,7 @@ const ACTIONS: ToolAction[] = [
 const CACHE_TARGETS: CacheClearTarget[] = ['thumbnails', 'tiles', 'hibernate', 'collectory', 's3-client'];
 
 export default function Tools({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [running, setRunning] = useState<string | null>(null);
     const [results, setResults] = useState<Record<string, string>>({});
 

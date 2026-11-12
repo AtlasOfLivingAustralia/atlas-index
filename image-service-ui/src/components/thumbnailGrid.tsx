@@ -15,7 +15,7 @@ interface ThumbnailGridProps {
 
 /** Public search results grid — thumbnails link through to the image/media detail view. */
 export default function ThumbnailGrid({results, apiUrl: customApiUrl}: ThumbnailGridProps) {
-    const apiUrl = customApiUrl || import.meta.env.VITE_APP_API_URL || '';
+    const apiUrl = customApiUrl || import.meta.env.VITE_APP_IMAGES_API_URL || '';
     if (results.length === 0) {
         return <div className="alert alert-light border" data-testid="no-results">No images matched your search.</div>;
     }

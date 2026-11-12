@@ -54,7 +54,7 @@ function pairsToRecord(pairs: MetadataPair[]): Record<string, string> | undefine
  *    GET/POST/DELETE /api/v2/admin/import-fields.
  */
 export default function Upload({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
 
     // Single item
     const [singleFile, setSingleFile] = useState<File | null>(null);

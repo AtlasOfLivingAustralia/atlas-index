@@ -48,7 +48,7 @@ export default function ImageDetail({setBreadcrumbs}: {
     const {imageId} = useParams<{ imageId: string }>();
     const navigate = useNavigate();
     const {userInfo} = useUser();
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
 
     const [image, setImage] = useState<ImageDetailType | null>(null);
     const [loading, setLoading] = useState(true);

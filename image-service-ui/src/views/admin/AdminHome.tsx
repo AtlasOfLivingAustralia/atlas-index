@@ -20,7 +20,7 @@ function bytesToHuman(bytes: number): string {
 
 /** GET /api/v2/admin/dashboard + GET /api/v2/admin/queues. */
 export default function AdminHome({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [dashboard, setDashboard] = useState<AdminDashboard | null>(null);
     const [queues, setQueues] = useState<unknown>(null);
     const [error, setError] = useState<string | null>(null);

@@ -20,7 +20,7 @@ import type {LicenceMapping, LicencesResponse} from '../../api/types.ts';
  * unchanged) since there is no per-field update endpoint.
  */
 export default function LicencesAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [data, setData] = useState<LicencesResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);

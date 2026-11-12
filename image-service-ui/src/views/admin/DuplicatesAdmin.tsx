@@ -15,7 +15,7 @@ const PAGE_SIZE = 20;
 
 /** GET /api/v2/admin/duplicates?max=&offset= — one row per duplicate hash, with a representative image and a count. */
 export default function DuplicatesAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [entries, setEntries] = useState<DuplicateEntry[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [offset, setOffset] = useState(0);

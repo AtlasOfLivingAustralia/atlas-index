@@ -44,7 +44,7 @@ handles `/callback`, and returns the authenticated user's roles through `/sessio
 
 The production configuration targets `https://images.test.ala.org.au` for image data and
 `https://service.test.ala.org.au` for authentication, matching `doi-ui`. A dedicated deployment may
-override `VITE_APP_AUTH_URL` with another `search-service` origin.
+override `VITE_APP_API_URL` with another `search-service` origin.
 
 Keep these routes on the existing image-service backend:
 
@@ -59,7 +59,7 @@ exposed on the same origin. Do not route those paths to the legacy image-service
 Serve the built `dist` assets and React history fallback for the UI routes (`/`, `/image/:id`, and
 the UI admin pages). Where a UI route shares a prefix with backend routes, give the explicit
 backend patterns above higher routing priority. Local development uses Vite's `/image-service`
-proxy, whose target is read from `VITE_APP_API_URL`, so the legacy backend does not need local CORS
+proxy, whose target is read from `VITE_APP_IMAGES_API_URL`, so the legacy backend does not need local CORS
 changes either.
 
 ## Getting started
@@ -90,8 +90,8 @@ VITE_LOGO_URL=https://www.ala.org.au/app/uploads/2019/01/logo.png
 
 VITE_ENV=local
 VITE_APP_BASE_URL=http://localhost:5173
-VITE_APP_API_URL=https://images.test.ala.org.au
-VITE_APP_AUTH_URL=https://service.test.ala.org.au
+VITE_APP_IMAGES_API_URL=https://images.test.ala.org.au
+VITE_APP_API_URL=https://service.test.ala.org.au
 
 # Either role grants access to /admin/*; the backend remains authoritative.
 VITE_APP_ROLE_ADMIN=ROLE_ADMIN

@@ -11,7 +11,7 @@
  * AdminController, StorageLocationController and BatchController.
  *
  * Every function takes `apiUrl` explicitly (the caller passes
- * `import.meta.env.VITE_APP_API_URL`) so this module stays environment-free
+ * `import.meta.env.VITE_APP_IMAGES_API_URL`) so this module stays environment-free
  * and easy to unit test.
  */
 

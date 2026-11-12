@@ -31,7 +31,7 @@ export default function Search({setBreadcrumbs, isMobile}: {
     isMobile: boolean;
 }) {
     const {userInfo} = useUser();
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
 
     const [query, setQuery] = useQueryState('q', parseAsString.withDefault(''));
     const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(0));

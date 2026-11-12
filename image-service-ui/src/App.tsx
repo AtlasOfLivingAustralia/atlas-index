@@ -83,11 +83,11 @@ export default function App() {
     useEffect(() => {
         injectCommonInfo(buildInfo, import.meta.env.VITE_ENV, import.meta.env.VITE_COMMON_CSS, setCssLoaded);
 
-        checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_AUTH_URL);
+        checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_AUTH_URL);
+                checkLoginState(setUserInfo, refreshTimer, import.meta.env.VITE_APP_API_URL);
             }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -106,11 +106,11 @@ export default function App() {
     }
 
     function handleLoginWrapper() {
-        handleLogin(import.meta.env.VITE_APP_AUTH_URL);
+        handleLogin(import.meta.env.VITE_APP_API_URL);
     }
 
     function handleLogoutWrapper() {
-        handleLogout(import.meta.env.VITE_APP_AUTH_URL, import.meta.env.VITE_APP_BASE_URL);
+        handleLogout(import.meta.env.VITE_APP_API_URL, import.meta.env.VITE_APP_BASE_URL);
     }
 
     const setCrumbs = (crumbs: Breadcrumb[]) => setBreadcrumbs(crumbs);

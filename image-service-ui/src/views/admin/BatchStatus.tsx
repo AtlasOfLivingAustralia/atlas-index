@@ -40,7 +40,7 @@ function FileRow({file, busy, onReload, onDelete}: { file: BatchUploadFile; busy
  * queued for background processing into images.
  */
 export default function BatchStatus({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [data, setData] = useState<BatchUploadsResponse | null>(null);
     const [hideEmpty, setHideEmpty] = useState(true);
     const [error, setError] = useState<string | null>(null);

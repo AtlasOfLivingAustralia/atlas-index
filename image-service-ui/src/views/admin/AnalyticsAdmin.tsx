@@ -17,7 +17,7 @@ import {ApiError} from '../../api/client.ts';
  * than guessing at specific fields.
  */
 export default function AnalyticsAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [overall, setOverall] = useState<unknown>(null);
     const [dataResourceUid, setDataResourceUid] = useState('');
     const [dataResourceResult, setDataResourceResult] = useState<unknown>(null);

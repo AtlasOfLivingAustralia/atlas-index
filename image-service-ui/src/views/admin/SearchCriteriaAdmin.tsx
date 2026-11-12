@@ -22,7 +22,7 @@ const CRITERIA_TYPES = ['ImageProperty', 'ImageMetadata'];
  * distinctly rather than as a generic failure.
  */
 export default function SearchCriteriaAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [definitions, setDefinitions] = useState<SearchCriteriaDefinition[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);

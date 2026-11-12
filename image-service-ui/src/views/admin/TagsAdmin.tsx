@@ -113,7 +113,7 @@ function TagRow({tag, allTags, apiUrl, busy, setBusy, onChanged, onError}: {
  * {move:{newParentId}}), DELETE /tags/{id}.
  */
 export default function TagsAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [tags, setTags] = useState<TagRef[]>([]);
     const [query, setQuery] = useState('');
     const [error, setError] = useState<string | null>(null);

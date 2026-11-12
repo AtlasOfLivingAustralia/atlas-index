@@ -15,7 +15,7 @@ const DEFAULT_QUERY = '{\n  "query": {\n    "match_all": {}\n  }\n}';
 
 /** POST /api/v2/admin/index/search — raw Elasticsearch query JSON, response {images,totalCount,facets}. */
 export default function IndexSearch({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [queryText, setQueryText] = useState(DEFAULT_QUERY);
     const [parseError, setParseError] = useState<string | null>(null);
     const [result, setResult] = useState<IndexSearchResult | null>(null);

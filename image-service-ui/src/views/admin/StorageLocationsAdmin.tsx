@@ -23,7 +23,7 @@ import type {StorageLocation} from '../../api/types.ts';
  * value is preserved rather than being overwritten with an empty string.
  */
 export default function StorageLocationsAdmin({setBreadcrumbs}: { setBreadcrumbs: (crumbs: Breadcrumb[]) => void }) {
-    const apiUrl = import.meta.env.VITE_APP_API_URL;
+    const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
     const [locations, setLocations] = useState<StorageLocation[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);

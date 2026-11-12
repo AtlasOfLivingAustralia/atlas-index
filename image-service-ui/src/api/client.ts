@@ -167,7 +167,7 @@ export async function apiRequest<T>(baseUrl: string, path: string, options: Requ
         // is overwhelmingly caused by the browser blocking the request/response outright —
         // most often a CORS/preflight rejection (e.g. the backend's
         // Access-Control-Allow-Headers not yet including X-XSRF-TOKEN for this route), a
-        // backend that isn't reachable at VITE_APP_API_URL, or mixed-content blocking.
+        // backend that isn't reachable at VITE_APP_IMAGES_API_URL, or mixed-content blocking.
         // Browsers report all of these as an opaque one-line message ("Failed to fetch" in
         // Chrome/Firefox, "Load failed" in Safari) with no further detail, so surface that
         // context explicitly rather than just relaying the raw browser message.
@@ -176,7 +176,7 @@ export async function apiRequest<T>(baseUrl: string, path: string, options: Requ
             0,
             `Could not reach ${path} (${browserMessage}). This is usually a CORS/preflight rejection or an ` +
                 `unreachable backend at ${baseUrl} — check the browser console's network tab for the specific ` +
-                'CORS error, and confirm VITE_APP_API_URL and the backend\'s CORS configuration.',
+                'CORS error, and confirm VITE_APP_IMAGES_API_URL and the backend\'s CORS configuration.',
             'NETWORK_ERROR'
         );
     }
