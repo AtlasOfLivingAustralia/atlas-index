@@ -265,17 +265,18 @@ public class WikimediaClient {
                     continue;
                 }
 
-                HttpURLConnection dataConn = (HttpURLConnection) new URL(downloadUrl).openConnection();
-                dataConn.setRequestMethod("GET");
-                if (StringUtils.isNotBlank(userAgent)) {
-                    dataConn.setRequestProperty("User-Agent", userAgent);
+                HttpURLConnection dataConn;
+                if (isRedirect) {
+                    dataConn = (HttpURLConnection) new URL(downloadUrl).openConnection();
+                    dataConn.setRequestMethod("GET");
+                    if (StringUtils.isNotBlank(userAgent)) {
+                        dataConn.setRequestProperty("User-Agent", userAgent);
+                    }
+                    dataConn.setConnectTimeout(30_000);
+                    dataConn.setReadTimeout(300_000);
+                } else {
+                    dataConn = conn;
                 }
-                // Only send Authorization header if NOT redirected to external storage
-                if (!isRedirect && StringUtils.isNotBlank(token)) {
-                    dataConn.setRequestProperty("Authorization", "Bearer " + token);
-                }
-                dataConn.setConnectTimeout(30_000);
-                dataConn.setReadTimeout(300_000);
 
                 int dataStatus = dataConn.getResponseCode();
                 if (dataStatus == 200) {

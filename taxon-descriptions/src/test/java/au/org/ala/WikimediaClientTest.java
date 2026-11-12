@@ -521,4 +521,41 @@ public class WikimediaClientTest {
         assertTrue(outputFile.exists());
         assertEquals("dummy-chunk-data", new String(outputFile.toPath().toFile().length() > 0 ? java.nio.file.Files.readAllBytes(outputFile.toPath()) : new byte[0], StandardCharsets.UTF_8));
     }
+
+    @Test
+    void testDownloadSnapshotChunkDirect200ReusesConnection(@TempDir Path tempDir) throws Exception {
+        AtomicInteger endpointCalls = new AtomicInteger(0);
+
+        server.createContext("/v2/snapshots/enwiki_namespace_0/chunks/chunk_direct/download", exchange -> {
+            endpointCalls.incrementAndGet();
+            String auth = exchange.getRequestHeaders().getFirst("Authorization");
+            assertEquals("Bearer mock-jwt-token", auth);
+
+            byte[] dummyData = "direct-chunk-data".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, dummyData.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(dummyData);
+            }
+        });
+
+        server.createContext("/v1/login", exchange -> {
+            String response = "{\"access_token\":\"mock-jwt-token\",\"refresh_token\":\"r-token\",\"expires_in\":86400}";
+            byte[] bytes = response.getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, bytes.length);
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(bytes);
+            }
+        });
+
+        WikimediaClient client = new WikimediaClient(serverUrl, serverUrl, "user", "pass", "test-agent/1.0", null, 1, 0);
+        File outputFile = tempDir.resolve("chunk_direct.tar.gz").toFile();
+
+        boolean success = client.downloadSnapshotChunk("enwiki_namespace_0", "chunk_direct", outputFile);
+
+        assertTrue(success);
+        assertEquals(1, endpointCalls.get(), "Direct HTTP 200 response should consume the existing connection without opening a second request");
+        assertTrue(outputFile.exists());
+        assertEquals("direct-chunk-data", Files.readString(outputFile.toPath()));
+    }
 }

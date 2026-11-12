@@ -1,5 +1,7 @@
 package au.org.ala;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
@@ -76,138 +78,65 @@ public class SnapshotChunkProcessor {
     }
 
     /**
-     * Quickly extracts the "name" field value from an NDJSON line without parsing the entire JSON tree.
-     * Decodes JSON string escape sequences (e.g. \u00d7 or \") when present.
-     * Returns null if "name" is missing or unparseable.
+     * Extracts only the root article "name" from an NDJSON line using a streaming parser.
+     * Ignores any nested "name" fields (such as is_part_of.name or editor.name) that may precede it.
+     * Returns null if root "name" is missing or unparseable.
      */
     public static String extractNameFast(String line) {
-        if (line == null) {
+        if (line == null || line.isEmpty()) {
             return null;
         }
-        int idx = line.indexOf("\"name\"");
-        if (idx == -1) {
-            return null;
-        }
-        int colon = line.indexOf(':', idx + 6);
-        if (colon == -1) {
-            return null;
-        }
-        int firstQuote = line.indexOf('"', colon + 1);
-        if (firstQuote == -1) {
-            return null;
-        }
-        int endQuote = firstQuote + 1;
-        while (endQuote < line.length()) {
-            char c = line.charAt(endQuote);
-            if (c == '\\') {
-                endQuote += 2;
-                continue;
+        try (JsonParser parser = OBJECT_MAPPER.createParser(line)) {
+            int depth = 0;
+            while (parser.nextToken() != null) {
+                JsonToken token = parser.currentToken();
+                if (token == JsonToken.START_OBJECT || token == JsonToken.START_ARRAY) {
+                    depth++;
+                } else if (token == JsonToken.END_OBJECT || token == JsonToken.END_ARRAY) {
+                    depth--;
+                } else if (depth == 1 && token == JsonToken.FIELD_NAME && "name".equals(parser.currentName())) {
+                    parser.nextToken();
+                    return parser.getText();
+                }
             }
-            if (c == '"') {
-                break;
-            }
-            endQuote++;
-        }
-        if (endQuote >= line.length()) {
-            return null;
-        }
-        String raw = line.substring(firstQuote + 1, endQuote);
-        if (raw.indexOf('\\') == -1) {
-            return raw;
-        }
-        try {
-            return OBJECT_MAPPER.readValue("\"" + raw + "\"", String.class);
         } catch (Exception e) {
-            return raw;
+            return null;
         }
+        return null;
     }
 
     /**
-     * Quickly extracts redirect names from the "redirects" array of an NDJSON line without parsing the full JSON tree.
+     * Extracts redirect names from the root "redirects" array of an NDJSON line using a streaming parser.
      * Returns an empty list if "redirects" is missing or empty.
      */
     public static List<String> extractRedirectNamesFast(String line) {
-        if (line == null) {
+        if (line == null || !line.contains("\"redirects\"")) {
             return Collections.emptyList();
         }
-        int redirectsIdx = line.indexOf("\"redirects\"");
-        if (redirectsIdx == -1) {
-            return Collections.emptyList();
-        }
-        int colon = line.indexOf(':', redirectsIdx + 11);
-        if (colon == -1) {
-            return Collections.emptyList();
-        }
-        int arrayStart = line.indexOf('[', colon + 1);
-        if (arrayStart == -1) {
-            return Collections.emptyList();
-        }
-        for (int i = colon + 1; i < arrayStart; i++) {
-            if (!Character.isWhitespace(line.charAt(i))) {
-                return Collections.emptyList();
-            }
-        }
-
-        int arrayEnd = -1;
-        boolean inString = false;
-        for (int i = arrayStart + 1; i < line.length(); i++) {
-            char c = line.charAt(i);
-            if (c == '\\' && inString) {
-                i++;
-                continue;
-            }
-            if (c == '"') {
-                inString = !inString;
-                continue;
-            }
-            if (!inString && c == ']') {
-                arrayEnd = i;
-                break;
-            }
-        }
-        if (arrayEnd == -1) {
-            return Collections.emptyList();
-        }
-
         List<String> redirectNames = new ArrayList<>();
-        int curr = arrayStart + 1;
-        while (curr < arrayEnd) {
-            int nameIdx = line.indexOf("\"name\"", curr);
-            if (nameIdx == -1 || nameIdx >= arrayEnd) {
-                break;
-            }
-            int nameColon = line.indexOf(':', nameIdx + 6);
-            if (nameColon == -1 || nameColon >= arrayEnd) {
-                break;
-            }
-            int firstQuote = line.indexOf('"', nameColon + 1);
-            if (firstQuote == -1 || firstQuote >= arrayEnd) {
-                break;
-            }
-            int endQuote = firstQuote + 1;
-            while (endQuote < arrayEnd) {
-                char c = line.charAt(endQuote);
-                if (c == '\\') {
-                    endQuote += 2;
-                    continue;
-                }
-                if (c == '"') {
-                    break;
-                }
-                endQuote++;
-            }
-            if (endQuote >= arrayEnd) {
-                break;
-            }
-            String raw = line.substring(firstQuote + 1, endQuote);
-            if (raw.indexOf('\\') != -1) {
-                try {
-                    raw = OBJECT_MAPPER.readValue("\"" + raw + "\"", String.class);
-                } catch (Exception ignored) {
+        try (JsonParser parser = OBJECT_MAPPER.createParser(line)) {
+            int depth = 0;
+            boolean inRedirects = false;
+            while (parser.nextToken() != null) {
+                JsonToken token = parser.currentToken();
+                if (token == JsonToken.START_OBJECT || token == JsonToken.START_ARRAY) {
+                    depth++;
+                } else if (token == JsonToken.END_OBJECT || token == JsonToken.END_ARRAY) {
+                    depth--;
+                    if (depth <= 1 && inRedirects) {
+                        break;
+                    }
+                } else if (depth == 1 && token == JsonToken.FIELD_NAME && "redirects".equals(parser.currentName())) {
+                    inRedirects = true;
+                } else if (inRedirects && depth == 3 && token == JsonToken.FIELD_NAME && "name".equals(parser.currentName())) {
+                    parser.nextToken();
+                    String rName = parser.getText();
+                    if (rName != null) {
+                        redirectNames.add(rName);
+                    }
                 }
             }
-            redirectNames.add(raw);
-            curr = endQuote + 1;
+        } catch (Exception ignored) {
         }
         return redirectNames;
     }
@@ -557,11 +486,15 @@ public class SnapshotChunkProcessor {
             }
 
             System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " [" + chunkNum + "/" + chunkIdentifiers.size() + "] Processing chunk (" + (tempChunkFile.length() / (1024 * 1024)) + " MB)...");
-            int matches = processChunkFile(tempChunkFile, targets);
+            int matches = 0;
+            try {
+                matches = processChunkFile(tempChunkFile, targets);
+            } finally {
+                if (tempChunkFile.exists()) {
+                    tempChunkFile.delete();
+                }
+            }
             totalMatchesWritten += matches;
-
-            // Immediately reclaim disk space
-            tempChunkFile.delete();
 
             recordCompletedChunk(checkpointFile, chunkId);
             processedThisRun++;

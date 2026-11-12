@@ -38,6 +38,9 @@ public class SnapshotChunkProcessorTest {
         String lineWithUnicode = "{\"name\":\"Eucalyptus \\u00d7 kalangadooensis\"}";
         assertEquals("Eucalyptus × kalangadooensis", SnapshotChunkProcessor.extractNameFast(lineWithUnicode));
 
+        String lineWithNestedNameFirst = "{\"is_part_of\":{\"identifier\":\"enwiki\",\"name\":\"Wikipedia\"},\"name\":\"Acacia dealbata\",\"id\":123}";
+        assertEquals("Acacia dealbata", SnapshotChunkProcessor.extractNameFast(lineWithNestedNameFirst));
+
         assertNull(SnapshotChunkProcessor.extractNameFast("{\"other_field\":\"value\"}"));
         assertNull(SnapshotChunkProcessor.extractNameFast(null));
         assertNull(SnapshotChunkProcessor.extractNameFast(""));
