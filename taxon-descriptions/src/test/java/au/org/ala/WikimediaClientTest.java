@@ -558,4 +558,22 @@ public class WikimediaClientTest {
         assertTrue(outputFile.exists());
         assertEquals("direct-chunk-data", Files.readString(outputFile.toPath()));
     }
+
+    @Test
+    void testDownloadSnapshotChunkCleansUpPartFileOnFailure(@TempDir Path tempDir) throws Exception {
+        server.createContext("/v2/snapshots/enwiki_namespace_0/chunks/chunk_fail/download", exchange -> {
+            exchange.sendResponseHeaders(500, -1);
+            exchange.close();
+        });
+
+        WikimediaClient client = new WikimediaClient(null, serverUrl, null, null, "test-agent/1.0", null, 1, 0);
+        File outputFile = tempDir.resolve("chunk_fail.tar.gz").toFile();
+        File partFile = new File(outputFile.getPath() + ".part");
+
+        boolean success = client.downloadSnapshotChunk("enwiki_namespace_0", "chunk_fail", outputFile);
+
+        assertFalse(success);
+        assertFalse(outputFile.exists());
+        assertFalse(partFile.exists(), ".part file should be cleaned up on failure");
+    }
 }

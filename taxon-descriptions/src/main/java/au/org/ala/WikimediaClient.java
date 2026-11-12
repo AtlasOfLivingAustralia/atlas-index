@@ -13,6 +13,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -21,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -285,17 +288,24 @@ public class WikimediaClient {
                         parent.mkdirs();
                     }
                     File partFile = new File(outputFile.getPath() + ".part");
-                    try (InputStream is = new BufferedInputStream(dataConn.getInputStream(), 65536);
-                         OutputStream os = new BufferedOutputStream(new FileOutputStream(partFile), 65536)) {
-                        is.transferTo(os);
+                    try {
+                        try (InputStream is = new BufferedInputStream(dataConn.getInputStream(), 65536);
+                             OutputStream os = new BufferedOutputStream(new FileOutputStream(partFile), 65536)) {
+                            is.transferTo(os);
+                        }
+                        if (outputFile.exists()) {
+                            outputFile.delete();
+                        }
+                        if (!partFile.renameTo(outputFile)) {
+                            Files.move(partFile.toPath(), outputFile.toPath());
+                        }
+                        return true;
+                    } catch (Exception ex) {
+                        if (partFile.exists()) {
+                            partFile.delete();
+                        }
+                        throw ex;
                     }
-                    if (outputFile.exists()) {
-                        outputFile.delete();
-                    }
-                    if (!partFile.renameTo(outputFile)) {
-                        Files.move(partFile.toPath(), outputFile.toPath());
-                    }
-                    return true;
                 } else {
                     System.err.println("HTTP " + dataStatus + " downloading chunk content from " + downloadUrl);
                     if (attempt < maxRetries) {
@@ -343,6 +353,19 @@ public class WikimediaClient {
             File parent = tokenCacheFile.getParentFile();
             if (parent != null && !parent.exists()) {
                 parent.mkdirs();
+            }
+            if (!tokenCacheFile.exists()) {
+                try {
+                    Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-------");
+                    Files.createFile(tokenCacheFile.toPath(), PosixFilePermissions.asFileAttribute(perms));
+                } catch (UnsupportedOperationException | SecurityException ignored) {
+                    tokenCacheFile.createNewFile();
+                }
+            } else {
+                try {
+                    Files.setPosixFilePermissions(tokenCacheFile.toPath(), PosixFilePermissions.fromString("rw-------"));
+                } catch (UnsupportedOperationException | SecurityException ignored) {
+                }
             }
             Map<String, Object> data = new HashMap<>();
             data.put("accessToken", accessToken);

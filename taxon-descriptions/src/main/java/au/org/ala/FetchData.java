@@ -2,6 +2,7 @@ package au.org.ala;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -70,7 +71,7 @@ public class FetchData {
         profilesThreads = Integer.parseInt(config.get("profilesThreads").toString());
 
         wikipediaUrl = config.get("wikipediaUrl").toString();
-        wikipediaTitles = config.get("wikipediaTitles").toString();
+        wikipediaTitles = config.get("wikipediaTitles") != null ? config.get("wikipediaTitles").toString().trim() : null;
         descriptionsTmp = config.get("descriptionsTmp").toString();
         File descriptionsTmpDir = new File(descriptionsTmp);
         if (!descriptionsTmpDir.exists()) {
@@ -459,7 +460,7 @@ public class FetchData {
         reader.readNext();
 
         // matched names file, for lookup later
-        FileWriter writer = new FileWriter(matchedFile);
+        CSVWriter csvWriter = new CSVWriter(new FileWriter(matchedFile, StandardCharsets.UTF_8));
 
         int row = 0;
         String[] nextLine;
@@ -485,18 +486,18 @@ public class FetchData {
                     }
                     // while found, write to matched file
                     while (idx >= 0 && idx < titles.size() && titles.get(idx).equalsIgnoreCase(findName)) {
-                        writer.write(guid + "," + titles.get(idx) + "," + genus + "," + family + "," + order + "," + clazz + "," + phylum + "," + kingdom + "\n");
+                        csvWriter.writeNext(new String[]{guid, titles.get(idx), genus, family, order, clazz, phylum, kingdom});
                         idx++;
                     }
                 } else {
                     // Direct candidate match
-                    writer.write(guid + "," + findName + "," + genus + "," + family + "," + order + "," + clazz + "," + phylum + "," + kingdom + "\n");
+                    csvWriter.writeNext(new String[]{guid, findName, genus, family, order, clazz, phylum, kingdom});
                 }
             }
         }
 
-        writer.flush();
-        writer.close();
+        csvWriter.flush();
+        csvWriter.close();
     }
 
     static void cacheWikipediaSummary(String title, File outputFile) {
