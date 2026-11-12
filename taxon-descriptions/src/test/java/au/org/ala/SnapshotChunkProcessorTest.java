@@ -33,7 +33,10 @@ public class SnapshotChunkProcessorTest {
         assertEquals("Acacia dealbata", SnapshotChunkProcessor.extractNameFast(line2));
 
         String lineWithEscapedQuote = "{\"name\":\"Taxon \\\"subspecies\\\" name\",\"id\":1}";
-        assertEquals("Taxon \\\"subspecies\\\" name", SnapshotChunkProcessor.extractNameFast(lineWithEscapedQuote));
+        assertEquals("Taxon \"subspecies\" name", SnapshotChunkProcessor.extractNameFast(lineWithEscapedQuote));
+
+        String lineWithUnicode = "{\"name\":\"Eucalyptus \\u00d7 kalangadooensis\"}";
+        assertEquals("Eucalyptus × kalangadooensis", SnapshotChunkProcessor.extractNameFast(lineWithUnicode));
 
         assertNull(SnapshotChunkProcessor.extractNameFast("{\"other_field\":\"value\"}"));
         assertNull(SnapshotChunkProcessor.extractNameFast(null));
@@ -137,5 +140,72 @@ public class SnapshotChunkProcessorTest {
         assertTrue(loaded.contains("enwiki_namespace_0_chunk_0"));
         assertTrue(loaded.contains("enwiki_namespace_0_chunk_1"));
         assertFalse(loaded.contains("enwiki_namespace_0_chunk_2"));
+    }
+
+    @Test
+    void testLoadTargetsReusesExistingFile(@TempDir Path tempDir) throws Exception {
+        // Pre-create an existing file in cache_0
+        File wikiDir = tempDir.resolve("wikipedia").toFile();
+        File cache0 = new File(wikiDir, "cache_0");
+        cache0.mkdirs();
+        String encodedGuid = java.net.URLEncoder.encode("urn:taxon:existing", StandardCharsets.UTF_8);
+        File existingHtml = new File(cache0, encodedGuid + ".html");
+        Files.writeString(existingHtml.toPath(), "existing content");
+
+        File matchedFile = tempDir.resolve("matched.csv").toFile();
+        try (FileWriter fw = new FileWriter(matchedFile, StandardCharsets.UTF_8)) {
+            // Write 5000 dummy lines so row index > 5000 (which would place it in cache_5)
+            for (int i = 0; i < 5001; i++) {
+                fw.write("urn:dummy:" + i + ",Dummy_" + i + "\n");
+            }
+            fw.write("urn:taxon:existing,Existing_Taxon\n");
+        }
+
+        Map<String, List<SnapshotChunkProcessor.TaxonTarget>> targets = SnapshotChunkProcessor.loadTargets(matchedFile, tempDir.toString());
+        List<SnapshotChunkProcessor.TaxonTarget> matched = targets.get("existing_taxon");
+        assertNotNull(matched);
+        assertEquals(1, matched.size());
+        // Verify it reused existing file in cache_0 rather than creating cache_5
+        assertEquals(existingHtml.getAbsolutePath(), matched.get(0).getOutputFile().getAbsolutePath());
+    }
+
+    @Test
+    void testCaseVariantsPreserveDistinctFiles(@TempDir Path tempDir) throws Exception {
+        File matchedFile = tempDir.resolve("matched.csv").toFile();
+        try (FileWriter fw = new FileWriter(matchedFile, StandardCharsets.UTF_8)) {
+            fw.write("urn:taxon:variant,Acacia_dealbata,Acacia,Fabaceae,Fabales,Magnoliopsida,Charophyta,Plantae\n");
+            fw.write("urn:taxon:variant,Acacia_Dealbata,Acacia,Fabaceae,Fabales,Magnoliopsida,Charophyta,Plantae\n");
+        }
+
+        Map<String, List<SnapshotChunkProcessor.TaxonTarget>> targets = SnapshotChunkProcessor.loadTargets(matchedFile, tempDir.toString());
+        assertEquals(1, targets.size());
+        List<SnapshotChunkProcessor.TaxonTarget> variants = targets.get("acacia_dealbata");
+        assertEquals(2, variants.size());
+
+        File lowercaseFile = variants.get(0).getOutputFile();
+        File uppercaseFile = variants.get(1).getOutputFile();
+
+        // NDJSON stream with only the exact "Acacia_dealbata" article
+        String ndjson = "{\"name\":\"Acacia_dealbata\",\"url\":\"https://en.wikipedia.org/wiki/Acacia_dealbata\",\"article_body\":{\"html\":\"<p>Exact lower case match</p>\"}}\n";
+        BufferedReader reader = new BufferedReader(new StringReader(ndjson));
+
+        int count = SnapshotChunkProcessor.processNdjsonReader(reader, targets);
+        assertEquals(1, count);
+        assertTrue(lowercaseFile.exists(), "Exact lowercase match file should be written");
+        assertFalse(uppercaseFile.exists(), "Uppercase variant file should not be overwritten by lowercase article");
+    }
+
+    @Test
+    void testHasCachedHtmlFiles(@TempDir Path tempDir) throws Exception {
+        File wikiDir = tempDir.resolve("wikipedia").toFile();
+        assertFalse(SnapshotChunkProcessor.hasCachedHtmlFiles(wikiDir));
+
+        File cache0 = new File(wikiDir, "cache_0");
+        cache0.mkdirs();
+        assertFalse(SnapshotChunkProcessor.hasCachedHtmlFiles(wikiDir));
+
+        File sampleFile = new File(cache0, "sample.html");
+        Files.writeString(sampleFile.toPath(), "test");
+        assertTrue(SnapshotChunkProcessor.hasCachedHtmlFiles(wikiDir));
     }
 }

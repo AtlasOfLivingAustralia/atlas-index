@@ -329,7 +329,7 @@ public class WikimediaClientTest {
     void testFetchHtmlExtractsEnterpriseJsonArticleBody(@TempDir Path tempDir) throws Exception {
         server.createContext("/v2/articles/Test_Enterprise", exchange -> {
             String json = "[{\"is_part_of\":{\"identifier\":\"otherwiki\"},\"article_body\":{\"html\":\"<p>Other</p>\"}}," +
-                    "{\"is_part_of\":{\"identifier\":\"enwiki\"},\"article_body\":{\"html\":\"<section><h2>English Taxon</h2><p>Description</p></section>\"}}]";
+                    "{\"url\":\"https://en.wikipedia.org/wiki/English_Taxon\",\"is_part_of\":{\"identifier\":\"enwiki\"},\"article_body\":{\"html\":\"<section><h2>English Taxon</h2><p>Description</p></section>\"}}]";
             byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().set("Content-Type", "application/json");
             exchange.sendResponseHeaders(200, bytes.length);
@@ -346,6 +346,8 @@ public class WikimediaClientTest {
         assertTrue(outputFile.exists());
         String content = Files.readString(outputFile.toPath());
         assertTrue(content.contains("English Taxon"));
+        assertTrue(content.contains("rel=\"dc:isVersionOf\""));
+        assertTrue(content.contains("https://en.wikipedia.org/wiki/English_Taxon"));
         assertFalse(content.contains("Other"));
     }
 
@@ -440,7 +442,7 @@ public class WikimediaClientTest {
     }
 
     @Test
-    void testGetSnapshotChunks() {
+    void testGetSnapshotChunks() throws Exception {
         server.createContext("/v2/snapshots/enwiki_namespace_0", exchange -> {
             String json = "{\"identifier\":\"enwiki_namespace_0\",\"chunks\":[\"enwiki_namespace_0_chunk_0\",\"enwiki_namespace_0_chunk_1\"]}";
             byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
@@ -457,6 +459,17 @@ public class WikimediaClientTest {
         assertEquals(2, chunks.size());
         assertEquals("enwiki_namespace_0_chunk_0", chunks.get(0));
         assertEquals("enwiki_namespace_0_chunk_1", chunks.get(1));
+    }
+
+    @Test
+    void testGetSnapshotChunksThrowsOnFailure() {
+        server.createContext("/v2/snapshots/nonexistent_snapshot", exchange -> {
+            exchange.sendResponseHeaders(500, -1);
+            exchange.close();
+        });
+
+        WikimediaClient client = new WikimediaClient(null, serverUrl, null, null, "test-agent/1.0", null, 1, 0);
+        assertThrows(IOException.class, () -> client.getSnapshotChunks("nonexistent_snapshot"));
     }
 
     @Test

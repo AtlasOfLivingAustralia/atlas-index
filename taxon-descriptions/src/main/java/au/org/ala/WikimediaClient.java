@@ -131,14 +131,20 @@ public class WikimediaClient {
         return StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password);
     }
 
+    public int getMaxRetries() {
+        return maxRetries;
+    }
+
     /**
      * Retrieves the list of chunk identifiers for a given snapshot (e.g. "enwiki_namespace_0").
      *
      * @param snapshotIdentifier identifier of the snapshot
      * @return list of chunk identifiers
+     * @throws IOException if fetching snapshot metadata fails after maxRetries attempts
      */
-    public List<String> getSnapshotChunks(String snapshotIdentifier) {
+    public List<String> getSnapshotChunks(String snapshotIdentifier) throws IOException {
         String endpoint = apiUrl + "/v2/snapshots/" + snapshotIdentifier;
+        Exception lastException = null;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 HttpURLConnection conn = (HttpURLConnection) new URL(endpoint).openConnection();
@@ -191,18 +197,19 @@ public class WikimediaClient {
                     }
                 }
             } catch (Exception e) {
+                lastException = e;
                 System.err.println("Error fetching snapshot chunks for " + snapshotIdentifier + ": " + e.getMessage());
                 if (attempt < maxRetries) {
                     try {
                         Thread.sleep(1000L * attempt);
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        return Collections.emptyList();
+                        throw new IOException("Interrupted while fetching snapshot chunks for " + snapshotIdentifier, ie);
                     }
                 }
             }
         }
-        return Collections.emptyList();
+        throw new IOException("Failed to fetch snapshot metadata for " + snapshotIdentifier + " after " + maxRetries + " attempts", lastException);
     }
 
     /**
@@ -570,6 +577,7 @@ public class WikimediaClient {
                 if (statusCode == 200) {
                     String body = response.body();
                     String html = null;
+                    String canonicalUrl = url;
                     if (body != null && (body.trim().startsWith("[") || body.trim().startsWith("{"))) {
                         try {
                             if (body.trim().startsWith("[")) {
@@ -587,11 +595,17 @@ public class WikimediaClient {
                                 if (chosen == null) {
                                     return false;
                                 }
-                                if (chosen != null && chosen.get("article_body") instanceof Map articleBody) {
+                                if (chosen.get("url") instanceof String articleUrl && StringUtils.isNotBlank(articleUrl)) {
+                                    canonicalUrl = articleUrl;
+                                }
+                                if (chosen.get("article_body") instanceof Map articleBody) {
                                     html = (String) articleBody.get("html");
                                 }
                             } else {
                                 Map article = OBJECT_MAPPER.readValue(body, Map.class);
+                                if (article.get("url") instanceof String articleUrl && StringUtils.isNotBlank(articleUrl)) {
+                                    canonicalUrl = articleUrl;
+                                }
                                 if (article.get("article_body") instanceof Map articleBody) {
                                     html = (String) articleBody.get("html");
                                 }
@@ -607,6 +621,10 @@ public class WikimediaClient {
                     if (html == null) {
                         Document doc = response.parse();
                         html = doc.outerHtml();
+                    }
+
+                    if (StringUtils.isNotBlank(canonicalUrl) && !html.contains("rel=\"dc:isVersionOf\"") && !html.contains("rel=dc:isVersionOf")) {
+                        html = SnapshotChunkProcessor.injectVersionLink(html, canonicalUrl);
                     }
 
                     File parent = outputFile.getParentFile();

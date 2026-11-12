@@ -77,6 +77,7 @@ public class SnapshotChunkProcessor {
 
     /**
      * Quickly extracts the "name" field value from an NDJSON line without parsing the entire JSON tree.
+     * Decodes JSON string escape sequences (e.g. \u00d7 or \") when present.
      * Returns null if "name" is missing or unparseable.
      */
     public static String extractNameFast(String line) {
@@ -110,16 +111,46 @@ public class SnapshotChunkProcessor {
         if (endQuote >= line.length()) {
             return null;
         }
-        return line.substring(firstQuote + 1, endQuote);
+        String raw = line.substring(firstQuote + 1, endQuote);
+        if (raw.indexOf('\\') == -1) {
+            return raw;
+        }
+        try {
+            return OBJECT_MAPPER.readValue("\"" + raw + "\"", String.class);
+        } catch (Exception e) {
+            return raw;
+        }
     }
 
     /**
      * Reads matched.csv and builds an in-memory lookup map of normalized wikiTitle to target taxons.
+     * Reuses existing HTML file paths if already present across cache directories to avoid duplicate copies.
      */
     public static Map<String, List<TaxonTarget>> loadTargets(File matchedFile, String descriptionsTmp) throws IOException, CsvValidationException {
         Map<String, List<TaxonTarget>> targets = new HashMap<>();
         if (!matchedFile.exists()) {
             return targets;
+        }
+
+        // Map existing cached HTML files by basename (without .html) to reuse their location
+        Map<String, File> existingFiles = new HashMap<>();
+        File wikiDir = new File(descriptionsTmp + "/wikipedia");
+        File[] files = wikiDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().endsWith(".html")) {
+                    existingFiles.put(file.getName().replace(".html", ""), file);
+                } else if (file.isDirectory()) {
+                    File[] subFiles = file.listFiles();
+                    if (subFiles != null) {
+                        for (File subFile : subFiles) {
+                            if (subFile.getName().endsWith(".html")) {
+                                existingFiles.put(subFile.getName().replace(".html", ""), subFile);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         try (CSVReader reader = new CSVReader(new FileReader(matchedFile, StandardCharsets.UTF_8))) {
@@ -149,9 +180,12 @@ public class SnapshotChunkProcessor {
                 }
                 lastGuid = guid;
 
-                String filename = URLEncoder.encode(guid, StandardCharsets.UTF_8) + (caseVariation > 0 ? ("_" + caseVariation) : "") + ".html";
-                String dir = "cache_" + (row / 1000);
-                File outputFile = new File(descriptionsTmp + "/wikipedia/" + dir + "/" + filename);
+                String baseFilename = URLEncoder.encode(guid, StandardCharsets.UTF_8) + (caseVariation > 0 ? ("_" + caseVariation) : "");
+                File outputFile = existingFiles.get(baseFilename);
+                if (outputFile == null) {
+                    String dir = "cache_" + (row / 1000);
+                    outputFile = new File(descriptionsTmp + "/wikipedia/" + dir + "/" + baseFilename + ".html");
+                }
 
                 TaxonTarget target = new TaxonTarget(guid, wikiTitle, genus, family, order, clazz, phylum, kingdom, outputFile);
                 String normalized = normalizeTitle(wikiTitle);
@@ -198,7 +232,27 @@ public class SnapshotChunkProcessor {
                     html = injectVersionLink(html, url);
                 }
 
-                for (TaxonTarget target : matchedTargets) {
+                List<TaxonTarget> targetsToWrite = matchedTargets;
+                if (matchedTargets.size() > 1) {
+                    String exactArticleName = name.trim().replace(' ', '_');
+                    boolean hasExactMatch = false;
+                    for (TaxonTarget t : matchedTargets) {
+                        if (t.getWikiTitle() != null && t.getWikiTitle().trim().replace(' ', '_').equals(exactArticleName)) {
+                            hasExactMatch = true;
+                            break;
+                        }
+                    }
+                    if (hasExactMatch) {
+                        targetsToWrite = new ArrayList<>();
+                        for (TaxonTarget t : matchedTargets) {
+                            if (t.getWikiTitle() != null && t.getWikiTitle().trim().replace(' ', '_').equals(exactArticleName)) {
+                                targetsToWrite.add(t);
+                            }
+                        }
+                    }
+                }
+
+                for (TaxonTarget target : targetsToWrite) {
                     File outFile = target.getOutputFile();
                     File parent = outFile.getParentFile();
                     if (parent != null && !parent.exists()) {
@@ -209,6 +263,8 @@ public class SnapshotChunkProcessor {
                     }
                     matchedInChunk++;
                 }
+            } catch (IOException e) {
+                throw e;
             } catch (Exception e) {
                 System.err.println("Failed to process matched article line for " + name + ": " + e.getMessage());
             }
@@ -241,21 +297,27 @@ public class SnapshotChunkProcessor {
         try (InputStream fis = new BufferedInputStream(new FileInputStream(chunkFile), 65536);
              InputStream gzis = new GZIPInputStream(fis)) {
 
-            boolean processedAsTar = false;
+            boolean isTar = false;
+            TarArchiveInputStream tis = new TarArchiveInputStream(gzis);
+            TarArchiveEntry entry = null;
             try {
-                TarArchiveInputStream tis = new TarArchiveInputStream(gzis);
-                TarArchiveEntry entry;
-                while ((entry = tis.getNextTarEntry()) != null) {
+                entry = tis.getNextTarEntry();
+                if (entry != null) {
+                    isTar = true;
+                }
+            } catch (Exception ignored) {
+                // Not a tar archive or empty
+            }
+
+            if (isTar) {
+                while (entry != null) {
                     if (!entry.isDirectory()) {
-                        processedAsTar = true;
                         BufferedReader reader = new BufferedReader(new InputStreamReader(tis, StandardCharsets.UTF_8), 65536);
                         count += processNdjsonReader(reader, targets);
                     }
+                    entry = tis.getNextTarEntry();
                 }
-            } catch (Exception ignored) {
-            }
-
-            if (!processedAsTar) {
+            } else {
                 // If not packaged as tar, process directly as gzipped NDJSON
                 try (InputStream fis2 = new BufferedInputStream(new FileInputStream(chunkFile), 65536);
                      InputStream gzis2 = new GZIPInputStream(fis2);
@@ -265,6 +327,34 @@ public class SnapshotChunkProcessor {
             }
         }
         return count;
+    }
+
+    /**
+     * Checks whether any cached HTML files exist under the wikipedia directory (including cache_* subdirectories).
+     */
+    public static boolean hasCachedHtmlFiles(File wikipediaDir) {
+        if (!wikipediaDir.exists() || !wikipediaDir.isDirectory()) {
+            return false;
+        }
+        File[] files = wikipediaDir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().endsWith(".html")) {
+                    return true;
+                }
+                if (file.isDirectory() && file.getName().startsWith("cache_")) {
+                    File[] sub = file.listFiles();
+                    if (sub != null) {
+                        for (File sf : sub) {
+                            if (sf.getName().endsWith(".html")) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -317,13 +407,22 @@ public class SnapshotChunkProcessor {
 
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Fetching chunk list for snapshot: " + snapshotIdentifier);
         List<String> chunkIdentifiers = client.getSnapshotChunks(snapshotIdentifier);
-        if (chunkIdentifiers.isEmpty()) {
-            System.err.println("No chunks found for snapshot identifier: " + snapshotIdentifier);
-            return 0;
+        if (chunkIdentifiers == null || chunkIdentifiers.isEmpty()) {
+            throw new IOException("No chunks found or failed to fetch chunk list for snapshot identifier: " + snapshotIdentifier);
         }
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Found " + chunkIdentifiers.size() + " total chunks for " + snapshotIdentifier);
 
         File checkpointFile = new File(descriptionsTmp + "/wikipedia/processed_chunks.txt");
+        if (checkpointFile.exists()) {
+            if (matchedFile.exists() && matchedFile.lastModified() > checkpointFile.lastModified()) {
+                System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " matched.csv is newer than checkpoint file. Invalidating previous checkpoint.");
+                checkpointFile.delete();
+            } else if (!hasCachedHtmlFiles(new File(descriptionsTmp + "/wikipedia"))) {
+                System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " No cached HTML files found in cache directories. Invalidating previous checkpoint.");
+                checkpointFile.delete();
+            }
+        }
+
         Set<String> completedChunks = loadCompletedChunks(checkpointFile);
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Already processed chunks: " + completedChunks.size() + " / " + chunkIdentifiers.size());
 
@@ -342,8 +441,10 @@ public class SnapshotChunkProcessor {
 
             boolean downloadSuccess = client.downloadSnapshotChunk(snapshotIdentifier, chunkId, tempChunkFile);
             if (!downloadSuccess || !tempChunkFile.exists() || tempChunkFile.length() == 0) {
-                System.err.println("Failed to download chunk " + chunkId + ". Halting chunk processing.");
-                break;
+                if (tempChunkFile.exists()) {
+                    tempChunkFile.delete();
+                }
+                throw new IOException("Failed to download chunk " + chunkId + " after " + client.getMaxRetries() + " attempts. Halting chunk processing.");
             }
 
             System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " [" + chunkNum + "/" + chunkIdentifiers.size() + "] Processing chunk (" + (tempChunkFile.length() / (1024 * 1024)) + " MB)...");
