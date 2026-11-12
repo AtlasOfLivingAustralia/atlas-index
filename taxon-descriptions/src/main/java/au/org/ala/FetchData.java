@@ -48,6 +48,7 @@ public class FetchData {
     static String vicFloraUrl;
     static String vicFloraGraphqlUrl;
     static String namematchingUrl;
+    static WikimediaClient wikimediaClient;
 
     static Map<String, Map<String, String>> properties = new ConcurrentHashMap<>();
 
@@ -93,6 +94,13 @@ public class FetchData {
 
         if (StringUtils.isEmpty(userAgent)) {
             System.out.println("userAgent is not set in config.json, see https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions");
+        }
+
+        wikimediaClient = WikimediaClient.createFromConfig(config, descriptionsTmp, userAgent);
+
+        if (wikimediaClient.hasCredentials() && wikipediaUrl.contains("en.wikipedia.org/api/rest_v1")) {
+            System.out.println("Using Wikimedia Enterprise API endpoint (https://api.enterprise.wikimedia.com/v2/articles/) with configured JWT credentials.");
+            wikipediaUrl = "https://api.enterprise.wikimedia.com/v2/articles/";
         }
 
         acceptedCsv = config.get("acceptedCsv").toString();
@@ -465,19 +473,11 @@ public class FetchData {
     }
 
     static void cacheWikipediaSummary(String title, File outputFile) {
-        try {
-            String url = wikipediaUrl + title;
-
-            // this follows redirects
-            Document doc = Jsoup.connect(url).userAgent(userAgent).get();
-
-            // write the file, for later use
-            FileWriter writer = new FileWriter(outputFile);
-            writer.write(doc.outerHtml());
-            writer.flush();
-            writer.close();
-        } catch (Exception e) {
-            System.out.println("Error fetching wikipedia html for: " + title + ", " + e.getMessage());
+        String url = wikipediaUrl + title;
+        if (wikimediaClient != null) {
+            wikimediaClient.fetchPageHtml(url, outputFile);
+        } else {
+            new WikimediaClient(null, null, null, userAgent, null, 3).fetchPageHtml(url, outputFile);
         }
     }
 
