@@ -256,6 +256,32 @@ public class SnapshotChunkProcessorTest {
     }
 
     @Test
+    void testProcessNdjsonReaderDoesNotOverwriteWithOlderRevision(@TempDir Path tempDir) throws Exception {
+        File matchedFile = tempDir.resolve("matched.csv").toFile();
+        try (FileWriter fw = new FileWriter(matchedFile, StandardCharsets.UTF_8)) {
+            fw.write("urn:taxon:acacia,Acacia_dealbata,Acacia,Fabaceae,Fabales,Magnoliopsida,Charophyta,Plantae\n");
+        }
+
+        Map<String, List<SnapshotChunkProcessor.TaxonTarget>> targets = SnapshotChunkProcessor.loadTargets(matchedFile, tempDir.toString());
+        File outputFile = targets.get("acacia_dealbata").get(0).getOutputFile();
+
+        // 1. Process revision 200
+        String ndjsonRev200 = "{\"name\":\"Acacia_dealbata\",\"url\":\"https://en.wikipedia.org/wiki/Acacia_dealbata\",\"version\":{\"identifier\":200},\"article_body\":{\"html\":\"<p>Revision 200 content</p>\"}}\n";
+        SnapshotChunkProcessor.processNdjsonReader(new BufferedReader(new StringReader(ndjsonRev200)), targets);
+        assertTrue(Files.readString(outputFile.toPath()).contains("Revision 200 content"));
+
+        // 2. Process duplicate with older revision 100 - must be ignored
+        String ndjsonRev100 = "{\"name\":\"Acacia_dealbata\",\"url\":\"https://en.wikipedia.org/wiki/Acacia_dealbata\",\"version\":{\"identifier\":100},\"article_body\":{\"html\":\"<p>Revision 100 content</p>\"}}\n";
+        SnapshotChunkProcessor.processNdjsonReader(new BufferedReader(new StringReader(ndjsonRev100)), targets);
+        assertTrue(Files.readString(outputFile.toPath()).contains("Revision 200 content"), "Older revision 100 must not overwrite revision 200");
+
+        // 3. Process duplicate with newer revision 300 - must overwrite
+        String ndjsonRev300 = "{\"name\":\"Acacia_dealbata\",\"url\":\"https://en.wikipedia.org/wiki/Acacia_dealbata\",\"version\":{\"identifier\":300},\"article_body\":{\"html\":\"<p>Revision 300 content</p>\"}}\n";
+        SnapshotChunkProcessor.processNdjsonReader(new BufferedReader(new StringReader(ndjsonRev300)), targets);
+        assertTrue(Files.readString(outputFile.toPath()).contains("Revision 300 content"), "Newer revision 300 must overwrite revision 200");
+    }
+
+    @Test
     void testHasCachedHtmlFiles(@TempDir Path tempDir) throws Exception {
         File wikiDir = tempDir.resolve("wikipedia").toFile();
         assertFalse(SnapshotChunkProcessor.hasCachedHtmlFiles(wikiDir));

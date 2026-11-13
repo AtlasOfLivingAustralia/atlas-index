@@ -64,6 +64,16 @@ public class SnapshotChunkProcessor {
         public File getOutputFile() {
             return outputFile;
         }
+
+        private long latestVersionIdentifier = 0L;
+
+        public long getLatestVersionIdentifier() {
+            return latestVersionIdentifier;
+        }
+
+        public void setLatestVersionIdentifier(long latestVersionIdentifier) {
+            this.latestVersionIdentifier = latestVersionIdentifier;
+        }
     }
 
     /**
@@ -290,7 +300,13 @@ public class SnapshotChunkProcessor {
                     html = injectVersionLink(html, url);
                 }
 
+                long versionId = root.path("version").path("identifier").asLong(0L);
+
                 for (TaxonTarget target : targetsToWrite.values()) {
+                    if (versionId > 0 && target.getLatestVersionIdentifier() > 0 && versionId < target.getLatestVersionIdentifier()) {
+                        // Skip older duplicate revision
+                        continue;
+                    }
                     File outFile = target.getOutputFile();
                     File parent = outFile.getParentFile();
                     if (parent != null && !parent.exists()) {
@@ -298,6 +314,9 @@ public class SnapshotChunkProcessor {
                     }
                     try (FileWriter writer = new FileWriter(outFile, StandardCharsets.UTF_8)) {
                         writer.write(html);
+                    }
+                    if (versionId > 0) {
+                        target.setLatestVersionIdentifier(versionId);
                     }
                     matchedInChunk++;
                 }

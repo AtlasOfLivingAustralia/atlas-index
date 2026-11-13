@@ -13,6 +13,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -100,6 +101,10 @@ public class FetchData {
         }
 
         wikimediaClient = WikimediaClient.createFromConfig(config, descriptionsTmp, userAgent);
+
+        if ("true".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot"))) && !wikimediaClient.hasCredentials()) {
+            throw new IllegalArgumentException("wikimediaUseSnapshot is enabled in config, but Wikimedia Enterprise credentials (wikimediaUsername/wikimediaPassword or wikimediaAuthFile) are missing or invalid.");
+        }
 
         boolean useSnapshot = wikimediaClient.hasCredentials() && !"false".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot")));
         if (useSnapshot) {
