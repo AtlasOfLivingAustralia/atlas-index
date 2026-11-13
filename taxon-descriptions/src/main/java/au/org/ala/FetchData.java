@@ -2,6 +2,7 @@ package au.org.ala;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -12,6 +13,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -48,6 +50,8 @@ public class FetchData {
     static String vicFloraUrl;
     static String vicFloraGraphqlUrl;
     static String namematchingUrl;
+    static WikimediaClient wikimediaClient;
+    static Map configMap;
 
     static Map<String, Map<String, String>> properties = new ConcurrentHashMap<>();
 
@@ -59,6 +63,7 @@ public class FetchData {
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " starting fetch for " + filename);
 
         Map config = new ObjectMapper().readValue(new File(configFile), Map.class);
+        configMap = config;
 
         String tokenFile = config.get("alaToken").toString();
         alaToken = readString(Paths.get(tokenFile)).strip().trim();
@@ -67,7 +72,7 @@ public class FetchData {
         profilesThreads = Integer.parseInt(config.get("profilesThreads").toString());
 
         wikipediaUrl = config.get("wikipediaUrl").toString();
-        wikipediaTitles = config.get("wikipediaTitles").toString();
+        wikipediaTitles = config.get("wikipediaTitles") != null ? config.get("wikipediaTitles").toString().trim() : null;
         descriptionsTmp = config.get("descriptionsTmp").toString();
         File descriptionsTmpDir = new File(descriptionsTmp);
         if (!descriptionsTmpDir.exists()) {
@@ -93,6 +98,21 @@ public class FetchData {
 
         if (StringUtils.isEmpty(userAgent)) {
             System.out.println("userAgent is not set in config.json, see https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions");
+        }
+
+        wikimediaClient = WikimediaClient.createFromConfig(config, descriptionsTmp, userAgent);
+
+        if ("true".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot"))) && !wikimediaClient.hasCredentials()) {
+            throw new IllegalArgumentException("wikimediaUseSnapshot is enabled in config, but Wikimedia Enterprise credentials (wikimediaUsername/wikimediaPassword or wikimediaAuthFile) are missing or invalid.");
+        }
+
+        boolean useSnapshot = wikimediaClient.hasCredentials() && !"false".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot")));
+        if (useSnapshot) {
+            String snapshotId = config.get("wikimediaSnapshotIdentifier") != null ? config.get("wikimediaSnapshotIdentifier").toString().trim() : "enwiki_namespace_0";
+            System.out.println("Using Wikimedia Enterprise Snapshot Chunk API (" + snapshotId + ") with configured JWT credentials.");
+        } else if (wikimediaClient.hasCredentials() && wikipediaUrl.contains("en.wikipedia.org/api/rest_v1")) {
+            System.out.println("Using Wikimedia Enterprise API endpoint (https://api.enterprise.wikimedia.com/v2/articles/) with configured JWT credentials.");
+            wikipediaUrl = "https://api.enterprise.wikimedia.com/v2/articles/";
         }
 
         acceptedCsv = config.get("acceptedCsv").toString();
@@ -329,6 +349,16 @@ public class FetchData {
 
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " finished creating matched file: " + matchedFile.getPath());
 
+        boolean useSnapshot = wikimediaClient != null && wikimediaClient.hasCredentials() && (configMap == null || !"false".equalsIgnoreCase(String.valueOf(configMap.get("wikimediaUseSnapshot"))));
+        if (useSnapshot) {
+            String snapshotIdentifier = (configMap != null && configMap.get("wikimediaSnapshotIdentifier") != null)
+                    ? configMap.get("wikimediaSnapshotIdentifier").toString().trim()
+                    : "enwiki_namespace_0";
+            System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Harvesting Wikipedia using Enterprise Snapshot Chunk API (" + snapshotIdentifier + ")");
+            SnapshotChunkProcessor.processAllChunks(wikimediaClient, snapshotIdentifier, descriptionsTmp, matchedFile);
+            return null;
+        }
+
         // get a list of all previously downloaded files, recursively through directories, one level deep
         Map<String, File> existingFiles = new HashMap<>();
         File[] files = new File(descriptionsTmp + "/wikipedia").listFiles();
@@ -416,9 +446,15 @@ public class FetchData {
     }
 
     private static void createWikipediaMatchedFile(File matchedFile) throws IOException, CsvValidationException {
-        List<String> titles = getWikiTitles();
-        // sort titles, case insensitive
-        titles.sort(String.CASE_INSENSITIVE_ORDER);
+        File titlesFile = StringUtils.isNotBlank(wikipediaTitles) ? new File(wikipediaTitles) : null;
+        List<String> titles = null;
+        if (titlesFile != null && titlesFile.exists() && titlesFile.canRead()) {
+            titles = getWikiTitles();
+            // sort titles, case insensitive
+            titles.sort(String.CASE_INSENSITIVE_ORDER);
+        } else {
+            System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " wikipediaTitles file not found (" + wikipediaTitles + "), generating candidate matches directly from accepted taxa");
+        }
 
         // iterate through all elasticsearch accepted TAXON
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " Start paging for wikipedia summary");
@@ -429,7 +465,7 @@ public class FetchData {
         reader.readNext();
 
         // matched names file, for lookup later
-        FileWriter writer = new FileWriter(matchedFile);
+        CSVWriter csvWriter = new CSVWriter(new FileWriter(matchedFile, StandardCharsets.UTF_8));
 
         int row = 0;
         String[] nextLine;
@@ -445,39 +481,36 @@ public class FetchData {
             String kingdom = nextLine[7];
 
             if (StringUtils.isNotEmpty(guid) && StringUtils.isNotEmpty(scientificName)) {
-                // find scientific name in wikipedia titles
                 String findName = scientificName.trim().replace(" ", "_");
-                int idx = Collections.binarySearch(titles, findName, String.CASE_INSENSITIVE_ORDER);
-                // seek to first match if multiple
-                while (idx > 0 && titles.get(idx - 1).equalsIgnoreCase(findName)) {
-                    idx--;
-                }
-                // while found, write to matched file
-                while (idx >= 0 && idx < titles.size() && titles.get(idx).equalsIgnoreCase(findName)) {
-                    writer.write(guid + "," + titles.get(idx) + "," + genus + "," + family + "," + order + "," + clazz + "," + phylum + "," + kingdom + "\n");
-                    idx++;
+                if (titles != null) {
+                    // find scientific name in wikipedia titles
+                    int idx = Collections.binarySearch(titles, findName, String.CASE_INSENSITIVE_ORDER);
+                    // seek to first match if multiple
+                    while (idx > 0 && titles.get(idx - 1).equalsIgnoreCase(findName)) {
+                        idx--;
+                    }
+                    // while found, write to matched file
+                    while (idx >= 0 && idx < titles.size() && titles.get(idx).equalsIgnoreCase(findName)) {
+                        csvWriter.writeNext(new String[]{guid, titles.get(idx), genus, family, order, clazz, phylum, kingdom});
+                        idx++;
+                    }
+                } else {
+                    // Direct candidate match
+                    csvWriter.writeNext(new String[]{guid, findName, genus, family, order, clazz, phylum, kingdom});
                 }
             }
         }
 
-        writer.flush();
-        writer.close();
+        csvWriter.flush();
+        csvWriter.close();
     }
 
     static void cacheWikipediaSummary(String title, File outputFile) {
-        try {
-            String url = wikipediaUrl + title;
-
-            // this follows redirects
-            Document doc = Jsoup.connect(url).userAgent(userAgent).get();
-
-            // write the file, for later use
-            FileWriter writer = new FileWriter(outputFile);
-            writer.write(doc.outerHtml());
-            writer.flush();
-            writer.close();
-        } catch (Exception e) {
-            System.out.println("Error fetching wikipedia html for: " + title + ", " + e.getMessage());
+        String url = wikipediaUrl + title;
+        if (wikimediaClient != null) {
+            wikimediaClient.fetchPageHtml(url, outputFile);
+        } else {
+            new WikimediaClient(null, null, null, userAgent, null, 3).fetchPageHtml(url, outputFile);
         }
     }
 
