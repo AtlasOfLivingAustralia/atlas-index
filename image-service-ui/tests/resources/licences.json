@@ -1,0 +1,10 @@
+{
+    "licences": [
+        {"acronym": "CC-BY", "name": "Creative Commons Attribution", "url": "https://creativecommons.org/licenses/by/4.0/", "imageUrl": "http://localhost:8082/static/licences/by.png"},
+        {"acronym": "CC-BY-NC", "name": "Creative Commons Attribution-NonCommercial", "url": "https://creativecommons.org/licenses/by-nc/4.0/", "imageUrl": "http://localhost:8082/static/licences/by-nc.png"}
+    ],
+    "licenceMappings": [
+        {"acronym": "CC-BY", "value": "CC BY 4.0 (Attribution)"},
+        {"acronym": "CC-BY-NC", "value": "CC BY-NC 4.0 (Attribution-NonCommercial)"}
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "results": [
+        {"id": 1, "path": "Botany"},
+        {"id": 2, "path": "Botany/Flower"},
+        {"id": 3, "path": "Zoology"}
+    ]
+}

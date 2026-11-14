@@ -1,0 +1,6 @@
+{
+    "results": [
+        {"id": 1, "name": "site.title", "description": "Public site title", "value": "ALA Images", "type": "string"},
+        {"id": 2, "name": "upload.maxSizeMb", "description": "Maximum single upload size in MB", "value": "50", "type": "number"}
+    ]
+}
