@@ -18,11 +18,29 @@ describe('getAppConfigValue', () => {
         );
     });
 
-    it('returns the fallback when the key is unset or blank', () => {
-        (window as any).APP_CONFIG = {VITE_APP_BIOCACHE_URL: '  '};
+    it('returns the fallback when the key is unset or null', () => {
+        (window as any).APP_CONFIG = {VITE_APP_API_URL: 'https://search.example.org', VITE_APP_BIOCACHE_URL: null};
         expect(getAppConfigValue('VITE_APP_BIOCACHE_URL', 'https://biocache-ws.ala.org.au/ws')).toBe(
             'https://biocache-ws.ala.org.au/ws'
         );
+        expect(getAppConfigValue('VITE_APP_IMAGES_URL', 'https://images.ala.org.au')).toBe('https://images.ala.org.au');
+    });
+
+    it('lets a deployment clear a setting the build fills in', () => {
+        (window as any).APP_CONFIG_LOCAL = {VITE_GLOBAL_FQ: ''};
+        expect(getAppConfigValue('VITE_GLOBAL_FQ', '&fq=spatiallyValid%3Atrue')).toBe('');
+    });
+
+    it('lets config.local.js clear a value config.js declares', () => {
+        (window as any).APP_CONFIG = {VITE_QUERY_CONTEXT: 'data_hub_uid:dh1'};
+        (window as any).APP_CONFIG_LOCAL = {VITE_QUERY_CONTEXT: ''};
+        expect(getAppConfigValue('VITE_QUERY_CONTEXT', 'data_hub_uid:dh0')).toBe('');
+    });
+
+    it('reads numbers and booleans as strings, like .env values', () => {
+        (window as any).APP_CONFIG_LOCAL = {VITE_MAP_CENTRE_LAT: 40.2, VITE_LEAFLET_MAP_ENABLED: false};
+        expect(getAppConfigValue('VITE_MAP_CENTRE_LAT', '-25')).toBe('40.2');
+        expect(getAppConfigValue('VITE_LEAFLET_MAP_ENABLED', 'true')).toBe('false');
     });
 
     it('returns the value declared in config.js', () => {
