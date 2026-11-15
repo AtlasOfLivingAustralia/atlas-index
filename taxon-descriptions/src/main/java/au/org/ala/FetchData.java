@@ -100,21 +100,6 @@ public class FetchData {
             System.out.println("userAgent is not set in config.json, see https://www.mediawiki.org/wiki/Wikimedia_REST_API#Terms_and_conditions");
         }
 
-        wikimediaClient = WikimediaClient.createFromConfig(config, descriptionsTmp, userAgent);
-
-        if ("true".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot"))) && !wikimediaClient.hasCredentials()) {
-            throw new IllegalArgumentException("wikimediaUseSnapshot is enabled in config, but Wikimedia Enterprise credentials (wikimediaUsername/wikimediaPassword or wikimediaAuthFile) are missing or invalid.");
-        }
-
-        boolean useSnapshot = wikimediaClient.hasCredentials() && !"false".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot")));
-        if (useSnapshot) {
-            String snapshotId = config.get("wikimediaSnapshotIdentifier") != null ? config.get("wikimediaSnapshotIdentifier").toString().trim() : "enwiki_namespace_0";
-            System.out.println("Using Wikimedia Enterprise Snapshot Chunk API (" + snapshotId + ") with configured JWT credentials.");
-        } else if (wikimediaClient.hasCredentials() && wikipediaUrl.contains("en.wikipedia.org/api/rest_v1")) {
-            System.out.println("Using Wikimedia Enterprise API endpoint (https://api.enterprise.wikimedia.com/v2/articles/) with configured JWT credentials.");
-            wikipediaUrl = "https://api.enterprise.wikimedia.com/v2/articles/";
-        }
-
         acceptedCsv = config.get("acceptedCsv").toString();
 
         mergeDir = config.get("mergeDir").toString();
@@ -138,7 +123,7 @@ public class FetchData {
             extractor.mergeDir = mergeDir;
             extractor.heroDescriptionsFile = config.get("heroDescriptionsOutputFile").toString().trim();
             extractor.generateHeroDescriptions();
-            System.out.println("finished hero-descriptions download");
+            System.out.println("finished generating hero-descriptions");
             return;
         }
 
@@ -336,7 +321,31 @@ public class FetchData {
         return titles;
     }
 
+    private static synchronized void initWikimediaClient(Map config) {
+        if (wikimediaClient != null) {
+            return;
+        }
+        if (config == null) {
+            return;
+        }
+        wikimediaClient = WikimediaClient.createFromConfig(config, descriptionsTmp, userAgent);
+
+        if ("true".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot"))) && !wikimediaClient.hasCredentials()) {
+            throw new IllegalArgumentException("wikimediaUseSnapshot is enabled in config, but Wikimedia Enterprise credentials (wikimediaUsername/wikimediaPassword or wikimediaAuthFile) are missing or invalid.");
+        }
+
+        boolean useSnapshot = wikimediaClient.hasCredentials() && !"false".equalsIgnoreCase(String.valueOf(config.get("wikimediaUseSnapshot")));
+        if (useSnapshot) {
+            String snapshotId = config.get("wikimediaSnapshotIdentifier") != null ? config.get("wikimediaSnapshotIdentifier").toString().trim() : "enwiki_namespace_0";
+            System.out.println("Using Wikimedia Enterprise Snapshot Chunk API (" + snapshotId + ") with configured JWT credentials.");
+        } else if (wikimediaClient.hasCredentials() && wikipediaUrl.contains("en.wikipedia.org/api/rest_v1")) {
+            System.out.println("Using Wikimedia Enterprise API endpoint (https://api.enterprise.wikimedia.com/v2/articles/) with configured JWT credentials.");
+            wikipediaUrl = "https://api.enterprise.wikimedia.com/v2/articles/";
+        }
+    }
+
     private static Map<String, Object> downloadWikipedia(List<String> fields, String name, String attribution) throws IOException, SAXException, CsvValidationException {
+        initWikimediaClient(configMap);
         Map taxa = new HashMap();
 
         System.out.println(new SimpleDateFormat("HH:mm:ss:SSS").format(new Date()) + " matching wikipedia titles to accepted taxa");
@@ -506,6 +515,9 @@ public class FetchData {
     }
 
     static void cacheWikipediaSummary(String title, File outputFile) {
+        if (wikimediaClient == null && configMap != null) {
+            initWikimediaClient(configMap);
+        }
         String url = wikipediaUrl + title;
         if (wikimediaClient != null) {
             wikimediaClient.fetchPageHtml(url, outputFile);
