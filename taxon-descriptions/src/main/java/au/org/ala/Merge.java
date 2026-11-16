@@ -35,7 +35,7 @@ public class Merge {
 
     public void mergeSources(List sources) throws IOException, CsvValidationException {
         List<Map> allData = new ArrayList<>();
-        List<Map<String, String>> allMetadata = new ArrayList<>();
+        List<Map<String, Object>> allMetadata = new ArrayList<>();
 
         // read overrides
         System.out.println("loading overrides");
@@ -46,8 +46,15 @@ public class Merge {
             String attribution = source.get("attribution").toString();
             String name = source.get("name").toString();
             String json = source.get("filename").toString();
+            List<String> fields = (List<String>) source.get("fields");
 
-            Map metadataItem = Map.of("name", name, "attribution", attribution, "filename", json);
+            Map<String, Object> metadataItem = new HashMap<>();
+            metadataItem.put("name", name);
+            metadataItem.put("attribution", attribution);
+            metadataItem.put("filename", json);
+            if (fields != null) {
+                metadataItem.put("fields", fields);
+            }
 
             String filename = wikipediaTmp + "/" + json + ".json";
             File file = new File(filename);
@@ -114,56 +121,90 @@ public class Merge {
                 if (item != null) {
                     sourceCount++;
 
-                    Map<String, String> metadata = allMetadata.get(i);
+                    Map<String, Object> metadata = allMetadata.get(i);
                     String url = item.get("url");
 
-                    Map<String, String> mergedItem = new HashMap<>();
-                    Map<String, String> overrideItem = override != null ? override.get(allMetadata.get(i).get("filename")) : null;
+                    Map<String, String> sourceData = new HashMap<>();
+                    Map<String, String> overrideItem = override != null ? override.get((String) metadata.get("filename")) : null;
                     if (overrideItem != null) {
                         if (overrideItem.isEmpty()) {
                             // do not merge when removing content
                             continue;
                         }
                         url = overrideItem.get("url");
-                        mergedItem.putAll(overrideItem);
+                        sourceData.putAll(overrideItem);
                     } else {
-                        mergedItem.putAll(item);
+                        sourceData.putAll(item);
                     }
 
-                    mergedItem.put("name", metadata.get("name"));
+                    String name = (String) metadata.get("name");
+                    String attribution = (String) metadata.get("attribution");
+                    String formattedAttribution = (url == null) ? attribution : attribution.replace("*URL*", url);
 
-                    String attribution = metadata.get("attribution");
-                    if (url == null) { // no url in the data is not something that should happen
-                        mergedItem.put("attribution", attribution);
-                    } else {
-                        mergedItem.put("attribution", attribution.replace("*URL*", url));
-                    }
-
-                    // remove those without content
-                    List<String> keys = new ArrayList<>(mergedItem.keySet());
+                    // remove those without content and sanitize html
+                    Map<String, String> sanitizedContent = new HashMap<>();
+                    List<String> keys = new ArrayList<>(sourceData.keySet());
                     for (String key : keys) {
-                        if (StringUtils.isEmpty(mergedItem.get(key))) {
-                            mergedItem.remove(key);
+                        String value = sourceData.get(key);
+                        if (StringUtils.isEmpty(value)) {
+                            continue;
                         } else if (key.equals("url") || key.equals("name") || key.equals("attribution") || key.equals("summary")) {
-                            // no not change these as they are either not HTML or already sanitized (wikipedia summary)
+                            sanitizedContent.put(key, value);
                         } else {
                             // actual values that need to be wrapped in <p> tags, if not already html
                             try {
-                                Document doc = Jsoup.parse(mergedItem.get(key));
+                                Document doc = Jsoup.parse(value);
                                 Element body = doc.body();
 
                                 // when the content is not html (e.g. from species lists), then wrap it in <p> tag
                                 if (body.children().isEmpty()) {
-                                    doc = Jsoup.parse("<p>" + mergedItem.get(key) + "</p>");
+                                    doc = Jsoup.parse("<p>" + value + "</p>");
                                     body = doc.body();
                                 }
 
                                 sanitizeHtml(body);
 
-                                mergedItem.put(key, body.html());
+                                sanitizedContent.put(key, body.html());
                             } catch (Exception e) {
-                                System.out.println("Error parsing html for: " + key + ", " + guid + ", " + metadata.get("name") + ", " + e.getMessage());
+                                System.out.println("Error parsing html for: " + key + ", " + guid + ", " + name + ", " + e.getMessage());
                             }
+                        }
+                    }
+
+                    // Build ordered mergedItem using LinkedHashMap to preserve field ordering
+                    Map<String, String> mergedItem = new LinkedHashMap<>();
+                    mergedItem.put("name", name);
+                    mergedItem.put("url", url);
+                    mergedItem.put("attribution", formattedAttribution);
+
+                    List<String> fields = (List<String>) metadata.get("fields");
+                    Set<String> usedKeys = new HashSet<>(Arrays.asList("name", "url", "attribution"));
+
+                    if (fields != null) {
+                        for (String field : fields) {
+                            String matchingKey = null;
+                            if (sanitizedContent.containsKey(field)) {
+                                matchingKey = field;
+                            } else {
+                                for (String k : sanitizedContent.keySet()) {
+                                    if (k.equalsIgnoreCase(field)) {
+                                        matchingKey = k;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (matchingKey != null && sanitizedContent.containsKey(matchingKey)) {
+                                mergedItem.put(field, sanitizedContent.get(matchingKey));
+                                usedKeys.add(matchingKey);
+                                usedKeys.add(field);
+                            }
+                        }
+                    }
+
+                    // Add any remaining content keys not explicitly covered by fields (e.g. "summary")
+                    for (String key : sanitizedContent.keySet()) {
+                        if (!usedKeys.contains(key)) {
+                            mergedItem.put(key, sanitizedContent.get(key));
                         }
                     }
 

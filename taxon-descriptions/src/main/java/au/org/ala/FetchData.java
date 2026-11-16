@@ -274,28 +274,45 @@ public class FetchData {
                     continue;
                 }
 
-                Map<String, String> doc = new HashMap<>();
+                Map<String, String> rawFieldValues = new HashMap<>();
 
                 List kvpValues = (List) ((Map) item).get("kvpValues");
                 if (kvpValues != null) {
                     for (Object kvp : kvpValues) {
-                        for (String field : fields) {
-                            if (field.equalsIgnoreCase(((Map) kvp).get("key").toString())) {
-                                Object value = ((Map) kvp).get("value");
-                                if (value != null) {
-                                    doc.put(field, value.toString());
+                        Object key = ((Map) kvp).get("key");
+                        Object value = ((Map) kvp).get("value");
+                        if (key != null && value != null) {
+                            for (String field : fields) {
+                                if (field.equalsIgnoreCase(key.toString())) {
+                                    rawFieldValues.put(field, value.toString());
                                 }
                             }
                         }
                     }
                 }
 
-                doc.put("url", listsUrl + "/speciesListItem/list/" + id);
-
+                Map<String, Object> itemMap = (Map<String, Object>) item;
                 for (String field : fields) {
-                    Object value = ((Map) item).get(field);
+                    Object value = itemMap.get(field);
+                    if (value == null) {
+                        for (Map.Entry<String, Object> entry : itemMap.entrySet()) {
+                            if (entry.getKey().equalsIgnoreCase(field)) {
+                                value = entry.getValue();
+                                break;
+                            }
+                        }
+                    }
                     if (value != null) {
-                        doc.put(field, value.toString());
+                        rawFieldValues.put(field, value.toString());
+                    }
+                }
+
+                Map<String, String> doc = new LinkedHashMap<>();
+                doc.put("url", listsUrl + "/speciesListItem/list/" + id);
+                for (String field : fields) {
+                    String value = rawFieldValues.get(field);
+                    if (value != null) {
+                        doc.put(field, value);
                     }
                 }
 
