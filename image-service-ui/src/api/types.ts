@@ -96,6 +96,8 @@ export interface SubimageRect {
 }
 
 export interface ImageDetail extends ImageSummary {
+    /** Numeric legacy database id required by protected fragment endpoints. */
+    legacyImageId?: string;
     parentImageId?: string | null;
     parentImageTitle?: string;
     parentImageThumbnailUrl?: string;

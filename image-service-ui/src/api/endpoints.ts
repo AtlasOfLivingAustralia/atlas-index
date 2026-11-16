@@ -292,6 +292,11 @@ function parentFromMetadataFragment(fragment: unknown, apiUrl: string): {imageId
     };
 }
 
+function legacyImageIdFromMetadataFragment(fragment: unknown): string | undefined {
+    if (typeof fragment !== 'string') return undefined;
+    return fragment.match(/\bhref=["'][^"']*\/image\/(\d+)\/original(?:[?"'])/i)?.[1];
+}
+
 export function normalizeFacets(rawFacets: any): Facet[] {
     if (!rawFacets) return [];
     if (Array.isArray(rawFacets)) {
@@ -452,6 +457,7 @@ export function normalizeImageDetail(data: any, apiUrl: string, requestedImageId
     return {
         ...summary,
         imageId,
+        legacyImageId: core.legacyImageId || data?.legacyImageId,
         title: core.title || data?.title || summary.title,
         originalFilename:
             core.originalFilename ||
@@ -536,7 +542,10 @@ export const imageApi = {
     async getDetail(apiUrl: string, imageId: string, signal?: AbortSignal): Promise<ImageDetail> {
         const proxyMetadataFragment = usesDevelopmentProxy(apiUrl);
         const metadataFragmentBaseUrl = proxyMetadataFragment ? '' : apiUrl;
-        const metadataFragmentPath = `${proxyMetadataFragment ? '/image-service' : ''}/image/coreImageMetadataTableFragment/${encodeURIComponent(imageId)}`;
+        const deployedUiProxy = /\/backend\/?$/i.test(apiUrl);
+        const metadataFragmentPath = deployedUiProxy
+            ? `/ws-ui/core-image-metadata/${encodeURIComponent(imageId)}`
+            : `${proxyMetadataFragment ? '/image-service' : ''}/image/coreImageMetadataTableFragment/${encodeURIComponent(imageId)}`;
         const [data, subimagesData, metadataFragment] = await Promise.all([
             apiGet<any>(apiUrl, `/ws/image/${encodeURIComponent(imageId)}`, {includeTags: true, includeMetadata: true}, signal),
             apiGet<any>(apiUrl, `/ws/getSubimageRectangles/${encodeURIComponent(imageId)}`, undefined, signal).catch(() => null),
@@ -545,6 +554,7 @@ export const imageApi = {
         const existingParent = parentFromMetadataFragment(metadataFragment, apiUrl);
         const combined = {
             ...data,
+            legacyImageId: legacyImageIdFromMetadataFragment(metadataFragment),
             parentImageId: data?.parentImageId || existingParent?.imageId,
             parentImageThumbnailUrl:
                 backendAssetUrl(apiUrl, data?.parentImageThumbnailUrl) || existingParent?.thumbnailUrl,
@@ -596,7 +606,7 @@ export const imageApi = {
     },
 
     async createSubimage(apiUrl: string, imageId: string, rect: { x: number; y: number; width: number; height: number }, description = ''): Promise<ImageDetail> {
-        await apiPost<any>(apiUrl, `/ws/subimage/${encodeURIComponent(imageId)}`, undefined, undefined, {...rect, description});
+        await apiPut<any>(apiUrl, `/ws/subimage/${encodeURIComponent(imageId)}`, undefined, undefined, {...rect, description});
         return imageApi.getDetail(apiUrl, imageId);
     },
 
@@ -621,10 +631,41 @@ export const imageApi = {
         return apiDelete<void>(apiUrl, `/ws/image/${encodeURIComponent(imageId)}`);
     },
 
-    auditTrail(apiUrl: string, imageId: string): Promise<AuditEntry[]> {
-        return apiGet<AuditEntry[]>(apiUrl, '/image/auditTrailFragment', {id: imageId}).catch(() => []);
+    async auditTrail(apiUrl: string, legacyImageId: string): Promise<AuditEntry[]> {
+        const deployedUiProxy = /\/backend\/?$/i.test(apiUrl);
+        const path = deployedUiProxy
+            ? `/ws-ui/image-audit/${encodeURIComponent(legacyImageId)}`
+            : `/image/imageAuditTrailFragment/${encodeURIComponent(legacyImageId)}`;
+        const raw = await apiGet<unknown>(apiUrl, path);
+        if (Array.isArray(raw)) return raw as AuditEntry[];
+
+        const document = htmlDocument(raw);
+        if (!document) return [];
+        return Array.from(document.querySelectorAll('li')).map(item => {
+            const details = item.querySelector('div')?.textContent?.trim() || '';
+            const heading = (item.firstChild?.textContent || '').trim();
+            const dateMatch = heading.match(/^(.*?\d{2}:\d{2}:\d{2}(?:\.\d+)?)(?:\s+)(.*)$/);
+            return {
+                date: dateMatch?.[1] || heading,
+                user: dateMatch?.[2] || undefined,
+                event: details,
+                details
+            };
+        }).filter(entry => entry.date || entry.event);
     }
 };
+
+export function imageThumbnailVariants(apiUrl: string, imageId: string): Array<{label: string; url: string}> {
+    const base = `${imageAssetApiUrl(apiUrl)}/image/${encodeURIComponent(imageId)}`;
+    return [
+        {label: 'Standard', url: `${base}/thumbnail`},
+        {label: 'Square', url: `${base}/thumbnail_square`},
+        {label: 'Square – black', url: `${base}/thumbnail_square_black`},
+        {label: 'Square – white', url: `${base}/thumbnail_square_white`},
+        {label: 'Square – dark grey', url: `${base}/thumbnail_square_darkGray`},
+        {label: 'Large', url: `${base}/thumbnail_large`}
+    ];
+}
 
 export const uploadApi = {
     /**

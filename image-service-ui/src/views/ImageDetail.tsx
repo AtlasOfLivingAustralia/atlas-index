@@ -9,9 +9,9 @@ import {useEffect, useState} from 'react';
 import {Button, Form, Modal, Tab, Tabs} from 'react-bootstrap';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import ImageViewer, {type ImageRectangle} from '../components/imageViewer.tsx';
-import {imageApi, imageAssetApiUrl, tagApi} from '../api/endpoints.ts';
+import {imageApi, imageAssetApiUrl, imageThumbnailVariants, tagApi} from '../api/endpoints.ts';
 import {ApiError} from '../api/client.ts';
-import type {ImageDetail as ImageDetailType, MetadataEntry} from '../api/types.ts';
+import type {AuditEntry, ImageDetail as ImageDetailType, MetadataEntry} from '../api/types.ts';
 import {canEdit, isAdmin} from '../config/roles.ts';
 import './ImageDetail.css';
 
@@ -49,6 +49,7 @@ export default function ImageDetail({setBreadcrumbs}: {
     const navigate = useNavigate();
     const {userInfo} = useUser();
     const apiUrl = import.meta.env.VITE_APP_IMAGES_API_URL;
+    const hasAdminAccess = isAdmin(userInfo);
 
     const [image, setImage] = useState<ImageDetailType | null>(null);
     const [loading, setLoading] = useState(true);
@@ -61,6 +62,9 @@ export default function ImageDetail({setBreadcrumbs}: {
     const [busy, setBusy] = useState(false);
     const [pendingSubimage, setPendingSubimage] = useState<ImageRectangle | null>(null);
     const [subimageDescription, setSubimageDescription] = useState('');
+    const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
+    const [auditLoading, setAuditLoading] = useState(false);
+    const [auditError, setAuditError] = useState<string | null>(null);
 
     function load(signal?: AbortSignal) {
         if (!imageId) return;
@@ -96,6 +100,24 @@ export default function ImageDetail({setBreadcrumbs}: {
             {title: image?.title || image?.originalFilename || imageId || 'Image', href: '#'}
         ]);
     }, [image, imageId]);
+
+    useEffect(() => {
+        if (!image?.legacyImageId || !hasAdminAccess) {
+            setAuditEntries([]);
+            setAuditError(null);
+            return;
+        }
+        let active = true;
+        setAuditLoading(true);
+        setAuditError(null);
+        imageApi.auditTrail(apiUrl, image.legacyImageId)
+            .then(entries => active && setAuditEntries(entries))
+            .catch((err: ApiError) => active && setAuditError(err?.message || 'Unable to load audit history.'))
+            .finally(() => active && setAuditLoading(false));
+        return () => {
+            active = false;
+        };
+    }, [apiUrl, hasAdminAccess, image?.legacyImageId]);
 
     async function runAction(action: () => Promise<ImageDetailType>) {
         setBusy(true);
@@ -282,7 +304,7 @@ export default function ImageDetail({setBreadcrumbs}: {
                         </div>
                     )}
 
-                    {isAdmin(userInfo) && !image.deleted && (
+                    {hasAdminAccess && !image.deleted && (
                         <div className="mb-3">
                             <strong>Admin actions</strong>
                             <div className="d-flex flex-wrap gap-2 mt-1">
@@ -356,6 +378,39 @@ export default function ImageDetail({setBreadcrumbs}: {
                         <Tab eventKey="dataResource" title="Data resource">
                             <MetadataTable entries={image.dataResourceMetadata}/>
                         </Tab>
+                        {image.isImage && (
+                            <Tab eventKey="thumbnails" title="Thumbnails">
+                                <div className="image-detail__thumbnail-list" data-testid="thumbnail-section">
+                                    {imageThumbnailVariants(apiUrl, image.imageId).map(thumbnail => (
+                                        <a key={thumbnail.label} href={thumbnail.url} target="thumbnail" rel="noreferrer">
+                                            <img src={thumbnail.url} alt={`${thumbnail.label} thumbnail`}/>
+                                            <span>{thumbnail.label}</span>
+                                        </a>
+                                    ))}
+                                </div>
+                            </Tab>
+                        )}
+                        {hasAdminAccess && (
+                            <Tab eventKey="audit" title="Audit">
+                                <div data-testid="audit-section">
+                                    {auditLoading && <div className="text-muted">Loading audit history…</div>}
+                                    {auditError && <div className="alert alert-warning py-1 px-2">{auditError}</div>}
+                                    {!auditLoading && !auditError && auditEntries.length === 0 && (
+                                        <div className="text-muted">No audit history is available.</div>
+                                    )}
+                                    {auditEntries.length > 0 && (
+                                        <ul className="image-detail__audit-list">
+                                            {auditEntries.map((entry, index) => (
+                                                <li key={`${entry.date}-${index}`}>
+                                                    <div><strong>{entry.date}</strong>{entry.user && <> · {entry.user}</>}</div>
+                                                    <div>{entry.event || entry.details}</div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            </Tab>
+                        )}
                     </Tabs>
                 </aside>
             </div>

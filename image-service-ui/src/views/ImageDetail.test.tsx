@@ -19,8 +19,12 @@ jest.mock('../components/imageViewer', () => () => <div data-testid="mock-image-
 
 jest.mock('../api/endpoints', () => ({
     imageAssetApiUrl: (apiUrl: string) => apiUrl,
+    imageThumbnailVariants: (_apiUrl: string, imageId: string) => [
+        {label: 'Standard', url: `http://x/image/${imageId}/thumbnail`}
+    ],
     imageApi: {
         getDetail: jest.fn(),
+        auditTrail: jest.fn(),
         attachTag: jest.fn(),
         detachTag: jest.fn(),
         calibrate: jest.fn(),
@@ -75,6 +79,7 @@ describe('ImageDetail', () => {
     beforeEach(() => {
         (globalThis as any).__mockUserInfo = null;
         (imageApi.getDetail as jest.Mock).mockReset().mockResolvedValue(baseImage);
+        (imageApi.auditTrail as jest.Mock).mockReset().mockResolvedValue([]);
     });
 
     it('renders tags and core metadata for anonymous users, without edit controls', async () => {
@@ -125,6 +130,20 @@ describe('ImageDetail', () => {
         const section = await screen.findByTestId('parent-image-section');
         expect(section).toHaveTextContent('Original specimen image');
         expect(screen.getByRole('link', {name: /Parent image Original specimen image/})).toHaveAttribute('href', '/image/parent-001');
+    });
+
+    it('shows thumbnails and loads audit history for an admin user', async () => {
+        (globalThis as any).__mockUserInfo = {authenticated: true, roles: ['ROLE_ADMIN']};
+        (imageApi.getDetail as jest.Mock).mockResolvedValue({...baseImage, legacyImageId: '5901960'});
+        (imageApi.auditTrail as jest.Mock).mockResolvedValue([
+            {date: '16 Nov 2026', user: 'admin@example.org', event: 'Image uploaded'}
+        ]);
+        renderDetail();
+
+        await screen.findByTestId('image-detail');
+        expect(screen.getByRole('tab', {name: 'Thumbnails'})).toBeInTheDocument();
+        expect(screen.getByRole('tab', {name: 'Audit'})).toBeInTheDocument();
+        await waitFor(() => expect(imageApi.auditTrail).toHaveBeenCalledWith(expect.any(String), '5901960'));
     });
 
     it('shows an unauthorized state for a 403 response', async () => {

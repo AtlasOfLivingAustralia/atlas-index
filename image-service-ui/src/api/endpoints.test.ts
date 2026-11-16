@@ -192,7 +192,7 @@ describe('imageApi detail normalization', () => {
 
     it('routes a root-relative parent thumbnail through the local Vite proxy', async () => {
         global.fetch = jest.fn().mockImplementation(async (url: string) => {
-            const isFragment = url.includes('coreImageMetadataTableFragment');
+            const isFragment = url.includes('coreImageMetadataTableFragment') || url.includes('/ws-ui/core-image-metadata/');
             return {
                 ok: true,
                 status: 200,
@@ -216,7 +216,7 @@ describe('imageApi detail normalization', () => {
 
     it('reads the parent link shape returned by the unchanged test image service', async () => {
         global.fetch = jest.fn().mockImplementation(async (url: string) => {
-            const isFragment = url.includes('coreImageMetadataTableFragment');
+            const isFragment = url.includes('coreImageMetadataTableFragment') || url.includes('/ws-ui/core-image-metadata/');
             return {
                 ok: true,
                 status: 200,
@@ -228,14 +228,70 @@ describe('imageApi detail normalization', () => {
                     <h5>Parent image</h5>
                     <a href="/image/details?id=parent-remote">
                         <img src="/image/parent-remote/thumbnail" alt="parent-remote">
-                    </a>`
+                    </a>
+                    <a href="/image/5901960/original?contentDisposition=true">Download</a>`
             };
         }) as unknown as typeof fetch;
 
-        const detail = await imageApi.getDetail('https://images.test.ala.org.au', 'child-remote');
+        const detail = await imageApi.getDetail('https://images-ui.test.ala.org.au/backend', 'child-remote');
 
         expect(detail.parentImageId).toBe('parent-remote');
         expect(detail.parentImageThumbnailUrl).toBe('http://localhost:8081/image/parent-remote/thumbnail');
+        expect(detail.legacyImageId).toBe('5901960');
+        expect(global.fetch).toHaveBeenCalledWith(
+            'https://images-ui.test.ala.org.au/backend/ws-ui/core-image-metadata/child-remote',
+            expect.any(Object)
+        );
+    });
+
+    it('loads and normalizes the existing legacy audit fragment through the deployed proxy alias', async () => {
+        global.fetch = jest.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            headers: new Headers({'content-type': 'text/html'}),
+            text: async () => '<ul><li>16 Nov 2026 11:24:43 user-1<div>Subimage created</div></li></ul>'
+        }) as unknown as typeof fetch;
+
+        const entries = await imageApi.auditTrail('https://images-ui.test.ala.org.au/backend', '5901960');
+
+        expect(entries).toEqual([
+            {date: '16 Nov 2026 11:24:43', user: 'user-1', event: 'Subimage created', details: 'Subimage created'}
+        ]);
+        expect(global.fetch).toHaveBeenCalledWith(
+            'https://images-ui.test.ala.org.au/backend/ws-ui/image-audit/5901960',
+            expect.any(Object)
+        );
+    });
+
+    it('creates a sub-image with the backend-required PUT method and query parameters', async () => {
+        global.fetch = jest.fn().mockImplementation(async (url: string) => {
+            const isCreate = url.includes('/ws/subimage/parent-1');
+            const isRectangles = url.includes('/ws/getSubimageRectangles/');
+            const isFragment = url.includes('coreImageMetadataTableFragment');
+            return {
+                ok: true,
+                status: 200,
+                headers: new Headers({'content-type': isFragment ? 'text/html' : 'application/json'}),
+                json: async () => isCreate
+                    ? {success: true, subImageId: 'child-1'}
+                    : isRectangles
+                        ? {success: true, subimages: []}
+                        : {success: true, imageIdentifier: 'parent-1', mimeType: 'image/jpeg'},
+                text: async () => ''
+            };
+        }) as unknown as typeof fetch;
+
+        await imageApi.createSubimage(
+            'https://images.test.ala.org.au',
+            'parent-1',
+            {x: 10, y: 20, width: 300, height: 200},
+            'Flower detail'
+        );
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            'https://images.test.ala.org.au/ws/subimage/parent-1?x=10&y=20&width=300&height=200&description=Flower+detail',
+            expect.objectContaining({method: 'PUT'})
+        );
     });
 });
 
