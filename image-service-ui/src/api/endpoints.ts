@@ -111,11 +111,11 @@ export function normalizeImageSummary(item: any, apiUrl: string): ImageSummary {
     const thumbnailUrl =
         item.thumbnailUrl ||
         (item.thumbnails && item.thumbnails[0]) ||
-        (imageId ? `${apiUrl}/image/${encodeURIComponent(imageId)}/thumbnail` : '');
+        (imageId ? imageThumbnailUrl(apiUrl, imageId) : '');
     const imageUrl =
         item.imageUrl ||
         item.originalUrl ||
-        (imageId ? `${apiUrl}/image/${encodeURIComponent(imageId)}/original` : '');
+        (imageId ? imageResourceUrl(apiUrl, imageId, 'original') : '');
     const isImage =
         item.isImage ??
         (item.fileType === 'image' ||
@@ -162,6 +162,37 @@ export function normalizeImageSummary(item: any, apiUrl: string): ImageSummary {
     };
 }
 
+export function imageAssetApiUrl(apiUrl: string): string {
+    const configuredImageLink = import.meta.env.VITE_APP_IMAGE_LINK_URL;
+    if (!configuredImageLink) return apiUrl.replace(/\/$/, '');
+
+    try {
+        const parsed = new URL(configuredImageLink);
+        const imagePathIndex = parsed.pathname.indexOf('/image/');
+        parsed.pathname = imagePathIndex >= 0 ? parsed.pathname.substring(0, imagePathIndex) : '';
+        parsed.search = '';
+        parsed.hash = '';
+        return parsed.toString().replace(/\/$/, '');
+    } catch {
+        return apiUrl.replace(/\/$/, '');
+    }
+}
+
+function imageThumbnailUrl(apiUrl: string, imageId: string): string {
+    const configuredPrefix = import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL;
+    return configuredPrefix
+        ? `${configuredPrefix}${encodeURIComponent(imageId)}`
+        : `${apiUrl.replace(/\/$/, '')}/image/${encodeURIComponent(imageId)}/thumbnail`;
+}
+
+function imageResourceUrl(apiUrl: string, imageId: string, resource?: string): string {
+    const configuredPrefix = import.meta.env.VITE_APP_IMAGE_LINK_URL;
+    const base = configuredPrefix
+        ? `${configuredPrefix.replace(/\/$/, '')}/${encodeURIComponent(imageId)}`
+        : `${apiUrl.replace(/\/$/, '')}/image/${encodeURIComponent(imageId)}`;
+    return resource ? `${base}/${resource}` : base;
+}
+
 function filterMetadataBySource(
     explicitGroup: MetadataEntry[] | undefined,
     allMetadata: any[] | undefined,
@@ -205,7 +236,7 @@ function normalizeSubimages(rawSubimages: any, apiUrl: string): SubimageRect[] {
         const thumbnailUrl =
             si.thumbnailUrl ||
             (si.thumbnails && si.thumbnails[0]) ||
-            (id ? `${apiUrl}/image/${encodeURIComponent(id)}/thumbnail` : '');
+            (id ? imageThumbnailUrl(apiUrl, id) : '');
         return {
             imageId: id,
             x: Number(si.x ?? 0),
@@ -237,6 +268,7 @@ function backendAssetUrl(apiUrl: string, assetUrl: string | undefined): string |
         if (assetUrl.startsWith('/')) return `/image-service${assetUrl}`;
     }
 
+    if (assetUrl.startsWith('/image/')) return `${imageAssetApiUrl(apiUrl)}${assetUrl}`;
     if (assetUrl.startsWith('/')) return `${apiUrl.replace(/\/$/, '')}${assetUrl}`;
     return assetUrl;
 }
@@ -392,12 +424,12 @@ export function normalizeImageDetail(data: any, apiUrl: string, requestedImageId
         core?.thumbnailUrl ||
         (data?.thumbnails && data.thumbnails[0]) ||
         (core?.thumbnails && core.thumbnails[0]) ||
-        (imageId ? `${apiUrl}/image/${encodeURIComponent(imageId)}/thumbnail` : '');
+        (imageId ? imageThumbnailUrl(apiUrl, imageId) : '');
 
     const originalUrl =
         data?.originalUrl ||
         core?.originalUrl ||
-        (imageId ? `${apiUrl}/image/${encodeURIComponent(imageId)}/original` : '');
+        (imageId ? imageResourceUrl(apiUrl, imageId, 'original') : '');
 
     const metadataUrl =
         data?.metadataUrl ||

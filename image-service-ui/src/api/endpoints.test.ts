@@ -56,8 +56,8 @@ describe('searchApi normalization', () => {
         expect(result.results).toHaveLength(1);
         const item = result.results[0];
         expect(item.imageId).toBe('001b9a4d-656c-4857-8b11-a55608ec329b');
-        expect(item.thumbnailUrl).toBe('http://api.test/image/001b9a4d-656c-4857-8b11-a55608ec329b/thumbnail');
-        expect(item.imageUrl).toBe('http://api.test/image/001b9a4d-656c-4857-8b11-a55608ec329b/original');
+        expect(item.thumbnailUrl).toBe('http://localhost:8081/image/proxyImageThumbnail?imageId=001b9a4d-656c-4857-8b11-a55608ec329b');
+        expect(item.imageUrl).toBe('http://localhost:8081/image/001b9a4d-656c-4857-8b11-a55608ec329b/original');
         expect(item.title).toBe('https://example.org/photo.jpg');
         expect(item.isImage).toBe(true);
         expect(item.isAudio).toBe(false);
@@ -138,7 +138,7 @@ describe('imageApi detail normalization', () => {
         expect(detail.imageId).toBe('img-nest-1');
         expect(detail.title).toBe('Nested Test Image');
         expect(detail.thumbnailUrl).toBe('http://api.test/store/thumb.jpg');
-        expect(detail.originalUrl).toBe('http://api.test/image/img-nest-1/original');
+        expect(detail.originalUrl).toBe('http://localhost:8081/image/img-nest-1/original');
         expect(detail.metadataUrl).toBe('http://api.test/ws/image/img-nest-1?includeTags=true&includeMetadata=true');
         expect(detail.isCalibrated).toBe(true);
         expect(detail.calibratedPixelsPerMm).toBe(12.5);
@@ -235,7 +235,7 @@ describe('imageApi detail normalization', () => {
         const detail = await imageApi.getDetail('https://images.test.ala.org.au', 'child-remote');
 
         expect(detail.parentImageId).toBe('parent-remote');
-        expect(detail.parentImageThumbnailUrl).toBe('https://images.test.ala.org.au/image/parent-remote/thumbnail');
+        expect(detail.parentImageThumbnailUrl).toBe('http://localhost:8081/image/parent-remote/thumbnail');
     });
 });
 

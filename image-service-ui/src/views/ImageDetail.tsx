@@ -9,7 +9,7 @@ import {useEffect, useState} from 'react';
 import {Button, Form, Modal, Tab, Tabs} from 'react-bootstrap';
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import ImageViewer, {type ImageRectangle} from '../components/imageViewer.tsx';
-import {imageApi, tagApi} from '../api/endpoints.ts';
+import {imageApi, imageAssetApiUrl, tagApi} from '../api/endpoints.ts';
 import {ApiError} from '../api/client.ts';
 import type {ImageDetail as ImageDetailType, MetadataEntry} from '../api/types.ts';
 import {canEdit, isAdmin} from '../config/roles.ts';
@@ -158,7 +158,7 @@ export default function ImageDetail({setBreadcrumbs}: {
                     <div className="image-detail__viewer-shell">
                     {image.isImage ? (
                         <ImageViewer
-                            apiUrl={apiUrl}
+                            apiUrl={imageAssetApiUrl(apiUrl)}
                             imageId={image.imageId}
                             width={image.width}
                             height={image.height}

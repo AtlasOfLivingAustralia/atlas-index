@@ -63,6 +63,6 @@ describe('ThumbnailGrid', () => {
         const card = screen.getByTestId('thumbnail-card');
         expect(card).toHaveAttribute('href', '/image/uuid-1234');
         const img = screen.getByRole('img');
-        expect(img).toHaveAttribute('src', 'http://api.test/image/uuid-1234/thumbnail');
+        expect(img).toHaveAttribute('src', 'http://localhost:8081/image/proxyImageThumbnail?imageId=uuid-1234');
     });
 });

@@ -16,6 +16,7 @@ interface ThumbnailGridProps {
 /** Public search results grid — thumbnails link through to the image/media detail view. */
 export default function ThumbnailGrid({results, apiUrl: customApiUrl}: ThumbnailGridProps) {
     const apiUrl = customApiUrl || import.meta.env.VITE_APP_IMAGES_API_URL || '';
+    const thumbnailPrefix = import.meta.env.VITE_APP_IMAGE_THUMBNAIL_URL;
     if (results.length === 0) {
         return <div className="alert alert-light border" data-testid="no-results">No images matched your search.</div>;
     }
@@ -24,7 +25,11 @@ export default function ThumbnailGrid({results, apiUrl: customApiUrl}: Thumbnail
         <div className="thumbnail-grid" data-testid="thumbnail-grid">
             {results.map((image, idx) => {
                 const imageId = image.imageId || (image as any).imageIdentifier || `image-${idx}`;
-                const thumbnailUrl = image.thumbnailUrl || (imageId ? `${apiUrl}/image/${encodeURIComponent(imageId)}/thumbnail` : '');
+                const thumbnailUrl = image.thumbnailUrl || (imageId
+                    ? (thumbnailPrefix
+                        ? `${thumbnailPrefix}${encodeURIComponent(imageId)}`
+                        : `${apiUrl}/image/${encodeURIComponent(imageId)}/thumbnail`)
+                    : '');
                 const title = image.title || image.originalFilename || (image as any).originalFileName || imageId;
 
                 return (
