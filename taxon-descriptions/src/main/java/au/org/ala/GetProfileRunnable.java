@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,7 +42,7 @@ class GetProfileRunnable implements Runnable {
 
                 Map<String, String> doc = properties.get(guid);
                 if (doc == null) {
-                    doc = new HashMap<>();
+                    doc = new LinkedHashMap<>();
                     properties.put(guid, doc);
 
                     if (properties.size() % 200 == 0) {
@@ -51,14 +52,31 @@ class GetProfileRunnable implements Runnable {
 
                 doc.put("url", FetchData.profilesUrl + "/opus/" + id + "/profile/" + uuid);
 
-                for (Map attribute : (List<Map>) profile.get("attributes")) {
+                List<Map> attributes = (List<Map>) profile.get("attributes");
+                if (attributes != null) {
+                    Map<String, String> attributeByTitle = new HashMap<>();
+                    for (Map attribute : attributes) {
+                        Object title = attribute.get("title");
+                        Object text = attribute.get("text");
+                        if (title != null && text != null) {
+                            attributeByTitle.putIfAbsent(title.toString(), text.toString());
+                        }
+                    }
+
                     for (int i = 0; i < fields.size(); i++) {
                         String field = fields.get(i);
-                        // set the field if it is not already set
-                        if (attribute.get("title").equals(field) && !properties.containsKey(field) && attribute.get("text") != null) {
-                            doc.put(field, attribute.get("text").toString());
+                        String text = attributeByTitle.get(field);
+                        if (text == null) {
+                            for (Map.Entry<String, String> entry : attributeByTitle.entrySet()) {
+                                if (entry.getKey().equalsIgnoreCase(field)) {
+                                    text = entry.getValue();
+                                    break;
+                                }
+                            }
+                        }
+                        if (text != null && !doc.containsKey(field)) {
+                            doc.put(field, text);
                             fieldCounts.get(i).incrementAndGet();
-                            break;
                         }
                     }
                 }
