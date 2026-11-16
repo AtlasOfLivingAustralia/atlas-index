@@ -18,6 +18,7 @@ jest.mock('@ala/common-ui', () => ({
 jest.mock('../components/imageViewer', () => () => <div data-testid="mock-image-viewer"/>);
 
 jest.mock('../api/endpoints', () => ({
+    imageAssetApiUrl: (apiUrl: string) => apiUrl,
     imageApi: {
         getDetail: jest.fn(),
         attachTag: jest.fn(),
