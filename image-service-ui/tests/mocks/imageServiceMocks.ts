@@ -547,10 +547,10 @@ export async function mockImageBytes(page: Page, seenUrls: Set<URL>) {
         const imageId = url.searchParams.get('imageId') ?? 'unknown';
         route.fulfill({status: 200, contentType: 'image/png', body: generatePlaceholderImage(imageId)});
     });
-    await page.route(/http:\/\/localhost:8081\/image\/[^/?]+\/(thumbnail|original|large)(\?.*)?$/, route => {
+    await page.route(/http:\/\/localhost:8081\/image\/[^/?]+\/(thumbnail(?:_[A-Za-z]+)*|original|large)(\?.*)?$/, route => {
         const url = new URL(route.request().url());
         seenUrls.add(url);
-        const match = url.pathname.match(/\/image\/([^/?]+)\/(thumbnail|original|large)/);
+        const match = url.pathname.match(/\/image\/([^/?]+)\/(thumbnail(?:_[A-Za-z]+)*|original|large)/);
         const imageId = match ? match[1] : 'unknown';
         const type = match ? match[2] : 'thumbnail';
         const width = type === 'original' ? 800 : 256;
