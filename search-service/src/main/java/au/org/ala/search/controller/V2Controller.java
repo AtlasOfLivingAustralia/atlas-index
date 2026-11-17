@@ -17,6 +17,7 @@ import au.org.ala.search.service.LegacyService;
 import au.org.ala.search.service.auth.WebService;
 import au.org.ala.search.service.remote.BannerService;
 import au.org.ala.search.util.HttpCacheHeaders;
+import au.org.ala.search.service.cache.CollectoryCache;
 import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
@@ -72,6 +73,7 @@ public class V2Controller {
     protected final LanguageService languageService;
     protected final UserDataService userDataService;
     private final ListCache listCache;
+    private final CollectoryCache collectoryCache;
     private final QueueDataService queueDataService;
     private final SignedUrlService signedUrlService;
     private final BroadcastQueue broadcastQueue;
@@ -81,7 +83,10 @@ public class V2Controller {
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     public String baseUrl;
 
-    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, SignedUrlService signedUrlService, BroadcastQueue broadcastQueue, BannerService bannerService, HttpCacheHeaders httpCacheHeaders) {
+    @Value("${collections.url}")
+    private String collectionsUrl;
+
+    public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, CollectoryCache collectoryCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, SignedUrlService signedUrlService, BroadcastQueue broadcastQueue, BannerService bannerService, HttpCacheHeaders httpCacheHeaders) {
         this.elasticService = elasticService;
         this.legacyService = legacyService;
         this.adminService = adminService;
@@ -91,6 +96,7 @@ public class V2Controller {
         this.downloadFileStoreService = downloadFileStoreService;
         this.webService = webService;
         this.listCache = listCache;
+        this.collectoryCache = collectoryCache;
         this.languageService = languageService;
         this.userDataService = userDataService;
         this.queueDataService = queueDataService;
@@ -169,6 +175,13 @@ public class V2Controller {
             } catch (IOException ignored) {
             }
 
+            linkCollectorySource(taxon);
+            for (String names : new String[]{"synonymData", "vernacularData", "identifierData", "variantData"}) {
+                if (taxon.get(names) instanceof List<?> rows) {
+                    rows.forEach(row -> linkCollectorySource((Map) row));
+                }
+            }
+
             // Inject listId->name mapping so that it is available to the UI
             Map<String, String> listNamesMap = new HashMap<>();
             for (Object obj : taxon.keySet()) {
@@ -215,6 +228,24 @@ public class V2Controller {
             result.add(taxon);
         }
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Replace a non-URL source (e.g. "Other" from species lists) with the Collectory page for the record's
+     * data resource, matching ala-bie-hub: only link when the data resource exists in the configured Collectory.
+     * Otherwise the non-URL source is removed so it is not rendered as a broken link.
+     */
+    private void linkCollectorySource(Map item) {
+        Object source = item.get("source");
+        if (source != null && source.toString().matches("(?i)https?://.*")) {
+            return;
+        }
+        Object datasetID = item.get("datasetID");
+        if (datasetID != null && collectoryCache.hasDataResource(datasetID.toString())) {
+            item.put("source", collectionsUrl.replaceAll("/$", "") + "/public/show/" + datasetID);
+        } else {
+            item.remove("source");
+        }
     }
 
     /**

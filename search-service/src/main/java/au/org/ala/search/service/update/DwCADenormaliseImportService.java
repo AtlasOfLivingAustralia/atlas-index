@@ -415,6 +415,7 @@ public class DwCADenormaliseImportService {
                 if (variant.source != null) variantItem.put("source", variant.source);
 
                 if (variant.datasetID != null) {
+                    variantItem.put("datasetID", variant.datasetID);
                     DatasetInfo attribution = cache.attributionMap.getOrDefault(variant.datasetID, null);
                     if (attribution != null && attribution.datasetName != null) {
                         variantItem.put("datasetName", attribution.datasetName);
@@ -448,6 +449,7 @@ public class DwCADenormaliseImportService {
                 if (commonName.language != null) vern.put("language", commonName.language);
 
                 if (commonName.datasetID != null) {
+                    vern.put("datasetID", commonName.datasetID);
                     DatasetInfo attribution = cache.attributionMap.getOrDefault(commonName.datasetID, null);
                     if (attribution != null && attribution.datasetName != null) {
                         vern.put("datasetName", attribution.datasetName);
@@ -487,6 +489,7 @@ public class DwCADenormaliseImportService {
                 if (identifier.source != null) identifierItem.put("source", identifier.source);
 
                 if (identifier.datasetID != null) {
+                    identifierItem.put("datasetID", identifier.datasetID);
                     DatasetInfo attribution = cache.attributionMap.getOrDefault(identifier.datasetID, null);
                     if (attribution != null && attribution.datasetName != null) {
                         identifierItem.put("datasetName", attribution.datasetName);
@@ -529,6 +532,7 @@ public class DwCADenormaliseImportService {
                     if (synonym.source != null) syn.put("source", synonym.source);
 
                     if (synonym.datasetID != null) {
+                        syn.put("datasetID", synonym.datasetID);
                         DatasetInfo attribution = cache.attributionMap.getOrDefault(synonym.datasetID, null);
                         if (attribution != null && attribution.datasetName != null) {
                             syn.put("datasetName", attribution.datasetName);

@@ -36,6 +36,12 @@ describe('NamesView', () => {
         expect(screen.getByText('AFD')).toBeInTheDocument();
     });
 
+    it('renders the accepted name source as plain text when there is no source', () => {
+        render(<NamesView result={{nameFormatted: 'Accepted', datasetName: 'AFD'}} isMobile={false} />);
+        expect(screen.getByText('AFD').tagName).toBe('SPAN');
+        expect(screen.queryByRole('link', {name: 'AFD'})).not.toBeInTheDocument();
+    });
+
     it('falls back to alphabetical-by-formatted-name when no namePublishedInYear is available', () => {
         const result = {
             nameFormatted: 'Accepted',
