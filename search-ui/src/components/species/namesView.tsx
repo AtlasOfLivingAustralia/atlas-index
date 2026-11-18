@@ -43,8 +43,22 @@ function NamesView({result, isMobile}: MapViewProps) {
             <span className={classes.speciesDescriptionTitle}>
                 Scientific names
             </span>
+            <div style={{height: isMobile ? '15px' : '30px'}}/>                
+            <InfoBox
+                size={isMobile ? 14 : 16}
+                className="mb-2"
+                icon={faCircleInfo}
+                title="About scientific names"
+                content={<>
+                    For more information on the taxonomic status that the ALA has assigned to a name 
+                    and the rationale behind it see {' '}
+                    <a href="https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy" target="_blank"
+                        style={{color: '#003A70', textDecoration: 'underline'}}>
+                        An Introduction to Taxonomy
+                    </a>.
+                </>}
+            />
             <div style={{height: isMobile ? '15px' : '30px'}}/>
-
             <table className="table table-striped align-middle"
                    style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                 <thead>
