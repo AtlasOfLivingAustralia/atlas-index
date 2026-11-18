@@ -61,6 +61,6 @@ build/
 config.local.js
 names-extract/lsid-*.csv
 taxon-descriptions/config.json
-taxon-descriptions/getAll.sh
+taxon-descriptions/get*.sh
 static-server/static/taxon-map
 taxon-bhl/config.json

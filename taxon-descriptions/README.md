@@ -113,16 +113,35 @@ The config.json file supports the following types:
   - Requires a list of fields to extract
   - Requires the profile ID used in the API
   - Requires file with an ALA token
+- "wikipedia"
+  - Harvests Wikipedia article HTML using the Wikimedia Enterprise Snapshot Chunk API (preferred) or public REST API.
+  - Snapshot Chunk mode downloads one chunk (~500 MB) at a time, decompresses it on-the-fly, extracts matched taxa HTML, and immediately deletes the chunk archive. This keeps peak disk usage under 1 GB, eliminates HTTP rate limits and 429 errors, and safely stays within the 1,500 chunk/month free tier quota.
+  - Requires compliant `userAgent` (e.g. `atlas-index/1.0.0 (https://ala.org.au; support@ala.org.au)`).
+  - Supports authenticated access via Wikimedia Enterprise JWT. Configure `wikimediaUsername` and `wikimediaPassword`, or provide a JSON file via `wikimediaAuthFile` with `{"username": "...", "password": "..."}`.
+  - Automatically handles token lifecycle (login and refresh) and checkpointing/resumption in `/data/wikipedia/processed_chunks.txt`.
+  - Config options:
+    - `wikimediaUseSnapshot`: boolean (default `true` when credentials are configured). Set to `false` to fall back to per-page REST API calls.
+    - `wikimediaSnapshotIdentifier`: string (default `"enwiki_namespace_0"`).
+    - `wikimediaApiUrl`: string (default `"https://api.enterprise.wikimedia.com"`).
+    - `wikimediaRequestsPerSecond`: rate limit for per-page REST fallback (default 30 req/sec with auth, 3 req/sec without auth).
 
 ```json
 {
   "profilesUrl": "https://profiles.ala.org.au",
   "profilesThreads": 1,
   "alaToken": "/data/alaToken",
-  "wikipediaUrl": "https://en.wikipedia.org/api/rest_v1/page/html/",
+  "wikipediaUrl": "https://api.enterprise.wikimedia.com/v2/articles/",
+  "wikimediaAuthUrl": "https://auth.enterprise.wikimedia.com",
+  "wikimediaApiUrl": "https://api.enterprise.wikimedia.com",
+  "wikimediaUseSnapshot": true,
+  "wikimediaSnapshotIdentifier": "enwiki_namespace_0",
   "wikipediaTitles": "/data/taxon-descriptions/enwiki-latest-all-titles-in-ns0",
   "wikipediaTmp": "/data/taxon-descriptions",
-  "wikipediaUserAgent": "",
+  "userAgent": "atlas-index/1.0.0 (https://ala.org.au; support@ala.org.au)",
+  "wikimediaUsername": "atlasoflivingaustralia",
+  "wikimediaPassword": "<pw-in-bitwarden>",
+  "wikimediaAuthFile": "/data/wikimedia-auth.json",
+  "wikimediaRequestsPerSecond": 30,
   "acceptedCsv": "/data/taxon-descriptions/accepted.csv",
   "listsUrl": "https://lists.ala.org.au",
   "mergeDir": "/data/taxon-descriptions/merge",
