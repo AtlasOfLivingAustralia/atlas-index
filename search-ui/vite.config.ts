@@ -9,6 +9,12 @@ import istanbul from 'vite-plugin-istanbul';
 
 const isPlaywright = process.env.PLAYWRIGHT_ENV === 'true';
 
+// phoenix/index.html is the phoenix demo page; it is a separate entry so its CSS never mixes with ala-combined.css.
+const htmlEntries = {
+    main: path.resolve(__dirname, 'index.html'),
+    phoenix: path.resolve(__dirname, 'phoenix/index.html'),
+};
+
 if (isPlaywright) {
     const envFile = `.env.playwright`;
     console.log(`Loading environment variables from ${envFile}`);
@@ -25,6 +31,7 @@ export default defineConfig({
         ? {
               build: {
                   rollupOptions: {
+                      input: htmlEntries,
                       onwarn(warning, warn) {
                           // vite-plugin-istanbul injects /* @__PURE__ */ annotations in positions
                           // that Rolldown rejects as invalid. The build output is still correct.
@@ -34,7 +41,7 @@ export default defineConfig({
                   },
               },
           }
-        : {}),
+        : {build: {rollupOptions: {input: htmlEntries}}}),
     worker: {
         format: 'es'
     },

@@ -1,0 +1,132 @@
+/* Page layout only; colours and spacing come from phoenix --ala-* tokens so atlas overrides apply. */
+
+.phx-hero {
+    background: var(--ala-color-surface);
+    padding: var(--ala-space-8) 0 var(--ala-space-6);
+    text-align: center;
+}
+
+.phx-hero h1 {
+    margin-bottom: var(--ala-space-4);
+}
+
+.phx-search {
+    display: flex;
+    gap: var(--ala-space-2);
+    max-width: 845px;
+    margin: 0 auto;
+}
+
+.phx-search .ala-search-field {
+    flex: 1;
+}
+
+.phx-examples {
+    margin-top: var(--ala-space-3);
+    font-size: 14px;
+}
+
+.phx-tabs {
+    border-bottom: 1px solid var(--ala-color-divider);
+}
+
+.phx-tabs .nav {
+    gap: var(--ala-space-4);
+    overflow-x: auto;
+    flex-wrap: nowrap;
+}
+
+.phx-results {
+    padding-top: var(--ala-space-6);
+}
+
+.phx-results-title {
+    font-size: var(--ala-font-size-h4, 20px);
+    margin-bottom: var(--ala-space-4);
+}
+
+.phx-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ala-space-3);
+    margin-bottom: var(--ala-space-6);
+}
+
+.phx-view-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--ala-space-2);
+}
+
+.phx-list > .ala-result-tile {
+    margin-bottom: var(--ala-space-3);
+}
+
+/* phoenix desktop rows are a fixed 87px (Figma) with overflow hidden; real titles/descriptions need to grow. */
+.phx-list .ala-result-tile--desktop.card {
+    height: auto;
+    align-items: flex-start;
+}
+
+.phx-list .ala-result-tile .card-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* phoenix italicises every result title; only scientific names (wrapped in <i>) should be. */
+.phx-results .ala-result-tile .card-title {
+    font-style: normal;
+}
+
+.phx-group-header h2 {
+    font-size: var(--ala-font-size-h4);
+    margin: 0;
+}
+
+.phx-group {
+    margin-bottom: var(--ala-space-8);
+}
+
+.phx-group-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--ala-space-3);
+    margin-bottom: var(--ala-space-4);
+}
+
+.phx-refine-title {
+    font-size: var(--ala-font-size-h4, 20px);
+}
+
+.phx-facet {
+    margin-bottom: var(--ala-space-4);
+}
+
+.phx-facet legend {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ala-color-primary);
+}
+
+.phx-placeholder {
+    min-height: 120px;
+}
+
+.phx-pagination,
+.phx-resource-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--ala-space-4);
+    margin-top: var(--ala-space-8);
+}
+
+/* phoenix sm checks stack tighter than WCAG 2.2 target spacing (24px pitch); the old facets used a 6px gap too. */
+.phx-facet .form-check {
+    min-height: 24px;
+    margin-bottom: 4px;
+}

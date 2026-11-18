@@ -99,6 +99,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@ala/ui@file:./vendor/ala-ui-0.0.0-c6fbee4.tgz::locator=search-ui%40workspace%3Asearch-ui":
+  version: 0.0.0
+  resolution: "@ala/ui@file:./vendor/ala-ui-0.0.0-c6fbee4.tgz#./vendor/ala-ui-0.0.0-c6fbee4.tgz::hash=6d01ad&locator=search-ui%40workspace%3Asearch-ui"
+  peerDependencies:
+    bootstrap: ^5.3.8
+    react: ^19.2.0
+    react-bootstrap: ^2.10.10
+    react-dom: ^19.2.0
+  peerDependenciesMeta:
+    bootstrap:
+      optional: true
+  checksum: 10c0/ee145f4df93ad2d7bb54c33998a88a06306b76e1f7f4ec9ce0d7f68013e617730259946eb59df7f6d6a710e92b48b98084bb0a68c0004ed389bcbbe9c59d34f7
+  languageName: node
+  linkType: hard
+
 "@asamuzakjp/css-color@npm:^3.2.0":
   version: 3.2.0
   resolution: "@asamuzakjp/css-color@npm:3.2.0"
@@ -9805,6 +9820,7 @@ __metadata:
   resolution: "search-ui@workspace:search-ui"
   dependencies:
     "@ala/common-ui": "workspace:*"
+    "@ala/ui": "file:./vendor/ala-ui-0.0.0-c6fbee4.tgz"
     "@babel/core": "npm:^7.27.7"
     "@babel/preset-typescript": "npm:^7.27.0"
     "@fortawesome/fontawesome-svg-core": "npm:^7.2.0"

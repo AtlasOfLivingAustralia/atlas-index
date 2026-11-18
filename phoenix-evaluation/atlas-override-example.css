@@ -1,0 +1,11 @@
+/* Example atlas override: only phoenix custom properties, loaded after the theme. */
+:root, [data-bs-theme="light"] {
+  --ala-color-primary: #1b6e3a;
+  --ala-color-button-border: #1b6e3a;
+  --ala-color-button-hover: #3f9b5c;
+  --ala-color-button-active: #1b6e3a;
+  --ala-color-link: #0b4f6c;
+  --ala-color-surface: #e8f4ec;
+  --ala-palette-rust: #1b6e3a;
+  --bs-body-font-family: Georgia, serif;
+}

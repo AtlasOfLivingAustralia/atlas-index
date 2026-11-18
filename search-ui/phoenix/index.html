@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="UTF-8" />
+        <link
+            href="https://www.ala.org.au/app/uploads/2019/01/cropped-favicon-32x32.png"
+            rel="shortcut icon"
+            type="image/x-icon"
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Search | Atlas of Living Australia (phoenix demo)</title>
+        <!-- phoenix does not bundle fonts; see the phoenix README "System, light and dark modes". -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+        />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script src="/config.js"></script>
+        <script src="/config.local.js"></script>
+        <script type="module" src="/src/phoenix/main.tsx"></script>
+    </body>
+</html>
