@@ -20,6 +20,7 @@ import co.elastic.clients.json.JsonData;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -47,13 +48,21 @@ public class CollectoryCache {
     // All data resource uids in the configured Collectory, including species lists (which are not indexed)
     private volatile Set<String> dataResourceUids = Set.of();
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${collections.url}")
     private String collectionsUrl;
 
-    public CollectoryCache(ElasticService elasticService) {
+    public CollectoryCache(ElasticService elasticService,
+                           @Value("${webservice.connect.timeout}") int connectTimeout,
+                           @Value("${webservice.read.timeout}") int readTimeout) {
         this.elasticService = elasticService;
+
+        // finite timeouts so a stalled Collectory cannot block startup or cache refreshes
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(connectTimeout);
+        requestFactory.setReadTimeout(readTimeout);
+        this.restTemplate = new RestTemplate(requestFactory);
     }
 
     public boolean hasDataResource(String uid) {
