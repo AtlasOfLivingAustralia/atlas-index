@@ -56,34 +56,57 @@ public class TraitsFetcher {
     public static void main(String[] args) throws Exception {
 
         if (args.length < 1) {
-            System.err.println("Usage: TraitsFetcher <config.json>");
+            System.err.println("Usage: TraitsFetcher <config.json> [austraits|birdtraits|all]");
             System.exit(1);
         }
 
         String configFile = args[0];
+        String source = args.length >= 2 ? args[1].trim().toLowerCase(Locale.ROOT) : "all";
+        if (!source.equals("all") && !source.equals("austraits") && !source.equals("birdtraits")) {
+            System.err.println("Unknown traits source: " + args[1] + ". Expected one of: austraits, birdtraits, all");
+            System.err.println("Usage: TraitsFetcher <config.json> [austraits|birdtraits|all]");
+            System.exit(1);
+        }
+        boolean runAustraits = source.equals("all") || source.equals("austraits");
+        boolean runBirdtraits = source.equals("all") || source.equals("birdtraits");
+
         Map<String, Object> config = mapper.readValue(new File(configFile), Map.class);
 
-        austraitsUrl = config.get("austraitsUrl").toString().replaceAll("/$", "");
-        acceptedCsv = config.get("acceptedCsv").toString();
+        austraitsUrl = config.containsKey("austraitsUrl") && config.get("austraitsUrl") != null
+                ? config.get("austraitsUrl").toString().replaceAll("/$", "")
+                : "";
+        acceptedCsv = config.containsKey("acceptedCsv") && config.get("acceptedCsv") != null
+                ? config.get("acceptedCsv").toString()
+                : "";
         traitsDir = config.get("traitsDir").toString();
         traitsThreads = config.containsKey("traitsThreads") ? Integer.parseInt(config.get("traitsThreads").toString()) : 5;
 
         String kingdomFilterStr = config.containsKey("kingdomFilter") ? config.get("kingdomFilter").toString() : "Plantae";
         kingdomFilter = new HashSet<>(Arrays.asList(kingdomFilterStr.split("\\s*,\\s*")));
 
-        File traitsDirFile = new File(traitsDir + "/austraits");
-        if (!traitsDirFile.exists()) {
-            traitsDirFile.mkdirs();
+        System.out.println(ts() + " Starting taxon-traits fetch (source=" + source + ")");
+        System.out.println(ts() + " traitsDir: " + traitsDir);
+
+        if (runAustraits) {
+            if (StringUtils.isNotEmpty(austraitsUrl) && StringUtils.isNotEmpty(acceptedCsv)) {
+                File traitsDirFile = new File(traitsDir + "/austraits");
+                if (!traitsDirFile.exists()) {
+                    traitsDirFile.mkdirs();
+                }
+                System.out.println(ts() + " austraitsUrl: " + austraitsUrl);
+                System.out.println(ts() + " acceptedCsv: " + acceptedCsv);
+                System.out.println(ts() + " traitsThreads: " + traitsThreads);
+                System.out.println(ts() + " kingdomFilter: " + kingdomFilter);
+
+                fetchAll();
+            } else {
+                System.out.println(ts() + " Skipping AusTraits fetch (austraitsUrl or acceptedCsv not configured)");
+            }
         }
 
-        System.out.println(ts() + " Starting taxon-traits fetch");
-        System.out.println(ts() + " austraitsUrl: " + austraitsUrl);
-        System.out.println(ts() + " acceptedCsv: " + acceptedCsv);
-        System.out.println(ts() + " traitsDir: " + traitsDir);
-        System.out.println(ts() + " traitsThreads: " + traitsThreads);
-        System.out.println(ts() + " kingdomFilter: " + kingdomFilter);
-
-        fetchAll();
+        if (runBirdtraits) {
+            ListTraitsFetcher.fetchAll(config, traitsDir);
+        }
 
         System.out.println(ts() + " Finished. processed=" + processed.get()
                 + " skipped=" + skipped.get()

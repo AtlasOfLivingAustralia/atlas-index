@@ -24,6 +24,9 @@ export const TRAITS_ENTRY_FIXTURE = {
     csv: fs.readFileSync(path.resolve(__dirname, '../resources/traits-data.csv'), 'utf-8'),
 };
 
+/** List traits fixture (dr5222) for the bird species. */
+export const LIST_TRAITS_BIRD_FIXTURE = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../resources/traits-lists-bird.json'), 'utf-8'));
+
 async function fulfillJson(route: Route, data: unknown) {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
 }
@@ -68,37 +71,38 @@ export async function mockDescriptions(page: Page, seenUrls: Set<URL>, descripti
 // ---------------------------------------------------------------------------
 
 export interface TraitsEntry {
-    count: any;
-    summary: any;
+    count?: any;
+    summary?: any;
     csv?: string;
+    lists?: any;
 }
 
 export async function mockTraits(page: Page, seenUrls: Set<URL>, traitsByGuid: Record<string, TraitsEntry> = {}) {
     seenUrls.add(new URL('https://static.test.ala.org.au/taxon-traits/'));
 
-    await page.context().route('https://static.test.ala.org.au/taxon-traits/**_count.json', async (route) => {
+    await page.context().route('https://static.test.ala.org.au/taxon-traits/austraits/**_count.json', async (route) => {
         const url = new URL(route.request().url());
         seenUrls.add(url);
         const guid = extractGuidFromDoubleEncodedSegment(url.pathname, '_count.json');
         const entry = traitsByGuid[guid];
-        if (!entry) {
+        if (!entry?.count) {
             return route.fulfill({ status: 404, contentType: 'application/json', body: '[]' });
         }
         await fulfillJson(route, entry.count);
     });
 
-    await page.context().route('https://static.test.ala.org.au/taxon-traits/**_summary.json', async (route) => {
+    await page.context().route('https://static.test.ala.org.au/taxon-traits/austraits/**_summary.json', async (route) => {
         const url = new URL(route.request().url());
         seenUrls.add(url);
         const guid = extractGuidFromDoubleEncodedSegment(url.pathname, '_summary.json');
         const entry = traitsByGuid[guid];
-        if (!entry) {
+        if (!entry?.summary) {
             return route.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
         }
         await fulfillJson(route, entry.summary);
     });
 
-    await page.context().route('https://static.test.ala.org.au/taxon-traits/**_data.csv', async (route) => {
+    await page.context().route('https://static.test.ala.org.au/taxon-traits/austraits/**_data.csv', async (route) => {
         const url = new URL(route.request().url());
         seenUrls.add(url);
         const guid = extractGuidFromDoubleEncodedSegment(url.pathname, '_data.csv');
@@ -107,6 +111,17 @@ export async function mockTraits(page: Page, seenUrls: Set<URL>, traitsByGuid: R
             return route.fulfill({ status: 404, contentType: 'text/plain', body: 'Not found' });
         }
         await route.fulfill({ status: 200, contentType: 'text/csv', body: entry.csv });
+    });
+
+    await page.context().route('https://static.test.ala.org.au/taxon-traits/lists/**.json', async (route) => {
+        const url = new URL(route.request().url());
+        seenUrls.add(url);
+        const guid = extractGuidFromDoubleEncodedSegment(url.pathname, '.json');
+        const entry = traitsByGuid[guid];
+        if (!entry?.lists) {
+            return route.fulfill({ status: 404, contentType: 'application/json', body: '[]' });
+        }
+        await fulfillJson(route, entry.lists);
     });
 }
 

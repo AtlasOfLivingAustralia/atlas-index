@@ -3,6 +3,14 @@
   "acceptedCsv": "/data/search-service/data/accepted25.csv",
   "traitsDir": "/data/search-service/data/taxon-traits",
   "traitsThreads": 10,
-  "kingdomFilter": "Plantae"
+  "kingdomFilter": "Plantae",
+  "listsUrl": "https://lists-ws.ala.org.au",
+  "listsUiUrl": "https://lists.ala.org.au/list",
+  "lists": [
+    {
+      "id": "dr5222",
+      "attributesFile": "dr5222-attributes.txt"
+    }
+  ]
 }
 

@@ -1083,23 +1083,23 @@ test.describe('Species page - Traits tab', () => {
         await load(page, speciesUrl(SPECIES_PLANT_NO_TRAITS.guid, 'tab=traits'));
         await waitForContent(page);
 
-        await expect(page.locator('text=There is currently no data for the taxon name you searched for in the AusTraits database.')).toBeVisible();
+        await expect(page.getByText(/There is currently no trait data available for\s+Centrosema \(DC\.\) Benth\./)).toBeVisible();
     });
 
-    test('non-plant species: Traits tab is still visible (no kingdom-based hiding implemented) and shows "no data"', async ({ page }) => {
-        test.skip(shouldSkip('species-traits-non-plant'), 'Skipped via live-config.json skip list');
-        // NOTE: manual QA expects the Traits tab to be hidden entirely for
-        // fungi/animal species; the actual implementation always renders the
-        // tab and shows the same "no data" fallback regardless of kingdom —
-        // see PLAYWRIGHT_TEST.md "Discrepancies". This test asserts the real
-        // behaviour.
+    test('bird species with DR5222 traits: shows bird traits title, table, reference, and hides AusTraits', async ({ page }) => {
+        test.skip(shouldSkip('species-traits-bird'), 'Skipped via live-config.json skip list');
         await setupSpeciesPageMocks(page);
         await load(page, speciesUrl(SPECIES_BIRD_FULL.guid));
 
         await expect(page.locator('div', { hasText: 'Traits' }).locator('visible=true').first()).toBeVisible();
         await page.locator('div', { hasText: /^Traits$/ }).click();
         await waitForContent(page);
-        await expect(page.locator('text=There is currently no data for the taxon name you searched for in the AusTraits database.')).toBeVisible();
+
+        await expect(page.getByRole('heading', { name: 'Biological, ecological, conservation and legal information for all species and subspecies of Australian bird' })).toBeVisible();
+        await expect(page.locator('td', { hasText: '29_Population_description_4' })).toBeVisible();
+        await expect(page.locator('td', { hasText: 'Core' })).toBeVisible();
+        await expect(page.locator('text=Garnett, S., Duursma, D., Ehmke, G. et al.')).toBeVisible();
+        await expect(page.locator('h1', { hasText: 'AusTraits' })).toHaveCount(0);
     });
 });
 

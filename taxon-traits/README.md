@@ -18,6 +18,7 @@ For each accepted taxon in the configured kingdom, calls the AusTraits API and w
 {traitsDir}/austraits/{last2LsidChars}/{urlEncodedLsid}_count.json
 {traitsDir}/austraits/{last2LsidChars}/{urlEncodedLsid}_summary.json
 {traitsDir}/austraits/{last2LsidChars}/{urlEncodedLsid}_data.csv
+{traitsDir}/lists/{last2LsidChars}/{urlEncodedLsid}.json
 ```
 
 Files that already exist are skipped, so the run can be safely restarted.
@@ -26,12 +27,12 @@ Files that already exist are skipped, so the run can be safely restarted.
 
 Get the accepted names CSV (same file used by taxon-descriptions):
 ```shell
-curl "https://{search-service}/v1/bie/download?q=-acceptedConceptID:*%20AND%20idxtype:TAXON&fields=guid,scientificName,rk_genus,rk_family,rk_order,rk_class,rk_phylum,rk_kingdom" -o /data/taxon-traits/accepted.csv
+curl "https://{search-service}/v1/bie/download?q=-acceptedConceptID:*%20AND%20idxtype:TAXON&fields=guid,scientificName,rk_genus,rk_family,rk_order,rk_class,rk_phylum,rk_kingdom" -o /data/search-service/data/accepted25.csv
 ```
 
 Confirm row count:
 ```shell
-wc -l /data/taxon-traits/accepted.csv
+wc -l /data/search-service/data/accepted25.csv
 ```
 
 ## Run austraits-api locally
@@ -50,8 +51,15 @@ mvn package
 
 ## Run
 
+Run all configured trait sources (default):
 ```shell
 java -jar target/taxon-traits-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.json
+```
+
+Or specify a single source (`austraits`, `birdtraits`, or `all`):
+```shell
+java -jar target/taxon-traits-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.json austraits
+java -jar target/taxon-traits-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.json birdtraits
 ```
 
 ## Configuration

@@ -27,6 +27,7 @@ import {
     DESCRIPTIONS_MULTI_SECTION_FIXTURE,
     BHL_RESULTS_FIXTURE,
     TRAITS_ENTRY_FIXTURE,
+    LIST_TRAITS_BIRD_FIXTURE,
 } from './mocks/staticContentMocks';
 
 // Resolves to the live-config.json baseUrl when LIVE_CONFIG_PATH is set (see
@@ -115,7 +116,14 @@ export async function setupSpeciesPageMocks(page: Page, options: SpeciesPageMock
     await mockSpeciesSearch(page, seenUrls, options.searchConfig ?? {});
     await mockBiocacheSearch(page, seenUrls, options.biocacheConfig ?? {});
     await mockDescriptions(page, seenUrls, options.descriptionsByGuid ?? { [SPECIES_BIRD_FULL.guid]: DESCRIPTIONS_MULTI_SECTION_FIXTURE });
-    await mockTraits(page, seenUrls, options.traitsByGuid ?? { [SPECIES_PLANT_TRAITS.guid]: TRAITS_ENTRY_FIXTURE });
+    await mockTraits(
+        page,
+        seenUrls,
+        options.traitsByGuid ?? {
+            [SPECIES_PLANT_TRAITS.guid]: TRAITS_ENTRY_FIXTURE,
+            [SPECIES_BIRD_FULL.guid]: { lists: LIST_TRAITS_BIRD_FIXTURE },
+        }
+    );
     await mockBhl(page, seenUrls, options.bhlByGuid ?? { [SPECIES_BIRD_FULL.guid]: BHL_RESULTS_FIXTURE });
     await mockTaxonMap(page, seenUrls, options.taxonMapByGuid ?? { [SPECIES_BIRD_FULL.guid]: TAXON_MAP_METADATA_FIXTURE });
     await mockWmsTiles(page, seenUrls);

@@ -15,6 +15,19 @@ interface MapViewProps {
     isMobile: boolean
 }
 
+interface ListTraitItem {
+    name: string;
+    value: string;
+}
+
+interface ListTraitSection {
+    dataResourceUid: string;
+    title: string;
+    reference: string;
+    listUrl?: string;
+    traits: ListTraitItem[];
+}
+
 function TraitsView({result, isMobile}: MapViewProps) {
     const [traitsText, setTraitsText] = useState<string>('');
     const [traitsTaxon, setTraitsTaxon] = useState<string>('');
@@ -22,19 +35,24 @@ function TraitsView({result, isMobile}: MapViewProps) {
     const [traits, setTraits] = useState<Record<PropertyKey, string | number | any>>({});
     const [loadingCounts, setLoadingCounts] = useState(false);
     const [errorMessageCounts, setErrorMessageCounts] = useState('');
-    const [noTraitsData, setNoTraitsData] = useState(false);
+    const [noAusTraitsData, setNoAusTraitsData] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [errorMessageSummary, setErrorMessageSummary] = useState('');
 
+    const [listTraits, setListTraits] = useState<ListTraitSection[]>([]);
+    const [loadingLists, setLoadingLists] = useState(false);
+    const [errorMessageLists, setErrorMessageLists] = useState('');
+    const [noListTraitsData, setNoListTraitsData] = useState(false);
+
     const textStyle = {fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}
 
-    function getTraitsPath(ext: string): string {
+    function getTraitsPath(source: string, ext: string): string {
         if (!result) return ''; // should never trigger
 
         // doubly encoded; once for the file name, once for the CDN/server that translates URL encoding to file name
         const lsidEncoded = encodeURIComponent(encodeURIComponent(result.guid));
         const last2 = lsidEncoded.substring(lsidEncoded.length - 2);
-        return import.meta.env.VITE_TAXON_TRAITS_URL + '/austraits/' + last2 + '/' + lsidEncoded + ext;
+        return import.meta.env.VITE_TAXON_TRAITS_URL + '/' + source + '/' + last2 + '/' + lsidEncoded + ext;
     }
 
     function sanitizeFilename(name: string): string {
@@ -48,14 +66,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
 
         setLoadingCounts(true);
         setErrorMessageCounts('');
-        setNoTraitsData(false);
+        setNoAusTraitsData(false);
         setTraitsText('');
         setTraitsTaxon('');
 
-        const countUrl = getTraitsPath('_count.json');
+        const countUrl = getTraitsPath('austraits', '_count.json');
         fetch(countUrl).then((response) => {
             if (!response.ok) {
-                setNoTraitsData(true);
+                setNoAusTraitsData(true);
                 return null;
             }
             return response.json();
@@ -63,6 +81,8 @@ function TraitsView({result, isMobile}: MapViewProps) {
             if (data && data.length > 0) {
                 setTraitsTaxon(data[0].taxon);
                 setTraitsText(data[0].explanation);
+            } else if (data !== null) {
+                setNoAusTraitsData(true);
             }
         }).catch((error) => {
             setErrorMessageCounts(
@@ -77,7 +97,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
         setTraits({});
         setHasMoreValues(false);
 
-        const summaryUrl = getTraitsPath('_summary.json');
+        const summaryUrl = getTraitsPath('austraits', '_summary.json');
         fetch(summaryUrl).then((response) => {
             if (!response.ok) {
                 return null;
@@ -99,6 +119,30 @@ function TraitsView({result, isMobile}: MapViewProps) {
             setErrorMessageSummary('Traits summary - ' + error + ' - ' + summaryUrl);
         }).finally(() => {
             setLoadingSummary(false);
+        });
+
+        setLoadingLists(true);
+        setErrorMessageLists('');
+        setNoListTraitsData(false);
+        setListTraits([]);
+
+        const listsUrl = getTraitsPath('lists', '.json');
+        fetch(listsUrl).then((response) => {
+            if (!response.ok) {
+                setNoListTraitsData(true);
+                return null;
+            }
+            return response.json();
+        }).then((data) => {
+            if (Array.isArray(data) && data.length > 0) {
+                setListTraits(data);
+            } else if (data !== null) {
+                setNoListTraitsData(true);
+            }
+        }).catch((error) => {
+            setErrorMessageLists('List traits - ' + error + ' - ' + listsUrl);
+        }).finally(() => {
+            setLoadingLists(false);
         });
     }, [result]);
 
@@ -126,44 +170,42 @@ function TraitsView({result, isMobile}: MapViewProps) {
         );
     }
 
+    function renderReferenceText(reference: string) {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return reference.split(urlRegex).map((part, index) => {
+            if (part.match(/^https?:\/\//)) {
+                return (
+                    <a key={index} className={classes.speciesLink} href={part} target="_blank" rel="noreferrer">
+                        {part}
+                    </a>
+                );
+            }
+            return <React.Fragment key={index}>{part}</React.Fragment>;
+        });
+    }
+
+    const hasAusTraits = Boolean(
+        traitsText ||
+        traits?.categorical_traits?.length > 0 ||
+        traits?.numeric_traits?.length > 0
+    );
+    const hasListTraits = listTraits.length > 0;
+    const isLoadingInitial = (loadingCounts || loadingLists) && !hasAusTraits && !hasListTraits;
+    const showNoData =
+        !loadingCounts &&
+        !loadingSummary &&
+        !loadingLists &&
+        !hasAusTraits &&
+        !hasListTraits &&
+        noAusTraitsData &&
+        noListTraitsData &&
+        !errorMessageCounts &&
+        !errorMessageSummary &&
+        !errorMessageLists;
 
     return <>
-        <h1 className={classes.traitsTitle}>AusTraits</h1>
         <div className={classes.traitsSectionText}>
-            <div className={classes.traitsColumns}>
-                <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
-                    <InfoBox size={isMobile ? 14 : 16} lineHeight={isMobile ? 20 : 24} icon={faCircleInfo}
-                             title="About AusTraits"
-                             content={<>
-                                 <p style={{ margin: 0 }}>
-                                     <a className={classes.speciesLink} style={textStyle}
-                                        href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
-                                         AusTraits
-                                     </a>
-                                     {' '}is an open-source, harmonised database of
-                                     Australian plant trait data, sourced
-                                     from individual researchers, government
-                                     entities (e.g. herbaria) or NGOs across
-                                     Australia. Traits vary in scope from
-                                     morphological attributes (e.g. leaf area,
-                                     seed mass, plant height) to ecological
-                                     attributes (e.g. fire response, flowering
-                                     time, pollinators) and physiological
-                                     measures of performance (e.g. photosynthetic
-                                     gas exchange, water-use efficiency).
-                                 </p>
-                             </>
-                             }/>
-                </div>
-                <div className={isMobile ? "" : `${classes.traitsFixedColumn} d-flex align-items-start justify-content-end`}>
-                    <img
-                        src={import.meta.env.VITE_APP_AUSTRAITS_LOGO}
-                        alt="Austraits logo"
-                        className={classes.traitsLogo}
-                    />
-                </div>
-            </div>
-            {loadingCounts &&
+            {isLoadingInitial &&
                 <div className={`${classes.traitsColumns} ${classes.traitsSummary} placeholder-glow`}
                      role="status" aria-label="Loading trait explanation">
                     <div className={`${classes.traitsFlexibleColumn} ${classes.traitsExplanation} ${classes.traitsSkeletonLines}`}
@@ -188,67 +230,6 @@ function TraitsView({result, isMobile}: MapViewProps) {
                     </>}
                 />
             )}
-            {noTraitsData && !loadingCounts && (
-                <div className={classes.traitsSummary} style={textStyle}>
-                    There is currently no data for the taxon name you searched for in the AusTraits database.
-                    Search for another species name or access the entire database at{' '}
-                    <a className={classes.speciesLink} style={textStyle} target="_blank"
-                        href="https://doi.org/10.5281/zenodo.10156222">
-                        doi.org/10.5281/zenodo.10156222
-                    </a>
-                </div>
-            )}
-            {traitsText && <>
-                <div className={`${classes.traitsColumns} ${classes.traitsSummary}`}>
-                    <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
-                        {explanation(traitsText, traitsTaxon)}
-                    </div>
-                    {(traits?.categorical_traits?.length > 0 || traits?.numeric_traits?.length > 0) && (
-                        <div className={isMobile ? "" : `${classes.traitsFixedColumn} d-flex align-items-start justify-content-end`}>
-                            <button className={`btn ala-btn-primary ${classes.traitsDownloadButton}`}
-                                    onClick={() => {
-                                        const csvUrl = getTraitsPath('_data.csv');
-                                        const filename = sanitizeFilename(result?.name || 'traits') + '.csv';
-                                        fetch(csvUrl).then((response) => {
-                                            if (!response.ok) throw new Error('HTTP ' + response.status);
-                                            return response.blob();
-                                        }).then((blob) => {
-                                            const url = URL.createObjectURL(blob);
-                                            const a = document.createElement('a');
-                                            a.href = url;
-                                            a.download = filename;
-                                            document.body.appendChild(a);
-                                            a.click();
-                                            document.body.removeChild(a);
-                                            URL.revokeObjectURL(url);
-                                        }).catch(() => {
-                                            alert('Download failed');
-                                        });
-                                    }}>
-                                Download full CSV
-                                <DownloadIcon size="14" className={classes.traitsDownloadIcon}/>
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-            </>}
-
-            {loadingSummary && (
-                <div className="placeholder-glow" role="status" aria-label="Loading trait tables">
-                    <div className={classes.traitsSectionTitle} aria-hidden="true">
-                        <span className="placeholder col-4"/>
-                    </div>
-                    <div className={classes.traitsSkeletonTable} aria-hidden="true">
-                        {[0, 1, 2, 3].map(row => (
-                            <div key={row}>
-                                <span className="placeholder col-4"/>
-                                <span className="placeholder col-5"/>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
             {errorMessageSummary &&
                 <FlaggedAlert
                     content={<>
@@ -262,108 +243,267 @@ function TraitsView({result, isMobile}: MapViewProps) {
                     </>}
                 />
             }
-            {traits?.categorical_traits?.length > 0 && <>
-                <h2 className={classes.traitsSectionTitle}>
-                    Categorical Traits
-                </h2>
-                {hasMoreValues && <>
-                    <span className={classes.traitsFootnote}>
-                        * Data sources in AusTraits report
-                        multiple values for this trait,
-                        suggesting variation across the taxon's
-                        range and life stages. Please download
-                        the raw data with information about the
-                        context of data collection to assess
-                        whether they are relevant to your
-                        project.
-                    </span>
+            {errorMessageLists &&
+                <FlaggedAlert
+                    content={<>
+                        <b>Error loading trait data.</b>
+                        <p>
+                            Report this error by clicking on the{' '}
+                            <b>Need Help?</b> button on the right
+                            edge of the screen.
+                        </p>
+                        <code>{errorMessageLists}</code>
+                    </>}
+                />
+            }
+            {showNoData && (
+                <div className={classes.traitsSummary} style={textStyle}>
+                    There is currently no trait data available for{' '}
+                    {result?.name ? <FormatName name={result.name} rankId={result?.rankID}/> : 'this taxon'}.
+                </div>
+            )}
+            {hasAusTraits && <>
+                <h1 className={classes.traitsTitle}>AusTraits</h1>
+                <div className={classes.traitsColumns}>
+                    <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
+                        <InfoBox size={isMobile ? 14 : 16} lineHeight={isMobile ? 20 : 24} icon={faCircleInfo}
+                                 title="About AusTraits"
+                                 content={<>
+                                     <p style={{ margin: 0 }}>
+                                         <a className={classes.speciesLink} style={textStyle}
+                                            href={import.meta.env.VITE_AUSTRAITS_HOME} target="_blank">
+                                             AusTraits
+                                         </a>
+                                         {' '}is an open-source, harmonised database of
+                                         Australian plant trait data, sourced
+                                         from individual researchers, government
+                                         entities (e.g. herbaria) or NGOs across
+                                         Australia. Traits vary in scope from
+                                         morphological attributes (e.g. leaf area,
+                                         seed mass, plant height) to ecological
+                                         attributes (e.g. fire response, flowering
+                                         time, pollinators) and physiological
+                                         measures of performance (e.g. photosynthetic
+                                         gas exchange, water-use efficiency).
+                                     </p>
+                                 </>
+                                 }/>
+                    </div>
+                    <div className={isMobile ? "" : `${classes.traitsFixedColumn} d-flex align-items-start justify-content-end`}>
+                        <img
+                            src={import.meta.env.VITE_APP_AUSTRAITS_LOGO}
+                            alt="Austraits logo"
+                            className={classes.traitsLogo}
+                        />
+                    </div>
+                </div>
+                {traitsText && <>
+                    <div className={`${classes.traitsColumns} ${classes.traitsSummary}`}>
+                        <div className={isMobile ? "" : classes.traitsFlexibleColumn}>
+                            {explanation(traitsText, traitsTaxon)}
+                        </div>
+                        {(traits?.categorical_traits?.length > 0 || traits?.numeric_traits?.length > 0) && (
+                            <div className={isMobile ? "" : `${classes.traitsFixedColumn} d-flex align-items-start justify-content-end`}>
+                                <button className={`btn ala-btn-primary ${classes.traitsDownloadButton}`}
+                                        onClick={() => {
+                                            const csvUrl = getTraitsPath('austraits', '_data.csv');
+                                            const filename = sanitizeFilename(result?.name || 'traits') + '.csv';
+                                            fetch(csvUrl).then((response) => {
+                                                if (!response.ok) throw new Error('HTTP ' + response.status);
+                                                return response.blob();
+                                            }).then((blob) => {
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = filename;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+                                                URL.revokeObjectURL(url);
+                                            }).catch(() => {
+                                                alert('Download failed');
+                                            });
+                                        }}>
+                                    Download full CSV
+                                    <DownloadIcon size="14" className={classes.traitsDownloadIcon}/>
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </>}
-                <div className="table-responsive" tabIndex={0} role="region" aria-label="Categorical traits">
-                <table className="table table-striped" style={textStyle}>
-                    <thead>
-                    <tr>
-                        <th>Trait Name</th>
-                        <th>Trait Value</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {traits?.categorical_traits.map((item: Record<string, any>, idx: number) =>
-                        <tr key={idx}>
-                            <td>
-                                <a className={classes.speciesLink} style={textStyle} href={item.definition}>
-                                    {item.trait_name}
-                                </a>
-                            </td>
-                            <td>{item.trait_values}</td>
+
+                {loadingSummary && (
+                    <div className="placeholder-glow" role="status" aria-label="Loading trait tables">
+                        <div className={classes.traitsSectionTitle} aria-hidden="true">
+                            <span className="placeholder col-4"/>
+                        </div>
+                        <div className={classes.traitsSkeletonTable} aria-hidden="true">
+                            {[0, 1, 2, 3].map(row => (
+                                <div key={row}>
+                                    <span className="placeholder col-4"/>
+                                    <span className="placeholder col-5"/>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                {traits?.categorical_traits?.length > 0 && <>
+                    <h2 className={classes.traitsSectionTitle}>
+                        Categorical Traits
+                    </h2>
+                    {hasMoreValues && <>
+                        <span className={classes.traitsFootnote}>
+                            * Data sources in AusTraits report
+                            multiple values for this trait,
+                            suggesting variation across the taxon's
+                            range and life stages. Please download
+                            the raw data with information about the
+                            context of data collection to assess
+                            whether they are relevant to your
+                            project.
+                        </span>
+                    </>}
+                    <div className="table-responsive" tabIndex={0} role="region" aria-label="Categorical traits">
+                    <table className="table table-striped" style={textStyle}>
+                        <thead>
+                        <tr>
+                            <th>Trait Name</th>
+                            <th>Trait Value</th>
                         </tr>
-                    )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                        {traits?.categorical_traits.map((item: Record<string, any>, idx: number) =>
+                            <tr key={idx}>
+                                <td>
+                                    <a className={classes.speciesLink} style={textStyle} href={item.definition}>
+                                        {item.trait_name}
+                                    </a>
+                                </td>
+                                <td>{item.trait_values}</td>
+                            </tr>
+                        )}
+                        </tbody>
+                    </table>
+                    </div>
+                </>}
+                {traits?.numeric_traits?.length > 0 && <>
+                    <h2 className={classes.traitsSectionTitle}>
+                        Numerical Traits
+                    </h2>
+                    <div className="table-responsive" tabIndex={0} role="region" aria-label="Numerical traits">
+                    <table className="table table-striped" style={textStyle}>
+                        <thead>
+                        <tr>
+                            <th>Trait Name</th>
+                            <th className="text-end">Min</th>
+                            <th className="text-end">Mean</th>
+                            <th className="text-end">Max</th>
+                            <th className="text-end">Unit</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {traits?.numeric_traits.map((item: Record<string, any>, idx: number) =>
+                            <tr key={idx}>
+                                <td>
+                                    <a className={classes.speciesLink} style={textStyle}
+                                        href={item.definition}>
+                                        {item.trait_name}
+                                    </a>
+                                </td>
+                                <td className="text-end">
+                                    {item.min}
+                                </td>
+                                <td className="text-end">
+                                    {item.mean}
+                                </td>
+                                <td className="text-end">
+                                    {item.max}
+                                </td>
+                                <td className="text-end">
+                                    {item.unit}
+                                </td>
+                            </tr>
+                        )}
+                        </tbody>
+                    </table>
+                    </div>
+                </>}
+                <div className={classes.traitsCitation}>
+                    <p className="fw-bold">
+                        How to cite AusTraits data
+                    </p>
+                    <p>
+                        Falster, Gallagher et al (2021) AusTraits, a
+                        curated plant trait database for the Australian
+                        flora. Scientific Data 8: 254,{' '}
+                        <a className={classes.speciesLink}
+                            href="https://doi.org/10.1038/s41597-021-01006-6" target="_blank">
+                            https://doi.org/10.1038/s41597-021-01006-6
+                        </a>{' '}
+                        - followed by the ALA url and access date. For
+                        more information about citing information on the
+                        ALA, see -{' '}
+                        <a className={classes.speciesLink}
+                            href={import.meta.env.VITE_CITE_URL} target="_blank">
+                            Citing the ALA
+                        </a>.
+                    </p>
                 </div>
             </>}
-            {traits?.numeric_traits?.length > 0 && <>
-                <h2 className={classes.traitsSectionTitle}>
-                    Numerical Traits
-                </h2>
-                <div className="table-responsive" tabIndex={0} role="region" aria-label="Numerical traits">
-                <table className="table table-striped" style={textStyle}>
-                    <thead>
-                    <tr>
-                        <th>Trait Name</th>
-                        <th className="text-end">Min</th>
-                        <th className="text-end">Mean</th>
-                        <th className="text-end">Max</th>
-                        <th className="text-end">Unit</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {traits?.numeric_traits.map((item: Record<string, any>, idx: number) =>
-                        <tr key={idx}>
-                            <td>
-                                <a className={classes.speciesLink} style={textStyle}
-                                    href={item.definition}>
-                                    {item.trait_name}
-                                </a>
-                            </td>
-                            <td className="text-end">
-                                {item.min}
-                            </td>
-                            <td className="text-end">
-                                {item.mean}
-                            </td>
-                            <td className="text-end">
-                                {item.max}
-                            </td>
-                            <td className="text-end">
-                                {item.unit}
-                            </td>
-                        </tr>
+            {hasListTraits && listTraits.map((section, sectionIdx) => (
+                <div key={section.dataResourceUid || sectionIdx}>
+                    {(hasAusTraits || sectionIdx > 0) && (
+                        <hr style={{
+                            marginTop: isMobile ? '20px' : '40px',
+                            marginBottom: isMobile ? '15px' : '40px'
+                        }}/>
                     )}
-                    </tbody>
-                </table>
+                    <h1 className={classes.traitsTitle}>{section.title}</h1>
+                    {section.traits?.length > 0 && (
+                        <div className="table-responsive" tabIndex={0} role="region" aria-label={section.title}>
+                            <table className="table table-striped" style={textStyle}>
+                                <thead>
+                                <tr>
+                                    <th>Trait Name</th>
+                                    <th>Trait Value</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {section.traits.map((item, idx) => (
+                                    <tr key={idx}>
+                                        <td>{item.name}</td>
+                                        <td>{item.value}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                    <div className={classes.traitsCitation}>
+                        <p className="fw-bold">
+                            Reference
+                        </p>
+                        {section.reference && (
+                            <p>{renderReferenceText(section.reference)}</p>
+                        )}
+                        <p>
+                            {section.listUrl && (
+                                <>
+                                    Source:{' '}
+                                    <a className={classes.speciesLink} href={section.listUrl} target="_blank" rel="noreferrer">
+                                        {section.listUrl}
+                                    </a>.{' '}
+                                </>
+                            )}
+                            For more information about citing information on the ALA, see -{' '}
+                            <a className={classes.speciesLink}
+                                href={import.meta.env.VITE_CITE_URL} target="_blank">
+                                Citing the ALA
+                            </a>.
+                        </p>
+                    </div>
                 </div>
-            </>}
-            <div className={classes.traitsCitation}>
-                <p className="fw-bold">
-                    How to cite AusTraits data
-                </p>
-                <p>
-                    Falster, Gallagher et al (2021) AusTraits, a
-                    curated plant trait database for the Australian
-                    flora. Scientific Data 8: 254,{' '}
-                    <a className={classes.speciesLink}
-                        href="https://doi.org/10.1038/s41597-021-01006-6" target="_blank">
-                        https://doi.org/10.1038/s41597-021-01006-6
-                    </a>{' '}
-                    - followed by the ALA url and access date. For
-                    more information about citing information on the
-                    ALA, see -{' '}
-                    <a className={classes.speciesLink}
-                        href={import.meta.env.VITE_CITE_URL} target="_blank">
-                        Citing the ALA
-                    </a>.
-                </p>
-            </div>
+            ))}
         </div>
     </>;
 }

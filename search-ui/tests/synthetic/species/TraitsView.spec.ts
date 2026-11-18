@@ -33,4 +33,15 @@ test.describe('TraitsView.tsx', () => {
 
         await expect(page.locator('code', { hasText: 'Traits summary' })).toBeVisible();
     });
+
+    test('a network error fetching list traits shows an error message', async ({ page }) => {
+        test.skip(shouldSkip('traitsview-lists-network-error'), 'Skipped via live-config.json skip list');
+        await setupSpeciesPageMocks(page);
+        await page.context().route('https://static.test.ala.org.au/taxon-traits/lists/**.json', (route) => route.abort('failed'));
+
+        await load(page, speciesUrl(SPECIES_PLANT_TRAITS.guid, 'tab=traits'));
+        await waitForContent(page);
+
+        await expect(page.locator('code', { hasText: 'List traits' })).toBeVisible();
+    });
 });
