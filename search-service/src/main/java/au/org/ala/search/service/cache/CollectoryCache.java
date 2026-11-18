@@ -19,13 +19,18 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * This service provides a cache for collectory information
@@ -40,8 +45,28 @@ public class CollectoryCache {
     // This is a map of species list names to their ids
     final public Map<String, String> dataResourceNames = new ConcurrentHashMap<>();
 
-    public CollectoryCache(ElasticService elasticService) {
+    // All data resource uids in the configured Collectory, including species lists (which are not indexed)
+    private volatile Set<String> dataResourceUids = Set.of();
+
+    private final RestTemplate restTemplate;
+
+    @Value("${collections.url}")
+    private String collectionsUrl;
+
+    public CollectoryCache(ElasticService elasticService,
+                           @Value("${webservice.connect.timeout}") int connectTimeout,
+                           @Value("${webservice.read.timeout}") int readTimeout) {
         this.elasticService = elasticService;
+
+        // finite timeouts so a stalled Collectory cannot block startup or cache refreshes
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(connectTimeout);
+        requestFactory.setReadTimeout(readTimeout);
+        this.restTemplate = new RestTemplate(requestFactory);
+    }
+
+    public boolean hasDataResource(String uid) {
+        return dataResourceUids.contains(uid);
     }
 
     @PostConstruct
@@ -52,6 +77,16 @@ public class CollectoryCache {
     // TODO: scheduling move to SchedulerService
     @Scheduled(cron = "${collectory.cache.cron}")
     public void cacheRefresh() {
+        try {
+            List<Map<String, Object>> resources = restTemplate.getForObject(collectionsUrl + "/ws/dataResource", List.class);
+            if (resources != null) {
+                dataResourceUids = resources.stream().map(it -> (String) it.get("uid")).collect(Collectors.toUnmodifiableSet());
+            }
+        } catch (Exception e) {
+            // keep the previous uids; links are only omitted until the next successful refresh
+            log.warn("Failed to cache data resource uids from {}: {}", collectionsUrl, e.getMessage());
+        }
+
         String pit = null;
 
         try {

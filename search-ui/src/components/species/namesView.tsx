@@ -67,9 +67,11 @@ function NamesView({result, isMobile}: MapViewProps) {
                         </>)}
                     </td>
                     <td>
-                        <a href={result?.source} style={{color: '#003A70', textDecoration: 'underline'}}>
-                            {result?.datasetName}
-                        </a>
+                        {result?.source ? (
+                            <a href={result.source} style={{color: '#003A70', textDecoration: 'underline'}}>
+                                {result?.datasetName}
+                            </a>
+                        ) : (<span>{result?.datasetName}</span>)}
                     </td>
                 </tr>
                 </tbody>

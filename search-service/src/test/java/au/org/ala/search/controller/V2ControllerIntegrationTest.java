@@ -16,9 +16,11 @@ import au.org.ala.search.service.cache.ListCache;
 import au.org.ala.search.service.remote.*;
 import au.org.ala.search.service.queue.BroadcastQueue;
 import au.org.ala.search.service.queue.ConsumerQueue;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -28,10 +30,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.GZIPOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -76,6 +82,9 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Value("${collections.url}")
+    private String collectionsUrl;
 
     @BeforeEach
     void resetMocks() {
@@ -148,6 +157,40 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resp.getBody()).hasSize(1);
         assertThat(resp.getBody().get(0).get("guid")).isEqualTo("urn:lsid:macropus");
+    }
+
+    @Test
+    void species_nonUrlSource_linksToCollectoryOnlyWhenDataResourceExists() throws Exception {
+        Map<String, Object> taxon = new HashMap<>(Map.of(
+                "guid", "ALA_DR31252_106", "datasetID", "dr31252", "source", "Other",
+                "variantData", namesData(List.of(Map.of("datasetID", "dr3", "source", "Other"))),
+                "synonymData", namesData(List.of(Map.of("datasetID", "dr2", "source", "https://example.org/original"))),
+                "identifierData", namesData(List.of(Map.of("datasetID", "dr4", "source", "Other")))));
+        when(elasticService.cleanupId("ALA_DR31252_106")).thenReturn("ALA_DR31252_106");
+        when(elasticService.getTaxonMap(eq("ALA_DR31252_106"), eq(true), eq(true))).thenReturn(taxon);
+        when(collectoryCache.hasDataResource("dr31252")).thenReturn(true);
+        when(collectoryCache.hasDataResource("dr3")).thenReturn(true);
+        // dr4 is not in the configured Collectory, e.g. a production-only list viewed on test
+
+        ResponseEntity<List<Map<String, Object>>> resp = restTemplate.exchange(
+                "/v2/species", HttpMethod.POST, new HttpEntity<>(List.of("ALA_DR31252_106")), new ParameterizedTypeReference<>() {
+                });
+
+        Map<String, Object> result = resp.getBody().get(0);
+        assertThat(result.get("source")).isEqualTo(collectionsUrl + "/public/show/dr31252");
+        assertThat(((List<Map<String, Object>>) result.get("variantData")).get(0).get("source"))
+                .isEqualTo(collectionsUrl + "/public/show/dr3");
+        assertThat(((List<Map<String, Object>>) result.get("synonymData")).get(0).get("source"))
+                .isEqualTo("https://example.org/original");
+        assertThat(((List<Map<String, Object>>) result.get("identifierData")).get(0)).doesNotContainKey("source");
+    }
+
+    private static String namesData(List<Map<String, String>> rows) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (GZIPOutputStream gzip = new GZIPOutputStream(bytes)) {
+            gzip.write(new ObjectMapper().writeValueAsBytes(rows));
+        }
+        return Base64.getEncoder().encodeToString(bytes.toByteArray());
     }
 
     @Test

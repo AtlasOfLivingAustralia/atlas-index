@@ -193,6 +193,11 @@ elastic.adminIndex=search-log-20240401
     ```properties
     collections.url=https://collections.ala.org.au`.
     ```
+    The `/v2/species` API also uses `collections.url` to replace a non-HTTP(S) name `source`
+    (for example, `Other` from species lists) with the Collectory page for the name's `datasetID`
+    (for example, `dr31252`), but only when that data resource exists in the configured
+    Collectory. Otherwise the non-HTTP(S) source is omitted, so no link is shown. This matches
+    ala-bie-hub, where a list that only exists in production Collectory is not linked on test.
 - knowledegebase; idxtype KNOWLEDGEBASE. Configure base URL and sitemap path
     ```properties
     knowledgebase.url=https://support.ala.org.au
