@@ -1,0 +1,12 @@
+{
+    "imageCount": 125430,
+    "deletedImageCount": 342,
+    "licenceCount": 8,
+    "licenceMappingCount": 24,
+    "repoSizeOnDisk": 987654321098,
+    "queues": {
+        "imageQueueLength": 12,
+        "tilingQueueLength": 3,
+        "activeBatchUploads": 2
+    }
+}
