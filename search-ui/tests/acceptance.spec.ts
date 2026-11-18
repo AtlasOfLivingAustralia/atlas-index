@@ -1096,8 +1096,19 @@ test.describe('Species page - Traits tab', () => {
         await waitForContent(page);
 
         await expect(page.getByRole('heading', { name: 'Biological, ecological, conservation and legal information for all species and subspecies of Australian bird' })).toBeVisible();
-        await expect(page.locator('td', { hasText: '29_Population_description_4' })).toBeVisible();
-        await expect(page.locator('td', { hasText: 'Core' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Population' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Morphology' })).toBeVisible();
+
+        const birdTraitRow = page.locator('tr[data-trait-key="29_Population_description_4"]');
+        await expect(birdTraitRow).toBeVisible();
+        await expect(birdTraitRow.locator('td').first()).toContainText('Population description');
+        await expect(birdTraitRow.locator('td').nth(1)).toHaveText('Core');
+
+        const bodyLengthRow = page.locator('tr[data-trait-key="96_Body_length_8"]');
+        await expect(bodyLengthRow.locator('td').nth(1)).toHaveText('37.5 cm');
+        await bodyLengthRow.getByRole('button', { name: 'Details for Body length' }).click();
+        await expect(page.locator('tr[data-trait-details="96_Body_length_8"]')).toContainText('Average length of body from tip of bill to tip of tail, in centimetres');
+
         await expect(page.locator('text=Garnett, S., Duursma, D., Ehmke, G. et al.')).toBeVisible();
         await expect(page.locator('h1', { hasText: 'AusTraits' })).toHaveCount(0);
     });

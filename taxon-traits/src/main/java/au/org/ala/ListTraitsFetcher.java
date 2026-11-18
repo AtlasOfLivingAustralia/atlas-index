@@ -13,12 +13,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.*;
 
 /**
- * Fetches taxon trait data from configured ALA species lists and writes per-taxon JSON files:
- * {traitsDir}/lists/{last2LsidChars}/{urlEncodedLsid}.json
+ * Fetches taxon trait data (and optional companion field-metadata lists) from configured ALA species lists
+ * and writes per-taxon JSON files:
+ *   {traitsDir}/lists/{last2LsidChars}/{urlEncodedLsid}.json
+ *   {traitsDir}/lists/metadata/{metadataId}.json
  */
 public class ListTraitsFetcher {
 
@@ -26,16 +27,15 @@ public class ListTraitsFetcher {
     private static final int PAGE_SIZE = 500;
 
     @SuppressWarnings("unchecked")
-    public static void fetchAll(Map<String, Object> config, String traitsDir) throws IOException {
-        Object listsObj = config.get("lists");
-        if (!(listsObj instanceof List<?> rawLists) || rawLists.isEmpty()) {
+    public static void fetchAll(Map<String, Object> config, List<Map<String, Object>> listSources, String traitsDir) throws IOException {
+        if (listSources == null || listSources.isEmpty()) {
             return;
         }
 
-        String listsUrl = config.containsKey("listsUrl")
+        String listsUrl = config.containsKey("listsUrl") && config.get("listsUrl") != null
                 ? config.get("listsUrl").toString().replaceAll("/$", "")
                 : "https://lists-ws.ala.org.au";
-        String listsUiUrl = config.containsKey("listsUiUrl")
+        String listsUiUrl = config.containsKey("listsUiUrl") && config.get("listsUiUrl") != null
                 ? config.get("listsUiUrl").toString().replaceAll("/$", "")
                 : "https://lists.ala.org.au/list";
 
@@ -47,15 +47,24 @@ public class ListTraitsFetcher {
         // Map of LSID -> list of trait sections (one per species list)
         Map<String, List<Map<String, Object>>> taxonTraits = new LinkedHashMap<>();
 
-        for (Object item : rawLists) {
-            if (!(item instanceof Map)) continue;
-            Map<String, Object> listConfig = (Map<String, Object>) item;
+        for (Map<String, Object> listConfig : listSources) {
             String listId = Objects.toString(listConfig.get("id"), "").trim();
             if (listId.isEmpty()) continue;
 
-            List<String> allowedAttributes = loadAttributes(listConfig);
+            Map<String, String> fieldLabels = loadFields(listConfig);
+            String metadataId = Objects.toString(listConfig.get("metadataId"), "").trim();
+            String metadataKeyField = Objects.toString(listConfig.get("metadataKeyField"), "Column_key").trim();
+            String metadataLabelField = Objects.toString(listConfig.get("metadataLabelField"), "Column_header").trim();
+            List<String> metadataFields = loadStringList(listConfig.get("metadataFields"));
+
+            Map<String, Map<String, String>> metadataByKey = Collections.emptyMap();
+            if (!metadataId.isEmpty()) {
+                metadataByKey = fetchAndWriteMetadata(
+                        listsUrl, traitsDir, metadataId, metadataKeyField, metadataFields, fieldLabels.keySet());
+            }
+
             System.out.println(TraitsFetcher.ts() + " Fetching list traits for " + listId
-                    + " (attribute filter count: " + (allowedAttributes.isEmpty() ? "all" : allowedAttributes.size()) + ")");
+                    + " (field filter count: " + (fieldLabels.isEmpty() ? "all" : fieldLabels.size()) + ")");
 
             String metaJson = TraitsFetcher.httpGet(listsUrl + "/ws/speciesList/" + listId);
             if (metaJson == null) {
@@ -102,20 +111,26 @@ public class ListTraitsFetcher {
                     }
 
                     List<Map<String, String>> filteredTraits = new ArrayList<>();
-                    if (!allowedAttributes.isEmpty()) {
-                        for (String attr : allowedAttributes) {
-                            String val = kvpMap.get(attr);
+                    if (!fieldLabels.isEmpty()) {
+                        for (Map.Entry<String, String> fieldEntry : fieldLabels.entrySet()) {
+                            String fieldKey = fieldEntry.getKey();
+                            String val = kvpMap.get(fieldKey);
                             if (val != null) {
+                                String displayLabel = resolveDisplayLabel(fieldKey, fieldEntry.getValue(), metadataByKey, metadataLabelField);
                                 Map<String, String> traitEntry = new LinkedHashMap<>();
-                                traitEntry.put("name", attr);
+                                traitEntry.put("key", fieldKey);
+                                traitEntry.put("name", displayLabel);
                                 traitEntry.put("value", val);
                                 filteredTraits.add(traitEntry);
                             }
                         }
                     } else {
                         for (Map.Entry<String, String> entry : kvpMap.entrySet()) {
+                            String fieldKey = entry.getKey();
+                            String displayLabel = resolveDisplayLabel(fieldKey, "", metadataByKey, metadataLabelField);
                             Map<String, String> traitEntry = new LinkedHashMap<>();
-                            traitEntry.put("name", entry.getKey());
+                            traitEntry.put("key", fieldKey);
+                            traitEntry.put("name", displayLabel);
                             traitEntry.put("value", entry.getValue());
                             filteredTraits.add(traitEntry);
                         }
@@ -130,6 +145,10 @@ public class ListTraitsFetcher {
                     listSection.put("title", title);
                     listSection.put("reference", reference);
                     listSection.put("listUrl", listUrl);
+                    if (!metadataId.isEmpty()) {
+                        listSection.put("metadataId", metadataId);
+                        listSection.put("metadataUrl", listsUiUrl + "/" + metadataId);
+                    }
                     listSection.put("traits", filteredTraits);
 
                     taxonTraits.computeIfAbsent(lsid, k -> new ArrayList<>()).add(listSection);
@@ -159,29 +178,131 @@ public class ListTraitsFetcher {
     }
 
     @SuppressWarnings("unchecked")
-    private static List<String> loadAttributes(Map<String, Object> listConfig) throws IOException {
-        Object attrsObj = listConfig.get("attributes");
-        if (attrsObj instanceof List<?> attrs) {
-            List<String> result = new ArrayList<>();
-            for (Object a : attrs) {
-                if (a != null && !a.toString().trim().isEmpty()) {
-                    result.add(a.toString().trim());
+    private static Map<String, Map<String, String>> fetchAndWriteMetadata(
+            String listsUrl,
+            String traitsDir,
+            String metadataId,
+            String metadataKeyField,
+            List<String> metadataFields,
+            Set<String> allowedFieldKeys) throws IOException {
+
+        System.out.println(TraitsFetcher.ts() + " Fetching field metadata list " + metadataId);
+        Map<String, Map<String, String>> metadataByKey = new LinkedHashMap<>();
+
+        int offset = 0;
+        boolean hasMore = true;
+        while (hasMore) {
+            String itemsJson = TraitsFetcher.httpGet(
+                    listsUrl + "/ws/speciesListItems/" + metadataId + "?includeKVP=true&max=" + PAGE_SIZE + "&offset=" + offset);
+            if (itemsJson == null) {
+                break;
+            }
+            List<Map<String, Object>> page = mapper.readValue(itemsJson, List.class);
+            offset += PAGE_SIZE;
+            hasMore = page.size() == PAGE_SIZE;
+
+            for (Map<String, Object> row : page) {
+                List<Map<String, String>> kvpValues = (List<Map<String, String>>) row.get("kvpValues");
+                if (kvpValues == null || kvpValues.isEmpty()) {
+                    continue;
+                }
+
+                Map<String, String> rawKvp = new LinkedHashMap<>();
+                for (Map<String, String> kvp : kvpValues) {
+                    String k = kvp.get("key");
+                    String v = kvp.get("value");
+                    if (StringUtils.isNotBlank(k) && v != null) {
+                        rawKvp.putIfAbsent(k, v.trim());
+                    }
+                }
+
+                String keyVal = rawKvp.get(metadataKeyField);
+                if (StringUtils.isBlank(keyVal)) {
+                    continue;
+                }
+                if (!allowedFieldKeys.isEmpty() && !allowedFieldKeys.contains(keyVal)) {
+                    continue;
+                }
+
+                Map<String, String> entry = new LinkedHashMap<>();
+                if (!metadataFields.isEmpty()) {
+                    for (String mf : metadataFields) {
+                        String val = rawKvp.get(mf);
+                        if (StringUtils.isNotBlank(val)) {
+                            entry.put(mf, val);
+                        }
+                    }
+                } else {
+                    for (Map.Entry<String, String> e : rawKvp.entrySet()) {
+                        if (StringUtils.isNotBlank(e.getValue())) {
+                            entry.put(e.getKey(), e.getValue());
+                        }
+                    }
+                }
+
+                if (!entry.isEmpty()) {
+                    metadataByKey.put(keyVal, entry);
                 }
             }
-            return result;
         }
-        Object fileObj = listConfig.get("attributesFile");
-        if (fileObj != null && !fileObj.toString().trim().isEmpty()) {
-            List<String> lines = Files.readAllLines(new File(fileObj.toString().trim()).toPath(), StandardCharsets.UTF_8);
-            List<String> result = new ArrayList<>();
-            for (String line : lines) {
-                String trimmed = line.trim();
-                if (!trimmed.isEmpty()) {
-                    result.add(trimmed);
+
+        File metaDir = new File(traitsDir + "/lists/metadata");
+        if (!metaDir.exists()) {
+            metaDir.mkdirs();
+        }
+        File outFile = new File(metaDir, metadataId + ".json");
+        TraitsFetcher.writeFile(outFile, mapper.writeValueAsString(metadataByKey));
+        System.out.println(TraitsFetcher.ts() + " Wrote " + metadataByKey.size() + " field metadata entries to " + outFile.getAbsolutePath());
+
+        return metadataByKey;
+    }
+
+    private static String resolveDisplayLabel(
+            String fieldKey,
+            String configuredLabel,
+            Map<String, Map<String, String>> metadataByKey,
+            String metadataLabelField) {
+        if (StringUtils.isNotBlank(configuredLabel)) {
+            return configuredLabel.trim();
+        }
+        Map<String, String> meta = metadataByKey.get(fieldKey);
+        if (meta != null && StringUtils.isNotBlank(meta.get(metadataLabelField))) {
+            return meta.get(metadataLabelField).trim();
+        }
+        return fieldKey;
+    }
+
+    private static Map<String, String> loadFields(Map<String, Object> listConfig) {
+        Object fieldsObj = listConfig.get("fields");
+        Map<String, String> result = new LinkedHashMap<>();
+        if (fieldsObj instanceof Map<?, ?> fieldsMap) {
+            for (Map.Entry<?, ?> entry : fieldsMap.entrySet()) {
+                if (entry.getKey() != null && !entry.getKey().toString().trim().isEmpty()) {
+                    String key = entry.getKey().toString().trim();
+                    String label = entry.getValue() != null ? entry.getValue().toString() : "";
+                    result.put(key, label);
                 }
             }
-            return result;
+        } else if (fieldsObj instanceof List<?> fieldsList) {
+            for (Object item : fieldsList) {
+                if (item != null && !item.toString().trim().isEmpty()) {
+                    result.put(item.toString().trim(), "");
+                }
+            }
         }
-        return Collections.emptyList();
+        return result;
+    }
+
+    private static List<String> loadStringList(Object obj) {
+        if (!(obj instanceof List<?> list)) {
+            return Collections.emptyList();
+        }
+        List<String> result = new ArrayList<>();
+        for (Object item : list) {
+            if (item != null && !item.toString().trim().isEmpty()) {
+                result.add(item.toString().trim());
+            }
+        }
+        return result;
     }
 }

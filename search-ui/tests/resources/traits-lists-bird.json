@@ -4,10 +4,12 @@
         "title": "Biological, ecological, conservation and legal information for all species and subspecies of Australian bird",
         "reference": "Garnett, S., Duursma, D., Ehmke, G. et al. Biological, ecological, conservation and legal information for all species and subspecies of Australian bird. Sci Data 2, 150061 (2015). https://doi.org/10.1038/sdata.2015.61",
         "listUrl": "https://lists.ala.org.au/list/dr5222",
+        "metadataId": "dr35542",
+        "metadataUrl": "https://lists.ala.org.au/list/dr35542",
         "traits": [
-            { "name": "29_Population_description_4", "value": "Core" },
-            { "name": "96_Body_length_8", "value": "37.5" },
-            { "name": "99_Body_mass_average_8", "value": "430" }
+            { "key": "29_Population_description_4", "name": "Population description", "value": "Core" },
+            { "key": "96_Body_length_8", "name": "Body length", "value": "37.5" },
+            { "key": "99_Body_mass_average_8", "name": "Body mass average", "value": "430" }
         ]
     }
 ]

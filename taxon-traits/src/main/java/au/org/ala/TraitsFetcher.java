@@ -53,22 +53,16 @@ public class TraitsFetcher {
     static final AtomicInteger written = new AtomicInteger(0);
     static final AtomicInteger errors = new AtomicInteger(0);
 
+    @SuppressWarnings("unchecked")
     public static void main(String[] args) throws Exception {
 
         if (args.length < 1) {
-            System.err.println("Usage: TraitsFetcher <config.json> [austraits|birdtraits|all]");
+            System.err.println("Usage: TraitsFetcher <config.json> [source|all]");
             System.exit(1);
         }
 
         String configFile = args[0];
-        String source = args.length >= 2 ? args[1].trim().toLowerCase(Locale.ROOT) : "all";
-        if (!source.equals("all") && !source.equals("austraits") && !source.equals("birdtraits")) {
-            System.err.println("Unknown traits source: " + args[1] + ". Expected one of: austraits, birdtraits, all");
-            System.err.println("Usage: TraitsFetcher <config.json> [austraits|birdtraits|all]");
-            System.exit(1);
-        }
-        boolean runAustraits = source.equals("all") || source.equals("austraits");
-        boolean runBirdtraits = source.equals("all") || source.equals("birdtraits");
+        String requestedSource = args.length >= 2 ? args[1].trim().toLowerCase(Locale.ROOT) : "all";
 
         Map<String, Object> config = mapper.readValue(new File(configFile), Map.class);
 
@@ -81,31 +75,64 @@ public class TraitsFetcher {
         traitsDir = config.get("traitsDir").toString();
         traitsThreads = config.containsKey("traitsThreads") ? Integer.parseInt(config.get("traitsThreads").toString()) : 5;
 
-        String kingdomFilterStr = config.containsKey("kingdomFilter") ? config.get("kingdomFilter").toString() : "Plantae";
-        kingdomFilter = new HashSet<>(Arrays.asList(kingdomFilterStr.split("\\s*,\\s*")));
+        String defaultKingdomFilter = config.containsKey("kingdomFilter") && config.get("kingdomFilter") != null
+                ? config.get("kingdomFilter").toString()
+                : "Plantae";
 
-        System.out.println(ts() + " Starting taxon-traits fetch (source=" + source + ")");
-        System.out.println(ts() + " traitsDir: " + traitsDir);
+        List<Map<String, Object>> sources = config.get("sources") instanceof List<?> rawSources
+                ? (List<Map<String, Object>>) rawSources
+                : Collections.emptyList();
 
-        if (runAustraits) {
-            if (StringUtils.isNotEmpty(austraitsUrl) && StringUtils.isNotEmpty(acceptedCsv)) {
-                File traitsDirFile = new File(traitsDir + "/austraits");
-                if (!traitsDirFile.exists()) {
-                    traitsDirFile.mkdirs();
-                }
-                System.out.println(ts() + " austraitsUrl: " + austraitsUrl);
-                System.out.println(ts() + " acceptedCsv: " + acceptedCsv);
-                System.out.println(ts() + " traitsThreads: " + traitsThreads);
-                System.out.println(ts() + " kingdomFilter: " + kingdomFilter);
-
-                fetchAll();
-            } else {
-                System.out.println(ts() + " Skipping AusTraits fetch (austraitsUrl or acceptedCsv not configured)");
+        List<Map<String, Object>> selectedSources = new ArrayList<>();
+        for (Map<String, Object> src : sources) {
+            String name = Objects.toString(src.get("name"), "").trim().toLowerCase(Locale.ROOT);
+            if (requestedSource.equals("all") || requestedSource.equals(name)) {
+                selectedSources.add(src);
             }
         }
 
-        if (runBirdtraits) {
-            ListTraitsFetcher.fetchAll(config, traitsDir);
+        if (!requestedSource.equals("all") && selectedSources.isEmpty()) {
+            System.err.println("Unknown traits source: " + args[1] + ". Available sources: all"
+                    + sources.stream().map(s -> Objects.toString(s.get("name"), "")).filter(StringUtils::isNotBlank)
+                    .reduce("", (a, b) -> a + ", " + b));
+            System.exit(1);
+        }
+
+        System.out.println(ts() + " Starting taxon-traits fetch (source=" + requestedSource + ")");
+        System.out.println(ts() + " traitsDir: " + traitsDir);
+
+        List<Map<String, Object>> listSources = new ArrayList<>();
+        for (Map<String, Object> src : selectedSources) {
+            String type = Objects.toString(src.get("type"), "").trim().toLowerCase(Locale.ROOT);
+            if ("austraits".equals(type)) {
+                String kingdomFilterStr = src.containsKey("kingdomFilter") && src.get("kingdomFilter") != null
+                        ? src.get("kingdomFilter").toString()
+                        : defaultKingdomFilter;
+                kingdomFilter = new HashSet<>(Arrays.asList(kingdomFilterStr.split("\\s*,\\s*")));
+
+                if (StringUtils.isNotEmpty(austraitsUrl) && StringUtils.isNotEmpty(acceptedCsv)) {
+                    File traitsDirFile = new File(traitsDir + "/austraits");
+                    if (!traitsDirFile.exists()) {
+                        traitsDirFile.mkdirs();
+                    }
+                    System.out.println(ts() + " austraitsUrl: " + austraitsUrl);
+                    System.out.println(ts() + " acceptedCsv: " + acceptedCsv);
+                    System.out.println(ts() + " traitsThreads: " + traitsThreads);
+                    System.out.println(ts() + " kingdomFilter: " + kingdomFilter);
+
+                    fetchAll();
+                } else {
+                    System.out.println(ts() + " Skipping AusTraits fetch (austraitsUrl or acceptedCsv not configured)");
+                }
+            } else if ("species-list".equals(type)) {
+                listSources.add(src);
+            } else {
+                System.err.println(ts() + " Ignoring unknown source type: " + type);
+            }
+        }
+
+        if (!listSources.isEmpty()) {
+            ListTraitsFetcher.fetchAll(config, listSources, traitsDir);
         }
 
         System.out.println(ts() + " Finished. processed=" + processed.get()

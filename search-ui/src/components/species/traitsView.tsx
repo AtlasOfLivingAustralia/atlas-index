@@ -4,7 +4,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-import {DownloadIcon, FlaggedAlert, InfoBox} from '@ala/common-ui';
+import {DownloadIcon, FlaggedAlert, FontAwesomeIconLite, InfoBox} from '@ala/common-ui';
 import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import React, {useEffect, useState} from 'react';
 import FormatName from '../nameUtils/formatName.tsx';
@@ -16,6 +16,7 @@ interface MapViewProps {
 }
 
 interface ListTraitItem {
+    key?: string;
     name: string;
     value: string;
 }
@@ -25,7 +26,22 @@ interface ListTraitSection {
     title: string;
     reference: string;
     listUrl?: string;
+    metadataId?: string;
+    metadataUrl?: string;
     traits: ListTraitItem[];
+}
+
+interface FieldMetadata {
+    Column_key?: string;
+    Column_header?: string;
+    Category?: string;
+    Units?: string;
+    Definition?: string;
+    Field_codes?: string;
+    Explanation_of_field_factor_codes?: string;
+    Source_of_data?: string;
+    Notes?: string;
+    [key: string]: string | undefined;
 }
 
 function TraitsView({result, isMobile}: MapViewProps) {
@@ -40,6 +56,8 @@ function TraitsView({result, isMobile}: MapViewProps) {
     const [errorMessageSummary, setErrorMessageSummary] = useState('');
 
     const [listTraits, setListTraits] = useState<ListTraitSection[]>([]);
+    const [listMetadata, setListMetadata] = useState<Record<string, Record<string, FieldMetadata>>>({});
+    const [expandedTraitKeys, setExpandedTraitKeys] = useState<Record<string, boolean>>({});
     const [loadingLists, setLoadingLists] = useState(false);
     const [errorMessageLists, setErrorMessageLists] = useState('');
     const [noListTraitsData, setNoListTraitsData] = useState(false);
@@ -125,6 +143,8 @@ function TraitsView({result, isMobile}: MapViewProps) {
         setErrorMessageLists('');
         setNoListTraitsData(false);
         setListTraits([]);
+        setListMetadata({});
+        setExpandedTraitKeys({});
 
         const listsUrl = getTraitsPath('lists', '.json');
         fetch(listsUrl).then((response) => {
@@ -136,6 +156,22 @@ function TraitsView({result, isMobile}: MapViewProps) {
         }).then((data) => {
             if (Array.isArray(data) && data.length > 0) {
                 setListTraits(data);
+                const metadataIds = Array.from(new Set(
+                    data.map((s: ListTraitSection) => s.metadataId).filter((id): id is string => Boolean(id))
+                ));
+                metadataIds.forEach((metadataId) => {
+                    const metaUrl = import.meta.env.VITE_TAXON_TRAITS_URL + '/lists/metadata/' + encodeURIComponent(metadataId) + '.json';
+                    fetch(metaUrl)
+                        .then((res) => (res.ok ? res.json() : null))
+                        .then((metaData) => {
+                            if (metaData && typeof metaData === 'object') {
+                                setListMetadata((prev) => ({...prev, [metadataId]: metaData}));
+                            }
+                        })
+                        .catch(() => {
+                            // Metadata is optional enhancement; ignore fetch failures
+                        });
+                });
             } else if (data !== null) {
                 setNoListTraitsData(true);
             }
@@ -450,7 +486,24 @@ function TraitsView({result, isMobile}: MapViewProps) {
                     </p>
                 </div>
             </>}
-            {hasListTraits && listTraits.map((section, sectionIdx) => (
+            {hasListTraits && listTraits.map((section, sectionIdx) => {
+                const metaMap = section.metadataId ? (listMetadata[section.metadataId] || {}) : {};
+                const groupedTraits: { category: string; items: ListTraitItem[] }[] = [];
+                const categoryIndex = new Map<string, number>();
+
+                (section.traits || []).forEach((item) => {
+                    const meta = item.key ? metaMap[item.key] : undefined;
+                    const category = meta?.Category || '';
+                    if (!categoryIndex.has(category)) {
+                        categoryIndex.set(category, groupedTraits.length);
+                        groupedTraits.push({ category, items: [] });
+                    }
+                    groupedTraits[categoryIndex.get(category)!].items.push(item);
+                });
+
+                const hasCategories = groupedTraits.some((g) => g.category !== '');
+
+                return (
                 <div key={section.dataResourceUid || sectionIdx}>
                     {(hasAusTraits || sectionIdx > 0) && (
                         <hr style={{
@@ -459,26 +512,80 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         }}/>
                     )}
                     <h1 className={classes.traitsTitle}>{section.title}</h1>
-                    {section.traits?.length > 0 && (
-                        <div className="table-responsive" tabIndex={0} role="region" aria-label={section.title}>
-                            <table className="table table-striped" style={textStyle}>
-                                <thead>
-                                <tr>
-                                    <th>Trait Name</th>
-                                    <th>Trait Value</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {section.traits.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td>{item.name}</td>
-                                        <td>{item.value}</td>
+                    {groupedTraits.map((group, groupIdx) => (
+                        <React.Fragment key={group.category || groupIdx}>
+                            {hasCategories && group.category && (
+                                <h2 className={classes.traitsSectionTitle}>{group.category}</h2>
+                            )}
+                            <div className="table-responsive" tabIndex={0} role="region" aria-label={group.category || section.title}>
+                                <table className="table table-striped" style={textStyle}>
+                                    <thead>
+                                    <tr>
+                                        <th>Trait Name</th>
+                                        <th>Trait Value</th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                                    </thead>
+                                    <tbody>
+                                    {group.items.map((item, idx) => {
+                                        const traitKey = item.key || item.name;
+                                        const meta = item.key ? metaMap[item.key] : undefined;
+                                        const units = meta?.Units?.trim();
+                                        const hasDetails = Boolean(
+                                            meta?.Definition ||
+                                            meta?.Field_codes ||
+                                            meta?.Explanation_of_field_factor_codes ||
+                                            meta?.Source_of_data ||
+                                            meta?.Notes
+                                        );
+                                        const rowKey = `${section.dataResourceUid || sectionIdx}:${traitKey}`;
+                                        const isExpanded = Boolean(expandedTraitKeys[rowKey]);
+
+                                        return (
+                                            <React.Fragment key={traitKey || idx}>
+                                                <tr data-trait-key={traitKey}>
+                                                    <td>
+                                                        <span>{item.name}</span>
+                                                        {hasDetails && (
+                                                            <button
+                                                                type="button"
+                                                                className="btn btn-link btn-sm p-0 ms-2 align-baseline"
+                                                                aria-expanded={isExpanded}
+                                                                aria-label={`Details for ${item.name}`}
+                                                                onClick={() => setExpandedTraitKeys((prev) => ({
+                                                                    ...prev,
+                                                                    [rowKey]: !prev[rowKey],
+                                                                }))}
+                                                            >
+                                                                <FontAwesomeIconLite icon={faCircleInfo} />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                    <td>
+                                                        {item.value}
+                                                        {units ? ` ${units}` : ''}
+                                                    </td>
+                                                </tr>
+                                                {hasDetails && isExpanded && (
+                                                    <tr className="table-light" data-trait-details={traitKey}>
+                                                        <td colSpan={2} style={{ fontSize: isMobile ? '13px' : '14px' }}>
+                                                            {meta?.Definition && <div><strong>Definition:</strong> {meta.Definition}</div>}
+                                                            {meta?.Field_codes && <div><strong>Field codes:</strong> {meta.Field_codes}</div>}
+                                                            {meta?.Explanation_of_field_factor_codes && (
+                                                                <div><strong>Code explanation:</strong> {meta.Explanation_of_field_factor_codes}</div>
+                                                            )}
+                                                            {meta?.Source_of_data && <div><strong>Source:</strong> {meta.Source_of_data}</div>}
+                                                            {meta?.Notes && <div><strong>Notes:</strong> {meta.Notes}</div>}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </React.Fragment>
+                    ))}
                     <div className={classes.traitsCitation}>
                         <p className="fw-bold">
                             Reference
@@ -495,6 +602,14 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                     </a>.{' '}
                                 </>
                             )}
+                            {section.metadataUrl && (
+                                <>
+                                    Field metadata:{' '}
+                                    <a className={classes.speciesLink} href={section.metadataUrl} target="_blank" rel="noreferrer">
+                                        {section.metadataUrl}
+                                    </a>.{' '}
+                                </>
+                            )}
                             For more information about citing information on the ALA, see -{' '}
                             <a className={classes.speciesLink}
                                 href={import.meta.env.VITE_CITE_URL} target="_blank">
@@ -503,7 +618,8 @@ function TraitsView({result, isMobile}: MapViewProps) {
                         </p>
                     </div>
                 </div>
-            ))}
+                );
+            })}
         </div>
     </>;
 }

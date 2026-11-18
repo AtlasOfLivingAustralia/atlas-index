@@ -19,6 +19,7 @@ For each accepted taxon in the configured kingdom, calls the AusTraits API and w
 {traitsDir}/austraits/{last2LsidChars}/{urlEncodedLsid}_summary.json
 {traitsDir}/austraits/{last2LsidChars}/{urlEncodedLsid}_data.csv
 {traitsDir}/lists/{last2LsidChars}/{urlEncodedLsid}.json
+{traitsDir}/lists/metadata/{metadataId}.json
 ```
 
 Files that already exist are skipped, so the run can be safely restarted.
@@ -66,11 +67,13 @@ java -jar target/taxon-traits-0.0.1-SNAPSHOT-jar-with-dependencies.jar ./config.
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `austraitsUrl` | Base URL for the AusTraits API | required |
-| `acceptedCsv` | Path to accepted.csv | required |
+| `austraitsUrl` | Base URL for the AusTraits API | optional |
+| `acceptedCsv` | Path to accepted.csv | optional (required for AusTraits) |
 | `traitsDir` | Root output directory | required |
 | `traitsThreads` | Concurrent fetch threads | `5` |
-| `kingdomFilter` | Comma-separated kingdoms to include | `Plantae` |
+| `listsUrl` | Base URL for species-lists WS | `https://lists-ws.ala.org.au` |
+| `listsUiUrl` | Base URL for species-lists UI links | `https://lists.ala.org.au/list` |
+| `sources` | Array of trait source configs (`austraits`, `species-list`) | required |
 
 Example `config.json`:
 ```json
@@ -79,7 +82,24 @@ Example `config.json`:
   "acceptedCsv": "/data/taxon-traits/accepted.csv",
   "traitsDir": "/data/taxon-traits",
   "traitsThreads": 10,
-  "kingdomFilter": "Plantae"
+  "listsUrl": "https://lists-ws.ala.org.au",
+  "listsUiUrl": "https://lists.ala.org.au/list",
+  "sources": [
+    {
+      "name": "austraits",
+      "type": "austraits",
+      "kingdomFilter": "Plantae"
+    },
+    {
+      "name": "birdtraits",
+      "type": "species-list",
+      "id": "dr5222",
+      "fields": {
+        "29_Population_description_4": "",
+        "96_Body_length_8": ""
+      }
+    }
+  ]
 }
 ```
 

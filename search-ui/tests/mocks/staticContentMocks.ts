@@ -27,6 +27,9 @@ export const TRAITS_ENTRY_FIXTURE = {
 /** List traits fixture (dr5222) for the bird species. */
 export const LIST_TRAITS_BIRD_FIXTURE = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../resources/traits-lists-bird.json'), 'utf-8'));
 
+/** List traits metadata fixture (dr35542). */
+export const LIST_TRAITS_METADATA_DR35542_FIXTURE = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../resources/traits-lists-metadata-dr35542.json'), 'utf-8'));
+
 async function fulfillJson(route: Route, data: unknown) {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
 }
@@ -122,6 +125,16 @@ export async function mockTraits(page: Page, seenUrls: Set<URL>, traitsByGuid: R
             return route.fulfill({ status: 404, contentType: 'application/json', body: '[]' });
         }
         await fulfillJson(route, entry.lists);
+    });
+
+    await page.context().route('https://static.test.ala.org.au/taxon-traits/lists/metadata/**.json', async (route) => {
+        const url = new URL(route.request().url());
+        seenUrls.add(url);
+        const filename = url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+        if (filename === 'dr35542.json') {
+            return fulfillJson(route, LIST_TRAITS_METADATA_DR35542_FIXTURE);
+        }
+        return route.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
     });
 }
 

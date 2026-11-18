@@ -1,0 +1,25 @@
+{
+    "29_Population_description_4": {
+        "Column_key": "29_Population_description_4",
+        "Column_header": "Population description",
+        "Category": "Population",
+        "Definition": "Summary of the Australian population status"
+    },
+    "96_Body_length_8": {
+        "Column_key": "96_Body_length_8",
+        "Column_header": "Body length",
+        "Category": "Morphology",
+        "Units": "cm",
+        "Definition": "Average length of body from tip of bill to tip of tail, in centimetres",
+        "Field_codes": "[value] / NAV / NA",
+        "Explanation_of_field_factor_codes": "NAV = not available; NA = not assessed",
+        "Source_of_data": "Data from HANZAB, supplemented by del Hoyo et al. (1992-2013)",
+        "Notes": "Accurate to one decimal place where available, otherwise rounded to nearest half or whole cm."
+    },
+    "99_Body_mass_average_8": {
+        "Column_key": "99_Body_mass_average_8",
+        "Column_header": "Body mass average",
+        "Category": "Morphology",
+        "Units": "g"
+    }
+}
