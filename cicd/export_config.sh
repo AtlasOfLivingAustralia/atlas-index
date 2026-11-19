@@ -31,7 +31,7 @@ set -a
 source env.sh
 set +a
 
-current_fingerprint=$(cicd/fingerprint.sh "cicd/$PRODUCT_COMPONENT/pipeline/pipeline.yaml" "${PIPELINE_FINGERPRINT_EXTRA:-}")
+current_fingerprint=$(cicd/fingerprint.sh "cicd/$PRODUCT_COMPONENT/pipeline/pipeline.yaml")
 if [[ "$PIPELINE_FINGERPRINT" != "$current_fingerprint" ]]; then
   echo "existing pipeline is out of sync with current code revision, relaunching!"
   deploy_args=(-c "$PRODUCT_COMPONENT" -e "${ENVIRONMENT:0:4}" -b "$SRC_BRANCH")

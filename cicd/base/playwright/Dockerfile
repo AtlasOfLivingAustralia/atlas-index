@@ -4,9 +4,8 @@
 # - Node.js major from .nvmrc, with corepack so the yarn version from package.json is used
 # - Native toolchain for the `canvas` workspace dependency (built from source, see package.json)
 # - AWS CLI v2 (S3 reports, publishing)
-# - a global @playwright/test of the same version, used to merge sharded blob reports
 #
-# Built and pushed by cicd/base/playwright/build_image.sh; tagged pw<playwright>-node<node major>.
+# Built and pushed by cicd/base/playwright/build_image.sh; tagged pw<playwright>-node<node major>-<hash>.
 
 ARG PLAYWRIGHT_VERSION
 FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
@@ -27,7 +26,7 @@ RUN curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tm
  && /tmp/aws/install \
  && rm -rf /tmp/aws /tmp/awscliv2.zip
 
-RUN npm install -g corepack "@playwright/test@${PLAYWRIGHT_VERSION}" \
+RUN npm install -g corepack \
  && corepack enable
 
 ENV PLAYWRIGHT_IMAGE_VERSION=${PLAYWRIGHT_VERSION}

@@ -58,8 +58,7 @@ sourced safely.
 pipeline can't deploy half-configured. See [Open decision gates](#open-decision-gates).
 
 **Self-updating pipelines.** As in species-lists, each pipeline stack records a fingerprint: the md5 of its
-`pipeline.yaml` plus any values baked into the stack (the UI's browser and shard lists). If ExportConfig finds a
-different fingerprint in the commit being deployed, it redeploys the pipeline and stops. A normal deploy then
+`pipeline.yaml`. If ExportConfig finds a different fingerprint in the commit being deployed, it redeploys the pipeline and stops. A normal deploy then
 restarts itself; a rollback has to be started manually.
 
 **Selective deploys.** Each app has its own pipeline whose CodePipeline V2 trigger lists the paths it depends on.
@@ -79,7 +78,7 @@ is resolved at build time, but never store a real secret there: every `VITE_*` v
 3. `Build_and_Test`:
    - `BuildRelease` (common-ui and UI Jest tests, then `yarn build` with the generated `.env.production`) runs in
      parallel with `BuildPlaywrightBundle`.
-   - Then the `PlaywrightShards` batch, then the `PlaywrightReport` gate.
+   - Then the `PlaywrightTests` gate.
 4. `Publish` ([publish.sh](frontend/scripts/publish.sh)):
    - Hashed `assets/` are uploaded first, cached as immutable.
    - Other files follow, then `index.html` last with `no-cache`.
@@ -115,18 +114,13 @@ The gate runs inside the pipeline, on AWS, before `Publish`:
    ([playwright_bundle.sh](frontend/scripts/playwright_bundle.sh)). It mirrors each UI's `run-playwright-test.sh`
    quirks: specimens-ui swaps in the test `collections.json`, regions-ui copies `regionsList.json`, and search-ui
    also builds a licence-filter variant.
-2. `PlaywrightShards` is a CodeBuild **batch build-matrix**: one container per browser × shard
-   ([playwright_shard.sh](frontend/scripts/playwright_shard.sh)).
-   - Each container serves the bundle with `vite preview` on `:5173`, the port baked into `.env.playwright`, and
-     runs its slice with `--project=<browser> --shard=i/N`. Every backend is mocked by the specs, so nothing else
-     runs.
-   - Shard 1 of each browser also runs the variant spec, if the UI has one.
-   - Each container uploads a blob report and its exit code to the reports bucket. Test failures don't fail the
-     container, so the report can still be merged.
-   - A 20-minute global timeout turns a hang into a recorded failure.
-3. `PlaywrightReport` ([playwright_report.sh](frontend/scripts/playwright_report.sh)):
-   - Merges all blobs into an HTML report (published to S3) and a JUnit report (a CodeBuild report).
-   - **Fails the pipeline** if any shard is missing or failed.
+2. `PlaywrightTests` ([playwright_test.sh](frontend/scripts/playwright_test.sh)) runs in one LARGE container:
+   - Serves the bundle with `vite preview` on `:5173`, the port baked into `.env.playwright`, and runs every
+     browser in `PLAYWRIGHT_BROWSERS` against it. Every backend is mocked by the specs, so nothing else runs.
+   - Then runs the variant spec against the variant build, if the UI has one.
+   - Merges both runs into one HTML report (published to S3) and one JUnit report (a CodeBuild report).
+   - **Fails the pipeline** if any test failed. The report is still published when it does.
+   - A 30-minute global timeout turns a hang (e.g. a browser that never launches) into a failure.
 
 Reports are kept at `s3://<reports bucket>/<ui>/<pipeline execution id>/html-report/`. The action log prints a 7-day
 link to the summary and the command to view the full report with traces:
@@ -135,25 +129,24 @@ link to the summary and the command to view the full report with traces:
 aws s3 sync s3://<reports bucket>/<ui>/<execution id>/html-report/ report && npx playwright show-report report
 ```
 
-**Tuning.** `PLAYWRIGHT_BROWSERS` and `SHARDS_PER_BROWSER` (in `frontend/config.ini` and `<ui>/config.ini`) set
-the matrix. `PLAYWRIGHT_WORKERS` sets the workers per container. Baseline runs of the whole suite in one container
-with 4 workers:
+**Tuning.** `PLAYWRIGHT_BROWSERS` and `PLAYWRIGHT_WORKERS` are in `frontend/config.ini`; a UI's `config.ini` can
+override them. Measured local runs:
 
-| Suite | chromium | webkit |
+| Suite | Run | Time |
 |---|---|---|
-| search-ui (117 tests per browser) | 52 s | 58 s |
-| occurrence-ui (182 tests per browser) | 1.7 min | not measured |
-| sds-ui (13 tests per browser) | 10 s | 13 s |
+| search-ui (117 tests per browser) | chromium / webkit alone, 4 workers | 52 s / 58 s |
+| search-ui | chromium + webkit + variant together, 6 workers | 1.5 min (236 tests) |
+| occurrence-ui (182 tests per browser) | chromium alone, 4 workers | 1.7 min |
+| sds-ui (13 tests per browser) | chromium + webkit together, 6 workers | 15 s |
 
-Container start plus `yarn workspaces focus` takes about as long as these suites, so every UI uses **1 shard per
-browser** (3 containers per UI). Raise `SHARDS_PER_BROWSER` for a UI only when one browser's run grows past several
-minutes.
+So the whole gate is a few minutes per UI, which is why there's no sharding (see AD-4). If a suite grows past
+roughly 10 minutes, split it across containers again.
 
 **Playwright upgrades.** The base pipeline builds `atlas-index-playwright:pw<version>-node<major>-<hash>` from
 [base/playwright/Dockerfile](base/playwright/Dockerfile) whenever the `@playwright/test` version in `yarn.lock`, the
 Node major in `.nvmrc`, or the Dockerfile changes, and moves `:latest` to it.
 [playwright_version.sh](frontend/scripts/playwright_version.sh) fails if the workspaces resolve more than one
-Playwright version. If a UI pipeline runs before the new image exists, the shard installs the matching browser
+Playwright version. If a UI pipeline runs before the new image exists, the gate installs the matching browsers
 itself.
 
 **Running it locally.** `<ui>/run-playwright-test.sh` is unchanged. The CI scripts can be run from the repository
@@ -161,44 +154,110 @@ root with the env vars documented at the top of each script.
 
 ## First-time setup
 
-Prerequisites in the target account: the ala-bedrock bootstrap stacks named in [config.ini](config.ini) (CodeBuild,
-CodePipeline and CloudFormation roles, artifact buckets, CodeStar connection), the Cognito and common-WAF stacks, the
-regolith EKS cluster, and resolved [decision gates](#open-decision-gates).
+Nothing below is created by the pipelines. Work through it once per account and environment, in order.
 
-1. **Secrets.** Create the JSON secret `ala-atlas-index-search-service-<env>` (`APP_SECRET_NAME` in
-   [backend/config.ini](backend/config.ini)). Its keys are search-service property names, for example:
+### 1. Account prerequisites (shared ALA platform; check rather than create)
 
-   ```json
-   {
-     "spring.datasource.password": "…",
-     "rabbitmq.password": "…",
-     "security.oidc.secret": "…",
-     "webservice.client-id": "…",
-     "webservice.client-secret": "…"
-   }
-   ```
+- [ ] The stacks named in [config.ini](config.ini) exist and export what the pipelines import:
+  - `ala-bedrock-cicd-bootstrap-production`: `-CodeBuildServiceRoleArn`, `-CodePipelineServiceRoleArn`,
+    `-CloudFormationServiceRoleArn`, `-CodestarConnectionArn`.
+  - `ala-bedrock-cicd-buckets-production`: `-<region>-CodePipelineArtifactBucketName`. The us-east-1 artifact
+    bucket in `US_EAST_ARTIFACT_BUCKET` must also exist, for the base WAF stack.
+  - The common WAF rule-group stack for the environment.
+  - `ala-regolith-cluster-<env>`: `-ClusterName`.
+- [ ] The CodeStar/GitHub connection is authorised for `AtlasOfLivingAustralia/atlas-index`. The GitHub app
+  installation must include this repository.
+- [ ] ACM certificates (DG-2): `CLOUDFRONT_CERTIFICATE` in **us-east-1** and `APP_CERTIFICATE` in ap-southeast-2
+  cover the `*-cicd` hostnames. A `*.test.ala.org.au` wildcard covers `bie-cicd.test.ala.org.au`.
+- [ ] The Route 53 hosted zone `HOSTED_ZONE` (e.g. `test.ala.org.au`) is in the account. CloudFormation adds the UI
+  records, and external-dns on the cluster adds `service-cicd`.
+- [ ] `ala-secrets-production` has `datadog-api-key` and `slack-oauth-token`, as used by species-lists, and the
+  Slack channel in `SLACK_ALERT_CHANNEL` exists.
 
-2. **Deploy the pipelines** with AWS credentials for the account, from a clean checkout of the branch (`develop`
-   for testing). Base goes first: it provides the WAF, the reports bucket and the build image that the others use.
+### 2. IAM (bootstrap roles)
 
-   ```shell
-   cicd/deploy_pipeline.sh -c base        # wait for its first run to finish
-   cicd/deploy_pipeline.sh -c backend
-   for ui in admin-ui dashboard-ui doi-ui occurrence-ui regions-ui sds-ui search-ui specimens-ui; do
-     cicd/deploy_pipeline.sh -c frontend -u "$ui"
-   done
-   ```
+Species-lists already uses most of these. The CodeBuild role must allow:
 
-   Rolling out in waves (dashboard, sds, regions → specimens, doi, admin → search, occurrence) makes cost and
-   flakiness easier to watch.
+- [ ] `cloudformation:DescribeStacks` in **us-east-1** (UI pipelines read the base WAF ARN).
+- [ ] S3 read/write on the reports bucket created by the base stack, and on the site buckets (`ala-atlas-index-*`).
+- [ ] `cloudfront:CreateInvalidation`.
+- [ ] ECR push to `atlas-index-playwright-*` and `atlas-index-search-service-*`, plus `ecr:GetAuthorizationToken`.
+- [ ] `secretsmanager:GetSecretValue` on `ala-atlas-index-search-service-*`, and on any secret referenced by a
+  `secretsmanager:` value in a UI config.
+- [ ] CodeBuild test reports (`codebuild:CreateReportGroup`, `CreateReport`, `UpdateReport`, `BatchPutTestCases`).
+  Without these the JUnit tab stays empty, but the gate still works.
+- [ ] `eks:DescribeCluster`, and an EKS access entry (or `aws-auth` mapping) that lets the role manage the
+  `EKS_NAMESPACE` namespace (`testing`).
+
+The CloudFormation role must be able to create S3 buckets and policies, CloudFront distributions and OACs, Route 53
+records, WAFv2 web ACLs and logging, ECR repositories and log groups.
+
+### 3. Cluster (regolith)
+
+- [ ] The AWS Load Balancer Controller and external-dns run and manage `HOSTED_ZONE`.
+- [ ] The `auto-ebs-sc` storage class exists, and the `testing` namespace exists.
+
+### 4. search-service data plane and auth (DG-4, DG-5)
+
+- [ ] Elasticsearch, Postgres with PostGIS (database plus the `atlas` user) and RabbitMQ for the `-cicd` service.
+  They must be separate from the legacy stack.
+- [ ] S3 buckets for the file stores, and an S3 prefix holding `import/` (the names DwCA) plus `lsid-left-right.csv`
+  and `lsid-vernacularName.csv` from names-extract.
+- [ ] An IAM role for the pod (IRSA) trusted for service account `search-service-<env>` in `EKS_NAMESPACE`, with
+  access to those buckets.
+- [ ] An OIDC client (Cognito for testing) with redirect `https://service-cicd.<zone>/…` and every `-cicd` UI as an
+  allowed logout URL.
+- [ ] Put the values in [backend/config.ini](backend/config.ini) in place of the `TODO-DG4`/`TODO-DG5` placeholders.
+  An empty value is allowed for `SERVICE_ROLE_ARN` and `DATA_S3_URI`.
+- [ ] Create the JSON secret `ala-atlas-index-search-service-<env>` (`APP_SECRET_NAME`). Its keys are
+  search-service property names, for example:
+
+  ```json
+  {
+    "spring.datasource.password": "…",
+    "rabbitmq.password": "…",
+    "security.oidc.secret": "…",
+    "webservice.client-id": "…",
+    "webservice.client-secret": "…"
+  }
+  ```
+
+### 5. Repository decisions
+
+- [ ] DG-3: confirm the doi-ui, occurrence-ui and sds-ui hostnames in [config.ini](config.ini).
+- [ ] DG-6: check each `cicd/frontend/<ui>/config.ini` against the legacy deployment, and decide on the Google Maps
+  key.
+- [ ] Merge `feature/cicd` into `develop`. The testing pipelines deploy from `develop`.
+
+### 6. Deploy the pipelines
+
+With AWS credentials for the account, from a clean, pushed checkout of `develop`. Base goes first: it provides the
+WAF, the reports bucket and the build image that the others use.
+
+```shell
+cicd/deploy_pipeline.sh -c base        # wait for its first run to finish (it builds the Playwright image)
+cicd/deploy_pipeline.sh -c backend
+for ui in admin-ui dashboard-ui doi-ui occurrence-ui regions-ui sds-ui search-ui specimens-ui; do
+  cicd/deploy_pipeline.sh -c frontend -u "$ui"
+done
+```
+
+Rolling out in waves (dashboard, sds, regions → specimens, doi, admin → search, occurrence) makes cost and
+flakiness easier to watch.
+
+### 7. After the first deploy
+
+- [ ] Build the search index: in admin-ui (`admin-cicd`), run the import and index tasks, as on the legacy server.
+- [ ] Open each `-cicd` site, log in and out, and check the browser console for CORS or mixed-host errors.
+- [ ] Work through [Verify on the first AWS run](#verify-on-the-first-aws-run).
 
 ## Day to day
 
 - **Deploy to testing:** merge to `develop`. Only the affected pipelines run.
 - **Re-run a deploy:** "Release change" on the pipeline. A later push doesn't retry a failed UI unless it touches
   that UI's paths.
-- **Change pipeline settings** (a `pipeline.yaml`, browsers or shards): commit and push. The pipeline redeploys
-  itself.
+- **Change a pipeline** (its `pipeline.yaml`): commit and push. The pipeline redeploys itself. Config changes
+  (`config.ini` files, including Playwright browsers and workers) are picked up by the next run.
 - **Roll back:** check out the old commit, run `cicd/deploy_pipeline.sh -c <component> [-u <ui>] -b <branch>`, then
   start the pipeline manually. It won't restart itself.
 - **Tear down a development branch:** enable the `Teardown` stage transition and approve.
@@ -262,23 +321,23 @@ Header, footer and other shared content keep coming from the existing ALA sites 
 - The gate tests the `build:playwright` bundle that the suites were written for, with mocked endpoints. The release
   build gets Jest and `tsc`.
 
-**AD-4 Playwright on AWS: a CodeBuild batch build-matrix (browser × shard) inside the pipeline, serving the
-prebuilt bundle locally in each container, with blob reports merged by a separate gate action.**
+**AD-4 Playwright on AWS: one container per UI runs every browser against the prebuilt bundle inside the pipeline;
+the exit code is the gate.**
 
 | Option | Wall-clock | AWS cost | Flakiness | Complexity |
 |---|---|---|---|---|
-| One large container, all browsers | sum of all browsers | lowest | CPU contention | lowest |
-| **Batch matrix, browser × shard (chosen)** | slowest single browser | container start repeated per node | low: isolated, few workers | medium |
+| **One LARGE container, all browsers (chosen)** | container start + install + ~2 min of tests | lowest: one install | low with mocks; workers share 8 vCPUs | lowest |
+| Batch matrix, one container per browser (or browser × shard) | about the same: container start and install dominate | ~3× the installs | lowest: isolated | medium: batch role, blob upload and a merge action |
 | Temporary EC2/ECS app servers with remote runners | network latency | highest, plus infra lifecycle | network and teardown | highest |
 
 - The mocks make a remote app server pointless.
-- One container per browser gives clear failure attribution and keeps the gate as fast as the slowest browser.
-- A build-matrix (rather than a build-graph with a merge node) keeps the buildspec inline and small. Shards always
-  report, so the separate merge action can still produce a report when tests fail, and it enforces the gate.
-- Shard counts are config. Measured suites made 1 per browser the cheapest and fastest option today.
+- A browser × shard batch matrix was built and run first. Measured suites take 10 s to 1.7 min per browser, so
+  extra containers bought no speed and added cost, a batch role dependency, and S3 blob/status plumbing.
+- One container keeps one install, one merged report, and a plain exit-code gate. The report still names the
+  failing browser.
 
 **AD-5 Browsers: a prebuilt ECR image pinned to the lockfile's Playwright version, built by the base pipeline.**
-- Rejected: `playwright install --with-deps` in every container. It adds minutes per node.
+- Rejected: `playwright install --with-deps` in every run. It adds minutes per run.
 - Rejected: browsers cached in S3. The OS packages would still need installing.
 - The same image serves every UI build step (Node 24, `canvas` toolchain), which the stock CodeBuild image doesn't
   provide. A version check falls back to installing the browser if the image lags behind `yarn.lock`.
@@ -316,7 +375,7 @@ pruning, and CloudFront invalidation.**
 | DG-4 | backend (`TODO-DG4`) | Which OIDC client does search-service use? Who registers the `service-cicd` redirect and every UI's logout URL (Cognito for test, CAS for production)? |
 | DG-5 | backend (`TODO-DG5`) | Data plane for the `-cicd` search-service: Elasticsearch, Postgres+PostGIS, RabbitMQ, S3 file stores, the import data prefix and the IRSA role. These must be isolated from the legacy stack. |
 | DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment, and decide whether to enable the Google Maps key. |
-| DG-7 | frontend rollout | CodeBuild concurrent-build quota for MEDIUM containers. A `common-ui` change starts 8 UIs × (3 shards + 4 builds). Builds over the quota queue rather than fail. |
+| DG-7 | frontend rollout | CodeBuild concurrent-build quotas. A `common-ui` change runs all 8 UI pipelines: up to 16 MEDIUM builds at once (release + Playwright bundle), then 8 LARGE (the gate). Builds over the quota queue rather than fail. |
 | DG-8 | after rollout | Is the cost of the all-browser gate acceptable? The fallback is a chromium gate plus a nightly full run. |
 | DG-9 | staging/production | Fill the `[staging]`/`[production]` sections (UI values from the production `.env.production` files, prod OIDC/CAS), name the decommission owners, and plan the static content migration. |
 
@@ -325,8 +384,6 @@ pruning, and CloudFront invalidation.**
 These parts are validated locally (cfn-lint, shellcheck, Helm lint/template, the image build, and the gate scripts
 run against real suites with S3 stubbed) but can't be proven without AWS:
 
-- A CodeBuild batch action with several input artifacts (`CODEBUILD_CLONE_REF` primary plus two secondaries).
-- Bootstrap CodeBuild role permissions for batch builds, CodeBuild reports, Secrets Manager reads, EKS access and
-  ECR push.
+- Bootstrap role permissions (see [First-time setup](#first-time-setup)).
 - The ECR pull policy for CodeBuild (`ImagePullCredentialsType: CODEBUILD`).
 - Firefox inside the Playwright image. It can't launch from a non-interactive macOS shell, so it is untested locally.

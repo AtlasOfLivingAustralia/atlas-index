@@ -17,9 +17,6 @@ Parameters:
   pBootstrapStackName:
     Type: String
     Description: The name of the bootstrap stack
-  pBrowserList:
-    Type: String
-    Description: Comma separated Playwright projects for the gate, e.g. "chromium, firefox, webkit"
   pBucketsStackName:
     Type: String
     Description: The name of the bucket stack
@@ -54,9 +51,6 @@ Parameters:
     AllowedValues:
       - true
       - false
-  pShardList:
-    Type: String
-    Description: Comma separated shard numbers per browser, e.g. "1,2,3"
   pUiApp:
     Type: String
     Description: The UI workspace this pipeline builds, e.g. search-ui
@@ -166,30 +160,19 @@ Resources:
         BuildSpec: cicd/frontend/pipeline/build_playwright_bundle_buildspec.yaml
       TimeoutInMinutes: 30
 
-  # Batch build: one child build per browser x shard (build-matrix), all testing the same bundle.
-  # The lists come from cicd/frontend[/<ui>]/config.ini via deploy_pipeline.sh.
-  PlaywrightShards:
+  # The Playwright gate: every browser in one container against the prebuilt bundle (see cicd/README.md)
+  PlaywrightTests:
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Sub
               - ${pProductName}-${pUiApp}-playwright-${ResourceName}
               - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
-      Description: !Sub Playwright tests of ${pUiApp}, sharded per browser
+      Description: !Sub Playwright tests of ${pUiApp}, gating the deploy
       ServiceRole:
         Fn::ImportValue:
           Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
       Artifacts:
         Type: CODEPIPELINE
-      BuildBatchConfig:
-        ServiceRole:
-          Fn::ImportValue:
-            Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
-        CombineArtifacts: false
-        TimeoutInMins: 60
-        Restrictions:
-          MaximumBuildsAllowed: 30
-          ComputeTypesAllowed:
-            - BUILD_GENERAL1_MEDIUM
       Cache:
         Type: S3
         Location: !Sub
@@ -199,7 +182,7 @@ Resources:
                 Fn::Sub: ${pBucketsStackName}-${AWS::Region}-CodePipelineArtifactBucketName
       Environment:
         Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_MEDIUM
+        ComputeType: BUILD_GENERAL1_LARGE
         Image: !Sub
           - ${Uri}:latest
           - Uri:
@@ -215,64 +198,8 @@ Resources:
                 Fn::Sub: ${pBaseStackName}-PlaywrightReportsBucketName
       Source:
         Type: CODEPIPELINE
-        BuildSpec: !Sub |
-          version: 0.2
-          batch:
-            fast-fail: false
-            build-matrix:
-              dynamic:
-                env:
-                  variables:
-                    BROWSER: [${pBrowserList}]
-                    SHARD: [${pShardList}]
-          env:
-            shell: bash
-          phases:
-            install:
-              commands:
-                - yarn workspaces focus "$UI_APP" @ala/common-ui
-            build:
-              commands:
-                - set -a; source "$CODEBUILD_SRC_DIR_ExportConfigArtifact/env.sh"; set +a
-                - export SHARD_TOTAL=$SHARDS_PER_BROWSER
-                - cicd/frontend/scripts/playwright_shard.sh
-          cache:
-            paths:
-              - /root/.yarn/berry/cache/**/*
+        BuildSpec: cicd/frontend/pipeline/playwright_buildspec.yaml
       TimeoutInMinutes: 45
-
-  PlaywrightReport:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: !Sub
-              - ${pProductName}-${pUiApp}-playwright-report-${ResourceName}
-              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
-      Description: !Sub Merge the Playwright shard reports of ${pUiApp} and gate the deploy
-      ServiceRole:
-        Fn::ImportValue:
-          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
-      Artifacts:
-        Type: CODEPIPELINE
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_SMALL
-        Image: !Sub
-          - ${Uri}:latest
-          - Uri:
-              Fn::ImportValue:
-                Fn::Sub: ${pBaseStackName}-PlaywrightImageRepositoryUri
-        ImagePullCredentialsType: CODEBUILD
-        EnvironmentVariables:
-          - Name: UI_APP
-            Value: !Ref pUiApp
-          - Name: REPORTS_BUCKET
-            Value:
-              Fn::ImportValue:
-                Fn::Sub: ${pBaseStackName}-PlaywrightReportsBucketName
-      Source:
-        Type: CODEPIPELINE
-        BuildSpec: cicd/frontend/pipeline/playwright_report_buildspec.yaml
-      TimeoutInMinutes: 15
 
   Publish:
     Type: AWS::CodeBuild::Project
@@ -496,16 +423,15 @@ Resources:
               OutputArtifacts:
                 - Name: PlaywrightBundleArtifact
               RunOrder: 1
-            - Name: PlaywrightShards
+            - Name: PlaywrightTests
               ActionTypeId:
                 Owner: AWS
                 Category: Build
                 Version: 1
                 Provider: CodeBuild
               Configuration:
-                ProjectName: !Ref PlaywrightShards
+                ProjectName: !Ref PlaywrightTests
                 PrimarySource: SourceArtifact
-                BatchEnabled: 'true'
                 EnvironmentVariables: |
                   [
                     { "name":"EXECUTION_ID", "value":"#{codepipeline.PipelineExecutionId}" }
@@ -515,23 +441,6 @@ Resources:
                 - Name: ExportConfigArtifact
                 - Name: PlaywrightBundleArtifact
               RunOrder: 2
-            - Name: PlaywrightReport
-              ActionTypeId:
-                Owner: AWS
-                Category: Build
-                Version: 1
-                Provider: CodeBuild
-              Configuration:
-                ProjectName: !Ref PlaywrightReport
-                PrimarySource: SourceArtifact
-                EnvironmentVariables: |
-                  [
-                    { "name":"EXECUTION_ID", "value":"#{codepipeline.PipelineExecutionId}" }
-                  ]
-              InputArtifacts:
-                - Name: SourceArtifact
-                - Name: ExportConfigArtifact
-              RunOrder: 3
         - Name: Publish
           Actions:
             - Name: Publish
@@ -663,18 +572,11 @@ Resources:
       LogGroupName: !Sub /aws/codebuild/${BuildPlaywrightBundle}
       RetentionInDays: 30
 
-  PlaywrightShardsLogGroup:
+  PlaywrightTestsLogGroup:
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Delete
     Properties:
-      LogGroupName: !Sub /aws/codebuild/${PlaywrightShards}
-      RetentionInDays: 30
-
-  PlaywrightReportLogGroup:
-    Type: AWS::Logs::LogGroup
-    DeletionPolicy: Delete
-    Properties:
-      LogGroupName: !Sub /aws/codebuild/${PlaywrightReport}
+      LogGroupName: !Sub /aws/codebuild/${PlaywrightTests}
       RetentionInDays: 30
 
   PublishLogGroup:

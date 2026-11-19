@@ -104,7 +104,7 @@ source "$env_file"
 set +a
 rm "$env_file"
 
-PIPELINE_FINGERPRINT=$("$SCRIPT_DIR/fingerprint.sh" "$PIPELINE_TEMPLATE" "${PIPELINE_FINGERPRINT_EXTRA:-}")
+PIPELINE_FINGERPRINT=$("$SCRIPT_DIR/fingerprint.sh" "$PIPELINE_TEMPLATE")
 
 PARAMS=(
   pAllowTeardown="$ALLOW_TEARDOWN"
@@ -127,11 +127,7 @@ case $COMPONENT in
     PARAMS+=(pUsEast1CodePipelineArtifactBucketName="$US_EAST_ARTIFACT_BUCKET")
     ;;
   frontend)
-    PARAMS+=(
-      pUiApp="$UI_APP"
-      pBrowserList="$PLAYWRIGHT_BROWSERS"
-      pShardList="$(seq 1 "$SHARDS_PER_BROWSER" | paste -sd, -)"
-    )
+    PARAMS+=(pUiApp="$UI_APP")
     ;;
   backend)
     PARAMS+=(pRegolithStackName="$REGOLITH_STACK_NAME")
