@@ -50,6 +50,9 @@ public class FetchData {
     static String vicFloraUrl;
     static String vicFloraGraphqlUrl;
     static String namematchingUrl;
+    static String antwikiUrl;
+    static String antwikiHeaderName;
+    static String antwikiHeaderValue;
     static WikimediaClient wikimediaClient;
     static Map configMap;
 
@@ -91,6 +94,9 @@ public class FetchData {
         vicFloraUrl = config.get("vicFloraUrl").toString().trim();
         vicFloraGraphqlUrl = config.get("vicFloraGraphqlUrl").toString().trim();
         namematchingUrl = config.get("namematchingUrl").toString().trim();
+        antwikiUrl = config.get("antwikiUrl") != null ? config.get("antwikiUrl").toString().trim() : null;
+        antwikiHeaderName = config.get("antwikiHeaderName") != null ? config.get("antwikiHeaderName").toString().trim() : null;
+        antwikiHeaderValue = config.get("antwikiHeaderValue") != null ? config.get("antwikiHeaderValue").toString().trim() : null;
 
         listsUrl = config.get("listsUrl").toString();
 
@@ -172,6 +178,8 @@ public class FetchData {
             output.put("taxa", VicMuseumDownloader.downloadVicMuseum(vicMuseumUrl));
         } else if (type.equalsIgnoreCase("vicflora")) {
             output.put("taxa", VicFloraDownloader.downloadVicFlora(vicFloraGraphqlUrl, vicFloraUrl, userAgent, descriptionsTmp));
+        } else if (type.equalsIgnoreCase("antwiki")) {
+            output.put("taxa", AntWikiDownloader.downloadAntWiki(antwikiUrl, userAgent, descriptionsTmp, antwikiHeaderName, antwikiHeaderValue));
         } else {
             System.out.println("Unknown source type: " + type);
             return;
