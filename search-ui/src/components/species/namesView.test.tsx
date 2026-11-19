@@ -13,16 +13,32 @@
 jest.mock('../../css/nameFormatting.css', () => ({}), {virtual: true});
 jest.mock('@ala/common-ui', () => ({
     __esModule: true,
-    InfoBox: ({title}: {title: string}) => <div data-testid="info-box">{title}</div>,
+    InfoBox: ({title, content}: {title: string; content?: React.ReactNode}) => (
+        <div data-testid="info-box">
+            <span>{title}</span>
+            <div>{content}</div>
+        </div>
+    ),
 }), {virtual: true});
 jest.mock('./disambiguationView.tsx', () => ({
     __esModule: true,
     default: () => <div data-testid="disambiguation-view" />,
 }));
 
+import React from 'react';
 import {render, screen} from '@testing-library/react';
 import '@testing-library/jest-dom';
+import {IntlProvider} from 'react-intl';
+import messages_en from '../../translations/en.json';
 import NamesView from './namesView.tsx';
+
+function renderWithIntl(ui: React.ReactElement) {
+    return render(
+        <IntlProvider locale="en" messages={messages_en}>
+            {ui}
+        </IntlProvider>
+    );
+}
 
 describe('NamesView', () => {
     it('renders the accepted name and dataset link', () => {
@@ -31,13 +47,13 @@ describe('NamesView', () => {
             datasetName: 'AFD',
             source: 'https://example.org/afd',
         };
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.getByText('Scientific names')).toBeInTheDocument();
         expect(screen.getByText('AFD')).toBeInTheDocument();
     });
 
     it('renders the accepted name source as plain text when there is no source', () => {
-        render(<NamesView result={{nameFormatted: 'Accepted', datasetName: 'AFD'}} isMobile={false} />);
+        renderWithIntl(<NamesView result={{nameFormatted: 'Accepted', datasetName: 'AFD'}} isMobile={false} />);
         expect(screen.getByText('AFD').tagName).toBe('SPAN');
         expect(screen.queryByRole('link', {name: 'AFD'})).not.toBeInTheDocument();
     });
@@ -50,7 +66,7 @@ describe('NamesView', () => {
                 {nameFormatted: 'Alpha synonym', datasetName: 'AFD', source: 'x'},
             ],
         };
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         const cells = screen.getAllByText(/synonym/);
         expect(cells[0].textContent).toBe('Alpha synonym');
         expect(cells[1].textContent).toBe('Zebra synonym');
@@ -65,7 +81,7 @@ describe('NamesView', () => {
                 {nameFormatted: 'No year synonym', datasetName: 'AFD', source: 'x'},
             ],
         };
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         const cells = screen.getAllByText(/synonym/);
         expect(cells[0].textContent).toBe('Newer synonym');
         expect(cells[1].textContent).toBe('Older synonym');
@@ -81,7 +97,7 @@ describe('NamesView', () => {
                 {guid: 'urn:lsid:unique', datasetName: 'AFD'},
             ],
         };
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.getAllByText('urn:lsid:dup')).toHaveLength(1);
         expect(screen.getByText('urn:lsid:unique')).toBeInTheDocument();
     });
@@ -95,7 +111,7 @@ describe('NamesView', () => {
                 {name: 'Ostrich', status: 'common', datasetName: 'AFD'},
             ],
         };
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.getByText('Common names')).toBeInTheDocument();
         expect(screen.getAllByText('Emu')).toHaveLength(1);
         expect(screen.getByText('Ostrich')).toBeInTheDocument();
@@ -109,7 +125,7 @@ describe('NamesView', () => {
                 {name: 'Indigenous One', status: 'traditionalKnowledge', datasetName: 'AFD'},
             ],
         };
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.getByText('Common names')).toBeInTheDocument();
         expect(screen.getByText('Indigenous names')).toBeInTheDocument();
         expect(screen.getByText('Common One')).toBeInTheDocument();
@@ -118,14 +134,14 @@ describe('NamesView', () => {
 
     it('does not render the "Common names" or "Indigenous names" sections when vernacularData is absent', () => {
         const result = {nameFormatted: 'Accepted'};
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.queryByText('Common names')).not.toBeInTheDocument();
         expect(screen.queryByText('Indigenous names')).not.toBeInTheDocument();
     });
 
     it('does not render the synonyms/variants/identifiers tables when their data is absent', () => {
         const result = {nameFormatted: 'Accepted'};
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.queryByText('Synonyms')).not.toBeInTheDocument();
         expect(screen.queryByText('Variants')).not.toBeInTheDocument();
         expect(screen.queryByText('Identifiers')).not.toBeInTheDocument();
@@ -133,12 +149,26 @@ describe('NamesView', () => {
 
     it('renders the DisambiguationView child component', () => {
         const result = {nameFormatted: 'Accepted'};
-        render(<NamesView result={result} isMobile={false} />);
+        renderWithIntl(<NamesView result={result} isMobile={false} />);
         expect(screen.getByTestId('disambiguation-view')).toBeInTheDocument();
     });
 
+    it('renders the about scientific names info box with i18n title, text, and link', () => {
+        renderWithIntl(<NamesView result={{nameFormatted: 'Accepted'}} isMobile={false} />);
+        expect(screen.getByText('About scientific names')).toBeInTheDocument();
+        expect(
+            screen.getByText(/For more information on the taxonomic status that the ALA has assigned to a name/)
+        ).toBeInTheDocument();
+        const link = screen.getByRole('link', {name: 'An Introduction to Taxonomy'});
+        expect(link).toHaveAttribute(
+            'href',
+            'https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy'
+        );
+        expect(link).toHaveAttribute('target', '_blank');
+    });
+
     it('handles an undefined result without crashing', () => {
-        render(<NamesView result={undefined} isMobile={true} />);
+        renderWithIntl(<NamesView result={undefined} isMobile={true} />);
         expect(screen.getByText('Scientific names')).toBeInTheDocument();
     });
 });

@@ -8,6 +8,7 @@ import {InfoBox} from '@ala/common-ui';
 import {faCircleInfo} from '@fortawesome/free-solid-svg-icons';
 import '../../css/nameFormatting.css';
 import {useEffect, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import classes from './species.module.css';
 import DisambiguationView from './disambiguationView.tsx';
 
@@ -28,6 +29,7 @@ function sortByRecencyThenName(a: any, b: any): number {
 }
 
 function NamesView({result, isMobile}: MapViewProps) {
+    const intl = useIntl();
     const [commonNames, setCommonNames] = useState<any[]>([]);
     const [indigenousNames, setIndigenousNames] = useState<any[]>([]);
 
@@ -43,8 +45,38 @@ function NamesView({result, isMobile}: MapViewProps) {
             <span className={classes.speciesDescriptionTitle}>
                 Scientific names
             </span>
+            <div style={{height: isMobile ? '15px' : '30px'}}/>                
+            <InfoBox
+                size={isMobile ? 14 : 16}
+                className="mb-2"
+                icon={faCircleInfo}
+                title={intl.formatMessage({
+                    id: 'names.aboutScientificNames.title',
+                    defaultMessage: 'About scientific names',
+                })}
+                content={
+                    <FormattedMessage
+                        id="names.aboutScientificNames.content"
+                        defaultMessage="For more information on the taxonomic status that the ALA has assigned to a name and the rationale behind it see <a>An Introduction to Taxonomy</a>."
+                        values={{
+                            a: (chunks) => (
+                                <a
+                                    href={intl.formatMessage({
+                                        id: 'names.aboutScientificNames.linkUrl',
+                                        defaultMessage:
+                                            'https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy',
+                                    })}
+                                    target="_blank"
+                                    style={{color: '#003A70', textDecoration: 'underline'}}
+                                >
+                                    {chunks}
+                                </a>
+                            ),
+                        }}
+                    />
+                }
+            />
             <div style={{height: isMobile ? '15px' : '30px'}}/>
-
             <table className="table table-striped align-middle"
                    style={{fontSize: isMobile ? '14px' : '16px', lineHeight: isMobile ? '20px' : '24px'}}>
                 <thead>
