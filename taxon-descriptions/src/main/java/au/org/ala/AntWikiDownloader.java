@@ -10,6 +10,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Downloads Australian ant species descriptions (Summary and Identification sections) from AntWiki.
@@ -82,10 +84,11 @@ public class AntWikiDownloader {
         }
 
         RateLimiter rateLimiter = new RateLimiter(DEFAULT_REQUESTS_PER_SECOND, DEFAULT_REQUESTS_PER_SECOND);
+        AtomicLong pauseUntilTimestamp = new AtomicLong(0);
 
         String australiaUrl = baseUrl + "Australia?action=render";
         System.out.println(timestamp() + " Fetching AntWiki Australian species list from " + australiaUrl);
-        Document australiaDoc = fetchDocument(australiaUrl, userAgent, effectiveHeaders, rateLimiter);
+        Document australiaDoc = fetchDocument(australiaUrl, userAgent, effectiveHeaders, rateLimiter, pauseUntilTimestamp);
         Map<String, String> speciesTitles = parseAustraliaSpeciesList(australiaDoc);
         if (speciesTitles.isEmpty()) {
             throw new IOException("No species links found on AntWiki Australia page: " + australiaUrl);
@@ -93,6 +96,9 @@ public class AntWikiDownloader {
         System.out.println(timestamp() + " Found " + speciesTitles.size() + " species links on AntWiki Australia page");
 
         Map<String, String> titleToTaxonId = matchSpeciesNames(speciesTitles);
+        if (titleToTaxonId.isEmpty()) {
+            throw new IOException("No AntWiki species matched any ALA taxa");
+        }
         System.out.println(timestamp() + " Matched " + titleToTaxonId.size() + " AntWiki species to ALA taxon IDs");
 
         AtomicInteger counter = new AtomicInteger(0);
@@ -120,7 +126,7 @@ public class AntWikiDownloader {
 
                     String renderUrl = baseUrl + title + "?action=render";
                     String canonicalUrl = baseUrl + title;
-                    Document speciesDoc = fetchDocument(renderUrl, userAgent, effectiveHeaders, rateLimiter);
+                    Document speciesDoc = fetchDocument(renderUrl, userAgent, effectiveHeaders, rateLimiter, pauseUntilTimestamp);
                     Map<String, String> content = extractContent(speciesDoc, canonicalUrl);
                     if (content != null && hasContent(content)) {
                         pageCache.put(title, content);
@@ -164,23 +170,45 @@ public class AntWikiDownloader {
         }
 
         Map<String, Object> result = assembleTaxonResults(titleToTaxonId, pageCache);
+        if (cacheFile.exists() && !cacheFile.delete()) {
+            System.out.println("WARN failed to delete completed AntWiki checkpoint: " + cacheFile.getPath());
+        }
         System.out.println(timestamp() + " Finished AntWiki: processed " + counter.get() + " of " + total + ", withData: " + result.size());
         return result;
     }
 
     static Map<String, Object> assembleTaxonResults(Map<String, String> titleToTaxonId, Map<String, Map<String, String>> pageCache) {
         Map<String, Object> result = new LinkedHashMap<>();
+        Map<String, Integer> bestScores = new HashMap<>();
         for (Map.Entry<String, String> entry : titleToTaxonId.entrySet()) {
             String title = entry.getKey();
             String taxonId = entry.getValue();
             Map<String, String> pageData = pageCache.get(title);
-            if (!hasContent(pageData)) {
+            int score = completenessScore(pageData);
+            if (score == 0) {
                 continue;
             }
-            // Keep first non-empty page deterministically if multiple AntWiki titles map to the same ALA taxon ID
-            result.putIfAbsent(taxonId, new LinkedHashMap<>(pageData));
+            Integer currentBest = bestScores.get(taxonId);
+            if (currentBest == null || score > currentBest) {
+                result.put(taxonId, new LinkedHashMap<>(pageData));
+                bestScores.put(taxonId, score);
+            }
         }
         return result;
+    }
+
+    private static int completenessScore(Map<String, String> pageData) {
+        if (pageData == null || pageData.isEmpty()) {
+            return 0;
+        }
+        int score = 0;
+        if (StringUtils.isNotBlank(pageData.get("Summary"))) {
+            score++;
+        }
+        if (StringUtils.isNotBlank(pageData.get("Identification"))) {
+            score++;
+        }
+        return score;
     }
 
     static Map<String, String> resolveHeaders(String headerName, String headerValue) {
@@ -392,18 +420,31 @@ public class AntWikiDownloader {
         }
 
         StringBuilder sb = new StringBuilder();
+        StringBuilder pendingHeading = new StringBuilder();
         boolean inKeysSubsection = false;
         Element sibling = idHeading.nextElementSibling();
         while (sibling != null) {
-            String tag = sibling.tagName();
-            if ("h2".equalsIgnoreCase(tag)) {
+            String tag = sibling.tagName().toLowerCase(Locale.ROOT);
+            if ("h2".equals(tag)) {
                 break;
             }
-            if ("h3".equalsIgnoreCase(tag)) {
+            if ("h3".equals(tag)) {
                 inKeysSubsection = sibling.selectFirst("#Keys_including_this_Species") != null
                         || sibling.text().trim().toLowerCase(Locale.ROOT).startsWith("keys including");
-            } else if (!inKeysSubsection && "p".equalsIgnoreCase(tag) && isProseParagraph(sibling)) {
-                sb.append("<p>").append(sibling.html().trim()).append("</p>");
+                pendingHeading.setLength(0);
+                if (!inKeysSubsection && StringUtils.isNotBlank(sibling.text())) {
+                    pendingHeading.append("<h3>").append(sibling.text().trim()).append("</h3>");
+                }
+            } else if (!inKeysSubsection) {
+                if ("h4".equals(tag) && StringUtils.isNotBlank(sibling.text())) {
+                    pendingHeading.append("<h4>").append(sibling.text().trim()).append("</h4>");
+                } else if (("p".equals(tag) || "ul".equals(tag) || "ol".equals(tag)) && hasProseText(sibling)) {
+                    if (pendingHeading.length() > 0) {
+                        sb.append(pendingHeading);
+                        pendingHeading.setLength(0);
+                    }
+                    sb.append("<").append(tag).append(">").append(sibling.html().trim()).append("</").append(tag).append(">");
+                }
             }
             sibling = sibling.nextElementSibling();
         }
@@ -411,48 +452,83 @@ public class AntWikiDownloader {
     }
 
     private static boolean isProseParagraph(Element p) {
-        Element clone = p.clone();
+        return hasProseText(p);
+    }
+
+    private static boolean hasProseText(Element element) {
+        Element clone = element.clone();
         clone.select("img, span[typeof=mw:File], small").remove();
         return StringUtils.isNotBlank(clone.text());
     }
 
-    private static Document fetchDocument(String url, String userAgent, Map<String, String> headers, RateLimiter rateLimiter) throws IOException {
+    static Document fetchDocument(String url, String userAgent, Map<String, String> headers,
+                                  RateLimiter rateLimiter, AtomicLong pauseUntilTimestamp) throws IOException {
         IOException lastException = null;
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
+                if (pauseUntilTimestamp != null) {
+                    long pauseRemaining = pauseUntilTimestamp.get() - System.currentTimeMillis();
+                    if (pauseRemaining > 0) {
+                        Thread.sleep(pauseRemaining);
+                    }
+                }
                 if (rateLimiter != null) {
                     rateLimiter.acquire();
                 }
-                var connection = Jsoup.connect(url)
+                Connection connection = Jsoup.connect(url)
                         .timeout(TIMEOUT_MS)
-                        .followRedirects(true);
+                        .followRedirects(true)
+                        .ignoreHttpErrors(true);
                 if (StringUtils.isNotBlank(userAgent)) {
                     connection.userAgent(userAgent);
                 }
                 for (Map.Entry<String, String> header : headers.entrySet()) {
                     connection.header(header.getKey(), header.getValue());
                 }
-                return connection.get();
-            } catch (HttpStatusException e) {
-                int status = e.getStatusCode();
+                Connection.Response response = connection.execute();
+                int status = response.statusCode();
+                if (status >= 200 && status < 300) {
+                    return response.parse();
+                }
                 if (status == 403 || status == 404) {
+                    throw new HttpStatusException("HTTP error fetching URL", status, url);
+                }
+                if (status == 429 || status == 503) {
+                    long pauseMs = WikimediaClient.parseRetryAfter(response.header("Retry-After"));
+                    if (pauseUntilTimestamp != null) {
+                        pauseUntilTimestamp.accumulateAndGet(System.currentTimeMillis() + pauseMs, Math::max);
+                    }
+                    lastException = new HttpStatusException("Rate limited fetching URL", status, url);
+                    System.out.println("WARN HTTP " + status + " fetching " + url + ", pausing for "
+                            + (pauseMs / 1000) + "s (attempt " + attempt + "/" + MAX_RETRIES + ")");
+                    if (attempt < MAX_RETRIES) {
+                        Thread.sleep(pauseMs);
+                    }
+                    continue;
+                }
+                lastException = new HttpStatusException("HTTP error fetching URL", status, url);
+                System.out.println("WARN HTTP " + status + " fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + ")");
+            } catch (HttpStatusException e) {
+                if (e.getStatusCode() == 403 || e.getStatusCode() == 404) {
                     throw e;
                 }
                 lastException = e;
-                System.out.println("WARN HTTP " + status + " fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + ")");
+                System.out.println("WARN HTTP " + e.getStatusCode() + " fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + ")");
             } catch (IOException e) {
                 lastException = e;
                 System.out.println("WARN I/O error fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + "): " + e.getMessage());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Interrupted while rate-limiting request to " + url, e);
+                throw new IOException("Interrupted while fetching " + url, e);
             }
 
-            try {
-                Thread.sleep(2000L * attempt);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IOException("Interrupted during retry backoff for " + url, e);
+            if (attempt < MAX_RETRIES) {
+                try {
+                    Thread.sleep(2000L * attempt);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interrupted during retry backoff for " + url, e);
+                }
             }
         }
         throw lastException != null ? lastException : new IOException("Failed to fetch " + url);
