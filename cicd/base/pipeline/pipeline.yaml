@@ -172,6 +172,8 @@ Resources:
                     - cicd/frontend/scripts/playwright_version.sh
                     - yarn.lock
                     - .nvmrc
+                  Excludes:
+                    - '**/*.md'
             SourceActionName: CheckoutSrc
       Variables:
         - Name: SRC_BRANCH

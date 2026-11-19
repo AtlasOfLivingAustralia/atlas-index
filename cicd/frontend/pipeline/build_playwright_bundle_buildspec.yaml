@@ -11,7 +11,8 @@ phases:
       - yarn workspaces focus "$UI_APP" @ala/common-ui
   build:
     commands:
-      - set -a; source "$CODEBUILD_SRC_DIR_ExportConfigArtifact/env.sh"; set +a
+      # VITE_* stay out: Vite lets real env vars beat .env.playwright, which would point the bundle at live hosts
+      - set -a; eval "$(grep -v '^VITE_' "$CODEBUILD_SRC_DIR_ExportConfigArtifact/env.sh")"; set +a
       - cicd/frontend/scripts/playwright_bundle.sh
 
 artifacts:
