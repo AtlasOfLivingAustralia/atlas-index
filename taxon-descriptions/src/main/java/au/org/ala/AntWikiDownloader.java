@@ -1,7 +1,15 @@
 package au.org.ala;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -12,7 +20,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Discovers species from the AntWiki {@code Australia} page, resolves ALA taxon GUIDs via the
  * namematching service, and fetches rendered species pages using a configurable custom HTTP header
- * to pass Cloudflare bot protection. Progress is cached in {@code antwiki-tmp.json} so interrupted
- * runs can resume.
+ * to pass Cloudflare bot protection. Progress is cached per page in {@code antwiki-tmp.json} so
+ * interrupted runs can resume.
  */
 public class AntWikiDownloader {
 
@@ -35,6 +46,7 @@ public class AntWikiDownloader {
     private static final int MAX_RETRIES = 3;
     private static final double DEFAULT_REQUESTS_PER_SECOND = 3.0;
     private static final int DEFAULT_THREADS = 2;
+    private static final int SPECIES_RANK_ID = 7000;
 
     /**
      * Downloads and extracts AntWiki species descriptions for Australian ant taxa.
@@ -45,7 +57,7 @@ public class AntWikiDownloader {
      * @param headerName  optional custom HTTP header name (defaults to {@code x-ala-harvester})
      * @param headerValue optional custom HTTP header value (falls back to {@code ANTWIKI_HEADER_VALUE} env var if blank)
      * @return map of ALA taxon concept IDs to extracted content maps containing {@code url}, {@code Summary}, and/or {@code Identification}
-     * @throws IOException              if fetching the AntWiki Australia index page fails
+     * @throws IOException              if fetching, name matching, or page downloading fails or is interrupted
      * @throws IllegalArgumentException if {@code antwikiUrl} is blank
      */
     public static Map<String, Object> downloadAntWiki(String antwikiUrl, String userAgent, String tmpDir, String headerName, String headerValue) throws IOException {
@@ -55,14 +67,14 @@ public class AntWikiDownloader {
         String baseUrl = antwikiUrl.endsWith("/") ? antwikiUrl : antwikiUrl + "/";
         Map<String, String> effectiveHeaders = resolveHeaders(headerName, headerValue);
 
-        Map<String, Object> data = new ConcurrentHashMap<>();
+        Map<String, Map<String, String>> pageCache = new ConcurrentHashMap<>();
         File cacheFile = new File(tmpDir + "/antwiki-tmp.json");
         if (cacheFile.exists()) {
             try (FileReader reader = new FileReader(cacheFile)) {
-                Map cache = new ObjectMapper().readValue(reader, Map.class);
+                Map<String, Map<String, String>> cache = new ObjectMapper().readValue(reader, Map.class);
                 if (cache != null) {
                     System.out.println("Resuming AntWiki from cache: " + cache.size());
-                    data.putAll(cache);
+                    pageCache.putAll(cache);
                 }
             } catch (IOException e) {
                 System.out.println("WARN failed to read AntWiki cache: " + e.getMessage());
@@ -75,6 +87,9 @@ public class AntWikiDownloader {
         System.out.println(timestamp() + " Fetching AntWiki Australian species list from " + australiaUrl);
         Document australiaDoc = fetchDocument(australiaUrl, userAgent, effectiveHeaders, rateLimiter);
         Map<String, String> speciesTitles = parseAustraliaSpeciesList(australiaDoc);
+        if (speciesTitles.isEmpty()) {
+            throw new IOException("No species links found on AntWiki Australia page: " + australiaUrl);
+        }
         System.out.println(timestamp() + " Found " + speciesTitles.size() + " species links on AntWiki Australia page");
 
         Map<String, String> titleToTaxonId = matchSpeciesNames(speciesTitles);
@@ -82,22 +97,21 @@ public class AntWikiDownloader {
 
         AtomicInteger counter = new AtomicInteger(0);
         AtomicInteger withData = new AtomicInteger(0);
+        AtomicInteger failedCount = new AtomicInteger(0);
         int total = titleToTaxonId.size();
 
         ExecutorService executorService = Executors.newFixedThreadPool(DEFAULT_THREADS);
-        for (Map.Entry<String, String> entry : titleToTaxonId.entrySet()) {
-            String title = entry.getKey();
-            String taxonId = entry.getValue();
+        for (String title : titleToTaxonId.keySet()) {
             executorService.submit(() -> {
                 try {
                     int current = counter.incrementAndGet();
                     if (current % 100 == 0) {
                         System.out.println(timestamp() + " AntWiki processed: " + current + " of " + total + ", withData: " + withData.get());
-                        writeCache(cacheFile, data);
+                        writeCache(cacheFile, pageCache);
                     }
 
-                    if (data.containsKey(taxonId)) {
-                        Map existing = (Map) data.get(taxonId);
+                    if (pageCache.containsKey(title)) {
+                        Map<String, String> existing = pageCache.get(title);
                         if (hasContent(existing)) {
                             withData.incrementAndGet();
                         }
@@ -109,15 +123,16 @@ public class AntWikiDownloader {
                     Document speciesDoc = fetchDocument(renderUrl, userAgent, effectiveHeaders, rateLimiter);
                     Map<String, String> content = extractContent(speciesDoc, canonicalUrl);
                     if (content != null && hasContent(content)) {
-                        data.put(taxonId, content);
+                        pageCache.put(title, content);
                         withData.incrementAndGet();
                     } else {
-                        // Cache empty marker so interrupted runs do not re-fetch pages with no content
-                        Map<String, String> emptyMarker = new ConcurrentHashMap<>();
+                        // Cache empty marker per page so interrupted runs do not re-fetch pages with no content
+                        Map<String, String> emptyMarker = new LinkedHashMap<>();
                         emptyMarker.put("url", canonicalUrl);
-                        data.put(taxonId, emptyMarker);
+                        pageCache.put(title, emptyMarker);
                     }
                 } catch (Exception e) {
+                    failedCount.incrementAndGet();
                     System.out.println("ERROR fetching AntWiki page for " + title + ": " + e.getMessage());
                 }
             });
@@ -125,25 +140,47 @@ public class AntWikiDownloader {
 
         executorService.shutdown();
         try {
-            executorService.awaitTermination(100, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            System.out.println("Interrupted waiting for AntWiki downloads: " + e.getMessage());
-        }
-
-        writeCache(cacheFile, data);
-
-        // Remove empty entries before returning final output
-        List<String> keys = new ArrayList<>(data.keySet());
-        for (String key : keys) {
-            Map taxonData = (Map) data.get(key);
-            if (!hasContent(taxonData)) {
-                data.remove(key);
+            if (!executorService.awaitTermination(100, TimeUnit.DAYS)) {
+                executorService.shutdownNow();
+                writeCache(cacheFile, pageCache);
+                throw new IOException("Timed out waiting for AntWiki downloads to complete");
             }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            try {
+                executorService.awaitTermination(30, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+                // Already interrupted
+            }
+            writeCache(cacheFile, pageCache);
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted waiting for AntWiki downloads", e);
         }
 
-        System.out.println(timestamp() + " Finished AntWiki: processed " + counter.get() + " of " + total + ", withData: " + withData.get());
-        return data;
+        writeCache(cacheFile, pageCache);
+
+        if (failedCount.get() > 0) {
+            throw new IOException("AntWiki harvest incomplete: " + failedCount.get() + " page(s) failed to download");
+        }
+
+        Map<String, Object> result = assembleTaxonResults(titleToTaxonId, pageCache);
+        System.out.println(timestamp() + " Finished AntWiki: processed " + counter.get() + " of " + total + ", withData: " + result.size());
+        return result;
+    }
+
+    static Map<String, Object> assembleTaxonResults(Map<String, String> titleToTaxonId, Map<String, Map<String, String>> pageCache) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : titleToTaxonId.entrySet()) {
+            String title = entry.getKey();
+            String taxonId = entry.getValue();
+            Map<String, String> pageData = pageCache.get(title);
+            if (!hasContent(pageData)) {
+                continue;
+            }
+            // Keep first non-empty page deterministically if multiple AntWiki titles map to the same ALA taxon ID
+            result.putIfAbsent(taxonId, new LinkedHashMap<>(pageData));
+        }
+        return result;
     }
 
     static Map<String, String> resolveHeaders(String headerName, String headerValue) {
@@ -188,10 +225,11 @@ public class AntWikiDownloader {
         return species;
     }
 
-    private static Map<String, String> matchSpeciesNames(Map<String, String> speciesTitles) {
+    private static Map<String, String> matchSpeciesNames(Map<String, String> speciesTitles) throws IOException {
         Map<String, String> titleToTaxonId = new LinkedHashMap<>();
         AtomicInteger found = new AtomicInteger(0);
         AtomicInteger notFound = new AtomicInteger(0);
+        AtomicInteger higherRankRejected = new AtomicInteger(0);
 
         List<Map<String, String>> batch = new ArrayList<>();
         List<String> batchTitles = new ArrayList<>();
@@ -217,18 +255,81 @@ public class AntWikiDownloader {
             batchTitles.add(title);
 
             if (batch.size() == batchSize) {
-                NamematchingUtil.namematchingService(batch, batchTitles, titleToTaxonId, found, notFound);
+                matchBatch(batch, batchTitles, titleToTaxonId, found, notFound, higherRankRejected);
                 batch.clear();
                 batchTitles.clear();
             }
         }
 
         if (!batch.isEmpty()) {
-            NamematchingUtil.namematchingService(batch, batchTitles, titleToTaxonId, found, notFound);
+            matchBatch(batch, batchTitles, titleToTaxonId, found, notFound, higherRankRejected);
         }
 
-        System.out.println(timestamp() + " AntWiki namematching found: " + found.get() + ", notFound: " + notFound.get());
+        if (found.get() + notFound.get() + higherRankRejected.get() != speciesTitles.size()) {
+            throw new IOException("AntWiki name matching accounted for "
+                    + (found.get() + notFound.get() + higherRankRejected.get())
+                    + " of " + speciesTitles.size() + " species");
+        }
+
+        System.out.println(timestamp() + " AntWiki namematching found: " + found.get()
+                + ", notFound: " + notFound.get()
+                + ", higherRankRejected: " + higherRankRejected.get());
         return titleToTaxonId;
+    }
+
+    private static void matchBatch(List<Map<String, String>> batch, List<String> batchTitles,
+                                   Map<String, String> output, AtomicInteger found,
+                                   AtomicInteger notFound, AtomicInteger higherRankRejected) throws IOException {
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(TIMEOUT_MS)
+                .setSocketTimeout(TIMEOUT_MS)
+                .build();
+        try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultRequestConfig(requestConfig).build()) {
+            HttpPost request = new HttpPost(FetchData.namematchingUrl + "/api/searchAllByClassification");
+            request.setHeader("Content-Type", "application/json");
+
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(batch);
+            request.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
+
+            HttpResponse response = httpClient.execute(request);
+            int statusCode = response.getStatusLine().getStatusCode();
+            String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            if (statusCode < 200 || statusCode >= 300) {
+                throw new IOException("Namematching service returned HTTP " + statusCode + ": " + responseBody);
+            }
+
+            JsonNode rootNode = mapper.readTree(responseBody);
+            if (!rootNode.isArray() || rootNode.size() != batch.size()) {
+                throw new IOException("Unexpected namematching response size: expected " + batch.size()
+                        + ", got " + (rootNode.isArray() ? rootNode.size() : "non-array"));
+            }
+
+            parseMatchBatchResponse(rootNode, batchTitles, output, found, notFound, higherRankRejected);
+        }
+    }
+
+    static void parseMatchBatchResponse(JsonNode rootNode, List<String> batchTitles,
+                                        Map<String, String> output, AtomicInteger found,
+                                        AtomicInteger notFound, AtomicInteger higherRankRejected) {
+        for (int i = 0; i < rootNode.size(); i++) {
+            JsonNode node = rootNode.get(i);
+            String success = node.path("success").asText();
+            if ("true".equals(success)) {
+                String taxonConceptID = node.path("taxonConceptID").asText();
+                int rankId = node.path("rankID").asInt(0);
+                if (StringUtils.isNotBlank(taxonConceptID) && rankId >= SPECIES_RANK_ID) {
+                    output.put(batchTitles.get(i), taxonConceptID);
+                    found.incrementAndGet();
+                } else if (StringUtils.isNotBlank(taxonConceptID)) {
+                    higherRankRejected.incrementAndGet();
+                } else {
+                    notFound.incrementAndGet();
+                }
+            } else {
+                notFound.incrementAndGet();
+            }
+        }
     }
 
     static Map<String, String> extractContent(Document doc, String pageUrl) {
@@ -291,13 +392,17 @@ public class AntWikiDownloader {
         }
 
         StringBuilder sb = new StringBuilder();
+        boolean inKeysSubsection = false;
         Element sibling = idHeading.nextElementSibling();
         while (sibling != null) {
             String tag = sibling.tagName();
-            if ("h2".equalsIgnoreCase(tag) || "h3".equalsIgnoreCase(tag)) {
+            if ("h2".equalsIgnoreCase(tag)) {
                 break;
             }
-            if ("p".equalsIgnoreCase(tag) && isProseParagraph(sibling)) {
+            if ("h3".equalsIgnoreCase(tag)) {
+                inKeysSubsection = sibling.selectFirst("#Keys_including_this_Species") != null
+                        || sibling.text().trim().toLowerCase(Locale.ROOT).startsWith("keys including");
+            } else if (!inKeysSubsection && "p".equalsIgnoreCase(tag) && isProseParagraph(sibling)) {
                 sb.append("<p>").append(sibling.html().trim()).append("</p>");
             }
             sibling = sibling.nextElementSibling();
@@ -335,9 +440,9 @@ public class AntWikiDownloader {
                 }
                 lastException = e;
                 System.out.println("WARN HTTP " + status + " fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + ")");
-            } catch (SocketTimeoutException e) {
+            } catch (IOException e) {
                 lastException = e;
-                System.out.println("WARN timeout fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + ")");
+                System.out.println("WARN I/O error fetching " + url + " (attempt " + attempt + "/" + MAX_RETRIES + "): " + e.getMessage());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IOException("Interrupted while rate-limiting request to " + url, e);
@@ -353,19 +458,32 @@ public class AntWikiDownloader {
         throw lastException != null ? lastException : new IOException("Failed to fetch " + url);
     }
 
-    private static boolean hasContent(Map taxonData) {
+    private static boolean hasContent(Map<String, String> taxonData) {
         if (taxonData == null || taxonData.isEmpty()) {
             return false;
         }
-        return StringUtils.isNotBlank((String) taxonData.get("Summary"))
-                || StringUtils.isNotBlank((String) taxonData.get("Identification"));
+        return StringUtils.isNotBlank(taxonData.get("Summary"))
+                || StringUtils.isNotBlank(taxonData.get("Identification"));
     }
 
-    private static synchronized void writeCache(File cacheFile, Map<String, Object> data) {
-        try (FileWriter writer = new FileWriter(cacheFile)) {
-            new ObjectMapper().writeValue(writer, data);
+    static synchronized void writeCache(File cacheFile, Map<String, Map<String, String>> data) {
+        File parentDir = cacheFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
+        File tempFile = new File(parentDir, cacheFile.getName() + ".tmp");
+        try {
+            try (FileWriter writer = new FileWriter(tempFile, StandardCharsets.UTF_8)) {
+                new ObjectMapper().writeValue(writer, data);
+            }
+            try {
+                Files.move(tempFile.toPath(), cacheFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tempFile.toPath(), cacheFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
         } catch (IOException e) {
             System.out.println("WARN failed to write AntWiki cache: " + e.getMessage());
+            tempFile.delete();
         }
     }
 

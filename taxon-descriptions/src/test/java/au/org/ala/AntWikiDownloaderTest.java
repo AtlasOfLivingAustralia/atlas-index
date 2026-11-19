@@ -1,15 +1,24 @@
 package au.org.ala;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.util.Map;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AntWikiDownloaderTest {
+
+    @TempDir
+    Path tempDir;
 
     @Test
     void testParseAustraliaSpeciesList() {
@@ -64,6 +73,29 @@ public class AntWikiDownloaderTest {
     }
 
     @Test
+    void testExtractContentIncludesH3SubsectionsUnderIdentificationButSkipsKeys() {
+        String html = """
+                <div class="mw-content-ltr mw-parser-output">
+                  <p><i>Example ant</i> summary.</p>
+                  <h2><span class="mw-headline" id="Identification">Identification</span></h2>
+                  <h3><span class="mw-headline" id="Keys_including_this_Species">Keys including this Species</span></h3>
+                  <p>Key intro text that should be skipped.</p>
+                  <h3><span class="mw-headline" id="Worker">Worker</span></h3>
+                  <p>Worker diagnosis text.</p>
+                  <h3><span class="mw-headline" id="Queen">Queen</span></h3>
+                  <p>Queen diagnosis text.</p>
+                  <h2><span class="mw-headline" id="Distribution">Distribution</span></h2>
+                  <p>Distribution text.</p>
+                </div>
+                """;
+        Document doc = Jsoup.parse(html);
+        Map<String, String> content = AntWikiDownloader.extractContent(doc, "https://www.antwiki.org/wiki/Example_ant");
+
+        assertNotNull(content);
+        assertEquals("<p>Worker diagnosis text.</p><p>Queen diagnosis text.</p>", content.get("Identification"));
+    }
+
+    @Test
     void testExtractContentSkipsIdentificationWhenOnlyKeysPresent() {
         String html = """
                 <div class="mw-content-ltr mw-parser-output">
@@ -107,5 +139,66 @@ public class AntWikiDownloaderTest {
 
         Map<String, String> empty = AntWikiDownloader.resolveHeaders("x-ala-harvester", "   ");
         assertTrue(empty.isEmpty() || StringUtils.isNotBlank(System.getenv("ANTWIKI_HEADER_VALUE")));
+    }
+
+    @Test
+    void testParseMatchBatchResponseRejectsHigherRankMatches() throws Exception {
+        String responseJson = """
+                [
+                  {"success": true, "taxonConceptID": "urn:species:1", "rank": "species", "rankID": 7000},
+                  {"success": true, "taxonConceptID": "urn:subspecies:2", "rank": "subspecies", "rankID": 8000},
+                  {"success": true, "taxonConceptID": "urn:genus:3", "rank": "genus", "rankID": 6000},
+                  {"success": false}
+                ]
+                """;
+        JsonNode rootNode = new ObjectMapper().readTree(responseJson);
+        List<String> titles = List.of("Sp_one", "Subsp_two", "Unmatched_in_genus", "Missing_four");
+        Map<String, String> output = new LinkedHashMap<>();
+        AtomicInteger found = new AtomicInteger(0);
+        AtomicInteger notFound = new AtomicInteger(0);
+        AtomicInteger higherRankRejected = new AtomicInteger(0);
+
+        AntWikiDownloader.parseMatchBatchResponse(rootNode, titles, output, found, notFound, higherRankRejected);
+
+        assertEquals(2, found.get());
+        assertEquals(1, notFound.get());
+        assertEquals(1, higherRankRejected.get());
+        assertEquals("urn:species:1", output.get("Sp_one"));
+        assertEquals("urn:subspecies:2", output.get("Subsp_two"));
+        assertFalse(output.containsKey("Unmatched_in_genus"));
+    }
+
+    @Test
+    void testAssembleTaxonResultsExcludesStaleAndSelectsDeterministically() {
+        Map<String, String> titleToTaxonId = new LinkedHashMap<>();
+        titleToTaxonId.put("Empty_synonym", "taxon:1");
+        titleToTaxonId.put("Valid_page", "taxon:1");
+        titleToTaxonId.put("Second_valid", "taxon:1");
+
+        Map<String, Map<String, String>> pageCache = new LinkedHashMap<>();
+        pageCache.put("Empty_synonym", Map.of("url", "https://www.antwiki.org/wiki/Empty_synonym"));
+        pageCache.put("Valid_page", Map.of("url", "https://www.antwiki.org/wiki/Valid_page", "Summary", "<p>First valid</p>"));
+        pageCache.put("Second_valid", Map.of("url", "https://www.antwiki.org/wiki/Second_valid", "Summary", "<p>Second valid</p>"));
+        pageCache.put("Stale_removed_page", Map.of("url", "https://www.antwiki.org/wiki/Stale", "Summary", "<p>Stale</p>"));
+
+        Map<String, Object> result = AntWikiDownloader.assembleTaxonResults(titleToTaxonId, pageCache);
+
+        assertEquals(1, result.size());
+        Map<String, String> selected = (Map<String, String>) result.get("taxon:1");
+        assertEquals("<p>First valid</p>", selected.get("Summary"));
+    }
+
+    @Test
+    void testWriteCacheWritesAtomicallyWithoutLeavingTempFile() throws Exception {
+        File cacheFile = tempDir.resolve("antwiki-tmp.json").toFile();
+        Map<String, Map<String, String>> cache = new LinkedHashMap<>();
+        cache.put("Aenictus_hilli", Map.of("url", "https://www.antwiki.org/wiki/Aenictus_hilli", "Summary", "<p>Test</p>"));
+
+        AntWikiDownloader.writeCache(cacheFile, cache);
+
+        assertTrue(cacheFile.exists());
+        assertFalse(tempDir.resolve("antwiki-tmp.json.tmp").toFile().exists());
+        Map readBack = new ObjectMapper().readValue(cacheFile, Map.class);
+        assertTrue(readBack.containsKey("Aenictus_hilli"));
     }
 }
