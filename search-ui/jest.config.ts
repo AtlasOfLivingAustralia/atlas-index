@@ -5,8 +5,9 @@ const config: Config = {
     testEnvironment: 'jsdom',
     transform: {
         '^.+\\.css$': 'jest-transform-css',
-        '^.+\\.(ts|tsx)$': 'babel-jest',
+        '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './.babelrc' }],
     },
+    transformIgnorePatterns: ['node_modules/(?!(react-intl|@formatjs|intl-messageformat)/)'],
     testMatch: ['<rootDir>/src/**/*.(spec|test).[jt]s?(x)'],
 };
 
