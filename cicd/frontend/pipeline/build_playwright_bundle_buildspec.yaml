@@ -1,6 +1,6 @@
 version: 0.2
 ###
-# Build the instrumented Playwright bundle(s) once; every shard of the gate tests the same build
+# Build the instrumented Playwright bundle(s) once, in parallel with the release build
 
 env:
   shell: bash

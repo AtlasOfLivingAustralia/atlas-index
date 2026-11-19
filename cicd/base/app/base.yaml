@@ -13,7 +13,7 @@ Parameters:
     Type: String
 
   pReportRetentionDays:
-    Description: Days to keep Playwright reports and blobs
+    Description: Days to keep Playwright HTML reports
     Type: Number
 
 Conditions:

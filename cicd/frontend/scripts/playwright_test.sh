@@ -49,8 +49,9 @@ serve() {
   echo "vite preview did not start"; cat "/tmp/preview-$1.log"; exit 1
 }
 
-# run <name> <playwright args...>; returns the Playwright exit code. Each run gets its own blob
-# directory because the blob reporter empties its output directory first.
+# run <name> <playwright args...>; returns the Playwright exit code. Blob reports exist only so the
+# main and variant runs merge into one report; each run gets its own blob directory because the blob
+# reporter empties its output directory first.
 run() {
   local name=$1
   shift

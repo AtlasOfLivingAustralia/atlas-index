@@ -5,6 +5,10 @@ This is intended for local development only.
 This directory contains static files (header/footer/css/js, banner messages, and generated data such as
 regionsList.json/dashboard.json) that are served over HTTP on port 8082.
 
+Every `-ui` app's Playwright tests also read these files from disk (`tests/mocks/staticServerMocks.ts`), so a
+change here runs every UI pipeline and its Playwright gate (see [cicd](../cicd/README.md)). Deployed apps don't use
+this directory.
+
 ## Automatic (recommended)
 
 Every `-ui` app's `yarn run dev` automatically serves this `static` directory on port 8082 via a vite dev plugin

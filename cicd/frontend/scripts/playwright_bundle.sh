@@ -3,7 +3,7 @@ set -euo pipefail
 
 ###
 # Build the instrumented Playwright bundle(s) for one UI into .pw-bundle/ (run from the repo root).
-#   .pw-bundle/dist          the build every shard tests
+#   .pw-bundle/dist          the build the Playwright gate tests
 #   .pw-bundle/dist-variant  only when PLAYWRIGHT_VARIANT_ENV is set, e.g. search-ui's licence filter
 #
 # The per-UI steps mirror <ui>/run-playwright-test.sh, keep them in sync.

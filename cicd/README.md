@@ -19,7 +19,7 @@ needs lives in this folder; nothing is read from ansible-inventories, aws-invent
 | Pipeline (per environment) | Component | Deploys | Runs on pushes to |
 |---|---|---|---|
 | `atlas-index-base-<env>` | [base](base) | CloudFront WAF (us-east-1), Playwright reports bucket, Playwright build image | `cicd/base/**`, `cicd/*`, `yarn.lock`, `.nvmrc` |
-| `atlas-index-<ui>-<env>` (×8) | [frontend](frontend) | S3 + CloudFront + Route 53 per UI | `<ui>/**`, `common-ui/**`, root Yarn files, `cicd/frontend/**` (own UI only), `cicd/*` |
+| `atlas-index-<ui>-<env>` (×8) | [frontend](frontend) | S3 + CloudFront + Route 53 per UI | `<ui>/**`, `common-ui/**`, `static-server/**`, root Yarn files, `cicd/frontend/**` (own UI only), `cicd/*` |
 | `atlas-index-search-service-<env>` | [backend](backend) | ECR image, regional WAF, Helm release on the regolith EKS cluster | `search-service/**`, `cicd/backend/**`, `cicd/*` |
 
 Environments come from the branch ([branch_2_env.py](branch_2_env.py)):
@@ -61,9 +61,24 @@ pipeline can't deploy half-configured. See [Open decision gates](#open-decision-
 `pipeline.yaml`. If ExportConfig finds a different fingerprint in the commit being deployed, it redeploys the pipeline and stops. A normal deploy then
 restarts itself; a rollback has to be started manually.
 
-**Selective deploys.** Each app has its own pipeline whose CodePipeline V2 trigger lists the paths it depends on.
-A change to `search-ui/**` deploys only search-ui. A change to `common-ui/**`, `yarn.lock`, `package.json`,
-`.yarnrc.yml`, `.yarn/**` or `.nvmrc` deploys every UI. `*.md` changes deploy nothing.
+**Selective deploys and tests.** Each app has its own pipeline whose CodePipeline V2 trigger lists the paths it
+depends on, and a UI pipeline only ever runs that UI's tests:
+
+| Change | Pipelines that run | Playwright suites that run |
+|---|---|---|
+| `search-ui/**` (code, tests or config) | search-ui | search-ui |
+| `cicd/frontend/search-ui/**` | search-ui | search-ui |
+| `common-ui/**`, `yarn.lock`, `package.json`, `.yarnrc.yml`, `.yarn/**`, `.nvmrc` | all 8 UIs | all 8, each in its own pipeline |
+| `static-server/**` | all 8 UIs | all 8 (the specs read its header, footer and CSS from disk) |
+| shared CI/CD files (`cicd/*`, `cicd/frontend/{app,pipeline,scripts}/**`) | all 8 UIs (plus base/backend for `cicd/*`) | all 8 |
+| `search-service/**` | search-service only | none (the UI specs mock the API) |
+| `*.md` anywhere | none | none |
+
+The fan-out cases are deliberate: every UI bundles `common-ui` and resolves through the shared lockfile, and every
+UI's specs load `static-server` content, so a change there can break any of them. Within a run, the UI's whole
+suite runs rather than only the specs touched by the commit. That takes 15 s to about 2 min, and it catches
+regressions that the commit's own specs wouldn't. UIs don't import each other: `@ala/common-ui` is the only
+workspace dependency.
 
 **UI build config.** Vite bakes `VITE_*` into the bundle at build time, so each environment gets its own build.
 ExportConfig writes `<ui>/.env.production` from the `VITE_*` keys in the layered config
@@ -306,7 +321,11 @@ Header, footer and other shared content keep coming from the existing ALA sites 
   others, and history and rollback are shared.
 - Rejected: CodeBuild webhooks (the earlier aws-inventories approach). They bypass pipeline stages and approvals.
 - Path triggers need no code, match species-lists, and give each app its own history, rollback and teardown.
-  Shared dependencies are listed explicitly so they fan out to every UI.
+  Shared dependencies (`common-ui`, the root Yarn files, `static-server`) are listed explicitly so they fan out to
+  every UI. CodePipeline allows 8 paths per filter, and the UI's first filter is now full; add a third filter
+  (the maximum) if more shared paths appear.
+- Each pipeline runs its UI's full suite rather than only the changed specs. Suites take minutes at most, and
+  selecting specs by diff would miss regressions that reach a page through shared code.
 
 **AD-2 Config: layered INI files in this repo, with secrets in Secrets Manager.**
 - This removes the deploy-time dependency on the inventory repos and ala-cli, and reuses the species-lists tooling.

@@ -285,8 +285,9 @@ Resources:
             StageName: Teardown
         - !Ref AWS::NoValue
       RestartExecutionOnUpdate: !Ref pRestartExecutionOnUpdate
-      # Selective deploys: this UI only runs for changes to its own workspace, the shared workspace
-      # and root Yarn config (fan out to every UI), or the CI/CD files it uses.
+      # Selective deploys: this UI only runs for changes to its own workspace, the shared workspace and
+      # root Yarn config (fan out to every UI), static-server (its files feed every UI's Playwright
+      # tests), or the CI/CD files it uses. CodePipeline allows at most 8 paths per filter.
       Triggers:
         - ProviderType: CodeStarSourceConnection
           GitConfiguration:
@@ -298,6 +299,7 @@ Resources:
                   Includes:
                     - !Sub ${pUiApp}/**
                     - common-ui/**
+                    - static-server/**
                     - package.json
                     - yarn.lock
                     - .yarnrc.yml
