@@ -1,0 +1,12 @@
+version: 0.2
+###
+# Zero-downtime publish of the release build, then CloudFront invalidation
+
+env:
+  shell: bash
+
+phases:
+  build:
+    commands:
+      - set -a; source "$CODEBUILD_SRC_DIR_ExportConfigArtifact/env.sh"; set +a
+      - cicd/frontend/scripts/publish.sh

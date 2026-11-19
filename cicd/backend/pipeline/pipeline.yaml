@@ -1,0 +1,547 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Code pipeline for the atlas-index search-service (test, image, Helm deploy on the regolith EKS cluster)
+
+Parameters:
+  pAllowTeardown:
+    Description: enables or disables the teardown stage
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  pAutoDeploy:
+    Type: String
+    Description: Sets the pipeline to autodeploy on repo changes
+  pBaseStackName:
+    Type: String
+    Description: The name of the base stack
+  pBootstrapStackName:
+    Type: String
+    Description: The name of the bootstrap stack
+  pBucketsStackName:
+    Type: String
+    Description: The name of the bucket stack
+  pCleanBranch:
+    Type: String
+    Description: A cleaned version of the code branch name
+    Default: development
+  pEnvironment:
+    Type: String
+    Description: The AWS environment this belongs to
+  pGitHubRepositoryName:
+    Type: String
+    Description: GitHub repository name.
+  pGitHubOwner:
+    Type: String
+    Description: GitHub owner
+  pGitHubBranch:
+    Type: String
+    Description: GitHub branch we're deploying from
+  pPipelineFingerprint:
+    Type: String
+    Description: The fingerprint of the pipeline, used to determine if it's been modified
+  pProductComponent:
+    Type: String
+    Description: The name of the product component
+  pProductName:
+    Type: String
+    Description: The name of the product
+  pRegolithStackName:
+    Type: String
+    Description: The regolith EKS cluster stack
+  pRestartExecutionOnUpdate:
+    Type: String
+    Description: Restart that pipeline if it's been updated
+    AllowedValues:
+      - true
+      - false
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+  AutoDeploy: !Equals
+    - !Ref pAutoDeploy
+    - true
+  AllowTeardown: !Equals
+    - !Ref pAllowTeardown
+    - true
+
+Resources:
+  ExportConfig:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-export-config-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Load the environment and build the CloudFormation template config files
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/backend/pipeline/export_config_buildspec.yaml
+      TimeoutInMinutes: 10
+
+  Test:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-test-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: search-service unit and integration tests
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Cache:
+        Type: S3
+        Location: !Sub
+          - ${Bucket}/${pProductName}/maven-cache
+          - Bucket:
+              Fn::ImportValue:
+                Fn::Sub: ${pBucketsStackName}-${AWS::Region}-CodePipelineArtifactBucketName
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: true
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/backend/pipeline/test_buildspec.yaml
+      TimeoutInMinutes: 45
+
+  BuildImage:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-build-image-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Build the multi-arch search-service image and push it to ECR
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: true
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/backend/pipeline/build_image_buildspec.yaml
+      TimeoutInMinutes: 45
+
+  DeployHelm:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-deploy-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Deploy search-service with Helm and smoke test it
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/backend/pipeline/deploy_helm_buildspec.yaml
+      TimeoutInMinutes: 40
+
+  Uninstall:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-uninstall-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Uninstall the search-service Helm release
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/backend/pipeline/uninstall_buildspec.yaml
+      TimeoutInMinutes: 15
+
+  DeployNotification:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-deploy-notification-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Send out the deploy notifications
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/deploy_notification_buildspec.yaml
+      TimeoutInMinutes: 5
+
+  Pipeline:
+    Type: "AWS::CodePipeline::Pipeline"
+    Properties:
+      Name: !Sub
+              - ${pProductName}-search-service-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      PipelineType: V2
+      RoleArn:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodePipelineServiceRoleArn
+      ArtifactStore:
+        Type: S3
+        Location:
+          Fn::ImportValue:
+            Fn::Sub: ${pBucketsStackName}-${AWS::Region}-CodePipelineArtifactBucketName
+      DisableInboundStageTransitions: !If
+        - AllowTeardown
+        - - Reason: To prevent accidental teardown
+            StageName: Teardown
+        - !Ref AWS::NoValue
+      RestartExecutionOnUpdate: !Ref pRestartExecutionOnUpdate
+      Triggers:
+        - ProviderType: CodeStarSourceConnection
+          GitConfiguration:
+            Push:
+              - Branches:
+                  Includes:
+                    - !If [ AutoDeploy, !Ref pGitHubBranch, bogo-branch ]
+                FilePaths:
+                  Includes:
+                    - search-service/**
+                    - cicd/*
+                    - !Sub cicd/${pProductComponent}/**
+                  Excludes:
+                    - '**/*.md'
+            SourceActionName: CheckoutSrc
+      Variables:
+        - Name: SRC_BRANCH
+          DefaultValue: !Ref pGitHubBranch
+          Description: The branch this pipeline is deploying from
+        - Name: PIPELINE_FINGERPRINT
+          DefaultValue: !Ref pPipelineFingerprint
+          Description: The fingerprint of the pipeline, used to determine if it's been modified
+      Stages:
+        - Name: Checkout_Source
+          Actions:
+            - Name: CheckoutSrc
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn:
+                  Fn::ImportValue:
+                    Fn::Sub: ${pBootstrapStackName}-CodestarConnectionArn
+                FullRepositoryId: !Sub ${pGitHubOwner}/${pGitHubRepositoryName}
+                BranchName: !Ref pGitHubBranch
+                OutputArtifactFormat: CODEBUILD_CLONE_REF
+                DetectChanges: !Ref pAutoDeploy
+              Namespace: CheckoutSrcNS
+              OutputArtifacts:
+                - Name: SourceArtifact
+        - Name: Deploy_Infrastructure
+          Actions:
+            - Name: ExportConfig
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref ExportConfig
+                EnvironmentVariables: !Sub |
+                  [
+                    { "name":"CLEAN_BRANCH", "value":"${pCleanBranch}" },
+                    { "name":"COMMIT_ID", "value":"#{CheckoutSrcNS.CommitId}" },
+                    { "name":"ENVIRONMENT", "value":"${pEnvironment}" },
+                    { "name":"PIPELINE_FINGERPRINT", "value":"#{variables.PIPELINE_FINGERPRINT}" },
+                    { "name":"PRODUCT_COMPONENT", "value":"${pProductComponent}" },
+                    { "name":"SRC_BRANCH", "value":"#{CheckoutSrcNS.BranchName}" }
+                  ]
+              Namespace: ExportConfigNS
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: ExportConfigArtifact
+              RunOrder: 1
+            - Name: DeployEcrCFStack
+              ActionTypeId:
+                Owner: AWS
+                Category: Deploy
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: 'ExportConfigArtifact::cicd/backend/app/ecr.yaml'
+                TemplateConfiguration: 'ExportConfigArtifact::cicd/backend/app/ecr_template_config.json'
+                ActionMode: !If [ IsDev, REPLACE_ON_FAILURE, CREATE_UPDATE ]
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+                RoleArn:
+                  Fn::ImportValue:
+                    Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                StackName: '#{ExportConfigNS.ECR_STACK_NAME}'
+              InputArtifacts:
+                - Name: ExportConfigArtifact
+              Namespace: EcrCloudFormationOutNS
+              RunOrder: 2
+            - Name: DeployWafCFStack
+              ActionTypeId:
+                Owner: AWS
+                Category: Deploy
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: 'ExportConfigArtifact::cicd/backend/app/waf.yaml'
+                TemplateConfiguration: 'ExportConfigArtifact::cicd/backend/app/waf_template_config.json'
+                ActionMode: !If [ IsDev, REPLACE_ON_FAILURE, CREATE_UPDATE ]
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+                RoleArn:
+                  Fn::ImportValue:
+                    Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                StackName: '#{ExportConfigNS.WAF_STACK_NAME}'
+              InputArtifacts:
+                - Name: ExportConfigArtifact
+              Namespace: WafCloudFormationOutNS
+              RunOrder: 2
+        - Name: Test_and_Build
+          Actions:
+            - Name: Test
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref Test
+              InputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 1
+            - Name: BuildImage
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref BuildImage
+                EnvironmentVariables: !Sub |
+                  [
+                    { "name":"CLEAN_BRANCH", "value":"${pCleanBranch}" },
+                    { "name":"ECR_REPO", "value":"#{EcrCloudFormationOutNS.ServiceRepositoryUri}" }
+                  ]
+              Namespace: BuildImageNS
+              InputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 2
+        - Name: Deploy
+          Actions:
+            - Name: DeployHelm
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref DeployHelm
+                PrimarySource: SourceArtifact
+                EnvironmentVariables:
+                  Fn::Sub:
+                    - |
+                      [
+                        { "name":"BUILD_TAG", "value":"#{BuildImageNS.BUILD_TAG}" },
+                        { "name":"ECR_REPO", "value":"#{EcrCloudFormationOutNS.ServiceRepositoryUri}" },
+                        { "name":"EKS_CLUSTER_NAME", "value":"${EksClusterName}" },
+                        { "name":"WAF_ARN", "value":"#{WafCloudFormationOutNS.ServiceWafArn}" }
+                      ]
+                    - EksClusterName:
+                        Fn::ImportValue:
+                          Fn::Sub: ${pRegolithStackName}-ClusterName
+              InputArtifacts:
+                - Name: SourceArtifact
+                - Name: ExportConfigArtifact
+              RunOrder: 1
+            - Name: DeployNotification
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref DeployNotification
+                EnvironmentVariables: !Sub |
+                  [
+                    { "name":"AUTHOR", "value":"#{CheckoutSrcNS.AuthorDisplayName}" },
+                    { "name":"COMMIT_ID", "value":"#{CheckoutSrcNS.CommitId}" },
+                    { "name":"DEPLOY_URL", "value":"#{ExportConfigNS.DEPLOY_URL}" },
+                    { "name":"ENVIRONMENT", "value":"${pEnvironment}" },
+                    { "name":"EXECUTION_ID", "value":"#{codepipeline.PipelineExecutionId}" },
+                    { "name":"PRODUCT_COMPONENT", "value":"search-service" },
+                    { "name":"PRODUCT_NAME", "value":"#{ExportConfigNS.PRODUCT_NAME}" },
+                    { "name":"REPO", "value":"#{CheckoutSrcNS.FullRepositoryName}" },
+                    { "name":"SLACK_ALERT_CHANNEL", "value":"#{ExportConfigNS.SLACK_ALERT_CHANNEL}" },
+                    { "name":"SLACK_DEPLOY_NOTIFICATION", "value":"#{ExportConfigNS.SLACK_DEPLOY_NOTIFICATION}" },
+                    { "name":"SRC_BRANCH", "value":"${pGitHubBranch}" }
+                  ]
+              InputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 2
+        - !If
+          - AllowTeardown
+          - Name: Teardown
+            Actions:
+              - Name: Approval
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Approval
+                  Version: 1
+                  Provider: Manual
+                Configuration:
+                  CustomData: Approval required to uninstall search-service and tear down its stacks
+                RunOrder: 1
+              - Name: UninstallHelmRelease
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Build
+                  Version: 1
+                  Provider: CodeBuild
+                Configuration:
+                  ProjectName: !Ref Uninstall
+                  EnvironmentVariables:
+                    Fn::Sub:
+                      - |
+                        [
+                          { "name":"EKS_CLUSTER_NAME", "value":"${EksClusterName}" },
+                          { "name":"EKS_NAMESPACE", "value":"#{ExportConfigNS.EKS_NAMESPACE}" },
+                          { "name":"HELM_RELEASE_NAME", "value":"#{ExportConfigNS.HELM_RELEASE_NAME}" }
+                        ]
+                      - EksClusterName:
+                          Fn::ImportValue:
+                            Fn::Sub: ${pRegolithStackName}-ClusterName
+                InputArtifacts:
+                  - Name: SourceArtifact
+                RunOrder: 2
+              - Name: TeardownEcr
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: '#{ExportConfigNS.ECR_STACK_NAME}'
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 3
+              - Name: TeardownWaf
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: '#{ExportConfigNS.WAF_STACK_NAME}'
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 3
+              - Name: ApprovalForPipelineTeardown
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Approval
+                  Version: 1
+                  Provider: Manual
+                Configuration:
+                  CustomData: Approval required to tear down this pipeline
+                RunOrder: 4
+              - Name: TeardownCodePipeline
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: !Ref AWS::StackName
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 5
+          - !Ref AWS::NoValue
+
+  ExportConfigLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${ExportConfig}
+      RetentionInDays: 30
+
+  TestLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${Test}
+      RetentionInDays: 30
+
+  BuildImageLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${BuildImage}
+      RetentionInDays: 30
+
+  DeployHelmLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${DeployHelm}
+      RetentionInDays: 30
+
+  UninstallLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${Uninstall}
+      RetentionInDays: 30
+
+  DeployNotificationLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${DeployNotification}
+      RetentionInDays: 30
+
+Outputs:
+  PipelineName:
+    Value: !Ref Pipeline
+    Export:
+      Name: !Sub ${AWS::StackName}-PipelineName
+
+  PipelineUrl:
+    Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${Pipeline}

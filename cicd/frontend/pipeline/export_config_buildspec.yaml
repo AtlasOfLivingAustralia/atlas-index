@@ -1,0 +1,38 @@
+version: 0.2
+###
+# Load the environment, keep the pipeline in sync with this revision, and produce:
+#   cicd/frontend/app/site_template_config.json   for the site stack
+#   cicd/frontend/$UI_APP/.env.production         the Vite build config
+#   env.sh                                        the loaded config, sourced by later actions
+
+env:
+  shell: bash
+  git-credential-helper: yes
+  exported-variables:
+    - APP_STACK_NAME
+    - DEPLOY_URL
+    - PRODUCT_NAME
+    - SLACK_ALERT_CHANNEL
+    - SLACK_DEPLOY_NOTIFICATION
+
+phases:
+  install:
+    commands:
+      - pip install --quiet jinja2
+  build:
+    commands:
+      - source cicd/export_config.sh
+      - |
+        WAF_ARN=$(aws cloudformation describe-stacks --region us-east-1 --stack-name "$BASE_WAF_STACK_NAME" \
+                    --query "Stacks[0].Outputs[?OutputKey=='UiWafWebAclArn'].OutputValue" --output text)
+        export WAF_ARN
+        echo "WAF: $WAF_ARN"
+      - cicd/render_template_configs.sh
+      - cicd/frontend/scripts/write_dotenv.sh > "cicd/frontend/$UI_APP/.env.production"
+
+artifacts:
+  files:
+    - cicd/frontend/app/*
+    - cicd/frontend/$UI_APP/.env.production
+    - env.sh
+  discard-paths: no

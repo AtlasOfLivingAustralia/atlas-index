@@ -1,0 +1,29 @@
+{
+  "Parameters" : {
+    "pCloudfrontCertificate" : "{{ cloudfront_certificate }}",
+    "pEnvironment"           : "{{ environment }}",
+    "pHostedZone"            : "{{ hosted_zone }}",
+    "pSourceBucket"          : "{{ source_bucket }}",
+    "pUiApp"                 : "{{ ui_app }}",
+    "pUiHost"                : "{{ ui_host }}",
+    "pWafWebAclArn"          : "{{ waf_arn }}"
+  },
+  "Tags" : {
+    "product"     : "{{ product_name }}",
+    "component"   : "{{ ui_app }}",
+    "environment" : "{{ environment }}",
+    "branch"      : "{{ src_branch }}",
+    "version"     : "{{ commit_id }}",
+    "build"       : "{{ codebuild_build_number }}"
+  },
+  "StackPolicy" : {
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : "Update:*",
+        "Principal": "*",
+        "Resource" : "*"
+      }
+    ]
+  }
+}

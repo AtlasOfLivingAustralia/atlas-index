@@ -1,0 +1,24 @@
+version: 0.2
+###
+# Build the instrumented Playwright bundle(s) once; every shard of the gate tests the same build
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - yarn workspaces focus "$UI_APP" @ala/common-ui
+  build:
+    commands:
+      - set -a; source "$CODEBUILD_SRC_DIR_ExportConfigArtifact/env.sh"; set +a
+      - cicd/frontend/scripts/playwright_bundle.sh
+
+artifacts:
+  base-directory: .pw-bundle
+  files:
+    - '**/*'
+
+cache:
+  paths:
+    - /root/.yarn/berry/cache/**/*

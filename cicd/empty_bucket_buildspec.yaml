@@ -1,0 +1,12 @@
+version: 0.2
+###
+# Delete every object in SOURCE_BUCKET so the bucket can be deleted by a teardown
+
+env:
+  shell: bash
+
+phases:
+  build:
+    commands:
+      - echo emptying s3://$SOURCE_BUCKET
+      - aws s3 rm "s3://$SOURCE_BUCKET" --recursive

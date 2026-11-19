@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: atlas-index search-service image repository
+
+Parameters:
+  pCleanBranch:
+    Type: String
+    Description: The clean branch, can be used in resource names
+  pEnvironment:
+    Type: String
+    Description: The AWS environment this belongs to
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+  NotProd: !Not
+    - !Equals
+      - !Ref pEnvironment
+      - production
+
+Resources:
+  ServiceRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: !If [ NotProd, true, false ]
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      RepositoryName: !Sub
+        - atlas-index-search-service-${ResourceName}
+        - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "keep the 20 most recent images",
+                "selection": { "tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 20 },
+                "action": { "type": "expire" }
+              }
+            ]
+          }
+      Tags:
+        - Key: Environment
+          Value: !Ref pEnvironment
+        - Key: Branch
+          Value: !Ref pCleanBranch
+
+Outputs:
+  ServiceRepositoryName:
+    Value: !Ref ServiceRepository
+
+  ServiceRepositoryUri:
+    Value: !GetAtt ServiceRepository.RepositoryUri

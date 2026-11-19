@@ -1,0 +1,37 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "search-service.fullname" . }}
+  labels:
+    {{- include "search-service.labels" . | nindent 4 }}
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health/readiness
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS13-1-2-Res-PQ-2025-09
+    alb.ingress.kubernetes.io/certificate-arn: {{ required "ingress.certificateArn is required" .Values.ingress.certificateArn }}
+    {{- with .Values.ingress.wafArn }}
+    alb.ingress.kubernetes.io/wafv2-acl-arn: {{ . }}
+    {{- end }}
+    {{- with .Values.ingress.tags }}
+    alb.ingress.kubernetes.io/tags: {{ . | quote }}
+    {{- end }}
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=90
+    external-dns.alpha.kubernetes.io/hostname: {{ required "ingress.hostname is required" .Values.ingress.hostname }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.hostname }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "search-service.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

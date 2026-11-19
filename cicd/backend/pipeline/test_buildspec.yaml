@@ -1,0 +1,25 @@
+version: 0.2
+###
+# search-service unit and integration tests (Testcontainers needs Docker: privileged mode)
+
+env:
+  shell: bash
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto21
+  build:
+    commands:
+      - mvn -B -f search-service/pom.xml verify
+
+reports:
+  search-service-tests:
+    base-directory: search-service/target/surefire-reports
+    files:
+      - '*.xml'
+    file-format: JUNITXML
+
+cache:
+  paths:
+    - /root/.m2/**/*

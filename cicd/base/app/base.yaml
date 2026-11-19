@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: atlas-index shared CI/CD resources for one environment (Playwright reports bucket and build image repository)
+
+Parameters:
+  pCleanBranch:
+    Description: A cleaned version of the code branch name
+    Type: String
+    Default: development
+
+  pEnvironment:
+    Description: The AWS environment this belongs to
+    Type: String
+
+  pReportRetentionDays:
+    Description: Days to keep Playwright reports and blobs
+    Type: Number
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+
+  NotProd: !Not
+    - !Equals
+      - !Ref pEnvironment
+      - production
+
+Resources:
+
+  PlaywrightReportsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-reports
+            Status: Enabled
+            ExpirationInDays: !Ref pReportRetentionDays
+      Tags:
+        - Key: component
+          Value: playwright-reports
+
+  PlaywrightReportsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PlaywrightReportsBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: TLSAccessOnly
+            Action: s3:*
+            Effect: Deny
+            Resource:
+              - !GetAtt PlaywrightReportsBucket.Arn
+              - !Sub ${PlaywrightReportsBucket.Arn}/*
+            Principal: '*'
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  # Build image for every UI build/test action: Playwright browsers + OS deps, Node from .nvmrc,
+  # the native toolchain for the `canvas` dependency, and the AWS CLI. Built by the base pipeline.
+  PlaywrightImageRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: !If [ NotProd, true, false ]
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      RepositoryName: !Sub
+        - atlas-index-playwright-${ResourceName}
+        - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "keep the 5 most recent images",
+                "selection": { "tagStatus": "any", "countType": "imageCountMoreThan", "countNumber": 5 },
+                "action": { "type": "expire" }
+              }
+            ]
+          }
+      # CodeBuild pulls with its own service credentials (ImagePullCredentialsType: CODEBUILD)
+      RepositoryPolicyText:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CodeBuildPull
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:BatchGetImage
+              - ecr:GetDownloadUrlForLayer
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+
+Outputs:
+  PlaywrightReportsBucketName:
+    Value: !Ref PlaywrightReportsBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-PlaywrightReportsBucketName
+
+  PlaywrightImageRepositoryName:
+    Value: !Ref PlaywrightImageRepository
+    Export:
+      Name: !Sub ${AWS::StackName}-PlaywrightImageRepositoryName
+
+  PlaywrightImageRepositoryUri:
+    Value: !GetAtt PlaywrightImageRepository.RepositoryUri
+    Export:
+      Name: !Sub ${AWS::StackName}-PlaywrightImageRepositoryUri

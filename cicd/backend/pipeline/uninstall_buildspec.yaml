@@ -1,0 +1,15 @@
+version: 0.2
+###
+# Uninstall the search-service Helm release (teardown). The data volume is kept (helm.sh/resource-policy).
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  build:
+    commands:
+      - aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME"
+      - helm uninstall "$HELM_RELEASE_NAME" -n "$EKS_NAMESPACE" --ignore-not-found

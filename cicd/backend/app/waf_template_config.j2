@@ -1,0 +1,25 @@
+{
+  "Parameters" : {
+    "pCleanBranch"                 : "{{ clean_branch }}",
+    "pCommonWafRuleGroupStackName" : "{{ common_waf_rule_group_stack_name }}",
+    "pEnvironment"                 : "{{ environment }}"
+  },
+  "Tags" : {
+    "product"     : "{{ product_name }}",
+    "component"   : "{{ product_component }}",
+    "environment" : "{{ environment }}",
+    "branch"      : "{{ clean_branch }}",
+    "version"     : "{{ commit_id }}",
+    "build"       : "{{ codebuild_build_number }}"
+  },
+  "StackPolicy" : {
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : "Update:*",
+        "Principal": "*",
+        "Resource" : "*"
+      }
+    ]
+  }
+}

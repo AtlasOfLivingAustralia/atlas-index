@@ -1,0 +1,11 @@
+version: 0.2
+###
+# Build and push the Playwright build image when yarn.lock, .nvmrc or the Dockerfile changed it
+
+env:
+  shell: bash
+
+phases:
+  build:
+    commands:
+      - cicd/base/playwright/build_image.sh

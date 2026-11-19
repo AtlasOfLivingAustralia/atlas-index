@@ -1,0 +1,27 @@
+version: 0.2
+###
+# Send the deploy notifications (Datadog, and Slack when SLACK_DEPLOY_NOTIFICATION is true).
+# Shared by every component; the pipeline passes DEPLOY_URL and the other values as env vars.
+
+env:
+  shell: bash
+  secrets-manager:
+    DD_API_KEY: ala-secrets-production:datadog-api-key
+    SLACK_OAUTH_TOKEN: ala-secrets-production:slack-oauth-token
+
+phases:
+  pre_build:
+    commands:
+      # read the commit message here: passing it as a pipeline env var breaks on JSON characters
+      - export PIPELINE_NAME=$(echo $CODEBUILD_INITIATOR | cut -d'/' -f2)
+      - export COMMIT_MSG=$(aws codepipeline get-pipeline-execution --pipeline-name $PIPELINE_NAME --pipeline-execution-id $EXECUTION_ID --query 'pipelineExecution.artifactRevisions[0].revisionSummary' --output text | jq -r '.CommitMessage // .' 2>/dev/null)
+      # a manual release names the person who pressed the button rather than the commit author
+      - export TRIGGER_DETAIL=$(aws codepipeline get-pipeline-execution --pipeline-name $PIPELINE_NAME --pipeline-execution-id $EXECUTION_ID --query pipelineExecution.trigger.triggerDetail --output text)
+      - if [[ $TRIGGER_DETAIL =~ .*csiro.au$ ]]; then AUTHOR=$(echo $TRIGGER_DETAIL | rev | cut -d'/' -f1 | rev); fi
+      - export DEPLOY_MSG="*$AUTHOR* has released a ${ENVIRONMENT} update to *$PRODUCT_NAME* $PRODUCT_COMPONENT. Now live at $DEPLOY_URL"
+      - echo $DEPLOY_MSG
+
+  build:
+    commands:
+      - cicd/dd_notification.sh
+      - if [ "$SLACK_DEPLOY_NOTIFICATION" == "true" ]; then cicd/slack_notification.sh; fi

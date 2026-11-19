@@ -122,3 +122,9 @@ search-service tests (unit and integration; requires Docker running locally for 
 mvn test -pl search-service
 ```
 
+## CI/CD
+
+AWS CodePipeline definitions live in [cicd](cicd/README.md): one pipeline per `*-ui` app and one for
+search-service. A merge to `develop` deploys only the affected apps to the testing environment (temporarily on
+`*-aws` hostnames), after unit tests and a Playwright gate run on AWS.
+

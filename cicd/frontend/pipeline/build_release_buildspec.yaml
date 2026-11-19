@@ -1,0 +1,31 @@
+version: 0.2
+###
+# Unit tests (the UI and common-ui) and the release build for the target environment
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - yarn workspaces focus "$UI_APP" @ala/common-ui
+  pre_build:
+    commands:
+      - yarn workspace @ala/common-ui test
+      - yarn workspace "$UI_APP" test
+  build:
+    commands:
+      - cd "$UI_APP"
+      - rm -f .env .env.local .env.production.local
+      - cp "$CODEBUILD_SRC_DIR_ExportConfigArtifact/cicd/frontend/$UI_APP/.env.production" .env.production
+      - yarn run build
+      - mkdir -p "$CODEBUILD_SRC_DIR/.release" && cp -r dist/. "$CODEBUILD_SRC_DIR/.release/"
+
+artifacts:
+  base-directory: .release
+  files:
+    - '**/*'
+
+cache:
+  paths:
+    - /root/.yarn/berry/cache/**/*

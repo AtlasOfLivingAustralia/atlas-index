@@ -1,0 +1,25 @@
+version: 0.2
+###
+# Load the environment, keep the pipeline in sync with this revision and build the CloudFormation
+# template configs for the base stacks (see cicd/export_config.sh)
+
+env:
+  shell: bash
+  git-credential-helper: yes
+  exported-variables:
+    - BASE_STACK_NAME
+    - BASE_WAF_STACK_NAME
+
+phases:
+  install:
+    commands:
+      - pip install --quiet jinja2
+  build:
+    commands:
+      - source cicd/export_config.sh
+      - cicd/render_template_configs.sh
+
+artifacts:
+  files:
+    - cicd/$PRODUCT_COMPONENT/app/*
+  discard-paths: no

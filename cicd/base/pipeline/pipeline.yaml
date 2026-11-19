@@ -1,0 +1,382 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Code pipeline for the atlas-index shared base resources (CloudFront WAF, Playwright reports bucket and build image)
+
+Parameters:
+  pAllowTeardown:
+    Description: enables or disables the teardown stage
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  pAutoDeploy:
+    Type: String
+    Description: Sets the pipeline to autodeploy on repo changes
+  pBaseStackName:
+    Type: String
+    Description: The name of the base stack
+  pBootstrapStackName:
+    Type: String
+    Description: The name of the bootstrap stack
+  pBucketsStackName:
+    Type: String
+    Description: The name of the bucket stack
+  pCleanBranch:
+    Type: String
+    Description: A cleaned version of the code branch name
+    Default: development
+  pEnvironment:
+    Type: String
+    Description: The AWS environment this belongs to
+  pGitHubRepositoryName:
+    Type: String
+    Description: GitHub repository name.
+  pGitHubOwner:
+    Type: String
+    Description: GitHub owner
+  pGitHubBranch:
+    Type: String
+    Description: GitHub branch we're deploying from
+  pPipelineFingerprint:
+    Type: String
+    Description: The fingerprint of the pipeline, used to determine if it's been modified
+  pProductComponent:
+    Type: String
+    Description: The name of the product component
+  pProductName:
+    Type: String
+    Description: The name of the product
+  pRestartExecutionOnUpdate:
+    Type: String
+    Description: Restart that pipeline if it's been updated
+    AllowedValues:
+      - true
+      - false
+  pUsEast1CodePipelineArtifactBucketName:
+    Type: String
+    Description: The us-east-1 CodePipeline artifact bucket name
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+  AutoDeploy: !Equals
+    - !Ref pAutoDeploy
+    - true
+  AllowTeardown: !Equals
+    - !Ref pAllowTeardown
+    - true
+
+Resources:
+  ExportConfig:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-export-config-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Load the environment and build the CloudFormation template config files
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub cicd/${pProductComponent}/pipeline/export_config_buildspec.yaml
+      TimeoutInMinutes: 5
+
+  BuildPlaywrightImage:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-build-playwright-image-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Build the Playwright build image used by the UI pipelines
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: true
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub cicd/${pProductComponent}/pipeline/build_image_buildspec.yaml
+      TimeoutInMinutes: 30
+
+  EmptyBucket:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-empty-bucket-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Empty the reports bucket so it can be deleted
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/empty_bucket_buildspec.yaml
+      TimeoutInMinutes: 10
+
+  Pipeline:
+    Type: 'AWS::CodePipeline::Pipeline'
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      PipelineType: V2
+      RoleArn:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodePipelineServiceRoleArn
+      ArtifactStores:
+        - ArtifactStore:
+            Type: S3
+            Location: !Ref pUsEast1CodePipelineArtifactBucketName
+          Region: us-east-1
+        - ArtifactStore:
+            Type: S3
+            Location:
+              Fn::ImportValue:
+                Fn::Sub: ${pBucketsStackName}-${AWS::Region}-CodePipelineArtifactBucketName
+          Region: !Ref AWS::Region
+      DisableInboundStageTransitions: !If
+        - AllowTeardown
+        - - Reason: To prevent accidental teardown
+            StageName: Teardown
+        - !Ref AWS::NoValue
+      RestartExecutionOnUpdate: !Ref pRestartExecutionOnUpdate
+      Triggers:
+        - ProviderType: CodeStarSourceConnection
+          GitConfiguration:
+            Push:
+              - Branches:
+                  Includes:
+                    - !If [ AutoDeploy, !Ref pGitHubBranch, bogo-branch ]
+                FilePaths:
+                  Includes:
+                    - cicd/*
+                    - !Sub cicd/${pProductComponent}/**
+                    - cicd/frontend/scripts/playwright_version.sh
+                    - yarn.lock
+                    - .nvmrc
+            SourceActionName: CheckoutSrc
+      Variables:
+        - Name: SRC_BRANCH
+          DefaultValue: !Ref pGitHubBranch
+          Description: The branch this pipeline is deploying from
+        - Name: PIPELINE_FINGERPRINT
+          DefaultValue: !Ref pPipelineFingerprint
+          Description: The fingerprint of the pipeline, used to determine if it's been modified
+      Stages:
+        - Name: Checkout_Source
+          Actions:
+            - Name: CheckoutSrc
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn:
+                  Fn::ImportValue:
+                    Fn::Sub: ${pBootstrapStackName}-CodestarConnectionArn
+                FullRepositoryId: !Sub ${pGitHubOwner}/${pGitHubRepositoryName}
+                BranchName: !Ref pGitHubBranch
+                OutputArtifactFormat: CODEBUILD_CLONE_REF
+                DetectChanges: !Ref pAutoDeploy
+              Namespace: CheckoutSrcNS
+              OutputArtifacts:
+                - Name: SourceArtifact
+        - Name: Deploy_Infrastructure
+          Actions:
+            - Name: ExportConfig
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref ExportConfig
+                EnvironmentVariables: !Sub |
+                  [
+                    { "name":"CLEAN_BRANCH", "value":"${pCleanBranch}" },
+                    { "name":"COMMIT_ID", "value":"#{CheckoutSrcNS.CommitId}" },
+                    { "name":"ENVIRONMENT", "value":"${pEnvironment}" },
+                    { "name":"PIPELINE_FINGERPRINT", "value":"#{variables.PIPELINE_FINGERPRINT}" },
+                    { "name":"PRODUCT_COMPONENT", "value":"${pProductComponent}" },
+                    { "name":"SRC_BRANCH", "value":"#{CheckoutSrcNS.BranchName}" }
+                  ]
+              Namespace: ExportConfigNS
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: ExportConfigArtifact
+              RunOrder: 1
+            - Name: DeployWafCFStack
+              ActionTypeId:
+                Owner: AWS
+                Category: Deploy
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: !Sub 'ExportConfigArtifact::cicd/${pProductComponent}/app/waf.yaml'
+                TemplateConfiguration: !Sub 'ExportConfigArtifact::cicd/${pProductComponent}/app/waf_template_config.json'
+                ActionMode: !If [ IsDev, REPLACE_ON_FAILURE, CREATE_UPDATE ]
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+                RoleArn:
+                  Fn::ImportValue:
+                    Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                StackName: '#{ExportConfigNS.BASE_WAF_STACK_NAME}'
+              InputArtifacts:
+                - Name: ExportConfigArtifact
+              Region: us-east-1
+              RunOrder: 2
+            - Name: DeployBaseCFStack
+              ActionTypeId:
+                Owner: AWS
+                Category: Deploy
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: !Sub 'ExportConfigArtifact::cicd/${pProductComponent}/app/base.yaml'
+                TemplateConfiguration: !Sub 'ExportConfigArtifact::cicd/${pProductComponent}/app/base_template_config.json'
+                ActionMode: !If [ IsDev, REPLACE_ON_FAILURE, CREATE_UPDATE ]
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+                RoleArn:
+                  Fn::ImportValue:
+                    Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                StackName: '#{ExportConfigNS.BASE_STACK_NAME}'
+              InputArtifacts:
+                - Name: ExportConfigArtifact
+              Namespace: BaseCloudFormationOutNS
+              RunOrder: 2
+        - Name: Build_Image
+          Actions:
+            - Name: BuildPlaywrightImage
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref BuildPlaywrightImage
+                EnvironmentVariables: |
+                  [
+                    { "name":"REPO_NAME", "value":"#{BaseCloudFormationOutNS.PlaywrightImageRepositoryName}" },
+                    { "name":"REPO_URI", "value":"#{BaseCloudFormationOutNS.PlaywrightImageRepositoryUri}" }
+                  ]
+              InputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 1
+        - !If
+          - AllowTeardown
+          - Name: Teardown
+            Actions:
+              - Name: Approval
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Approval
+                  Version: 1
+                  Provider: Manual
+                Configuration:
+                  CustomData: Approval required to tear down the base stacks. Tear down the frontend and backend pipelines for this environment first.
+                RunOrder: 1
+              - Name: EmptyReportsBucket
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Build
+                  Version: 1
+                  Provider: CodeBuild
+                Configuration:
+                  ProjectName: !Ref EmptyBucket
+                  EnvironmentVariables: |
+                    [
+                      { "name":"SOURCE_BUCKET", "value":"#{BaseCloudFormationOutNS.PlaywrightReportsBucketName}" }
+                    ]
+                InputArtifacts:
+                  - Name: SourceArtifact
+                RunOrder: 2
+              - Name: TeardownBase
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: '#{ExportConfigNS.BASE_STACK_NAME}'
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 3
+              - Name: TeardownWaf
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: '#{ExportConfigNS.BASE_WAF_STACK_NAME}'
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                Region: us-east-1
+                RunOrder: 3
+              - Name: TeardownCodePipeline
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: !Ref AWS::StackName
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 4
+          - !Ref AWS::NoValue
+
+  ExportConfigLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${ExportConfig}
+      RetentionInDays: 30
+
+  BuildPlaywrightImageLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${BuildPlaywrightImage}
+      RetentionInDays: 30
+
+  EmptyBucketLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${EmptyBucket}
+      RetentionInDays: 30
+
+Outputs:
+  PipelineName:
+    Value: !Ref Pipeline
+    Export:
+      Name: !Sub ${AWS::StackName}-PipelineName
+
+  PipelineUrl:
+    Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${Pipeline}

@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "search-service.fullname" . }}
+  labels:
+    {{- include "search-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  # the data volume is ReadWriteOnce, so the old pod must stop before the new one mounts it
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "search-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "search-service.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ .Values.config | sha256sum }}
+        {{- with .Values.deploymentAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.serviceAccount.name }}
+      serviceAccountName: {{ . }}
+      {{- end }}
+      securityContext:
+        fsGroup: 1000
+      {{- if .Values.data.s3Uri }}
+      initContainers:
+        - name: sync-import-data
+          image: public.ecr.aws/aws-cli/aws-cli:latest
+          args: ["s3", "sync", {{ .Values.data.s3Uri | quote }}, "/data/search-service/import-data", "--only-show-errors"]
+          securityContext:
+            runAsUser: 1000
+          env:
+            - name: HOME
+              value: /tmp
+          volumeMounts:
+            - name: data
+              mountPath: /data/search-service
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: {{ .Values.javaOpts | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          # health endpoints are enabled by the rendered config (cicd/backend/search-service-config.properties.j2)
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /data/search-service
+            - name: config
+              mountPath: /data/search-service/config/search-service-config.properties
+              subPath: search-service-config.properties
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "search-service.fullname" . }}-data
+        - name: config
+          secret:
+            secretName: {{ include "search-service.fullname" . }}-config

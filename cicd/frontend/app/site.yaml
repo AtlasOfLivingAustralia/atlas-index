@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: atlas-index UI site (S3 bucket, CloudFront distribution and DNS record), one stack per UI per environment
+
+Parameters:
+  pCloudfrontCertificate:
+    Description: ARN of the us-east-1 ACM certificate covering pUiHost
+    Type: String
+
+  pEnvironment:
+    Description: The AWS environment this belongs to
+    Type: String
+
+  pHostedZone:
+    Description: The Route 53 hosted zone, e.g. test.ala.org.au
+    Type: String
+
+  pSourceBucket:
+    Description: The bucket name for the site
+    Type: String
+
+  pUiApp:
+    Description: The UI workspace, e.g. search-ui
+    Type: String
+
+  pUiHost:
+    Description: The site hostname, e.g. bie-aws.test.ala.org.au
+    Type: String
+
+  pWafWebAclArn:
+    Description: The shared CloudFront WAF Web ACL (base stack, us-east-1)
+    Type: String
+
+Resources:
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Ref pSourceBucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: component
+          Value: website
+
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: CloudFrontAccess
+            Action: s3:GetObject
+            Effect: Allow
+            Resource: !Sub ${SiteBucket.Arn}/*
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:aws:cloudfront::${AWS::AccountId}:distribution/${SiteDistribution}
+          - Sid: TLSAccessOnly
+            Action: s3:*
+            Effect: Deny
+            Resource:
+              - !GetAtt SiteBucket.Arn
+              - !Sub ${SiteBucket.Arn}/*
+            Principal: '*'
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  SiteOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Ref pSourceBucket
+        Description: !Sub ${pUiApp} ${pEnvironment}
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  SiteDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - !Ref pUiHost
+        Comment: !Sub atlas-index ${pUiApp} ${pEnvironment}
+        # single page app: unknown paths are client-side routes
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ErrorCachingMinTTL: 10
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ErrorCachingMinTTL: 10
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          # AWS managed CachingOptimized: honours the Cache-Control set on each object at publish
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          Compress: true
+          TargetOriginId: site-s3
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: false
+        Origins:
+          - DomainName: !GetAtt SiteBucket.RegionalDomainName
+            Id: site-s3
+            OriginAccessControlId: !Ref SiteOriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        ViewerCertificate:
+          AcmCertificateArn: !Ref pCloudfrontCertificate
+          MinimumProtocolVersion: TLSv1.2_2021
+          SslSupportMethod: sni-only
+        WebACLId: !Ref pWafWebAclArn
+      Tags:
+        - Key: component
+          Value: cdn
+
+  SiteDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Name: !Ref pUiHost
+      Comment: !Sub atlas-index ${pUiApp} ${pEnvironment}
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt SiteDistribution.DomainName
+        # the fixed hosted zone id of every CloudFront distribution
+        HostedZoneId: Z2FDTNDATAQYW2
+      HostedZoneName: !Sub ${pHostedZone}.
+
+Outputs:
+  BucketName:
+    Value: !Ref SiteBucket
+
+  DistributionId:
+    Value: !Ref SiteDistribution

@@ -1,0 +1,26 @@
+version: 0.2
+###
+# Build the multi-arch search-service image and push it to ECR as <branch>-<build> and latest
+
+env:
+  shell: bash
+  exported-variables:
+    - BUILD_TAG
+
+phases:
+  install:
+    commands:
+      # QEMU for the arm64 runtime stage; Maven itself runs on the build platform (see the Dockerfile)
+      - docker run --rm --privileged public.ecr.aws/eks-distro-build-tooling/binfmt-misc:qemu-v9.2.2 --install all
+      - docker buildx create --use --name multiarch-builder
+  build:
+    commands:
+      - aws ecr get-login-password | docker login -u AWS --password-stdin "${ECR_REPO%%/*}"
+      - export BUILD_TAG=$CLEAN_BRANCH-$CODEBUILD_BUILD_NUMBER
+      - |
+        docker buildx build --platform linux/amd64,linux/arm64 \
+                            -f search-service/docker/Dockerfile \
+                            -t "$ECR_REPO:$BUILD_TAG" \
+                            -t "$ECR_REPO:latest" \
+                            --push \
+                            search-service

@@ -1,0 +1,375 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: atlas-index UI WAF, shared by every UI distribution in the environment. Must launch in us-east-1
+
+Parameters:
+  pCleanBranch:
+    Description: A cleaned version of the code branch name
+    Type: String
+    Default: development
+
+  pCommonWafRuleGroupStackName:
+    Description: Name of the ala-bedrock common WAF rule group stack, used to import shared rule group ARNs
+    Type: String
+
+  pEnvironment:
+    Description: The AWS environment this belongs to
+    Type: String
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+
+Resources:
+
+  UiWafWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: !Sub
+        - atlas-index-frontend-${ResourceName}
+        - ResourceName: !If
+            - IsDev
+            - !Ref pCleanBranch
+            - !Ref pEnvironment
+      Description: atlas-index UI Web ACL, shared by all UI CloudFront distributions
+      Scope: CLOUDFRONT
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        SampledRequestsEnabled: true
+        CloudWatchMetricsEnabled: true
+        MetricName: !Sub atlas-index-frontend-wacl-${pCleanBranch}
+      Tags:
+        - Key: Name
+          Value: !Sub atlas-index-${pEnvironment}-frontend
+      TokenDomains:
+        - ala.org.au
+      Rules:
+        - Name: ALAHostHeaderCheck
+          Priority: 0
+          Action:
+            Block: {}
+          Statement:
+            NotStatement:
+              Statement:
+                ByteMatchStatement:
+                  SearchString: .ala.org.au
+                  FieldToMatch:
+                    SingleHeader:
+                      Name: Host
+                  PositionalConstraint: ENDS_WITH
+                  TextTransformations:
+                    - Priority: 0
+                      Type: NONE
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-ALAHostHeaderCheck
+        - Name: IpControl
+          Priority: 1
+          OverrideAction:
+            None: {}
+          Statement:
+            RuleGroupReferenceStatement:
+              Arn: !ImportValue
+                Fn::Sub: ${pCommonWafRuleGroupStackName}-IpControlRuleGroupArn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-IpControlRuleGroup
+        - Name: BlockJa4Fingerprint
+          Priority: 2
+          OverrideAction:
+            None: {}
+          Statement:
+            RuleGroupReferenceStatement:
+              Arn: !ImportValue
+                Fn::Sub: ${pCommonWafRuleGroupStackName}-BlockJa4RuleGroupArn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-BlockJa4RuleGroup
+        - Name: BlockAsn
+          Priority: 3
+          OverrideAction:
+            None: {}
+          Statement:
+            RuleGroupReferenceStatement:
+              Arn: !ImportValue
+                Fn::Sub: ${pCommonWafRuleGroupStackName}-BlockAsnRuleGroupArn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-BlockAsnRuleGroup
+        - Name: BlockSpecificBots
+          Priority: 4
+          OverrideAction:
+            None: {}
+          Statement:
+            RuleGroupReferenceStatement:
+              Arn: !ImportValue
+                Fn::Sub: ${pCommonWafRuleGroupStackName}-BlockSpecificBotsRuleGroupArn
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-BlockSpecificBotsRuleGroup
+        - Name: ALARateLimitJa4
+          Action:
+            Block: {}
+          Priority: 5
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-ALARateLimitJa4
+          Statement:
+            RateBasedStatement:
+              Limit: 300
+              AggregateKeyType: CUSTOM_KEYS
+              CustomKeys:
+                - JA4Fingerprint:
+                    FallbackBehavior: MATCH
+              EvaluationWindowSec: 60
+              ScopeDownStatement:
+                NotStatement:
+                  Statement:
+                    GeoMatchStatement:
+                      CountryCodes:
+                        - AU
+        - Name: AWSManagedRulesAmazonIpReputationList
+          OverrideAction:
+            None: {}
+          Priority: 6
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAmazonIpReputationList
+              VendorName: AWS
+              RuleActionOverrides:
+                - ActionToUse:
+                    Block: {}
+                  Name: AWSManagedIPDDoSList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-AWSManagedRulesAmazonIpReputationList
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesAnonymousIpList
+          OverrideAction:
+            None: {}
+          Priority: 7
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAnonymousIpList
+              VendorName: AWS
+              RuleActionOverrides:
+                - ActionToUse:
+                    Count: {}
+                  Name: AnonymousIPList
+                - ActionToUse:
+                    Count: {}
+                  Name: HostingProviderIPList
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-AWSManagedRulesAnonymousIpList
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 8
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-AWSManagedRulesKnownBadInputsRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 9
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesCommonRuleSet
+              VendorName: AWS
+              RuleActionOverrides:
+                - ActionToUse:
+                    Count: {}
+                  Name: NoUserAgent_HEADER
+                - ActionToUse:
+                    Count: {}
+                  Name: SizeRestrictions_QUERYSTRING
+                - ActionToUse:
+                    Count: {}
+                  Name: SizeRestrictions_BODY
+                - ActionToUse:
+                    Count: {}
+                  Name: SizeRestrictions_URIPATH
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-AWSManagedRulesCommonRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWSManagedRulesBotControlRuleSet-frontend
+          OverrideAction:
+            None: {}
+          Priority: 10
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesBotControlRuleSet
+              ManagedRuleGroupConfigs:
+                - AWSManagedRulesBotControlRuleSet:
+                    EnableMachineLearning: TRUE
+                    InspectionLevel: TARGETED
+              VendorName: AWS
+              RuleActionOverrides:
+                - Name: SignalNonBrowserUserAgent
+                  ActionToUse:
+                    Count: {}
+                - Name: CategoryMonitoring
+                  ActionToUse:
+                    Allow: {}
+                - Name: CategoryEmailClient
+                  ActionToUse:
+                    Count: {}
+                - Name: CategoryLinkChecker
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_VolumetricIpTokenAbsent
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_TokenAbsent
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_VolumetricSession
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_VolumetricSessionMaximum
+                  ActionToUse:
+                    Captcha: {}
+                - Name: TGT_SignalAutomatedBrowser
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_SignalBrowserInconsistency
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_ML_CoordinatedActivityLow
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_ML_CoordinatedActivityMedium
+                  ActionToUse:
+                    Count: {}
+                - Name: TGT_ML_CoordinatedActivityHigh
+                  ActionToUse:
+                    Count: {}
+              ScopeDownStatement:
+                NotStatement:
+                  Statement:
+                    OrStatement:
+                      Statements:
+                        - ByteMatchStatement:
+                            SearchString: /ws
+                            FieldToMatch:
+                              UriPath: {}
+                            PositionalConstraint: STARTS_WITH
+                            TextTransformations:
+                              - Priority: 0
+                                Type: NONE
+                        - RegexPatternSetReferenceStatement:
+                            Arn: !ImportValue
+                              Fn::Sub: ${pCommonWafRuleGroupStackName}-StaticFilesRegexPatternSetArn
+                            FieldToMatch:
+                              UriPath: {}
+                            TextTransformations:
+                              - Type: NONE
+                                Priority: 0
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-AWSManagedRulesBotControlRuleSet-frontend
+            SampledRequestsEnabled: false
+        - Name: ALARateLimitGoodBots
+          Action:
+            Block: {}
+          Priority: 11
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-ALARateLimitGoodBots
+          Statement:
+            RateBasedStatement:
+              Limit: 120
+              AggregateKeyType: CONSTANT
+              EvaluationWindowSec: 60
+              ScopeDownStatement:
+                LabelMatchStatement:
+                  Key: bot:verified
+                  Scope: LABEL
+        - Name: ALABlockDatacenterBrowsers
+          Action:
+            Block: {}
+          Priority: 12
+          RuleLabels:
+            - Name: bot:datacenterbrowsers
+          VisibilityConfig:
+            SampledRequestsEnabled: true
+            CloudWatchMetricsEnabled: true
+            MetricName: !Sub ${pEnvironment}-atlas-index-frontend-ALABlockDatacenterBrowsers
+          Statement:
+            AndStatement:
+              Statements:
+                - NotStatement:
+                    Statement:
+                      GeoMatchStatement:
+                        CountryCodes:
+                          - AU
+                          - NZ
+                - NotStatement:
+                    Statement:
+                      ByteMatchStatement:
+                        SearchString: /ws
+                        FieldToMatch:
+                          UriPath: {}
+                        PositionalConstraint: STARTS_WITH
+                        TextTransformations:
+                          - Priority: 0
+                            Type: NONE
+                - LabelMatchStatement:
+                    Key: awswaf:managed:aws:anonymous-ip-list:HostingProviderIPList
+                    Scope: LABEL
+                - NotStatement:
+                    Statement:
+                      LabelMatchStatement:
+                        Key: awswaf:managed:aws:bot-control:signal:non_browser_user_agent
+                        Scope: LABEL
+                - NotStatement:
+                    Statement:
+                      LabelMatchStatement:
+                        Key: 'awswaf:managed:aws:bot-control:bot:'
+                        Scope: NAMESPACE
+
+  UiLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt UiWafWebACL.Arn
+      LogDestinationConfigs:
+        - !GetAtt UiWafLogGroup.Arn
+
+  UiWafLogGroup:
+    DeletionPolicy: Delete
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub
+        - aws-waf-logs-${pEnvironment}/${UiWafName}-ia
+        - UiWafName: !Select
+            - 0
+            - !Split
+              - '|'
+              - !Ref UiWafWebACL
+      LogGroupClass: INFREQUENT_ACCESS
+      RetentionInDays: 14
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+
+Outputs:
+  UiWafWebAclArn:
+    Description: The ARN of the WAF Web ACL
+    Value: !GetAtt UiWafWebACL.Arn

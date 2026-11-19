@@ -1,0 +1,51 @@
+# Defaults for the search-service chart. The backend pipeline sets image, ingress, serviceAccount,
+# data and config (see cicd/backend/pipeline/deploy_helm_buildspec.yaml).
+
+# one replica: the data volume is ReadWriteOnce and Flyway migrates on startup
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  name: ""
+
+environment: ""
+
+deploymentAnnotations: {}
+
+service:
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: alb
+  hostname: ""
+  certificateArn: ""
+  wafArn: ""
+  # comma separated key=value AWS tags for the load balancer
+  tags: ""
+
+resources:
+  requests:
+    cpu: "1"
+    memory: 4Gi
+  limits:
+    memory: 4Gi
+
+javaOpts: "-XX:MaxRAMPercentage=75 -XX:+UseG1GC"
+
+# search-service-config.properties, passed with --set-file; stored in a Secret because it carries
+# credentials. It overrides src/main/resources/application.properties.
+config: ""
+
+# /data/search-service: import data, file stores and logs
+data:
+  storageClass: auto-ebs-sc
+  size: 50Gi
+  # optional s3://... prefix synced to /data/search-service/import-data before the app starts
+  # (names index DwCA and the names-extract CSVs); needs the service account to have S3 read access
+  s3Uri: ""

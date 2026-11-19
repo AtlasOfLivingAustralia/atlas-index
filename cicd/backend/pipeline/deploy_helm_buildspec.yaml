@@ -1,0 +1,17 @@
+version: 0.2
+###
+# Deploy search-service with Helm and smoke test it (cicd/backend/scripts/deploy_helm.sh)
+
+env:
+  shell: bash
+
+phases:
+  install:
+    commands:
+      - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - command -v kubectl || { curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x /usr/local/bin/kubectl; }
+      - pip install --quiet jinja2
+  build:
+    commands:
+      - set -a; source "$CODEBUILD_SRC_DIR_ExportConfigArtifact/env.sh"; set +a
+      - cicd/backend/scripts/deploy_helm.sh
