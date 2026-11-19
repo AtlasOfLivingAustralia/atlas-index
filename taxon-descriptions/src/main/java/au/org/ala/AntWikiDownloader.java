@@ -21,6 +21,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Downloads Australian ant species descriptions (Summary and Identification sections) from AntWiki.
+ * <p>
+ * Discovers species from the AntWiki {@code Australia} page, resolves ALA taxon GUIDs via the
+ * namematching service, and fetches rendered species pages using a configurable custom HTTP header
+ * to pass Cloudflare bot protection. Progress is cached in {@code antwiki-tmp.json} so interrupted
+ * runs can resume.
+ */
 public class AntWikiDownloader {
 
     private static final int TIMEOUT_MS = 60000;
@@ -28,6 +36,18 @@ public class AntWikiDownloader {
     private static final double DEFAULT_REQUESTS_PER_SECOND = 3.0;
     private static final int DEFAULT_THREADS = 2;
 
+    /**
+     * Downloads and extracts AntWiki species descriptions for Australian ant taxa.
+     *
+     * @param antwikiUrl  base wiki URL (e.g. {@code https://www.antwiki.org/wiki/})
+     * @param userAgent   HTTP User-Agent header value to send with requests
+     * @param tmpDir      directory used to store the incremental cache file ({@code antwiki-tmp.json})
+     * @param headerName  optional custom HTTP header name (defaults to {@code x-ala-harvester})
+     * @param headerValue optional custom HTTP header value (falls back to {@code ANTWIKI_HEADER_VALUE} env var if blank)
+     * @return map of ALA taxon concept IDs to extracted content maps containing {@code url}, {@code Summary}, and/or {@code Identification}
+     * @throws IOException              if fetching the AntWiki Australia index page fails
+     * @throws IllegalArgumentException if {@code antwikiUrl} is blank
+     */
     public static Map<String, Object> downloadAntWiki(String antwikiUrl, String userAgent, String tmpDir, String headerName, String headerValue) throws IOException {
         if (StringUtils.isBlank(antwikiUrl)) {
             throw new IllegalArgumentException("antwikiUrl must be configured for antwiki source");
