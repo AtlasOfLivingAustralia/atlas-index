@@ -24,7 +24,7 @@ Parameters:
     Type: String
 
   pUiHost:
-    Description: The site hostname, e.g. bie-aws.test.ala.org.au
+    Description: The site hostname, e.g. bie-cicd.test.ala.org.au
     Type: String
 
   pWafWebAclArn:

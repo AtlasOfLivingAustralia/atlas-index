@@ -206,25 +206,25 @@ regolith EKS cluster, and resolved [decision gates](#open-decision-gates).
 ## Hostnames and the legacy cutover
 
 Until the legacy deployment (manually published S3 sites and the EC2 search-service) is decommissioned, every
-hostname carries `DOMAIN_SUFFIX = -aws` ([config.ini](config.ini)):
+hostname carries `DOMAIN_SUFFIX = -cicd` ([config.ini](config.ini)):
 
 | App | Legacy (testing) | AWS (testing) | AWS (production, later) |
 |---|---|---|---|
-| search-ui | bie.test.ala.org.au | bie-aws.test.ala.org.au | bie-aws.ala.org.au |
-| dashboard-ui | dashboard.test.ala.org.au | dashboard-aws.test.ala.org.au | dashboard-aws.ala.org.au |
-| admin-ui | admin.test.ala.org.au | admin-aws.test.ala.org.au | admin-aws.ala.org.au |
-| regions-ui | regions.test.ala.org.au | regions-aws.test.ala.org.au | regions-aws.ala.org.au |
-| specimens-ui | specimens.test.ala.org.au | specimens-aws.test.ala.org.au | specimens-aws.ala.org.au |
-| doi-ui | doi.test.ala.org.au | doi-aws.test.ala.org.au (DG-3) | doi-aws.ala.org.au |
-| occurrence-ui | (ala-hub) | biocache-aws.test.ala.org.au (DG-3) | biocache-aws.ala.org.au |
-| sds-ui | n/a | sds-aws.test.ala.org.au (DG-3) | sds-aws.ala.org.au |
-| search-service | service.test.ala.org.au | service-aws.test.ala.org.au | service-aws.ala.org.au |
+| search-ui | bie.test.ala.org.au | bie-cicd.test.ala.org.au | bie-cicd.ala.org.au |
+| dashboard-ui | dashboard.test.ala.org.au | dashboard-cicd.test.ala.org.au | dashboard-cicd.ala.org.au |
+| admin-ui | admin.test.ala.org.au | admin-cicd.test.ala.org.au | admin-cicd.ala.org.au |
+| regions-ui | regions.test.ala.org.au | regions-cicd.test.ala.org.au | regions-cicd.ala.org.au |
+| specimens-ui | specimens.test.ala.org.au | specimens-cicd.test.ala.org.au | specimens-cicd.ala.org.au |
+| doi-ui | doi.test.ala.org.au | doi-cicd.test.ala.org.au (DG-3) | doi-cicd.ala.org.au |
+| occurrence-ui | (ala-hub) | biocache-cicd.test.ala.org.au (DG-3) | biocache-cicd.ala.org.au |
+| sds-ui | n/a | sds-cicd.test.ala.org.au (DG-3) | sds-cicd.ala.org.au |
+| search-service | service.test.ala.org.au | service-cicd.test.ala.org.au | service-cicd.ala.org.au |
 
 The hostnames feed every place that needs them:
 
 - Route 53 records and CloudFront aliases (site stack).
 - The ALB ingress and external-dns (Helm).
-- Each UI's `VITE_APP_BASE_URL`, and `VITE_APP_API_URL` → `service-aws`.
+- Each UI's `VITE_APP_BASE_URL`, and `VITE_APP_API_URL` → `service-cicd`.
 - Links between atlas-index apps, which stay inside the same environment.
 - search-service `security.cors.origins`, `openapi.servers`, `sitemap.url` and `speciesUrlPrefix`.
 
@@ -232,13 +232,13 @@ Header, footer and other shared content keep coming from the existing ALA sites 
 
 **Cutover, one app at a time:**
 
-1. Compare the `-aws` app with the legacy one. `search-test` can diff service responses.
+1. Compare the `-cicd` app with the legacy one. `search-test` can diff service responses.
 2. Register the legacy hostname with the OIDC client and add it to CORS.
 3. CloudFront won't accept an alias that another distribution holds. Release it with
    `aws cloudfront associate-alias` (or remove it from the legacy distribution), then set the app's
    `DOMAIN_SUFFIX` to empty for that environment and deploy. This moves the alias and the Route 53 record.
-4. Keep the `-aws` name for one release as a rollback path. Then delete the legacy bucket, distribution and EC2
-   host, and remove the `-aws` names from DNS, CORS and OIDC.
+4. Keep the `-cicd` name for one release as a rollback path. Then delete the legacy bucket, distribution and EC2
+   host, and remove the `-cicd` names from DNS, CORS and OIDC.
 
 ## Architectural decisions
 
@@ -301,9 +301,9 @@ pruning, and CloudFront invalidation.**
   aws-inventories) yet. Add one before running more than one replica or enabling production.
 
 **AD-9 Cutover: a single `DOMAIN_SUFFIX` setting.**
-- The `-aws` stack runs alongside the legacy one until each app is compared.
+- The `-cicd` stack runs alongside the legacy one until each app is compared.
 - The alias moves with `associate-alias`, and the old name is kept for one release as a rollback path.
-- The `-aws` service must use its own index, database and buckets, so the two stacks never write to the same stores
+- The `-cicd` service must use its own index, database and buckets, so the two stacks never write to the same stores
   (DG-5).
 
 ## Open decision gates
@@ -311,10 +311,10 @@ pruning, and CloudFront invalidation.**
 | Gate | Needed before | Question |
 |---|---|---|
 | DG-1 | any deploy | Which AWS account hosts atlas-index testing? The config assumes the species-lists testing account, and the bootstrap stacks and CodeStar connection must exist there. |
-| DG-2 | any deploy | Do the testing ACM certificates (ap-southeast-2 for the ALB, us-east-1 for CloudFront) cover the `*-aws` hosts? Is the `test.ala.org.au` zone in that account? |
-| DG-3 | frontend | Hostnames for doi-ui, occurrence-ui (`biocache-aws`?) and sds-ui. |
-| DG-4 | backend (`TODO-DG4`) | Which OIDC client does search-service use? Who registers the `service-aws` redirect and every UI's logout URL (Cognito for test, CAS for production)? |
-| DG-5 | backend (`TODO-DG5`) | Data plane for the `-aws` search-service: Elasticsearch, Postgres+PostGIS, RabbitMQ, S3 file stores, the import data prefix and the IRSA role. These must be isolated from the legacy stack. |
+| DG-2 | any deploy | Do the testing ACM certificates (ap-southeast-2 for the ALB, us-east-1 for CloudFront) cover the `*-cicd` hosts? Is the `test.ala.org.au` zone in that account? |
+| DG-3 | frontend | Hostnames for doi-ui, occurrence-ui (`biocache-cicd`?) and sds-ui. |
+| DG-4 | backend (`TODO-DG4`) | Which OIDC client does search-service use? Who registers the `service-cicd` redirect and every UI's logout URL (Cognito for test, CAS for production)? |
+| DG-5 | backend (`TODO-DG5`) | Data plane for the `-cicd` search-service: Elasticsearch, Postgres+PostGIS, RabbitMQ, S3 file stores, the import data prefix and the IRSA role. These must be isolated from the legacy stack. |
 | DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment, and decide whether to enable the Google Maps key. |
 | DG-7 | frontend rollout | CodeBuild concurrent-build quota for MEDIUM containers. A `common-ui` change starts 8 UIs × (3 shards + 4 builds). Builds over the quota queue rather than fail. |
 | DG-8 | after rollout | Is the cost of the all-browser gate acceptable? The fallback is a chromium gate plus a nightly full run. |
