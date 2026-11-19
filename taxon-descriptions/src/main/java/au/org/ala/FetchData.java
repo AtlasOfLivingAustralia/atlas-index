@@ -190,6 +190,13 @@ public class FetchData {
         try (FileWriter file = new FileWriter(descriptionsTmp + "/" + filename + ".json")) {
             file.write(new ObjectMapper().writeValueAsString(output));
         }
+
+        if (type.equalsIgnoreCase("antwiki")) {
+            File antwikiCheckpoint = new File(descriptionsTmp + "/antwiki-tmp.json");
+            if (antwikiCheckpoint.exists() && !antwikiCheckpoint.delete()) {
+                System.out.println("WARN failed to delete completed AntWiki checkpoint: " + antwikiCheckpoint.getPath());
+            }
+        }
     }
 
     private static Map<String, Object> downloadProfiles(String id, List<String> fields, String name, String attribution) throws IOException {

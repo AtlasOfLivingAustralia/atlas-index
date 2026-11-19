@@ -15,6 +15,7 @@ import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Entities;
 import org.jsoup.select.Elements;
 
 import java.io.File;
@@ -49,6 +50,7 @@ public class AntWikiDownloader {
     private static final double DEFAULT_REQUESTS_PER_SECOND = 3.0;
     private static final int DEFAULT_THREADS = 2;
     private static final int SPECIES_RANK_ID = 7000;
+    private static final int SUBSPECIES_RANK_ID = 8000;
 
     /**
      * Downloads and extracts AntWiki species descriptions for Australian ant taxa.
@@ -170,8 +172,11 @@ public class AntWikiDownloader {
         }
 
         Map<String, Object> result = assembleTaxonResults(titleToTaxonId, pageCache);
-        if (cacheFile.exists() && !cacheFile.delete()) {
-            System.out.println("WARN failed to delete completed AntWiki checkpoint: " + cacheFile.getPath());
+        if (result.isEmpty()) {
+            if (cacheFile.exists() && !cacheFile.delete()) {
+                System.out.println("WARN failed to delete empty AntWiki checkpoint: " + cacheFile.getPath());
+            }
+            throw new IOException("AntWiki harvest produced no extractable descriptions");
         }
         System.out.println(timestamp() + " Finished AntWiki: processed " + counter.get() + " of " + total + ", withData: " + result.size());
         return result;
@@ -261,6 +266,7 @@ public class AntWikiDownloader {
 
         List<Map<String, String>> batch = new ArrayList<>();
         List<String> batchTitles = new ArrayList<>();
+        List<Integer> batchMinRanks = new ArrayList<>();
         int batchSize = 1000;
 
         for (Map.Entry<String, String> entry : speciesTitles.entrySet()) {
@@ -269,7 +275,7 @@ public class AntWikiDownloader {
 
             Map<String, String> taxon = new HashMap<>();
             taxon.put("scientificName", scientificName);
-            String[] parts = scientificName.split("\\s+");
+            String[] parts = scientificName.trim().split("\\s+");
             if (parts.length > 0 && StringUtils.isNotBlank(parts[0])) {
                 taxon.put("genus", parts[0]);
             }
@@ -279,18 +285,22 @@ public class AntWikiDownloader {
             taxon.put("phylum", "Arthropoda");
             taxon.put("kingdom", "Animalia");
 
+            int minRankId = parts.length >= 3 ? SUBSPECIES_RANK_ID : SPECIES_RANK_ID;
+
             batch.add(taxon);
             batchTitles.add(title);
+            batchMinRanks.add(minRankId);
 
             if (batch.size() == batchSize) {
-                matchBatch(batch, batchTitles, titleToTaxonId, found, notFound, higherRankRejected);
+                matchBatch(batch, batchTitles, batchMinRanks, titleToTaxonId, found, notFound, higherRankRejected);
                 batch.clear();
                 batchTitles.clear();
+                batchMinRanks.clear();
             }
         }
 
         if (!batch.isEmpty()) {
-            matchBatch(batch, batchTitles, titleToTaxonId, found, notFound, higherRankRejected);
+            matchBatch(batch, batchTitles, batchMinRanks, titleToTaxonId, found, notFound, higherRankRejected);
         }
 
         if (found.get() + notFound.get() + higherRankRejected.get() != speciesTitles.size()) {
@@ -306,6 +316,7 @@ public class AntWikiDownloader {
     }
 
     private static void matchBatch(List<Map<String, String>> batch, List<String> batchTitles,
+                                   List<Integer> batchMinRanks,
                                    Map<String, String> output, AtomicInteger found,
                                    AtomicInteger notFound, AtomicInteger higherRankRejected) throws IOException {
         RequestConfig requestConfig = RequestConfig.custom()
@@ -333,11 +344,12 @@ public class AntWikiDownloader {
                         + ", got " + (rootNode.isArray() ? rootNode.size() : "non-array"));
             }
 
-            parseMatchBatchResponse(rootNode, batchTitles, output, found, notFound, higherRankRejected);
+            parseMatchBatchResponse(rootNode, batchTitles, batchMinRanks, output, found, notFound, higherRankRejected);
         }
     }
 
     static void parseMatchBatchResponse(JsonNode rootNode, List<String> batchTitles,
+                                        List<Integer> batchMinRanks,
                                         Map<String, String> output, AtomicInteger found,
                                         AtomicInteger notFound, AtomicInteger higherRankRejected) {
         for (int i = 0; i < rootNode.size(); i++) {
@@ -346,7 +358,10 @@ public class AntWikiDownloader {
             if ("true".equals(success)) {
                 String taxonConceptID = node.path("taxonConceptID").asText();
                 int rankId = node.path("rankID").asInt(0);
-                if (StringUtils.isNotBlank(taxonConceptID) && rankId >= SPECIES_RANK_ID) {
+                String matchType = node.path("matchType").asText();
+                int minRankId = batchMinRanks != null && i < batchMinRanks.size() ? batchMinRanks.get(i) : SPECIES_RANK_ID;
+                boolean isHigherMatch = "higherMatch".equalsIgnoreCase(matchType);
+                if (StringUtils.isNotBlank(taxonConceptID) && !isHigherMatch && rankId >= minRankId) {
                     output.put(batchTitles.get(i), taxonConceptID);
                     found.incrementAndGet();
                 } else if (StringUtils.isNotBlank(taxonConceptID)) {
@@ -433,11 +448,11 @@ public class AntWikiDownloader {
                         || sibling.text().trim().toLowerCase(Locale.ROOT).startsWith("keys including");
                 pendingHeading.setLength(0);
                 if (!inKeysSubsection && StringUtils.isNotBlank(sibling.text())) {
-                    pendingHeading.append("<h3>").append(sibling.text().trim()).append("</h3>");
+                    pendingHeading.append("<h3>").append(Entities.escape(sibling.text().trim())).append("</h3>");
                 }
             } else if (!inKeysSubsection) {
                 if ("h4".equals(tag) && StringUtils.isNotBlank(sibling.text())) {
-                    pendingHeading.append("<h4>").append(sibling.text().trim()).append("</h4>");
+                    pendingHeading.append("<h4>").append(Entities.escape(sibling.text().trim())).append("</h4>");
                 } else if (("p".equals(tag) || "ul".equals(tag) || "ol".equals(tag)) && hasProseText(sibling)) {
                     if (pendingHeading.length() > 0) {
                         sb.append(pendingHeading);
@@ -461,20 +476,30 @@ public class AntWikiDownloader {
         return StringUtils.isNotBlank(clone.text());
     }
 
+    private static void waitForSharedPauseAndRateLimit(RateLimiter rateLimiter, AtomicLong pauseUntilTimestamp) throws InterruptedException {
+        while (true) {
+            if (pauseUntilTimestamp != null) {
+                long pauseRemaining = pauseUntilTimestamp.get() - System.currentTimeMillis();
+                if (pauseRemaining > 0) {
+                    Thread.sleep(pauseRemaining);
+                    continue;
+                }
+            }
+            if (rateLimiter != null) {
+                rateLimiter.acquire();
+            }
+            if (pauseUntilTimestamp == null || pauseUntilTimestamp.get() <= System.currentTimeMillis()) {
+                return;
+            }
+        }
+    }
+
     static Document fetchDocument(String url, String userAgent, Map<String, String> headers,
                                   RateLimiter rateLimiter, AtomicLong pauseUntilTimestamp) throws IOException {
         IOException lastException = null;
         for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                if (pauseUntilTimestamp != null) {
-                    long pauseRemaining = pauseUntilTimestamp.get() - System.currentTimeMillis();
-                    if (pauseRemaining > 0) {
-                        Thread.sleep(pauseRemaining);
-                    }
-                }
-                if (rateLimiter != null) {
-                    rateLimiter.acquire();
-                }
+                waitForSharedPauseAndRateLimit(rateLimiter, pauseUntilTimestamp);
                 Connection connection = Jsoup.connect(url)
                         .timeout(TIMEOUT_MS)
                         .followRedirects(true)

@@ -89,7 +89,7 @@ public class AntWikiDownloaderTest {
                   <h3><span class="mw-headline" id="Worker">Worker</span></h3>
                   <p>Worker diagnosis text.</p>
                   <ul><li>Antennae 12-segmented.</li><li>Eyes large.</li></ul>
-                  <h3><span class="mw-headline" id="Queen">Queen</span></h3>
+                  <h3><span class="mw-headline" id="Queen">Queen &lt;script&gt;alert(1)&lt;/script&gt;</span></h3>
                   <p>Queen diagnosis text.</p>
                   <h2><span class="mw-headline" id="Distribution">Distribution</span></h2>
                   <p>Distribution text.</p>
@@ -100,7 +100,7 @@ public class AntWikiDownloaderTest {
 
         assertNotNull(content);
         assertEquals(
-                "<h3>Worker</h3><p>Worker diagnosis text.</p><ul><li>Antennae 12-segmented.</li>\n<li>Eyes large.</li></ul><h3>Queen</h3><p>Queen diagnosis text.</p>",
+                "<h3>Worker</h3><p>Worker diagnosis text.</p><ul><li>Antennae 12-segmented.</li>\n<li>Eyes large.</li></ul><h3>Queen &lt;script&gt;alert(1)&lt;/script&gt;</h3><p>Queen diagnosis text.</p>",
                 content.get("Identification")
         );
     }
@@ -155,27 +155,30 @@ public class AntWikiDownloaderTest {
     void testParseMatchBatchResponseRejectsHigherRankMatches() throws Exception {
         String responseJson = """
                 [
-                  {"success": true, "taxonConceptID": "urn:species:1", "rank": "species", "rankID": 7000},
-                  {"success": true, "taxonConceptID": "urn:subspecies:2", "rank": "subspecies", "rankID": 8000},
-                  {"success": true, "taxonConceptID": "urn:genus:3", "rank": "genus", "rankID": 6000},
+                  {"success": true, "taxonConceptID": "urn:species:1", "rank": "species", "rankID": 7000, "matchType": "exactMatch"},
+                  {"success": true, "taxonConceptID": "urn:subspecies:2", "rank": "subspecies", "rankID": 8000, "matchType": "exactMatch"},
+                  {"success": true, "taxonConceptID": "urn:genus:3", "rank": "genus", "rankID": 6000, "matchType": "exactMatch"},
+                  {"success": true, "taxonConceptID": "urn:species:4", "rank": "species", "rankID": 7000, "matchType": "higherMatch"},
                   {"success": false}
                 ]
                 """;
         JsonNode rootNode = new ObjectMapper().readTree(responseJson);
-        List<String> titles = List.of("Sp_one", "Subsp_two", "Unmatched_in_genus", "Missing_four");
+        List<String> titles = List.of("Sp_one", "Subsp_two", "Unmatched_in_genus", "Unmatched_subsp_fallback", "Missing_five");
+        List<Integer> minRanks = List.of(7000, 8000, 7000, 8000, 7000);
         Map<String, String> output = new LinkedHashMap<>();
         AtomicInteger found = new AtomicInteger(0);
         AtomicInteger notFound = new AtomicInteger(0);
         AtomicInteger higherRankRejected = new AtomicInteger(0);
 
-        AntWikiDownloader.parseMatchBatchResponse(rootNode, titles, output, found, notFound, higherRankRejected);
+        AntWikiDownloader.parseMatchBatchResponse(rootNode, titles, minRanks, output, found, notFound, higherRankRejected);
 
         assertEquals(2, found.get());
         assertEquals(1, notFound.get());
-        assertEquals(1, higherRankRejected.get());
+        assertEquals(2, higherRankRejected.get());
         assertEquals("urn:species:1", output.get("Sp_one"));
         assertEquals("urn:subspecies:2", output.get("Subsp_two"));
         assertFalse(output.containsKey("Unmatched_in_genus"));
+        assertFalse(output.containsKey("Unmatched_subsp_fallback"));
     }
 
     @Test
