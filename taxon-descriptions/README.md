@@ -38,6 +38,10 @@ Check settings for vicflora
 3. Remove the `vicflora-tmp.json` file if there is a need to re-download data. It is found in the configured `wikipediaTmp` directory.
 4. If the fetch fails, re-running it will continue on from the progress already made in the `vicflora-tmp.json` file.
 
+Check settings for antwiki
+1. Uses configuration `antwikiUrl`, `antwikiHeaderName`, and `antwikiHeaderValue` (or `ANTWIKI_HEADER_VALUE` environment variable) to access AntWiki via Cloudflare.
+2. If a fetch fails or is interrupted, re-running it will resume from `antwiki-tmp.json` in the configured `descriptionsTmp` directory. On a successful harvest, `antwiki-tmp.json` is automatically removed so the next harvest fetches fresh content.
+
 Get the accepted names. TODO: use V1 or V2 API service instead of using a SOLR tunnel to the old bie-index SOLR.
 1. download from tunneled SOLR to `/data/accepted.csv`, or as specified in `config.json`
 ```shell
