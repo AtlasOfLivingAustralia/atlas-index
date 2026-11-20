@@ -28,7 +28,10 @@ phases:
         export WAF_ARN
         echo "WAF: $WAF_ARN"
       - cicd/render_template_configs.sh
-      - cicd/frontend/scripts/write_dotenv.sh > "cicd/frontend/$UI_APP/.env.production"
+      - |
+        cicd/gen_env_vars.py --env "$ENVIRONMENT" --clean-branch "$CLEAN_BRANCH" \
+          --conf cicd/frontend/config.ini --conf "cicd/frontend/$UI_APP/config.ini" \
+          | grep '^VITE_' > "cicd/frontend/$UI_APP/.env.production"
 
 artifacts:
   files:

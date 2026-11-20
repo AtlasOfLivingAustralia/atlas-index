@@ -25,8 +25,7 @@ args = parser.parse_args()
 config_defaults = {
                      'CLEAN_BRANCH' : args.clean_branch,
                      'ENVIRONMENT'  : args.env,
-                     'AWS_ACCOUNT_ID' : os.popen('aws sts get-caller-identity --query Account --output text').read().strip()[:6],
-                     'REGION' : os.popen('aws configure get region').read().strip()
+                     'AWS_ACCOUNT_ID' : os.popen('aws sts get-caller-identity --query Account --output text').read().strip()[:6]
                   }
 
 config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())

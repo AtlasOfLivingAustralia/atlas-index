@@ -15,7 +15,7 @@ ARG NODE_MAJOR
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-      build-essential ca-certificates curl git gnupg jq python3 unzip \
+      build-essential ca-certificates curl git gnupg python3 unzip \
       libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev \
  && curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | bash - \
  && apt-get install -y --no-install-recommends nodejs \

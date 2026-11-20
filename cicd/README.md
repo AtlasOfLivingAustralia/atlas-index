@@ -30,8 +30,8 @@ Environments come from the branch ([branch_2_env.py](branch_2_env.py)):
 | `main`/`master` | staging, or production with `-e prod` | staging automatically; production manual (`AUTO_DEPLOY = false`) |
 | anything else | development (per-branch stacks) | after you deploy its pipelines |
 
-Only testing is in scope for now. The staging and production sections exist but are not enabled; see
-[DG-9](#open-decision-gates).
+Only testing is in scope for now. The root and backend configs have staging and production sections, but the UI
+configs don't yet, and those environments aren't enabled; see [DG-9](#open-decision-gates).
 
 ```
 cicd/
@@ -81,9 +81,8 @@ regressions that the commit's own specs wouldn't. UIs don't import each other: `
 workspace dependency.
 
 **UI build config.** Vite bakes `VITE_*` into the bundle at build time, so each environment gets its own build.
-ExportConfig writes `<ui>/.env.production` from the `VITE_*` keys in the layered config
-([write_dotenv.sh](frontend/scripts/write_dotenv.sh)). A value of the form `secretsmanager:<secret-id>:<json-key>`
-is resolved at build time, but never store a real secret there: every `VITE_*` value ends up public in the bundle.
+ExportConfig writes `<ui>/.env.production` from the `VITE_*` keys in the layered config. Never put a secret in a
+`VITE_*` value: every one ends up public in the bundle.
 
 **UI pipeline stages**
 
@@ -159,10 +158,9 @@ roughly 10 minutes, split it across containers again.
 
 **Playwright upgrades.** The base pipeline builds `atlas-index-playwright:pw<version>-node<major>-<hash>` from
 [base/playwright/Dockerfile](base/playwright/Dockerfile) whenever the `@playwright/test` version in `yarn.lock`, the
-Node major in `.nvmrc`, or the Dockerfile changes, and moves `:latest` to it.
-[playwright_version.sh](frontend/scripts/playwright_version.sh) fails if the workspaces resolve more than one
-Playwright version. If a UI pipeline runs before the new image exists, the gate installs the matching browsers
-itself.
+Node major in `.nvmrc`, or the Dockerfile changes, and moves `:latest` to it. The build fails if the workspaces
+resolve more than one Playwright version. If a UI pipeline runs before the new image exists, the gate installs the
+matching browsers itself.
 
 **Running it locally.** `<ui>/run-playwright-test.sh` is unchanged. The CI scripts can be run from the repository
 root with the env vars documented at the top of each script.
@@ -197,8 +195,7 @@ Species-lists already uses most of these. The CodeBuild role must allow:
 - [ ] S3 read/write on the reports bucket created by the base stack, and on the site buckets (`ala-atlas-index-*`).
 - [ ] `cloudfront:CreateInvalidation`.
 - [ ] ECR push to `atlas-index-playwright-*` and `atlas-index-search-service-*`, plus `ecr:GetAuthorizationToken`.
-- [ ] `secretsmanager:GetSecretValue` on `ala-atlas-index-search-service-*`, and on any secret referenced by a
-  `secretsmanager:` value in a UI config.
+- [ ] `secretsmanager:GetSecretValue` on `ala-atlas-index-search-service-*`.
 - [ ] CodeBuild test reports (`codebuild:CreateReportGroup`, `CreateReport`, `UpdateReport`, `BatchPutTestCases`).
   Without these the JUnit tab stays empty, but the gate still works.
 - [ ] `eks:DescribeCluster`, and an EKS access entry (or `aws-auth` mapping) that lets the role manage the
@@ -396,7 +393,7 @@ pruning, and CloudFront invalidation.**
 | DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment, and decide whether to enable the Google Maps key. |
 | DG-7 | frontend rollout | CodeBuild concurrent-build quotas. A `common-ui` change runs all 8 UI pipelines: up to 16 MEDIUM builds at once (release + Playwright bundle), then 8 LARGE (the gate). Builds over the quota queue rather than fail. |
 | DG-8 | after rollout | Is the cost of the all-browser gate acceptable? The fallback is a chromium gate plus a nightly full run. |
-| DG-9 | staging/production | Fill the `[staging]`/`[production]` sections (UI values from the production `.env.production` files, prod OIDC/CAS), name the decommission owners, and plan the static content migration. |
+| DG-9 | staging/production | Add `[staging]`/`[production]` sections to each `cicd/frontend/<ui>/config.ini` (UI values from the production `.env.production` files; without them a UI falls back to `[DEFAULT]`, which holds test values), fill the prod OIDC/CAS settings, name the decommission owners, and plan the static content migration. |
 
 ## Verify on the first AWS run
 

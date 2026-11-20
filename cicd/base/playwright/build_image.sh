@@ -2,13 +2,18 @@
 set -euo pipefail
 
 ###
-# Build and push the Playwright build image (see Dockerfile) when the Playwright version in yarn.lock
-# or the Node major in .nvmrc has no image yet, then point :latest at it.
+# Build and push the Playwright build image (see Dockerfile) when the Playwright version in yarn.lock,
+# the Node major in .nvmrc or the Dockerfile has no image yet, then point :latest at it.
 # Run from the repository root.
 #
 # Required env: REPO_NAME, REPO_URI
 
-PLAYWRIGHT_VERSION=$(cicd/frontend/scripts/playwright_version.sh)
+# the image ships browsers for exactly one Playwright version, so every workspace must resolve the same one
+PLAYWRIGHT_VERSION=$(awk '/^"@playwright\/test@/ { found=1; next } found && /^  version:/ { print $2; found=0 }' yarn.lock | sort -u)
+if [[ $(grep -c . <<< "$PLAYWRIGHT_VERSION") -ne 1 ]]; then
+  echo "expected exactly one @playwright/test version in yarn.lock, found: ${PLAYWRIGHT_VERSION:-none}" >&2
+  exit 1
+fi
 NODE_MAJOR=$(cut -d. -f1 < .nvmrc | tr -d 'v')
 TAG="pw${PLAYWRIGHT_VERSION}-node${NODE_MAJOR}-$(cicd/fingerprint.sh cicd/base/playwright/Dockerfile | cut -c1-8)"
 echo "image tag: $TAG"

@@ -33,7 +33,6 @@ helm upgrade --install "$HELM_RELEASE_NAME" search-service/helm \
   --namespace "$EKS_NAMESPACE" \
   --set image.repository="$ECR_REPO" \
   --set image.tag="$BUILD_TAG" \
-  --set environment="$ENVIRONMENT" \
   --set ingress.hostname="$SERVICE_HOST" \
   --set ingress.certificateArn="$APP_CERTIFICATE" \
   --set ingress.wafArn="$WAF_ARN" \

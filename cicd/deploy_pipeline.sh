@@ -109,7 +109,6 @@ PIPELINE_FINGERPRINT=$("$SCRIPT_DIR/fingerprint.sh" "$PIPELINE_TEMPLATE")
 PARAMS=(
   pAllowTeardown="$ALLOW_TEARDOWN"
   pAutoDeploy="$AUTO_DEPLOY"
-  pBaseStackName="$BASE_STACK_NAME"
   pBootstrapStackName="$BOOTSTRAP_STACK_NAME"
   pBucketsStackName="$BUCKETS_STACK_NAME"
   pCleanBranch="$clean_branch"
@@ -127,7 +126,7 @@ case $COMPONENT in
     PARAMS+=(pUsEast1CodePipelineArtifactBucketName="$US_EAST_ARTIFACT_BUCKET")
     ;;
   frontend)
-    PARAMS+=(pUiApp="$UI_APP")
+    PARAMS+=(pUiApp="$UI_APP" pBaseStackName="$BASE_STACK_NAME")
     ;;
   backend)
     PARAMS+=(pRegolithStackName="$REGOLITH_STACK_NAME")

@@ -11,9 +11,6 @@ Parameters:
   pAutoDeploy:
     Type: String
     Description: Sets the pipeline to autodeploy on repo changes
-  pBaseStackName:
-    Type: String
-    Description: The name of the base stack
   pBootstrapStackName:
     Type: String
     Description: The name of the bootstrap stack
@@ -111,6 +108,7 @@ Resources:
       TimeoutInMinutes: 30
 
   EmptyBucket:
+    Condition: AllowTeardown
     Type: AWS::CodeBuild::Project
     Properties:
       Name: !Sub
@@ -169,16 +167,12 @@ Resources:
                   Includes:
                     - cicd/*
                     - !Sub cicd/${pProductComponent}/**
-                    - cicd/frontend/scripts/playwright_version.sh
                     - yarn.lock
                     - .nvmrc
                   Excludes:
                     - '**/*.md'
             SourceActionName: CheckoutSrc
       Variables:
-        - Name: SRC_BRANCH
-          DefaultValue: !Ref pGitHubBranch
-          Description: The branch this pipeline is deploying from
         - Name: PIPELINE_FINGERPRINT
           DefaultValue: !Ref pPipelineFingerprint
           Description: The fingerprint of the pipeline, used to determine if it's been modified
@@ -368,6 +362,7 @@ Resources:
       RetentionInDays: 30
 
   EmptyBucketLogGroup:
+    Condition: AllowTeardown
     Type: AWS::Logs::LogGroup
     DeletionPolicy: Delete
     Properties:
@@ -377,8 +372,6 @@ Resources:
 Outputs:
   PipelineName:
     Value: !Ref Pipeline
-    Export:
-      Name: !Sub ${AWS::StackName}-PipelineName
 
   PipelineUrl:
     Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${Pipeline}

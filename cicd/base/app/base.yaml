@@ -113,8 +113,6 @@ Outputs:
 
   PlaywrightImageRepositoryName:
     Value: !Ref PlaywrightImageRepository
-    Export:
-      Name: !Sub ${AWS::StackName}-PlaywrightImageRepositoryName
 
   PlaywrightImageRepositoryUri:
     Value: !GetAtt PlaywrightImageRepository.RepositoryUri

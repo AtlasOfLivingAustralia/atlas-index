@@ -12,8 +12,6 @@ image:
 serviceAccount:
   name: ""
 
-environment: ""
-
 deploymentAnnotations: {}
 
 service:
@@ -21,7 +19,6 @@ service:
   targetPort: 8080
 
 ingress:
-  enabled: true
   className: alb
   hostname: ""
   certificateArn: ""
