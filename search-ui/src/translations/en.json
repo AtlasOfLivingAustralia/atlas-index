@@ -87,5 +87,9 @@
     "taxonomicStatus.inferredInvalid": "Inferred invalid",
     "taxonomicStatus.doubtful": "Doubtful",
     "taxonomicStatus.miscellaneousLiterature": "Miscellaneous literature",
-    "taxonomicStatus.pseudoTaxon": "Pseudo taxon"
+    "taxonomicStatus.pseudoTaxon": "Pseudo taxon",
+
+    "names.aboutScientificNames.title": "About scientific names",
+    "names.aboutScientificNames.content": "For more information on the taxonomic status that the ALA has assigned to a name and the rationale behind it see <a>An Introduction to Taxonomy</a>.",
+    "names.aboutScientificNames.linkUrl": "https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy"
 }
