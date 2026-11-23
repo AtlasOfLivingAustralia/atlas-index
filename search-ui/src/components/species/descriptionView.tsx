@@ -85,7 +85,7 @@ function DescriptionView({descriptions, isMobile}: MapViewProps) {
                                     {'summary' !== key && (
                                         <span style={{marginBottom: '15px'}}
                                             className={classes.speciesDescriptionSection}>
-                                            {key}
+                                            {key.replace(/_/g, ' ')}
                                         </span>
                                     )}
                                     {/* Leaving this header 'just in case'. taxon-descriptions does sanitize this content. */}
