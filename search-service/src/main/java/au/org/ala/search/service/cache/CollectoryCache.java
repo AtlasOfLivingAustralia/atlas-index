@@ -50,8 +50,8 @@ public class CollectoryCache {
 
     private final RestTemplate restTemplate;
 
-    @Value("${collections.url}")
-    private String collectionsUrl;
+    @Value("${collections.sourceUrl:${collections.url}}")
+    private String collectionsSourceUrl;
 
     public CollectoryCache(ElasticService elasticService,
                            @Value("${webservice.connect.timeout}") int connectTimeout,
@@ -78,13 +78,13 @@ public class CollectoryCache {
     @Scheduled(cron = "${collectory.cache.cron}")
     public void cacheRefresh() {
         try {
-            List<Map<String, Object>> resources = restTemplate.getForObject(collectionsUrl + "/ws/dataResource", List.class);
+            List<Map<String, Object>> resources = restTemplate.getForObject(collectionsSourceUrl + "/ws/dataResource", List.class);
             if (resources != null) {
                 dataResourceUids = resources.stream().map(it -> (String) it.get("uid")).collect(Collectors.toUnmodifiableSet());
             }
         } catch (Exception e) {
             // keep the previous uids; links are only omitted until the next successful refresh
-            log.warn("Failed to cache data resource uids from {}: {}", collectionsUrl, e.getMessage());
+            log.warn("Failed to cache data resource uids from {}: {}", collectionsSourceUrl, e.getMessage());
         }
 
         String pit = null;
