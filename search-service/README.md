@@ -193,7 +193,10 @@ elastic.adminIndex=search-log-20240401
     ```properties
     collections.url=https://collections.ala.org.au`.
     ```
-    The `/v2/species` API also uses `collections.url` to replace a non-HTTP(S) name `source`
+    `collections.sourceUrl` controls the Collectory used for `/v2/species` name-source lookup and links.
+    It defaults to `collections.url`; set it separately when those data resources are only available
+    in another Collectory (for example, production from a test deployment).
+    The `/v2/species` API uses `collections.sourceUrl` to replace a non-HTTP(S) name `source`
     (for example, `Other` from species lists) with the Collectory page for the name's `datasetID`
     (for example, `dr31252`), but only when that data resource exists in the configured
     Collectory. Otherwise the non-HTTP(S) source is omitted, so no link is shown. This matches
