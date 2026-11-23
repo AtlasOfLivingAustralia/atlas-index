@@ -353,7 +353,7 @@ Phases 1 and 2 can run in parallel. Phase 4 depends on 1 and 3, not on 2.
 | [`search-ui/src/phoenix/toResultTile.tsx`](../search-ui/src/phoenix/toResultTile.tsx) | Adapter from search-service items to `ResultTile` props |
 | [`search-ui/src/phoenix/phoenix.css`](../search-ui/src/phoenix/phoenix.css) | Layout only, token-based (`var(--ala-*)`), plus documented workarounds |
 | [`search-ui/vite.config.ts`](../search-ui/vite.config.ts) | Adds the second HTML input |
-| `search-ui/vendor/ala-ui-0.0.0-c6fbee4.tgz` and `package.json`/`yarn.lock` | phoenix packed from `testing@c6fbee4` (`pnpm pack`, 740,570 B), installed with `file:` |
+| `search-ui/vendor/ala-ui-0.0.0-a2315eb.tgz` and `package.json`/`yarn.lock` | phoenix packed from `feature/grails-theme-builds@a2315eb` (`pnpm pack`, 745,646 B; local commit, not yet on GitHub), installed with `file:`. The analysis elsewhere in this report is of `c6fbee4`; the demo was first built against that and later repacked |
 
 The old page at `/` is unchanged.
 
@@ -409,7 +409,7 @@ VITE_APP_API_URL=https://service.test.ala.org.au yarn dev
 | C1 | `phoenix.css` includes Bootstrap and must not load with `ala-combined.css`. Vite CSS is global per bundle | Separate HTML entry (`phoenix/index.html`) | Page-level coexistence works. Production hosting needs a `/phoenix/` → `phoenix/index.html` rewrite (unverified) |
 | C2 | phoenix is unpublished (`private: true`) | Vendored `pnpm pack` tarball (740 KB) in git | Not sustainable; needs a registry (R2) |
 | C3 | No autocomplete component | Native `<datalist>`, fed by the existing `/v1/bie/search/auto` | Works and is accessible, but unstyled and limited on iOS Safari (unverified on device); needs a phoenix combobox |
-| C4 | Header has no signed-in state | Sign-in button label toggles to "Sign out" | Needs profile and sign-out UI in phoenix |
+| C4 | Header had no signed-in state at `c6fbee4` | First a label toggle; since `a2315eb` the demo uses Header's new `signedIn`/`onSignOut` props | Sign-out is resolved; profile UI is still missing |
 | C5 | Header nav uses placeholder hrefs, and the logo is fixed | Left as default (links go to `ala.org.au/?q=…`) | Must be configurable before any real use |
 | C6 | `ResultTile` rows are fixed at 87 px with overflow hidden | App CSS override: `height: auto`, 3-line clamp | Fix in phoenix (content-robust variant) |
 | C7 | All result titles italic | App CSS override; `<i>` only for TAXON names | Fix in phoenix (`title` style prop or no italics by default) |

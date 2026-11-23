@@ -21,11 +21,11 @@ export default function PhoenixApp() {
     useEffect(() => initializeTheme(theme), [theme]);
 
     return <UserContext.Provider value={{userInfo, setUserInfo}}>
-        {/* phoenix Header has no signed-in state, so the sign-in button doubles as sign-out. */}
         <Header
             homeHref={import.meta.env.VITE_HOME_URL}
-            signInLabel={signedIn ? 'Sign out' : 'Sign in'}
-            onSignIn={() => signedIn ? handleLogout(api, import.meta.env.VITE_APP_BASE_URL) : handleLogin(api)}
+            signedIn={signedIn}
+            onSignIn={() => handleLogin(api)}
+            onSignOut={() => handleLogout(api, import.meta.env.VITE_APP_BASE_URL)}
             onSearch={() => document.getElementById('phoenix-search')?.focus()}
             onThemeToggle={() => setTheme(current => current === 'dark' ? 'light' : 'dark')}
         />
