@@ -6,7 +6,7 @@ services:
     networks:
       - search-network
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0-arm64
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.24-arm64
     container_name: species-lists-elastic
     environment:
       - node.name=elasticsearch
