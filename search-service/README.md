@@ -219,6 +219,8 @@ elastic.adminIndex=search-log-20240401
 - lists; idxtype SPECIESLIST, COMMON
     ```properties
     lists.url=https://lists-test.ala.org.au
+    # v2 API host (distinct from the Lists UI hostname)
+    lists.v2.url=https://lists-ws.test.ala.org.au
     lists.uiUrl=https://lists-test.ala.org.au/speciesListItem/list/
     lists.addPath=/ws/createItem
     lists.removePath=/ws/deleteItem
