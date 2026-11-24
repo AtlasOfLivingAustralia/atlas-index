@@ -71,7 +71,7 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
     static void wireMockProperties(DynamicPropertyRegistry registry) {
         registry.add("lists.url", () -> "http://localhost:" + wireMockServer.port());
         registry.add("lists.favourite.config", () -> "dr0000,interest");
-        registry.add("lists.native-introduced", () -> "");
+        registry.add("lists.native-introduced", () -> "dr23424,dr9884");
     }
 
     @Test
@@ -121,6 +121,11 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr0000?includeKVP=true&max=500&offset=0"))
                 .willReturn(okJson("[]")));
 
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr23424?includeKVP=true&max=500&offset=0"))
+                .willReturn(okJson("[]")));
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9884?includeKVP=true&max=500&offset=0"))
+                .willReturn(okJson("[]")));
+
         // authoritative list's items — used for the final "speciesList" field aggregation
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9999?includeKVP=true&max=500&offset=0"))
                 .willReturn(okJson("""
@@ -151,4 +156,83 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
         wireMockServer.verify(getRequestedFor(urlEqualTo("/ws/speciesList?isSDS=eq:true&max=500&offset=0")));
         wireMockServer.verify(getRequestedFor(urlEqualTo("/ws/speciesListItems/dr9999?includeKVP=true&max=500&offset=0")));
     }
+
+    @Test
+    void run_mergesJurisdictionAndGriisNativeIntroducedLists() {
+        SearchItemIndex jurisdictionTaxon = SearchItemIndex.builder()
+                .id("native-taxon")
+                .guid("urn:lsid:test:native")
+                .idxtype("TAXON")
+                .scientificName("Nativeus statusus")
+                .name("Nativeus statusus")
+                .modified(new Date())
+                .build();
+        SearchItemIndex griisTaxon = SearchItemIndex.builder()
+                .id("griis-taxon")
+                .guid("urn:lsid:test:griis")
+                .idxtype("TAXON")
+                .scientificName("Griisus invasivus")
+                .name("Griisus invasivus")
+                .modified(new Date())
+                .build();
+        elasticService.flushImmediately(new ArrayList<>(List.of(
+                elasticService.buildIndexQuery(jurisdictionTaxon),
+                elasticService.buildIndexQuery(griisTaxon))));
+        elasticsearchOperations.indexOps(SearchItemIndex.class).refresh();
+
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesList?isAuthoritative=eq:true&max=500&offset=0"))
+                .willReturn(okJson("{ \"lists\": [] }")));
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesList?isSDS=eq:true&max=500&offset=0"))
+                .willReturn(okJson("{ \"lists\": [] }")));
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr0000?includeKVP=true&max=500&offset=0"))
+                .willReturn(okJson("[]")));
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr23424?includeKVP=true&max=500&offset=0"))
+                .willReturn(okJson("""
+                        [
+                          {
+                            "lsid": "urn:lsid:test:native",
+                            "kvpValues": [
+                              { "key": "Queensland_Status", "value": "introduced" },
+                              { "key": "Queensland Status", "value": "introduced" }
+                            ]
+                          }
+                        ]
+                        """)));
+        wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9884?includeKVP=true&max=500&offset=0"))
+                .willReturn(okJson("""
+                        [
+                          {
+                            "lsid": "urn:lsid:test:griis",
+                            "kvpValues": [
+                              { "key": "identifier", "value": "123" },
+                              { "key": "rawKingdom", "value": "Animalia" },
+                              { "key": "rank", "value": "SPECIES" },
+                              { "key": "taxonomicStatus", "value": "ACCEPTED" }
+                            ]
+                          }
+                        ]
+                        """)));
+
+        Boolean result = listImportService.run().join();
+        assertThat(result).isTrue();
+        elasticsearchOperations.indexOps(SearchItemIndex.class).refresh();
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            Map<?, ?> jurisdictionDoc = elasticService.getDocumentMap("native-taxon");
+            assertThat(jurisdictionDoc).isNotNull();
+            assertThat(jurisdictionDoc.get("nativeIntroduced").toString())
+                    .contains("Queensland")
+                    .contains("introduced");
+
+            Map<?, ?> griisDoc = elasticService.getDocumentMap("griis-taxon");
+            assertThat(griisDoc).isNotNull();
+            assertThat(griisDoc.get("nativeIntroduced").toString())
+                    .contains("Australia")
+                    .contains("Introduced and invasive");
+        });
+
+        wireMockServer.verify(getRequestedFor(urlEqualTo("/ws/speciesListItems/dr23424?includeKVP=true&max=500&offset=0")));
+        wireMockServer.verify(getRequestedFor(urlEqualTo("/ws/speciesListItems/dr9884?includeKVP=true&max=500&offset=0")));
+    }
+
 }
