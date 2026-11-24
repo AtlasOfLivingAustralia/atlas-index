@@ -55,8 +55,9 @@ export function Examples({asText, tab, setQueryAndTab}: ExampleProps): React.Rea
             <React.Fragment key={i}>
                 {asText ? (
                     <>
+                        {/* phoenix pages theme --ala-color-text (light/dark); other pages fall back to the old charcoal. */}
                         <a onClick={() => setQueryAndTab(example.query, example.tab)}
-                           style={{textDecoration: 'underline', color: '#212121', cursor: 'pointer'}}>
+                           style={{textDecoration: 'underline', color: 'var(--ala-color-text, #212121)', cursor: 'pointer'}}>
                             {example.query}
                         </a>
                         {i < examples.length - 1 && <>,&nbsp;</>}
