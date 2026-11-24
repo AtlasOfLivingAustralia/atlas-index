@@ -455,7 +455,6 @@ Open:
 
 | Gate | Needed before | Question |
 |---|---|---|
-| DG-5 | backend (`TODO-DG5`) | Data plane for the `-cicd` search-service: Elasticsearch, Postgres+PostGIS, RabbitMQ, S3 file stores, the import data prefix and the IRSA role. These must be isolated from the legacy stack. |
 | DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment. |
 | DG-9 | staging/production | Add `[staging]`/`[production]` sections to each `cicd/frontend/<ui>/config.ini` (UI values from the production `.env.production` files; without them a UI falls back to `[DEFAULT]`, which holds test values), the production RabbitMQ (`TODO-DG9` in [backend/config.ini](backend/config.ini)), the prod OIDC/CAS settings, the decommission owners, and the static content migration. |
 
