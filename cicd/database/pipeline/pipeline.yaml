@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Code pipeline for the atlas-index search-service database (Aurora PostgreSQL)
+
+Parameters:
+  pAllowTeardown:
+    Description: enables or disables the teardown stage
+    Type: String
+    AllowedValues:
+      - true
+      - false
+  pAutoDeploy:
+    Type: String
+    Description: Sets the pipeline to autodeploy on repo changes
+  pBootstrapStackName:
+    Type: String
+    Description: The name of the bootstrap stack
+  pBucketsStackName:
+    Type: String
+    Description: The name of the bucket stack
+  pCleanBranch:
+    Type: String
+    Description: A cleaned version of the code branch name
+    Default: development
+  pEnvironment:
+    Type: String
+    Description: The AWS environment this belongs to
+  pGitHubRepositoryName:
+    Type: String
+    Description: GitHub repository name.
+  pGitHubOwner:
+    Type: String
+    Description: GitHub owner
+  pGitHubBranch:
+    Type: String
+    Description: GitHub branch we're deploying from
+  pPipelineFingerprint:
+    Type: String
+    Description: The fingerprint of the pipeline, used to determine if it's been modified
+  pProductComponent:
+    Type: String
+    Description: The name of the product component
+  pProductName:
+    Type: String
+    Description: The name of the product
+  pRestartExecutionOnUpdate:
+    Type: String
+    Description: Restart that pipeline if it's been updated
+    AllowedValues:
+      - true
+      - false
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+  AutoDeploy: !Equals
+    - !Ref pAutoDeploy
+    - true
+  AllowTeardown: !Equals
+    - !Ref pAllowTeardown
+    - true
+
+Resources:
+  ExportConfig:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-export-config-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: Load the environment and build the CloudFormation template config file
+      ServiceRole:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodeBuildServiceRoleArn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: cicd/database/pipeline/export_config_buildspec.yaml
+      TimeoutInMinutes: 10
+
+  Pipeline:
+    Type: "AWS::CodePipeline::Pipeline"
+    Properties:
+      Name: !Sub
+              - ${pProductName}-${pProductComponent}-${ResourceName}
+              - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      PipelineType: V2
+      RoleArn:
+        Fn::ImportValue:
+          Fn::Sub: ${pBootstrapStackName}-CodePipelineServiceRoleArn
+      ArtifactStore:
+        Type: S3
+        Location:
+          Fn::ImportValue:
+            Fn::Sub: ${pBucketsStackName}-${AWS::Region}-CodePipelineArtifactBucketName
+      DisableInboundStageTransitions: !If
+        - AllowTeardown
+        - - Reason: To prevent accidental teardown
+            StageName: Teardown
+        - !Ref AWS::NoValue
+      RestartExecutionOnUpdate: !Ref pRestartExecutionOnUpdate
+      Triggers:
+        - ProviderType: CodeStarSourceConnection
+          GitConfiguration:
+            Push:
+              - Branches:
+                  Includes:
+                    - !If [ AutoDeploy, !Ref pGitHubBranch, bogo-branch ]
+                FilePaths:
+                  Includes:
+                    - cicd/*
+                    - !Sub cicd/${pProductComponent}/**
+                  Excludes:
+                    - '**/*.md'
+            SourceActionName: CheckoutSrc
+      Variables:
+        - Name: PIPELINE_FINGERPRINT
+          DefaultValue: !Ref pPipelineFingerprint
+          Description: The fingerprint of the pipeline, used to determine if it's been modified
+      Stages:
+        - Name: Checkout_Source
+          Actions:
+            - Name: CheckoutSrc
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: 1
+              Configuration:
+                ConnectionArn:
+                  Fn::ImportValue:
+                    Fn::Sub: ${pBootstrapStackName}-CodestarConnectionArn
+                FullRepositoryId: !Sub ${pGitHubOwner}/${pGitHubRepositoryName}
+                BranchName: !Ref pGitHubBranch
+                OutputArtifactFormat: CODEBUILD_CLONE_REF
+                DetectChanges: !Ref pAutoDeploy
+              Namespace: CheckoutSrcNS
+              OutputArtifacts:
+                - Name: SourceArtifact
+        - Name: Deploy_Infrastructure
+          Actions:
+            - Name: ExportConfig
+              ActionTypeId:
+                Owner: AWS
+                Category: Build
+                Version: 1
+                Provider: CodeBuild
+              Configuration:
+                ProjectName: !Ref ExportConfig
+                EnvironmentVariables: !Sub |
+                  [
+                    { "name":"CLEAN_BRANCH", "value":"${pCleanBranch}" },
+                    { "name":"COMMIT_ID", "value":"#{CheckoutSrcNS.CommitId}" },
+                    { "name":"ENVIRONMENT", "value":"${pEnvironment}" },
+                    { "name":"PIPELINE_FINGERPRINT", "value":"#{variables.PIPELINE_FINGERPRINT}" },
+                    { "name":"PRODUCT_COMPONENT", "value":"${pProductComponent}" },
+                    { "name":"SRC_BRANCH", "value":"#{CheckoutSrcNS.BranchName}" }
+                  ]
+              Namespace: ExportConfigNS
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: ExportConfigArtifact
+              RunOrder: 1
+            - Name: DeployDatabaseCFStack
+              ActionTypeId:
+                Owner: AWS
+                Category: Deploy
+                Version: 1
+                Provider: CloudFormation
+              Configuration:
+                TemplatePath: 'ExportConfigArtifact::cicd/database/app/database.yaml'
+                TemplateConfiguration: 'ExportConfigArtifact::cicd/database/app/database_template_config.json'
+                ActionMode: CREATE_UPDATE
+                Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+                RoleArn:
+                  Fn::ImportValue:
+                    Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                StackName: '#{ExportConfigNS.DATABASE_STACK_NAME}'
+              InputArtifacts:
+                - Name: ExportConfigArtifact
+              RunOrder: 2
+        - !If
+          - AllowTeardown
+          - Name: Teardown
+            Actions:
+              - Name: Approval
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Approval
+                  Version: 1
+                  Provider: Manual
+                Configuration:
+                  CustomData: Approval required to delete the database (a final snapshot is kept). Tear down the backend pipeline first.
+                RunOrder: 1
+              - Name: TeardownDatabase
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: '#{ExportConfigNS.DATABASE_STACK_NAME}'
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 2
+              - Name: TeardownCodePipeline
+                ActionTypeId:
+                  Owner: AWS
+                  Category: Deploy
+                  Version: 1
+                  Provider: CloudFormation
+                Configuration:
+                  ActionMode: DELETE_ONLY
+                  StackName: !Ref AWS::StackName
+                  RoleArn:
+                    Fn::ImportValue:
+                      Fn::Sub: '${pBootstrapStackName}-CloudFormationServiceRoleArn'
+                RunOrder: 3
+          - !Ref AWS::NoValue
+
+  ExportConfigLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    Properties:
+      LogGroupName: !Sub /aws/codebuild/${ExportConfig}
+      RetentionInDays: 30
+
+Outputs:
+  PipelineName:
+    Value: !Ref Pipeline
+
+  PipelineUrl:
+    Value: !Sub https://console.aws.amazon.com/codepipeline/home?region=${AWS::Region}#/view/${Pipeline}

@@ -62,7 +62,7 @@ public abstract class AbstractIntegrationTestContainers {
                     .withCommand("postgres", "-c", "max_connections=300");
 
     public static final ElasticsearchContainer elasticsearchContainer =
-            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.13.0")
+            new ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.19.24")
                     .withEnv("xpack.security.enabled", "false");
 
     static {

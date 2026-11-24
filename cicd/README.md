@@ -4,6 +4,21 @@ AWS CodePipeline definitions for the `*-ui` apps and `search-service`, modelled 
 [species-lists/cicd](https://github.com/AtlasOfLivingAustralia/species-lists/tree/main/cicd). Everything a deploy
 needs lives in this folder; nothing is read from ansible-inventories, aws-inventories or ala-cli at deploy time.
 
+## TL;DR
+
+- **What:** one CodePipeline per app (8 UIs and search-service), plus `base` and `database` pipelines. A merge to
+  `develop` deploys only the apps it touches to **testing**, in the species-lists testing AWS account.
+- **Where:** temporary `*-cicd` hostnames (e.g. `bie-cicd.test.ala.org.au`, `service-cicd.test.ala.org.au`), side by
+  side with the legacy deployment until each app is cut over.
+- **UIs:** S3 + CloudFront per UI. Jest, then Playwright in chromium, firefox and webkit against mocked APIs, must
+  pass before anything is published.
+- **search-service:** tested, built into an image and deployed with Helm on the shared regolith EKS cluster. It uses
+  the shared regolith Elasticsearch (its own indexes) and RabbitMQ (its own virtual host), its own Aurora
+  PostgreSQL database, and Cognito clients created by the base stack.
+- **Status:** written and checked locally (lint, Helm render, Playwright gate against real suites); nothing is
+  deployed yet. Before the first deploy, work through [First-time setup](#first-time-setup). Still open:
+  [DG-6 and DG-9](#decision-gates).
+
 - [Overview](#overview)
 - [How it works](#how-it-works)
 - [The Playwright gate](#the-playwright-gate)
@@ -11,14 +26,15 @@ needs lives in this folder; nothing is read from ansible-inventories, aws-invent
 - [Day to day](#day-to-day)
 - [Hostnames and the legacy cutover](#hostnames-and-the-legacy-cutover)
 - [Architectural decisions](#architectural-decisions)
-- [Open decision gates](#open-decision-gates)
+- [Decision gates](#decision-gates)
 - [Verify on the first AWS run](#verify-on-the-first-aws-run)
 
 ## Overview
 
 | Pipeline (per environment) | Component | Deploys | Runs on pushes to |
 |---|---|---|---|
-| `atlas-index-base-<env>` | [base](base) | CloudFront WAF (us-east-1), Playwright reports bucket, Playwright build image | `cicd/base/**`, `cicd/*`, `yarn.lock`, `.nvmrc` |
+| `atlas-index-base-<env>` | [base](base) | CloudFront WAF (us-east-1), Playwright reports bucket, Playwright build image, Cognito clients | `cicd/base/**`, `cicd/*`, `yarn.lock`, `.nvmrc` |
+| `atlas-index-database-<env>` | [database](database) | Aurora PostgreSQL Serverless v2 for search-service, and its login secret | `cicd/database/**`, `cicd/*` |
 | `atlas-index-<ui>-<env>` (×8) | [frontend](frontend) | S3 + CloudFront + Route 53 per UI | `<ui>/**`, `common-ui/**`, `static-server/**`, root Yarn files, `cicd/frontend/**` (own UI only), `cicd/*` |
 | `atlas-index-search-service-<env>` | [backend](backend) | ECR image, regional WAF, Helm release on the regolith EKS cluster | `search-service/**`, `cicd/backend/**`, `cicd/*` |
 
@@ -31,7 +47,7 @@ Environments come from the branch ([branch_2_env.py](branch_2_env.py)):
 | anything else | development (per-branch stacks) | after you deploy its pipelines |
 
 Only testing is in scope for now. The root and backend configs have staging and production sections, but the UI
-configs don't yet, and those environments aren't enabled; see [DG-9](#open-decision-gates).
+configs don't yet, and those environments aren't enabled; see [DG-9](#decision-gates).
 
 ```
 cicd/
@@ -43,6 +59,7 @@ cicd/
   deploy_notification_buildspec.yaml empty_bucket_buildspec.yaml dd_notification.sh slack_notification.sh
   base/      config.ini  app/{base,waf}.yaml  playwright/{Dockerfile,build_image.sh}  pipeline/
   frontend/  config.ini  <ui>/config.ini  app/site.yaml  scripts/  pipeline/
+  database/  config.ini  app/database.yaml  pipeline/
   backend/   config.ini  app/{ecr,waf}.yaml  search-service-config.properties.j2  scripts/  pipeline/
 search-service/helm/          Helm chart used by the backend pipeline
 ```
@@ -55,7 +72,7 @@ use `${KEY}` interpolation. The output is shell-quoted (`--shell`) so values con
 sourced safely.
 
 **Decision gates.** A value containing `TODO-DG<n>` stops the ExportConfig action with a pointer to the gate, so a
-pipeline can't deploy half-configured. See [Open decision gates](#open-decision-gates).
+pipeline can't deploy half-configured. See [Open decision gates](#decision-gates).
 
 **Self-updating pipelines.** As in species-lists, each pipeline stack records a fingerprint: the md5 of its
 `pipeline.yaml`. If ExportConfig finds a different fingerprint in the commit being deployed, it redeploys the pipeline and stops. A normal deploy then
@@ -113,9 +130,13 @@ repository's immutable, scripts-off Yarn config. The Yarn cache is kept in S3.
    - A multi-arch image: Maven runs once on the build platform, and only the JRE layer is per-architecture.
      Tagged `<branch>-<build>` and `latest`.
 4. `Deploy` ([deploy_helm.sh](backend/scripts/deploy_helm.sh)):
-   - Renders [search-service-config.properties.j2](backend/search-service-config.properties.j2) and appends every
+   - Renders [search-service-config.properties.j2](backend/search-service-config.properties.j2), then appends the
+     credentials it looks up: the database login (database stack secret), the Cognito client IDs and the
+     machine-to-machine client secret (base stack), the shared Elasticsearch and RabbitMQ logins, and every
      key/value of the Secrets Manager secret `APP_SECRET_NAME`. This happens inside the deploy build, so
      credentials never reach a pipeline artifact.
+   - Reads the shared Elasticsearch's self-signed CA from Kubernetes, and the chart adds it to the pod's Java
+     truststore.
    - Runs `helm upgrade --install --wait` with [search-service/helm](../search-service/helm), then smoke-tests
      `https://<service host>/actuator/health`, then sends the deploy notification.
 5. `Teardown` (development only).
@@ -180,10 +201,15 @@ Nothing below is created by the pipelines. Work through it once per account and 
   - `ala-regolith-cluster-<env>`: `-ClusterName`.
 - [ ] The CodeStar/GitHub connection is authorised for `AtlasOfLivingAustralia/atlas-index`. The GitHub app
   installation must include this repository.
-- [ ] ACM certificates (DG-2): `CLOUDFRONT_CERTIFICATE` in **us-east-1** and `APP_CERTIFICATE` in ap-southeast-2
-  cover the `*-cicd` hostnames. A `*.test.ala.org.au` wildcard covers `bie-cicd.test.ala.org.au`.
-- [ ] The Route 53 hosted zone `HOSTED_ZONE` (e.g. `test.ala.org.au`) is in the account. CloudFormation adds the UI
-  records, and external-dns on the cluster adds `service-cicd`.
+- [ ] The species-lists testing certificates in [config.ini](config.ini) (`CLOUDFRONT_CERTIFICATE` in **us-east-1**,
+  `APP_CERTIFICATE` in ap-southeast-2) are `*.test.ala.org.au` wildcards, so they cover the `*-cicd` hostnames.
+  The `test.ala.org.au` zone is in this account: CloudFormation adds the UI records, and external-dns adds
+  `service-cicd`.
+- [ ] The testing Cognito pool (`ala-cognito-pool-testing`) exports `-UserPoolId`, and has the resource-server
+  scopes (`ala/*`, `users/read`) and identity providers (Facebook, Google, AAF, SignInWithApple) that species-lists'
+  clients use.
+- [ ] The `ala-bedrock-vpc-production` stack exports `-Vpc`, `-VpcCidr` and `-PriSubnets`, as species-lists'
+  database uses.
 - [ ] `ala-secrets-production` has `datadog-api-key` and `slack-oauth-token`, as used by species-lists, and the
   Slack channel in `SLACK_ALERT_CHANNEL` exists.
 
@@ -195,59 +221,61 @@ Species-lists already uses most of these. The CodeBuild role must allow:
 - [ ] S3 read/write on the reports bucket created by the base stack, and on the site buckets (`ala-atlas-index-*`).
 - [ ] `cloudfront:CreateInvalidation`.
 - [ ] ECR push to `atlas-index-playwright-*` and `atlas-index-search-service-*`, plus `ecr:GetAuthorizationToken`.
-- [ ] `secretsmanager:GetSecretValue` on `ala-atlas-index-search-service-*`.
+- [ ] `secretsmanager:GetSecretValue` on `ala-atlas-index-search-service-*`, `ala-atlas-index-database-*` and the
+  shared `ala-regolith-<env>-elasticsearch` and `ala-regolith-<env>-rabbitmq` secrets.
+- [ ] `cognito-idp:DescribeUserPoolClient` on the testing pool (to read the machine-to-machine client secret).
 - [ ] CodeBuild test reports (`codebuild:CreateReportGroup`, `CreateReport`, `UpdateReport`, `BatchPutTestCases`).
   Without these the JUnit tab stays empty, but the gate still works.
 - [ ] `eks:DescribeCluster`, and an EKS access entry (or `aws-auth` mapping) that lets the role manage the
-  `EKS_NAMESPACE` namespace (`testing`).
+  `EKS_NAMESPACE` namespace (`testing`) and **read** the secret `testing-cluster-es-http-certs-public` in the
+  `elasticsearch` namespace.
 
 The CloudFormation role must be able to create S3 buckets and policies, CloudFront distributions and OACs, Route 53
-records, WAFv2 web ACLs and logging, ECR repositories and log groups.
+records, WAFv2 web ACLs and logging, ECR repositories, log groups, Cognito user pool clients, Secrets Manager
+secrets, EC2 security groups, and RDS subnet groups, clusters and instances.
 
 ### 3. Cluster (regolith)
 
 - [ ] The AWS Load Balancer Controller and external-dns run and manage `HOSTED_ZONE`.
 - [ ] The `auto-ebs-sc` storage class exists, and the `testing` namespace exists.
+- [ ] Create the RabbitMQ virtual host on the shared broker. search-service's queue names are fixed, so a separate
+  virtual host is what keeps it from taking the legacy test service's tasks. Once per environment (and per
+  development branch, using `atlas-index-<branch>`):
 
-### 4. search-service data plane and auth (DG-4, DG-5)
-
-- [ ] Elasticsearch, Postgres with PostGIS (database plus the `atlas` user) and RabbitMQ for the `-cicd` service.
-  They must be separate from the legacy stack.
-- [ ] S3 buckets for the file stores, and an S3 prefix holding `import/` (the names DwCA) plus `lsid-left-right.csv`
-  and `lsid-vernacularName.csv` from names-extract.
-- [ ] An IAM role for the pod (IRSA) trusted for service account `search-service-<env>` in `EKS_NAMESPACE`, with
-  access to those buckets.
-- [ ] An OIDC client (Cognito for testing) with redirect `https://service-cicd.<zone>/…` and every `-cicd` UI as an
-  allowed logout URL.
-- [ ] Put the values in [backend/config.ini](backend/config.ini) in place of the `TODO-DG4`/`TODO-DG5` placeholders.
-  An empty value is allowed for `SERVICE_ROLE_ARN` and `DATA_S3_URI`.
-- [ ] Create the JSON secret `ala-atlas-index-search-service-<env>` (`APP_SECRET_NAME`). Its keys are
-  search-service property names, for example:
-
-  ```json
-  {
-    "spring.datasource.password": "…",
-    "rabbitmq.password": "…",
-    "security.oidc.secret": "…",
-    "webservice.client-id": "…",
-    "webservice.client-secret": "…"
-  }
+  ```shell
+  kubectl exec -n rabbitmq testing-server-0 -- rabbitmqctl add_vhost atlas-index-testing
+  kubectl exec -n rabbitmq testing-server-0 -- rabbitmqctl set_permissions -p atlas-index-testing \
+    <username from the ala-regolith-testing-rabbitmq secret> '.*' '.*' '.*'
   ```
+
+### 4. search-service secrets and data
+
+The pipelines create the database, its password and the Cognito clients, and the deploy looks up every credential
+it needs. Two things are left:
+
+- [ ] Create the JSON secret `ala-atlas-index-search-service-<env>` (`APP_SECRET_NAME`) for any further secret
+  search-service properties, e.g. `{"bhl.apikey": "…"}`. An empty `{}` is fine.
+- [ ] After the first backend deploy, put the import data on the data volume: `import/` (the names DwCA) plus
+  `lsid-left-right.csv` and `lsid-vernacularName.csv` from names-extract, under `/data/search-service/import-data/`.
+  To have the pod sync it from S3 instead, set `DATA_S3_URI` and `SERVICE_ROLE_ARN` (an IRSA role with read access)
+  in [backend/config.ini](backend/config.ini).
 
 ### 5. Repository decisions
 
-- [ ] DG-3: confirm the doi-ui, occurrence-ui and sds-ui hostnames in [config.ini](config.ini).
-- [ ] DG-6: check each `cicd/frontend/<ui>/config.ini` against the legacy deployment, and decide on the Google Maps
-  key.
+- [ ] DG-6: check each `cicd/frontend/<ui>/config.ini` against the legacy deployment.
+- [ ] Add the `*-cicd` UI hosts to the Google Maps key's HTTP referrer restrictions (the key is in
+  [frontend/config.ini](frontend/config.ini); it is a public browser key).
 - [ ] Merge `feature/cicd` into `develop`. The testing pipelines deploy from `develop`.
 
 ### 6. Deploy the pipelines
 
 With AWS credentials for the account, from a clean, pushed checkout of `develop`. Base goes first: it provides the
-WAF, the reports bucket and the build image that the others use.
+WAF, the reports bucket, the build image and the Cognito clients that the others use. The database must exist
+before the backend deploys.
 
 ```shell
 cicd/deploy_pipeline.sh -c base        # wait for its first run to finish (it builds the Playwright image)
+cicd/deploy_pipeline.sh -c database    # wait for its first run (the cluster takes ~10 minutes)
 cicd/deploy_pipeline.sh -c backend
 for ui in admin-ui dashboard-ui doi-ui occurrence-ui regions-ui sds-ui search-ui specimens-ui; do
   cicd/deploy_pipeline.sh -c frontend -u "$ui"
@@ -286,9 +314,9 @@ hostname carries `DOMAIN_SUFFIX = -cicd` ([config.ini](config.ini)):
 | admin-ui | admin.test.ala.org.au | admin-cicd.test.ala.org.au | admin-cicd.ala.org.au |
 | regions-ui | regions.test.ala.org.au | regions-cicd.test.ala.org.au | regions-cicd.ala.org.au |
 | specimens-ui | specimens.test.ala.org.au | specimens-cicd.test.ala.org.au | specimens-cicd.ala.org.au |
-| doi-ui | doi.test.ala.org.au | doi-cicd.test.ala.org.au (DG-3) | doi-cicd.ala.org.au |
-| occurrence-ui | (ala-hub) | biocache-cicd.test.ala.org.au (DG-3) | biocache-cicd.ala.org.au |
-| sds-ui | n/a | sds-cicd.test.ala.org.au (DG-3) | sds-cicd.ala.org.au |
+| doi-ui | doi.test.ala.org.au | doi-cicd.test.ala.org.au | doi-cicd.ala.org.au |
+| occurrence-ui | (ala-hub) | biocache-cicd.test.ala.org.au | biocache-cicd.ala.org.au |
+| sds-ui | n/a | sds-cicd.test.ala.org.au | sds-cicd.ala.org.au |
 | search-service | service.test.ala.org.au | service-cicd.test.ala.org.au | service-cicd.ala.org.au |
 
 The hostnames feed every place that needs them:
@@ -298,6 +326,7 @@ The hostnames feed every place that needs them:
 - Each UI's `VITE_APP_BASE_URL`, and `VITE_APP_API_URL` → `service-cicd`.
 - Links between atlas-index apps, which stay inside the same environment.
 - search-service `security.cors.origins`, `openapi.servers`, `sitemap.url` and `speciesUrlPrefix`.
+- The Cognito login client's callback URLs (`service-cicd`'s `/callback` and every UI) and logout URLs (every UI).
 
 Header, footer and other shared content keep coming from the existing ALA sites (`COMMON_UI_URL`, `STATIC_URL`).
 
@@ -351,6 +380,7 @@ the exit code is the gate.**
   extra containers bought no speed and added cost, a batch role dependency, and S3 blob/status plumbing.
 - One container keeps one install, one merged report, and a plain exit-code gate. The report still names the
   failing browser.
+- All three browsers run on every deploy (DG-8): the extra cost over a chromium-only gate was accepted.
 
 **AD-5 Browsers: a prebuilt ECR image pinned to the lockfile's Playwright version, built by the base pipeline.**
 - Rejected: `playwright install --with-deps` in every run. It adds minutes per run.
@@ -378,22 +408,56 @@ pruning, and CloudFront invalidation.**
 **AD-9 Cutover: a single `DOMAIN_SUFFIX` setting.**
 - The `-cicd` stack runs alongside the legacy one until each app is compared.
 - The alias moves with `associate-alias`, and the old name is kept for one release as a rollback path.
-- The `-cicd` service must use its own index, database and buckets, so the two stacks never write to the same stores
-  (DG-5).
+- The `-cicd` service never writes to the legacy service's stores: it has its own indexes, RabbitMQ virtual host and
+  database (AD-10).
 
-## Open decision gates
+**AD-10 search-service data: the shared regolith Elasticsearch and RabbitMQ, and its own Aurora PostgreSQL (DG-5).**
+- Elasticsearch: the regolith cluster's Elastic-operator cluster (`testing-cluster`, `main-cluster` for
+  staging/production), as species-lists uses. Login and TLS are on; the self-signed CA is copied from Kubernetes
+  into the pod's truststore at deploy time. The indexes are `atlas-index-<env>-search` and `-search-log`, so they
+  can't collide with the legacy test indexes in the same cluster.
+- RabbitMQ: the regolith testing broker. search-service hard-codes its queue names (`consumer`, `broadcast`,
+  leader), and the legacy test service uses the same broker, so this deployment gets its own virtual host. That
+  needed one new setting in search-service (`rabbitmq.virtualHost`, default `/`, so existing deployments are
+  unchanged).
+- PostgreSQL: a `database` component like species-lists' DocumentDB one, using Aurora PostgreSQL Serverless v2
+  (0.5–2 ACUs in testing). Serverless only, with capacity set per environment, avoids species-lists' second
+  provisioned-instance path. The password is generated in Secrets Manager and never written down. Deleting the
+  stack keeps a final snapshot. The migrations need `citext`, `pgcrypto` and `uuid-ossp`, which Aurora provides;
+  nothing uses PostGIS.
+- Rejected: reusing the legacy `atlas-index-testing-cluster` database. It would share data with the legacy service
+  and sit outside CI/CD.
+
+**AD-11 Auth: Cognito clients in the base stack, like species-lists (DG-4).**
+- A login client for search-service (authorization code with PKCE, no secret). Callbacks are
+  `https://service-cicd.<zone>/callback?client_name=OidcClient`, the service root and every UI; logout URLs are
+  every UI's base URL, which is what the UIs send on logout.
+- A machine-to-machine client (client credentials, with a secret) for search-service's calls to other ALA services
+  (`webservice.client-id`).
+- The deploy reads both IDs from the base stack, and the secret from Cognito, so nothing is copied by hand.
+
+## Decision gates
+
+Decided:
+
+| Gate | Decision |
+|---|---|
+| DG-1 | The species-lists testing AWS account. |
+| DG-2 | The `test.ala.org.au` zone is in that account; the species-lists testing certificates are used. |
+| DG-3 | Every app keeps its legacy name with `-cicd` appended (`doi-cicd`, `biocache-cicd`, `sds-cicd`, …). |
+| DG-4 | Cognito for testing, with clients like species-lists' in the base stack (AD-11). |
+| DG-5 | The shared regolith Elasticsearch and RabbitMQ, and a new `database` component with Aurora PostgreSQL (AD-10). |
+| DG-7 | The account's CodeBuild concurrency quota covers a `common-ui` change (up to 16 MEDIUM builds, then 8 LARGE). |
+| DG-8 | All three browsers on every run; the cost is accepted. |
+| Maps key | The Google Maps browser key is public by design and committed in `frontend/config.ini`; Google restricts it by referrer. |
+
+Open:
 
 | Gate | Needed before | Question |
 |---|---|---|
-| DG-1 | any deploy | Which AWS account hosts atlas-index testing? The config assumes the species-lists testing account, and the bootstrap stacks and CodeStar connection must exist there. |
-| DG-2 | any deploy | Do the testing ACM certificates (ap-southeast-2 for the ALB, us-east-1 for CloudFront) cover the `*-cicd` hosts? Is the `test.ala.org.au` zone in that account? |
-| DG-3 | frontend | Hostnames for doi-ui, occurrence-ui (`biocache-cicd`?) and sds-ui. |
-| DG-4 | backend (`TODO-DG4`) | Which OIDC client does search-service use? Who registers the `service-cicd` redirect and every UI's logout URL (Cognito for test, CAS for production)? |
 | DG-5 | backend (`TODO-DG5`) | Data plane for the `-cicd` search-service: Elasticsearch, Postgres+PostGIS, RabbitMQ, S3 file stores, the import data prefix and the IRSA role. These must be isolated from the legacy stack. |
-| DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment, and decide whether to enable the Google Maps key. |
-| DG-7 | frontend rollout | CodeBuild concurrent-build quotas. A `common-ui` change runs all 8 UI pipelines: up to 16 MEDIUM builds at once (release + Playwright bundle), then 8 LARGE (the gate). Builds over the quota queue rather than fail. |
-| DG-8 | after rollout | Is the cost of the all-browser gate acceptable? The fallback is a chromium gate plus a nightly full run. |
-| DG-9 | staging/production | Add `[staging]`/`[production]` sections to each `cicd/frontend/<ui>/config.ini` (UI values from the production `.env.production` files; without them a UI falls back to `[DEFAULT]`, which holds test values), fill the prod OIDC/CAS settings, name the decommission owners, and plan the static content migration. |
+| DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment. |
+| DG-9 | staging/production | Add `[staging]`/`[production]` sections to each `cicd/frontend/<ui>/config.ini` (UI values from the production `.env.production` files; without them a UI falls back to `[DEFAULT]`, which holds test values), the production RabbitMQ (`TODO-DG9` in [backend/config.ini](backend/config.ini)), the prod OIDC/CAS settings, the decommission owners, and the static content migration. |
 
 ## Verify on the first AWS run
 
@@ -403,3 +467,9 @@ run against real suites with S3 stubbed) but can't be proven without AWS:
 - Bootstrap role permissions (see [First-time setup](#first-time-setup)).
 - The ECR pull policy for CodeBuild (`ImagePullCredentialsType: CODEBUILD`).
 - Firefox inside the Playwright image. It can't launch from a non-interactive macOS shell, so it is untested locally.
+- The shared-service names taken from the legacy notes and species-lists: the RabbitMQ service `testing.rabbitmq.svc`
+  and pod `testing-server-0`, the `username`/`password` keys in `ala-regolith-testing-rabbitmq`, and the CA secret
+  `testing-cluster-es-http-certs-public`. The deploy fails with the missing name if any is wrong.
+- search-service connecting to the shared Elasticsearch over TLS with the imported CA. The truststore step itself
+  was checked in the runtime image.
+- The pods reaching Aurora on 5432 (its security group allows the VPC CIDR, as species-lists' database does).

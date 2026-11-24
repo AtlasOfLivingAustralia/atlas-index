@@ -39,6 +39,9 @@ javaOpts: "-XX:MaxRAMPercentage=75 -XX:+UseG1GC"
 # credentials. It overrides src/main/resources/application.properties.
 config: ""
 
+# optional PEM CA to trust in addition to Java's defaults (the shared Elasticsearch's self-signed CA)
+caCert: ""
+
 # /data/search-service: import data, file stores and logs
 data:
   storageClass: auto-ebs-sc

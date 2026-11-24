@@ -1,6 +1,6 @@
 # search-service-config.properties, rendered at deploy time by cicd/backend/scripts/deploy_helm.sh
 # from cicd/config.ini + cicd/backend/config.ini. Overrides src/main/resources/application.properties.
-# The properties in the Secrets Manager secret {{ app_secret_name }} are appended after this.
+# deploy_helm.sh appends the credentials (and the properties in {{ app_secret_name }}) after this.
 
 # health endpoints for the Kubernetes probes and the post-deploy smoke test
 management.endpoints.web.exposure.exclude=
@@ -9,10 +9,12 @@ management.endpoint.health.enabled=true
 management.endpoint.health.probes.enabled=true
 
 elastic.host={{ elastic_host }}
+elastic.username=elastic
+elastic.index={{ elastic_index }}
+elastic.adminIndex={{ elastic_admin_index }}
 spring.datasource.url={{ datasource_url }}
-spring.datasource.username={{ datasource_username }}
 rabbitmq.host={{ rabbitmq_host }}
-rabbitmq.username={{ rabbitmq_username }}
+rabbitmq.virtualHost={{ rabbitmq_vhost }}
 
 security.cookie.domain={{ hosted_zone }}
 security.cors.origins={{ cors_origins }}

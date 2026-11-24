@@ -27,8 +27,22 @@ spec:
       {{- end }}
       securityContext:
         fsGroup: 1000
-      {{- if .Values.data.s3Uri }}
+      {{- if or .Values.data.s3Uri .Values.caCert }}
       initContainers:
+      {{- end }}
+      {{- if .Values.caCert }}
+        # Java's trusted CAs plus caCert, in a writable copy the app is pointed at
+        - name: truststore
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["sh", "-c", "cp \"$JAVA_HOME/lib/security/cacerts\" /truststore/cacerts && keytool -importcert -noprompt -alias extra-ca -file /config/ca.crt -keystore /truststore/cacerts -storepass changeit"]
+          volumeMounts:
+            - name: truststore
+              mountPath: /truststore
+            - name: config
+              mountPath: /config
+              readOnly: true
+      {{- end }}
+      {{- if .Values.data.s3Uri }}
         - name: sync-import-data
           image: public.ecr.aws/aws-cli/aws-cli:latest
           args: ["s3", "sync", {{ .Values.data.s3Uri | quote }}, "/data/search-service/import-data", "--only-show-errors"]
@@ -50,7 +64,7 @@ spec:
               containerPort: {{ .Values.service.targetPort }}
           env:
             - name: JAVA_TOOL_OPTIONS
-              value: {{ .Values.javaOpts | quote }}
+              value: {{ printf "%s%s" .Values.javaOpts (ternary " -Djavax.net.ssl.trustStore=/truststore/cacerts -Djavax.net.ssl.trustStorePassword=changeit" "" (ne .Values.caCert "")) | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           # health endpoints are enabled by the rendered config (cicd/backend/search-service-config.properties.j2)
@@ -81,6 +95,10 @@ spec:
               mountPath: /data/search-service/config/search-service-config.properties
               subPath: search-service-config.properties
               readOnly: true
+            {{- if .Values.caCert }}
+            - name: truststore
+              mountPath: /truststore
+            {{- end }}
       volumes:
         - name: data
           persistentVolumeClaim:
@@ -88,3 +106,7 @@ spec:
         - name: config
           secret:
             secretName: {{ include "search-service.fullname" . }}-config
+        {{- if .Values.caCert }}
+        - name: truststore
+          emptyDir: {}
+        {{- end }}

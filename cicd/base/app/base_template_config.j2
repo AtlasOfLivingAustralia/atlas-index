@@ -1,7 +1,10 @@
 {
   "Parameters" : {
+    "pCallbackUrls"        : "{{ oidc_callback_urls }}",
     "pCleanBranch"         : "{{ clean_branch }}",
+    "pCognitoStackName"    : "{{ cognito_stack_name }}",
     "pEnvironment"         : "{{ environment }}",
+    "pLogoutUrls"          : "{{ ui_origins }}",
     "pReportRetentionDays" : "{{ playwright_report_retention_days }}"
   },
   "Tags" : {

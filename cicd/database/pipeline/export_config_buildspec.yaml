@@ -1,0 +1,24 @@
+version: 0.2
+###
+# Load the environment, keep the pipeline in sync with this revision and build the CloudFormation
+# template config for the database stack (see cicd/export_config.sh)
+
+env:
+  shell: bash
+  git-credential-helper: yes
+  exported-variables:
+    - DATABASE_STACK_NAME
+
+phases:
+  install:
+    commands:
+      - pip install --quiet jinja2
+  build:
+    commands:
+      - source cicd/export_config.sh
+      - cicd/render_template_configs.sh
+
+artifacts:
+  files:
+    - cicd/database/app/*
+  discard-paths: no

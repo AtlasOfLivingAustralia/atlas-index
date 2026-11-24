@@ -1,0 +1,31 @@
+{
+  "Parameters" : {
+    "pBackupRetentionDays" : "{{ backup_retention_days }}",
+    "pCleanBranch"         : "{{ clean_branch }}",
+    "pDbEngineVersion"     : "{{ db_engine_version }}",
+    "pDbMaxCapacity"       : "{{ db_max_capacity }}",
+    "pDbMinCapacity"       : "{{ db_min_capacity }}",
+    "pDbName"              : "{{ db_name }}",
+    "pDbUsername"          : "{{ db_username }}",
+    "pEnvironment"         : "{{ environment }}",
+    "pVpcStackName"        : "{{ vpc_stack_name }}"
+  },
+  "Tags" : {
+    "product"     : "{{ product_name }}",
+    "component"   : "{{ product_component }}",
+    "environment" : "{{ environment }}",
+    "branch"      : "{{ src_branch }}",
+    "version"     : "{{ commit_id }}",
+    "build"       : "{{ codebuild_build_number }}"
+  },
+  "StackPolicy" : {
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : "Update:*",
+        "Principal": "*",
+        "Resource" : "*"
+      }
+    ]
+  }
+}

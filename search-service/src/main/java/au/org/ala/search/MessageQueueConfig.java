@@ -41,6 +41,8 @@ public class MessageQueueConfig {
     private String username;
     @Value("${rabbitmq.password}")
     private String password;
+    @Value("${rabbitmq.virtualHost:/}")
+    private String virtualHost;
     @Value("${rabbitmq.task.concurrency:1}")
     private int concurrentUserTasks;
 
@@ -114,6 +116,7 @@ public class MessageQueueConfig {
         }
         factory.setUsername(username);
         factory.setPassword(password);
+        factory.setVirtualHost(virtualHost);
         factory.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
         return factory;
     }

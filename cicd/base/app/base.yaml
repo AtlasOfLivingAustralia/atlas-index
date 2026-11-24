@@ -1,16 +1,28 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: atlas-index shared CI/CD resources for one environment (Playwright reports bucket and build image repository)
+Description: atlas-index shared resources for one environment (Playwright reports bucket, build image repository, Cognito clients)
 
 Parameters:
+  pCallbackUrls:
+    Description: URLs Cognito may redirect to after login (search-service callback and every UI)
+    Type: CommaDelimitedList
+
   pCleanBranch:
     Description: A cleaned version of the code branch name
     Type: String
     Default: development
 
+  pCognitoStackName:
+    Description: The shared Cognito user pool stack
+    Type: String
+
   pEnvironment:
     Description: The AWS environment this belongs to
     Type: String
+
+  pLogoutUrls:
+    Description: URLs Cognito may redirect to after logout (every UI's base URL)
+    Type: CommaDelimitedList
 
   pReportRetentionDays:
     Description: Days to keep Playwright HTML reports
@@ -105,7 +117,79 @@ Resources:
               StringEquals:
                 aws:SourceAccount: !Ref AWS::AccountId
 
+  # Login client for search-service, which signs users in for every UI (authorization code + PKCE,
+  # so no secret). Modelled on the species-lists UI client.
+  AppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub
+        - atlas-index-${ResourceName}
+        - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      UserPoolId: !ImportValue
+        Fn::Sub: ${pCognitoStackName}-UserPoolId
+      GenerateSecret: false
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - ala/attrs
+        - ala/internal
+        - ala/roles
+        - email
+        - openid
+        - profile
+        - users/read
+      CallbackURLs: !Ref pCallbackUrls
+      LogoutURLs: !Ref pLogoutUrls
+      SupportedIdentityProviders:
+        - COGNITO
+        - Facebook
+        - Google
+        - AAF
+        - SignInWithApple
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      EnableTokenRevocation: true
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 8
+      IdTokenValidity: 8
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+
+  # Machine-to-machine client for search-service's calls to other ALA services (webservice.client-id).
+  ServiceClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub
+        - atlas-index-s2s-${ResourceName}
+        - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      UserPoolId: !ImportValue
+        Fn::Sub: ${pCognitoStackName}-UserPoolId
+      GenerateSecret: true
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - client_credentials
+      AllowedOAuthScopes:
+        - ala/attrs
+        - ala/internal
+        - ala/roles
+        - users/read
+      EnableTokenRevocation: true
+      AccessTokenValidity: 8
+      TokenValidityUnits:
+        AccessToken: hours
+
 Outputs:
+  AppClientId:
+    Value: !Ref AppClient
+
+  ServiceClientId:
+    Value: !Ref ServiceClient
+
   PlaywrightReportsBucketName:
     Value: !Ref PlaywrightReportsBucket
     Export:

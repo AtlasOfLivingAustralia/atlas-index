@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: atlas-index search-service database (Aurora PostgreSQL Serverless v2) for one environment
+
+Parameters:
+  pBackupRetentionDays:
+    Type: Number
+  pCleanBranch:
+    Type: String
+  pDbEngineVersion:
+    Type: String
+  pDbMaxCapacity:
+    Type: Number
+  pDbMinCapacity:
+    Type: Number
+  pDbName:
+    Type: String
+  pDbUsername:
+    Type: String
+  pEnvironment:
+    Type: String
+  pVpcStackName:
+    Description: The ala-bedrock VPC stack (private subnets and CIDR)
+    Type: String
+
+Conditions:
+  IsDev: !Equals
+    - !Ref pEnvironment
+    - development
+  IsProd: !Equals
+    - !Ref pEnvironment
+    - production
+
+Resources:
+  # Generated once and read by the backend deploy; the cluster takes its password from here
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub
+        - ala-atlas-index-database-${ResourceName}
+        - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Description: search-service database login
+      GenerateSecretString:
+        SecretStringTemplate: !Sub '{"username": "${pDbUsername}"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        # RDS rejects / @ " and space; a backslash would need escaping in the properties file
+        ExcludeCharacters: '/@" \'
+
+  DbSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: atlas-index search-service database
+      SubnetIds: !Split
+        - ','
+        - Fn::ImportValue:
+            Fn::Sub: ${pVpcStackName}-PriSubnets
+
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: PostgreSQL from inside the VPC (the regolith EKS cluster)
+      VpcId:
+        Fn::ImportValue:
+          Fn::Sub: ${pVpcStackName}-Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp:
+            Fn::ImportValue:
+              Fn::Sub: ${pVpcStackName}-VpcCidr
+
+  DbCluster:
+    Type: AWS::RDS::DBCluster
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      DBClusterIdentifier: !Sub
+        - atlas-index-${ResourceName}
+        - ResourceName: !If [ IsDev, !Ref pCleanBranch, !Ref pEnvironment ]
+      Engine: aurora-postgresql
+      EngineVersion: !Ref pDbEngineVersion
+      DatabaseName: !Ref pDbName
+      MasterUsername: !Ref pDbUsername
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${DbSecret}:SecretString:password}}'
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref pDbMinCapacity
+        MaxCapacity: !Ref pDbMaxCapacity
+      DBSubnetGroupName: !Ref DbSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DbSecurityGroup
+      StorageEncrypted: true
+      BackupRetentionPeriod: !Ref pBackupRetentionDays
+      PreferredBackupWindow: 16:00-17:00
+      PreferredMaintenanceWindow: tue:17:00-tue:19:00
+      CopyTagsToSnapshot: true
+      DeletionProtection: !If [ IsProd, true, false ]
+
+  DbInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref DbCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+
+Outputs:
+  ClusterEndpoint:
+    Value: !GetAtt DbCluster.Endpoint.Address
+
+  DatabaseName:
+    Value: !Ref pDbName
+
+  SecretArn:
+    Value: !Ref DbSecret
