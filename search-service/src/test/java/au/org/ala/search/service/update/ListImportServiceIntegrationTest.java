@@ -194,8 +194,8 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                           {
                             "lsid": "urn:lsid:test:native",
                             "kvpValues": [
-                              { "key": "Queensland_Status", "value": "introduced" },
-                              { "key": "Queensland Status", "value": "introduced" }
+                              { "key": "Queensland_Status", "value": "native, introduced" },
+                              { "key": "Queensland Status", "value": "native, introduced" }
                             ]
                           }
                         ]
@@ -223,8 +223,7 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
             Map<?, ?> jurisdictionDoc = elasticService.getDocumentMap("native-taxon");
             assertThat(jurisdictionDoc).isNotNull();
             assertThat(jurisdictionDoc.get("nativeIntroduced").toString())
-                    .contains("Queensland")
-                    .contains("introduced");
+                    .isEqualTo("{\"Queensland\":\"native, introduced\"}");
 
             Map<?, ?> griisDoc = elasticService.getDocumentMap("griis-taxon");
             assertThat(griisDoc).isNotNull();

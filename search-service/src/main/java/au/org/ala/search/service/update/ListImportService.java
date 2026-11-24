@@ -571,14 +571,16 @@ public class ListImportService {
             try {
                 items = listApiService.items(listId);
             } catch (Exception e) {
-                logService.log(taskType, "failed to fetch native/introduced list " + listId + ": " + e.getMessage());
+                String message = "failed to fetch native/introduced list " + listId + ": " + e.getMessage();
+                logService.log(taskType, message);
                 log.error("failed to fetch native/introduced list {}", listId, e);
-                return 0;
+                throw new IllegalStateException(message, e);
             }
 
             if (items == null || items.isEmpty()) {
-                logService.log(taskType, "failed to fetch native/introduced list " + listId + ": empty response");
-                return 0;
+                String message = "failed to fetch native/introduced list " + listId + ": empty response";
+                logService.log(taskType, message);
+                throw new IllegalStateException(message);
             }
 
             boolean jurisdictionList = hasJurisdictionStatusColumns(items);
@@ -667,22 +669,13 @@ public class ListImportService {
     }
 
     private void mergeStatus(Map<String, String> statusByPlace, String place, String status) {
-        String trimmedStatus = status == null ? null : status.trim();
-        if (StringUtils.isEmpty(trimmedStatus)) {
-            return;
-        }
-
-        String existing = statusByPlace.get(place);
-        if (StringUtils.isEmpty(existing)) {
-            statusByPlace.put(place, trimmedStatus);
-            return;
-        }
-
-        Set<String> statusTokens = Arrays.stream(existing.split(","))
+        Set<String> statusTokens = Arrays.stream(statusByPlace.getOrDefault(place, "").concat(
+                        status == null ? "" : "," + status).split(","))
                 .map(String::trim)
                 .filter(StringUtils::isNotEmpty)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
-        if (statusTokens.add(trimmedStatus)) {
+
+        if (!statusTokens.isEmpty()) {
             statusByPlace.put(place, String.join(", ", statusTokens));
         }
     }
