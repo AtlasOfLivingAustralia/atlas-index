@@ -763,6 +763,7 @@ public class ListImportService {
     private List<String> setNativeIntroducedValues(Map<String, String> taxonIdMap) {
         List<String> updatedIds = new ArrayList<>();
         List<UpdateQuery> buffer = new ArrayList<>();
+        Map<String, String> newEntries = new HashMap<>();
         String field = ListBackedFields.NATIVE_INTRODUCED.field;
 
         try {
@@ -785,10 +786,21 @@ public class ListImportService {
                     buffer.add(UpdateQuery.builder(stored[1]).withDocument(doc).build());
                     updatedIds.add(stored[1]);
                 } else if (stored == null) {
-                    String id = elasticService.queryTaxonId(guid);
+                    newEntries.put(guid, entry.getValue());
+                }
+            }
+
+            List<String> newGuids = new ArrayList<>(newEntries.keySet());
+            int batchSize = 1000;
+            for (int start = 0; start < newGuids.size(); start += batchSize) {
+                List<String> batch = newGuids.subList(start, Math.min(start + batchSize, newGuids.size()));
+                Map<String, String> documentIds = elasticService.queryTaxonIds(batch);
+
+                for (String guid : batch) {
+                    String id = documentIds.get(guid);
                     if (id != null) {
                         Document doc = Document.create();
-                        doc.put(field, entry.getValue());
+                        doc.put(field, newEntries.get(guid));
                         buffer.add(UpdateQuery.builder(id).withDocument(doc).build());
                         updatedIds.add(id);
                     } else {
