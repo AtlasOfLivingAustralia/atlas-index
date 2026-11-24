@@ -35,23 +35,27 @@ service_client_id=$(stack_output "$BASE_STACK_NAME" ServiceClientId)
 service_client_secret=$(aws cognito-idp describe-user-pool-client --user-pool-id "$user_pool_id" \
   --client-id "$service_client_id" --query UserPoolClient.ClientSecret --output text)
 database=$(secret "$(stack_output "$DATABASE_STACK_NAME" SecretArn)")
+elastic=$(secret "$ELASTIC_SECRET_NAME")
 rabbitmq=$(secret "$RABBITMQ_SECRET_NAME")
-db_username=$(jq -er .username <<< "$database")
-db_password=$(jq -er .password <<< "$database")
-elastic_password=$(secret "$ELASTIC_SECRET_NAME" | jq -er .password)
-rabbitmq_username=$(jq -er .username <<< "$rabbitmq")
-rabbitmq_password=$(jq -er .password <<< "$rabbitmq")
-extra=$(secret "$APP_SECRET_NAME" | jq -r 'to_entries[] | "\(.key)=\(.value)"')
-cat >> "$config" << EOF
-spring.datasource.username=$db_username
-spring.datasource.password=$db_password
-elastic.password=$elastic_password
-rabbitmq.username=$rabbitmq_username
-rabbitmq.password=$rabbitmq_password
-webservice.client-id=$service_client_id
-webservice.client-secret=$service_client_secret
-$extra
-EOF
+app_secret=$(secret "$APP_SECRET_NAME")
+# values are escaped for Java properties: a backslash, newline or leading space would otherwise change them
+jq -nr --argjson database "$database" --argjson elastic "$elastic" --argjson rabbitmq "$rabbitmq" \
+  --argjson app_secret "$app_secret" --arg client_id "$service_client_id" --arg client_secret "$service_client_secret" '
+  {
+    "spring.datasource.username": $database.username,
+    "spring.datasource.password": $database.password,
+    "elastic.password": $elastic.password,
+    "rabbitmq.username": $rabbitmq.username,
+    "rabbitmq.password": $rabbitmq.password,
+    "webservice.client-id": $client_id,
+    "webservice.client-secret": $client_secret
+  }
+  | (with_entries(select(.value == null)) | keys) as $missing
+  | if $missing != [] then error("missing from the secrets: \($missing | join(", "))") else . end
+  | . + $app_secret
+  | to_entries[]
+  | "\(.key)=\(.value | tostring | gsub("\\\\"; "\\\\") | gsub("\n"; "\\n") | gsub("\r"; "\\r")
+                | gsub("\t"; "\\t") | sub("^ "; "\\ "))"' >> "$config"
 
 aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME"
 

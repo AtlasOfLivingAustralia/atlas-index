@@ -44,7 +44,7 @@ Environments come from the branch ([branch_2_env.py](branch_2_env.py)):
 |---|---|---|
 | `develop` | testing | automatically on push |
 | `main`/`master` | staging, or production with `-e prod` | staging automatically; production manual (`AUTO_DEPLOY = false`) |
-| anything else | development (per-branch stacks) | after you deploy its pipelines. Branch names that clean to `testing`, `staging` or `production` are rejected, because they'd reuse that environment's resources. |
+| anything else | development (per-branch stacks) | after you deploy its pipelines. Resource names use the branch name cut to 26 characters (Helm's 53-character release limit). Branch names that clean to `testing`, `staging` or `production` are rejected, because they'd reuse that environment's resources. |
 
 Only testing is in scope for now. The root and backend configs have staging and production sections, but the UI
 configs don't yet. A `TODO-DG9` in the `[staging]` and `[production]` sections of [config.ini](config.ini) blocks

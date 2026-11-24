@@ -33,5 +33,7 @@ fi
 # also moves :latest back when an older version is redeployed (rollback)
 MANIFEST=$(aws ecr batch-get-image --repository-name "$REPO_NAME" --image-ids imageTag="$TAG" \
              --query 'images[0].imageManifest' --output text)
-aws ecr put-image --repository-name "$REPO_NAME" --image-tag latest --image-manifest "$MANIFEST" > /dev/null 2>&1 \
-  || echo "latest already points at $TAG"
+if ! out=$(aws ecr put-image --repository-name "$REPO_NAME" --image-tag latest --image-manifest "$MANIFEST" 2>&1); then
+  grep -q ImageAlreadyExistsException <<< "$out" || { echo "$out" >&2; exit 1; }
+  echo "latest already points at $TAG"
+fi

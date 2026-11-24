@@ -7,7 +7,9 @@
 
 SRC_BRANCH=$1
 
-clean=$(echo -n "$SRC_BRANCH" | sed 's/^feature\///' | sed 's/[/_]/-/g' | sed 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]' | cut -c 1-30 | sed -E 's/[^a-z0-9]+$//')
+# at most 26 characters: the longest name built from it, the backend Helm release
+# (atlas-index-search-service-<branch>), must fit Helm's 53
+clean=$(echo -n "$SRC_BRANCH" | sed 's/^feature\///' | sed 's/[/_]/-/g' | sed 's/[^a-zA-Z0-9-]//g' | tr '[:upper:]' '[:lower:]' | cut -c 1-26 | sed -E 's/[^a-z0-9]+$//')
 
 # development resources are named after the clean branch, shared environments after the environment
 case $clean in

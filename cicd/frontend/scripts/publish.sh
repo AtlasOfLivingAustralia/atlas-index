@@ -34,7 +34,7 @@ releases=$(aws s3api list-objects-v2 --bucket "$SOURCE_BUCKET" --prefix _release
 # releases older than the cutoff, except the newest of them: it was live until after the cutoff
 expired=$(awk -v c="_releases/$cutoff" '$0 < c' <<< "$releases" | sed '$d')
 keep=$(comm -23 <(echo "$releases") <(echo "$expired") \
-  | while read -r release; do aws s3 cp "$BUCKET/$release" - --only-show-errors; done | sort -u)
+  | while read -r release; do aws s3 cp "$BUCKET/$release" - --only-show-errors || exit 1; done | sort -u)
 aws s3api list-objects-v2 --bucket "$SOURCE_BUCKET" --prefix assets/ --output json \
   | jq -r '.Contents[]?.Key' \
   | sort \
