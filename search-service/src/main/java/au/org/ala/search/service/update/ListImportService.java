@@ -568,6 +568,7 @@ public class ListImportService {
         }
 
         Map<String, Map<String, String>> mergedByGuid = new HashMap<>();
+        Map<String, Set<String>> griisTaxaByRank = new HashMap<>();
 
         for (String listId : listIds) {
             List<Map<String, Object>> items;
@@ -580,13 +581,45 @@ public class ListImportService {
                 throw new IllegalStateException(message, e);
             }
 
-            if (items == null || items.isEmpty()) {
-                String message = "failed to fetch native/introduced list " + listId + ": empty response";
+            if (items == null) {
+                String message = "failed to fetch native/introduced list " + listId + ": null response";
                 logService.log(taskType, message);
                 throw new IllegalStateException(message);
             }
 
             boolean jurisdictionList = hasJurisdictionStatusColumns(items);
+
+            if (!jurisdictionList) {
+                List<Map<String, Object>> v2Items;
+                try {
+                    v2Items = listApiService.itemsV2(listId);
+                } catch (Exception e) {
+                    String message = "failed to fetch native/introduced v2 list " + listId + ": " + e.getMessage();
+                    logService.log(taskType, message);
+                    log.error("failed to fetch native/introduced v2 list {}", listId, e);
+                    throw new IllegalStateException(message, e);
+                }
+
+                for (Map<String, Object> item : v2Items) {
+                    if (item == null) {
+                        continue;
+                    }
+                    Map<String, Object> classification = (Map<String, Object>) item.get("classification");
+                    if (classification == null || !isEligibleChecklistMatch(classification)) {
+                        continue;
+                    }
+
+                    String guid = (String) classification.get("taxonConceptID");
+                    String rank = (String) classification.get("rank");
+                    if (StringUtils.isEmpty(guid) || StringUtils.isEmpty(rank)) {
+                        continue;
+                    }
+                    griisTaxaByRank.computeIfAbsent(rank, ignored -> new HashSet<>()).add(guid);
+                    Map<String, String> statusByPlace = mergedByGuid.computeIfAbsent(guid, ignored -> new TreeMap<>());
+                    mergeStatus(statusByPlace, nativeIntroducedDefaultPlace, nativeIntroducedDefaultStatus);
+                }
+                continue;
+            }
 
             for (Map<String, Object> item : items) {
                 if (item == null) {
@@ -616,14 +649,18 @@ public class ListImportService {
                             }
                         }
                     }
-                } else {
-                    mergeStatus(statusByPlace, nativeIntroducedDefaultPlace, nativeIntroducedDefaultStatus);
                 }
 
                 if (statusByPlace.isEmpty()) {
                     mergedByGuid.remove(guid);
                 }
             }
+        }
+
+        Set<String> griisDescendants = elasticService.queryAcceptedTaxonGuidsForAncestors(griisTaxaByRank);
+        for (String guid : griisDescendants) {
+            Map<String, String> statusByPlace = mergedByGuid.computeIfAbsent(guid, ignored -> new TreeMap<>());
+            mergeStatus(statusByPlace, nativeIntroducedDefaultPlace, nativeIntroducedDefaultStatus);
         }
 
         Map<String, String> converted = new HashMap<>();
@@ -642,7 +679,28 @@ public class ListImportService {
         return updatedIds.size();
     }
 
+    private boolean isEligibleChecklistMatch(Map<String, Object> classification) {
+        Object rankIdValue = classification.get("rankID");
+        Object matchTypeValue = classification.get("matchType");
+        if (!(rankIdValue instanceof Number rankId) || !(matchTypeValue instanceof String matchType)) {
+            return false;
+        }
+
+        int rank = rankId.intValue();
+        if (rank != 6000 && rank < 7000) {
+            return false;
+        }
+
+        return switch (matchType) {
+            case "exactMatch", "canonicalMatch" -> true;
+            default -> false;
+        };
+    }
+
     private String statusPlace(String key) {
+        if (key == null) {
+            return null;
+        }
         String trimmed = key.trim();
         if (trimmed.endsWith("_Status")) {
             return trimmed.substring(0, trimmed.length() - "_Status".length()).replace('_', ' ').trim();

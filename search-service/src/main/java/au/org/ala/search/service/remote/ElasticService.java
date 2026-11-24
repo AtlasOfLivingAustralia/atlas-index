@@ -300,6 +300,53 @@ public class ElasticService {
         return guidToId;
     }
 
+    /**
+     * Find accepted taxa whose denormalized classification includes the supplied ancestor GUIDs.
+     * Keys are normalized taxon ranks (for example "genus" or "subspecies").
+     */
+    public Set<String> queryAcceptedTaxonGuidsForAncestors(Map<String, Set<String>> ancestorsByRank) {
+        Set<String> guids = new HashSet<>();
+        int termsBatchSize = 1000;
+        int pageSize = MAX_RESULTS;
+
+        for (Map.Entry<String, Set<String>> entry : ancestorsByRank.entrySet()) {
+            String rankField = "rkid_" + entry.getKey().toLowerCase().replaceAll("[^a-z]", "_");
+            List<String> ancestors = new ArrayList<>(entry.getValue());
+
+            for (int start = 0; start < ancestors.size(); start += termsBatchSize) {
+                List<String> batch = ancestors.subList(start, Math.min(start + termsBatchSize, ancestors.size()));
+                int page = 0;
+                while (true) {
+                    Query query = NativeQuery.builder()
+                            .withQuery(wq -> wq.bool(bq -> {
+                                bq.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                                bq.filter(f -> f.terms(t -> t.field(rankField).terms(ts -> ts.value(
+                                        batch.stream().map(FieldValue::of).toList()))));
+                                bq.filter(f -> f.bool(b -> b.mustNot(q -> q.exists(eq -> eq.field("acceptedConceptID")))));
+                                return bq;
+                            }))
+                            .withSourceFilter(new FetchSourceFilter(new String[]{"guid"}, null))
+                            .withPageable(PageRequest.of(page, pageSize))
+                            .build();
+
+                    SearchHits<SearchItemIndex> results = elasticsearchOperations.search(query, SearchItemIndex.class);
+                    List<SearchHit<SearchItemIndex>> hits = results.getSearchHits();
+                    for (SearchHit<SearchItemIndex> hit : hits) {
+                        if (StringUtils.isNotEmpty(hit.getContent().getGuid())) {
+                            guids.add(hit.getContent().getGuid());
+                        }
+                    }
+                    if (hits.size() < pageSize) {
+                        break;
+                    }
+                    page++;
+                }
+            }
+        }
+
+        return guids;
+    }
+
     // This retrieves the document id for the guid. It will be idxtype TAXON and not have an acceptedConceptID.
     public String queryTaxonId(String guid) {
         Query query = NativeQuery.builder()

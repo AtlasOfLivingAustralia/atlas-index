@@ -14,7 +14,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
@@ -70,6 +72,7 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
     @DynamicPropertySource
     static void wireMockProperties(DynamicPropertyRegistry registry) {
         registry.add("lists.url", () -> "http://localhost:" + wireMockServer.port());
+        registry.add("lists.v2.url", () -> "http://localhost:" + wireMockServer.port());
         registry.add("lists.favourite.config", () -> "dr0000,interest");
         registry.add("lists.native-introduced", () -> "dr23424,dr9884");
     }
@@ -127,6 +130,8 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                 .willReturn(okJson("[{\"lsid\":\"urn:lsid:test:native\",\"kvpValues\":[{\"key\":\"Queensland Status\",\"value\":\"introduced\"}]}]")));
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9884?includeKVP=true&max=500&offset=0"))
                 .willReturn(okJson("[{\"lsid\":\"urn:lsid:test:griis\",\"kvpValues\":[{\"key\":\"rank\",\"value\":\"SPECIES\"}]}]")));
+        wireMockServer.stubFor(get(urlEqualTo("/v2/speciesListItems/dr9884?page=1&pageSize=500"))
+                .willReturn(okJson("[]")));
 
         // authoritative list's items — used for the final "speciesList" field aggregation
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9999?includeKVP=true&max=500&offset=0"))
@@ -177,9 +182,57 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                 .name("Griisus invasivus")
                 .modified(new Date())
                 .build();
+        SearchItemIndex griisChild = SearchItemIndex.builder()
+                .id("griis-child")
+                .guid("urn:lsid:test:griis-child")
+                .idxtype("TAXON")
+                .scientificName("Griisus invasivus subspecies")
+                .name("Griisus invasivus subspecies")
+                .rank("subspecies")
+                .rankID(8000)
+                .modified(new Date())
+                .build();
+        SearchItemIndex genusTaxon = SearchItemIndex.builder()
+                .id("griis-genus")
+                .guid("urn:lsid:test:griis-genus")
+                .idxtype("TAXON")
+                .scientificName("Griisgenus")
+                .name("Griisgenus")
+                .rank("genus")
+                .rankID(6000)
+                .modified(new Date())
+                .build();
+        SearchItemIndex genusChild = SearchItemIndex.builder()
+                .id("griis-genus-child")
+                .guid("urn:lsid:test:griis-genus-child")
+                .idxtype("TAXON")
+                .scientificName("Griisgenus example")
+                .name("Griisgenus example")
+                .rank("species")
+                .rankID(7000)
+                .modified(new Date())
+                .build();
+        SearchItemIndex excludedHigherMatchChild = SearchItemIndex.builder()
+                .id("excluded-higher-match-child")
+                .guid("urn:lsid:test:excluded-higher-match-child")
+                .idxtype("TAXON")
+                .scientificName("Excludedus childus")
+                .name("Excludedus childus")
+                .rank("species")
+                .rankID(7000)
+                .modified(new Date())
+                .build();
         elasticService.flushImmediately(new ArrayList<>(List.of(
                 elasticService.buildIndexQuery(jurisdictionTaxon),
-                elasticService.buildIndexQuery(griisTaxon))));
+                elasticService.buildIndexQuery(griisTaxon),
+                elasticService.buildIndexQuery(griisChild),
+                elasticService.buildIndexQuery(genusTaxon),
+                elasticService.buildIndexQuery(genusChild),
+                elasticService.buildIndexQuery(excludedHigherMatchChild))));
+        elasticService.updateImmediately(List.of(
+                UpdateQuery.builder("griis-child").withDocument(Document.create().append("rkid_species", "urn:lsid:test:griis")).build(),
+                UpdateQuery.builder("griis-genus-child").withDocument(Document.create().append("rkid_genus", "urn:lsid:test:griis-genus")).build(),
+                UpdateQuery.builder("excluded-higher-match-child").withDocument(Document.create().append("rkid_genus", "urn:lsid:test:excluded-higher-genus")).build()));
         elasticsearchOperations.indexOps(SearchItemIndex.class).refresh();
 
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesList?isAuthoritative=eq:true&max=500&offset=0"))
@@ -214,6 +267,59 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                           }
                         ]
                         """)));
+        wireMockServer.stubFor(get(urlEqualTo("/v2/speciesListItems/dr9884?page=1&pageSize=500"))
+                .willReturn(okJson("""
+                        [
+                          {
+                            "classification": {
+                              "taxonConceptID": "urn:lsid:test:griis",
+                              "rank": "species",
+                              "rankID": 7000,
+                              "matchType": "exactMatch"
+                            }
+                          },
+                          {
+                            "classification": {
+                              "taxonConceptID": "urn:lsid:test:griis",
+                              "rank": "species",
+                              "rankID": 7000,
+                              "matchType": "canonicalMatch"
+                            }
+                          },
+                          {
+                            "classification": {
+                              "taxonConceptID": "urn:lsid:test:griis-genus",
+                              "rank": "genus",
+                              "rankID": 6000,
+                              "matchType": "exactMatch"
+                            }
+                          },
+                          {
+                            "classification": {
+                              "taxonConceptID": "urn:lsid:test:excluded-higher-genus",
+                              "rank": "genus",
+                              "rankID": 6000,
+                              "matchType": "higherMatch"
+                            }
+                          },
+                          {
+                            "classification": {
+                              "taxonConceptID": "urn:lsid:test:excluded-species",
+                              "rank": "species",
+                              "rankID": 7000,
+                              "matchType": "higherMatch"
+                            }
+                          },
+                          {
+                            "classification": {
+                              "taxonConceptID": "urn:lsid:test:excluded-order",
+                              "rank": "order",
+                              "rankID": 4000,
+                              "matchType": "higherMatch"
+                            }
+                          }
+                        ]
+                        """)));
 
         Boolean result = listImportService.run().join();
         assertThat(result).isTrue();
@@ -230,10 +336,33 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
             assertThat(griisDoc.get("nativeIntroduced").toString())
                     .contains("Australia")
                     .contains("Introduced and invasive");
+
+            Map<?, ?> childDoc = elasticService.getDocumentMap("griis-child");
+            assertThat(childDoc).isNotNull();
+            assertThat(childDoc.get("nativeIntroduced").toString())
+                    .contains("Australia")
+                    .contains("Introduced and invasive");
+
+            Map<?, ?> genusDoc = elasticService.getDocumentMap("griis-genus");
+            assertThat(genusDoc).isNotNull();
+            assertThat(genusDoc.get("nativeIntroduced").toString())
+                    .contains("Australia")
+                    .contains("Introduced and invasive");
+
+            Map<?, ?> genusChildDoc = elasticService.getDocumentMap("griis-genus-child");
+            assertThat(genusChildDoc).isNotNull();
+            assertThat(genusChildDoc.get("nativeIntroduced").toString())
+                    .contains("Australia")
+                    .contains("Introduced and invasive");
+
+            Map<?, ?> excludedChildDoc = elasticService.getDocumentMap("excluded-higher-match-child");
+            assertThat(excludedChildDoc).isNotNull();
+            assertThat(excludedChildDoc.containsKey("nativeIntroduced")).isFalse();
         });
 
         wireMockServer.verify(getRequestedFor(urlEqualTo("/ws/speciesListItems/dr23424?includeKVP=true&max=500&offset=0")));
         wireMockServer.verify(getRequestedFor(urlEqualTo("/ws/speciesListItems/dr9884?includeKVP=true&max=500&offset=0")));
+        wireMockServer.verify(getRequestedFor(urlEqualTo("/v2/speciesListItems/dr9884?page=1&pageSize=500")));
     }
 
 }

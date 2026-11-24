@@ -27,6 +27,9 @@ public class ListApiService {
     @Value("${lists.url}")
     private String listsUrl;
 
+    @Value("${lists.v2.url:https://lists-ws.ala.org.au}")
+    private String listsV2Url;
+
     @Value("${lists.search.max}")
     private Integer listsSearchMax;
 
@@ -100,6 +103,37 @@ public class ListApiService {
                 break;
             }
             offset += pageSize;
+        }
+
+        return found;
+    }
+
+    public List<Map<String, Object>> itemsV2(String listId) {
+        int pageSize = listsSearchMax;
+        int page = 1;
+
+        List<Map<String, Object>> found = new ArrayList<>();
+        while (true) {
+            ResponseEntity<List> response = restTemplate.exchange(
+                    listsV2Url + "/v2/speciesListItems/" + listId + "?page=" + page + "&pageSize=" + pageSize,
+                    HttpMethod.GET,
+                    null,
+                    List.class);
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new IllegalStateException("failed to get v2 list items: " + listId + " (HTTP " + response.getStatusCode().value() + ")");
+            }
+
+            List<Map<String, Object>> currentPage = (List<Map<String, Object>>) response.getBody();
+            if (currentPage == null) {
+                throw new IllegalStateException("failed to get v2 list items: " + listId + " (null response)");
+            }
+
+            found.addAll(currentPage);
+            if (currentPage.isEmpty() || currentPage.size() < pageSize) {
+                break;
+            }
+            page++;
         }
 
         return found;
