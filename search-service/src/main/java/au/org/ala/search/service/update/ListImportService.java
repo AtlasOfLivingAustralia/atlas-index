@@ -551,8 +551,11 @@ public class ListImportService {
         return updatedIds;
     }
 
-
-
+    /**
+     * Imports native/introduced status from configured lists.
+     *
+     * @return the number of records updated
+     */
     private int importNativeIntroduced() {
         List<String> listIds = Arrays.stream(nativeIntroduced.split(","))
                 .map(String::trim)
@@ -650,6 +653,12 @@ public class ListImportService {
         return null;
     }
 
+    /**
+     * Determines the place associated with a status key.
+     *
+     * @param key the status key
+     * @return the place, or null if the key does not correspond to a place
+     */
     private boolean hasJurisdictionStatusColumns(List<Map<String, Object>> items) {
         for (Map<String, Object> item : items) {
             if (item == null) {
@@ -668,6 +677,13 @@ public class ListImportService {
         return false;
     }
 
+    /**
+     * Merges the given status into the existing status for the specified place.
+     * 
+     * @param statusByPlace the map of status by place
+     * @param place the place for which the status is being merged
+     * @param status the status to merge
+     */
     private void mergeStatus(Map<String, String> statusByPlace, String place, String status) {
         Set<String> statusTokens = Arrays.stream(statusByPlace.getOrDefault(place, "").concat(
                         status == null ? "" : "," + status).split(","))
@@ -680,6 +696,12 @@ public class ListImportService {
         }
     }
 
+    /**
+     * Sets the native/introduced status for the given taxon IDs.
+     * 
+     * @param taxonIdMap a map of taxon GUIDs to their native/introduced status
+     * @return a list of IDs that were updated
+     */
     private List<String> setNativeIntroducedValues(Map<String, String> taxonIdMap) {
         List<String> updatedIds = new ArrayList<>();
         List<UpdateQuery> buffer = new ArrayList<>();
@@ -734,6 +756,11 @@ public class ListImportService {
         return updatedIds;
     }
 
+    /**
+     * Updates the search and suggest weights for the given list of IDs.
+     * 
+     * @param ids the list of IDs for which to update the weights
+     */
     void updateWeights(List<String> ids) {
         List<UpdateQuery> buffer = new ArrayList<>();
         for (String id : ids) {
