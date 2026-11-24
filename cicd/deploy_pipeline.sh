@@ -72,7 +72,8 @@ COMMIT_ID=$(git rev-parse HEAD)
 echo commit id: "$COMMIT_ID"
 LATEST_COMMIT_ID=$(git log -n 1 --pretty=format:"%H" "$branch")
 
-# when releasing an older commit (rollback) the pipeline must not restart itself on the latest commit
+# when releasing an older commit (rollback) the pipeline must not restart itself on the latest commit;
+# it is started on COMMIT_ID at the end instead
 if [[ "$COMMIT_ID" != "$LATEST_COMMIT_ID" ]]; then
   echo "latest commit is $LATEST_COMMIT_ID but we are releasing $COMMIT_ID, this is a rollback"
   RESTART_PIPELINE_ON_UPDATE=false
@@ -142,3 +143,12 @@ aws cloudformation deploy \
     --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
     --no-fail-on-empty-changeset \
     --parameter-overrides "${PARAMS[@]}"
+
+# a manual "Release change" would fetch the branch's latest commit, so pin the rollback run to COMMIT_ID
+if [[ $RESTART_PIPELINE_ON_UPDATE == false ]]; then
+  pipeline=$(aws cloudformation describe-stacks --stack-name "$PIPELINE_STACK_NAME" --region "$REGION" \
+    --query "Stacks[0].Outputs[?OutputKey=='PipelineName'].OutputValue" --output text)
+  echo "Starting $pipeline on $COMMIT_ID"
+  aws codepipeline start-pipeline-execution --name "$pipeline" --region "$REGION" \
+    --source-revisions actionName=CheckoutSrc,revisionType=COMMIT_ID,revisionValue="$COMMIT_ID"
+fi

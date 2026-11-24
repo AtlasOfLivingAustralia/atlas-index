@@ -12,7 +12,7 @@
 #    and writes it to env.sh (shell-quoted) for later actions
 # 2. refuses to continue while any loaded value still marks an open decision gate (TODO-DG)
 # 3. redeploys the pipeline when its definition changed, then stops this execution: a normal deploy
-#    restarts itself on update, a rollback must be started manually (see deploy_pipeline.sh)
+#    restarts itself on update, a rollback is started on its commit by deploy_pipeline.sh
 #
 # Template configs are rendered afterwards by cicd/render_template_configs.sh.
 

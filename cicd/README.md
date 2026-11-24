@@ -47,7 +47,8 @@ Environments come from the branch ([branch_2_env.py](branch_2_env.py)):
 | anything else | development (per-branch stacks) | after you deploy its pipelines |
 
 Only testing is in scope for now. The root and backend configs have staging and production sections, but the UI
-configs don't yet, and those environments aren't enabled; see [DG-9](#decision-gates).
+configs don't yet. A `TODO-DG9` in the `[staging]` and `[production]` sections of [config.ini](config.ini) blocks
+every pipeline there until [DG-9](#decision-gates) is resolved.
 
 ```
 cicd/
@@ -76,7 +77,7 @@ pipeline can't deploy half-configured. See [Open decision gates](#decision-gates
 
 **Self-updating pipelines.** As in species-lists, each pipeline stack records a fingerprint: the md5 of its
 `pipeline.yaml`. If ExportConfig finds a different fingerprint in the commit being deployed, it redeploys the pipeline and stops. A normal deploy then
-restarts itself; a rollback has to be started manually.
+restarts itself; for a rollback, `deploy_pipeline.sh` starts it on the old commit.
 
 **Selective deploys and tests.** Each app has its own pipeline whose CodePipeline V2 trigger lists the paths it
 depends on, and a UI pipeline only ever runs that UI's tests:
@@ -87,7 +88,7 @@ depends on, and a UI pipeline only ever runs that UI's tests:
 | `cicd/frontend/search-ui/**` | search-ui | search-ui |
 | `common-ui/**`, `yarn.lock`, `package.json`, `.yarnrc.yml`, `.yarn/**`, `.nvmrc` | all 8 UIs | all 8, each in its own pipeline |
 | `static-server/**` | all 8 UIs | all 8 (the specs read its header, footer and CSS from disk) |
-| shared CI/CD files (`cicd/*`, `cicd/frontend/{app,pipeline,scripts}/**`) | all 8 UIs (plus base/backend for `cicd/*`) | all 8 |
+| shared CI/CD files (`cicd/*`, `cicd/frontend/{app,pipeline,scripts}/**`) | all 8 UIs (plus base, database and backend for `cicd/*`) | all 8 |
 | `search-service/**` | search-service only | none (the UI specs mock the API) |
 | `*.md` anywhere | none | none |
 
@@ -113,7 +114,8 @@ ExportConfig writes `<ui>/.env.production` from the `VITE_*` keys in the layered
 4. `Publish` ([publish.sh](frontend/scripts/publish.sh)):
    - Hashed `assets/` are uploaded first, cached as immutable.
    - Other files follow, then `index.html` last with `no-cache`.
-   - Assets superseded more than `ASSET_RETENTION_DAYS` ago are pruned.
+   - Assets of releases superseded more than `ASSET_RETENTION_DAYS` ago are pruned. Each release lists its
+     assets in `_releases/<UTC time>`, which records when the previous release was replaced.
    - CloudFront is invalidated, then the deploy notification is sent.
 5. `Teardown` (development only, behind manual approvals).
 
@@ -298,8 +300,9 @@ flakiness easier to watch.
   that UI's paths.
 - **Change a pipeline** (its `pipeline.yaml`): commit and push. The pipeline redeploys itself. Config changes
   (`config.ini` files, including Playwright browsers and workers) are picked up by the next run.
-- **Roll back:** check out the old commit, run `cicd/deploy_pipeline.sh -c <component> [-u <ui>] -b <branch>`, then
-  start the pipeline manually. It won't restart itself.
+- **Roll back:** check out the old commit and run `cicd/deploy_pipeline.sh -c <component> [-u <ui>] -b <branch>`.
+  It deploys that commit's pipeline and starts a run pinned to the commit. Don't use "Release change": it always
+  fetches the branch's latest commit.
 - **Tear down a development branch:** enable the `Teardown` stage transition and approve.
 
 ## Hostnames and the legacy cutover
@@ -330,15 +333,40 @@ The hostnames feed every place that needs them:
 
 Header, footer and other shared content keep coming from the existing ALA sites (`COMMON_UI_URL`, `STATIC_URL`).
 
-**Cutover, one app at a time:**
+**Cutover, one app at a time, per environment.** An app moves with a one-line hostname override in that
+environment's section of [config.ini](config.ini), e.g. in `[testing]`:
 
-1. Compare the `-cicd` app with the legacy one. `search-test` can diff service responses.
-2. Register the legacy hostname with the OIDC client and add it to CORS.
-3. CloudFront won't accept an alias that another distribution holds. Release it with
-   `aws cloudfront associate-alias` (or remove it from the legacy distribution), then set the app's
-   `DOMAIN_SUFFIX` to empty for that environment and deploy. This moves the alias and the Route 53 record.
-4. Keep the `-cicd` name for one release as a rollback path. Then delete the legacy bucket, distribution and EC2
-   host, and remove the `-cicd` names from DNS, CORS and OIDC.
+```ini
+SEARCH_UI_HOST = bie.${HOSTED_ZONE}
+```
+
+Put the override in `cicd/config.ini`, not in the UI's own config, and leave `DOMAIN_SUFFIX` alone: every hostname
+shares it. The one line then updates the site's alias and DNS record, search-service CORS, the Cognito callback and
+logout URLs, and the other UIs' links. A push that changes `cicd/config.ini` runs every pipeline.
+
+1. Compare the `-cicd` app with the legacy one. `search-test` can diff service responses. The AWS search-service has
+   its own database and indexes, so load and index the data first.
+2. Release the legacy hostname: remove the alias from the legacy CloudFront distribution, and delete the legacy DNS
+   record (for search-service, the record pointing at the EC2 host). CloudFront rejects an alias that another
+   distribution holds, CloudFormation won't create a record that already exists, and external-dns won't take over
+   a record it didn't create. The name is down until step 3's deploys finish.
+3. Push the override to the environment's branch. The site takes the legacy name and loses the `-cicd` one: each
+   site has one alias and one record. Until the app's own pipeline has published, its bundle still links to the
+   `-cicd` names.
+4. Check the app, including login and logout. To roll back, revert the override and restore the legacy alias and
+   record, so keep the legacy bucket, distribution or EC2 host until you're confident. Then decommission it.
+
+Order and exceptions:
+
+- **search-service goes last**, once every UI that calls it is on AWS. Legacy UIs aren't in the AWS service's CORS
+  list and log in with the legacy OIDC client, so moving `service.<zone>` first would break them.
+- **occurrence-ui:** `biocache.<zone>` is the legacy biocache-hub (ala-hub), not an atlas-index app. Replacing it
+  is a separate decision.
+- **sds-ui** has no legacy atlas-index site. Check that the name is free before overriding it.
+
+**After the last app in an environment:** set `DOMAIN_SUFFIX =` in its section and remove its overrides (the
+hostnames don't change), and drop the `-cicd` hosts from the Google Maps key's referrers. When every environment is
+done, empty `DOMAIN_SUFFIX` in `[DEFAULT]` and remove the per-environment setting.
 
 ## Architectural decisions
 
@@ -405,9 +433,15 @@ pruning, and CloudFront invalidation.**
 - `shortcut:` there's no migration-aware deploy (scale to 0 → snapshot → migrate → scale up, as prototyped in
   aws-inventories) yet. Add one before running more than one replica or enabling production.
 
-**AD-9 Cutover: a single `DOMAIN_SUFFIX` setting.**
+**AD-9 Cutover: a hostname override per app in `cicd/config.ini`, then an empty `DOMAIN_SUFFIX`.**
 - The `-cicd` stack runs alongside the legacy one until each app is compared.
-- The alias moves with `associate-alias`, and the old name is kept for one release as a rollback path.
+- An override in the shared config moves one app and keeps CORS, Cognito URLs and cross-app links consistent.
+- Rejected: emptying `DOMAIN_SUFFIX` for one app. Every hostname shares it, so in a UI's own config it would also
+  point that UI at the legacy service and sibling sites.
+- Rejected: keeping the `-cicd` name as a rollback path. Each site has one alias and one record; rollback is
+  reverting the override while the legacy site still exists.
+- Rejected: `associate-alias` to move the CloudFront alias without a gap. The legacy DNS record still has to be
+  deleted before the stack can create its own, so the gap remains.
 - The `-cicd` service never writes to the legacy service's stores: it has its own indexes, RabbitMQ virtual host and
   database (AD-10).
 
@@ -455,8 +489,8 @@ Open:
 
 | Gate | Needed before | Question |
 |---|---|---|
-| DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment. |
-| DG-9 | staging/production | Add `[staging]`/`[production]` sections to each `cicd/frontend/<ui>/config.ini` (UI values from the production `.env.production` files; without them a UI falls back to `[DEFAULT]`, which holds test values), the production RabbitMQ (`TODO-DG9` in [backend/config.ini](backend/config.ini)), the prod OIDC/CAS settings, the decommission owners, and the static content migration. |
+| DG-6 | frontend | The `VITE_*` values were seeded from each `.env.playwright`, with local hosts mapped to the environment and other ALA service URLs kept unchanged. Check them against the legacy deployment. Mocked non-search-service APIs in admin-ui and doi-ui (Biocache, images, DataCite, Swagger sources) already use the legacy test URLs. |
+| DG-9 | staging/production | `ENVIRONMENT_READY = TODO-DG9` in [config.ini](config.ini) blocks every pipeline there until this is done. Add `[staging]`/`[production]` sections to each `cicd/frontend/<ui>/config.ini` (UI values from the production `.env.production` files; without them a UI falls back to `[DEFAULT]`, which holds test values), the production RabbitMQ (`TODO-DG9` in [backend/config.ini](backend/config.ini)), the prod OIDC/CAS settings, the decommission owners, and the static content migration. |
 
 ## Verify on the first AWS run
 
@@ -470,5 +504,8 @@ run against real suites with S3 stubbed) but can't be proven without AWS:
   and pod `testing-server-0`, the `username`/`password` keys in `ala-regolith-testing-rabbitmq`, and the CA secret
   `testing-cluster-es-http-certs-public`. The deploy fails with the missing name if any is wrong.
 - search-service connecting to the shared Elasticsearch over TLS with the imported CA. The truststore step itself
-  was checked in the runtime image.
+  was checked in the runtime image. The CA is read at deploy time, so if ECK rotates it the pod fails TLS until
+  the next backend deploy (a changed CA restarts the pod).
+- Each UI's network calls in the browser (DevTools, Network). The Playwright gate mocks every API, so it can't
+  catch a `VITE_*` URL that points at the wrong service.
 - The pods reaching Aurora on 5432 (its security group allows the VPC CIDR, as species-lists' database does).

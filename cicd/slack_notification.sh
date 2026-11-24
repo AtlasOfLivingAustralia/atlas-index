@@ -42,22 +42,18 @@ case $AWS_ACCOUNT_ID in
 esac
 
 # if this is a PR inject a link
-COMMIT_MSG=$(echo $COMMIT_MSG | sed "s~\(Merge pull request #\([0-9]*\)\)~<https://github.com/$REPO/pull/\2|\1>~g")
-# escape double quotes so it doesnt break the JSON payload
-COMMIT_MSG=$(echo $COMMIT_MSG | sed 's/"/\\"/g')
+COMMIT_MSG=$(printf '%s' "$COMMIT_MSG" | sed "s~\(Merge pull request #\([0-9]*\)\)~<https://github.com/$REPO/pull/\2|\1>~g")
+export COMMIT_MSG IMAGE_URL ALT_TEXT AWS_ACCOUNT_NAME
 
-curl -X POST "https://slack.com/api/chat.postMessage" \
-  -H "Content-type: application/json; charset=utf-8" \
-  -H "Authorization: Bearer $SLACK_OAUTH_TOKEN" \
-  -d @- << EOF
-  {
-    "channel": "$SLACK_ALERT_CHANNEL",
+# jq reads the values from env and encodes them, so quotes or backslashes can't break the JSON
+jq -n '{
+    "channel": env.SLACK_ALERT_CHANNEL,
     "blocks": [
       {
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": "$AWS_ACCOUNT_NAME account - $PRODUCT_COMPONENT $ENVIRONMENT release",
+          "text": "\(env.AWS_ACCOUNT_NAME) account - \(env.PRODUCT_COMPONENT) \(env.ENVIRONMENT) release",
           "emoji": true
         }
       },
@@ -65,28 +61,30 @@ curl -X POST "https://slack.com/api/chat.postMessage" \
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "*Branch:*\n<https://github.com/$REPO/tree/$SRC_BRANCH|$SRC_BRANCH>\n*Environment:*\n$ENVIRONMENT\n"
+          "text": "*Branch:*\n<https://github.com/\(env.REPO)/tree/\(env.SRC_BRANCH)|\(env.SRC_BRANCH)>\n*Environment:*\n\(env.ENVIRONMENT)\n"
         },
         "accessory": {
           "type": "image",
-          "image_url": "$IMAGE_URL",
-          "alt_text": "$ALT_TEXT"
+          "image_url": env.IMAGE_URL,
+          "alt_text": env.ALT_TEXT
         }
       },
       {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "*Commit message:*\n$COMMIT_MSG - <https://github.com/$REPO/commit/$COMMIT_ID|$COMMIT_ID>"
+          "text": "*Commit message:*\n\(env.COMMIT_MSG) - <https://github.com/\(env.REPO)/commit/\(env.COMMIT_ID)|\(env.COMMIT_ID)>"
         }
       },
       {
         "type": "section",
         "text": {
           "type": "mrkdwn",
-          "text": "$DEPLOY_MSG"
+          "text": env.DEPLOY_MSG
         }
       }
    ]
-  }
-EOF
+  }' | curl -X POST "https://slack.com/api/chat.postMessage" \
+  -H "Content-type: application/json; charset=utf-8" \
+  -H "Authorization: Bearer $SLACK_OAUTH_TOKEN" \
+  -d @-

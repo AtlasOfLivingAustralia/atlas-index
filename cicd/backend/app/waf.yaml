@@ -252,7 +252,7 @@ Resources:
               EvaluationWindowSec: 60
               ScopeDownStatement:
                 LabelMatchStatement:
-                  Key: bot:verified
+                  Key: awswaf:managed:aws:bot-control:bot:verified
                   Scope: LABEL
         - Name: ALABlockDatacenterBrowsers
           Action:
