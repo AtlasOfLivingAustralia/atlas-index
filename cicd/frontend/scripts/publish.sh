@@ -5,10 +5,11 @@ set -euo pipefail
 # Publish a release build to the site bucket without downtime, then invalidate CloudFront.
 #   1. assets/* (content hashed) first, cached forever; old ones are NOT deleted yet
 #   2. other files except index.html, with MAX_AGE; stale non-asset files are deleted
-#   3. index.html last, no-cache, which switches users to the new release
+#   3. index.html last, no-cache, which switches users to the new release; only then is the release
+#      recorded in _releases/<UTC time>, the list of its assets
 #   4. assets of releases superseded more than ASSET_RETENTION_DAYS ago are pruned, so browsers still
-#      running an older release can lazy-load its chunks for a while. Each release lists its assets in
-#      _releases/<UTC time>; the times say when each release was superseded.
+#      running an older release can lazy-load its chunks for a while. The release times say when each
+#      release was superseded.
 #
 # Required env: SOURCE_BUCKET DISTRIBUTION_ID MAX_AGE ASSET_RETENTION_DAYS
 #               CODEBUILD_SRC_DIR_BuildReleaseArtifact
@@ -20,11 +21,12 @@ BUCKET=s3://$SOURCE_BUCKET
 if [[ -d $DIST/assets ]]; then
   aws s3 sync "$DIST/assets" "$BUCKET/assets" --cache-control "public, max-age=31536000, immutable" --only-show-errors
 fi
-(cd "$DIST" && find assets -type f 2> /dev/null | sort) \
-  | aws s3 cp - "$BUCKET/_releases/$(date -u +%Y%m%dT%H%M%S)" --only-show-errors
 aws s3 sync "$DIST" "$BUCKET" --exclude "assets/*" --exclude "_releases/*" --exclude index.html --delete \
   --cache-control "public, max-age=$MAX_AGE" --only-show-errors
 aws s3 cp "$DIST/index.html" "$BUCKET/index.html" --cache-control "no-cache" --only-show-errors
+# recorded only once index.html is live, so a failed publish never counts as replacing the live release
+(cd "$DIST" && find assets -type f 2> /dev/null | sort) \
+  | aws s3 cp - "$BUCKET/_releases/$(date -u +%Y%m%dT%H%M%S)" --only-show-errors
 
 cutoff=$(date -u -d "-$ASSET_RETENTION_DAYS days" +%Y%m%dT%H%M%S)
 releases=$(aws s3api list-objects-v2 --bucket "$SOURCE_BUCKET" --prefix _releases/ --query 'Contents[].Key' \

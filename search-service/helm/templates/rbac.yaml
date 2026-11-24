@@ -1,0 +1,47 @@
+# Kubernetes leader election (spring-cloud-kubernetes): the leader is recorded in this release's own
+# ConfigMap, and each pod watches its own readiness. Without this the pod never becomes leader, so
+# imports, the leader queue and the schedules never run.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "search-service.fullname" . }}
+  labels:
+    {{- include "search-service.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.roleArn }}
+  annotations:
+    eks.amazonaws.com/role-arn: {{ . }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "search-service.fullname" . }}-leader
+  labels:
+    {{- include "search-service.labels" . | nindent 4 }}
+rules:
+  # create can't be limited by name; everything else is limited to this release's ConfigMap
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: [{{ include "search-service.fullname" . }}-leader]
+    verbs: ["get", "list", "watch", "update"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "search-service.fullname" . }}-leader
+  labels:
+    {{- include "search-service.labels" . | nindent 4 }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "search-service.fullname" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "search-service.fullname" . }}-leader

@@ -7,6 +7,8 @@ management.endpoints.web.exposure.exclude=
 management.endpoints.web.exposure.include=health
 management.endpoint.health.enabled=true
 management.endpoint.health.probes.enabled=true
+# no SMTP server is configured, so the mail check would report DOWN and fail the smoke test
+management.health.mail.enabled=false
 
 elastic.host={{ elastic_host }}
 elastic.username=elastic

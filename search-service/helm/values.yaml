@@ -9,8 +9,10 @@ image:
   tag: latest
   pullPolicy: IfNotPresent
 
+# the chart creates a service account named after the release, with the leader-election Role (templates/rbac.yaml)
 serviceAccount:
-  name: ""
+  # optional IRSA role, e.g. for data.s3Uri
+  roleArn: ""
 
 deploymentAnnotations: {}
 

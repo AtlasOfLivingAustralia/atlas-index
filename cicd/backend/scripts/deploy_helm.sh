@@ -58,15 +58,6 @@ aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME"
 kubectl get secret "$ELASTIC_CA_SECRET" -n "$ELASTIC_NAMESPACE" -o jsonpath='{.data.ca\.crt}' | base64 -d > "$ca_cert"
 [[ -s $ca_cert ]] || { echo "no ca.crt in secret $ELASTIC_NAMESPACE/$ELASTIC_CA_SECRET"; exit 1; }
 
-if [[ -n $SERVICE_ROLE_ARN ]]; then
-  kubectl create serviceaccount "$SERVICE_ACCOUNT_NAME" -n "$EKS_NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
-  kubectl annotate serviceaccount "$SERVICE_ACCOUNT_NAME" -n "$EKS_NAMESPACE" --overwrite \
-    eks.amazonaws.com/role-arn="$SERVICE_ROLE_ARN"
-  sa_args=(--set serviceAccount.name="$SERVICE_ACCOUNT_NAME")
-else
-  sa_args=()
-fi
-
 helm upgrade --install "$HELM_RELEASE_NAME" search-service/helm \
   --namespace "$EKS_NAMESPACE" \
   --set image.repository="$ECR_REPO" \
@@ -83,7 +74,7 @@ helm upgrade --install "$HELM_RELEASE_NAME" search-service/helm \
   --set-string deploymentAnnotations.commitHash="$CODEBUILD_RESOLVED_SOURCE_VERSION" \
   --set-file config="$config" \
   --set-file caCert="$ca_cert" \
-  ${sa_args[@]+"${sa_args[@]}"} \
+  --set-string serviceAccount.roleArn="$SERVICE_ROLE_ARN" \
   --wait --timeout 15m
 
 # DNS (external-dns) and the load balancer can take a few minutes on the first deploy

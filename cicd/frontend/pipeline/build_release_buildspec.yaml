@@ -11,6 +11,9 @@ phases:
       - yarn workspaces focus "$UI_APP" @ala/common-ui
   pre_build:
     commands:
+      # specimens-ui imports its generated (gitignored) collection metadata in Jest and tsc; `yarn build` reuses it.
+      # buildCollections.js skips collections it can't fetch, so fail if any are missing.
+      - if [[ -f "$UI_APP/buildCollections.js" ]]; then (cd "$UI_APP" && node buildCollections.js && node -e "if (require('./src/api/sources/collections.json').length !== require('./resources/collections.json').length) { console.error('collectory metadata incomplete, see the errors above'); process.exit(1) }"); fi
       - yarn workspace @ala/common-ui test
       - yarn workspace "$UI_APP" test
   build:

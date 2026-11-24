@@ -9,7 +9,10 @@ phases:
   install:
     commands:
       - curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - command -v kubectl || { curl -fsSLo /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl -fsSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x /usr/local/bin/kubectl; }
   build:
     commands:
       - aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME"
       - helm uninstall "$HELM_RELEASE_NAME" -n "$EKS_NAMESPACE" --ignore-not-found
+      # created by the app's leader election, so Helm doesn't own it
+      - kubectl delete configmap "$HELM_RELEASE_NAME-leader" -n "$EKS_NAMESPACE" --ignore-not-found

@@ -44,7 +44,7 @@ Environments come from the branch ([branch_2_env.py](branch_2_env.py)):
 |---|---|---|
 | `develop` | testing | automatically on push |
 | `main`/`master` | staging, or production with `-e prod` | staging automatically; production manual (`AUTO_DEPLOY = false`) |
-| anything else | development (per-branch stacks) | after you deploy its pipelines |
+| anything else | development (per-branch stacks) | after you deploy its pipelines. Branch names that clean to `testing`, `staging` or `production` are rejected, because they'd reuse that environment's resources. |
 
 Only testing is in scope for now. The root and backend configs have staging and production sections, but the UI
 configs don't yet. A `TODO-DG9` in the `[staging]` and `[production]` sections of [config.ini](config.ini) blocks
@@ -230,7 +230,9 @@ Species-lists already uses most of these. The CodeBuild role must allow:
   Without these the JUnit tab stays empty, but the gate still works.
 - [ ] `eks:DescribeCluster`, and an EKS access entry (or `aws-auth` mapping) that lets the role manage the
   `EKS_NAMESPACE` namespace (`testing`) and **read** the secret `testing-cluster-es-http-certs-public` in the
-  `elasticsearch` namespace.
+  `elasticsearch` namespace. The chart creates a ServiceAccount, Role and RoleBinding, so in the namespace this
+  needs admin rights (e.g. `AmazonEKSAdminPolicy` scoped to the namespace): `AmazonEKSEditPolicy` can't manage
+  RBAC.
 
 The CloudFormation role must be able to create S3 buckets and policies, CloudFront distributions and OACs, Route 53
 records, WAFv2 web ACLs and logging, ECR repositories, log groups, Cognito user pool clients, Secrets Manager
@@ -430,6 +432,9 @@ pruning, and CloudFront invalidation.**
 - Tests gate the image, and a health smoke test after `--wait` gates the notification.
 - Config goes into a Kubernetes Secret, rendered at deploy time.
 - Data lives on a ReadWriteOnce volume with `Recreate`, so there is one replica and Flyway migrates on startup.
+- Imports, the leader queue and the schedules run only on the Kubernetes leader. The chart gives the pod its own
+  ServiceAccount and a Role for leader election, with the election role and ConfigMap named after the Helm release.
+  Development releases share the `testing` namespace, and this stops them competing with testing for leadership.
 - `shortcut:` there's no migration-aware deploy (scale to 0 → snapshot → migrate → scale up, as prototyped in
   aws-inventories) yet. Add one before running more than one replica or enabling production.
 
@@ -509,3 +514,5 @@ run against real suites with S3 stubbed) but can't be proven without AWS:
 - Each UI's network calls in the browser (DevTools, Network). The Playwright gate mocks every API, so it can't
   catch a `VITE_*` URL that points at the wrong service.
 - The pods reaching Aurora on 5432 (its security group allows the VPC CIDR, as species-lists' database does).
+- search-service becoming leader: its log shows `Leadership granted`. Leader election is off outside Kubernetes, so
+  only a real cluster exercises the Role.
