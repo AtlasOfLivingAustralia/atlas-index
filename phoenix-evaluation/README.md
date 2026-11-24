@@ -353,7 +353,7 @@ Phases 1 and 2 can run in parallel. Phase 4 depends on 1 and 3, not on 2.
 | [`search-ui/src/phoenix/toResultTile.tsx`](../search-ui/src/phoenix/toResultTile.tsx) | Adapter from search-service items to `ResultTile` props |
 | [`search-ui/src/phoenix/phoenix.css`](../search-ui/src/phoenix/phoenix.css) | Layout only, token-based (`var(--ala-*)`), plus documented workarounds |
 | [`search-ui/vite.config.ts`](../search-ui/vite.config.ts) | Adds the second HTML input |
-| `search-ui/vendor/ala-ui-0.0.0-a2315eb.tgz` and `package.json`/`yarn.lock` | phoenix packed from `feature/grails-theme-builds@a2315eb` (`pnpm pack`, 745,646 B; local commit, not yet on GitHub), installed with `file:`. The analysis elsewhere in this report is of `c6fbee4`; the demo was first built against that and later repacked |
+| `search-ui/vendor/ala-ui-0.0.0-044a79f.tgz` and `package.json`/`yarn.lock` | phoenix packed from `feature/search-page-fixes@044a79f` (local branch off `testing@b930c7b`, not yet on GitHub), installed with `file:`. The analysis elsewhere in this report is of `c6fbee4`; see 9.5 for the Figma final-design pass |
 
 The old page at `/` is unchanged.
 
@@ -435,6 +435,38 @@ VITE_APP_API_URL=https://service.test.ala.org.au yarn dev
 - Real-device mobile testing.
 
 ---
+
+### 9.5 Figma final-design pass (2026-11-25)
+
+The demo was aligned with the "Desktop – Final design – Search" frames in [ALA Search (Final)](https://www.figma.com/design/puAh0reFpOLHS8zLpKvUfl/ALA-Search--Final-?node-id=1428-53591). Measured at 1440 px, the Species list, Species tiles and All views now match the frames to within 2 px: header 229, hero 229–493, search 371, tabs 441, results 553, rows 87, tiles 357 with 40/60 px gaps.
+
+| Issue | Where it lived | Fix |
+| --- | --- | --- |
+| Search input rounded on all corners | @ala/ui | `SearchField` rounds only the Figma outer corners (desktop left, mobile top-left) |
+| Gap between search input and button | Demo (10 px flex gap) and @ala/ui (no shared border) | Demo gap removed; phoenix overlaps an adjacent `SearchButton` by 1 px, as in Figma |
+| Autocomplete not the Figma component | @ala/ui (no component) and demo (native `<datalist>`) | New `SearchField` `suggestions`/`onSuggestionSelect`: Figma Open state as an ARIA combobox with keyboard support |
+| Breadcrumbs present | Demo | Removed |
+| Tab gaps | Demo (20 px nav gap, tabs outside the hero) | Tabs abut inside the hero, with Figma search-type icons |
+| Tab underline missing | @ala/ui (fixed upstream on `testing` before this pass) | Picked up by packing `testing` |
+| Header too short | @ala/ui (logo and nav rows shared 107 px) | 107 px logo row + 52 px nav row + divider; actions 30 px apart; Figma nav order |
+| Checkbox label size | Demo (`Check` defaulted to the small size) | `size="lg"` (14/20) |
+| Selected checkbox label not bold | Demo (page-level override in Figma; `Check and text` has no bold variant) | Semibold when checked; 26 px facet pitch |
+| Tile spacing | Demo (Bootstrap `g-4` gutters) | 40 px between columns, 60 px between rows, per Figma |
+| Result title italic for every type | @ala/ui | Only species tiles are italic |
+| Rows/tiles clipped or too tall with real data | @ala/ui (fixed 87 px, no truncation) | Rows grow from 87 px; single-line details; descriptions clamp to 2 (rows) / 3 (tiles) lines |
+| No ellipsis/last page in pagination | @ala/ui | First/last page and ellipsis outside the window; demo uses `window={4}` |
+| Missing Acknowledgement banner | Demo | `Header` `banner` slot, dismissal stored under the currawong key |
+| Page layout (1140 px column, 255 + 40 + 845 grid, type sizes, spacing) | Demo | Rebuilt from frame measurements |
+
+That is 8 @ala/ui issues (1 already fixed upstream) and 9 demo issues; the search join and the autocomplete each counted in both. phoenix's Storybook also now loads Roboto before stories render, which removes a font-timing race in its geometry tests.
+
+**Left as designed or open:**
+- The selected tab label is 4.21:1 (light) and 3.67:1 (dark) on the grey hero, below WCAG AA 4.5:1. It is kept as in Figma pending designer review and noted in the phoenix README.
+- The "Top result" heading in the Species frame is not rendered, because the frame shows it above all 12 rows; this needs design clarification.
+- Tab labels follow search-ui's own groups ("Spatial layers", "Locations", "Help and general content"), not Figma's nine types.
+- Header nav spacing differs slightly (about 30 px at the far end).
+- Test-server images are blocked by Chromium ORB, so the phoenix placeholder shows.
+- Mobile frames were not compared.
 
 ## 10. Open questions
 

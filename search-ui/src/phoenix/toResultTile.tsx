@@ -74,11 +74,11 @@ function imageFor(item: any): string | undefined {
 
 export function toResultTile(item: any, defn: GenericViewProps): ResultTileProps {
     const type = resultTypes[item.idxtype] ?? 'general-content';
-    const isTaxon = item.idxtype === 'TAXON';
     return {
         type,
         href: hrefFor(item, defn),
-        title: isTaxon ? <i>{item.name}</i> : item.name,
+        // phoenix italicises species titles; common-name matches are not scientific names.
+        title: item.idxtype === 'COMMON' ? <span className="fst-normal">{item.name}</span> : item.name,
         details: detailsFor(item),
         description: truncate(plainText(item.heroDescription || item.description)) || undefined,
         imageSrc: imageFor(item),

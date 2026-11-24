@@ -1,24 +1,38 @@
-/* Page layout only; colours and spacing come from phoenix --ala-* tokens so atlas overrides apply. */
+/* Page layout for the Figma "ALA Search (Final)" frames. Colours, type and spacing use phoenix
+   --ala-* tokens so atlas overrides apply; measurements are from the 1440px desktop frames. */
+
+/* Figma content column: 1140px (sidebar 255 + gap 40 + results 845). */
+.phx-hero > .container,
+.phx-results {
+    max-width: calc(1140px + var(--bs-gutter-x));
+}
 
 .phx-hero {
     background: var(--ala-color-surface);
-    padding: var(--ala-space-8) 0 var(--ala-space-6);
+    padding: var(--ala-space-12) 0 var(--ala-space-8);
     text-align: center;
 }
 
+.phx-hero--results {
+    padding-bottom: 0;
+}
+
 .phx-hero h1 {
-    margin-bottom: var(--ala-space-4);
+    margin: 0 0 var(--ala-space-6);
+    font-size: var(--ala-font-size-h2);
+    font-weight: var(--ala-font-weight-semibold);
+    line-height: 52px;
 }
 
 .phx-search {
     display: flex;
-    gap: var(--ala-space-2);
-    max-width: 845px;
+    max-width: 944px;
     margin: 0 auto;
 }
 
 .phx-search .ala-search-field {
     flex: 1;
+    text-align: left;
 }
 
 .phx-examples {
@@ -26,23 +40,42 @@
     font-size: 14px;
 }
 
+/* Search type tabs sit on the hero's bottom edge and abut; the first label aligns with the content edge. */
 .phx-tabs {
-    border-bottom: 1px solid var(--ala-color-divider);
+    margin: 23px 0 0 calc(-1 * var(--ala-space-3));
 }
 
 .phx-tabs .nav {
-    gap: var(--ala-space-4);
-    overflow-x: auto;
     flex-wrap: nowrap;
+    overflow-x: auto;
 }
 
 .phx-results {
+    padding-top: var(--ala-space-12);
+    padding-bottom: var(--ala-space-12);
+}
+
+/* Figma "All" starts with the View-as toolbar 30px below the hero. */
+.phx-results--all {
     padding-top: var(--ala-space-6);
 }
 
+@media (min-width: 992px) {
+    .phx-layout {
+        display: grid;
+        grid-template-columns: 255px minmax(0, 1fr);
+        column-gap: var(--ala-space-8);
+    }
+}
+
 .phx-results-title {
-    font-size: var(--ala-font-size-h4, 20px);
-    margin-bottom: var(--ala-space-4);
+    margin-bottom: var(--ala-space-6);
+    font-size: 20px;
+    line-height: 28px;
+}
+
+.phx-results-title b {
+    font-weight: var(--ala-font-weight-semibold);
 }
 
 .phx-toolbar {
@@ -54,41 +87,46 @@
     margin-bottom: var(--ala-space-6);
 }
 
-.phx-view-toggle {
+.phx-view-toggle,
+.phx-sort {
     display: flex;
     align-items: center;
-    gap: var(--ala-space-2);
+    gap: var(--ala-space-3);
+    font-size: 14px;
+    line-height: 20px;
 }
 
-.phx-list > .ala-result-tile {
-    margin-bottom: var(--ala-space-3);
+/* Figma list rows abut; each row draws its own divider. */
+.phx-list {
+    display: flex;
+    flex-direction: column;
 }
 
-/* phoenix desktop rows are a fixed 87px (Figma) with overflow hidden; real titles/descriptions need to grow. */
-.phx-list .ala-result-tile--desktop.card {
-    height: auto;
-    align-items: flex-start;
+/* Figma tiles: 255px columns, 40px apart horizontally and 60px between rows. */
+.phx-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ala-space-12) var(--ala-space-8);
 }
 
-.phx-list .ala-result-tile .card-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.phx-tiles--wide {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-/* phoenix italicises every result title; only scientific names (wrapped in <i>) should be. */
-.phx-results .ala-result-tile .card-title {
-    font-style: normal;
+@media (max-width: 991.98px) {
+    .phx-tiles,
+    .phx-tiles--wide {
+        grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+    }
 }
 
-.phx-group-header h2 {
-    font-size: var(--ala-font-size-h4);
-    margin: 0;
+/* "All": toolbar, then groups 60px apart with a 26/32 primary heading 30px above the results. */
+.phx-results > [aria-busy] > .phx-toolbar {
+    margin-bottom: var(--ala-space-12);
 }
 
 .phx-group {
-    margin-bottom: var(--ala-space-8);
+    margin-bottom: var(--ala-space-12);
 }
 
 .phx-group-header {
@@ -96,21 +134,43 @@
     align-items: baseline;
     justify-content: space-between;
     gap: var(--ala-space-3);
-    margin-bottom: var(--ala-space-4);
+    margin-bottom: var(--ala-space-6);
+}
+
+.phx-group-header h2 {
+    margin: 0;
+    color: var(--ala-color-primary);
+    font-size: var(--ala-font-size-h4);
+    font-weight: var(--ala-font-weight-semibold);
+    line-height: 32px;
 }
 
 .phx-refine-title {
-    font-size: var(--ala-font-size-h4, 20px);
+    margin-bottom: var(--ala-space-3);
+    font-size: 20px;
+    font-weight: var(--ala-font-weight-semibold);
+    line-height: 28px;
 }
 
+/* Facets: 16/24 primary headings, 14/20 checks on a 26px pitch (WCAG 2.2 target spacing), groups 15px apart. */
 .phx-facet {
-    margin-bottom: var(--ala-space-4);
+    margin-bottom: 9px;
 }
 
 .phx-facet legend {
-    font-size: 16px;
-    font-weight: 600;
+    margin-bottom: var(--ala-space-2);
     color: var(--ala-color-primary);
+    font-size: 16px;
+    font-weight: var(--ala-font-weight-semibold);
+    line-height: 24px;
+}
+
+.phx-facet .form-check {
+    margin-bottom: 6px;
+}
+
+.phx-facet .form-check-input:checked + .form-check-label {
+    font-weight: var(--ala-font-weight-semibold);
 }
 
 .phx-placeholder {
@@ -122,11 +182,16 @@
     display: flex;
     justify-content: center;
     gap: var(--ala-space-4);
-    margin-top: var(--ala-space-8);
+    margin-top: var(--ala-space-12);
 }
 
-/* phoenix sm checks stack tighter than WCAG 2.2 target spacing (24px pitch); the old facets used a 6px gap too. */
-.phx-facet .form-check {
-    min-height: 24px;
-    margin-bottom: 4px;
+@media (max-width: 767.98px) {
+    .phx-hero {
+        padding-top: var(--ala-space-8);
+    }
+
+    .phx-hero h1 {
+        font-size: var(--ala-font-size-h2-mobile);
+        line-height: 28px;
+    }
 }
