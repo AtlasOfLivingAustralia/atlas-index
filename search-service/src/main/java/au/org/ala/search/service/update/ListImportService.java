@@ -687,7 +687,7 @@ public class ListImportService {
         }
 
         int rank = rankId.intValue();
-        if (rank != 6000 && rank < 7000) {
+        if (rank < 6000) {
             return false;
         }
 

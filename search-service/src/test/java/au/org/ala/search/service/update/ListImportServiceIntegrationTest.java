@@ -212,6 +212,26 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                 .rankID(7000)
                 .modified(new Date())
                 .build();
+        SearchItemIndex subgenusTaxon = SearchItemIndex.builder()
+                .id("griis-subgenus")
+                .guid("urn:lsid:test:griis-subgenus")
+                .idxtype("TAXON")
+                .scientificName("Griisgenus subgenus")
+                .name("Griisgenus subgenus")
+                .rank("subgenus")
+                .rankID(6400)
+                .modified(new Date())
+                .build();
+        SearchItemIndex subgenusChild = SearchItemIndex.builder()
+                .id("griis-subgenus-child")
+                .guid("urn:lsid:test:griis-subgenus-child")
+                .idxtype("TAXON")
+                .scientificName("Griisgenus subgenus species")
+                .name("Griisgenus subgenus species")
+                .rank("species")
+                .rankID(7000)
+                .modified(new Date())
+                .build();
         SearchItemIndex excludedHigherMatchChild = SearchItemIndex.builder()
                 .id("excluded-higher-match-child")
                 .guid("urn:lsid:test:excluded-higher-match-child")
@@ -228,10 +248,13 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                 elasticService.buildIndexQuery(griisChild),
                 elasticService.buildIndexQuery(genusTaxon),
                 elasticService.buildIndexQuery(genusChild),
+                elasticService.buildIndexQuery(subgenusTaxon),
+                elasticService.buildIndexQuery(subgenusChild),
                 elasticService.buildIndexQuery(excludedHigherMatchChild))));
         elasticService.updateImmediately(List.of(
                 UpdateQuery.builder("griis-child").withDocument(Document.create().append("rkid_species", "urn:lsid:test:griis")).build(),
                 UpdateQuery.builder("griis-genus-child").withDocument(Document.create().append("rkid_genus", "urn:lsid:test:griis-genus")).build(),
+                UpdateQuery.builder("griis-subgenus-child").withDocument(Document.create().append("rkid_subgenus", "urn:lsid:test:griis-subgenus")).build(),
                 UpdateQuery.builder("excluded-higher-match-child").withDocument(Document.create().append("rkid_genus", "urn:lsid:test:excluded-higher-genus")).build()));
         elasticsearchOperations.indexOps(SearchItemIndex.class).refresh();
 
@@ -296,6 +319,14 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
                           },
                           {
                             "classification": {
+                              "taxonConceptID": "urn:lsid:test:griis-subgenus",
+                              "rank": "subgenus",
+                              "rankID": 6400,
+                              "matchType": "exactMatch"
+                            }
+                          },
+                          {
+                            "classification": {
                               "taxonConceptID": "urn:lsid:test:excluded-higher-genus",
                               "rank": "genus",
                               "rankID": 6000,
@@ -352,6 +383,18 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
             Map<?, ?> genusChildDoc = elasticService.getDocumentMap("griis-genus-child");
             assertThat(genusChildDoc).isNotNull();
             assertThat(genusChildDoc.get("nativeIntroduced").toString())
+                    .contains("Australia")
+                    .contains("Introduced and invasive");
+
+            Map<?, ?> subgenusDoc = elasticService.getDocumentMap("griis-subgenus");
+            assertThat(subgenusDoc).isNotNull();
+            assertThat(subgenusDoc.get("nativeIntroduced").toString())
+                    .contains("Australia")
+                    .contains("Introduced and invasive");
+
+            Map<?, ?> subgenusChildDoc = elasticService.getDocumentMap("griis-subgenus-child");
+            assertThat(subgenusChildDoc).isNotNull();
+            assertThat(subgenusChildDoc.get("nativeIntroduced").toString())
                     .contains("Australia")
                     .contains("Introduced and invasive");
 
