@@ -99,9 +99,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@ala/ui@file:./vendor/ala-ui-0.0.0-0e29a01.tgz::locator=search-ui%40workspace%3Asearch-ui":
+"@ala/ui@file:./vendor/ala-ui-0.0.0-022b272.tgz::locator=search-ui%40workspace%3Asearch-ui":
   version: 0.0.0
-  resolution: "@ala/ui@file:./vendor/ala-ui-0.0.0-0e29a01.tgz#./vendor/ala-ui-0.0.0-0e29a01.tgz::hash=8b16fd&locator=search-ui%40workspace%3Asearch-ui"
+  resolution: "@ala/ui@file:./vendor/ala-ui-0.0.0-022b272.tgz#./vendor/ala-ui-0.0.0-022b272.tgz::hash=3781e6&locator=search-ui%40workspace%3Asearch-ui"
   peerDependencies:
     bootstrap: ^5.3.8
     react: ^19.2.0
@@ -110,7 +110,7 @@ __metadata:
   peerDependenciesMeta:
     bootstrap:
       optional: true
-  checksum: 10c0/5bbbc2c5571bec415e39d30dfe92487d5147a143f107861ae22d3354073cba050dfe0a3521c890e8ba94207219ef2e449cc7fcfaceaecf442f7aa3b5236b6af4
+  checksum: 10c0/0ac0a0528ce59c79e25e28463cf7978d66ebeb18de3f61b79d13b94e47456d678eefee727efc87f9b2ab58bd1c407cd8b3b6699988327df617cab0da93cc00a5
   languageName: node
   linkType: hard
 
@@ -9820,7 +9820,7 @@ __metadata:
   resolution: "search-ui@workspace:search-ui"
   dependencies:
     "@ala/common-ui": "workspace:*"
-    "@ala/ui": "file:./vendor/ala-ui-0.0.0-0e29a01.tgz"
+    "@ala/ui": "file:./vendor/ala-ui-0.0.0-022b272.tgz"
     "@babel/core": "npm:^7.27.7"
     "@babel/preset-typescript": "npm:^7.27.0"
     "@fortawesome/fontawesome-svg-core": "npm:^7.2.0"

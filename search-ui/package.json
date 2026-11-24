@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "@ala/common-ui": "workspace:*",
-        "@ala/ui": "file:./vendor/ala-ui-0.0.0-0e29a01.tgz",
+        "@ala/ui": "file:./vendor/ala-ui-0.0.0-022b272.tgz",
         "@fortawesome/fontawesome-svg-core": "^7.2.0",
         "@fortawesome/free-brands-svg-icons": "^7.2.0",
         "@fortawesome/free-regular-svg-icons": "^7.2.0",

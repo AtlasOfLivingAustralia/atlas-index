@@ -353,7 +353,7 @@ Phases 1 and 2 can run in parallel. Phase 4 depends on 1 and 3, not on 2.
 | [`search-ui/src/phoenix/toResultTile.tsx`](../search-ui/src/phoenix/toResultTile.tsx) | Adapter from search-service items to `ResultTile` props |
 | [`search-ui/src/phoenix/phoenix.css`](../search-ui/src/phoenix/phoenix.css) | Layout only, token-based (`var(--ala-*)`), plus documented workarounds |
 | [`search-ui/vite.config.ts`](../search-ui/vite.config.ts) | Adds the second HTML input |
-| `search-ui/vendor/ala-ui-0.0.0-0e29a01.tgz` and `package.json`/`yarn.lock` | phoenix packed from `feature/search-page-fixes@0e29a01` (local branch off `testing@b930c7b`, not yet on GitHub), installed with `file:`. The analysis elsewhere in this report is of `c6fbee4`; see 9.5 for the Figma final-design pass |
+| `search-ui/vendor/ala-ui-0.0.0-022b272.tgz` and `package.json`/`yarn.lock` | phoenix packed from `feature/search-page-fixes@022b272` (local branch off `testing@b930c7b`, not yet on GitHub), installed with `file:`. The analysis elsewhere in this report is of `c6fbee4`; see 9.5 for the Figma final-design pass |
 
 The old page at `/` is unchanged.
 
