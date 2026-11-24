@@ -76,28 +76,30 @@ public class ListApiService {
     public List<Map<String, Object>> items(String listId) {
         int pageSize = listsSearchMax;
         int offset = 0;
-        boolean hasMore = true;
 
         List<Map<String, Object>> found = new ArrayList<>();
 
-        while (hasMore) {
+        while (true) {
             ResponseEntity<List> response = restTemplate.exchange(
                     listsUrl + "/ws/speciesListItems/" + listId + "?includeKVP=true&max=" + pageSize + "&offset=" + offset,
                     HttpMethod.GET,
                     null,
                     List.class);
 
-            offset += pageSize;
-
-            if (response.getStatusCode() == HttpStatus.OK) {
-                List<Map<String, Object>> currentPage = (List<Map<String, Object>>) response.getBody();
-                found.addAll(currentPage);
-
-                hasMore = currentPage.size() == pageSize;
-            } else {
-                log.error("failed to get list items: {}", listId);
-                hasMore = false;
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new IllegalStateException("failed to get list items: " + listId + " (HTTP " + response.getStatusCode().value() + ")");
             }
+
+            List<Map<String, Object>> currentPage = response.getBody();
+            if (currentPage == null) {
+                throw new IllegalStateException("failed to get list items: " + listId + " (null response)");
+            }
+
+            found.addAll(currentPage);
+            if (currentPage.isEmpty() || currentPage.size() < pageSize) {
+                break;
+            }
+            offset += pageSize;
         }
 
         return found;

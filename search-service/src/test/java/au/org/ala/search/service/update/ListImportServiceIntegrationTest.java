@@ -121,10 +121,12 @@ class ListImportServiceIntegrationTest extends AbstractIntegrationTestContainers
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr0000?includeKVP=true&max=500&offset=0"))
                 .willReturn(okJson("[]")));
 
+        // These list IDs are not needed by this authoritative-list-only fixture.
+        // Supply a single valid item for each so reconciliation does not abort.
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr23424?includeKVP=true&max=500&offset=0"))
-                .willReturn(okJson("[]")));
+                .willReturn(okJson("[{\"lsid\":\"urn:lsid:test:native\",\"kvpValues\":[{\"key\":\"Queensland Status\",\"value\":\"introduced\"}]}]")));
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9884?includeKVP=true&max=500&offset=0"))
-                .willReturn(okJson("[]")));
+                .willReturn(okJson("[{\"lsid\":\"urn:lsid:test:griis\",\"kvpValues\":[{\"key\":\"rank\",\"value\":\"SPECIES\"}]}]")));
 
         // authoritative list's items — used for the final "speciesList" field aggregation
         wireMockServer.stubFor(get(urlEqualTo("/ws/speciesListItems/dr9999?includeKVP=true&max=500&offset=0"))

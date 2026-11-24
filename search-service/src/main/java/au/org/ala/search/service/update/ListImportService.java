@@ -667,13 +667,23 @@ public class ListImportService {
     }
 
     private void mergeStatus(Map<String, String> statusByPlace, String place, String status) {
-        String existing = statusByPlace.get(place);
-        if (StringUtils.isEmpty(existing)) {
-            statusByPlace.put(place, status);
+        String trimmedStatus = status == null ? null : status.trim();
+        if (StringUtils.isEmpty(trimmedStatus)) {
             return;
         }
-        if (!existing.equals(status) && !Arrays.asList(existing.split(",")).contains(status)) {
-            statusByPlace.put(place, existing + ", " + status);
+
+        String existing = statusByPlace.get(place);
+        if (StringUtils.isEmpty(existing)) {
+            statusByPlace.put(place, trimmedStatus);
+            return;
+        }
+
+        Set<String> statusTokens = Arrays.stream(existing.split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (statusTokens.add(trimmedStatus)) {
+            statusByPlace.put(place, String.join(", ", statusTokens));
         }
     }
 
