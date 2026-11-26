@@ -235,7 +235,7 @@ export const speciesDefn: GenericViewProps = {
         'rk_kingdom>rk_class>rk_order': {
             label: 'Taxonomic tree',
             order: 5,
-            parseFacetFn: (facet: { fieldResult?: TaxonomicFacetNode[] }, facetList: any[]) => {
+            parseFacetFn: (facet: { fieldResult?: TaxonomicFacetNode[] }, facetList: unknown[]) => {
                 const items = facet.fieldResult ? flattenTaxonomicTree(facet.fieldResult) : [];
                 if (items.length > 0) {
                     facetList.push({

@@ -30,22 +30,28 @@ export function formatTaxonomicLabel(raw: string): string {
     return raw;
 }
 
-export function flattenTaxonomicTree(
+function collectTaxonomicNodes(
     nodes: TaxonomicFacetNode[],
-    depth: number = 0,
-    out: TaxonomicTreeItem[] = []
-): TaxonomicTreeItem[] {
+    depth: number,
+    out: TaxonomicTreeItem[]
+): void {
     nodes.forEach((node) => {
+        const rawLabel = node.label ?? '';
         out.push({
             fq: node.fq,
-            label: formatTaxonomicLabel(node.label),
-            i18nKey: 'taxonomy.' + node.label.toLowerCase(),
+            label: formatTaxonomicLabel(rawLabel),
+            i18nKey: rawLabel ? 'taxonomy.' + rawLabel.toLowerCase() : '',
             count: node.count,
             depth,
         });
         if (node.children && node.children.length > 0) {
-            flattenTaxonomicTree(node.children, depth + 1, out);
+            collectTaxonomicNodes(node.children, depth + 1, out);
         }
     });
+}
+
+export function flattenTaxonomicTree(nodes: TaxonomicFacetNode[]): TaxonomicTreeItem[] {
+    const out: TaxonomicTreeItem[] = [];
+    collectTaxonomicNodes(nodes, 0, out);
     return out;
 }

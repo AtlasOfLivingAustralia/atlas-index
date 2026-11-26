@@ -136,4 +136,17 @@ describe('TaxonomicTree helpers', () => {
     it('returns an empty array for empty input', () => {
         expect(flattenTaxonomicTree([])).toEqual([]);
     });
+
+    it('handles missing or empty labels without throwing', () => {
+        const nodes = [{ label: '', count: 1, fq: 'rk_kingdom:""' }];
+        expect(flattenTaxonomicTree(nodes)).toEqual([
+            {
+                fq: 'rk_kingdom:""',
+                label: '',
+                i18nKey: '',
+                count: 1,
+                depth: 0,
+            },
+        ]);
+    });
 });

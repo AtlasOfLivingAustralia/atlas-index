@@ -299,7 +299,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                 {!facetLoading && !customFacetLoading && [...facets, ...customFacetData].sort((a, b) => a.order - b.order).map((facet: any, index: number) => (
                     <div key={index}>
                         <span className={classes.refineSectionTitle} style={{marginTop: '15px', marginBottom: '10px'}}>
-                            {facet.i18nKey
+                            {facet.i18nKey && intl.messages[facet.i18nKey]
                                 ? intl.formatMessage({id: facet.i18nKey, defaultMessage: facet.name})
                                 : facet.name}
                         </span>
@@ -320,7 +320,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                                         {!item.selected && item.count == 0 && (<CheckDisabledIcon size="16"/>)}
                                         {item.selected && (<CheckedIcon size="16"/>)}
                                         <span className={classes.refineItem}>
-                                            {item.i18nKey
+                                            {item.i18nKey && intl.messages[item.i18nKey]
                                                 ? intl.formatMessage({id: item.i18nKey, defaultMessage: item.label})
                                                 : item.label} ({item.count})
                                         </span>

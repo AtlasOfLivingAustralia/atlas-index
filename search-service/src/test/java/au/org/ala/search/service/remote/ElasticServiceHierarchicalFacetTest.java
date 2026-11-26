@@ -8,6 +8,7 @@ package au.org.ala.search.service.remote;
 
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,16 @@ class ElasticServiceHierarchicalFacetTest {
         String aggName = ElasticService.hierarchicalAggName(new String[]{"rk_kingdom", "rk_class", "rk_order"});
         assertThat(aggName).isEqualTo("hier_rk_kingdom__rk_class__rk_order");
         assertThat(aggName).doesNotContain(">", "[", "]");
+
+        String sanitized = ElasticService.hierarchicalAggName(new String[]{"a[0]", "b>c"});
+        assertThat(sanitized).doesNotContain(">", "[", "]");
+    }
+
+    @Test
+    void escapeFqValue_escapesBackslashesBeforeQuotes() {
+        assertThat(ElasticService.escapeFqValue("a\"b")).isEqualTo("a\\\"b");
+        assertThat(ElasticService.escapeFqValue("a\\")).isEqualTo("a\\\\");
+        assertThat(ElasticService.escapeFqValue("a\\\"b")).isEqualTo("a\\\\\\\"b");
     }
 
     @Test
@@ -36,14 +47,14 @@ class ElasticServiceHierarchicalFacetTest {
         assertThat(root.terms().size()).isEqualTo(100);
         assertThat(root.terms().missing()).isNull();
 
-        Aggregation classAgg = root.aggregations().get("rk_class");
+        Aggregation classAgg = root.aggregations().get(ElasticService.subAggName(1));
         assertThat(classAgg).isNotNull();
         assertThat(classAgg.terms().field()).isEqualTo("rk_class");
         assertThat(classAgg.terms().size()).isEqualTo(50);
         assertThat(classAgg.terms().missing()).isNotNull();
         assertThat(classAgg.terms().missing().stringValue()).isEqualTo(ElasticService.MISSING_BUCKET_VALUE);
 
-        Aggregation orderAgg = classAgg.aggregations().get("rk_order");
+        Aggregation orderAgg = classAgg.aggregations().get(ElasticService.subAggName(2));
         assertThat(orderAgg).isNotNull();
         assertThat(orderAgg.terms().field()).isEqualTo("rk_order");
         assertThat(orderAgg.terms().size()).isEqualTo(50);
@@ -57,19 +68,19 @@ class ElasticServiceHierarchicalFacetTest {
         String[] levels = {"rk_kingdom", "rk_class", "rk_order"};
 
         StringTermsBucket diprotodontia = bucket("DIPROTODONTIA", 2, Map.of());
-        StringTermsBucket mammalia = bucket("MAMMALIA", 2, Map.of("rk_order", termsAgg(List.of(diprotodontia))));
+        StringTermsBucket mammalia = bucket("MAMMALIA", 2, Map.of(ElasticService.subAggName(2), termsAgg(List.of(diprotodontia))));
 
         StringTermsBucket coleoptera = bucket("COLEOPTERA", 1, Map.of());
-        StringTermsBucket insecta = bucket("INSECTA", 1, Map.of("rk_order", termsAgg(List.of(coleoptera))));
+        StringTermsBucket insecta = bucket("INSECTA", 1, Map.of(ElasticService.subAggName(2), termsAgg(List.of(coleoptera))));
 
         StringTermsBucket orphanOrder = bucket("ORPHANORDER", 3, Map.of());
         StringTermsBucket missingClass = bucket(
-                ElasticService.MISSING_BUCKET_VALUE, 3, Map.of("rk_order", termsAgg(List.of(orphanOrder))));
+                ElasticService.MISSING_BUCKET_VALUE, 3, Map.of(ElasticService.subAggName(2), termsAgg(List.of(orphanOrder))));
 
         StringTermsBucket animalia = bucket(
-                "ANIMALIA", 6, Map.of("rk_class", termsAgg(List.of(mammalia, insecta, missingClass))));
+                "ANIMALIA", 6, Map.of(ElasticService.subAggName(1), termsAgg(List.of(mammalia, insecta, missingClass))));
 
-        StringTermsBucket viruses = bucket("Viruses", 1, Map.of("rk_class", termsAgg(List.of())));
+        StringTermsBucket viruses = bucket("Viruses", 1, Map.of(ElasticService.subAggName(1), termsAgg(List.of())));
 
         List<Map<String, Object>> result = ElasticService.extractHierarchicalFacetItems(
                 List.of(animalia, viruses), levels, 0, null);
@@ -106,6 +117,22 @@ class ElasticServiceHierarchicalFacetTest {
         Map<String, Object> virusesItem = result.get(1);
         assertThat(virusesItem.get("label")).isEqualTo("Viruses");
         assertThat(virusesItem).doesNotContainKey("children");
+    }
+
+    @Test
+    void extractHierarchicalFacetItems_ignoresNonStringChildAggregationsWithoutThrowing() {
+        String[] levels = {"rk_kingdom", "rankID"};
+        Aggregate longTerms = Aggregate.of(a -> a.lterms(LongTermsAggregate.of(lt -> lt
+                .docCountErrorUpperBound(0L)
+                .sumOtherDocCount(0L)
+                .buckets(b -> b.array(List.of())))));
+        StringTermsBucket animalia = bucket("ANIMALIA", 5, Map.of(ElasticService.subAggName(1), longTerms));
+
+        List<Map<String, Object>> result = ElasticService.extractHierarchicalFacetItems(
+                List.of(animalia), levels, 0, null);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0)).doesNotContainKey("children");
     }
 
     private static StringTermsBucket bucket(String key, long docCount, Map<String, Aggregate> subAggs) {
