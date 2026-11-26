@@ -292,7 +292,8 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
                 .findFirst()
                 .orElseThrow();
         assertThat(((Number) orphanOrder.get("count")).intValue()).isEqualTo(1);
-        assertThat(orphanOrder.get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_order:\"ORPHANORDER\"");
+        assertThat(orphanOrder.get("fq"))
+                .isEqualTo("rk_kingdom:\"ANIMALIA\" AND -rk_class:* AND rk_order:\"ORPHANORDER\"");
 
         // Plantae (1) -> Equisetopsida (1) -> Fabales (1)
         Map<String, Object> plantae = kingdoms.get(1);

@@ -44,20 +44,20 @@ class ElasticServiceHierarchicalFacetTest {
 
         assertThat(root.terms()).isNotNull();
         assertThat(root.terms().field()).isEqualTo("rk_kingdom");
-        assertThat(root.terms().size()).isEqualTo(100);
+        assertThat(root.terms().size()).isEqualTo(20);
         assertThat(root.terms().missing()).isNull();
 
         Aggregation classAgg = root.aggregations().get(ElasticService.subAggName(1));
         assertThat(classAgg).isNotNull();
         assertThat(classAgg.terms().field()).isEqualTo("rk_class");
-        assertThat(classAgg.terms().size()).isEqualTo(50);
+        assertThat(classAgg.terms().size()).isEqualTo(15);
         assertThat(classAgg.terms().missing()).isNotNull();
         assertThat(classAgg.terms().missing().stringValue()).isEqualTo(ElasticService.MISSING_BUCKET_VALUE);
 
         Aggregation orderAgg = classAgg.aggregations().get(ElasticService.subAggName(2));
         assertThat(orderAgg).isNotNull();
         assertThat(orderAgg.terms().field()).isEqualTo("rk_order");
-        assertThat(orderAgg.terms().size()).isEqualTo(50);
+        assertThat(orderAgg.terms().size()).isEqualTo(10);
         assertThat(orderAgg.terms().missing()).isNull();
         assertThat(orderAgg.aggregations()).isEmpty();
     }
@@ -98,7 +98,8 @@ class ElasticServiceHierarchicalFacetTest {
         // Promoted ORPHANORDER (count 3) should be sorted ahead of MAMMALIA (2) and INSECTA (1)
         assertThat(animaliaChildren.get(0).get("label")).isEqualTo("ORPHANORDER");
         assertThat(animaliaChildren.get(0).get("count")).isEqualTo(3L);
-        assertThat(animaliaChildren.get(0).get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_order:\"ORPHANORDER\"");
+        assertThat(animaliaChildren.get(0).get("fq"))
+                .isEqualTo("rk_kingdom:\"ANIMALIA\" AND -rk_class:* AND rk_order:\"ORPHANORDER\"");
 
         assertThat(animaliaChildren.get(1).get("label")).isEqualTo("MAMMALIA");
         assertThat(animaliaChildren.get(1).get("count")).isEqualTo(2L);

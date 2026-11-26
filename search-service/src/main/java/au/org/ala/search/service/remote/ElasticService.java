@@ -2136,6 +2136,7 @@ public class ElasticService {
 
     static final String MISSING_BUCKET_VALUE = "__MISSING__";
     static final int MAX_HIERARCHICAL_FACET_DEPTH = 4;
+    static final int[] HIERARCHICAL_FACET_SIZES = {20, 15, 10};
 
     private record HierarchicalFacetSpec(String fieldName, String[] levels) {}
 
@@ -2162,7 +2163,7 @@ public class ElasticService {
 
     static Aggregation buildHierarchicalAggregation(String[] levels, int depth) {
         String field = levels[depth];
-        int size = depth == 0 ? 100 : 50;
+        int size = HIERARCHICAL_FACET_SIZES[Math.min(depth, HIERARCHICAL_FACET_SIZES.length - 1)];
         boolean isIntermediate = depth > 0 && depth < levels.length - 1;
         Aggregation childAgg = depth < levels.length - 1
                 ? buildHierarchicalAggregation(levels, depth + 1)
@@ -2207,7 +2208,8 @@ public class ElasticService {
                 if (hasChildLevel) {
                     List<StringTermsBucket> childBuckets = extractChildBuckets(bucket, depth + 1);
                     if (!childBuckets.isEmpty()) {
-                        List<Map<String, Object>> promoted = extractHierarchicalFacetItems(childBuckets, levels, depth + 1, parentFq);
+                        String missingFq = parentFq == null ? "-" + field + ":*" : parentFq + " AND -" + field + ":*";
+                        List<Map<String, Object>> promoted = extractHierarchicalFacetItems(childBuckets, levels, depth + 1, missingFq);
                         if (!promoted.isEmpty()) {
                             items.addAll(promoted);
                             promotedMissing = true;

@@ -61,7 +61,7 @@ describe('TaxonomicTree helpers', () => {
                         // Promoted order when intermediate rk_class is missing
                         label: 'ORPHANORDER',
                         count: 1,
-                        fq: 'rk_kingdom:"ANIMALIA" AND rk_order:"ORPHANORDER"',
+                        fq: 'rk_kingdom:"ANIMALIA" AND -rk_class:* AND rk_order:"ORPHANORDER"',
                     },
                 ],
             },
@@ -117,7 +117,7 @@ describe('TaxonomicTree helpers', () => {
                 depth: 2,
             },
             {
-                fq: 'rk_kingdom:"ANIMALIA" AND rk_order:"ORPHANORDER"',
+                fq: 'rk_kingdom:"ANIMALIA" AND -rk_class:* AND rk_order:"ORPHANORDER"',
                 label: 'Orphanorder',
                 i18nKey: 'taxonomy.order.orphanorder',
                 count: 1,
