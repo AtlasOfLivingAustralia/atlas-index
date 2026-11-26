@@ -182,10 +182,30 @@
             "fieldResult": [{ "label": "Plants", "count": 13 }]
         },
         {
-            "fieldName": "taxonomicStatus",
+            "fieldName": "rk_kingdom>rk_class>rk_order",
             "fieldResult": [
-                { "label": "accepted", "count": 12 },
-                { "label": "synonym", "count": 1 }
+                {
+                    "label": "Plantae",
+                    "count": 13,
+                    "fieldValue": "Plantae",
+                    "fq": "rk_kingdom:\"Plantae\"",
+                    "children": [
+                        {
+                            "label": "Equisetopsida",
+                            "count": 13,
+                            "fieldValue": "Equisetopsida",
+                            "fq": "rk_kingdom:\"Plantae\" AND rk_class:\"Equisetopsida\"",
+                            "children": [
+                                {
+                                    "label": "Fabales",
+                                    "count": 13,
+                                    "fieldValue": "Fabales",
+                                    "fq": "rk_kingdom:\"Plantae\" AND rk_class:\"Equisetopsida\" AND rk_order:\"Fabales\""
+                                }
+                            ]
+                        }
+                    ]
+                }
             ]
         },
         {

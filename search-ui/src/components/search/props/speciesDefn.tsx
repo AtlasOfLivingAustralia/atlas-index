@@ -9,6 +9,7 @@ import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} 
 
 import speciesGroupMap from '../../../config/speciesGroupsMap.json';
 import capitalise from '../../../helpers/Capitalise.ts';
+import {flattenTaxonomicTree, TaxonomicFacetNode} from '../../../helpers/TaxonomicTree.ts';
 import missingImage from '../../../image/missing-image.png';
 
 import '../../../css/nameFormatting.css';
@@ -231,9 +232,21 @@ export const speciesDefn: GenericViewProps = {
                 }
             },
         },
-        taxonomicStatus: {
-            label: 'Taxonomic status',
+        'rk_kingdom>rk_class>rk_order': {
+            label: 'Taxonomic tree',
             order: 5,
+            parseFacetFn: (facet: { fieldResult?: TaxonomicFacetNode[] }, facetList: any[]) => {
+                const items = facet.fieldResult ? flattenTaxonomicTree(facet.fieldResult) : [];
+                if (items.length > 0) {
+                    facetList.push({
+                        name: 'Taxonomic tree',
+                        i18nKey: 'facet.taxonomicTree',
+                        items,
+                        order: 5,
+                        lessNumber: 10,
+                    });
+                }
+            },
         },
         rank: {
             label: 'Taxonomic rank', // redundant, this is overridden below
@@ -262,7 +275,7 @@ export const speciesDefn: GenericViewProps = {
                     facetList.push({
                         name: 'Taxonomic rank',
                         items: items,
-                        order: 5,
+                        order: 6,
                     });
                 }
             },

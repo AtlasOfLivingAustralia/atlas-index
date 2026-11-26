@@ -91,5 +91,15 @@
 
     "names.aboutScientificNames.title": "About scientific names",
     "names.aboutScientificNames.content": "For more information on the taxonomic status that the ALA has assigned to a name and the rationale behind it see <a>An Introduction to Taxonomy</a>.",
-    "names.aboutScientificNames.linkUrl": "https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy"
+    "names.aboutScientificNames.linkUrl": "https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy",
+
+    "facet.taxonomicTree": "Taxonomic tree",
+    "taxonomy.animalia": "Animalia",
+    "taxonomy.plantae": "Plantae",
+    "taxonomy.fungi": "Fungi",
+    "taxonomy.bacteria": "Bacteria",
+    "taxonomy.viruses": "Viruses",
+    "taxonomy.chromista": "Chromista",
+    "taxonomy.protista": "Protista",
+    "taxonomy.archaea": "Archaea"
 }

@@ -1,0 +1,121 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+package au.org.ala.search.service.remote;
+
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class ElasticServiceHierarchicalFacetTest {
+
+    @Test
+    void hierarchicalAggName_producesElasticsearchSafeName() {
+        String aggName = ElasticService.hierarchicalAggName(new String[]{"rk_kingdom", "rk_class", "rk_order"});
+        assertThat(aggName).isEqualTo("hier_rk_kingdom__rk_class__rk_order");
+        assertThat(aggName).doesNotContain(">", "[", "]");
+    }
+
+    @Test
+    void buildHierarchicalAggregation_constructsThreeLevelNestedTermsWithIntermediateMissingBucket() {
+        String[] levels = {"rk_kingdom", "rk_class", "rk_order"};
+        Aggregation root = ElasticService.buildHierarchicalAggregation(levels, 0);
+
+        assertThat(root.terms()).isNotNull();
+        assertThat(root.terms().field()).isEqualTo("rk_kingdom");
+        assertThat(root.terms().size()).isEqualTo(100);
+        assertThat(root.terms().missing()).isNull();
+
+        Aggregation classAgg = root.aggregations().get("rk_class");
+        assertThat(classAgg).isNotNull();
+        assertThat(classAgg.terms().field()).isEqualTo("rk_class");
+        assertThat(classAgg.terms().size()).isEqualTo(50);
+        assertThat(classAgg.terms().missing()).isNotNull();
+        assertThat(classAgg.terms().missing().stringValue()).isEqualTo(ElasticService.MISSING_BUCKET_VALUE);
+
+        Aggregation orderAgg = classAgg.aggregations().get("rk_order");
+        assertThat(orderAgg).isNotNull();
+        assertThat(orderAgg.terms().field()).isEqualTo("rk_order");
+        assertThat(orderAgg.terms().size()).isEqualTo(50);
+        assertThat(orderAgg.terms().missing()).isNull();
+        assertThat(orderAgg.aggregations()).isEmpty();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void extractHierarchicalFacetItems_buildsNestedTreeAndPromotesMissingIntermediateRankInCountOrder() {
+        String[] levels = {"rk_kingdom", "rk_class", "rk_order"};
+
+        StringTermsBucket diprotodontia = bucket("DIPROTODONTIA", 2, Map.of());
+        StringTermsBucket mammalia = bucket("MAMMALIA", 2, Map.of("rk_order", termsAgg(List.of(diprotodontia))));
+
+        StringTermsBucket coleoptera = bucket("COLEOPTERA", 1, Map.of());
+        StringTermsBucket insecta = bucket("INSECTA", 1, Map.of("rk_order", termsAgg(List.of(coleoptera))));
+
+        StringTermsBucket orphanOrder = bucket("ORPHANORDER", 3, Map.of());
+        StringTermsBucket missingClass = bucket(
+                ElasticService.MISSING_BUCKET_VALUE, 3, Map.of("rk_order", termsAgg(List.of(orphanOrder))));
+
+        StringTermsBucket animalia = bucket(
+                "ANIMALIA", 6, Map.of("rk_class", termsAgg(List.of(mammalia, insecta, missingClass))));
+
+        StringTermsBucket viruses = bucket("Viruses", 1, Map.of("rk_class", termsAgg(List.of())));
+
+        List<Map<String, Object>> result = ElasticService.extractHierarchicalFacetItems(
+                List.of(animalia, viruses), levels, 0, null);
+
+        assertThat(result).hasSize(2);
+
+        Map<String, Object> animaliaItem = result.get(0);
+        assertThat(animaliaItem.get("label")).isEqualTo("ANIMALIA");
+        assertThat(animaliaItem.get("count")).isEqualTo(6L);
+        assertThat(animaliaItem.get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\"");
+
+        List<Map<String, Object>> animaliaChildren = (List<Map<String, Object>>) animaliaItem.get("children");
+        assertThat(animaliaChildren).hasSize(3);
+
+        // Promoted ORPHANORDER (count 3) should be sorted ahead of MAMMALIA (2) and INSECTA (1)
+        assertThat(animaliaChildren.get(0).get("label")).isEqualTo("ORPHANORDER");
+        assertThat(animaliaChildren.get(0).get("count")).isEqualTo(3L);
+        assertThat(animaliaChildren.get(0).get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_order:\"ORPHANORDER\"");
+
+        assertThat(animaliaChildren.get(1).get("label")).isEqualTo("MAMMALIA");
+        assertThat(animaliaChildren.get(1).get("count")).isEqualTo(2L);
+        assertThat(animaliaChildren.get(1).get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_class:\"MAMMALIA\"");
+
+        List<Map<String, Object>> mammaliaChildren = (List<Map<String, Object>>) animaliaChildren.get(1).get("children");
+        assertThat(mammaliaChildren).hasSize(1);
+        assertThat(mammaliaChildren.get(0).get("label")).isEqualTo("DIPROTODONTIA");
+        assertThat(mammaliaChildren.get(0).get("fq"))
+                .isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_class:\"MAMMALIA\" AND rk_order:\"DIPROTODONTIA\"");
+
+        assertThat(animaliaChildren.get(2).get("label")).isEqualTo("INSECTA");
+        assertThat(animaliaChildren.get(2).get("count")).isEqualTo(1L);
+
+        // Viruses has no non-empty children, so "children" key should be omitted
+        Map<String, Object> virusesItem = result.get(1);
+        assertThat(virusesItem.get("label")).isEqualTo("Viruses");
+        assertThat(virusesItem).doesNotContainKey("children");
+    }
+
+    private static StringTermsBucket bucket(String key, long docCount, Map<String, Aggregate> subAggs) {
+        return StringTermsBucket.of(b -> b.key(key).docCount(docCount).aggregations(subAggs));
+    }
+
+    private static Aggregate termsAgg(List<StringTermsBucket> buckets) {
+        return Aggregate.of(a -> a.sterms(StringTermsAggregate.of(st -> st
+                .docCountErrorUpperBound(0L)
+                .sumOtherDocCount(0L)
+                .buckets(b -> b.array(buckets)))));
+    }
+}

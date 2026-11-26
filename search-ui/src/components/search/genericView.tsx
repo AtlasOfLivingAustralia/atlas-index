@@ -7,6 +7,7 @@
 import {CheckDisabledIcon, CheckedIcon, CheckIcon, FontAwesomeIconLite, ListIcon, Pagination, TileIcon,} from '@ala/common-ui';
 import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import React, {useEffect, useState} from 'react';
+import {useIntl} from 'react-intl';
 import {useNavigate} from 'react-router-dom';
 import {GenericViewProps} from '../../api/sources/model.ts';
 
@@ -55,6 +56,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
     const [showRefineDialog, setShowRefineDialog] = useState(false);
 
     const navigate = useNavigate();
+    const intl = useIntl();
     const pageSize = 12;
     const deepPagingMaxPage = Math.floor(10000 / 12);
 
@@ -95,8 +97,8 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
         const thisPage = overrides?.page !== undefined ? overrides.page : page;
         const thisFacetFqs = overrides?.facetFqs !== undefined ? overrides.facetFqs : facetFqs;
         const url = import.meta.env.VITE_APP_API_URL + '/v2/search?q=' + encodeURIComponent(queryString as string) +
-            '&facets=' + Object.keys(props.facetDefinitions).join(',') +
-            (props.customFacets ? ',' + props.customFacets.join(',') : '') +
+            '&facets=' + Object.keys(props.facetDefinitions).map(encodeURIComponent).join(',') +
+            (props.customFacets ? ',' + props.customFacets.map(encodeURIComponent).join(',') : '') +
             (thisFacetFqs.length > 0 ? '&fq=' + thisFacetFqs.map((fq) => encodeURIComponent(fq)).join('&fq=') : '') + // the 'drill down' does not update the facets section
             '&pageSize=' + pageSize + '&fq=' + encodeURIComponent(props.fq) + '&page=' + thisPage + thisSortValue;
 
@@ -297,7 +299,9 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                 {!facetLoading && !customFacetLoading && [...facets, ...customFacetData].sort((a, b) => a.order - b.order).map((facet: any, index: number) => (
                     <div key={index}>
                         <span className={classes.refineSectionTitle} style={{marginTop: '15px', marginBottom: '10px'}}>
-                            {facet.name}
+                            {facet.i18nKey
+                                ? intl.formatMessage({id: facet.i18nKey, defaultMessage: facet.name})
+                                : facet.name}
                         </span>
                         {facet.items && facet.items.length === 0 && <span style={{ fontStyle: 'italic'}}>Not supplied</span>}
                         {facet.items && facet.items.map((item: any, index: number) => (
@@ -316,7 +320,9 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                                         {!item.selected && item.count == 0 && (<CheckDisabledIcon size="16"/>)}
                                         {item.selected && (<CheckedIcon size="16"/>)}
                                         <span className={classes.refineItem}>
-                                            {item.label} ({item.count})
+                                            {item.i18nKey
+                                                ? intl.formatMessage({id: item.i18nKey, defaultMessage: item.label})
+                                                : item.label} ({item.count})
                                         </span>
                                     </div>
                                 </>)}
