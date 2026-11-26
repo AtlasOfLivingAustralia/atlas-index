@@ -18,6 +18,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -140,18 +141,51 @@ class TaxonUpdateRunnerTest {
     }
 
     @Test
+    void buildOccurrenceCountCache_sumsHierarchicalLftRangesAndOmitsZero(@TempDir Path tempDir) throws Exception {
+        writeLeftRightCsv(tempDir,
+                "genus1,100,200\n"
+                        + "species1,110,110\n"
+                        + "species2,150,150\n"
+                        + "emptySpecies,250,260\n"
+                        + "badRow,,300\n");
+        when(biocacheApiService.getLftCounts()).thenReturn(Map.of(100, 5L, 110, 30L, 150, 12L, 300, 99L));
+
+        boolean ok = runner.buildOccurrenceCountCache();
+
+        assertThat(ok).isTrue();
+        assertThat(runner.getOccurrenceCountCache()).containsExactlyInAnyOrderEntriesOf(Map.of(
+                "genus1", 47,
+                "species1", 30,
+                "species2", 12
+        ));
+    }
+
+    @Test
+    void buildOccurrenceCountCache_biocacheError_returnsFalse(@TempDir Path tempDir) throws Exception {
+        writeLeftRightCsv(tempDir, "guid1,100,200\n");
+        when(biocacheApiService.getLftCounts()).thenReturn(null);
+
+        assertThat(runner.buildOccurrenceCountCache()).isFalse();
+        assertThat(runner.getOccurrenceCountCache()).isEmpty();
+    }
+
+    @Test
     void clearCache_emptiesAllMaps(@TempDir Path tempDir) throws Exception {
         writeLeftRightCsv(tempDir, "guid1,100,200\n");
         when(biocacheApiService.getFacet(any(), eq((String) null), eq("lft"))).thenReturn(List.of("100"));
         when(biocacheApiService.getFacet(any(), eq("pref1"), eq("lft"))).thenReturn(List.of("100"));
         when(biocacheApiService.queryImages(any(), any())).thenReturn(new String[]{"image1"});
+        when(biocacheApiService.getLftCounts()).thenReturn(Map.of(100, 42L));
         runner.buildImageCache();
+        runner.buildOccurrenceCountCache();
         assertThat(runner.getImageCache()).isNotEmpty();
+        assertThat(runner.getOccurrenceCountCache()).isNotEmpty();
 
         runner.clearCache();
 
         assertThat(runner.getImageCache()).isEmpty();
         assertThat(runner.getLftImageCache()).isEmpty();
+        assertThat(runner.getOccurrenceCountCache()).isEmpty();
         assertThat(runner.getUpdatingImageCounter().get()).isEqualTo(0);
     }
 }

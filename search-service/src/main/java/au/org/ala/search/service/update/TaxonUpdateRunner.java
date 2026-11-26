@@ -50,6 +50,8 @@ public class TaxonUpdateRunner {
     @Getter
     private final Map<String, String> lftImageCache = new ConcurrentHashMap<>();
     @Getter
+    private final Map<String, Integer> occurrenceCountCache = new ConcurrentHashMap<>();
+    @Getter
     private final AtomicInteger updatingImageCounter = new AtomicInteger(0);
 
     @Value("${images.preferred.fqs}")
@@ -73,17 +75,10 @@ public class TaxonUpdateRunner {
         try {
             List<UpdateQuery> updates = new ArrayList<>();
 
-            // get counts
-            List<String> buffer = new ArrayList<>();
-            for (Hit<SearchItemIndex> item : list) {
-                buffer.add((item.fields().get("guid").toJson().asJsonArray().getJsonString(0).getString()));
-            }
-            Map<String, Integer> counts = new HashMap<>(biocacheApiService.counts(buffer));
-
             // construct update object
             for (Hit<SearchItemIndex> item : list) {
                 String guid = item.fields().get("guid").toJson().asJsonArray().getJsonString(0).getString();
-                Integer count = counts.get(guid);
+                Integer count = occurrenceCountCache.get(guid);
                 Integer storedValue = toInt(item.fields().getOrDefault("occurrenceCount", null));
                 String storedImage = toString(item.fields().getOrDefault("image", null));
 
@@ -273,9 +268,90 @@ public class TaxonUpdateRunner {
         return lftImageCache.get(id);
     }
 
+    /**
+     * Populate {@link #occurrenceCountCache} by fetching {@code lft} facet counts from biocache-ws
+     * and summing counts across each taxon's {@code [left, right]} interval from {@code leftRightCsvPath}.
+     *
+     * <p>Biocache expands {@code q=lsid:{guid}} into {@code lft:[left TO right]}, so summing the
+     * {@code lft} facet across each taxon's interval produces the exact hierarchical count for every rank.
+     *
+     * @return {@code true} if counts were fetched and cached, {@code false} if fetching or reading failed
+     */
+    public boolean buildOccurrenceCountCache() {
+        Map<Integer, Long> lftCounts = biocacheApiService.getLftCounts();
+        if (lftCounts == null) {
+            log.error("Failed to fetch biocache lft counts");
+            return false;
+        }
+
+        List<Map.Entry<Integer, Long>> sorted = new ArrayList<>(lftCounts.entrySet());
+        sorted.sort(Comparator.comparingInt(Map.Entry::getKey));
+
+        int n = sorted.size();
+        int[] lftValues = new int[n];
+        long[] prefixSums = new long[n + 1];
+        for (int i = 0; i < n; i++) {
+            lftValues[i] = sorted.get(i).getKey();
+            prefixSums[i + 1] = prefixSums[i] + sorted.get(i).getValue();
+        }
+
+        occurrenceCountCache.clear();
+        try (CSVReader reader = new CSVReader(new File(leftRightCsvPath), "UTF-8", ",", '"', 0)) {
+            while (reader.hasNext()) {
+                String[] row = reader.next();
+                if (row.length < 3 || StringUtils.isBlank(row[0]) || StringUtils.isBlank(row[1]) || StringUtils.isBlank(row[2])) {
+                    continue;
+                }
+                try {
+                    int left = Integer.parseInt(row[1].trim());
+                    int right = Integer.parseInt(row[2].trim());
+                    if (left > right) {
+                        continue;
+                    }
+                    int startIdx = lowerBound(lftValues, left);
+                    int endIdx = upperBound(lftValues, right);
+                    long sum = prefixSums[endIdx] - prefixSums[startIdx];
+                    if (sum > 0) {
+                        occurrenceCountCache.put(row[0].trim(), (int) Math.min(sum, Integer.MAX_VALUE));
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to import dwca.extract.leftRightCsvPath:{}, {}", leftRightCsvPath, e.getMessage(), e);
+            return false;
+        }
+
+        logService.log(taskType, "Cached occurrence counts for " + occurrenceCountCache.size() + " taxa");
+        return true;
+    }
+
+    /** First index where arr[idx] >= target, or arr.length if none. */
+    private static int lowerBound(int[] arr, int target) {
+        int lo = 0, hi = arr.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (arr[mid] < target) lo = mid + 1;
+            else hi = mid;
+        }
+        return lo;
+    }
+
+    /** First index where arr[idx] > target, or arr.length if none. */
+    private static int upperBound(int[] arr, int target) {
+        int lo = 0, hi = arr.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (arr[mid] <= target) lo = mid + 1;
+            else hi = mid;
+        }
+        return lo;
+    }
+
     public void clearCache() {
         imageCache.clear();
         lftImageCache.clear();
+        occurrenceCountCache.clear();
         overriddenHiddenImages.clear();
         overriddenImages.clear();
         updatingImageCounter.set(0);
