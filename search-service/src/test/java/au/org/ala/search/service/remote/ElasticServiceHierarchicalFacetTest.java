@@ -6,6 +6,7 @@
 
 package au.org.ala.search.service.remote;
 
+import au.org.ala.search.model.dto.IndexedField;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
@@ -19,6 +20,15 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ElasticServiceHierarchicalFacetTest {
+
+    @Test
+    void isKeywordField_acceptsOnlyIndexedStringFields() {
+        assertThat(ElasticService.isKeywordField(new IndexedField("rk_kingdom", "string", true, true, null))).isTrue();
+        assertThat(ElasticService.isKeywordField(new IndexedField("rankID", "int", true, true, null))).isFalse();
+        assertThat(ElasticService.isKeywordField(new IndexedField("description", "string", false, true, null))).isFalse();
+        assertThat(ElasticService.isKeywordField(new IndexedField("hasIekName", "boolean", true, true, null))).isFalse();
+        assertThat(ElasticService.isKeywordField(null)).isFalse();
+    }
 
     @Test
     void hierarchicalAggName_producesElasticsearchSafeName() {

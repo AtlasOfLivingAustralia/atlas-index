@@ -91,6 +91,7 @@ public class QueryParserUtil {
         List<Boolean> opNegateStack = new ArrayList<>();
 
         boolean inString = false;
+        boolean escaped = false;
         boolean isSingleValue = false;
         int inBracket = 0;
         String prevToken = null;
@@ -107,20 +108,22 @@ public class QueryParserUtil {
                 }
                 currentTerm.value += token;
             } else if (inString) {
-                if ("\"".equals(token) && "\\".equals(prevToken)) {
+                if (escaped) {
                     currentString += token;
+                    escaped = false;
+                } else if ("\\".equals(token)) {
+                    escaped = true;
                 } else if ("\"".equals(token)) {
                     inString = false;
                     currentTerm.value = currentString;
                     currentOp.terms.add(currentTerm);
                     currentTerm = new Term();
-                } else if ("\\".equals(token)) {
-                    // do nothing for this escape character
                 } else {
                     currentString += token;
                 }
             } else if ("\"".equals(token)) {
                 inString = true;
+                escaped = false;
                 currentString = "";
             } else if ("(".equals(token)) {
                 // start new op

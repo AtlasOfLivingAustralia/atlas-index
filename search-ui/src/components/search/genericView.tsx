@@ -166,7 +166,13 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                         let facetCopy = facets.slice();
                         facetCopy.forEach((existingFacet: any) => {
                             var newFacet = facetList.find((f: any) => f.name == existingFacet.name);
-                            if (newFacet) {
+                            if (existingFacet.mergeItemsFn) {
+                                existingFacet.items = existingFacet.mergeItemsFn(
+                                    existingFacet.items,
+                                    newFacet ? newFacet.items : [],
+                                    thisFacetFqs
+                                );
+                            } else if (newFacet) {
                                 existingFacet.items.forEach((existingItem: any) => {
                                         var newItem = newFacet.items.find((i: any) => i.fq == existingItem.fq);
                                         if (newItem) {
@@ -314,7 +320,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
                                              marginLeft: `${22 * item.depth}px`,
                                          }}
                                          onClick={() => {
-                                             item.count > 0 && toggleItem(item);
+                                             (item.count > 0 || item.selected) && toggleItem(item);
                                          }}>
                                         {!item.selected && item.count > 0 && (<CheckIcon size="16"/>)}
                                         {!item.selected && item.count == 0 && (<CheckDisabledIcon size="16"/>)}

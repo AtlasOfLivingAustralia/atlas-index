@@ -18,6 +18,7 @@ export interface TaxonomicTreeItem {
     i18nKey: string;
     count: number;
     depth: number;
+    selected?: boolean;
 }
 
 export function formatTaxonomicLabel(raw: string): string {
@@ -66,4 +67,56 @@ export function flattenTaxonomicTree(nodes: TaxonomicFacetNode[]): TaxonomicTree
     const out: TaxonomicTreeItem[] = [];
     collectTaxonomicNodes(nodes, 0, out);
     return out;
+}
+
+export function mergeTaxonomicTreeItems(
+    existingItems: TaxonomicTreeItem[],
+    newItems: TaxonomicTreeItem[],
+    selectedFqs: string[]
+): TaxonomicTreeItem[] {
+    const merged: TaxonomicTreeItem[] = newItems.map((item) => ({
+        ...item,
+        selected: selectedFqs.includes(item.fq),
+    }));
+    const presentFqs = new Set(merged.map((item) => item.fq));
+    const ancestorStack: TaxonomicTreeItem[] = [];
+
+    for (const item of existingItems) {
+        ancestorStack.length = item.depth;
+        ancestorStack[item.depth] = item;
+
+        if (!selectedFqs.includes(item.fq) || presentFqs.has(item.fq)) {
+            continue;
+        }
+
+        for (let d = 0; d <= item.depth; d++) {
+            const node = ancestorStack[d];
+            if (!node || presentFqs.has(node.fq)) {
+                continue;
+            }
+            const preserved: TaxonomicTreeItem = {
+                ...node,
+                count: 0,
+                selected: selectedFqs.includes(node.fq),
+            };
+            const parent = d > 0 ? ancestorStack[d - 1] : undefined;
+            if (parent) {
+                const parentIdx = merged.findIndex((m) => m.fq === parent.fq);
+                if (parentIdx >= 0) {
+                    let insertIdx = parentIdx + 1;
+                    while (insertIdx < merged.length && merged[insertIdx].depth > parent.depth) {
+                        insertIdx++;
+                    }
+                    merged.splice(insertIdx, 0, preserved);
+                } else {
+                    merged.push(preserved);
+                }
+            } else {
+                merged.push(preserved);
+            }
+            presentFqs.add(node.fq);
+        }
+    }
+
+    return merged;
 }

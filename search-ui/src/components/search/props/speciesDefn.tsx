@@ -9,7 +9,11 @@ import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} 
 
 import speciesGroupMap from '../../../config/speciesGroupsMap.json';
 import capitalise from '../../../helpers/Capitalise.ts';
-import {flattenTaxonomicTree, TaxonomicFacetNode} from '../../../helpers/TaxonomicTree.ts';
+import {
+    flattenTaxonomicTree,
+    mergeTaxonomicTreeItems,
+    TaxonomicFacetNode,
+} from '../../../helpers/TaxonomicTree.ts';
 import missingImage from '../../../image/missing-image.png';
 
 import '../../../css/nameFormatting.css';
@@ -244,6 +248,7 @@ export const speciesDefn: GenericViewProps = {
                         items,
                         order: 5,
                         lessNumber: 10,
+                        mergeItemsFn: mergeTaxonomicTreeItems,
                     });
                 }
             },

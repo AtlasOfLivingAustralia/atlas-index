@@ -80,6 +80,7 @@ public class ElasticService {
     public Map<String, SearchItemIndex> datasetMap;
     List<IndexedField> indexFieldsList = null;
     Set<String> validFieldNames = null;
+    Set<String> validKeywordFieldNames = null;
     @Value("${elastic.index}")
     private String elasticIndex;
     @Value("${elastic.pageSize}")
@@ -583,9 +584,25 @@ public class ElasticService {
 
             indexFieldsList = result;
             validFieldNames = result.stream().map(IndexedField::getName).collect(Collectors.toSet());
+            validKeywordFieldNames = result.stream()
+                    .filter(ElasticService::isKeywordField)
+                    .map(IndexedField::getName)
+                    .collect(Collectors.toSet());
         }
 
         return indexFieldsList;
+    }
+
+    static boolean isKeywordField(IndexedField field) {
+        return field != null && "string".equals(field.getDataType()) && Boolean.TRUE.equals(field.getIndexed());
+    }
+
+    public boolean isValidKeywordField(String fieldName) {
+        if (indexFieldsList == null) {
+            indexFields(true);
+        }
+
+        return validKeywordFieldNames != null && validKeywordFieldNames.contains(fieldName);
     }
 
     public Set<String> validFields(boolean forceUpdate) {
@@ -2066,9 +2083,9 @@ public class ElasticService {
                         log.warn("Ignoring hierarchical facet '{}' with invalid depth {}", facet, levels.length);
                         continue;
                     }
-                    boolean allValid = Arrays.stream(levels).allMatch(this::isValidField);
+                    boolean allValid = Arrays.stream(levels).allMatch(this::isValidKeywordField);
                     if (!allValid) {
-                        log.warn("Ignoring hierarchical facet '{}' containing invalid field name", facet);
+                        log.warn("Ignoring hierarchical facet '{}' containing unsupported or non-keyword field name", facet);
                         continue;
                     }
                     String aggName = hierarchicalAggName(levels);
@@ -2157,7 +2174,7 @@ public class ElasticService {
         return "level_" + depth;
     }
 
-    static String escapeFqValue(String value) {
+    public static String escapeFqValue(String value) {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 

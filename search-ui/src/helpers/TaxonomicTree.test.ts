@@ -7,7 +7,9 @@
 import {
     flattenTaxonomicTree,
     formatTaxonomicLabel,
+    mergeTaxonomicTreeItems,
     TaxonomicFacetNode,
+    TaxonomicTreeItem,
 } from './TaxonomicTree.ts';
 
 describe('TaxonomicTree helpers', () => {
@@ -147,6 +149,47 @@ describe('TaxonomicTree helpers', () => {
                 count: 1,
                 depth: 0,
             },
+        ]);
+    });
+
+    it('merges newly returned nodes after filtering while preserving selected nodes and ancestors for undo', () => {
+        const initial: TaxonomicTreeItem[] = [
+            { fq: 'rk_kingdom:"ANIMALIA"', label: 'Animalia', i18nKey: 'taxonomy.kingdom.animalia', count: 100, depth: 0 },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"INSECTA"', label: 'Insecta', i18nKey: 'taxonomy.class.insecta', count: 80, depth: 1 },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"INSECTA" AND rk_order:"COLEOPTERA"', label: 'Coleoptera', i18nKey: 'taxonomy.order.coleoptera', count: 50, depth: 2 },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"MAMMALIA"', label: 'Mammalia', i18nKey: 'taxonomy.class.mammalia', count: 20, depth: 1 },
+        ];
+
+        // After filtering, a previously omitted order ("LEPIDOPTERA") is returned under Insecta,
+        // while the user's selected node ("Mammalia") dropped to 0 results.
+        const refreshed: TaxonomicTreeItem[] = [
+            { fq: 'rk_kingdom:"ANIMALIA"', label: 'Animalia', i18nKey: 'taxonomy.kingdom.animalia', count: 10, depth: 0 },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"INSECTA"', label: 'Insecta', i18nKey: 'taxonomy.class.insecta', count: 10, depth: 1 },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"INSECTA" AND rk_order:"LEPIDOPTERA"', label: 'Lepidoptera', i18nKey: 'taxonomy.order.lepidoptera', count: 10, depth: 2 },
+        ];
+
+        const selectedFqs = ['rk_kingdom:"ANIMALIA" AND rk_class:"MAMMALIA"'];
+        const merged = mergeTaxonomicTreeItems(initial, refreshed, selectedFqs);
+
+        expect(merged).toEqual([
+            { fq: 'rk_kingdom:"ANIMALIA"', label: 'Animalia', i18nKey: 'taxonomy.kingdom.animalia', count: 10, depth: 0, selected: false },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"INSECTA"', label: 'Insecta', i18nKey: 'taxonomy.class.insecta', count: 10, depth: 1, selected: false },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"INSECTA" AND rk_order:"LEPIDOPTERA"', label: 'Lepidoptera', i18nKey: 'taxonomy.order.lepidoptera', count: 10, depth: 2, selected: false },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"MAMMALIA"', label: 'Mammalia', i18nKey: 'taxonomy.class.mammalia', count: 0, depth: 1, selected: true },
+        ]);
+    });
+
+    it('preserves missing ancestor chain when a selected descendant disappears after filtering', () => {
+        const initial: TaxonomicTreeItem[] = [
+            { fq: 'rk_kingdom:"ANIMALIA"', label: 'Animalia', i18nKey: 'taxonomy.kingdom.animalia', count: 10, depth: 0 },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"MAMMALIA"', label: 'Mammalia', i18nKey: 'taxonomy.class.mammalia', count: 5, depth: 1 },
+        ];
+        const selectedFqs = ['rk_kingdom:"ANIMALIA" AND rk_class:"MAMMALIA"'];
+        const merged = mergeTaxonomicTreeItems(initial, [], selectedFqs);
+
+        expect(merged).toEqual([
+            { fq: 'rk_kingdom:"ANIMALIA"', label: 'Animalia', i18nKey: 'taxonomy.kingdom.animalia', count: 0, depth: 0, selected: false },
+            { fq: 'rk_kingdom:"ANIMALIA" AND rk_class:"MAMMALIA"', label: 'Mammalia', i18nKey: 'taxonomy.class.mammalia', count: 0, depth: 1, selected: true },
         ]);
     });
 });
