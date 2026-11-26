@@ -83,7 +83,7 @@ public class BiocacheApiService {
 
         Map firstFacet = (Map) facetResults.get(0);
         List fieldResult = firstFacet != null ? (List) firstFacet.get("fieldResult") : null;
-        if (fieldResult == null) {
+        if (fieldResult == null || fieldResult.isEmpty()) {
             if (confirmedZeroRecords) {
                 return result;
             }
