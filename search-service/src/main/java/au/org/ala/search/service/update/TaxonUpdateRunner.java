@@ -84,9 +84,8 @@ public class TaxonUpdateRunner {
 
                 Document doc = Document.create();
 
-                if ((count == null && storedValue != 0) /* test for delete */
-                        || (count != null && !count.equals(storedValue))) { /* test for update */
-                    doc.put("occurrenceCount", count);
+                if (count != null && !count.equals(storedValue)) {
+                    doc.put("occurrenceCount", count == 0 ? null : count);
                 }
 
                 updateImage(guid, storedImage, doc);
@@ -311,9 +310,7 @@ public class TaxonUpdateRunner {
                     int startIdx = lowerBound(lftValues, left);
                     int endIdx = upperBound(lftValues, right);
                     long sum = prefixSums[endIdx] - prefixSums[startIdx];
-                    if (sum > 0) {
-                        occurrenceCountCache.put(row[0].trim(), (int) Math.min(sum, Integer.MAX_VALUE));
-                    }
+                    occurrenceCountCache.put(row[0].trim(), (int) Math.min(sum, Integer.MAX_VALUE));
                 } catch (NumberFormatException ignored) {
                 }
             }

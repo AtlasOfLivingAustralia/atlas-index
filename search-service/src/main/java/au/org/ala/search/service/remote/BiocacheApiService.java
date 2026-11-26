@@ -62,15 +62,34 @@ public class BiocacheApiService {
 
         Map<Integer, Long> result = new HashMap<>();
         Map body = (Map) resp.get("resp");
-        List facetResults = body != null ? (List) body.get("facetResults") : null;
-        if (facetResults == null || facetResults.isEmpty()) {
-            log.warn("No lft facet results found for url: {}", url);
-            return result;
+        if (body == null) {
+            log.error("Empty body returned for biocache lft counts url: {}", url);
+            return null;
         }
 
-        List fieldResult = (List) ((Map) facetResults.get(0)).get("fieldResult");
+        Object totalRecordsObj = body.get("totalRecords");
+        boolean confirmedZeroRecords = totalRecordsObj instanceof Number && ((Number) totalRecordsObj).longValue() == 0L;
+
+        List facetResults = (List) body.get("facetResults");
+        if (facetResults == null || facetResults.isEmpty()) {
+            if (confirmedZeroRecords) {
+                log.warn("No lft facet results found (totalRecords=0) for url: {}", url);
+                return result;
+            }
+            log.error("Incomplete biocache lft counts response (missing facetResults, totalRecords={}) for url: {}",
+                    totalRecordsObj, url);
+            return null;
+        }
+
+        Map firstFacet = (Map) facetResults.get(0);
+        List fieldResult = firstFacet != null ? (List) firstFacet.get("fieldResult") : null;
         if (fieldResult == null) {
-            return result;
+            if (confirmedZeroRecords) {
+                return result;
+            }
+            log.error("Incomplete biocache lft counts response (missing fieldResult, totalRecords={}) for url: {}",
+                    totalRecordsObj, url);
+            return null;
         }
 
         for (Object item : fieldResult) {

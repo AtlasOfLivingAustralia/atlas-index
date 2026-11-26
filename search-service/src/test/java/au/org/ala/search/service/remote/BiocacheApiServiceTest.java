@@ -72,12 +72,39 @@ class BiocacheApiServiceTest {
         String expectedUrl = "https://biocache-ws.example.org/ws/occurrences/search?q=lft:*&facets=lft&pageSize=0&flimit=-1";
 
         when(webService.get(eq(expectedUrl), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
-                .thenReturn(Map.of("statusCode", 200, "resp", Map.of("facetResults", List.of())));
+                .thenReturn(Map.of("statusCode", 200, "resp", Map.of("totalRecords", 0, "facetResults", List.of())));
 
         Map<Integer, Long> result = service.getLftCounts();
 
         assertThat(result).isEmpty();
         verify(webService).get(eq(expectedUrl), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull());
+    }
+
+    @Test
+    void getLftCounts_positiveTotalRecordsWithoutFacets_returnsNull() {
+        String expectedUrl = "https://biocache-ws.example.org/ws/occurrences/search?q=lft:*"
+                + "&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&qualityProfile=ALA"
+                + "&facets=lft&pageSize=0&flimit=-1";
+
+        when(webService.get(eq(expectedUrl), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
+                .thenReturn(Map.of("statusCode", 200, "resp", Map.of("totalRecords", 100, "facetResults", List.of())));
+
+        assertThat(service.getLftCounts()).isNull();
+    }
+
+    @Test
+    void getLftCounts_missingFieldResultWithPositiveTotal_returnsNull() {
+        String expectedUrl = "https://biocache-ws.example.org/ws/occurrences/search?q=lft:*"
+                + "&fq=-occurrenceStatus%3Aabsent&fq=spatiallyValid%3Atrue&qualityProfile=ALA"
+                + "&facets=lft&pageSize=0&flimit=-1";
+
+        when(webService.get(eq(expectedUrl), isNull(), eq(ContentType.APPLICATION_JSON), eq(false), eq(false), isNull()))
+                .thenReturn(Map.of("statusCode", 200, "resp", Map.of(
+                        "totalRecords", 50,
+                        "facetResults", List.of(Map.of("fieldName", "lft"))
+                )));
+
+        assertThat(service.getLftCounts()).isNull();
     }
 
     @Test
