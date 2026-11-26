@@ -94,12 +94,12 @@
     "names.aboutScientificNames.linkUrl": "https://support.ala.org.au/support/solutions/articles/6000271098-an-introduction-to-taxonomy",
 
     "facet.taxonomicTree": "Taxonomic tree",
-    "taxonomy.animalia": "Animalia",
-    "taxonomy.plantae": "Plantae",
-    "taxonomy.fungi": "Fungi",
-    "taxonomy.bacteria": "Bacteria",
-    "taxonomy.viruses": "Viruses",
-    "taxonomy.chromista": "Chromista",
-    "taxonomy.protista": "Protista",
-    "taxonomy.archaea": "Archaea"
+    "taxonomy.kingdom.animalia": "Animalia",
+    "taxonomy.kingdom.plantae": "Plantae",
+    "taxonomy.kingdom.fungi": "Fungi",
+    "taxonomy.kingdom.bacteria": "Bacteria",
+    "taxonomy.kingdom.viruses": "Viruses",
+    "taxonomy.kingdom.chromista": "Chromista",
+    "taxonomy.kingdom.protista": "Protista",
+    "taxonomy.kingdom.archaea": "Archaea"
 }

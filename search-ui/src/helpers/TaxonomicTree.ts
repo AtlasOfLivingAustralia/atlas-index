@@ -30,6 +30,12 @@ export function formatTaxonomicLabel(raw: string): string {
     return raw;
 }
 
+function extractRankFromFq(fq: string): string | undefined {
+    const matches = [...fq.matchAll(/(?:^| AND )rk_([a-zA-Z0-9_]+):/g)];
+    const last = matches[matches.length - 1];
+    return last ? last[1].toLowerCase() : undefined;
+}
+
 function collectTaxonomicNodes(
     nodes: TaxonomicFacetNode[],
     depth: number,
@@ -37,10 +43,16 @@ function collectTaxonomicNodes(
 ): void {
     nodes.forEach((node) => {
         const rawLabel = node.label ?? '';
+        const rank = extractRankFromFq(node.fq);
+        const i18nKey = rawLabel
+            ? rank
+                ? `taxonomy.${rank}.${rawLabel.toLowerCase()}`
+                : 'taxonomy.' + rawLabel.toLowerCase()
+            : '';
         out.push({
             fq: node.fq,
             label: formatTaxonomicLabel(rawLabel),
-            i18nKey: rawLabel ? 'taxonomy.' + rawLabel.toLowerCase() : '',
+            i18nKey,
             count: node.count,
             depth,
         });
