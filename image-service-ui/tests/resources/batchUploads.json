@@ -1,0 +1,9 @@
+{
+    "uploads": [
+        {"fileId": "file-001", "fileName": "banksia-01.jpg", "dataResourceUid": "dr123", "status": "QUEUED", "sizeInBytes": 204800, "dateAdded": "2024-03-01T09:00:00Z"},
+        {"fileId": "file-002", "fileName": "banksia-02.jpg", "dataResourceUid": "dr123", "status": "FAILED", "sizeInBytes": 189000, "dateAdded": "2024-03-01T09:05:00Z", "errorMessage": "Unsupported file format"}
+    ],
+    "active": 1,
+    "queued": 1,
+    "batchServiceProcessingEnabled": true
+}

@@ -1,0 +1,17 @@
+{
+    "results": [
+        {
+            "image": {
+                "imageId": "img-test-1",
+                "title": "Test image 1",
+                "thumbnailUrl": "http://localhost:8081/image/proxyImageThumbnail?imageId=img-test-1",
+                "isImage": true,
+                "isAudio": false,
+                "isDocument": false
+            },
+            "hash": "test-hash-1",
+            "count": 3
+        }
+    ],
+    "totalCount": 1
+}

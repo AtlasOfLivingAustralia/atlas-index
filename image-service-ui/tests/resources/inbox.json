@@ -1,0 +1,8 @@
+{
+    "results": [
+        {"name": "dr123-batch.csv", "path": "/data/inbox/dr123-batch.csv", "sizeInBytes": 40960, "lastModified": "2024-03-02T12:00:00Z"}
+    ],
+    "fieldDefinitions": [
+        {"id": 1, "name": "scientificName", "type": "string", "value": null}
+    ]
+}

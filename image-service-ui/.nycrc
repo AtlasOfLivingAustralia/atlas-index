@@ -1,0 +1,10 @@
+{
+    "all": true,
+    "include": ["src/**/*.ts", "src/**/*.tsx"],
+    "exclude": ["src/buildInfo.json", "src/vite-env.d.ts"],
+    "reporter": ["text", "lcov"],
+    "report-dir": "coverage",
+    "temp-dir": ".nyc_output",
+    "produce-source-map": true,
+    "instrument": false
+}

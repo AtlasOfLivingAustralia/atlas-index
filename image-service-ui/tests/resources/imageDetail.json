@@ -1,0 +1,49 @@
+{
+    "imageId": "img-test-1",
+    "originalFilename": "test-image-1.jpg",
+    "title": "Test image 1",
+    "mimeType": "image/jpeg",
+    "thumbnailUrl": "http://localhost:8081/image/proxyImageThumbnail?imageId=img-test-1",
+    "tileUrl": "http://localhost:8081/image/proxyImageTile?imageId=img-test-1",
+    "imageUrl": "http://localhost:8081/image/proxyImage?imageId=img-test-1",
+    "originalUrl": "http://localhost:8081/image/img-test-1/original",
+    "metadataUrl": "http://localhost:8081/api/v2/images/img-test-1/metadata.json",
+    "width": 2048,
+    "height": 1536,
+    "dateUploaded": "2024-01-15T10:00:00Z",
+    "dataResourceUid": "dr-test-1",
+    "isImage": true,
+    "isAudio": false,
+    "isDocument": false,
+    "rightsHolder": "Test rights holder",
+    "licence": "CC-BY",
+    "parentImageId": null,
+    "subimages": [],
+    "tags": [
+        {"id": 1, "path": "TestTag"},
+        {"id": 2, "path": "TestTag/Child"}
+    ],
+    "coreMetadata": [
+        {"key": "scientificName", "value": "Testus fixturus"},
+        {"key": "eventDate", "value": "2024-01-10"}
+    ],
+    "systemMetadata": [
+        {"key": "imageId", "value": "img-test-1"},
+        {"key": "mimeType", "value": "image/jpeg"}
+    ],
+    "embeddedMetadata": [
+        {"key": "Make", "value": "TestCamera"},
+        {"key": "Model", "value": "Model X"}
+    ],
+    "userMetadata": [
+        {"key": "reviewedBy", "value": "test-user"}
+    ],
+    "dataResourceMetadata": [
+        {"key": "dataResourceUid", "value": "dr-test-1"},
+        {"key": "dataResourceName", "value": "Test data resource"}
+    ],
+    "calibratedPixelsPerMm": null,
+    "isCalibrated": false,
+    "harvestable": true,
+    "deleted": false
+}

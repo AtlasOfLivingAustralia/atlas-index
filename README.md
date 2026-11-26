@@ -15,6 +15,7 @@ It is a work in progress and subject to change.
 | [admin-ui](admin-ui)                     | Admin UI                                                                                                              | 100%     |
 | [dashboard-ui](dashboard-ui)             | https://github.com/AtlasOfLivingAustralia/dashboard (UI)                                                              | 100%     |
 | [doi-ui](doi-ui)                         | https://github.com/AtlasOfLivingAustralia/doi-service (UI)                                                            | 100%     |
+| [image-service-ui](image-service-ui)     | https://github.com/AtlasOfLivingAustralia/image-service (UI)                                                          | 40%      |
 | [names-extract](names-extract)           | New data preparation tool                                                                                             | 100%     |
 | [occurrence-ui](occurrence-ui)           | https://github.com/AtlasOfLivingAustralia/ala-hub (UI)                                                                | 90%      |
 |                                          | https://github.com/AtlasOfLivingAustralia/biocache-hub (UI)                                                           | 90%      |
@@ -45,6 +46,7 @@ It is a work in progress and subject to change.
 * [common-ui](common-ui) - Common UI components used by other UI projects.
 * [dashboard-ui](dashboard-ui) - Dashboard with a summary of ALA data.
 * [doi-ui](doi-ui) - Pages to display DOIs using search-service.
+* [image-service-ui](image-service-ui) - Pages to search, view, and administer images/media using image-service.
 * [occurrence-ui](occurrence-ui) - Pages to search and display occurrence information. Includes "Explore your area" page.
 * [names-extract](names-extract) - Java application that extracts name information from the Lucene names index to
   supplement the DwCA names index imported into search-service.

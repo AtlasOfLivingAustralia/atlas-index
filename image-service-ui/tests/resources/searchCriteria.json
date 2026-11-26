@@ -1,0 +1,6 @@
+{
+    "results": [
+        {"id": 1, "type": "criteria", "valueType": "string", "name": "Scientific name", "fieldName": "scientificName", "description": "Exact or partial scientific name", "units": null},
+        {"id": 2, "type": "criteria", "valueType": "string", "name": "Data resource", "fieldName": "dataResourceUid", "description": "Data resource UID", "units": null}
+    ]
+}
