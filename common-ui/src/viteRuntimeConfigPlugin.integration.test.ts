@@ -51,11 +51,11 @@ describe('viteRuntimeConfigPlugin app config rewrite', () => {
         expect(run(code)).toEqual({api: 'http://build-default', skin: 'ALA'});
     });
 
-    it('LA Community build: config.local.js overrides a VITE_APP_* the source never names', () => {
+    it('LA Community build: config.local.js overrides any VITE_* the source never names', () => {
         const {code} = build(true);
-        expect(run(code, {VITE_APP_API_URL: 'http://runtime-override', VITE_SKIN: 'IGNORED'})).toEqual({
+        expect(run(code, {VITE_APP_API_URL: 'http://runtime-override', VITE_SKIN: 'OTHER'})).toEqual({
             api: 'http://runtime-override',
-            skin: 'ALA'
+            skin: 'OTHER'
         });
     });
 

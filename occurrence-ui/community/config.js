@@ -50,13 +50,18 @@
  *     THEME_CONTAINER_CLASS: 'container-fluid',
  *
  *     // --- Configuration -----------------------------------------------------------------------
- *     // Every backend service URL (biocache, collectory, spatial, alerts, images, events...) and
- *     // the OIDC-derived VITE_APP_ROLE_ADMIN role name is build-time by default (VITE_APP_* in the
- *     // .env files) but can be pointed at a different deployment here, without a rebuild. Unset
- *     // keys fall back to the build's own value, so declaring none of this changes nothing.
- *     // Any VITE_APP_* variable the app uses works here; there is no list to keep up to date.
+ *     // Every backend service URL (biocache, collectory, spatial, alerts, images, events...), the
+ *     // OIDC-derived VITE_APP_ROLE_ADMIN role name and the other settings (map centre, hub name...)
+ *     // are build-time by default (VITE_* in the .env files) but can be set here, without a rebuild.
+ *     // Unset keys fall back to the build's own value, so declaring none of this changes nothing;
+ *     // '' clears a value the build sets (e.g. VITE_GLOBAL_FQ: '' drops the default filters).
+ *     // Any VITE_* variable the app uses works here, except the build flags
+ *     // (VITE_RUNTIME_CONFIG_ENABLED, VITE_HEADER_LANGUAGE_SWITCHER_ENABLED, VITE_ENV); there is no
+ *     // list to keep up to date.
  *     VITE_APP_BIOCACHE_URL: 'https://your-host/ws',
- *     VITE_APP_API_URL: 'https://your-host/api'
+ *     VITE_APP_API_URL: 'https://your-host/api',
+ *     VITE_MAP_CENTRE_LAT: '0',
+ *     VITE_MAP_CENTRE_LNG: '0'
  *   };
  *
  * To try the runtime catalogues locally, point I18N_MESSAGES_PATH at '/i18n/example/{locale}.json'

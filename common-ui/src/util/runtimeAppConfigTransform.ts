@@ -8,7 +8,7 @@
  * Pure source rewrite behind viteRuntimeConfigPlugin's LA Community build, kept free of any Vite
  * import so it can be unit tested directly.
  *
- * `import.meta.env.VITE_APP_X` becomes `getAppConfigValue('VITE_APP_X', import.meta.env.VITE_APP_X)`,
+ * `import.meta.env.VITE_X` becomes `getAppConfigValue('VITE_X', import.meta.env.VITE_X)`,
  * so Vite still inlines the build's own value as the fallback while `config.js`/`config.local.js`
  * can override it (see runtimeAppConfig.ts).
  *
@@ -19,7 +19,12 @@
 
 import ts from 'typescript';
 
-const APP_KEY_RE = /^VITE_APP_[A-Z0-9_]+$/;
+// Every VITE_* is overridable, not only VITE_APP_*: much of what differs between portals (map
+// centre, hub name, collectory, spatial, namematching, query context...) is not VITE_APP_*.
+// The build flags that select what the bundle contains stay build-time.
+const BUILD_ONLY_KEYS = new Set(['VITE_RUNTIME_CONFIG_ENABLED', 'VITE_HEADER_LANGUAGE_SWITCHER_ENABLED', 'VITE_ENV']);
+const APP_KEY_RE = /^VITE_[A-Z0-9_]+$/;
+const isAppKey = (key: string): boolean => APP_KEY_RE.test(key) && !BUILD_ONLY_KEYS.has(key);
 
 /** Alias used for the injected import, so it cannot clash with a name the file already imports. */
 const HELPER = '__alaGetAppConfigValue';
@@ -47,7 +52,7 @@ function isImportMetaEnv(node: ts.Node): node is ts.PropertyAccessExpression {
 }
 
 /**
- * Rewrite every `import.meta.env.VITE_APP_*` in `code`, and prepend the import of the helper from
+ * Rewrite every overridable `import.meta.env.VITE_*` in `code`, and prepend the import of the helper from
  * `helperPath` on the SAME first line, so line numbers in stack traces stay as they were. Returns
  * null when the file has no such reference, so the caller can leave it untouched. `fileName` only
  * selects the parser dialect (`.tsx`, `.jsx`, `.js`, otherwise `.ts`).
@@ -57,7 +62,7 @@ export function rewriteAppEnvReferences(code: string, helperPath: string, fileNa
     const sf = parse(code, fileName);
     const edits: { start: number; end: number; key: string }[] = [];
     const visit = (node: ts.Node): void => {
-        if (ts.isPropertyAccessExpression(node) && isImportMetaEnv(node.expression) && APP_KEY_RE.test(node.name.text)) {
+        if (ts.isPropertyAccessExpression(node) && isImportMetaEnv(node.expression) && isAppKey(node.name.text)) {
             edits.push({ start: node.getStart(sf), end: node.end, key: node.name.text });
             return;
         }
@@ -73,7 +78,7 @@ export function rewriteAppEnvReferences(code: string, helperPath: string, fileNa
 }
 
 /**
- * Forms of `import.meta.env` that `rewriteAppEnvReferences` cannot rewrite, so a `VITE_APP_*` read
+ * Forms of `import.meta.env` that `rewriteAppEnvReferences` cannot rewrite, so a `VITE_*` read
  * that way would silently ignore config.js. The plugin fails the build on any of them, rather than
  * ship a portal where one key cannot be overridden.
  */
@@ -90,8 +95,8 @@ export function findUnsupportedAppEnvUsage(code: string, fileName = 'module.tsx'
                 found.add('computed access: import.meta.env[...]');
             } else if (ts.isVariableDeclaration(parent) && ts.isObjectBindingPattern(parent.name)) {
                 const names = parent.name.elements.map((e) => (e.propertyName ?? e.name).getText(sf));
-                if (names.some((n) => n.startsWith('VITE_APP_'))) {
-                    found.add('destructuring: const { VITE_APP_... } = import.meta.env');
+                if (names.some(isAppKey)) {
+                    found.add('destructuring: const { VITE_... } = import.meta.env');
                 }
             } else {
                 found.add('import.meta.env used as a whole object');

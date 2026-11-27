@@ -8,12 +8,14 @@
  * Runtime application configuration.
  *
  * The service endpoints each UI talks to (search-service, biocache, collectory, spatial, alerts,
- * images, events...) come from `import.meta.env.VITE_APP_*`, resolved at build time. In the LA
- * Community build, viteRuntimeConfigPlugin rewrites every `import.meta.env.VITE_APP_X` in the
- * app's sources to `getAppConfigValue('VITE_APP_X', import.meta.env.VITE_APP_X)`, so any
- * `VITE_APP_*` key can be overridden from `config.js`/`config.local.js` without a rebuild. There
- * is no list of keys to maintain and no call to add in the code: a new `VITE_APP_*` variable is
- * overridable from the day it is used. The ALA build is not rewritten, so it is unchanged.
+ * images, events...) and the rest of its settings (map centre, hub name, query context...) come
+ * from `import.meta.env.VITE_*`, resolved at build time. In the LA Community build,
+ * viteRuntimeConfigPlugin rewrites every `import.meta.env.VITE_X` in the app's sources to
+ * `getAppConfigValue('VITE_X', import.meta.env.VITE_X)`, so any `VITE_*` key can be overridden
+ * from `config.js`/`config.local.js` without a rebuild. The exceptions are the build flags that
+ * select what the bundle contains (`VITE_RUNTIME_CONFIG_ENABLED`,
+ * `VITE_HEADER_LANGUAGE_SWITCHER_ENABLED`, `VITE_ENV`). There is no list of keys to maintain and
+ * no call to add in the code: a new `VITE_*` variable is overridable from the day it is used. The ALA build is not rewritten, so it is unchanged.
  *
  * OIDC client settings (VITE_OIDC_*) are declared in the `.env` files but are not read by these UIs:
  * the browser never talks to the identity provider directly, it only calls `search-service`'s
@@ -25,9 +27,11 @@ import {getRuntimeConfig} from './runtimeConfig.ts';
 
 /**
  * The value `config.js`/`config.local.js` declares for `key`, or `fallback` (the build's own
- * `import.meta.env.VITE_APP_*`) when the deployment hasn't set it or left it blank.
+ * `import.meta.env.VITE_*`) when the deployment doesn't declare it. A declared empty string is
+ * kept, so a deployment can clear a setting the build fills in, such as `VITE_GLOBAL_FQ` or
+ * `VITE_QUERY_CONTEXT`. Numbers and booleans are read as their string form, as `.env` values are.
  */
 export function getAppConfigValue(key: string, fallback: string): string {
     const value = (getRuntimeConfig() as Record<string, unknown>)[key];
-    return typeof value === 'string' && value.trim() ? value : fallback;
+    return value === undefined || value === null ? fallback : String(value);
 }
