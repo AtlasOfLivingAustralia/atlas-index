@@ -518,7 +518,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                 <h2 className={classes.traitsSectionTitle}>{group.category}</h2>
                             )}
                             <div className="table-responsive" tabIndex={0} role="region" aria-label={group.category || section.title}>
-                                <table className="table table-striped" style={textStyle}>
+                                <table className={`table table-striped ${classes.traitsListTable}`} style={textStyle}>
                                     <thead>
                                     <tr>
                                         <th>Trait Name</th>
@@ -530,6 +530,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                         const traitKey = item.key || item.name;
                                         const meta = item.key ? metaMap[item.key] : undefined;
                                         const units = meta?.Units?.trim();
+                                        const isMissingCode = /^(na|nav)$/i.test(item.value.trim());
                                         const hasDetails = Boolean(
                                             meta?.Definition ||
                                             meta?.Field_codes ||
@@ -562,7 +563,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                                                     </td>
                                                     <td>
                                                         {item.value}
-                                                        {units ? ` ${units}` : ''}
+                                                        {units && !isMissingCode ? ` ${units}` : ''}
                                                     </td>
                                                 </tr>
                                                 {hasDetails && isExpanded && (
@@ -591,7 +592,7 @@ function TraitsView({result, isMobile}: MapViewProps) {
                             Reference
                         </p>
                         {section.reference && (
-                            <p>{renderReferenceText(section.reference)}</p>
+                            <p style={{ whiteSpace: 'pre-line' }}>{renderReferenceText(section.reference)}</p>
                         )}
                         <p>
                             {section.listUrl && (

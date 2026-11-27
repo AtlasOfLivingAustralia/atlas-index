@@ -202,6 +202,19 @@
     margin-bottom: 30px;
 }
 
+.traitsListTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.traitsListTable thead th:first-child {
+    width: 65%;
+}
+
+.traitsListTable thead th:nth-child(2) {
+    width: 35%;
+}
+
 .traitsFootnote {
     display: block;
     margin-bottom: 30px;
@@ -289,6 +302,14 @@
         margin-top: 15px;
         font-size: 12px;
         line-height: 16px;
+    }
+
+    .traitsListTable thead th:first-child {
+        width: 60%;
+    }
+
+    .traitsListTable thead th:nth-child(2) {
+        width: 40%;
     }
 }
 

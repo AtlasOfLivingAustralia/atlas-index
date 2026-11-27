@@ -94,9 +94,10 @@ Example `config.json`:
       "name": "birdtraits",
       "type": "species-list",
       "id": "dr5222",
-      "fields": {
-        "29_Population_description_4": "",
-        "96_Body_length_8": ""
+      "metadataId": "dr35542",
+      "excludeFields": ["Genus_name", "Species_name", "Subspecies_name"],
+      "metadataKeyAliases": {
+        "Body_length_average": "Body_length"
       }
     }
   ]

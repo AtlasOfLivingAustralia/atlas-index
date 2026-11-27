@@ -1095,19 +1095,27 @@ test.describe('Species page - Traits tab', () => {
         await page.locator('div', { hasText: /^Traits$/ }).click();
         await waitForContent(page);
 
-        await expect(page.getByRole('heading', { name: 'Biological, ecological, conservation and legal information for all species and subspecies of Australian bird' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Biological, ecological, conservation, and legal information for all species and subspecies of Australian bird' })).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Population' })).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Morphology' })).toBeVisible();
 
-        const birdTraitRow = page.locator('tr[data-trait-key="29_Population_description_4"]');
+        const birdTraitRow = page.locator('tr[data-trait-key="Population_description"]');
         await expect(birdTraitRow).toBeVisible();
         await expect(birdTraitRow.locator('td').first()).toContainText('Population description');
         await expect(birdTraitRow.locator('td').nth(1)).toHaveText('Core');
 
-        const bodyLengthRow = page.locator('tr[data-trait-key="96_Body_length_8"]');
+        const bodyLengthRow = page.locator('tr[data-trait-key="Body_length_average"]');
+        await expect(bodyLengthRow.locator('td').first()).toContainText('Body length average');
         await expect(bodyLengthRow.locator('td').nth(1)).toHaveText('37.5 cm');
-        await bodyLengthRow.getByRole('button', { name: 'Details for Body length' }).click();
-        await expect(page.locator('tr[data-trait-details="96_Body_length_8"]')).toContainText('Average length of body from tip of bill to tip of tail, in centimetres');
+        await bodyLengthRow.getByRole('button', { name: 'Details for Body length average' }).click();
+        await expect(page.locator('tr[data-trait-details="Body_length_average"]')).toContainText('Average length of body from tip of bill to tip of tail, in centimetres');
+
+        const brainMassRow = page.locator('tr[data-trait-key="Brain_mass"]');
+        await expect(brainMassRow.locator('td').nth(1)).toHaveText('NAV');
+
+        const popNameColWidth = (await page.locator('[role="region"][aria-label="Population"] thead th').first().boundingBox())!.width;
+        const morphNameColWidth = (await page.locator('[role="region"][aria-label="Morphology"] thead th').first().boundingBox())!.width;
+        expect(Math.abs(popNameColWidth - morphNameColWidth)).toBeLessThanOrEqual(1);
 
         await expect(page.locator('text=Garnett, S., Duursma, D., Ehmke, G. et al.')).toBeVisible();
         await expect(page.locator('h1', { hasText: 'AusTraits' })).toHaveCount(0);

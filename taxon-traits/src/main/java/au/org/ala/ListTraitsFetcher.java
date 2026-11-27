@@ -52,19 +52,22 @@ public class ListTraitsFetcher {
             if (listId.isEmpty()) continue;
 
             Map<String, String> fieldLabels = loadFields(listConfig);
+            Set<String> excludedFields = loadNormalizedStringSet(listConfig.get("excludeFields"));
+            Map<String, String> metadataKeyAliases = loadStringMap(listConfig.get("metadataKeyAliases"));
             String metadataId = Objects.toString(listConfig.get("metadataId"), "").trim();
             String metadataKeyField = Objects.toString(listConfig.get("metadataKeyField"), "Column_key").trim();
             String metadataLabelField = Objects.toString(listConfig.get("metadataLabelField"), "Column_header").trim();
             List<String> metadataFields = loadStringList(listConfig.get("metadataFields"));
 
-            Map<String, Map<String, String>> metadataByKey = Collections.emptyMap();
+            MetadataIndex metadataIndex = MetadataIndex.EMPTY;
             if (!metadataId.isEmpty()) {
-                metadataByKey = fetchAndWriteMetadata(
-                        listsUrl, traitsDir, metadataId, metadataKeyField, metadataFields, fieldLabels.keySet());
+                metadataIndex = fetchMetadata(listsUrl, metadataId, metadataKeyField, metadataLabelField, metadataFields);
             }
+            Map<String, Map<String, String>> usedMetadataByKey = new LinkedHashMap<>();
 
             System.out.println(TraitsFetcher.ts() + " Fetching list traits for " + listId
-                    + " (field filter count: " + (fieldLabels.isEmpty() ? "all" : fieldLabels.size()) + ")");
+                    + " (field filter count: " + (fieldLabels.isEmpty() ? "all" : fieldLabels.size())
+                    + (excludedFields.isEmpty() ? "" : ", excluded: " + excludedFields.size()) + ")");
 
             String metaJson = TraitsFetcher.httpGet(listsUrl + "/ws/speciesList/" + listId);
             if (metaJson == null) {
@@ -78,7 +81,9 @@ public class ListTraitsFetcher {
 
             int offset = 0;
             boolean hasMore = true;
-            int listTaxonCount = 0;
+            // Keep at most one section per LSID for a given list (subspecies/synonyms can share a parent LSID).
+            Map<String, CandidateSection> listSectionsByLsid = new LinkedHashMap<>();
+            int duplicateLsidRows = 0;
 
             while (hasMore) {
                 String itemsJson = TraitsFetcher.httpGet(
@@ -101,38 +106,55 @@ public class ListTraitsFetcher {
                         continue;
                     }
 
+                    // Species Lists WS returns both underscore-normalized and space-separated KVP twins
+                    // for each column; deduplicate while retaining the space-separated label.
+                    Set<String> rawKeys = new HashSet<>();
+                    for (Map<String, String> kvp : kvpValues) {
+                        String key = kvp.get("key");
+                        if (StringUtils.isNotBlank(key)) {
+                            rawKeys.add(key);
+                        }
+                    }
+
                     Map<String, String> kvpMap = new LinkedHashMap<>();
+                    Map<String, String> spaceLabels = new HashMap<>();
                     for (Map<String, String> kvp : kvpValues) {
                         String key = kvp.get("key");
                         String value = kvp.get("value");
-                        if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value) && !"NA".equalsIgnoreCase(value.trim())) {
-                            kvpMap.putIfAbsent(key, value.trim());
+                        if (StringUtils.isBlank(key) || StringUtils.isBlank(value)) {
+                            continue;
                         }
+                        if (key.contains(" ")) {
+                            String underscoreKey = key.replace(' ', '_');
+                            if (rawKeys.contains(underscoreKey)) {
+                                spaceLabels.putIfAbsent(underscoreKey, key);
+                                continue;
+                            }
+                        }
+                        kvpMap.putIfAbsent(key, value.trim());
                     }
 
                     List<Map<String, String>> filteredTraits = new ArrayList<>();
                     if (!fieldLabels.isEmpty()) {
                         for (Map.Entry<String, String> fieldEntry : fieldLabels.entrySet()) {
                             String fieldKey = fieldEntry.getKey();
+                            if (isExcluded(fieldKey, excludedFields)) {
+                                continue;
+                            }
                             String val = kvpMap.get(fieldKey);
                             if (val != null) {
-                                String displayLabel = resolveDisplayLabel(fieldKey, fieldEntry.getValue(), metadataByKey, metadataLabelField);
-                                Map<String, String> traitEntry = new LinkedHashMap<>();
-                                traitEntry.put("key", fieldKey);
-                                traitEntry.put("name", displayLabel);
-                                traitEntry.put("value", val);
-                                filteredTraits.add(traitEntry);
+                                addTraitEntry(filteredTraits, fieldKey, fieldEntry.getValue(), spaceLabels.get(fieldKey), val,
+                                        metadataIndex, metadataKeyAliases, metadataLabelField, usedMetadataByKey);
                             }
                         }
                     } else {
                         for (Map.Entry<String, String> entry : kvpMap.entrySet()) {
                             String fieldKey = entry.getKey();
-                            String displayLabel = resolveDisplayLabel(fieldKey, "", metadataByKey, metadataLabelField);
-                            Map<String, String> traitEntry = new LinkedHashMap<>();
-                            traitEntry.put("key", fieldKey);
-                            traitEntry.put("name", displayLabel);
-                            traitEntry.put("value", entry.getValue());
-                            filteredTraits.add(traitEntry);
+                            if (isExcluded(fieldKey, excludedFields)) {
+                                continue;
+                            }
+                            addTraitEntry(filteredTraits, fieldKey, "", spaceLabels.get(fieldKey), entry.getValue(),
+                                    metadataIndex, metadataKeyAliases, metadataLabelField, usedMetadataByKey);
                         }
                     }
 
@@ -151,12 +173,34 @@ public class ListTraitsFetcher {
                     }
                     listSection.put("traits", filteredTraits);
 
-                    taxonTraits.computeIfAbsent(lsid, k -> new ArrayList<>()).add(listSection);
-                    listTaxonCount++;
+                    String rowName = Objects.toString(row.get("name"), "").trim();
+                    String matchedSciName = Objects.toString(row.get("scientificName"), "").trim();
+                    boolean exactNameMatch = !rowName.isEmpty() && rowName.equalsIgnoreCase(matchedSciName);
+                    int populatedCount = countPopulatedTraits(filteredTraits);
+                    CandidateSection candidate = new CandidateSection(exactNameMatch, populatedCount, listSection);
+
+                    CandidateSection existing = listSectionsByLsid.get(lsid);
+                    if (existing == null) {
+                        listSectionsByLsid.put(lsid, candidate);
+                    } else {
+                        duplicateLsidRows++;
+                        if (candidate.isBetterThan(existing)) {
+                            listSectionsByLsid.put(lsid, candidate);
+                        }
+                    }
                 }
             }
 
-            System.out.println(TraitsFetcher.ts() + " Fetched " + listTaxonCount + " taxa for list " + listId);
+            for (Map.Entry<String, CandidateSection> entry : listSectionsByLsid.entrySet()) {
+                taxonTraits.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(entry.getValue().section);
+            }
+
+            if (!metadataId.isEmpty()) {
+                writeMetadata(traitsDir, metadataId, usedMetadataByKey);
+            }
+
+            System.out.println(TraitsFetcher.ts() + " Fetched " + listSectionsByLsid.size() + " unique taxa for list " + listId
+                    + (duplicateLsidRows > 0 ? " (deduplicated " + duplicateLsidRows + " duplicate-LSID rows)" : ""));
         }
 
         int filesWritten = 0;
@@ -177,17 +221,104 @@ public class ListTraitsFetcher {
         System.out.println(TraitsFetcher.ts() + " Finished list traits. Files written: " + filesWritten);
     }
 
+    private record CandidateSection(boolean exactNameMatch, int populatedCount, Map<String, Object> section) {
+        boolean isBetterThan(CandidateSection other) {
+            if (this.exactNameMatch != other.exactNameMatch) {
+                return this.exactNameMatch;
+            }
+            return this.populatedCount > other.populatedCount;
+        }
+    }
+
+    private static int countPopulatedTraits(List<Map<String, String>> traits) {
+        int count = 0;
+        for (Map<String, String> trait : traits) {
+            String val = trait.get("value");
+            if (val != null) {
+                String trimmed = val.trim();
+                if (!trimmed.isEmpty() && !"NA".equalsIgnoreCase(trimmed) && !"NAV".equalsIgnoreCase(trimmed)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static void addTraitEntry(
+            List<Map<String, String>> filteredTraits,
+            String fieldKey,
+            String configuredLabel,
+            String spaceLabel,
+            String value,
+            MetadataIndex metadataIndex,
+            Map<String, String> metadataKeyAliases,
+            String metadataLabelField,
+            Map<String, Map<String, String>> usedMetadataByKey) {
+        String alias = metadataKeyAliases.get(fieldKey);
+        if (alias == null && spaceLabel != null) {
+            alias = metadataKeyAliases.get(spaceLabel);
+        }
+        boolean matchedViaAlias = StringUtils.isNotBlank(alias);
+        Map<String, String> meta = metadataIndex.lookup(fieldKey, spaceLabel, alias);
+        if (meta != null) {
+            usedMetadataByKey.putIfAbsent(fieldKey, meta);
+        }
+        String displayLabel = resolveDisplayLabel(fieldKey, configuredLabel, spaceLabel, meta, metadataLabelField, matchedViaAlias);
+        Map<String, String> traitEntry = new LinkedHashMap<>();
+        traitEntry.put("key", fieldKey);
+        traitEntry.put("name", displayLabel);
+        traitEntry.put("value", value);
+        filteredTraits.add(traitEntry);
+    }
+
+    private static class MetadataIndex {
+        static final MetadataIndex EMPTY = new MetadataIndex(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap());
+        final Map<String, Map<String, String>> byKey;
+        final Map<String, Map<String, String>> byLabel;
+        final Map<String, Map<String, String>> byNormalized;
+
+        MetadataIndex(
+                Map<String, Map<String, String>> byKey,
+                Map<String, Map<String, String>> byLabel,
+                Map<String, Map<String, String>> byNormalized) {
+            this.byKey = byKey;
+            this.byLabel = byLabel;
+            this.byNormalized = byNormalized;
+        }
+
+        Map<String, String> lookup(String fieldKey, String spaceLabel, String alias) {
+            if (StringUtils.isNotBlank(alias)) {
+                Map<String, String> entry = byKey.get(alias);
+                if (entry != null) return entry;
+                entry = byLabel.get(alias);
+                if (entry != null) return entry;
+                entry = byNormalized.get(normalizeKey(alias));
+                if (entry != null) return entry;
+            }
+            Map<String, String> entry = byKey.get(fieldKey);
+            if (entry != null) return entry;
+            if (StringUtils.isNotBlank(spaceLabel)) {
+                entry = byLabel.get(spaceLabel);
+                if (entry != null) return entry;
+            }
+            entry = byLabel.get(fieldKey);
+            if (entry != null) return entry;
+            return byNormalized.get(normalizeKey(fieldKey));
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    private static Map<String, Map<String, String>> fetchAndWriteMetadata(
+    private static MetadataIndex fetchMetadata(
             String listsUrl,
-            String traitsDir,
             String metadataId,
             String metadataKeyField,
-            List<String> metadataFields,
-            Set<String> allowedFieldKeys) throws IOException {
+            String metadataLabelField,
+            List<String> metadataFields) throws IOException {
 
         System.out.println(TraitsFetcher.ts() + " Fetching field metadata list " + metadataId);
-        Map<String, Map<String, String>> metadataByKey = new LinkedHashMap<>();
+        Map<String, Map<String, String>> byKey = new LinkedHashMap<>();
+        Map<String, Map<String, String>> byLabel = new LinkedHashMap<>();
+        Map<String, Map<String, String>> byNormalized = new LinkedHashMap<>();
 
         int offset = 0;
         boolean hasMore = true;
@@ -220,9 +351,6 @@ public class ListTraitsFetcher {
                 if (StringUtils.isBlank(keyVal)) {
                     continue;
                 }
-                if (!allowedFieldKeys.isEmpty() && !allowedFieldKeys.contains(keyVal)) {
-                    continue;
-                }
 
                 Map<String, String> entry = new LinkedHashMap<>();
                 if (!metadataFields.isEmpty()) {
@@ -241,11 +369,24 @@ public class ListTraitsFetcher {
                 }
 
                 if (!entry.isEmpty()) {
-                    metadataByKey.put(keyVal, entry);
+                    byKey.put(keyVal, entry);
+                    byNormalized.putIfAbsent(normalizeKey(keyVal), entry);
+                    String labelVal = rawKvp.get(metadataLabelField);
+                    if (StringUtils.isNotBlank(labelVal)) {
+                        byLabel.putIfAbsent(labelVal, entry);
+                        byNormalized.putIfAbsent(normalizeKey(labelVal), entry);
+                    }
                 }
             }
         }
 
+        return new MetadataIndex(byKey, byLabel, byNormalized);
+    }
+
+    private static void writeMetadata(
+            String traitsDir,
+            String metadataId,
+            Map<String, Map<String, String>> metadataByKey) throws IOException {
         File metaDir = new File(traitsDir + "/lists/metadata");
         if (!metaDir.exists()) {
             metaDir.mkdirs();
@@ -253,23 +394,65 @@ public class ListTraitsFetcher {
         File outFile = new File(metaDir, metadataId + ".json");
         TraitsFetcher.writeFile(outFile, mapper.writeValueAsString(metadataByKey));
         System.out.println(TraitsFetcher.ts() + " Wrote " + metadataByKey.size() + " field metadata entries to " + outFile.getAbsolutePath());
-
-        return metadataByKey;
     }
 
     private static String resolveDisplayLabel(
             String fieldKey,
             String configuredLabel,
-            Map<String, Map<String, String>> metadataByKey,
-            String metadataLabelField) {
+            String spaceLabel,
+            Map<String, String> meta,
+            String metadataLabelField,
+            boolean matchedViaAlias) {
         if (StringUtils.isNotBlank(configuredLabel)) {
             return configuredLabel.trim();
         }
-        Map<String, String> meta = metadataByKey.get(fieldKey);
+        if (matchedViaAlias) {
+            return StringUtils.isNotBlank(spaceLabel) ? spaceLabel.trim() : fieldKey.replace('_', ' ');
+        }
         if (meta != null && StringUtils.isNotBlank(meta.get(metadataLabelField))) {
             return meta.get(metadataLabelField).trim();
         }
+        if (StringUtils.isNotBlank(spaceLabel)) {
+            return spaceLabel.trim();
+        }
         return fieldKey;
+    }
+
+    private static String normalizeKey(String key) {
+        return key.trim().replaceAll("[\\s_]+", "_").toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean isExcluded(String fieldKey, Set<String> excludedFields) {
+        return !excludedFields.isEmpty() && excludedFields.contains(normalizeKey(fieldKey));
+    }
+
+    private static Set<String> loadNormalizedStringSet(Object obj) {
+        List<String> list = loadStringList(obj);
+        if (list.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<String> result = new HashSet<>();
+        for (String item : list) {
+            result.add(normalizeKey(item));
+        }
+        return result;
+    }
+
+    private static Map<String, String> loadStringMap(Object obj) {
+        if (!(obj instanceof Map<?, ?> map)) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> result = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (entry.getKey() != null && entry.getValue() != null) {
+                String k = entry.getKey().toString().trim();
+                String v = entry.getValue().toString().trim();
+                if (!k.isEmpty() && !v.isEmpty()) {
+                    result.put(k, v);
+                }
+            }
+        }
+        return result;
     }
 
     private static Map<String, String> loadFields(Map<String, Object> listConfig) {

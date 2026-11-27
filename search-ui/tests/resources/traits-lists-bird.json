@@ -1,15 +1,16 @@
 [
     {
         "dataResourceUid": "dr5222",
-        "title": "Biological, ecological, conservation and legal information for all species and subspecies of Australian bird",
-        "reference": "Garnett, S., Duursma, D., Ehmke, G. et al. Biological, ecological, conservation and legal information for all species and subspecies of Australian bird. Sci Data 2, 150061 (2015). https://doi.org/10.1038/sdata.2015.61",
+        "title": "Biological, ecological, conservation, and legal information for all species and subspecies of Australian bird",
+        "reference": "This is subset of traits from - Garnett, S., Duursma, D., Ehmke, G. et al. Biological, ecological, conservation and legal information for all species and subspecies of Australian bird. Sci Data 2, 150061 (2015). https://doi.org/10.1038/sdata.2015.61\n\nPlease see the reference above for a full set of traits.",
         "listUrl": "https://lists.ala.org.au/list/dr5222",
         "metadataId": "dr35542",
         "metadataUrl": "https://lists.ala.org.au/list/dr35542",
         "traits": [
-            { "key": "29_Population_description_4", "name": "Population description", "value": "Core" },
-            { "key": "96_Body_length_8", "name": "Body length", "value": "37.5" },
-            { "key": "99_Body_mass_average_8", "name": "Body mass average", "value": "430" }
+            { "key": "Population_description", "name": "Population description", "value": "Core" },
+            { "key": "Body_length_average", "name": "Body length average", "value": "37.5" },
+            { "key": "Body_mass_average", "name": "Body mass average", "value": "430" },
+            { "key": "Brain_mass", "name": "Brain mass", "value": "NAV" }
         ]
     }
 ]
