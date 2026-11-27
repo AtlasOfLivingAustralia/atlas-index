@@ -9,6 +9,11 @@ import {CustomFacetFn, GenericViewProps, RenderItemElements, RenderItemParams,} 
 
 import speciesGroupMap from '../../../config/speciesGroupsMap.json';
 import capitalise from '../../../helpers/Capitalise.ts';
+import {
+    flattenTaxonomicTree,
+    mergeTaxonomicTreeItems,
+    TaxonomicFacetNode,
+} from '../../../helpers/TaxonomicTree.ts';
 import missingImage from '../../../image/missing-image.png';
 
 import '../../../css/nameFormatting.css';
@@ -231,9 +236,22 @@ export const speciesDefn: GenericViewProps = {
                 }
             },
         },
-        taxonomicStatus: {
-            label: 'Taxonomic status',
+        'rk_kingdom>rk_class>rk_order': {
+            label: 'Taxonomic tree',
             order: 5,
+            parseFacetFn: (facet: { fieldResult?: TaxonomicFacetNode[] }, facetList: unknown[]) => {
+                const items = facet.fieldResult ? flattenTaxonomicTree(facet.fieldResult) : [];
+                if (items.length > 0) {
+                    facetList.push({
+                        name: 'Taxonomic tree',
+                        i18nKey: 'facet.taxonomicTree',
+                        items,
+                        order: 5,
+                        lessNumber: 10,
+                        mergeItemsFn: mergeTaxonomicTreeItems,
+                    });
+                }
+            },
         },
         rank: {
             label: 'Taxonomic rank', // redundant, this is overridden below
@@ -262,7 +280,7 @@ export const speciesDefn: GenericViewProps = {
                     facetList.push({
                         name: 'Taxonomic rank',
                         items: items,
-                        order: 5,
+                        order: 6,
                     });
                 }
             },
@@ -366,7 +384,12 @@ export const speciesDefn: GenericViewProps = {
     },
 
     addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
-        fetch(url + '&fq=image:*')
+        const parsedUrl = new URL(url, window.location.origin);
+        parsedUrl.searchParams.delete('facets');
+        parsedUrl.searchParams.set('pageSize', '0');
+        const countUrl = parsedUrl.toString();
+
+        fetch(countUrl + '&fq=image:*')
             .then((response) => response.json())
             .then((data) => {
                 let items: any[] = [];
@@ -381,7 +404,7 @@ export const speciesDefn: GenericViewProps = {
                     });
                 }
 
-                fetch(url + '&fq=speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
+                fetch(countUrl + '&fq=speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.totalRecords > 0) {
@@ -394,7 +417,7 @@ export const speciesDefn: GenericViewProps = {
                             });
                         }
 
-                        fetch(url + '&fq=hasIekName:*')
+                        fetch(countUrl + '&fq=hasIekName:*')
                             .then((response) => response.json())
                             .then((data) => {
                                 let iekItems: any[] = [];

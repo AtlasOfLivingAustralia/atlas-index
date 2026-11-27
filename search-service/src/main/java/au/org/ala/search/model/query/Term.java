@@ -14,6 +14,7 @@ import lombok.Getter;
 public class Term {
     public Op op;
     public boolean negate = false;
+    public boolean quoted = false;
     public String field;
     public String value;
     // range support

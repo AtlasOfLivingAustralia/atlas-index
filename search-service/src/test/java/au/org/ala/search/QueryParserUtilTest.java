@@ -8,6 +8,7 @@ package au.org.ala.search;
 
 import au.org.ala.search.model.query.Op;
 import au.org.ala.search.model.query.Term;
+import au.org.ala.search.service.remote.ElasticService;
 import au.org.ala.search.util.QueryParseException;
 import au.org.ala.search.util.QueryParserUtil;
 import au.org.ala.search.util.ValidField;
@@ -385,6 +386,37 @@ public class QueryParserUtilTest {
     @Test
     public void testInvalidRangeMissingTO() {
         assertThrows(QueryParseException.class, () -> QueryParserUtil.parse("year:[2000 2025]", KNOWN_FIELDS));
+    }
+
+    @Test
+    public void testQuotedEscapedFqRoundTrip() {
+        String[] values = {
+                "a\\b",
+                "trailing\\",
+                "a\"b",
+                "a\\\"b",
+                "multi\\\\slash\\"
+        };
+        for (String original : values) {
+            String fq = "kingdom:\"" + ElasticService.escapeFqValue(original) + "\"";
+            Op op = QueryParserUtil.parse(fq, KNOWN_FIELDS);
+            assertNotNull(op);
+            assertEquals(1, op.terms.size(), "Expected single term for fq: " + fq);
+            assertEquals("kingdom", op.terms.get(0).field);
+            assertEquals(original, op.terms.get(0).value, "Round-trip mismatch for fq: " + fq);
+            assertTrue(op.terms.get(0).quoted, "Expected quoted=true for fq: " + fq);
+        }
+    }
+
+    @Test
+    public void testQuotedFlagDistinguishesLiteralFromUnquotedWildcard() {
+        Op quotedWildcard = QueryParserUtil.parse("kingdom:\"sp?*\"", KNOWN_FIELDS);
+        assertTrue(quotedWildcard.terms.get(0).quoted);
+        assertEquals("sp?*", quotedWildcard.terms.get(0).value);
+
+        Op unquotedWildcard = QueryParserUtil.parse("kingdom:Anim*", KNOWN_FIELDS);
+        assertFalse(unquotedWildcard.terms.get(0).quoted);
+        assertEquals("Anim*", unquotedWildcard.terms.get(0).value);
     }
 }
 

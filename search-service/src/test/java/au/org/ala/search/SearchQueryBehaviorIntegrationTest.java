@@ -74,6 +74,13 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
         docs.add(taxon("wq:weight-accepted", "Weighttestus alpha", "species", 7000, "accepted"));
         docs.add(taxon("wq:weight-excluded", "Weighttestus alpha", "species", 7000, "excluded"));
 
+        // hierarchical facet fixture: 5 TAXON docs sharing the "Hierfacetus" stem
+        docs.add(taxonWithRk("wq:hf-mammal-1", "Hierfacetus koala", "ANIMALIA", "MAMMALIA", "DIPROTODONTIA"));
+        docs.add(taxonWithRk("wq:hf-mammal-2", "Hierfacetus wombat", "ANIMALIA", "MAMMALIA", "DIPROTODONTIA"));
+        docs.add(taxonWithRk("wq:hf-insect-1", "Hierfacetus beetle", "ANIMALIA", "INSECTA", "COLEOPTERA"));
+        docs.add(taxonWithRk("wq:hf-noclass-1", "Hierfacetus noclass", "ANIMALIA", null, "ORPHANORDER"));
+        docs.add(taxonWithRk("wq:hf-plant-1", "Hierfacetus acacia", "Plantae", "Equisetopsida", "Fabales"));
+
         List<org.springframework.data.elasticsearch.core.query.IndexQuery> buffer = new ArrayList<>();
         for (SearchItemIndex doc : docs) {
             buffer.add(elasticService.buildIndexQuery(doc));
@@ -100,6 +107,17 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
                 // generation for the whole index. Every TAXON fixture doc must set this.
                 .modified(new java.util.Date())
                 .build();
+    }
+
+    private static SearchItemIndex taxonWithRk(String guid, String scientificName,
+                                               String kingdom, String clazz, String order) {
+        Map<String, String> rkFields = new java.util.HashMap<>();
+        if (kingdom != null) rkFields.put("rk_kingdom", kingdom);
+        if (clazz != null) rkFields.put("rk_class", clazz);
+        if (order != null) rkFields.put("rk_order", order);
+        SearchItemIndex item = taxon(guid, scientificName, "species", 7000, "accepted");
+        item.setRkFields(rkFields);
+        return item;
     }
 
     @Test
@@ -213,6 +231,87 @@ public class SearchQueryBehaviorIntegrationTest extends AbstractIntegrationTestC
         assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(resp.getBody()).isNotNull();
         assertThat(resp.getBody()).contains("wq:zzyzxus-genus");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void hierarchicalFacet_taxonomicTree_returnsNestedCountsAndFiltersByCompoundFq() {
+        ResponseEntity<Map<String, Object>> resp = search(b -> b
+                .queryParam("q", "hierfacetus")
+                .queryParam("fq", "idxtype:TAXON")
+                .queryParam("facets", "rk_kingdom>rk_class>rk_order,rank")
+                .queryParam("pageSize", "10"));
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<String, Object> body = resp.getBody();
+        assertThat(body).isNotNull();
+
+        List<Map<String, Object>> facetResults = (List<Map<String, Object>>) body.get("facetResults");
+        assertThat(facetResults).isNotNull();
+
+        // Flat facet still works alongside hierarchical facet
+        Map<String, Object> rankFacet = facetResults.stream()
+                .filter(f -> "rank".equals(f.get("fieldName")))
+                .findFirst()
+                .orElseThrow();
+        List<Map<String, Object>> rankItems = (List<Map<String, Object>>) rankFacet.get("fieldResult");
+        assertThat(rankItems).hasSize(1);
+        assertThat(rankItems.get(0).get("label")).isEqualTo("species");
+        assertThat(((Number) rankItems.get(0).get("count")).intValue()).isEqualTo(5);
+
+        // Hierarchical facet returns Kingdom -> Class -> Order sorted by descending count
+        Map<String, Object> treeFacet = facetResults.stream()
+                .filter(f -> "rk_kingdom>rk_class>rk_order".equals(f.get("fieldName")))
+                .findFirst()
+                .orElseThrow();
+        List<Map<String, Object>> kingdoms = (List<Map<String, Object>>) treeFacet.get("fieldResult");
+        assertThat(kingdoms).hasSize(2);
+
+        Map<String, Object> animalia = kingdoms.get(0);
+        assertThat(animalia.get("label")).isEqualTo("ANIMALIA");
+        assertThat(((Number) animalia.get("count")).intValue()).isEqualTo(4);
+        assertThat(animalia.get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\"");
+
+        List<Map<String, Object>> animaliaChildren = (List<Map<String, Object>>) animalia.get("children");
+        assertThat(animaliaChildren).hasSize(3);
+        // MAMMALIA (2) first by count
+        Map<String, Object> mammalia = animaliaChildren.get(0);
+        assertThat(mammalia.get("label")).isEqualTo("MAMMALIA");
+        assertThat(((Number) mammalia.get("count")).intValue()).isEqualTo(2);
+        assertThat(mammalia.get("fq")).isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_class:\"MAMMALIA\"");
+
+        List<Map<String, Object>> mammaliaOrders = (List<Map<String, Object>>) mammalia.get("children");
+        assertThat(mammaliaOrders).hasSize(1);
+        assertThat(mammaliaOrders.get(0).get("label")).isEqualTo("DIPROTODONTIA");
+        assertThat(((Number) mammaliaOrders.get(0).get("count")).intValue()).isEqualTo(2);
+        assertThat(mammaliaOrders.get(0).get("fq"))
+                .isEqualTo("rk_kingdom:\"ANIMALIA\" AND rk_class:\"MAMMALIA\" AND rk_order:\"DIPROTODONTIA\"");
+
+        // Promoted order without an intermediate rk_class
+        Map<String, Object> orphanOrder = animaliaChildren.stream()
+                .filter(c -> "ORPHANORDER".equals(c.get("label")))
+                .findFirst()
+                .orElseThrow();
+        assertThat(((Number) orphanOrder.get("count")).intValue()).isEqualTo(1);
+        assertThat(orphanOrder.get("fq"))
+                .isEqualTo("rk_kingdom:\"ANIMALIA\" AND -rk_class:* AND rk_order:\"ORPHANORDER\"");
+
+        // Plantae (1) -> Equisetopsida (1) -> Fabales (1)
+        Map<String, Object> plantae = kingdoms.get(1);
+        assertThat(plantae.get("label")).isEqualTo("Plantae");
+        assertThat(((Number) plantae.get("count")).intValue()).isEqualTo(1);
+
+        // Filtering with the returned compound fq matches only the 2 MAMMALIA docs
+        String mammaliaFq = (String) mammalia.get("fq");
+        ResponseEntity<Map<String, Object>> filtered = search(b -> b
+                .queryParam("q", "hierfacetus")
+                .queryParam("fq", "idxtype:TAXON")
+                .queryParam("fq", mammaliaFq)
+                .queryParam("pageSize", "10"));
+        assertThat(filtered.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<Map<String, Object>> filteredResults = searchResults(filtered.getBody());
+        assertThat(filteredResults).hasSize(2);
+        assertThat(filteredResults.stream().map(r -> (String) r.get("guid")).toList())
+                .containsExactlyInAnyOrder("wq:hf-mammal-1", "wq:hf-mammal-2");
     }
 
     @FunctionalInterface

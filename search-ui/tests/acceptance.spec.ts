@@ -168,8 +168,13 @@ test.describe('Search page - GenericView (species tab)', () => {
         await load(page, `${BASE_URL}/?q=Acacia#tab=species`);
 
         await expect(page.locator('text=Refine results')).toBeVisible();
+        await expect(page.locator('text=Taxonomic tree')).toBeVisible();
         await expect(page.locator('text=Taxonomic rank')).toBeVisible();
+        await expect(page.locator('text=Taxonomic status')).toBeHidden();
         await expect(page.locator('text=Species group')).toBeVisible();
+        await expect(page.locator('text=Plantae (13)')).toBeVisible();
+        await expect(page.locator('text=Equisetopsida (13)')).toBeVisible();
+        await expect(page.locator('text=Fabales (13)')).toBeVisible();
 
         // 13 total results, pageSize=12 -> "1-12 of 13"
         await expect(page.locator('text=1-12')).toBeVisible();

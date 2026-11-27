@@ -42,7 +42,30 @@ const g_speciesGenusDrilldown = {
     searchResults: g_speciesResults.searchResults.filter((item: any) => item.rank === 'genus'),
     facetResults: [
         { fieldName: 'speciesGroup', fieldResult: [{ label: 'Plants', count: 1 }] },
-        { fieldName: 'taxonomicStatus', fieldResult: [{ label: 'accepted', count: 1 }] },
+        {
+            fieldName: 'rk_kingdom>rk_class>rk_order',
+            fieldResult: [
+                {
+                    label: 'Plantae',
+                    count: 1,
+                    fq: 'rk_kingdom:"Plantae"',
+                    children: [
+                        {
+                            label: 'Equisetopsida',
+                            count: 1,
+                            fq: 'rk_kingdom:"Plantae" AND rk_class:"Equisetopsida"',
+                            children: [
+                                {
+                                    label: 'Fabales',
+                                    count: 1,
+                                    fq: 'rk_kingdom:"Plantae" AND rk_class:"Equisetopsida" AND rk_order:"Fabales"',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
         { fieldName: 'rank', fieldResult: [{ label: 'genus', count: 2 }] },
     ],
 };

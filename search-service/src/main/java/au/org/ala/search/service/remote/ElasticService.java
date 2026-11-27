@@ -22,6 +22,7 @@ import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.Time;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.aggregations.AggregationBuilders;
 import co.elastic.clients.elasticsearch._types.aggregations.MultiBucketAggregateBase;
@@ -79,6 +80,7 @@ public class ElasticService {
     public Map<String, SearchItemIndex> datasetMap;
     List<IndexedField> indexFieldsList = null;
     Set<String> validFieldNames = null;
+    Set<String> validKeywordFieldNames = null;
     @Value("${elastic.index}")
     private String elasticIndex;
     @Value("${elastic.pageSize}")
@@ -582,9 +584,25 @@ public class ElasticService {
 
             indexFieldsList = result;
             validFieldNames = result.stream().map(IndexedField::getName).collect(Collectors.toSet());
+            validKeywordFieldNames = result.stream()
+                    .filter(ElasticService::isKeywordField)
+                    .map(IndexedField::getName)
+                    .collect(Collectors.toSet());
         }
 
         return indexFieldsList;
+    }
+
+    static boolean isKeywordField(IndexedField field) {
+        return field != null && "string".equals(field.getDataType()) && Boolean.TRUE.equals(field.getIndexed());
+    }
+
+    public boolean isValidKeywordField(String fieldName) {
+        if (indexFieldsList == null) {
+            indexFields(true);
+        }
+
+        return validKeywordFieldNames != null && validKeywordFieldNames.contains(fieldName);
     }
 
     public Set<String> validFields(boolean forceUpdate) {
@@ -1866,7 +1884,7 @@ public class ElasticService {
         }
     }
 
-    private co.elastic.clients.elasticsearch._types.query_dsl.Query termToQuery(Term term, boolean negated) {
+    co.elastic.clients.elasticsearch._types.query_dsl.Query termToQuery(Term term, boolean negated) {
         if (!negated && term.negate) {
             return BoolQuery.of(bq -> {
                 bq.mustNot(termToQuery(term, true));
@@ -1910,9 +1928,9 @@ public class ElasticService {
                             return mq;
                         })._toQuery()
                 ).tieBreaker(0.0))._toQuery();
-            } else if ("*".equals(term.value)) {
+            } else if (!term.quoted && "*".equals(term.value)) {
                 return ExistsQuery.of(eq -> eq.field(term.field))._toQuery();
-            } else if (isWildcardValue(term.value)) {
+            } else if (!term.quoted && isWildcardValue(term.value)) {
                 return WildcardQuery.of(wq -> wq.field(term.field).value(term.value))._toQuery();
             } else if (term.rangeFrom != null || term.rangeTo != null) {
                 final String from = term.rangeFrom;
@@ -2052,9 +2070,30 @@ public class ElasticService {
             query.withSort(s -> s.field(f -> f.field(sort).order("desc".equalsIgnoreCase(dir) ? SortOrder.Desc : SortOrder.Asc)));
         }
 
+        Map<String, HierarchicalFacetSpec> hierarchicalFacets = new HashMap<>();
         if (facets != null) {
-            for (String facet : facets.split(",")) {
-                query.withAggregation(facet, AggregationBuilders.terms(ts -> ts.field(facet).size(100))); // '100' is from bie-index
+            for (String rawFacet : facets.split(",")) {
+                String facet = rawFacet.trim();
+                if (facet.isEmpty()) {
+                    continue;
+                }
+                if (facet.contains(">")) {
+                    String[] levels = parseHierarchicalLevels(facet);
+                    if (levels.length == 0 || levels.length > MAX_HIERARCHICAL_FACET_DEPTH) {
+                        log.warn("Ignoring hierarchical facet '{}' with invalid depth {}", facet, levels.length);
+                        continue;
+                    }
+                    boolean allValid = Arrays.stream(levels).allMatch(this::isValidKeywordField);
+                    if (!allValid) {
+                        log.warn("Ignoring hierarchical facet '{}' containing unsupported or non-keyword field name", facet);
+                        continue;
+                    }
+                    String aggName = hierarchicalAggName(levels);
+                    hierarchicalFacets.put(aggName, new HierarchicalFacetSpec(facet, levels));
+                    query.withAggregation(aggName, buildHierarchicalAggregation(levels, 0));
+                } else {
+                    query.withAggregation(facet, AggregationBuilders.terms(ts -> ts.field(facet).size(100))); // '100' is from bie-index
+                }
             }
         }
 
@@ -2086,25 +2125,143 @@ public class ElasticService {
         mapResult.put("facetResults", facetResults);
         Map<String, ElasticsearchAggregation> aggregations = ((ElasticsearchAggregations) ((SearchHitsImpl) result).getAggregations()).aggregationsAsMap();
         for (Map.Entry<String, ElasticsearchAggregation> entry : aggregations.entrySet()) {
+            HierarchicalFacetSpec spec = hierarchicalFacets.get(entry.getKey());
+            String fieldName = spec != null ? spec.fieldName() : entry.getKey();
             Map<String, Object> facetItemMap = new HashMap<>();
             facetResults.add(facetItemMap);
-            facetItemMap.put("fieldName", entry.getKey());
-
-            List<Map<String, Object>> facetItems = new ArrayList<>();
-            facetItemMap.put("fieldResult", facetItems);
+            facetItemMap.put("fieldName", fieldName);
 
             List<StringTermsBucket> buckets = (List<StringTermsBucket>) ((MultiBucketAggregateBase) entry.getValue().aggregation().getAggregate()._get()).buckets()._get();
-            for (StringTermsBucket bucket : buckets) {
-                Map<String, Object> itemMap = new HashMap<>();
-                itemMap.put("label", bucket.key().stringValue());
-                itemMap.put("count", bucket.docCount());
-                itemMap.put("fieldValue", bucket.key().stringValue());
-                itemMap.put("fq", entry.getKey() + ":\"" + bucket.key().stringValue().replaceAll("\"", "\\\"") + "\"");
-                facetItems.add(itemMap);
+            if (spec != null) {
+                facetItemMap.put("fieldResult", extractHierarchicalFacetItems(buckets, spec.levels(), 0, null));
+            } else {
+                List<Map<String, Object>> facetItems = new ArrayList<>();
+                facetItemMap.put("fieldResult", facetItems);
+                for (StringTermsBucket bucket : buckets) {
+                    Map<String, Object> itemMap = new HashMap<>();
+                    itemMap.put("label", bucket.key().stringValue());
+                    itemMap.put("count", bucket.docCount());
+                    itemMap.put("fieldValue", bucket.key().stringValue());
+                    itemMap.put("fq", fieldName + ":\"" + escapeFqValue(bucket.key().stringValue()) + "\"");
+                    facetItems.add(itemMap);
+                }
             }
         }
 
         return mapResult;
+    }
+
+    static final String MISSING_BUCKET_VALUE = "__MISSING__";
+    static final int MAX_HIERARCHICAL_FACET_DEPTH = 4;
+    static final int[] HIERARCHICAL_FACET_SIZES = {20, 15, 10};
+
+    private record HierarchicalFacetSpec(String fieldName, String[] levels) {}
+
+    static String[] parseHierarchicalLevels(String facet) {
+        return Arrays.stream(facet.split(">"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+    }
+
+    static String hierarchicalAggName(String[] levels) {
+        return "hier_" + Arrays.stream(levels)
+                .map(level -> level.replaceAll("[^A-Za-z0-9_]", "_"))
+                .collect(Collectors.joining("__"));
+    }
+
+    static String subAggName(int depth) {
+        return "level_" + depth;
+    }
+
+    public static String escapeFqValue(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    static Aggregation buildHierarchicalAggregation(String[] levels, int depth) {
+        String field = levels[depth];
+        int size = HIERARCHICAL_FACET_SIZES[Math.min(depth, HIERARCHICAL_FACET_SIZES.length - 1)];
+        boolean isIntermediate = depth > 0 && depth < levels.length - 1;
+        Aggregation childAgg = depth < levels.length - 1
+                ? buildHierarchicalAggregation(levels, depth + 1)
+                : null;
+
+        return Aggregation.of(a -> {
+            Aggregation.Builder.ContainerBuilder container = a.terms(ts -> {
+                ts.field(field).size(size);
+                if (isIntermediate) {
+                    ts.missing(MISSING_BUCKET_VALUE);
+                }
+                return ts;
+            });
+            if (childAgg != null) {
+                container.aggregations(subAggName(depth + 1), childAgg);
+            }
+            return container;
+        });
+    }
+
+    private static List<StringTermsBucket> extractChildBuckets(StringTermsBucket bucket, int childDepth) {
+        Aggregate subAgg = bucket.aggregations().get(subAggName(childDepth));
+        if (subAgg != null && subAgg.isSterms()) {
+            return subAgg.sterms().buckets().array();
+        }
+        return Collections.emptyList();
+    }
+
+    static List<Map<String, Object>> extractHierarchicalFacetItems(
+            List<StringTermsBucket> buckets,
+            String[] levels,
+            int depth,
+            String parentFq) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        String field = levels[depth];
+        boolean hasChildLevel = depth < levels.length - 1;
+        boolean promotedMissing = false;
+
+        for (StringTermsBucket bucket : buckets) {
+            String key = bucket.key().stringValue();
+            if (MISSING_BUCKET_VALUE.equals(key)) {
+                if (hasChildLevel) {
+                    List<StringTermsBucket> childBuckets = extractChildBuckets(bucket, depth + 1);
+                    if (!childBuckets.isEmpty()) {
+                        String missingFq = parentFq == null ? "-" + field + ":*" : parentFq + " AND -" + field + ":*";
+                        List<Map<String, Object>> promoted = extractHierarchicalFacetItems(childBuckets, levels, depth + 1, missingFq);
+                        if (!promoted.isEmpty()) {
+                            items.addAll(promoted);
+                            promotedMissing = true;
+                        }
+                    }
+                }
+                continue;
+            }
+
+            String selfFq = field + ":\"" + escapeFqValue(key) + "\"";
+            String compoundFq = parentFq == null ? selfFq : parentFq + " AND " + selfFq;
+
+            Map<String, Object> itemMap = new HashMap<>();
+            itemMap.put("label", key);
+            itemMap.put("count", bucket.docCount());
+            itemMap.put("fieldValue", key);
+            itemMap.put("fq", compoundFq);
+
+            if (hasChildLevel) {
+                List<StringTermsBucket> childBuckets = extractChildBuckets(bucket, depth + 1);
+                if (!childBuckets.isEmpty()) {
+                    List<Map<String, Object>> children = extractHierarchicalFacetItems(childBuckets, levels, depth + 1, compoundFq);
+                    if (!children.isEmpty()) {
+                        itemMap.put("children", children);
+                    }
+                }
+            }
+            items.add(itemMap);
+        }
+
+        if (promotedMissing) {
+            items.sort((a, b) -> Long.compare(((Number) b.get("count")).longValue(), ((Number) a.get("count")).longValue()));
+        }
+
+        return items;
     }
 
 
