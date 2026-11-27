@@ -79,6 +79,11 @@ public class TaxonUpdateService {
             return false;
         }
 
+        if (!taxonUpdateRunner.buildOccurrenceCountCache()) {
+            logService.log(taskType, "Occurrence count cache failed");
+            return false;
+        }
+
         logService.log(taskType, "Start update for occurrences count and images");
 
         acceptedConceptName = new HashMap<>();

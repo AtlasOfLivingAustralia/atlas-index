@@ -47,7 +47,9 @@ import static org.mockito.Mockito.*;
 /**
  * Integration test for {@link V2Controller} endpoints not covered elsewhere.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "collections.sourceUrl=https://collections-source.example.org")
 public class V2ControllerIntegrationTest extends AbstractIntegrationTestContainers {
 
     @MockBean
@@ -83,8 +85,8 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Value("${collections.url}")
-    private String collectionsUrl;
+    @Value("${collections.sourceUrl}")
+    private String collectionsSourceUrl;
 
     @BeforeEach
     void resetMocks() {
@@ -177,9 +179,9 @@ public class V2ControllerIntegrationTest extends AbstractIntegrationTestContaine
                 });
 
         Map<String, Object> result = resp.getBody().get(0);
-        assertThat(result.get("source")).isEqualTo(collectionsUrl + "/public/show/dr31252");
+        assertThat(result.get("source")).isEqualTo(collectionsSourceUrl + "/public/show/dr31252");
         assertThat(((List<Map<String, Object>>) result.get("variantData")).get(0).get("source"))
-                .isEqualTo(collectionsUrl + "/public/show/dr3");
+                .isEqualTo(collectionsSourceUrl + "/public/show/dr3");
         assertThat(((List<Map<String, Object>>) result.get("synonymData")).get(0).get("source"))
                 .isEqualTo("https://example.org/original");
         assertThat(((List<Map<String, Object>>) result.get("identifierData")).get(0)).doesNotContainKey("source");

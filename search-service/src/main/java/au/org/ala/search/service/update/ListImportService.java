@@ -56,6 +56,12 @@ public class ListImportService {
     @Value("${lists.native-introduced}")
     private String nativeIntroduced;
 
+    @Value("${lists.native-introduced.default-place:Australia}")
+    private String nativeIntroducedDefaultPlace;
+
+    @Value("${lists.native-introduced.default-status:Introduced and invasive}")
+    private String nativeIntroducedDefaultStatus;
+
     // used to suppress duplicate error messages
     private boolean kvpError;
 
@@ -275,35 +281,15 @@ public class ListImportService {
                 favouritesCommonCounter = updatedIds.size();
             }
 
-            // The expect input and output for native/introduced is explained here
+            // The expected input and output for native/introduced is explained here:
             // https://github.com/AtlasOfLivingAustralia/atlas-index/issues/11#issuecomment-2395219841
+            // This property may contain multiple comma-separated list IDs. Jurisdiction lists use
+            // "<Place> Status" KVPs; checklist lists (for example GRIIS) contribute an
+            // Australia-wide invasive status when an item is matched by LSID.
             logService.log(taskType, "import native/introduced");
             int nativeIntroducedCounter = 0;
             if (StringUtils.isNotEmpty(nativeIntroduced)) {
-                nativeIntroducedCounter = importKvpList(
-                        Collections.singletonList(nativeIntroduced),
-                        ListBackedFields.NATIVE_INTRODUCED.field,
-                        (it -> {
-                            Map nativeIntroduced = new HashMap();
-                            for (Map<String, String> map : (List<Map<String, String>>) it.get("kvpValues")) {
-                                String key = map.get("key");
-                                String value = map.get("value");
-                                if (key.endsWith(" Status") && StringUtils.isNotEmpty(value)) {
-                                    nativeIntroduced.put(key.substring(0, key.length() - 7), value);
-                                }
-                            }
-
-                            String result = null;
-                            if (!nativeIntroduced.isEmpty()) {
-                                try {
-                                    result = new ObjectMapper().writeValueAsString(nativeIntroduced);
-                                } catch (Exception ignored) {
-                                }
-                            }
-
-                            return result;
-                        }),
-                        true, true).size();
+                nativeIntroducedCounter = importNativeIntroduced();
             }
 
             // Track the SDS list that a taxon if found within
@@ -565,6 +551,286 @@ public class ListImportService {
         return updatedIds;
     }
 
+    /**
+     * Imports native/introduced status from configured lists.
+     *
+     * @return the number of records updated
+     */
+    private int importNativeIntroduced() {
+        List<String> listIds = Arrays.stream(nativeIntroduced.split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotEmpty)
+                .distinct()
+                .toList();
+
+        if (listIds.isEmpty()) {
+            return 0;
+        }
+
+        Map<String, Map<String, String>> mergedByGuid = new HashMap<>();
+        Map<String, Set<String>> griisTaxaByRank = new HashMap<>();
+
+        for (String listId : listIds) {
+            List<Map<String, Object>> items;
+            try {
+                items = listApiService.items(listId);
+            } catch (Exception e) {
+                String message = "failed to fetch native/introduced list " + listId + ": " + e.getMessage();
+                logService.log(taskType, message);
+                log.error("failed to fetch native/introduced list {}", listId, e);
+                throw new IllegalStateException(message, e);
+            }
+
+            if (items == null) {
+                String message = "failed to fetch native/introduced list " + listId + ": null response";
+                logService.log(taskType, message);
+                throw new IllegalStateException(message);
+            }
+
+            boolean jurisdictionList = hasJurisdictionStatusColumns(items);
+
+            if (!jurisdictionList) {
+                List<Map<String, Object>> v2Items;
+                try {
+                    v2Items = listApiService.itemsV2(listId);
+                } catch (Exception e) {
+                    String message = "failed to fetch native/introduced v2 list " + listId + ": " + e.getMessage();
+                    logService.log(taskType, message);
+                    log.error("failed to fetch native/introduced v2 list {}", listId, e);
+                    throw new IllegalStateException(message, e);
+                }
+
+                for (Map<String, Object> item : v2Items) {
+                    if (item == null) {
+                        continue;
+                    }
+                    Map<String, Object> classification = (Map<String, Object>) item.get("classification");
+                    if (classification == null || !isEligibleChecklistMatch(classification)) {
+                        continue;
+                    }
+
+                    String guid = (String) classification.get("taxonConceptID");
+                    String rank = (String) classification.get("rank");
+                    if (StringUtils.isEmpty(guid) || StringUtils.isEmpty(rank)) {
+                        continue;
+                    }
+                    griisTaxaByRank.computeIfAbsent(rank, ignored -> new HashSet<>()).add(guid);
+                    Map<String, String> statusByPlace = mergedByGuid.computeIfAbsent(guid, ignored -> new TreeMap<>());
+                    mergeStatus(statusByPlace, nativeIntroducedDefaultPlace, nativeIntroducedDefaultStatus);
+                }
+                continue;
+            }
+
+            for (Map<String, Object> item : items) {
+                if (item == null) {
+                    continue;
+                }
+
+                String guid = (String) item.get("lsid");
+                if (StringUtils.isEmpty(guid)) {
+                    continue;
+                }
+
+                Map<String, String> statusByPlace = mergedByGuid.computeIfAbsent(guid, ignored -> new TreeMap<>());
+                List<Map<String, String>> kvpValues = (List<Map<String, String>>) item.get("kvpValues");
+
+                if (jurisdictionList) {
+                    if (kvpValues != null) {
+                        for (Map<String, String> kvp : kvpValues) {
+                            String key = kvp.get("key");
+                            String value = kvp.get("value");
+                            if (StringUtils.isEmpty(key) || StringUtils.isEmpty(value)) {
+                                continue;
+                            }
+
+                            String place = statusPlace(key);
+                            if (place != null) {
+                                mergeStatus(statusByPlace, place, value);
+                            }
+                        }
+                    }
+                }
+
+                if (statusByPlace.isEmpty()) {
+                    mergedByGuid.remove(guid);
+                }
+            }
+        }
+
+        Set<String> griisDescendants = elasticService.queryAcceptedTaxonGuidsForAncestors(griisTaxaByRank);
+        for (String guid : griisDescendants) {
+            Map<String, String> statusByPlace = mergedByGuid.computeIfAbsent(guid, ignored -> new TreeMap<>());
+            mergeStatus(statusByPlace, nativeIntroducedDefaultPlace, nativeIntroducedDefaultStatus);
+        }
+
+        Map<String, String> converted = new HashMap<>();
+        ObjectMapper mapper = new ObjectMapper();
+
+        for (Map.Entry<String, Map<String, String>> entry : mergedByGuid.entrySet()) {
+            try {
+                converted.put(entry.getKey(), mapper.writeValueAsString(entry.getValue()));
+            } catch (Exception e) {
+                logService.log(taskType, "failed to serialize native/introduced for " + entry.getKey() + ": " + e.getMessage());
+                log.error("failed to serialize native/introduced for {}", entry.getKey(), e);
+            }
+        }
+
+        List<String> updatedIds = setNativeIntroducedValues(converted);
+        return updatedIds.size();
+    }
+
+    private boolean isEligibleChecklistMatch(Map<String, Object> classification) {
+        Object rankIdValue = classification.get("rankID");
+        Object matchTypeValue = classification.get("matchType");
+        if (!(rankIdValue instanceof Number rankId) || !(matchTypeValue instanceof String matchType)) {
+            return false;
+        }
+
+        int rank = rankId.intValue();
+        if (rank < 6000) {
+            return false;
+        }
+
+        return switch (matchType) {
+            case "exactMatch", "canonicalMatch" -> true;
+            default -> false;
+        };
+    }
+
+    private String statusPlace(String key) {
+        if (key == null) {
+            return null;
+        }
+        String trimmed = key.trim();
+        if (trimmed.endsWith("_Status")) {
+            return trimmed.substring(0, trimmed.length() - "_Status".length()).replace('_', ' ').trim();
+        }
+        if (trimmed.endsWith(" Status")) {
+            return trimmed.substring(0, trimmed.length() - " Status".length()).trim();
+        }
+        return null;
+    }
+
+    /**
+     * Determines the place associated with a status key.
+     *
+     * @param key the status key
+     * @return the place, or null if the key does not correspond to a place
+     */
+    private boolean hasJurisdictionStatusColumns(List<Map<String, Object>> items) {
+        for (Map<String, Object> item : items) {
+            if (item == null) {
+                continue;
+            }
+            List<Map<String, String>> kvpValues = (List<Map<String, String>>) item.get("kvpValues");
+            if (kvpValues == null) {
+                continue;
+            }
+            for (Map<String, String> kvp : kvpValues) {
+                if (statusPlace(kvp.get("key")) != null) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Merges the given status into the existing status for the specified place.
+     * 
+     * @param statusByPlace the map of status by place
+     * @param place the place for which the status is being merged
+     * @param status the status to merge
+     */
+    private void mergeStatus(Map<String, String> statusByPlace, String place, String status) {
+        Set<String> statusTokens = Arrays.stream(statusByPlace.getOrDefault(place, "").concat(
+                        status == null ? "" : "," + status).split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotEmpty)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (!statusTokens.isEmpty()) {
+            statusByPlace.put(place, String.join(", ", statusTokens));
+        }
+    }
+
+    /**
+     * Sets the native/introduced status for the given taxon IDs.
+     * 
+     * @param taxonIdMap a map of taxon GUIDs to their native/introduced status
+     * @return a list of IDs that were updated
+     */
+    private List<String> setNativeIntroducedValues(Map<String, String> taxonIdMap) {
+        List<String> updatedIds = new ArrayList<>();
+        List<UpdateQuery> buffer = new ArrayList<>();
+        Map<String, String> newEntries = new HashMap<>();
+        String field = ListBackedFields.NATIVE_INTRODUCED.field;
+
+        try {
+            Map<String, String[]> existingItems = elasticService.queryItems(field + ":*", "guid", new String[]{"guid", "id", field}, -1);
+
+            for (Map.Entry<String, String> entry : taxonIdMap.entrySet()) {
+                String guid = entry.getKey();
+                if (StringUtils.isEmpty(guid)) {
+                    continue;
+                }
+
+                String[] stored = existingItems.remove(guid);
+                if (stored != null && ("[]".equals(stored[2]) || StringUtils.isEmpty(stored[2]))) {
+                    stored = null;
+                }
+
+                if (stored != null && !Objects.equals(stored[2], entry.getValue())) {
+                    Document doc = Document.create();
+                    doc.put(field, entry.getValue());
+                    buffer.add(UpdateQuery.builder(stored[1]).withDocument(doc).build());
+                    updatedIds.add(stored[1]);
+                } else if (stored == null) {
+                    newEntries.put(guid, entry.getValue());
+                }
+            }
+
+            List<String> newGuids = new ArrayList<>(newEntries.keySet());
+            int batchSize = 1000;
+            for (int start = 0; start < newGuids.size(); start += batchSize) {
+                List<String> batch = newGuids.subList(start, Math.min(start + batchSize, newGuids.size()));
+                Map<String, String> documentIds = elasticService.queryTaxonIds(batch);
+
+                for (String guid : batch) {
+                    String id = documentIds.get(guid);
+                    if (id != null) {
+                        Document doc = Document.create();
+                        doc.put(field, newEntries.get(guid));
+                        buffer.add(UpdateQuery.builder(id).withDocument(doc).build());
+                        updatedIds.add(id);
+                    } else {
+                        logService.log(taskType, "taxonId missing: " + guid);
+                    }
+                }
+            }
+
+            for (Map.Entry<String, String[]> es : existingItems.entrySet()) {
+                Document doc = Document.create();
+                doc.put(field, null);
+                buffer.add(UpdateQuery.builder(es.getValue()[1]).withDocument(doc).build());
+                updatedIds.add(es.getValue()[1]);
+            }
+
+            elasticService.updateImmediately(buffer);
+            logService.log(taskType, "finished native/introduced list, new/changed/removed:" + updatedIds.size());
+        } catch (Exception e) {
+            logService.log(taskType, "failed native/introduced list, " + e.getMessage());
+            log.error("failed native/introduced list", e);
+        }
+
+        return updatedIds;
+    }
+
+    /**
+     * Updates the search and suggest weights for the given list of IDs.
+     * 
+     * @param ids the list of IDs for which to update the weights
+     */
     void updateWeights(List<String> ids) {
         List<UpdateQuery> buffer = new ArrayList<>();
         for (String id : ids) {

@@ -83,8 +83,8 @@ public class V2Controller {
     @Value("#{'${openapi.servers}'.split(',')[0]}")
     public String baseUrl;
 
-    @Value("${collections.url}")
-    private String collectionsUrl;
+    @Value("${collections.sourceUrl:${collections.url}}")
+    private String collectionsSourceUrl;
 
     public V2Controller(ElasticService elasticService, LegacyService legacyService, AdminService adminService, AuthService authService, ElasticsearchOperations elasticsearchOperations, ConsumerQueue consumerQueue, DownloadFileStoreService downloadFileStoreService, WebService webService, ListCache listCache, CollectoryCache collectoryCache, LanguageService languageService, UserDataService userDataService, QueueDataService queueDataService, SignedUrlService signedUrlService, BroadcastQueue broadcastQueue, BannerService bannerService, HttpCacheHeaders httpCacheHeaders) {
         this.elasticService = elasticService;
@@ -242,7 +242,7 @@ public class V2Controller {
         }
         Object datasetID = item.get("datasetID");
         if (datasetID != null && collectoryCache.hasDataResource(datasetID.toString())) {
-            item.put("source", collectionsUrl.replaceAll("/$", "") + "/public/show/" + datasetID);
+            item.put("source", collectionsSourceUrl.replaceAll("/$", "") + "/public/show/" + datasetID);
         } else {
             item.remove("source");
         }

@@ -11,11 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -33,44 +29,86 @@ import java.util.Map;
 public class BiocacheApiService {
 
     final WebService webService;
-    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${biocache.url}")
     private String biocacheWsUrl;
+
+    @Value("${biocache.counts.fq:}")
+    private String biocacheCountsFq;
 
     public BiocacheApiService(WebService webService) {
         this.webService = webService;
     }
 
     /**
-     * Get counts via taxon guids.
+     * Fetch occurrence counts grouped by {@code lft} from biocache-ws, applying {@code biocache.counts.fq}
+     * (e.g. occurrenceStatus, spatiallyValid, and qualityProfile).
      *
-     * <p>If the connection to the biocache fails, then an empty map is returned.
+     * <p>Returns {@code null} if the biocache request fails so callers can abort rather than
+     * overwriting existing counts with zeros.
      *
-     * <p>A standard filter query is applied to the
-     *
-     * @param guids The list of guids to get
-     * @return A map of guid -> count
+     * @return A map of {@code lft -> count} (positive counts only), or {@code null} on error
      */
-    public Map<String, Integer> counts(List<String> guids) {
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>(2);
-        map.add("guids", StringUtils.join(guids, ","));
-        map.add("separator", ",");
-
-        // Performance: Switch to use an occurrences/search query to retrieve the entire facet and counts for the lft
-        //  field. Then use lsid-left-right.csv to determine the actual counts for the guids.
-        //  e.g. occurrences/search?q=lft:*&facets=lft&pageSize=0&flimit=-1, sort lft, and
-        //  then count the returned facet occurrence value for the lft/rgt range of a given lsid.
-        ResponseEntity<Map> response = restTemplate.exchange(
-                biocacheWsUrl + "/occurrences/taxaCount",
-                HttpMethod.POST,
-                new HttpEntity<>(map, new HttpHeaders()),
-                Map.class);
-
-        if (response.getStatusCode() == HttpStatus.OK) {
-            return (Map<String, Integer>) response.getBody();
+    public Map<Integer, Long> getLftCounts() {
+        String url = biocacheWsUrl + "/occurrences/search?q=lft:*"
+                + (StringUtils.isNotEmpty(biocacheCountsFq) ? biocacheCountsFq : "")
+                + "&facets=lft&pageSize=0&flimit=-1";
+        Map resp = webService.get(url, null, ContentType.APPLICATION_JSON, false, false, null);
+        if (resp == null || !Integer.valueOf(200).equals(resp.get("statusCode"))) {
+            log.error("Failed to get biocache lft counts for url: {}, statusCode: {}",
+                    url, resp != null ? resp.get("statusCode") : "null");
+            return null;
         }
-        return null;
+
+        Map<Integer, Long> result = new HashMap<>();
+        Map body = (Map) resp.get("resp");
+        if (body == null) {
+            log.error("Empty body returned for biocache lft counts url: {}", url);
+            return null;
+        }
+
+        Object totalRecordsObj = body.get("totalRecords");
+        boolean confirmedZeroRecords = totalRecordsObj instanceof Number && ((Number) totalRecordsObj).longValue() == 0L;
+
+        List facetResults = (List) body.get("facetResults");
+        if (facetResults == null || facetResults.isEmpty()) {
+            if (confirmedZeroRecords) {
+                log.warn("No lft facet results found (totalRecords=0) for url: {}", url);
+                return result;
+            }
+            log.error("Incomplete biocache lft counts response (missing facetResults, totalRecords={}) for url: {}",
+                    totalRecordsObj, url);
+            return null;
+        }
+
+        Map firstFacet = (Map) facetResults.get(0);
+        List fieldResult = firstFacet != null ? (List) firstFacet.get("fieldResult") : null;
+        if (fieldResult == null || fieldResult.isEmpty()) {
+            if (confirmedZeroRecords) {
+                return result;
+            }
+            log.error("Incomplete biocache lft counts response (missing fieldResult, totalRecords={}) for url: {}",
+                    totalRecordsObj, url);
+            return null;
+        }
+
+        for (Object item : fieldResult) {
+            Map<String, Object> map = (Map<String, Object>) item;
+            Object label = map.get("label");
+            Object count = map.get("count");
+            if (label != null && count instanceof Number) {
+                try {
+                    int lft = Integer.parseInt(label.toString().trim());
+                    long c = ((Number) count).longValue();
+                    if (c > 0) {
+                        result.put(lft, c);
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        return result;
     }
 
     public Map getSpeciesImages() {

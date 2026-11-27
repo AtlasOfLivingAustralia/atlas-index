@@ -68,7 +68,7 @@ class TaxonUpdateServiceIntegrationTest extends AbstractIntegrationTestContainer
         when(biocacheApiService.getFacet(anyString(), isNull(), eq("lft"))).thenReturn(List.of("100"));
         when(biocacheApiService.getFacet(anyString(), anyString(), eq("lft"))).thenReturn(List.of("100"));
         when(biocacheApiService.queryImages(anyString(), any())).thenReturn(new String[]{"image1"});
-        when(biocacheApiService.counts(anyList())).thenReturn(Map.of(ACCEPTED_GUID, 42));
+        when(biocacheApiService.getLftCounts()).thenReturn(Map.of(100, 30L, 150, 12L));
     }
 
     @Test

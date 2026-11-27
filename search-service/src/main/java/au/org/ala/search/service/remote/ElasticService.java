@@ -300,6 +300,73 @@ public class ElasticService {
         return guidToId;
     }
 
+    /**
+     * Find accepted taxa whose denormalized classification includes the supplied ancestor GUIDs.
+     * Keys are normalized taxon ranks (for example "genus" or "subspecies").
+     */
+    public Set<String> queryAcceptedTaxonGuidsForAncestors(Map<String, Set<String>> ancestorsByRank) {
+        Set<String> guids = new HashSet<>();
+        int termsBatchSize = 1000;
+        int pageSize = elasticPageSize;
+
+        if (ancestorsByRank.isEmpty()) {
+            return guids;
+        }
+
+        String pit = null;
+        try {
+            pit = openPointInTime();
+            List<FieldAndFormat> fields = List.of(new FieldAndFormat.Builder().field("guid").build());
+
+            for (Map.Entry<String, Set<String>> entry : ancestorsByRank.entrySet()) {
+                String rankField = "rkid_" + entry.getKey().toLowerCase().replaceAll("[^a-z]", "_");
+                List<String> ancestors = new ArrayList<>(entry.getValue());
+
+                for (int start = 0; start < ancestors.size(); start += termsBatchSize) {
+                    List<String> batch = ancestors.subList(start, Math.min(start + termsBatchSize, ancestors.size()));
+                    co.elastic.clients.elasticsearch._types.query_dsl.Query query =
+                            co.elastic.clients.elasticsearch._types.query_dsl.Query.of(q -> q.bool(b -> {
+                                b.filter(f -> f.term(t -> t.field("idxtype").value("TAXON")));
+                                b.filter(f -> f.terms(t -> t.field(rankField).terms(ts -> ts.value(
+                                        batch.stream().map(FieldValue::of).toList()))));
+                                b.filter(f -> f.bool(n -> n.mustNot(m -> m.exists(e -> e.field("acceptedConceptID")))));
+                                return b;
+                            }));
+
+                    List<FieldValue> searchAfter = null;
+                    while (true) {
+                        SearchResponse<SearchItemIndex> response = queryPointInTimeAfter(
+                                pit, searchAfter, pageSize, query, fields, null, false);
+                        List<Hit<SearchItemIndex>> hits = response.hits().hits();
+                        for (Hit<SearchItemIndex> hit : hits) {
+                            JsonData guid = hit.fields().get("guid");
+                            if (guid != null && !guid.toJson().asJsonArray().isEmpty()) {
+                                guids.add(guid.toJson().asJsonArray().getString(0));
+                            }
+                        }
+
+                        if (hits.size() < pageSize) {
+                            break;
+                        }
+                        searchAfter = hits.getLast().sort();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to query accepted descendants for taxon ancestors", e);
+        } finally {
+            if (pit != null) {
+                try {
+                    closePointInTime(pit);
+                } catch (IOException e) {
+                    log.error("Failed to close Elasticsearch point in time for GRIIS descendants", e);
+                }
+            }
+        }
+
+        return guids;
+    }
+
     // This retrieves the document id for the guid. It will be idxtype TAXON and not have an acceptedConceptID.
     public String queryTaxonId(String guid) {
         Query query = NativeQuery.builder()
