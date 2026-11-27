@@ -404,7 +404,19 @@ public class QueryParserUtilTest {
             assertEquals(1, op.terms.size(), "Expected single term for fq: " + fq);
             assertEquals("kingdom", op.terms.get(0).field);
             assertEquals(original, op.terms.get(0).value, "Round-trip mismatch for fq: " + fq);
+            assertTrue(op.terms.get(0).quoted, "Expected quoted=true for fq: " + fq);
         }
+    }
+
+    @Test
+    public void testQuotedFlagDistinguishesLiteralFromUnquotedWildcard() {
+        Op quotedWildcard = QueryParserUtil.parse("kingdom:\"sp?*\"", KNOWN_FIELDS);
+        assertTrue(quotedWildcard.terms.get(0).quoted);
+        assertEquals("sp?*", quotedWildcard.terms.get(0).value);
+
+        Op unquotedWildcard = QueryParserUtil.parse("kingdom:Anim*", KNOWN_FIELDS);
+        assertFalse(unquotedWildcard.terms.get(0).quoted);
+        assertEquals("Anim*", unquotedWildcard.terms.get(0).value);
     }
 }
 

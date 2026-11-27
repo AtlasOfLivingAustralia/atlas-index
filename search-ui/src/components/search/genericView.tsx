@@ -294,7 +294,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
     }
 
     const refineResults = <>
-        {(loading || maxResults > 0) && queryString && facets.length + customFacetData.length > 0 && (
+        {(loading || maxResults > 0 || facetFqs.length > 0) && queryString && facets.length + customFacetData.length > 0 && (
             <div>
                     <span className={classes.refineTitle}>
                         Refine results
@@ -373,7 +373,7 @@ function GenericView({queryString, props, isMobile,}: GenericProps) {
         )}
 
         <div className="row" style={{ marginLeft: '0px', marginRight: '0px' }}>
-            {isMobile && maxResults > 0 ? (queryString && (
+            {isMobile && (maxResults > 0 || facetFqs.length > 0) ? (queryString && (
                 <div style={{marginBottom: '30px'}}>
                     <button onClick={() => setShowRefineDialog(true)} className={'ala-btn-secondary'}
                             style={{width: '100%'}}>

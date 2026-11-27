@@ -1884,7 +1884,7 @@ public class ElasticService {
         }
     }
 
-    private co.elastic.clients.elasticsearch._types.query_dsl.Query termToQuery(Term term, boolean negated) {
+    co.elastic.clients.elasticsearch._types.query_dsl.Query termToQuery(Term term, boolean negated) {
         if (!negated && term.negate) {
             return BoolQuery.of(bq -> {
                 bq.mustNot(termToQuery(term, true));
@@ -1928,9 +1928,9 @@ public class ElasticService {
                             return mq;
                         })._toQuery()
                 ).tieBreaker(0.0))._toQuery();
-            } else if ("*".equals(term.value)) {
+            } else if (!term.quoted && "*".equals(term.value)) {
                 return ExistsQuery.of(eq -> eq.field(term.field))._toQuery();
-            } else if (isWildcardValue(term.value)) {
+            } else if (!term.quoted && isWildcardValue(term.value)) {
                 return WildcardQuery.of(wq -> wq.field(term.field).value(term.value))._toQuery();
             } else if (term.rangeFrom != null || term.rangeTo != null) {
                 final String from = term.rangeFrom;

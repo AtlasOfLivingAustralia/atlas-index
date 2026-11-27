@@ -384,7 +384,12 @@ export const speciesDefn: GenericViewProps = {
     },
 
     addCustomFacetsFn: ({url, thisFacetFqs, setCustomFacetData}: CustomFacetFn) => {
-        fetch(url + '&fq=image:*')
+        const parsedUrl = new URL(url, window.location.origin);
+        parsedUrl.searchParams.delete('facets');
+        parsedUrl.searchParams.set('pageSize', '0');
+        const countUrl = parsedUrl.toString();
+
+        fetch(countUrl + '&fq=image:*')
             .then((response) => response.json())
             .then((data) => {
                 let items: any[] = [];
@@ -399,7 +404,7 @@ export const speciesDefn: GenericViewProps = {
                     });
                 }
 
-                fetch(url + '&fq=speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
+                fetch(countUrl + '&fq=speciesList:' + import.meta.env.VITE_APP_ICONIC_SPECIES_LIST)
                     .then((response) => response.json())
                     .then((data) => {
                         if (data.totalRecords > 0) {
@@ -412,7 +417,7 @@ export const speciesDefn: GenericViewProps = {
                             });
                         }
 
-                        fetch(url + '&fq=hasIekName:*')
+                        fetch(countUrl + '&fq=hasIekName:*')
                             .then((response) => response.json())
                             .then((data) => {
                                 let iekItems: any[] = [];

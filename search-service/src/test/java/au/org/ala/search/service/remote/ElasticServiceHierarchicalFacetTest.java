@@ -7,11 +7,14 @@
 package au.org.ala.search.service.remote;
 
 import au.org.ala.search.model.dto.IndexedField;
+import au.org.ala.search.model.query.Op;
+import au.org.ala.search.util.QueryParserUtil;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
 import co.elastic.clients.elasticsearch._types.aggregations.LongTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -144,6 +147,37 @@ class ElasticServiceHierarchicalFacetTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).doesNotContainKey("children");
+    }
+
+    @Test
+    void termToQuery_treatsQuotedWildcardsAsLiteralTermAndUnquotedAsWildcardOrExists() {
+        ElasticService service = new ElasticService(null, null, null, null);
+
+        Op quotedStar = QueryParserUtil.parse("rk_order:\"*\"", f -> true);
+        Query quotedStarQuery = service.termToQuery(quotedStar.terms.get(0), false);
+        assertThat(quotedStarQuery.isExists()).isFalse();
+        assertThat(quotedStarQuery.isWildcard()).isFalse();
+        assertThat(quotedStarQuery.isMatchPhrase()).isTrue();
+        assertThat(quotedStarQuery.matchPhrase().query()).isEqualTo("*");
+
+        Op quotedQuestion = QueryParserUtil.parse("rk_order:\"Incertae sedis?\"", f -> true);
+        Query quotedQuestionQuery = service.termToQuery(quotedQuestion.terms.get(0), false);
+        assertThat(quotedQuestionQuery.isWildcard()).isFalse();
+        assertThat(quotedQuestionQuery.isMatchPhrase()).isTrue();
+        assertThat(quotedQuestionQuery.matchPhrase().query()).isEqualTo("Incertae sedis?");
+
+        Op quotedKeywordStar = QueryParserUtil.parse("speciesGroup:\"*\"", f -> true);
+        Query quotedKeywordStarQuery = service.termToQuery(quotedKeywordStar.terms.get(0), false);
+        assertThat(quotedKeywordStarQuery.isTerm()).isTrue();
+        assertThat(quotedKeywordStarQuery.term().value().stringValue()).isEqualTo("*");
+
+        Op unquotedStar = QueryParserUtil.parse("rk_order:*", f -> true);
+        Query unquotedStarQuery = service.termToQuery(unquotedStar.terms.get(0), false);
+        assertThat(unquotedStarQuery.isExists()).isTrue();
+
+        Op unquotedWildcard = QueryParserUtil.parse("rk_order:Dip*", f -> true);
+        Query unquotedWildcardQuery = service.termToQuery(unquotedWildcard.terms.get(0), false);
+        assertThat(unquotedWildcardQuery.isWildcard()).isTrue();
     }
 
     private static StringTermsBucket bucket(String key, long docCount, Map<String, Aggregate> subAggs) {

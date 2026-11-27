@@ -116,6 +116,7 @@ public class QueryParserUtil {
                 } else if ("\"".equals(token)) {
                     inString = false;
                     currentTerm.value = currentString;
+                    currentTerm.quoted = true;
                     currentOp.terms.add(currentTerm);
                     currentTerm = new Term();
                 } else {
